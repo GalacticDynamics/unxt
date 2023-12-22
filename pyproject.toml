@@ -131,6 +131,7 @@ ignore = [
   "ANN101",   # Missing type annotation for `self` in method
   "ANN401",   # Dynamically typed expressions (typing.Any) are disallowed
   "ARG001",   # Unused function argument  # TODO: resolve
+  "COM812",   # <- for ruff.format
   "D103",     # Missing docstring in public function  # TODO: resolve
   "D105",     # Missing docstring in magic method
   "D203",     # 1 blank line required before class docstring

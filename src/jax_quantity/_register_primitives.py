@@ -32,9 +32,7 @@ def register(primitive: jax.core.Primitive) -> Callable[[T], T]:
 
 def _to_value_rad_or_one(q: Quantity) -> ArrayLike:
     return (
-        q.to_value(radian)
-        if can_convert(q.unit, radian)
-        else q.to_value(dimensionless)
+        q.to_value(radian) if can_convert(q.unit, radian) else q.to_value(dimensionless)
     )
 
 
