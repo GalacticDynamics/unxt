@@ -388,7 +388,7 @@ def _convert_element_type_p(
 
 @register(lax.copy_p)
 def _copy_p(x: Quantity) -> Quantity:
-    return replace(x, value=lax.copy_p.bind(x.value))  # type: ignore[no-untyped-call]
+    return replace(x, value=lax.copy_p.bind(x.value))
 
 
 # ==============================================================================

@@ -115,6 +115,7 @@ warn_return_any = false
       "astropy.units.*",
       "equinox.*",
       "jax.*",
+      "jaxtyping.*",
       "quax.*",
     ]
     ignore_missing_imports = true

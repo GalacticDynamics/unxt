@@ -35,7 +35,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
         raise RuntimeError(msg)
 
     def aval(self) -> jax.core.ShapedArray:
-        return jax.core.get_aval(self.value)  # type: ignore[no-untyped-call]
+        return jax.core.get_aval(self.value)
 
     def enable_materialise(self, _: bool = True) -> Self:  # noqa: FBT001, FBT002
         return type(self)(self.value, self.unit)
