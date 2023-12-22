@@ -17,7 +17,7 @@ def dispatcher(f: T) -> T:  # TODO: figure out mypy stub issue.
 
 @dispatcher
 def empty_like(x: Quantity, /, *, dtype: Any = None, device: Any = None) -> Quantity:
-    out = Quantity(jnp.empty_like(x.value, dtype=dtype), units=x.units)
+    out = Quantity(jnp.empty_like(x.value, dtype=dtype), units=x.unit)
     return jax.device_put(out, device=device)
 
 
@@ -30,17 +30,17 @@ def full_like(
     dtype: Any = None,
     device: Any = None,
 ) -> Quantity:
-    out = Quantity(jnp.full_like(x.value, fill_value, dtype=dtype), units=x.units)
+    out = Quantity(jnp.full_like(x.value, fill_value, dtype=dtype), units=x.unit)
     return jax.device_put(out, device=device)
 
 
 @dispatcher
 def ones_like(x: Quantity, /, *, dtype: Any = None, device: Any = None) -> Quantity:
-    out = Quantity(jnp.ones_like(x.value, dtype=dtype), units=x.units)
+    out = Quantity(jnp.ones_like(x.value, dtype=dtype), units=x.unit)
     return jax.device_put(out, device=device)
 
 
 @dispatcher
 def zeros_like(x: Quantity, /, *, dtype: Any = None, device: Any = None) -> Quantity:
-    out = Quantity(jnp.zeros_like(x.value, dtype=dtype), units=x.units)
+    out = Quantity(jnp.zeros_like(x.value, dtype=dtype), units=x.unit)
     return jax.device_put(out, device=device)

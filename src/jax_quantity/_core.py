@@ -20,7 +20,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     """Represents an array, with each axis bound to a name."""
 
     value: jax.Array = eqx.field(converter=jax.numpy.asarray)
-    units: Unit = eqx.field(static=True, converter=Unit)
+    unit: Unit = eqx.field(static=True, converter=Unit)
 
     # ===============================================================
     # Quax
@@ -38,18 +38,18 @@ class Quantity(ArrayValue):  # type: ignore[misc]
         return jax.core.get_aval(self.value)  # type: ignore[no-untyped-call]
 
     def enable_materialise(self, _: bool = True) -> Self:  # noqa: FBT001, FBT002
-        return type(self)(self.value, self.units)
+        return type(self)(self.value, self.unit)
 
     # ===============================================================
     # Quantity
 
-    def to_units(self, units: Unit) -> "Quantity":
-        return type(self)(self.value * self.units.to(units), units)
+    def to(self, units: Unit) -> "Quantity":
+        return type(self)(self.value * self.unit.to(units), units)
 
-    def to_units_value(self, units: Unit) -> ArrayLike:
-        if units == self.units:
+    def to_value(self, units: Unit) -> ArrayLike:
+        if units == self.unit:
             return self.value
-        return self.value * self.units.to(units)
+        return self.value * self.unit.to(units)
 
     def __getitem__(self, key: Any) -> "Quantity":
         return replace(self, value=self.value[key])
