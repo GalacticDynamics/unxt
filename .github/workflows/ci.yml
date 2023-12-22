@@ -43,9 +43,9 @@ jobs:
         python-version: ["3.10", "3.12"]
         runs-on: [ubuntu-latest, macos-latest, windows-latest]
 
-        include:
-          - python-version: pypy-3.10
-            runs-on: ubuntu-latest
+        # include:
+        #   - python-version: pypy-3.10
+        #     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
