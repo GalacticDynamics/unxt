@@ -1,0 +1,12 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: 2023.12.21
+_src_path: gh:scientific-python/cookie
+backend: hatch
+email: nstarman@users.noreply.github.com
+full_name: Nathaniel Starkman
+license: BSD
+org: GalacticDynamics
+project_name: jax-quantity
+project_short_description: Quantities in JAX
+url: https://github.com/GalacticDynamics/jax-quantity
+vcs: true

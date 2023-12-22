@@ -1,0 +1,169 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "jax-quantity"
+authors = [
+  { name = "Nathaniel Starkman", email = "nstarman@users.noreply.github.com" },
+]
+description = "Quantities in JAX"
+readme = "README.md"
+license.file = "LICENSE"
+requires-python = ">=3.10"
+classifiers = [
+  "Development Status :: 1 - Planning",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: BSD License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+  "Typing :: Typed",
+]
+dynamic = ["version"]
+dependencies = [
+  "array_api_jax_compat @ git+https://github.com/GalacticDynamics/array-api-jax-compat.git",
+  "astropy",
+  "equinox",
+  "jax",
+  "jaxlib",
+  "jaxtyping",
+  "quax",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest >=6",
+  "pytest-cov >=3",
+]
+dev = [
+  "pytest >=6",
+  "pytest-cov >=3",
+]
+docs = [
+  "sphinx>=7.0",
+  "myst_parser>=0.13",
+  "sphinx_copybutton",
+  "sphinx_autodoc_typehints",
+  "furo>=2023.08.17",
+]
+
+[project.urls]
+Homepage = "https://github.com/GalacticDynamics/jax-quantity"
+"Bug Tracker" = "https://github.com/GalacticDynamics/jax-quantity/issues"
+Discussions = "https://github.com/GalacticDynamics/jax-quantity/discussions"
+Changelog = "https://github.com/GalacticDynamics/jax-quantity/releases"
+
+
+[tool.hatch]
+version.source = "vcs"
+build.hooks.vcs.version-file = "src/jax_quantity/_version.py"
+metadata.allow-direct-references = true
+
+
+[tool.hatch.env.default]
+features = ["test"]
+scripts.test = "pytest {args}"
+
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
+xfail_strict = true
+filterwarnings = [
+  "error",
+]
+log_cli_level = "INFO"
+testpaths = [
+  "tests",
+]
+
+
+[tool.coverage]
+run.source = ["jax_quantity"]
+report.exclude_also = [
+  '\.\.\.',
+  'if typing.TYPE_CHECKING:',
+]
+
+[tool.mypy]
+files = ["src", "tests"]
+python_version = "3.10"
+warn_unused_configs = true
+strict = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+warn_unreachable = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+warn_return_any = false
+
+  [[tool.mypy.overrides]]
+  module = "jax_quantity.*"
+  disallow_untyped_defs = true
+  disallow_incomplete_defs = true
+
+  [[tool.mypy.overrides]]
+    module = [
+      "array_api_jax_compat._dispatch.*",  # TODO: resolve
+      "astropy.units.*",
+      "equinox.*",
+      "jax.*",
+      "quax.*",
+    ]
+    ignore_missing_imports = true
+
+
+
+[tool.ruff]
+src = ["src"]
+
+[tool.ruff.lint]
+extend-select = ["ALL"]
+ignore = [
+  "A002",     # Argument is shadowing a Python builtin
+  "ANN101",   # Missing type annotation for `self` in method
+  "ANN401",   # Dynamically typed expressions (typing.Any) are disallowed
+  "ARG001",   # Unused function argument  # TODO: resolve
+  "D103",     # Missing docstring in public function  # TODO: resolve
+  "D105",     # Missing docstring in magic method
+  "D203",     # 1 blank line required before class docstring
+  "D213",     # Multi-line docstring summary should start at the second line
+  "FIX002",   # Line contains TODO
+  "ISC001",   # Conflicts with formatter
+  "PLR09",    # Too many <...>
+  "PLR2004",  # Magic value used in comparison
+  "PYI041",    # Use `complex` instead of `int | complex` <- plum is more strict
+  "TD002",    # Missing author in TODO
+  "TD003",    # Missing issue link on the line following this TODO
+]
+# Uncomment if using a _compat.typing backport
+# typing-modules = ["jax_quantity._compat.typing"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F403"]
+"docs/conf.py" = ["A001", "INP001"]
+"tests/**" = ["ANN", "S101", "T20"]
+"noxfile.py" = ["T20"]
+
+
+[tool.pylint]
+py-version = "3.10"
+ignore-paths = [".*/_version.py"]
+reports.output-format = "colorized"
+similarities.ignore-imports = "yes"
+messages_control.disable = [
+  "design",
+  "fixme",
+  "line-too-long",
+  "missing-function-docstring",  # TODO: resolve
+  "missing-module-docstring",
+  "redefined-builtin",  # handled by ruff
+  "wrong-import-position",
+]
