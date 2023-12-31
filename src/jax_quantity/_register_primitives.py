@@ -53,7 +53,7 @@ def _abs_p(x: Quantity) -> Quantity:
 @register(lax.acos_p)
 def _acos_p(x: Quantity) -> Quantity:
     v = x.to_value(dimensionless)
-    return Quantity(value=lax.acos(v), units=radian)
+    return Quantity(value=lax.acos(v), unit=radian)
 
 
 # ==============================================================================
@@ -62,7 +62,7 @@ def _acos_p(x: Quantity) -> Quantity:
 @register(lax.acosh_p)
 def _acosh_p(x: Quantity) -> Quantity:
     v = x.to_value(dimensionless)
-    return Quantity(value=lax.acosh(v), units=radian)
+    return Quantity(value=lax.acosh(v), unit=radian)
 
 
 # ==============================================================================
@@ -73,7 +73,7 @@ def _acosh_p(x: Quantity) -> Quantity:
 def _add_p_qq(x: Quantity, y: Quantity) -> Quantity:
     return Quantity(
         lax.add(x.to_value(x.unit), y.to_value(x.unit)),
-        units=x.unit,
+        unit=x.unit,
     )
 
 
@@ -132,7 +132,7 @@ def _and_p(x1: Quantity, x2: Quantity, /) -> Quantity:
     # IDK what to do about non-dimensionless quantities.
     if x1.unit != dimensionless or x2.unit != dimensionless:
         raise NotImplementedError
-    return Quantity(x1.value & x2.value, units=dimensionless)
+    return Quantity(x1.value & x2.value, unit=dimensionless)
 
 
 # ==============================================================================
@@ -181,19 +181,19 @@ def _asinh_p(x: Quantity) -> Quantity:
 @register(lax.atan2_p)
 def _atan2_p(x: Quantity, y: Quantity) -> Quantity:
     y_ = y.to_value(x.unit)
-    return Quantity(lax.atan2(x.value, y_), units=radian)
+    return Quantity(lax.atan2(x.value, y_), unit=radian)
 
 
 @register(lax.atan2_p)
 def _atan2_p_vq(x: Value, y: Quantity) -> Quantity:
     y_ = y.to_value(dimensionless)
-    return Quantity(lax.atan2(x, y_), units=radian)
+    return Quantity(lax.atan2(x, y_), unit=radian)
 
 
 @register(lax.atan2_p)
 def _atan2_p_qv(x: Quantity, y: Value) -> Quantity:
     x_ = x.to_value(dimensionless)
-    return Quantity(lax.atan2(x_, y), units=radian)
+    return Quantity(lax.atan2(x_, y), unit=radian)
 
 
 # ==============================================================================
@@ -201,7 +201,7 @@ def _atan2_p_qv(x: Quantity, y: Value) -> Quantity:
 
 @register(lax.atan_p)
 def _atan_p(x: Quantity) -> Quantity:
-    return Quantity(lax.atan(x.to_value(dimensionless)), units=radian)
+    return Quantity(lax.atan(x.to_value(dimensionless)), unit=radian)
 
 
 # ==============================================================================
@@ -209,7 +209,7 @@ def _atan_p(x: Quantity) -> Quantity:
 
 @register(lax.atanh_p)
 def _atanh_p(x: Quantity) -> Quantity:
-    return Quantity(lax.atanh(x.to_value(dimensionless)), units=radian)
+    return Quantity(lax.atanh(x.to_value(dimensionless)), unit=radian)
 
 
 # ==============================================================================
@@ -265,7 +265,7 @@ def _broadcast_in_dim_p(
 
 @register(lax.cbrt_p)
 def _cbrt_p(x: Quantity) -> Quantity:
-    return Quantity(lax.cbrt(x.value), units=x.unit ** (1 / 3))
+    return Quantity(lax.cbrt(x.value), unit=x.unit ** (1 / 3))
 
 
 # ==============================================================================
@@ -326,7 +326,7 @@ def _clz_p() -> Quantity:
 @register(lax.complex_p)
 def _complex_p(x: Quantity, y: Quantity) -> Quantity:
     y_ = y.to_value(x.unit)
-    return Quantity(lax.complex(x.value, y_), units=x.unit)
+    return Quantity(lax.complex(x.value, y_), unit=x.unit)
 
 
 # ==============================================================================
@@ -340,7 +340,7 @@ def _concatenate_p(*operands: Quantity, dimension: Any) -> Quantity:
             [op.to_value(units) for op in operands],
             dimension=dimension,
         ),
-        units=units,
+        unit=units,
     )
 
 
@@ -396,7 +396,7 @@ def _copy_p(x: Quantity) -> Quantity:
 
 @register(lax.cos_p)
 def _cos_p(x: Quantity) -> Quantity:
-    return Quantity(lax.cos(_to_value_rad_or_one(x)), units=dimensionless)
+    return Quantity(lax.cos(_to_value_rad_or_one(x)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -404,7 +404,7 @@ def _cos_p(x: Quantity) -> Quantity:
 
 @register(lax.cosh_p)
 def _cosh_p(x: Quantity) -> Quantity:
-    return Quantity(lax.cosh(_to_value_rad_or_one(x)), units=dimensionless)
+    return Quantity(lax.cosh(_to_value_rad_or_one(x)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -479,7 +479,7 @@ def _digamma_p(x: Quantity) -> Quantity:
         msg = "TODO: implement the result units for `digamma`."
         raise NotImplementedError(msg)
 
-    return Quantity(lax.digamma(x.value), units=dimensionless)
+    return Quantity(lax.digamma(x.value), unit=dimensionless)
 
 
 # ==============================================================================
@@ -489,17 +489,17 @@ def _digamma_p(x: Quantity) -> Quantity:
 @register(lax.div_p)
 def _div_p_qq(x: Quantity, y: Quantity) -> Quantity:
     units = Unit(x.unit / y.unit)
-    return Quantity(lax.div(x.value, y.value), units=units)
+    return Quantity(lax.div(x.value, y.value), unit=units)
 
 
 @register(lax.div_p)
 def _div_p_vq(x: Value, y: Quantity) -> Quantity:
-    return Quantity(lax.div(x, y.value), units=1 / y.unit)
+    return Quantity(lax.div(x, y.value), unit=1 / y.unit)
 
 
 @register(lax.div_p)
 def _div_p_qv(x: Quantity, y: Value) -> Quantity:
-    return Quantity(lax.div(x.value, y), units=x.unit)
+    return Quantity(lax.div(x.value, y), unit=x.unit)
 
 
 # ==============================================================================
@@ -537,20 +537,20 @@ def _dynamic_update_slice_p() -> Quantity:
 
 @register(lax.eq_p)
 def _eq_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.eq(x.value, y.to_value(x.unit)), units=dimensionless)
+    return Quantity(lax.eq(x.value, y.to_value(x.unit)), unit=dimensionless)
 
 
 @register(lax.eq_p)
 def _eq_p_vq(x: ArrayValue, y: Quantity) -> Quantity:
-    return Quantity(lax.eq(x, y.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.eq(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.eq_p)
 def _eq_p_qv(x: Quantity, y: ArrayValue) -> Quantity:
     # special-case for all-0 values
     if jnp.all(y.array == 0) or jnp.all(jnp.isinf(y.array)):
-        return Quantity(lax.eq(x.value, y), units=dimensionless)
-    return Quantity(lax.eq(x.to_value(dimensionless), y), units=dimensionless)
+        return Quantity(lax.eq(x.value, y), unit=dimensionless)
+    return Quantity(lax.eq(x.to_value(dimensionless), y), unit=dimensionless)
 
 
 # ==============================================================================
@@ -567,7 +567,7 @@ def _eq_to_p() -> Quantity:
 @register(lax.erf_inv_p)
 def _erf_inv_p(x: Quantity) -> Quantity:
     # TODO: can this support non-dimensionless quantities?
-    return Quantity(lax.erf_inv(x.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.erf_inv(x.to_value(dimensionless)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -576,7 +576,7 @@ def _erf_inv_p(x: Quantity) -> Quantity:
 @register(lax.erf_p)
 def _erf_p(x: Quantity) -> Quantity:
     # TODO: can this support non-dimensionless quantities?
-    return Quantity(lax.erf(x.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.erf(x.to_value(dimensionless)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -585,7 +585,7 @@ def _erf_p(x: Quantity) -> Quantity:
 @register(lax.erfc_p)
 def _erfc_p(x: Quantity) -> Quantity:
     # TODO: can this support non-dimensionless quantities?
-    return Quantity(lax.erfc(x.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.erfc(x.to_value(dimensionless)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -593,7 +593,7 @@ def _erfc_p(x: Quantity) -> Quantity:
 
 @register(lax.exp2_p)
 def _exp2_p(x: Quantity) -> Quantity:
-    return Quantity(lax.exp2(x.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.exp2(x.to_value(dimensionless)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -602,7 +602,7 @@ def _exp2_p(x: Quantity) -> Quantity:
 @register(lax.exp_p)
 def _exp_p(x: Quantity) -> Quantity:
     # TODO: more meaningful error message.
-    return Quantity(lax.exp(x.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.exp(x.to_value(dimensionless)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -610,7 +610,7 @@ def _exp_p(x: Quantity) -> Quantity:
 
 @register(lax.expm1_p)
 def _expm1_p(x: Quantity) -> Quantity:
-    return Quantity(lax.expm1(x.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.expm1(x.to_value(dimensionless)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -621,7 +621,7 @@ def _fft_p(x: Quantity, *, fft_type: Any, fft_lengths: Any) -> Quantity:
     # TODO: what units can this support?
     return Quantity(
         lax.fft(x.to_value(dimensionless), fft_type, fft_lengths),
-        units=dimensionless,
+        unit=dimensionless,
     )
 
 
@@ -646,22 +646,22 @@ def _gather_p() -> Quantity:
 
 @register(lax.ge_p)
 def _ge_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.ge(x.value, y.to_value(x.unit)), units=dimensionless)
+    return Quantity(lax.ge(x.value, y.to_value(x.unit)), unit=dimensionless)
 
 
 @register(lax.ge_p)
 def _ge_p_vq(x: Value, y: Quantity) -> Quantity:
-    return Quantity(lax.ge(x, y.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.ge(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.ge_p)
 def _ge_p_qv(x: Quantity, y: Value) -> Quantity:
-    return Quantity(lax.ge(x.to_value(dimensionless), y), units=dimensionless)
+    return Quantity(lax.ge(x.to_value(dimensionless), y), unit=dimensionless)
 
 
 @register(lax.ge_p)
 def _ge_p_qi(x: Quantity, y: int) -> Quantity:
-    return Quantity(lax.ge(x.to_value(dimensionless), y), units=dimensionless)
+    return Quantity(lax.ge(x.to_value(dimensionless), y), unit=dimensionless)
 
 
 # ==============================================================================
@@ -669,22 +669,22 @@ def _ge_p_qi(x: Quantity, y: int) -> Quantity:
 
 @register(lax.gt_p)
 def _gt_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.gt(x.value, y.to_value(x.unit)), units=dimensionless)
+    return Quantity(lax.gt(x.value, y.to_value(x.unit)), unit=dimensionless)
 
 
 @register(lax.gt_p)
 def _gt_p_vq(x: Value, y: Quantity) -> Quantity:
-    return Quantity(lax.gt(x, y.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.gt(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.gt_p)
 def _gt_p_qv(x: Quantity, y: Value) -> Quantity:
-    return Quantity(lax.gt(x.to_value(dimensionless), y), units=dimensionless)
+    return Quantity(lax.gt(x.to_value(dimensionless), y), unit=dimensionless)
 
 
 @register(lax.gt_p)
 def _gt_p_qi(x: Quantity, y: int) -> Quantity:
-    return Quantity(lax.gt(x.to_value(dimensionless), y), units=dimensionless)
+    return Quantity(lax.gt(x.to_value(dimensionless), y), unit=dimensionless)
 
 
 # ==============================================================================
@@ -748,7 +748,7 @@ def _integer_pow_p(x: Quantity, *, y: Any) -> Quantity:
 
 @register(lax.is_finite_p)
 def _is_finite_p(x: Quantity) -> Quantity:
-    return Quantity(value=lax.is_finite(x.value), units=dimensionless)
+    return Quantity(value=lax.is_finite(x.value), unit=dimensionless)
 
 
 # ==============================================================================
@@ -756,17 +756,17 @@ def _is_finite_p(x: Quantity) -> Quantity:
 
 @register(lax.le_p)
 def _le_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.le(x.value, y.to_value(x.unit)), units=dimensionless)
+    return Quantity(lax.le(x.value, y.to_value(x.unit)), unit=dimensionless)
 
 
 @register(lax.le_p)
 def _le_p_vq(x: Value, y: Quantity) -> Quantity:
-    return Quantity(lax.le(x, y.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.le(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.le_p)
 def _le_p_qv(x: Quantity, y: Value) -> Quantity:
-    return Quantity(lax.le(x.to_value(dimensionless), y), units=dimensionless)
+    return Quantity(lax.le(x.to_value(dimensionless), y), unit=dimensionless)
 
 
 # ==============================================================================
@@ -783,7 +783,7 @@ def _le_to_p() -> Quantity:
 @register(lax.lgamma_p)
 def _lgamma_p(x: Quantity) -> Quantity:
     # TODO: handle non-dimensionless quantities.
-    return Quantity(lax.lgamma(x.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.lgamma(x.to_value(dimensionless)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -799,7 +799,7 @@ def _linear_solve_p() -> Quantity:
 
 @register(lax.log1p_p)
 def _log1p_p(x: Quantity) -> Quantity:
-    return Quantity(lax.log1p(x.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.log1p(x.to_value(dimensionless)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -807,7 +807,7 @@ def _log1p_p(x: Quantity) -> Quantity:
 
 @register(lax.log_p)
 def _log_p(x: Quantity) -> Quantity:
-    return Quantity(lax.log(x.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.log(x.to_value(dimensionless)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -815,7 +815,7 @@ def _log_p(x: Quantity) -> Quantity:
 
 @register(lax.logistic_p)
 def _logistic_p(x: Quantity) -> Quantity:
-    return Quantity(lax.logistic(x.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.logistic(x.to_value(dimensionless)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -823,17 +823,17 @@ def _logistic_p(x: Quantity) -> Quantity:
 
 @register(lax.lt_p)
 def _lt_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.lt(x.value, y.to_value(x.unit)), units=dimensionless)
+    return Quantity(lax.lt(x.value, y.to_value(x.unit)), unit=dimensionless)
 
 
 @register(lax.lt_p)
 def _lt_p_vq(x: Value, y: Quantity) -> Quantity:
-    return Quantity(lax.lt(x, y.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.lt(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.lt_p)
 def _lt_p_qv(x: Quantity, y: Value) -> Quantity:
-    return Quantity(lax.lt(x.to_value(dimensionless), y), units=dimensionless)
+    return Quantity(lax.lt(x.to_value(dimensionless), y), unit=dimensionless)
 
 
 # ==============================================================================
@@ -849,17 +849,17 @@ def _lt_to_p() -> Quantity:
 
 @register(lax.max_p)
 def _max_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.max(x.value, y.to_value(x.unit)), units=x.unit)
+    return Quantity(lax.max(x.value, y.to_value(x.unit)), unit=x.unit)
 
 
 @register(lax.max_p)
 def _max_p_vq(x: Value, y: Quantity) -> Quantity:
-    return Quantity(lax.max(x, y.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.max(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.max_p)
 def _max_p_qv(x: Quantity, y: Value) -> Quantity:
-    return Quantity(lax.max(x.to_value(dimensionless), y), units=dimensionless)
+    return Quantity(lax.max(x.to_value(dimensionless), y), unit=dimensionless)
 
 
 # ==============================================================================
@@ -867,17 +867,17 @@ def _max_p_qv(x: Quantity, y: Value) -> Quantity:
 
 @register(lax.min_p)
 def _min_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.min(x.value, y.to_value(x.unit)), units=x.unit)
+    return Quantity(lax.min(x.value, y.to_value(x.unit)), unit=x.unit)
 
 
 @register(lax.min_p)
 def _min_p_vq(x: Value, y: Quantity) -> Quantity:
-    return Quantity(lax.min(x, y.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.min(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.min_p)
 def _min_p_qv(x: Quantity, y: Value) -> Quantity:
-    return Quantity(lax.min(x.to_value(dimensionless), y), units=dimensionless)
+    return Quantity(lax.min(x.to_value(dimensionless), y), unit=dimensionless)
 
 
 # ==============================================================================
@@ -887,17 +887,17 @@ def _min_p_qv(x: Quantity, y: Value) -> Quantity:
 @register(lax.mul_p)
 def _mul_p_qq(x: Quantity, y: Quantity) -> Quantity:
     units = Unit(x.unit * y.unit)
-    return Quantity(lax.mul(x.value, y.value), units=units)
+    return Quantity(lax.mul(x.value, y.value), unit=units)
 
 
 @register(lax.mul_p)
 def _mul_p_vq(x: Value, y: Quantity) -> Quantity:
-    return Quantity(lax.mul(x, y.value), units=y.unit)
+    return Quantity(lax.mul(x, y.value), unit=y.unit)
 
 
 @register(lax.mul_p)
 def _mul_p_qv(x: Quantity, y: Value) -> Quantity:
-    return Quantity(lax.mul(x.value, y), units=x.unit)
+    return Quantity(lax.mul(x.value, y), unit=x.unit)
 
 
 # ==============================================================================
@@ -905,20 +905,20 @@ def _mul_p_qv(x: Quantity, y: Value) -> Quantity:
 
 @register(lax.ne_p)
 def _ne_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.ne(x.value, y.to_value(x.unit)), units=dimensionless)
+    return Quantity(lax.ne(x.value, y.to_value(x.unit)), unit=dimensionless)
 
 
 @register(lax.ne_p)
 def _ne_p_vq(x: Value, y: Quantity) -> Quantity:
-    return Quantity(lax.ne(x, y.to_value(dimensionless)), units=dimensionless)
+    return Quantity(lax.ne(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.ne_p)
 def _ne_p_qv(x: Quantity, y: ArrayValue) -> Quantity:
-    # special-case for scalar value=0, units=dimensionless
+    # special-case for scalar value=0, unit=dimensionless
     if y.shape == () and y.array == 0:
-        return Quantity(lax.ne(x.value, y), units=dimensionless)
-    return Quantity(lax.ne(x.to_value(dimensionless), y), units=dimensionless)
+        return Quantity(lax.ne(x.value, y), unit=dimensionless)
+    return Quantity(lax.ne(x.to_value(dimensionless), y), unit=dimensionless)
 
 
 # ==============================================================================
@@ -1017,13 +1017,13 @@ def _pow_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
     return Quantity(
         value=lax.pow(x.value, y0),
-        units=x.unit**y0,
+        unit=x.unit**y0,
     )
 
 
 @register(lax.pow_p)
 def _pow_p_qf(x: Quantity, y: int | float) -> Quantity:
-    return Quantity(value=lax.pow(x.value, y), units=x.unit**y)
+    return Quantity(value=lax.pow(x.value, y), unit=x.unit**y)
 
 
 # ==============================================================================
@@ -1179,7 +1179,7 @@ def _regularized_incomplete_beta_p() -> Quantity:
 
 @register(lax.rem_p)
 def _rem_p(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.rem(x.value, y.to_value(x.unit)), units=x.unit)
+    return Quantity(lax.rem(x.value, y.to_value(x.unit)), unit=x.unit)
 
 
 # ==============================================================================
@@ -1227,7 +1227,7 @@ def _round_p(x: Quantity, *, rounding_method: Any) -> Quantity:
 
 @register(lax.rsqrt_p)
 def _rsqrt_p(x: Quantity) -> Quantity:
-    return Quantity(lax.rsqrt(x.value), units=x.unit ** (-1 / 2))
+    return Quantity(lax.rsqrt(x.value), unit=x.unit ** (-1 / 2))
 
 
 # ==============================================================================
@@ -1315,7 +1315,7 @@ def _select_n_p(which: Quantity, *cases: Quantity) -> Quantity:
             which.to_value(dimensionless),
             *(case.to_value(units) for case in cases),
         ),
-        units=units,
+        unit=units,
     )
 
 
@@ -1356,7 +1356,7 @@ def _shift_right_logical_p() -> Quantity:
 
 @register(lax.sign_p)
 def _sign_p(x: Quantity) -> Quantity:
-    return Quantity(lax.sign(x.value), units=dimensionless)
+    return Quantity(lax.sign(x.value), unit=dimensionless)
 
 
 # ==============================================================================
@@ -1364,7 +1364,7 @@ def _sign_p(x: Quantity) -> Quantity:
 
 @register(lax.sin_p)
 def _sin_p(x: Quantity) -> Quantity:
-    return Quantity(lax.sin(_to_value_rad_or_one(x)), units=dimensionless)
+    return Quantity(lax.sin(_to_value_rad_or_one(x)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -1372,7 +1372,7 @@ def _sin_p(x: Quantity) -> Quantity:
 
 @register(lax.sinh_p)
 def _sinh_p(x: Quantity) -> Quantity:
-    return Quantity(lax.sinh(_to_value_rad_or_one(x)), units=dimensionless)
+    return Quantity(lax.sinh(_to_value_rad_or_one(x)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -1410,7 +1410,7 @@ def _sort_p() -> Quantity:
 
 @register(lax.sqrt_p)
 def _sqrt_p(x: Quantity) -> Quantity:
-    return Quantity(lax.sqrt(x.value), units=x.unit ** (1 / 2))
+    return Quantity(lax.sqrt(x.value), unit=x.unit ** (1 / 2))
 
 
 # ==============================================================================
@@ -1437,18 +1437,18 @@ def _stop_gradient_p(x: Quantity) -> Quantity:
 def _sub_p_qq(x: Quantity, y: Quantity) -> Quantity:
     return Quantity(
         lax.sub(x.to_value(x.unit), y.to_value(x.unit)),
-        units=x.unit,
+        unit=x.unit,
     )
 
 
 @register(lax.sub_p)
 def _sub_p_vq(x: Value, y: Quantity) -> Quantity:
-    return Quantity(lax.sub(x, y.value), units=y.unit)
+    return Quantity(lax.sub(x, y.value), unit=y.unit)
 
 
 @register(lax.sub_p)
 def _sub_p_qv(x: Quantity, y: Value) -> Quantity:
-    return Quantity(lax.sub(x.value, y), units=x.unit)
+    return Quantity(lax.sub(x.value, y), unit=x.unit)
 
 
 # ==============================================================================
@@ -1456,7 +1456,7 @@ def _sub_p_qv(x: Quantity, y: Value) -> Quantity:
 
 @register(lax.tan_p)
 def _tan_p(x: Quantity) -> Quantity:
-    return Quantity(lax.tan(_to_value_rad_or_one(x)), units=dimensionless)
+    return Quantity(lax.tan(_to_value_rad_or_one(x)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -1464,7 +1464,7 @@ def _tan_p(x: Quantity) -> Quantity:
 
 @register(lax.tanh_p)
 def _tanh_p(x: Quantity) -> Quantity:
-    return Quantity(lax.tanh(_to_value_rad_or_one(x)), units=dimensionless)
+    return Quantity(lax.tanh(_to_value_rad_or_one(x)), unit=dimensionless)
 
 
 # ==============================================================================
