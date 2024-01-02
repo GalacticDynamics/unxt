@@ -40,6 +40,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
+  "astropy",
   "nox",
   "pytest >=6",
   "pytest-cov >=3",
