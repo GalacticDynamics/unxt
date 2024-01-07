@@ -118,6 +118,7 @@ warn_return_any = false
       "astropy.*",
       "equinox.*",
       "jax.*",
+      "jax_quantity.*",
       "jaxtyping.*",
       "quax.*",
     ]
