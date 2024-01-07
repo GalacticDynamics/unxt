@@ -4,13 +4,14 @@ __all__: list[str] = []
 
 from collections.abc import Callable, Sequence
 from dataclasses import replace
-from typing import Any, TypeVar
+from typing import Any, TypeAlias, TypeVar
 
 import jax
 import jax.core
 import jax.numpy as jnp
 from astropy.units import (  # pylint: disable=no-name-in-module
     Unit,
+    UnitBase,
     UnitTypeError,
     radian,
 )
@@ -19,10 +20,13 @@ from jax import lax
 from jaxtyping import ArrayLike
 from quax import DenseArrayValue
 from quax import register as register_
+from quax.zero import Zero
 
 from ._core import Quantity, can_convert
 
 T = TypeVar("T")
+
+UnitClasses: TypeAlias = UnitBase
 
 
 def register(primitive: jax.core.Primitive) -> Callable[[T], T]:
@@ -71,31 +75,28 @@ def _acosh_p(x: Quantity) -> Quantity:
 
 @register(lax.add_p)
 def _add_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(
-        lax.add(x.to_value(x.unit), y.to_value(x.unit)),
-        unit=x.unit,
-    )
+    return Quantity(lax.add(x.to_value(x.unit), y.to_value(x.unit)), unit=x.unit)
 
 
 @register(lax.add_p)
 def _add_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
     # x = 0 is a special case
-    if jnp.array_equal(x, 0):
+    if jnp.array_equal(x.array, 0):
         return y
 
     # otherwise we can't add a quantity to a normal value
-    msg = f"Cannot apply {lax.add} to quantity and non-quantity."
+    msg = "Cannot add a non-quantity and quantity."
     raise ValueError(msg)
 
 
 @register(lax.add_p)
 def _add_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
     # y = 0 is a special case
-    if jnp.array_equal(y, 0):
+    if jnp.array_equal(y.array, 0):
         return x
 
     # otherwise we can't add a normal value to a quantity
-    msg = f"Cannot apply {lax.add} to quantity and non-quantity."
+    msg = "Cannot add a quantity and non-quantity."
     raise ValueError(msg)
 
 
@@ -164,7 +165,7 @@ def _argmin_p(operand: Quantity, *, axes: Any, index_dtype: Any) -> Quantity:
 
 @register(lax.asin_p)
 def _asin_p(x: Quantity) -> Quantity:
-    return replace(x, value=lax.asin(x.to_value(dimensionless)))
+    return replace(x, value=lax.asin(x.to_value(dimensionless)), unit=radian)
 
 
 # ==============================================================================
@@ -172,7 +173,7 @@ def _asin_p(x: Quantity) -> Quantity:
 
 @register(lax.asinh_p)
 def _asinh_p(x: Quantity) -> Quantity:
-    return replace(x, value=lax.asinh(x.to_value(dimensionless)))
+    return replace(x, value=lax.asinh(x.to_value(dimensionless)), unit=radian)
 
 
 # ==============================================================================
@@ -488,8 +489,8 @@ def _digamma_p(x: Quantity) -> Quantity:
 
 @register(lax.div_p)
 def _div_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    units = Unit(x.unit / y.unit)
-    return Quantity(lax.div(x.value, y.value), unit=units)
+    unit = Unit(x.unit / y.unit)
+    return Quantity(lax.div(x.value, y.to_value(x.unit)), unit=unit)
 
 
 @register(lax.div_p)
@@ -732,7 +733,7 @@ def _infeed_p() -> Quantity:
 
 @register(lax.integer_pow_p)
 def _integer_pow_p(x: Quantity, *, y: Any) -> Quantity:
-    return replace(x, value=lax.integer_pow(x.value, y))
+    return replace(x, value=lax.integer_pow(x.value, y), unit=x.unit**y)
 
 
 # ==============================================================================
@@ -886,18 +887,18 @@ def _min_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
 
 @register(lax.mul_p)
 def _mul_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    units = Unit(x.unit * y.unit)
-    return Quantity(lax.mul(x.value, y.value), unit=units)
+    unit = Unit(x.unit * y.unit)
+    return Quantity(lax.mul(x.value, y.value), unit=unit)
 
 
 @register(lax.mul_p)
 def _mul_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
-    return Quantity(lax.mul(x, y.value), unit=y.unit)
+    return Quantity(lax.mul(x.array, y.value), unit=y.unit)
 
 
 @register(lax.mul_p)
 def _mul_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
-    return Quantity(lax.mul(x.value, y), unit=x.unit)
+    return Quantity(lax.mul(x.value, y.array), unit=x.unit)
 
 
 # ==============================================================================
@@ -1015,10 +1016,7 @@ def _pow_p_qq(x: Quantity, y: Quantity) -> Quantity:
         msg = "power must be a scalar"
         raise ValueError(msg)
 
-    return Quantity(
-        value=lax.pow(x.value, y0),
-        unit=x.unit**y0,
-    )
+    return Quantity(value=lax.pow(x.value, y0), unit=x.unit**y0)
 
 
 @register(lax.pow_p)
@@ -1307,15 +1305,28 @@ def _select_and_scatter_p() -> Quantity:
 
 @register(lax.select_n_p)
 def _select_n_p(which: Quantity, *cases: Quantity) -> Quantity:
-    # TODO: check correct dtype for `which`.
-    # TODO: check correct units for `cases`.
-    units = cases[0].unit
+    unit = cases[0].unit
     return Quantity(
         lax.select_n(
-            which.to_value(dimensionless),
-            *(case.to_value(units) for case in cases),
+            which.to_value(dimensionless), *(case.to_value(unit) for case in cases)
         ),
-        unit=units,
+        unit=unit,
+    )
+
+
+@register(lax.select_n_p)
+def _select_n_p_jzq(which: DenseArrayValue, case0: Zero, case1: Quantity) -> Quantity:
+    unit = case1.unit
+    return Quantity(
+        lax.select_n(which, case0.materialise(), case1.to_value(unit)), unit=unit
+    )
+
+
+@register(lax.select_n_p)
+def _select_n_p_jqz(which: DenseArrayValue, case0: Quantity, case1: Zero) -> Quantity:
+    unit = case0.unit
+    return Quantity(
+        lax.select_n(which, case0.to_value(unit), case1.materialise()), unit=unit
     )
 
 
