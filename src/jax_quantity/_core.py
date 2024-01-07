@@ -5,8 +5,9 @@ __all__ = ["Quantity", "can_convert"]
 
 import operator
 from dataclasses import replace
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
+import array_api_jax_compat
 import equinox as eqx
 import jax
 import jax.core
@@ -14,6 +15,9 @@ from astropy.units import Unit, UnitConversionError
 from jaxtyping import ArrayLike
 from quax import ArrayValue, quaxify
 from typing_extensions import Self
+
+if TYPE_CHECKING:
+    from array_api import ArrayAPINamespace
 
 
 class Quantity(ArrayValue):  # type: ignore[misc]
@@ -41,6 +45,12 @@ class Quantity(ArrayValue):  # type: ignore[misc]
         return type(self)(self.value, self.unit)
 
     # ===============================================================
+    # Array API
+
+    def __array_namespace__(self, *, api_version: Any = None) -> "ArrayAPINamespace":
+        return array_api_jax_compat
+
+    # ===============================================================
     # Quantity
 
     def to(self, units: Unit) -> "Quantity":
@@ -62,6 +72,10 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     # __rmul__
     # __matmul__
     # __rmatmul__
+    __pow__ = quaxify(operator.pow)
+    __truediv__ = quaxify(operator.truediv)
+
+    # Boolean
     __and__ = quaxify(operator.__and__)
     __gt__ = quaxify(operator.__gt__)
     __ge__ = quaxify(operator.__ge__)
