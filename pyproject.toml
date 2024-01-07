@@ -111,8 +111,9 @@ warn_return_any = false
 
   [[tool.mypy.overrides]]
     module = [
-      "array_api_jax_compat._dispatch.*",  # TODO: resolve
-      "astropy.units.*",
+      "array_api.*",
+      "array_api_jax_compat.*",
+      "astropy.*",
       "equinox.*",
       "jax.*",
       "jaxtyping.*",
@@ -139,6 +140,7 @@ ignore = [
   "D213",     # Multi-line docstring summary should start at the second line
   "FIX002",   # Line contains TODO
   "ISC001",   # Conflicts with formatter
+  "PD",       # Pandas
   "PLR09",    # Too many <...>
   "PLR2004",  # Magic value used in comparison
   "PYI041",    # Use `complex` instead of `int | complex` <- plum is more strict
