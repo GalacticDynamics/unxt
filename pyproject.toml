@@ -80,6 +80,7 @@ addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
 xfail_strict = true
 filterwarnings = [
   "error",
+  "ignore:ast\\.Str is deprecated and will be removed in Python 3\\.14:DeprecationWarning",
 ]
 log_cli_level = "INFO"
 testpaths = [
