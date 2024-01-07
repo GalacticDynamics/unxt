@@ -93,6 +93,8 @@ repos:
       - id: pylint
         name: pylint
         entry: pylint
-        language: system
+        language: python
         types: [python]
         stages: [pre-push, manual]
+        additional_dependencies:
+          - "pylint==2.6.0"
