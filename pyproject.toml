@@ -40,6 +40,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
+  "nox",
   "pytest >=6",
   "pytest-cov >=3",
 ]
@@ -79,6 +80,7 @@ addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
 xfail_strict = true
 filterwarnings = [
   "error",
+  "ignore:ast\\.Str is deprecated and will be removed in Python 3\\.14:DeprecationWarning",
 ]
 log_cli_level = "INFO"
 testpaths = [
@@ -167,5 +169,6 @@ messages_control.disable = [
   "missing-function-docstring",  # TODO: resolve
   "missing-module-docstring",
   "redefined-builtin",  # handled by ruff
+  "unused-argument",  # handled by ruff
   "wrong-import-position",
 ]

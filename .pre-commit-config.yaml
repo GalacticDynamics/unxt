@@ -3,6 +3,8 @@ ci:
   autofix_commit_msg: "style: pre-commit fixes"
   autoupdate_schedule: "monthly"
 
+default_install_hook_types: [pre-commit, pre-push, commit-msg]
+
 repos:
   - repo: https://github.com/adamchainz/blacken-docs
     rev: "1.16.0"
@@ -85,3 +87,14 @@ repos:
       - id: check-dependabot
       - id: check-github-workflows
       - id: check-readthedocs
+
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: python
+        types: [python]
+        stages: [pre-push, manual]
+        additional_dependencies:
+          - "pylint==3.0.3"

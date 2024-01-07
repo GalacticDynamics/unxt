@@ -1,4 +1,4 @@
-# pylint: disable=no-member, unsubscriptable-object
+# pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
 
 __all__ = ["Quantity", "can_convert"]

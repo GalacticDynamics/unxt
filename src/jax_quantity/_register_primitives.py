@@ -1,4 +1,4 @@
-# pylint: disable=too-many-lines
+# pylint: disable=import-error, too-many-lines
 
 __all__: list[str] = []
 

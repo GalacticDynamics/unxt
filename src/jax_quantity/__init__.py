@@ -1,3 +1,5 @@
+# pylint: disable=import-error
+
 """Copyright (c) 2023 Nathaniel Starkman. All rights reserved.
 
 jax-quantity: Quantities in JAX

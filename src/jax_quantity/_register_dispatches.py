@@ -1,3 +1,5 @@
+# pylint: disable=import-error
+
 from typing import Any, TypeVar
 
 import jax
