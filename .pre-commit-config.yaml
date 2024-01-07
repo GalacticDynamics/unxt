@@ -97,4 +97,4 @@ repos:
         types: [python]
         stages: [pre-push, manual]
         additional_dependencies:
-          - "pylint==2.6.0"
+          - "pylint==3.0.3"
