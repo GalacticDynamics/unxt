@@ -1,3 +1,5 @@
+# pylint: disable=import-error
+
 """Copyright (c) 2023 Nathaniel Starkman. All rights reserved.
 
 jax-quantity: Quantities in JAX
@@ -176,33 +178,33 @@ def value_and_grad(
     def wrapped(
         *args: Any, **kwargs: Any
     ) -> tuple[Quantity, Quantity] | tuple[tuple[Quantity, Aux], Quantity]:
-        (result_wo_units, (result_units, aux)), grad = value_and_grad_fun(
+        (result_wo_units, (result_units, aux)), gradient = value_and_grad_fun(
             *args, **kwargs
         )
 
         if result_units is None:
             result = result_wo_units
-            grad = tree_map(
+            gradient = tree_map(
                 lambda g: (g.value * (1 / g.unit) if is_quantity(g) else g),
-                grad,
+                gradient,
                 is_leaf=is_quantity,
             )
 
         else:
             result = result_wo_units * result_units
-            grad = tree_map(
+            gradient = tree_map(
                 lambda g: (
                     g.value * (result_units / g.unit)
                     if is_quantity(g)
                     else g * result_units
                 ),
-                grad,
+                gradient,
                 is_leaf=is_quantity,
             )
 
         if has_aux:
-            return (result, aux), grad
-        return result, grad
+            return (result, aux), gradient
+        return result, gradient
 
     return wrapped
 
