@@ -20,6 +20,7 @@ from jax import lax
 from jaxtyping import ArrayLike
 from quax import DenseArrayValue
 from quax import register as register_
+from quax._core import _QuaxTracer
 from quax.zero import Zero
 
 from ._core import Quantity, can_convert
@@ -75,12 +76,23 @@ def _acosh_p(x: Quantity) -> Quantity:
 
 @register(lax.add_p)
 def _add_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.add(x.to_value(x.unit), y.to_value(x.unit)), unit=x.unit)
+    unit = x.unit
+    out = Quantity(lax.add(x.to_value(unit), y.to_value(unit)), unit=unit)
+    jax.debug.print(
+        "add_p_qq: {} + {} -> {}",
+        str(x).replace("f64[]", str(x.value)),
+        str(y).replace("f64[]", str(y.value)),
+        str(out).replace("f64[]", str(out.value)),
+    )
+    return out
 
 
 @register(lax.add_p)
 def _add_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
     # x = 0 is a special case
+    jax.debug.print(
+        "add_p_vq: {}, {}, {}, {}", type(x), x.array.value, x.array.value.value, type(y)
+    )
     if jnp.array_equal(x.array, 0):
         return y
 
@@ -91,6 +103,14 @@ def _add_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
 
 @register(lax.add_p)
 def _add_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
+    jax.debug.print("add_p_qv: {}, {}", type(x), type(y.array))
+    if isinstance(y.array, _QuaxTracer) and isinstance(y.array.value, Quantity):
+        return x + y.array.value
+
+    if isinstance(y.array, jax._src.interpreters.ad.JVPTracer):
+        print(f"\t{x.unit} + {y.array.primal.value.unit}")
+        return x + y.array.primal.value
+
     # y = 0 is a special case
     if jnp.array_equal(y.array, 0):
         return x
@@ -543,15 +563,15 @@ def _eq_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
 @register(lax.eq_p)
 def _eq_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
-    return Quantity(lax.eq(x, y.to_value(dimensionless)), unit=dimensionless)
+    return Quantity(lax.eq(x.array, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.eq_p)
 def _eq_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
     # special-case for all-0 values
     if jnp.all(y.array == 0) or jnp.all(jnp.isinf(y.array)):
-        return Quantity(lax.eq(x.value, y), unit=dimensionless)
-    return Quantity(lax.eq(x.to_value(dimensionless), y), unit=dimensionless)
+        return Quantity(lax.eq(x.value, y.array), unit=dimensionless)
+    return Quantity(lax.eq(x.to_value(dimensionless), y.array), unit=dimensionless)
 
 
 # ==============================================================================
@@ -888,17 +908,48 @@ def _min_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
 @register(lax.mul_p)
 def _mul_p_qq(x: Quantity, y: Quantity) -> Quantity:
     unit = Unit(x.unit * y.unit)
-    return Quantity(lax.mul(x.value, y.value), unit=unit)
+    out = Quantity(lax.mul(x.value, y.value), unit=unit)
+    jax.debug.print(
+        "mul_p_qq: {}, {} -> {}",
+        str(x).replace("f64[]", str(x.value)),
+        str(y).replace("f64[]", str(y.value)),
+        str(out).replace("f64[]", str(out.value)),
+    )
+    return out
 
 
 @register(lax.mul_p)
 def _mul_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
-    return Quantity(lax.mul(x.array, y.value), unit=y.unit)
+    out = Quantity(lax.mul(x.array, y.value), unit=y.unit)
+    jax.debug.print(
+        "mul_p_vq: {}, {} -> {}",
+        x.array,
+        str(y).replace("f64[]", str(y.value)),
+        str(out).replace("f64[]", str(out.value)),
+    )
+    return out
 
 
 @register(lax.mul_p)
 def _mul_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
-    return Quantity(lax.mul(x.value, y.array), unit=x.unit)
+    # FIXME: this is a weird hack. See
+    # https://github.com/patrick-kidger/quax/issues/5
+
+    if isinstance(y.array, _QuaxTracer) and isinstance(y.array.value, Quantity):
+        jax.debug.print("mul_p_qt: {}, {}", type(x), type(y.array.value))
+        out = x * y.array.value
+
+    elif isinstance(y.array, jax.Array):
+        out = Quantity(lax.mul(x.value, y.array), unit=x.unit)
+        jax.debug.print(
+            "mul_p_qv: {}, {}",
+            str(x).replace("f64[]", str(x.value)),
+            type(y.array),
+            # str(out).replace("f64[]", str(out.value)),
+        )
+    else:
+        raise NotImplementedError
+    return out
 
 
 # ==============================================================================
