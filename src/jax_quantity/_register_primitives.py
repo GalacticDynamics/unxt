@@ -17,6 +17,7 @@ from astropy.units import (  # pylint: disable=no-name-in-module
 )
 from astropy.units import dimensionless_unscaled as dimensionless
 from jax import lax
+from jax._src.interpreters.ad import JVPTracer
 from jaxtyping import ArrayLike
 from quax import DenseArrayValue
 from quax import register as register_
@@ -77,22 +78,13 @@ def _acosh_p(x: Quantity) -> Quantity:
 @register(lax.add_p)
 def _add_p_qq(x: Quantity, y: Quantity) -> Quantity:
     unit = x.unit
-    out = Quantity(lax.add(x.to_value(unit), y.to_value(unit)), unit=unit)
-    jax.debug.print(
-        "add_p_qq: {} + {} -> {}",
-        str(x).replace("f64[]", str(x.value)),
-        str(y).replace("f64[]", str(y.value)),
-        str(out).replace("f64[]", str(out.value)),
-    )
-    return out
+    value = lax.add(x.to_value(unit), y.to_value(unit))
+    return Quantity(value, unit=unit)
 
 
 @register(lax.add_p)
 def _add_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
     # x = 0 is a special case
-    jax.debug.print(
-        "add_p_vq: {}, {}, {}, {}", type(x), x.array.value, x.array.value.value, type(y)
-    )
     if jnp.array_equal(x.array, 0):
         return y
 
@@ -107,8 +99,8 @@ def _add_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
     if isinstance(y.array, _QuaxTracer) and isinstance(y.array.value, Quantity):
         return x + y.array.value
 
-    if isinstance(y.array, jax._src.interpreters.ad.JVPTracer):
-        print(f"\t{x.unit} + {y.array.primal.value.unit}")
+    if isinstance(y.array, JVPTracer):
+        jax.debug.print(f"\t{x.unit} + {y.array.primal.value.unit}")
         return x + y.array.primal.value
 
     # y = 0 is a special case
@@ -907,49 +899,46 @@ def _min_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
 
 @register(lax.mul_p)
 def _mul_p_qq(x: Quantity, y: Quantity) -> Quantity:
+    value = lax.mul(x.value, y.value)
     unit = Unit(x.unit * y.unit)
-    out = Quantity(lax.mul(x.value, y.value), unit=unit)
-    jax.debug.print(
-        "mul_p_qq: {}, {} -> {}",
-        str(x).replace("f64[]", str(x.value)),
-        str(y).replace("f64[]", str(y.value)),
-        str(out).replace("f64[]", str(out.value)),
-    )
-    return out
+    return Quantity(value, unit=unit)
 
 
 @register(lax.mul_p)
 def _mul_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
-    out = Quantity(lax.mul(x.array, y.value), unit=y.unit)
-    jax.debug.print(
-        "mul_p_vq: {}, {} -> {}",
-        x.array,
-        str(y).replace("f64[]", str(y.value)),
-        str(out).replace("f64[]", str(out.value)),
-    )
+    value = lax.mul(x.array, y.value)
+    return Quantity(value, unit=y.unit)
+
+
+# TODO: this is a hack. See # https://github.com/patrick-kidger/quax/issues/5
+@register(lax.mul_p)
+def _mul_p_qt1(x: Quantity, y: _QuaxTracer) -> Quantity:
+    if not isinstance(y.value, Quantity):
+        raise NotImplementedError
+    out = _mul_p_qq(x, y.value)
+    jax.debug.print("_mul_p_qt1: {}", out)
+    return out
+
+
+# TODO: this is a hack. See # https://github.com/patrick-kidger/quax/issues/5
+@register(lax.mul_p)
+def _mul_p_qt2(x: Quantity, y: JVPTracer) -> Quantity:
+    if not isinstance(y.primal.value, Quantity):
+        raise NotImplementedError
+    out = _mul_p_qq(x, y.primal.value)
+    jax.debug.print("_mul_p_qt2: {}", str(out).replace("f64[]", str(out.value)))
     return out
 
 
 @register(lax.mul_p)
 def _mul_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
-    # FIXME: this is a weird hack. See
-    # https://github.com/patrick-kidger/quax/issues/5
+    # TODO: this is a hack. See  https://github.com/patrick-kidger/quax/issues/5
+    if isinstance(y.array, _QuaxTracer):
+        return _mul_p_qt1(x, y.array)
+    if isinstance(y.array, JVPTracer):
+        return _mul_p_qt2(x, y.array)
 
-    if isinstance(y.array, _QuaxTracer) and isinstance(y.array.value, Quantity):
-        jax.debug.print("mul_p_qt: {}, {}", type(x), type(y.array.value))
-        out = x * y.array.value
-
-    elif isinstance(y.array, jax.Array):
-        out = Quantity(lax.mul(x.value, y.array), unit=x.unit)
-        jax.debug.print(
-            "mul_p_qv: {}, {}",
-            str(x).replace("f64[]", str(x.value)),
-            type(y.array),
-            # str(out).replace("f64[]", str(out.value)),
-        )
-    else:
-        raise NotImplementedError
-    return out
+    return Quantity(lax.mul(x.value, y.array), unit=x.unit)
 
 
 # ==============================================================================
