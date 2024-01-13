@@ -82,8 +82,30 @@ def _add_p_qq(x: Quantity, y: Quantity) -> Quantity:
     return Quantity(value, unit=unit)
 
 
+# TODO: this is a hack. See # https://github.com/patrick-kidger/quax/issues/5
+@register(lax.add_p)
+def _add_p_t1q(x: _QuaxTracer, y: Quantity) -> Quantity:
+    if not isinstance(x.value, Quantity):
+        raise NotImplementedError
+    return _add_p_qq(x.value, y)
+
+
+# TODO: this is a hack. See # https://github.com/patrick-kidger/quax/issues/5
+@register(lax.add_p)
+def _add_p_t2q(x: JVPTracer, y: Quantity) -> Quantity:
+    if not isinstance(x.primal.value, Quantity):
+        raise NotImplementedError
+    return _add_p_qq(x.primal.value, y)
+
+
 @register(lax.add_p)
 def _add_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
+    # TODO: this is a hack. See # https://github.com/patrick-kidger/quax/issues/5
+    if isinstance(x.array, _QuaxTracer):
+        return _add_p_t1q(x.array, y)
+    if isinstance(x.array, JVPTracer):
+        return _add_p_t2q(x.array, y)
+
     # x = 0 is a special case
     if jnp.array_equal(x.array, 0):
         return y
@@ -93,19 +115,36 @@ def _add_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
     raise ValueError(msg)
 
 
+# TODO: this is a hack. See # https://github.com/patrick-kidger/quax/issues/5
+@register(lax.add_p)
+def _add_p_qt1(x: Quantity, y: _QuaxTracer) -> Quantity:
+    if not isinstance(y.value, Quantity):
+        raise NotImplementedError
+    return _add_p_qq(x, y.value)
+
+
+# TODO: this is a hack. See # https://github.com/patrick-kidger/quax/issues/5
+@register(lax.add_p)
+def _add_p_qt2(x: Quantity, y: JVPTracer) -> Quantity:
+    if not isinstance(y.primal.value, Quantity):
+        raise NotImplementedError
+    return _add_p_qq(x, y.primal.value)
+
+
 @register(lax.add_p)
 def _add_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
-    jax.debug.print("add_p_qv: {}, {}", type(x), type(y.array))
-    if isinstance(y.array, _QuaxTracer) and isinstance(y.array.value, Quantity):
-        return x + y.array.value
-
+    # TODO: this is a hack. See # https://github.com/patrick-kidger/quax/issues/5
+    if isinstance(y.array, _QuaxTracer):
+        return _add_p_qt1(x, y.array)
     if isinstance(y.array, JVPTracer):
-        jax.debug.print(f"\t{x.unit} + {y.array.primal.value.unit}")
-        return x + y.array.primal.value
+        return _add_p_qt2(x, y.array)
 
     # y = 0 is a special case
     if jnp.array_equal(y.array, 0):
         return x
+
+    if x.unit == dimensionless:
+        return replace(x, value=lax.add(x.value, y.array))
 
     # otherwise we can't add a normal value to a quantity
     msg = "Cannot add a quantity and non-quantity."
@@ -650,8 +689,21 @@ def _floor_p(x: Quantity) -> Quantity:
 
 
 @register(lax.gather_p)
-def _gather_p() -> Quantity:
-    raise NotImplementedError
+def _gather_p_qv(
+    operand: Quantity, start_indices: DenseArrayValue, **kwargs: Any
+) -> Quantity:
+    return replace(
+        operand,
+        value=lax.gather_p.bind(operand.value, start_indices.array, **kwargs),
+    )
+
+
+@register(lax.gather_p)
+def _gather_p_qz(operand: Quantity, start_indices: Zero, **kwargs: Any) -> Quantity:
+    return replace(
+        operand,
+        value=lax.gather_p.bind(operand.value, start_indices.materialise(), **kwargs),
+    )
 
 
 # ==============================================================================
@@ -915,9 +967,7 @@ def _mul_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
 def _mul_p_qt1(x: Quantity, y: _QuaxTracer) -> Quantity:
     if not isinstance(y.value, Quantity):
         raise NotImplementedError
-    out = _mul_p_qq(x, y.value)
-    jax.debug.print("_mul_p_qt1: {}", out)
-    return out
+    return _mul_p_qq(x, y.value)
 
 
 # TODO: this is a hack. See # https://github.com/patrick-kidger/quax/issues/5
@@ -936,7 +986,9 @@ def _mul_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
     if isinstance(y.array, _QuaxTracer):
         return _mul_p_qt1(x, y.array)
     if isinstance(y.array, JVPTracer):
-        return _mul_p_qt2(x, y.array)
+        out = _mul_p_qt2(x, y.array)
+        jax.debug.print("_mul_jvp: {}", str(out).replace("f64[]", str(out.value)))
+        return out
 
     return Quantity(lax.mul(x.value, y.array), unit=x.unit)
 
