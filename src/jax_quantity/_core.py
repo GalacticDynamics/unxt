@@ -72,7 +72,6 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     # __rmul__
     # __matmul__
     # __rmatmul__
-    __pow__ = quaxify(operator.pow)
     __truediv__ = quaxify(operator.truediv)
 
     # Boolean
