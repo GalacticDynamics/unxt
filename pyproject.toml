@@ -35,7 +35,7 @@ dependencies = [
   "jax",
   "jaxlib",
   "jaxtyping",
-  "quax",
+  "quax>=0.0.3",
 ]
 
 [project.optional-dependencies]
