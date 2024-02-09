@@ -6,6 +6,10 @@
 import array_api_jax_compat as xp
 import astropy.units as u
 import jax
+
+# isort: split
+jax.config.update("jax_enable_x64", val=True)
+
 import jax.numpy as jnp
 import pytest
 from jax import Array
@@ -17,8 +21,6 @@ from jax._src.numpy.setops import (
 from jax.experimental.array_api._data_type_functions import FInfo, IInfo
 
 from jax_quantity import Quantity
-
-jax.config.update("jax_enable_x64", val=True)
 
 # =============================================================================
 # Constants
