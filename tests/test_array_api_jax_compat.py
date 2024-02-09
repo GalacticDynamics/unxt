@@ -9,12 +9,12 @@ import jax
 import jax.numpy as jnp
 import pytest
 from jax import Array
-from jax.experimental.array_api._data_type_functions import FInfo, IInfo
-from jax.experimental.array_api._set_functions import (
-    UniqueAllResult,
-    UniqueCountsResult,
-    UniqueInverseResult,
+from jax._src.numpy.setops import (
+    _UniqueAllResult,
+    _UniqueCountsResult,
+    _UniqueInverseResult,
 )
+from jax.experimental.array_api._data_type_functions import FInfo, IInfo
 
 from jax_quantity import Quantity
 
@@ -1317,7 +1317,7 @@ def test_unique_all():
     got = xp.unique_all(x)
     expected = xp.unique_all(x.value)
 
-    assert isinstance(got, UniqueAllResult)
+    assert isinstance(got, _UniqueAllResult)
 
     assert isinstance(got.values, Quantity)
     assert jnp.array_equal(got.values, expected.values)
@@ -1339,7 +1339,7 @@ def test_unique_counts():
     got = xp.unique_counts(x)
     expected = xp.unique_counts(x.value)
 
-    assert isinstance(got, UniqueCountsResult)
+    assert isinstance(got, _UniqueCountsResult)
 
     assert isinstance(got.values, Quantity)
     assert jnp.array_equal(got.values.value, expected.values)
@@ -1355,7 +1355,7 @@ def test_unique_inverse():
     got = xp.unique_inverse(x)
     expected = xp.unique_inverse(x.value)
 
-    assert isinstance(got, UniqueInverseResult)
+    assert isinstance(got, _UniqueInverseResult)
 
     assert isinstance(got.values, Quantity)
     assert jnp.array_equal(got.values.value, expected.values)
