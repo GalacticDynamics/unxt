@@ -4,6 +4,7 @@
 __all__ = ["Quantity", "can_convert"]
 
 import operator
+from collections.abc import Callable
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
@@ -18,6 +19,13 @@ from typing_extensions import Self
 
 if TYPE_CHECKING:
     from array_api import ArrayAPINamespace
+
+
+def _flip_binop(binop: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
+    def _binop(x: Any, y: Any) -> Any:
+        return binop(y, x)
+
+    return _binop
 
 
 class Quantity(ArrayValue):  # type: ignore[misc]
@@ -64,16 +72,18 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     def __getitem__(self, key: Any) -> "Quantity":
         return replace(self, value=self.value[key])
 
-    # __add__
-    # __radd__
-    # __sub__
-    # __rsub__
-    # __mul__
-    # __rmul__
-    # __matmul__
-    # __rmatmul__
+    __add__ = quaxify(operator.add)
+    __radd__ = quaxify(_flip_binop(operator.add))
+    __sub__ = quaxify(operator.sub)
+    __rsub__ = quaxify(_flip_binop(operator.sub))
+    __mul__ = quaxify(operator.mul)
+    __rmul__ = quaxify(_flip_binop(operator.mul))
+    __matmul__ = quaxify(operator.matmul)
+    __rmatmul__ = quaxify(_flip_binop(operator.matmul))
     __pow__ = quaxify(operator.pow)
+    __rpow__ = quaxify(_flip_binop(operator.pow))
     __truediv__ = quaxify(operator.truediv)
+    __rtruediv__ = quaxify(_flip_binop(operator.truediv))
 
     # Boolean
     __and__ = quaxify(operator.__and__)
@@ -86,7 +96,25 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     __neg__ = quaxify(operator.__neg__)
 
 
+# ===============================================================
+
+
 def can_convert(from_: Unit, to: Unit) -> bool:
+    """Check if a unit can be converted to another unit.
+
+    Parameters
+    ----------
+    from_ : Unit
+        The unit to convert from.
+    to : Unit
+        The unit to convert to.
+
+    Returns
+    -------
+    bool
+        Whether the conversion is possible.
+
+    """
     try:
         from_.to(to)
     except UnitConversionError:

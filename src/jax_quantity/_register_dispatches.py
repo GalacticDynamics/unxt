@@ -19,6 +19,9 @@ def dispatcher(f: T) -> T:  # TODO: figure out mypy stub issue.
     return dispatcher_(f)
 
 
+# -----------------------------------------------
+
+
 @dispatcher
 def arange(
     start: Quantity,
@@ -41,13 +44,32 @@ def arange(
     )
 
 
+# -----------------------------------------------
+
+
 @dispatcher
 def empty_like(x: Quantity, /, *, dtype: Any = None, device: Any = None) -> Quantity:
     out = Quantity(jax_xp.empty_like(x.value, dtype=dtype), unit=x.unit)
     return jax.device_put(out, device=device)
 
 
+# -----------------------------------------------
+
+
 @dispatcher
+def full_like(
+    x: Quantity,
+    *,
+    fill_value: Any,
+    dtype: Any = None,
+    device: Any = None,
+) -> Quantity:
+    return Quantity(
+        jax_xp.full_like(x.value, fill_value, dtype=dtype, device=device), unit=x.unit
+    )
+
+
+@dispatcher  # type: ignore[no-redef]
 def full_like(
     x: Quantity,
     /,
@@ -56,8 +78,12 @@ def full_like(
     dtype: Any = None,
     device: Any = None,
 ) -> Quantity:
-    out = Quantity(jax_xp.full_like(x.value, fill_value, dtype=dtype), unit=x.unit)
-    return jax.device_put(out, device=device)
+    return Quantity(
+        jax_xp.full_like(x.value, fill_value, dtype=dtype, device=device), unit=x.unit
+    )
+
+
+# -----------------------------------------------
 
 
 @dispatcher
