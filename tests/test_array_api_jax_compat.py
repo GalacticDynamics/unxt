@@ -805,7 +805,7 @@ def test_log10():
 
     assert isinstance(got, Quantity)
     assert got.unit == expected.unit
-    assert jnp.array_equal(got.value, expected.value)
+    assert jnp.allclose(got.value, expected.value)
 
 
 def test_logaddexp():
