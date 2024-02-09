@@ -1,9 +1,11 @@
 # pylint: disable=import-error, too-many-lines
+# ruff:noqa: E402
 
 """Test the Array API."""
 
 import array_api_jax_compat as xp
 import astropy.units as u
+import jax
 import jax.numpy as jnp
 import pytest
 from jax import Array
@@ -16,47 +18,47 @@ from jax.experimental.array_api._set_functions import (
 
 from jax_quantity import Quantity
 
+jax.config.update("jax_enable_x64", val=True)
+
 # =============================================================================
 # Constants
 
 
-@pytest.mark.xfail(reason="Not a Quantity")
 def test_e():
     """Test `e`."""
-    assert isinstance(xp.e, Quantity)
+    assert not isinstance(xp.e, Quantity)
 
 
-@pytest.mark.xfail(reason="Not a Quantity")
 def test_inf():
     """Test `inf`."""
-    assert isinstance(xp.inf, Quantity)
+    assert not isinstance(xp.inf, Quantity)
 
 
-@pytest.mark.xfail(reason="Not a Quantity")
 def test_nan():
     """Test `nan`."""
-    assert isinstance(xp.nan, Quantity)
+    assert not isinstance(xp.nan, Quantity)
 
 
-@pytest.mark.xfail(reason="Not a Quantity")
 def test_newaxis():
     """Test `newaxis`."""
-    assert isinstance(xp.newaxis, Quantity)
+    assert not isinstance(xp.newaxis, Quantity)
 
 
-@pytest.mark.xfail(reason="Not a Quantity")
 def test_pi():
     """Test `pi`."""
-    assert isinstance(xp.pi, Quantity)
+    assert not isinstance(xp.pi, Quantity)
 
 
 # =============================================================================
 # Creation functions
 
+# -----------------------------------------------
+# arange
 
-def test_arange():
+
+def test_arange_start():
     """Test `arange`."""
-    # TODO: test the start, stop, step, dtype, device arguments
+    # -----------------------
     got = xp.arange(Quantity(10, u.m))
     expected = Quantity(xp.arange(10), u.m)
 
@@ -64,16 +66,58 @@ def test_arange():
     assert got.unit == expected.unit
     assert jnp.array_equal(got.value, expected.value)
 
-
-def test_asarray():
-    """Test `asarray`."""
-    # TODO: test the dtype, device, copy arguments
-    got = xp.asarray(Quantity([1, 2, 3], u.m))
-    expected = Quantity(xp.asarray([1, 2, 3]), u.m)
+    # -----------------------
+    got = xp.arange(start=Quantity(10, u.m))
 
     assert isinstance(got, Quantity)
     assert got.unit == expected.unit
     assert jnp.array_equal(got.value, expected.value)
+
+
+def test_arange_stop():
+    """Test `arange`."""
+    start = Quantity(2, u.m)
+    stop = Quantity(10, u.km)
+    got = xp.arange(start, stop)
+    expected = Quantity(xp.arange(start.value, stop.to_value(start.unit)), u.m)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == expected.unit
+    assert jnp.array_equal(got.value, expected.value)
+
+
+def test_arange_step():
+    """Test `arange`."""
+    start = Quantity(2, u.m)
+    stop = Quantity(10, u.km)
+    step = Quantity(2, u.m)
+    got = xp.arange(start, stop, step)
+    expected = Quantity(
+        xp.arange(start.value, stop.to_value(start.unit), step.to_value(start.unit)),
+        u.m,
+    )
+
+    assert isinstance(got, Quantity)
+    assert got.unit == expected.unit
+    assert jnp.array_equal(got.value, expected.value)
+
+
+# -----------------------------------------------
+
+
+def test_asarray():
+    """Test `asarray`."""
+    # TODO: test the dtype, device, copy arguments
+    x = [1, 2, 3]
+    got = xp.asarray(Quantity(x, u.m))
+    expected = Quantity(xp.asarray(x), u.m)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == expected.unit
+    assert jnp.array_equal(got.value, expected.value)
+
+
+# -----------------------------------------------
 
 
 @pytest.mark.xfail(reason="returns a jax.Array")
@@ -84,15 +128,22 @@ def test_empty():
     assert isinstance(got, Quantity)
 
 
+# -----------------------------------------------
+
+
 def test_empty_like():
     """Test `empty_like`."""
-    x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
-    got = xp.empty_like(x)
-    expected = Quantity(xp.empty_like(x.value), u.m)
+    x = xp.asarray([1, 2, 3], dtype=float)
+    q = Quantity(x, u.m)
+    got = xp.empty_like(q)
+    expected = Quantity(xp.empty_like(x), u.m)
 
     assert isinstance(got, Quantity)
     assert got.unit == expected.unit
     assert jnp.array_equal(got.value, expected.value)
+
+
+# -----------------------------------------------
 
 
 @pytest.mark.xfail(reason="returns a jax.Array")
@@ -103,9 +154,16 @@ def test_eye():
     assert isinstance(got, Quantity)
 
 
+# -----------------------------------------------
+
+
 @pytest.mark.skip("TODO")
 def test_from_dlpack():
     """Test `from_dlpack`."""
+    raise NotImplementedError
+
+
+# -----------------------------------------------
 
 
 @pytest.mark.xfail(reason="returns a jax.Array")
@@ -116,15 +174,47 @@ def test_full():
     assert isinstance(got, Quantity)
 
 
-def test_full_like():
+# -----------------------------------------------
+
+
+def test_full_like_single_arg():
     """Test `full_like`."""
-    x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
-    got = xp.full_like(x, 1.0)
-    expected = Quantity(xp.full_like(x.value, 1.0), u.m)
+    x = xp.asarray([1, 2, 3], dtype=float)
+    q = Quantity(x, u.m)
+    got = xp.full_like(q, fill_value=1.0)
+    expected = Quantity(xp.full_like(x, fill_value=1.0), u.m)
 
     assert isinstance(got, Quantity)
     assert got.unit == expected.unit
     assert jnp.array_equal(got.value, expected.value)
+
+
+def test_full_like_double_arg():
+    """Test `full_like`."""
+    x = xp.asarray([1, 2, 3], dtype=float)
+    q = Quantity(x, u.m)
+    got = xp.full_like(q, 1.0)
+    expected = Quantity(xp.full_like(x, 1.0), u.m)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == expected.unit
+    assert jnp.array_equal(got.value, expected.value)
+
+
+def test_full_like_dtype():
+    """Test `full_like`."""
+    x = xp.asarray([1, 2, 3], dtype=float)
+    q = Quantity(x, u.m)
+    got = xp.full_like(q, 1.0, dtype=int)
+    expected = Quantity(xp.full_like(q.value, 1.0, dtype=int), u.m)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == expected.unit
+    assert jnp.array_equal(got.value, expected.value)
+    assert got.value.dtype == expected.value.dtype
+
+
+# -----------------------------------------------
 
 
 def test_linspace():
@@ -136,6 +226,9 @@ def test_linspace():
     assert isinstance(got, Quantity)
     assert got.unit == expected.unit
     assert jnp.array_equal(got.value, expected.value)
+
+
+# -----------------------------------------------
 
 
 def test_meshgrid():
@@ -153,10 +246,16 @@ def test_meshgrid():
     assert jnp.array_equal(got2.value, exp2)
 
 
+# -----------------------------------------------
+
+
 @pytest.mark.xfail(reason="returns a jax.Array")
 def test_ones():
     """Test `ones`."""
     assert isinstance(xp.ones((2, 3)), Quantity)
+
+
+# -----------------------------------------------
 
 
 def test_ones_like():
@@ -170,6 +269,9 @@ def test_ones_like():
     assert jnp.array_equal(got.value, expected.value)
 
 
+# -----------------------------------------------
+
+
 def test_tril():
     """Test `tril`."""
     x = Quantity([[1, 2, 3], [4, 5, 6], [7, 8, 9]], u.m)
@@ -179,6 +281,9 @@ def test_tril():
     assert isinstance(got, Quantity)
     assert got.unit == expected.unit
     assert jnp.array_equal(got.value, expected.value)
+
+
+# -----------------------------------------------
 
 
 def test_triu():
@@ -192,10 +297,16 @@ def test_triu():
     assert jnp.array_equal(got.value, expected.value)
 
 
+# -----------------------------------------------
+
+
 @pytest.mark.xfail(reason="returns a jax.Array")
 def test_zeros():
     """Test `zeros`."""
     assert isinstance(xp.zeros((2, 3)), Quantity)
+
+
+# -----------------------------------------------
 
 
 def test_zeros_like():
@@ -1269,67 +1380,134 @@ def test_unique_values():
 # Sorting functions
 
 
-@pytest.mark.skip("TODO")
 def test_argsort():
     """Test `argsort`."""
+    q = Quantity(xp.asarray([3, 2, 1], dtype=float), u.m)
+    got = xp.argsort(q)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == u.one
+    assert jnp.array_equal(got.value, xp.argsort(q.value))
 
 
-@pytest.mark.skip("TODO")
 def test_sort():
     """Test `sort`."""
+    q = Quantity(xp.asarray([3, 2, 1], dtype=float), u.m)
+    got = xp.sort(q)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == u.m
+    assert jnp.array_equal(got.value, xp.sort(q.value))
 
 
 # =============================================================================
 # Statistical functions
 
 
-@pytest.mark.skip("TODO")
 def test_max():
     """Test `max`."""
+    x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
+    got = xp.max(x)
+    expected = Quantity(xp.max(x.value), u.m)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == expected.unit
+    assert jnp.array_equal(got.value, expected.value)
 
 
 @pytest.mark.skip("TODO")
 def test_mean():
     """Test `mean`."""
+    x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
+    got = xp.mean(x)
+    expected = Quantity(xp.mean(x.value), u.m)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == expected.unit
+    assert jnp.array_equal(got.value, expected.value)
 
 
 @pytest.mark.skip("TODO")
 def test_min():
     """Test `min`."""
+    x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
+    got = xp.min(x)
+    expected = Quantity(xp.min(x.value), u.m)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == expected.unit
+    assert jnp.array_equal(got.value, expected.value)
 
 
-@pytest.mark.skip("TODO")
 def test_prod():
     """Test `prod`."""
+    x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
+    got = xp.prod(x)
+    expected = Quantity(xp.prod(x.value), u.m**3)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == expected.unit
+    assert jnp.array_equal(got.value, expected.value)
 
 
-@pytest.mark.skip("TODO")
 def test_std():
     """Test `std`."""
+    x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
+    got = xp.std(x)
+    expected = Quantity(xp.std(x.value), u.m)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == expected.unit
+    assert jnp.array_equal(got.value, expected.value)
 
 
-@pytest.mark.skip("TODO")
 def test_sum():
     """Test `sum`."""
+    x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
+    got = xp.sum(x)
+    expected = Quantity(xp.sum(x.value), u.m)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == expected.unit
+    assert jnp.array_equal(got.value, expected.value)
 
 
-@pytest.mark.skip("TODO")
 def test_var():
     """Test `var`."""
+    x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
+    got = xp.var(x)
+    expected = Quantity(xp.var(x.value), u.m**2)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == expected.unit
+    assert jnp.array_equal(got.value, expected.value)
 
 
 # =============================================================================
 # Utility functions
 
 
-@pytest.mark.skip("TODO")
+@pytest.mark.xfail(reason="returns a jax.Array")
 def test_all():
     """Test `all`."""
+    x = Quantity(xp.asarray([True, False, True], dtype=bool), u.one)
+    got = xp.all(x)
+    expected = Quantity(xp.all(x.value), u.one)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == expected.unit
+    assert jnp.array_equal(got.value, expected.value)
 
 
-@pytest.mark.skip("TODO")
 def test_any():
     """Test `any`."""
+    x = Quantity(xp.asarray([1, 2, 3], dtype=bool), u.m)
+    got = xp.any(x)
+    expected = Quantity(xp.any(x.value), u.one)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == expected.unit
+    assert jnp.array_equal(got.value, expected.value)
 
 
 # =============================================================================

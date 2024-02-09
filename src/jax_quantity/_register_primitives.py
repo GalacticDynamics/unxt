@@ -4,6 +4,7 @@ __all__: list[str] = []
 
 from collections.abc import Callable, Sequence
 from dataclasses import replace
+from math import prod
 from typing import Any, TypeAlias, TypeVar
 
 import jax
@@ -13,19 +14,18 @@ from astropy.units import (  # pylint: disable=no-name-in-module
     Unit,
     UnitBase,
     UnitTypeError,
+    dimensionless_unscaled as dimensionless,
     radian,
 )
-from astropy.units import dimensionless_unscaled as dimensionless
 from jax import lax
 from jaxtyping import ArrayLike
-from quax import DenseArrayValue
 from quax import register as register_
-from quax.zero import Zero
 
 from ._core import Quantity, can_convert
 
 T = TypeVar("T")
 
+Axes: TypeAlias = tuple[int, ...]
 UnitClasses: TypeAlias = UnitBase
 
 
@@ -79,10 +79,13 @@ def _add_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
 
 @register(lax.add_p)
-def _add_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
+def _add_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
     # x = 0 is a special case
-    if jnp.array_equal(x.array, 0):
+    if jnp.array_equal(x, 0):
         return y
+    # Dimensionless quantities can be added to normal values
+    if y.unit == dimensionless:
+        return replace(y, value=lax.add(x, y.to_value(dimensionless)))
 
     # otherwise we can't add a quantity to a normal value
     msg = "Cannot add a non-quantity and quantity."
@@ -90,10 +93,13 @@ def _add_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
 
 
 @register(lax.add_p)
-def _add_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
+def _add_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
     # y = 0 is a special case
-    if jnp.array_equal(y.array, 0):
+    if jnp.array_equal(y, 0):
         return x
+    # Normal values can be added to dimensionless quantities
+    if x.unit == dimensionless:
+        return replace(x, value=lax.add(x.to_value(dimensionless), y))
 
     # otherwise we can't add a normal value to a quantity
     msg = "Cannot add a quantity and non-quantity."
@@ -186,13 +192,13 @@ def _atan2_p(x: Quantity, y: Quantity) -> Quantity:
 
 
 @register(lax.atan2_p)
-def _atan2_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
+def _atan2_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
     y_ = y.to_value(dimensionless)
     return Quantity(lax.atan2(x, y_), unit=radian)
 
 
 @register(lax.atan2_p)
-def _atan2_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
+def _atan2_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
     x_ = x.to_value(dimensionless)
     return Quantity(lax.atan2(x_, y), unit=radian)
 
@@ -293,21 +299,21 @@ def _clamp_p(min: Quantity, x: Quantity, max: Quantity) -> Quantity:
 
 
 @register(lax.clamp_p)
-def _clamp_p_vqq(min: DenseArrayValue, x: Quantity, max: Quantity) -> Quantity:
+def _clamp_p_vqq(min: ArrayLike, x: Quantity, max: Quantity) -> Quantity:
     v = x.to_value(dimensionless)
     maxv = max.to_value(dimensionless)
     return replace(x, value=lax.clamp(min, v, maxv))
 
 
 @register(lax.clamp_p)
-def _clamp_p_qvq(min: Quantity, x: DenseArrayValue, max: Quantity) -> DenseArrayValue:
+def _clamp_p_qvq(min: Quantity, x: ArrayLike, max: Quantity) -> ArrayLike:
     minv = min.to_value(dimensionless)
     maxv = max.to_value(dimensionless)
-    return DenseArrayValue(lax.clamp(minv, x, maxv))
+    return lax.clamp(minv, x, maxv)
 
 
 @register(lax.clamp_p)
-def _clamp_p_qqv(min: Quantity, x: Quantity, max: DenseArrayValue) -> Quantity:
+def _clamp_p_qqv(min: Quantity, x: Quantity, max: ArrayLike) -> Quantity:
     minv = min.to_value(dimensionless)
     v = x.to_value(dimensionless)
     return replace(x, value=lax.clamp(minv, v, max))
@@ -494,12 +500,12 @@ def _div_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
 
 @register(lax.div_p)
-def _div_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
+def _div_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
     return Quantity(lax.div(x, y.value), unit=1 / y.unit)
 
 
 @register(lax.div_p)
-def _div_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
+def _div_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
     return Quantity(lax.div(x.value, y), unit=x.unit)
 
 
@@ -517,8 +523,8 @@ def _implemen() -> Quantity:
 @register(lax.dynamic_slice_p)
 def _dynamic_slice_p(
     operand: Quantity,
-    start_indices: DenseArrayValue,
-    dynamic_sizes: DenseArrayValue,
+    start_indices: ArrayLike,
+    dynamic_sizes: ArrayLike,
     *,
     slice_sizes: Any,
 ) -> Quantity:
@@ -542,16 +548,14 @@ def _eq_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
 
 @register(lax.eq_p)
-def _eq_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
+def _eq_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
     return Quantity(lax.eq(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.eq_p)
-def _eq_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
+def _eq_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
     # special-case for all-0 values
-    if jnp.all(y.array == 0) or jnp.all(jnp.isinf(y.array)):
-        return Quantity(lax.eq(x.value, y), unit=dimensionless)
-    return Quantity(lax.eq(x.to_value(dimensionless), y), unit=dimensionless)
+    return Quantity(lax.eq(x.value, y), unit=dimensionless)
 
 
 # ==============================================================================
@@ -651,12 +655,12 @@ def _ge_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
 
 @register(lax.ge_p)
-def _ge_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
+def _ge_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
     return Quantity(lax.ge(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.ge_p)
-def _ge_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
+def _ge_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
     return Quantity(lax.ge(x.to_value(dimensionless), y), unit=dimensionless)
 
 
@@ -674,12 +678,12 @@ def _gt_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
 
 @register(lax.gt_p)
-def _gt_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
+def _gt_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
     return Quantity(lax.gt(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.gt_p)
-def _gt_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
+def _gt_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
     return Quantity(lax.gt(x.to_value(dimensionless), y), unit=dimensionless)
 
 
@@ -761,12 +765,12 @@ def _le_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
 
 @register(lax.le_p)
-def _le_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
+def _le_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
     return Quantity(lax.le(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.le_p)
-def _le_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
+def _le_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
     return Quantity(lax.le(x.to_value(dimensionless), y), unit=dimensionless)
 
 
@@ -828,12 +832,12 @@ def _lt_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
 
 @register(lax.lt_p)
-def _lt_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
+def _lt_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
     return Quantity(lax.lt(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.lt_p)
-def _lt_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
+def _lt_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
     return Quantity(lax.lt(x.to_value(dimensionless), y), unit=dimensionless)
 
 
@@ -854,12 +858,12 @@ def _max_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
 
 @register(lax.max_p)
-def _max_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
+def _max_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
     return Quantity(lax.max(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.max_p)
-def _max_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
+def _max_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
     return Quantity(lax.max(x.to_value(dimensionless), y), unit=dimensionless)
 
 
@@ -872,12 +876,12 @@ def _min_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
 
 @register(lax.min_p)
-def _min_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
+def _min_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
     return Quantity(lax.min(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.min_p)
-def _min_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
+def _min_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
     return Quantity(lax.min(x.to_value(dimensionless), y), unit=dimensionless)
 
 
@@ -892,13 +896,13 @@ def _mul_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
 
 @register(lax.mul_p)
-def _mul_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
-    return Quantity(lax.mul(x.array, y.value), unit=y.unit)
+def _mul_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
+    return Quantity(lax.mul(x, y.value), unit=y.unit)
 
 
 @register(lax.mul_p)
-def _mul_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
-    return Quantity(lax.mul(x.value, y.array), unit=x.unit)
+def _mul_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
+    return Quantity(lax.mul(x.value, y), unit=x.unit)
 
 
 # ==============================================================================
@@ -910,14 +914,14 @@ def _ne_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
 
 @register(lax.ne_p)
-def _ne_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
+def _ne_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
     return Quantity(lax.ne(x, y.to_value(dimensionless)), unit=dimensionless)
 
 
 @register(lax.ne_p)
-def _ne_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
+def _ne_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
     # special-case for scalar value=0, unit=dimensionless
-    if y.shape == () and y.array == 0:
+    if y.shape == () and y == 0:
         return Quantity(lax.ne(x.value, y), unit=dimensionless)
     return Quantity(lax.ne(x.to_value(dimensionless), y), unit=dimensionless)
 
@@ -1072,24 +1076,24 @@ def _reduce_and_p(
 
 
 @register(lax.reduce_max_p)
-def _reduce_max_p() -> Quantity:
-    raise NotImplementedError
+def _reduce_max_p(operand: Quantity, *, axes: Axes) -> Quantity:
+    return replace(operand, value=lax.reduce_max_p.bind(operand.value, axes=axes))
 
 
 # ==============================================================================
 
 
 @register(lax.reduce_min_p)
-def _reduce_min_p() -> Quantity:
-    raise NotImplementedError
+def _reduce_min_p(operand: Quantity, *, axes: Axes) -> Quantity:
+    return replace(operand, value=lax.reduce_min_p.bind(operand.value, axes=axes))
 
 
 # ==============================================================================
 
 
 @register(lax.reduce_or_p)
-def _reduce_or_p() -> Quantity:
-    raise NotImplementedError
+def _reduce_or_p(operand: Quantity, *, axes: Axes) -> Quantity:
+    return Quantity(lax.reduce_or_p.bind(operand.value, axes=axes), unit=dimensionless)
 
 
 # ==============================================================================
@@ -1112,16 +1116,20 @@ def _reduce_precision_p() -> Quantity:
 
 
 @register(lax.reduce_prod_p)
-def _reduce_prod_p() -> Quantity:
-    raise NotImplementedError
+def _reduce_prod_p(operand: Quantity, *, axes: Axes) -> Quantity:
+    return replace(
+        operand,
+        value=lax.reduce_prod_p.bind(operand.value, axes=axes),
+        unit=operand.unit ** prod(operand.shape[ax] for ax in axes),
+    )
 
 
 # ==============================================================================
 
 
 @register(lax.reduce_sum_p)
-def _reduce_sum_p() -> Quantity:
-    raise NotImplementedError
+def _reduce_sum_p(operand: Quantity, *, axes: Axes) -> Quantity:
+    return replace(operand, value=lax.reduce_sum_p.bind(operand.value, axes=axes))
 
 
 # ==============================================================================
@@ -1306,28 +1314,22 @@ def _select_and_scatter_p() -> Quantity:
 @register(lax.select_n_p)
 def _select_n_p(which: Quantity, *cases: Quantity) -> Quantity:
     unit = cases[0].unit
-    return Quantity(
-        lax.select_n(
-            which.to_value(dimensionless), *(case.to_value(unit) for case in cases)
-        ),
-        unit=unit,
-    )
+    cases_ = (case.to_value(unit) for case in cases)
+    return Quantity(lax.select_n(which.to_value(dimensionless), *cases_), unit=unit)
 
 
 @register(lax.select_n_p)
-def _select_n_p_jzq(which: DenseArrayValue, case0: Zero, case1: Quantity) -> Quantity:
+def _select_n_p_jjq(which: ArrayLike, case0: ArrayLike, case1: Quantity) -> Quantity:
+    # Used by a `xp.linalg.trace`
     unit = case1.unit
-    return Quantity(
-        lax.select_n(which, case0.materialise(), case1.to_value(unit)), unit=unit
-    )
+    return Quantity(lax.select_n(which, case0, case1.to_value(unit)), unit=unit)
 
 
 @register(lax.select_n_p)
-def _select_n_p_jqz(which: DenseArrayValue, case0: Quantity, case1: Zero) -> Quantity:
+def _select_n_p_jqj(which: ArrayLike, case0: Quantity, case1: ArrayLike) -> Quantity:
+    # Used by a `triu`
     unit = case0.unit
-    return Quantity(
-        lax.select_n(which, case0.to_value(unit), case1.materialise()), unit=unit
-    )
+    return Quantity(lax.select_n(which, case0.to_value(unit), case1), unit=unit)
 
 
 # ==============================================================================
@@ -1411,9 +1413,35 @@ def _slice_p(
 # ==============================================================================
 
 
+# Called by `argsort`
 @register(lax.sort_p)
-def _sort_p() -> Quantity:
-    raise NotImplementedError
+def _sort_p_two_operands(
+    operand0: Quantity,
+    operand1: ArrayLike,
+    *,
+    dimension: int,
+    is_stable: bool,
+    num_keys: int,
+) -> tuple[Quantity, Quantity]:
+    out0, out1 = lax.sort_p.bind(
+        operand0.value,
+        operand1,
+        dimension=dimension,
+        is_stable=is_stable,
+        num_keys=num_keys,
+    )
+    return Quantity(out0, unit=operand0.unit), Quantity(out1, unit=dimensionless)
+
+
+# Called by `sort`
+@register(lax.sort_p)
+def _sort_p_one_operand(
+    operand: Quantity, *, dimension: int, is_stable: bool, num_keys: int
+) -> tuple[Quantity]:
+    (out,) = lax.sort_p.bind(
+        operand.value, dimension=dimension, is_stable=is_stable, num_keys=num_keys
+    )
+    return (Quantity(out, unit=operand.unit),)
 
 
 # ==============================================================================
@@ -1453,12 +1481,12 @@ def _sub_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
 
 @register(lax.sub_p)
-def _sub_p_vq(x: DenseArrayValue, y: Quantity) -> Quantity:
+def _sub_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
     return Quantity(lax.sub(x, y.value), unit=y.unit)
 
 
 @register(lax.sub_p)
-def _sub_p_qv(x: Quantity, y: DenseArrayValue) -> Quantity:
+def _sub_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
     return Quantity(lax.sub(x.value, y), unit=x.unit)
 
 
