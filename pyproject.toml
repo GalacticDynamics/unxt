@@ -161,10 +161,11 @@ similarities.ignore-imports = "yes"
 messages_control.disable = [
   "design",
   "fixme",
-  "function-redefined",  # plum-dispatch
+  "function-redefined",         # plum-dispatch
   "line-too-long",
   "missing-function-docstring", # TODO: resolve
   "missing-module-docstring",
+  "protected-access",           # handled by ruff
   "redefined-builtin",          # handled by ruff
   "unused-argument",            # handled by ruff
   "wrong-import-position",
