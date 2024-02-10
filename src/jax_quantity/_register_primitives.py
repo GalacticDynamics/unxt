@@ -18,6 +18,8 @@ from astropy.units import (  # pylint: disable=no-name-in-module
     radian,
 )
 from jax import lax
+from jax._src.lax.slicing import GatherDimensionNumbers, GatherScatterMode
+from jax._src.typing import Shape
 from jaxtyping import ArrayLike
 from quax import register as register_
 
@@ -641,9 +643,32 @@ def _floor_p(x: Quantity) -> Quantity:
 # ==============================================================================
 
 
+# used in `jnp.cross`
 @register(lax.gather_p)
-def _gather_p() -> Quantity:
-    raise NotImplementedError
+def _gather_p(
+    operand: Quantity,
+    start_indices: ArrayLike,
+    *,
+    dimension_numbers: GatherDimensionNumbers,
+    slice_sizes: Shape,
+    unique_indices: bool,
+    indices_are_sorted: bool,
+    mode: str | GatherScatterMode | None,
+    fill_value: Any,
+) -> Quantity:
+    return Quantity(
+        lax.gather_p.bind(
+            operand.value,
+            start_indices,
+            dimension_numbers=dimension_numbers,
+            slice_sizes=slice_sizes,
+            unique_indices=unique_indices,
+            indices_are_sorted=indices_are_sorted,
+            mode=mode,
+            fill_value=fill_value,
+        ),
+        unit=operand.unit,
+    )
 
 
 # ==============================================================================
