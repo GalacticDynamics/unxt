@@ -9,8 +9,8 @@ repos:
     rev: v3.14.1
     hooks:
       - id: commitizen
-      - id: commitizen-branch
-        stages: [push]
+      # - id: commitizen-branch
+      #   stages: [push]
 
   - repo: meta
     hooks:

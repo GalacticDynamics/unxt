@@ -29,7 +29,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-  "array_api_jax_compat >= 0.1a1",
+  "array_api_jax_compat >= 0.1",
   "astropy",
   "equinox",
   "jax",
