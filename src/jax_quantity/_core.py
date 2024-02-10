@@ -4,7 +4,7 @@
 __all__ = ["Quantity", "can_convert"]
 
 import operator
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any, final
 
@@ -13,7 +13,12 @@ import equinox as eqx
 import jax
 import jax.core
 from array_api_jax_compat._dispatch import dispatcher
-from astropy.units import Quantity as AstropyQuantity, Unit, UnitConversionError
+from astropy.units import (
+    CompositeUnit,
+    Quantity as AstropyQuantity,
+    Unit,
+    UnitConversionError,
+)
 from jaxtyping import ArrayLike
 from quax import ArrayValue, quaxify
 from typing_extensions import Self
@@ -80,21 +85,27 @@ class Quantity(ArrayValue):  # type: ignore[misc]
         return type(self)(self.value, self.unit)
 
     # ===============================================================
-    # Array API
-
-    def __array_namespace__(self, *, api_version: Any = None) -> "ArrayAPINamespace":
-        return array_api_jax_compat
-
-    # ===============================================================
     # Quantity
 
     def to(self, units: Unit) -> "Quantity":
-        return type(self)(self.value * self.unit.to(units), units)
+        return replace(self, value=self.value * self.unit.to(units), unit=units)
 
     def to_value(self, units: Unit) -> ArrayLike:
         if units == self.unit:
             return self.value
         return self.value * self.unit.to(units)
+
+    def decompose(self, bases: Sequence[Unit]) -> "Quantity":
+        """Decompose the quantity into the given bases."""
+        du = self.unit.decompose(bases)  # decomposed units
+        base_units = CompositeUnit(scale=1, bases=du.bases, powers=du.powers)
+        return replace(self, value=self.value * du.scale, unit=base_units)
+
+    # ===============================================================
+    # Array API
+
+    def __array_namespace__(self, *, api_version: Any = None) -> "ArrayAPINamespace":
+        return array_api_jax_compat
 
     def __getitem__(self, key: Any) -> "Quantity":
         return replace(self, value=self.value[key])
