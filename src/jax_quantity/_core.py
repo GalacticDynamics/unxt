@@ -6,13 +6,14 @@ __all__ = ["Quantity", "can_convert"]
 import operator
 from collections.abc import Callable
 from dataclasses import replace
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, final
 
 import array_api_jax_compat
 import equinox as eqx
 import jax
 import jax.core
-from astropy.units import Unit, UnitConversionError
+from array_api_jax_compat._dispatch import dispatcher
+from astropy.units import Quantity as AstropyQuantity, Unit, UnitConversionError
 from jaxtyping import ArrayLike
 from quax import ArrayValue, quaxify
 from typing_extensions import Self
@@ -28,11 +29,37 @@ def _flip_binop(binop: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
     return _binop
 
 
+@final
 class Quantity(ArrayValue):  # type: ignore[misc]
     """Represents an array, with each axis bound to a name."""
 
     value: jax.Array = eqx.field(converter=jax.numpy.asarray)
     unit: Unit = eqx.field(static=True, converter=Unit)
+
+    @classmethod
+    @dispatcher
+    def constructor(
+        cls: "type[Quantity]", value: ArrayLike, unit: Any, /
+    ) -> "Quantity":
+        # Dispatch on both arguments.
+        # Construct using the standard `__init__` method.
+        return cls(value, unit)
+
+    @classmethod  # type: ignore[no-redef]
+    @dispatcher
+    def constructor(
+        cls: "type[Quantity]", value: ArrayLike, *, unit: Any
+    ) -> "Quantity":
+        # Dispatch on the `value` only. Dispatch to the full constructor.
+        return cls.constructor(value, unit)
+
+    @classmethod  # type: ignore[no-redef]
+    @dispatcher
+    def constructor(
+        cls: "type[Quantity]", *, value: ArrayLike, unit: Any
+    ) -> "Quantity":
+        # Dispatched on no argument. Dispatch to the full constructor.
+        return cls.constructor(value, unit)
 
     # ===============================================================
     # Quax
@@ -94,6 +121,28 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     __eq__ = quaxify(operator.__eq__)
     __ne__ = quaxify(operator.__ne__)
     __neg__ = quaxify(operator.__neg__)
+
+
+# -----------------------------------------------
+# Register additional constructors
+
+
+@Quantity.constructor._f.register  # noqa: SLF001
+def constructor(cls: type[Quantity], value: Quantity, unit: Any, /) -> Quantity:
+    """Construct a `Quantity` from another `Quantity`.
+
+    The `value` is converted to the new `unit`.
+    """
+    return Quantity(value.to_value(unit), unit)
+
+
+@Quantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
+def constructor(cls: type[Quantity], value: AstropyQuantity, unit: Any, /) -> Quantity:
+    """Construct a `Quantity` from another `Quantity`.
+
+    The `value` is converted to the new `unit`.
+    """
+    return Quantity(value.to_value(unit), unit)
 
 
 # ===============================================================
