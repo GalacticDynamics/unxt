@@ -686,11 +686,8 @@ def _ge_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
 
 @register(lax.ge_p)
 def _ge_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
-    return Quantity(lax.ge(x.to_value(dimensionless), y), unit=dimensionless)
-
-
-@register(lax.ge_p)
-def _ge_p_qi(x: Quantity, y: int) -> Quantity:
+    if jnp.array_equal(y, 0):
+        return Quantity(lax.ge(x.value, y), unit=dimensionless)
     return Quantity(lax.ge(x.to_value(dimensionless), y), unit=dimensionless)
 
 
