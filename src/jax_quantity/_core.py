@@ -93,7 +93,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     def to_value(self, units: Unit) -> ArrayLike:
         if units == self.unit:
             return self.value
-        return self.value * self.unit.to(units)
+        return self.value * self.unit.to(units)  # TODO: allow affine transforms
 
     def decompose(self, bases: Sequence[Unit]) -> "Quantity":
         """Decompose the quantity into the given bases."""
@@ -144,7 +144,7 @@ def constructor(cls: type[Quantity], value: Quantity, unit: Any, /) -> Quantity:
 
     The `value` is converted to the new `unit`.
     """
-    return Quantity(value.to_value(unit), unit)
+    return value.to(unit)
 
 
 @Quantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
