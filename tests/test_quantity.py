@@ -131,6 +131,12 @@ def test_getitem():
     raise NotImplementedError
 
 
+def test_len():
+    """Test the ``len(Quantity)`` method."""
+    q = Quantity([1, 2, 3], u.m)
+    assert len(q) == 3
+
+
 @pytest.mark.skip("TODO")
 def test_add():
     """Test the ``Quantity.__add__`` method."""
