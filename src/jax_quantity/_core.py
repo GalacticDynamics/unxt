@@ -41,6 +41,9 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     value: jax.Array = eqx.field(converter=jax.numpy.asarray)
     unit: Unit = eqx.field(static=True, converter=Unit)
 
+    # ---------------------------------------------------------------
+    # Constructors
+
     @classmethod
     @dispatcher
     def constructor(
