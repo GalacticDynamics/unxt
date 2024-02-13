@@ -130,6 +130,7 @@ ignore = [
   "D105",    # Missing docstring in magic method
   "D203",    # 1 blank line required before class docstring
   "D213",    # Multi-line docstring summary should start at the second line
+  "ERA001",  # Commented out code
   "F811",    # redefinition of unused '...'  <- plum-dispatch
   "FIX002",  # Line contains TODO
   "ISC001",  # Conflicts with formatter
