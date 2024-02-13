@@ -82,12 +82,13 @@ def _add_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
 @register(lax.add_p)
 def _add_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
-    # x = 0 is a special case
-    if jnp.array_equal(x, 0):
-        return y
-    # Dimensionless quantities can be added to normal values
-    if y.unit == dimensionless:
-        return replace(y, value=lax.add(x, y.to_value(dimensionless)))
+    # TODO: figure out how to handle these edge cases.
+    # # x = 0 is a special case
+    # if jnp.array_equal(x, 0):
+    #     return y
+    # # Dimensionless quantities can be added to normal values
+    # if y.unit == dimensionless:
+    #     return replace(y, value=lax.add(x, y.to_value(dimensionless)))
 
     # otherwise we can't add a quantity to a normal value
     msg = "Cannot add a non-quantity and quantity."
@@ -96,12 +97,13 @@ def _add_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
 
 @register(lax.add_p)
 def _add_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
-    # y = 0 is a special case
-    if jnp.array_equal(y, 0):
-        return x
-    # Normal values can be added to dimensionless quantities
-    if x.unit == dimensionless:
-        return replace(x, value=lax.add(x.to_value(dimensionless), y))
+    # TODO: figure out how to handle these edge cases.
+    # # y = 0 is a special case
+    # if jnp.array_equal(y, 0):
+    #     return x
+    # # Normal values can be added to dimensionless quantities
+    # if x.unit == dimensionless:
+    #     return replace(x, value=lax.add(x.to_value(dimensionless), y))
 
     # otherwise we can't add a normal value to a quantity
     msg = "Cannot add a quantity and non-quantity."
