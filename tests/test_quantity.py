@@ -187,46 +187,123 @@ def test_and():
     raise NotImplementedError
 
 
-@pytest.mark.skip("TODO")
 def test_gt():
     """Test the ``Quantity.__gt__`` method."""
-    raise NotImplementedError
+    # Test with a scalar
+    q = Quantity(1, u.m)
+    assert q > Quantity(0, u.m)
+    assert not q > Quantity(1, u.m)
+    assert not q > Quantity(2, u.m)
+
+    # Test with an array
+    q = Quantity([1, 2, 3], u.m)
+    assert jnp.array_equal(q > Quantity(0, u.m), jnp.array([True, True, True]))
+    assert jnp.array_equal(q > Quantity(1, u.m), jnp.array([False, True, True]))
+
+    # Test with incompatible units
+    assert jnp.array_equal(q > Quantity(0, u.s), jnp.array([False, False, False]))
 
 
-@pytest.mark.skip("TODO")
 def test_ge():
     """Test the ``Quantity.__ge__`` method."""
-    raise NotImplementedError
+    # Test with a scalar
+    q = Quantity(1, u.m)
+    assert q >= Quantity(0, u.m)
+    assert q >= Quantity(1, u.m)
+    assert not q >= Quantity(2, u.m)
+
+    # Test with an array
+    q = Quantity([1, 2, 3], u.m)
+    assert jnp.array_equal(q >= Quantity(0, u.m), jnp.array([True, True, True]))
+    assert jnp.array_equal(q >= Quantity(1, u.m), jnp.array([True, True, True]))
+    assert jnp.array_equal(q >= Quantity(2, u.m), jnp.array([False, True, True]))
+
+    # Test with incompatible units
+    assert jnp.array_equal(q >= Quantity(0, u.s), jnp.array([False, False, False]))
 
 
-@pytest.mark.skip("TODO")
 def test_lt():
     """Test the ``Quantity.__lt__`` method."""
-    raise NotImplementedError
+    # Test with a scalar
+    q = Quantity(1, u.m)
+    assert not q < Quantity(0, u.m)
+    assert not q < Quantity(1, u.m)
+    assert q < Quantity(2, u.m)
+
+    # Test with an array
+    q = Quantity([1, 2, 3], u.m)
+    assert jnp.array_equal(q < Quantity(0, u.m), jnp.array([False, False, False]))
+    assert jnp.array_equal(q < Quantity(1, u.m), jnp.array([False, False, False]))
+    assert jnp.array_equal(q < Quantity(2, u.m), jnp.array([True, False, False]))
+
+    # Test with incompatible units
+    assert jnp.array_equal(q < Quantity(0, u.s), jnp.array([False, False, False]))
 
 
-@pytest.mark.skip("TODO")
 def test_le():
     """Test the ``Quantity.__le__`` method."""
-    raise NotImplementedError
+    # Test with a scalar
+    q = Quantity(1, u.m)
+    assert not q <= Quantity(0, u.m)
+    assert q <= Quantity(1, u.m)
+    assert q <= Quantity(2, u.m)
+
+    # Test with an array
+    q = Quantity([1, 2, 3], u.m)
+    assert jnp.array_equal(q <= Quantity(0, u.m), jnp.array([False, False, False]))
+    assert jnp.array_equal(q <= Quantity(1, u.m), jnp.array([True, False, False]))
+    assert jnp.array_equal(q <= Quantity(2, u.m), jnp.array([True, True, False]))
+
+    # Test with incompatible units
+    assert jnp.array_equal(q <= Quantity(0, u.s), jnp.array([False, False, False]))
 
 
-@pytest.mark.skip("TODO")
 def test_eq():
     """Test the ``Quantity.__eq__`` method."""
-    raise NotImplementedError
+    # Test with a scalar
+    q = Quantity(1, u.m)
+    assert not q == Quantity(0, u.m)  # noqa: SIM201
+    assert q == Quantity(1, u.m)
+    assert not q == Quantity(2, u.m)  # noqa: SIM201
+
+    # Test with an array
+    q = Quantity([1, 2, 3], u.m)
+    assert jnp.array_equal(q == Quantity(0, u.m), jnp.array([False, False, False]))
+    assert jnp.array_equal(q == Quantity(1, u.m), jnp.array([True, False, False]))
+    assert jnp.array_equal(q == Quantity(2, u.m), jnp.array([False, True, False]))
+
+    # Test with incompatible units
+    assert jnp.array_equal(q == Quantity(0, u.s), jnp.array([False, False, False]))
 
 
-@pytest.mark.skip("TODO")
 def test_ne():
     """Test the ``Quantity.__ne__`` method."""
-    raise NotImplementedError
+    # Test with a scalar
+    q = Quantity(1, u.m)
+    assert q != Quantity(0, u.m)
+    assert q == Quantity(1, u.m)
+    assert q != Quantity(2, u.m)
+
+    # Test with an array
+    q = Quantity([1, 2, 3], u.m)
+    assert jnp.array_equal(q != Quantity(0, u.m), jnp.array([True, True, True]))
+    assert jnp.array_equal(q != Quantity(1, u.m), jnp.array([False, True, True]))
+    assert jnp.array_equal(q != Quantity(2, u.m), jnp.array([True, False, True]))
+
+    # Test with incompatible units
+    assert jnp.array_equal(q != Quantity(0, u.s), jnp.array([False, False, False]))
 
 
-@pytest.mark.skip("TODO")
 def test_neg():
     """Test the ``Quantity.__neg__`` method."""
-    raise NotImplementedError
+    # Test with a scalar
+    q = Quantity(1, u.m)
+    assert -q == Quantity(-1, u.m)
+
+    # Test with an array
+    q = Quantity([1, 2, 3], u.m)
+    assert jnp.array_equal(-q.value, jnp.array([-1, -2, -3]))
+    assert (-q).unit == u.m
 
 
 # ===============================================================
