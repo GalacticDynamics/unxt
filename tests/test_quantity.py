@@ -77,7 +77,7 @@ def test_properties(value):
     assert q.aval() == jax.core.get_aval(expected)
 
     # Test enable_materialise
-    assert q.enable_materialise() == q
+    assert jnp.array_equal(q.enable_materialise().value, q.value)
 
 
 @pytest.mark.parametrize("unit", [u.m, "meter"])
@@ -227,3 +227,35 @@ def test_ne():
 def test_neg():
     """Test the ``Quantity.__neg__`` method."""
     raise NotImplementedError
+
+
+# ===============================================================
+# Unknown
+
+
+def test_as_type_unknown():
+    """Test the ``Quantity.as_type`` method with an unknown format."""
+    q = Quantity(1, u.m)
+    with pytest.raises(TypeError, match="Unknown format <class 'int'>."):
+        q.as_type(int)
+
+
+# ===============================================================
+# Astropy
+
+
+def test_from_astropy():
+    """Test the ``Quantity.constructor(AstropyQuantity)`` method."""
+    apyq = u.Quantity(1, u.m)
+    q = Quantity.constructor(apyq)
+    assert isinstance(q, Quantity)
+    assert np.equal(q.value, apyq.value)
+    assert q.unit == apyq.unit
+
+
+def test_as_type_astropy():
+    """Test the ``Quantity.as_type(AstropyQuantity)`` method."""
+    q = Quantity(1, u.m)
+    apyq = q.as_type(u.Quantity)
+    assert isinstance(apyq, u.Quantity)
+    assert apyq == u.Quantity(1, u.m)
