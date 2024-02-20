@@ -12,6 +12,7 @@ import array_api_jax_compat
 import equinox as eqx
 import jax
 import jax.core
+import jax.numpy as jnp
 from array_api_jax_compat._dispatch import dispatcher
 from astropy.units import (
     CompositeUnit,
@@ -19,7 +20,7 @@ from astropy.units import (
     Unit,
     UnitConversionError,
 )
-from jaxtyping import ArrayLike
+from jaxtyping import Array, ArrayLike, Shaped
 from quax import ArrayValue, quaxify
 from typing_extensions import Self
 
@@ -35,6 +36,21 @@ def _flip_binop(binop: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
         return binop(y, x)
 
     return _binop
+
+
+def bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
+    def _op(self: "Quantity", other: Any) -> Shaped[Array, "..."]:
+        if not isinstance(other, Quantity):
+            return NotImplemented
+
+        try:
+            other_value = other.to_value(self.unit)
+        except UnitConversionError:
+            return jnp.full(self.value.shape, fill_value=False, dtype=bool)
+
+        return op(self.value, other_value)
+
+    return _op
 
 
 @final
@@ -129,15 +145,18 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     __truediv__ = quaxify(operator.truediv)
     __rtruediv__ = quaxify(_flip_binop(operator.truediv))
 
-    # Boolean
-    __and__ = quaxify(operator.__and__)
-    __gt__ = quaxify(operator.__gt__)
-    __ge__ = quaxify(operator.__ge__)
-    __lt__ = quaxify(operator.__lt__)
-    __le__ = quaxify(operator.__le__)
-    __eq__ = quaxify(operator.__eq__)
-    __ne__ = quaxify(operator.__ne__)
-    __neg__ = quaxify(operator.__neg__)
+    # ---------------------------------
+    # Boolean operations
+
+    __lt__ = bool_op(jnp.less)
+    __le__ = bool_op(jnp.less_equal)
+    __eq__ = bool_op(jnp.equal)
+    __ge__ = bool_op(jnp.greater_equal)
+    __gt__ = bool_op(jnp.greater)
+    __ne__ = bool_op(jnp.not_equal)
+
+    def __neg__(self) -> "Quantity":
+        return replace(self, value=-self.value)
 
     # ===============================================================
     # I/O
