@@ -230,6 +230,17 @@ def test_neg():
 
 
 # ===============================================================
+# Unknown
+
+
+def test_as_type_unknown():
+    """Test the ``Quantity.as_type`` method with an unknown format."""
+    q = Quantity(1, u.m)
+    with pytest.raises(TypeError, match="Unknown format <class 'int'>."):
+        q.as_type(int)
+
+
+# ===============================================================
 # Astropy
 
 
@@ -242,7 +253,7 @@ def test_from_astropy():
     assert q.unit == apyq.unit
 
 
-def test_to_astropy():
+def test_as_type_astropy():
     """Test the ``Quantity.as_type(AstropyQuantity)`` method."""
     q = Quantity(1, u.m)
     apyq = q.as_type(u.Quantity)

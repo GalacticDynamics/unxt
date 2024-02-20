@@ -148,7 +148,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
             return AstropyQuantity(self.value, self.unit)
 
         msg = f"Unknown format {format}."
-        raise ValueError(msg)
+        raise TypeError(msg)
 
 
 # -----------------------------------------------
