@@ -156,7 +156,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     __ne__ = bool_op(jnp.not_equal)
 
     def __neg__(self) -> "Quantity":
-        return replace(self, value=-self.value)
+        return replace(self, value=-self.value)  # pylint: disable=E1130
 
     # ===============================================================
     # I/O
