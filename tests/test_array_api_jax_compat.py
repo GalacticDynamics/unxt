@@ -608,10 +608,10 @@ def test_divide():
     x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
     y = Quantity(xp.asarray([4, 5, 6], dtype=float), u.km)
     got = xp.divide(x, y)
-    expected = Quantity(xp.divide(x.to_value(u.m), y.to_value(u.m)), u.one)
+    expected = Quantity(xp.divide(x.value, y.value), u.m / u.km)
 
     assert isinstance(got, Quantity)
-    assert got.unit.is_equivalent(expected.unit)  # TODO: got has a scale
+    assert got.unit.is_equivalent(expected.unit)
     assert jnp.array_equal(got.value, expected.value)
 
 

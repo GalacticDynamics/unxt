@@ -500,7 +500,7 @@ def _digamma_p(x: Quantity) -> Quantity:
 @register(lax.div_p)
 def _div_p_qq(x: Quantity, y: Quantity) -> Quantity:
     unit = Unit(x.unit / y.unit)
-    return Quantity(lax.div(x.value, y.to_value(x.unit)), unit=unit)
+    return Quantity(lax.div(x.value, y.value), unit=unit)
 
 
 @register(lax.div_p)
