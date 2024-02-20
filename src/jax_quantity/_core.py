@@ -6,7 +6,7 @@ __all__ = ["Quantity", "can_convert"]
 import operator
 from collections.abc import Callable, Sequence
 from dataclasses import replace
-from typing import TYPE_CHECKING, Any, final
+from typing import TYPE_CHECKING, Any, TypeVar, final
 
 import array_api_jax_compat
 import equinox as eqx
@@ -25,6 +25,9 @@ from typing_extensions import Self
 
 if TYPE_CHECKING:
     from array_api import ArrayAPINamespace
+
+
+T = TypeVar("T")
 
 
 def _flip_binop(binop: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
@@ -136,6 +139,17 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     __ne__ = quaxify(operator.__ne__)
     __neg__ = quaxify(operator.__neg__)
 
+    # ===============================================================
+    # I/O
+
+    def as_type(self, format: type[T], /) -> T:
+        """Convert to a type."""
+        if format is AstropyQuantity:
+            return AstropyQuantity(self.value, self.unit)
+
+        msg = f"Unknown format {format}."
+        raise ValueError(msg)
+
 
 # -----------------------------------------------
 # Register additional constructors
@@ -157,6 +171,15 @@ def constructor(cls: type[Quantity], value: AstropyQuantity, unit: Any, /) -> Qu
     The `value` is converted to the new `unit`.
     """
     return Quantity(value.to_value(unit), unit)
+
+
+@Quantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
+def constructor(cls: type[Quantity], value: AstropyQuantity) -> Quantity:
+    """Construct a `Quantity` from another `Quantity`.
+
+    The `value` is converted to the new `unit`.
+    """
+    return Quantity(value.value, value.unit)
 
 
 # ===============================================================
