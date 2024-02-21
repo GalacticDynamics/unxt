@@ -80,6 +80,27 @@ def test_properties(value):
     assert jnp.array_equal(q.enable_materialise().value, q.value)
 
 
+def test_parametric():
+    """Test the parametric strategy."""
+    # Inferred
+    q = Quantity(1, u.m)
+    (dimensions,) = q._type_parameter  # noqa: SLF001
+    assert dimensions == u.get_physical_type(u.m)
+
+    # Explicit
+    q = Quantity["length"](1, u.m)
+    (dimensions,) = q._type_parameter  # noqa: SLF001
+    assert dimensions == u.get_physical_type(u.m)
+
+    q = Quantity["length"](jnp.ones((1, 2)), u.m)
+    (dimensions,) = q._type_parameter  # noqa: SLF001
+    assert dimensions == u.get_physical_type(u.m)
+
+    # type-checks
+    with pytest.raises(ValueError, match="Physical type mismatch."):
+        Quantity["time"](1, u.m)
+
+
 @pytest.mark.parametrize("unit", [u.m, "meter"])
 def test_unit(unit):
     """Test the unit."""

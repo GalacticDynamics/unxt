@@ -16,11 +16,14 @@ import jax.numpy as jnp
 from array_api_jax_compat._dispatch import dispatcher
 from astropy.units import (
     CompositeUnit,
+    PhysicalType,
     Quantity as AstropyQuantity,
     Unit,
     UnitConversionError,
+    get_physical_type,
 )
 from jaxtyping import Array, ArrayLike, Shaped
+from plum import dispatch, parametric
 from quax import ArrayValue, quaxify
 from typing_extensions import Self
 
@@ -53,12 +56,61 @@ def bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
     return _op
 
 
+def shape_str(shape: tuple[int, ...]) -> str:
+    return " ".join(map(str, shape))
+
+
+##############################################################################
+
+
 @final
+@parametric
 class Quantity(ArrayValue):  # type: ignore[misc]
     """Represents an array, with each axis bound to a name."""
 
-    value: jax.Array = eqx.field(converter=jax.numpy.asarray)
+    value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
     unit: Unit = eqx.field(static=True, converter=Unit)
+
+    def __check_init__(self) -> None:
+        """Check whether the arguments are valid."""
+        (dimensions,) = self._type_parameter
+        if self.unit.physical_type != dimensions:
+            msg = "Physical type mismatch."  # TODO: better error message
+            raise ValueError(msg)
+
+    # ---------------------------------------------------------------
+    # Type Parameters
+
+    @classmethod
+    @dispatch  # type: ignore[misc]
+    def __init_type_parameter__(
+        cls, dimensions: PhysicalType | str
+    ) -> tuple[PhysicalType]:
+        """Check whether the type parameters are valid."""
+        # In this case, we use `@dispatch` to check the validity of the type parameter.
+        return (get_physical_type(dimensions),)
+
+    @classmethod
+    def __infer_type_parameter__(
+        cls, value: ArrayLike, unit: Any
+    ) -> tuple[PhysicalType]:
+        """Infer the type parameter from the arguments."""
+        return (get_physical_type(Unit(unit)),)
+
+    @classmethod
+    @dispatch  # type: ignore[misc]
+    def __le_type_parameter__(
+        cls,
+        left: tuple[PhysicalType],
+        right: tuple[PhysicalType],
+    ) -> bool:
+        """Define an order on type parameters.
+
+        That is, check whether `left <= right` or not.
+        """
+        (dim_left,) = left
+        (dim_right,) = right
+        return dim_left == dim_right
 
     # ---------------------------------------------------------------
     # Constructors
