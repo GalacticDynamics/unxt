@@ -159,7 +159,7 @@ def _approx_top_k_p() -> Quantity:
 
 @register(lax.argmax_p)
 def _argmax_p(operand: Quantity, *, axes: Any, index_dtype: Any) -> Quantity:
-    return replace(operand, value=lax.argmax(operand.value, axes[0], index_dtype))
+    return Quantity(lax.argmax(operand.value, axes[0], index_dtype), unit=operand.unit)
 
 
 # ==============================================================================
@@ -167,7 +167,7 @@ def _argmax_p(operand: Quantity, *, axes: Any, index_dtype: Any) -> Quantity:
 
 @register(lax.argmin_p)
 def _argmin_p(operand: Quantity, *, axes: Any, index_dtype: Any) -> Quantity:
-    return replace(operand, value=lax.argmin(operand.value, axes[0], index_dtype))
+    return Quantity(lax.argmin(operand.value, axes[0], index_dtype), unit=operand.unit)
 
 
 # ==============================================================================
@@ -175,7 +175,7 @@ def _argmin_p(operand: Quantity, *, axes: Any, index_dtype: Any) -> Quantity:
 
 @register(lax.asin_p)
 def _asin_p(x: Quantity) -> Quantity:
-    return replace(x, value=lax.asin(x.to_value(dimensionless)), unit=radian)
+    return Quantity(lax.asin(x.to_value(dimensionless)), unit=radian)
 
 
 # ==============================================================================
@@ -183,7 +183,7 @@ def _asin_p(x: Quantity) -> Quantity:
 
 @register(lax.asinh_p)
 def _asinh_p(x: Quantity) -> Quantity:
-    return replace(x, value=lax.asinh(x.to_value(dimensionless)), unit=radian)
+    return Quantity(lax.asinh(x.to_value(dimensionless)), unit=radian)
 
 
 # ==============================================================================
@@ -265,9 +265,9 @@ def _broadcast_in_dim_p(
     shape: Any,
     broadcast_dimensions: Any,
 ) -> Quantity:
-    return replace(
-        operand,
+    return Quantity(
         value=lax.broadcast_in_dim(operand.value, shape, broadcast_dimensions),
+        unit=operand.unit,
     )
 
 
@@ -761,7 +761,7 @@ def _infeed_p() -> Quantity:
 
 @register(lax.integer_pow_p)
 def _integer_pow_p(x: Quantity, *, y: Any) -> Quantity:
-    return replace(x, value=lax.integer_pow(x.value, y), unit=x.unit**y)
+    return Quantity(value=lax.integer_pow(x.value, y), unit=x.unit**y)
 
 
 # ==============================================================================
@@ -1101,7 +1101,9 @@ def _reduce_and_p(
 
 @register(lax.reduce_max_p)
 def _reduce_max_p(operand: Quantity, *, axes: Axes) -> Quantity:
-    return replace(operand, value=lax.reduce_max_p.bind(operand.value, axes=axes))
+    return Quantity(
+        value=lax.reduce_max_p.bind(operand.value, axes=axes), unit=operand.unit
+    )
 
 
 # ==============================================================================
@@ -1109,7 +1111,7 @@ def _reduce_max_p(operand: Quantity, *, axes: Axes) -> Quantity:
 
 @register(lax.reduce_min_p)
 def _reduce_min_p(operand: Quantity, *, axes: Axes) -> Quantity:
-    return replace(operand, value=lax.reduce_min_p.bind(operand.value, axes=axes))
+    return Quantity(lax.reduce_min_p.bind(operand.value, axes=axes), unit=operand.unit)
 
 
 # ==============================================================================
@@ -1141,9 +1143,8 @@ def _reduce_precision_p() -> Quantity:
 
 @register(lax.reduce_prod_p)
 def _reduce_prod_p(operand: Quantity, *, axes: Axes) -> Quantity:
-    return replace(
-        operand,
-        value=lax.reduce_prod_p.bind(operand.value, axes=axes),
+    return Quantity(
+        lax.reduce_prod_p.bind(operand.value, axes=axes),
         unit=operand.unit ** prod(operand.shape[ax] for ax in axes),
     )
 
@@ -1153,7 +1154,7 @@ def _reduce_prod_p(operand: Quantity, *, axes: Axes) -> Quantity:
 
 @register(lax.reduce_sum_p)
 def _reduce_sum_p(operand: Quantity, *, axes: Axes) -> Quantity:
-    return replace(operand, value=lax.reduce_sum_p.bind(operand.value, axes=axes))
+    return Quantity(lax.reduce_sum_p.bind(operand.value, axes=axes), unit=operand.unit)
 
 
 # ==============================================================================
@@ -1217,7 +1218,9 @@ def _rem_p(x: Quantity, y: Quantity) -> Quantity:
 
 @register(lax.reshape_p)
 def _reshape_p(operand: Quantity, *, new_sizes: Any, dimensions: Any) -> Quantity:
-    return replace(operand, value=lax.reshape(operand.value, new_sizes, dimensions))
+    return Quantity(
+        lax.reshape(operand.value, new_sizes, dimensions), unit=operand.unit
+    )
 
 
 # ==============================================================================
@@ -1423,14 +1426,14 @@ def _slice_p(
     limit_indices: Any,
     strides: Any,
 ) -> Quantity:
-    return replace(
-        operand,
-        value=lax.slice_p.bind(
+    return Quantity(
+        lax.slice_p.bind(
             operand.value,
             start_indices=start_indices,
             limit_indices=limit_indices,
             strides=strides,
         ),
+        unit=operand.unit,
     )
 
 
@@ -1481,7 +1484,7 @@ def _sqrt_p(x: Quantity) -> Quantity:
 
 @register(lax.squeeze_p)
 def _squeeze_p(x: Quantity, *, dimensions: Any) -> Quantity:
-    return replace(x, value=lax.squeeze(x.value, dimensions))
+    return Quantity(lax.squeeze(x.value, dimensions), unit=x.unit)
 
 
 # ==============================================================================
@@ -1543,7 +1546,7 @@ def _top_k_p() -> Quantity:
 
 @register(lax.transpose_p)
 def _transpose_p(operand: Quantity, *, permutation: Any) -> Quantity:
-    return replace(operand, value=lax.transpose(operand.value, permutation))
+    return Quantity(lax.transpose(operand.value, permutation), unit=operand.unit)
 
 
 # ==============================================================================
