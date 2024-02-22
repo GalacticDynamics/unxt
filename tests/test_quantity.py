@@ -339,6 +339,18 @@ def test_flatten():
     assert q.flatten().unit == u.m
 
 
+def test_reshape():
+    """Test the ``Quantity.reshape`` method."""
+    # Test with a scalar
+    q = Quantity(1, u.m)
+    assert q.reshape(1, 1) == Quantity(1, u.m)
+
+    # Test with an array
+    q = Quantity([1, 2, 3, 4, 5, 6], u.m)
+    assert jnp.array_equal(q.reshape(2, 3).value, jnp.array([[1, 2, 3], [4, 5, 6]]))
+    assert q.reshape(2, 3).unit == u.m
+
+
 # ===============================================================
 # Unknown
 

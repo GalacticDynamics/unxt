@@ -212,6 +212,10 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     def flatten(self) -> "Quantity":
         return replace(self, value=self.value.flatten())
 
+    def reshape(self, *args: Any, order: str = "C") -> "Quantity":
+        __tracebackhide__ = True
+        return replace(self, value=self.value.reshape(*args, order=order))
+
     # ===============================================================
     # I/O
 
