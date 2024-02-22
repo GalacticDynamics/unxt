@@ -213,7 +213,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
         return replace(self, value=self.value.flatten())
 
     def reshape(self, *args: Any, order: str = "C") -> "Quantity":
-        __tracebackhide__ = True
+        __tracebackhide__ = True  # pylint: disable=unused-variable
         return replace(self, value=self.value.reshape(*args, order=order))
 
     # ===============================================================
