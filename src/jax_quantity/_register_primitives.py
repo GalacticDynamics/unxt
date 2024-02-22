@@ -98,7 +98,7 @@ def _add_p_qv1(x: Quantity["dimensionless"], y: ArrayLike) -> Quantity:  # type:
 
 @register(lax.add_p)
 def _add_p_qv2(x: Quantity, y: ArrayLike) -> Quantity:
-    msg = "Cannot add a quantity and non-quantity."
+    msg = "Cannot add a quantity and a non-quantity."
     raise ValueError(msg)
 
 
