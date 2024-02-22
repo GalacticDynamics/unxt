@@ -56,6 +56,15 @@ def bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
     return _op
 
 
+def get_dimension_name(unit: Unit) -> str:
+    """Get the name of the dimensions of a unit."""
+    return (
+        get_physical_type(unit)  # noqa: SLF001
+        ._name_string_as_ordered_set()
+        .split("'")[1]
+    )
+
+
 ##############################################################################
 
 
@@ -79,19 +88,17 @@ class Quantity(ArrayValue):  # type: ignore[misc]
 
     @classmethod
     @dispatch  # type: ignore[misc]
-    def __init_type_parameter__(
-        cls, dimensions: PhysicalType | str
-    ) -> tuple[PhysicalType]:
+    def __init_type_parameter__(cls, dimensions: PhysicalType | str) -> tuple[str]:
         """Check whether the type parameters are valid."""
         # In this case, we use `@dispatch` to check the validity of the type parameter.
-        return (get_physical_type(dimensions),)
+        return (get_dimension_name(dimensions),)
 
     @classmethod
     def __infer_type_parameter__(
         cls, value: ArrayLike, unit: Any
     ) -> tuple[PhysicalType]:
         """Infer the type parameter from the arguments."""
-        return (get_physical_type(Unit(unit)),)
+        return (get_dimension_name(Unit(unit)),)
 
     @classmethod
     @dispatch  # type: ignore[misc]

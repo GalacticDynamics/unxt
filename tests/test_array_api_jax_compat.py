@@ -1595,9 +1595,15 @@ def test_linalg_cholesky():
     """Test `linalg.cholesky`."""
 
 
-@pytest.mark.skip("TODO")
 def test_linalg_cross():
     """Test `linalg.cross`."""
+    q1 = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
+    q2 = Quantity(xp.asarray([4, 5, 6], dtype=float), u.s)
+    got = xp.linalg.cross(q1, q2)
+
+    assert isinstance(got, Quantity)
+    assert got.unit == u.m * u.s
+    assert jnp.array_equal(got.value, jnp.cross(q1.value, q2.value))
 
 
 @pytest.mark.skip("TODO")
