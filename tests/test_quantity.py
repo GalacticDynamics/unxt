@@ -327,6 +327,18 @@ def test_neg():
     assert (-q).unit == u.m
 
 
+def test_flatten():
+    """Test the ``Quantity.flatten`` method."""
+    # Test with a scalar
+    q = Quantity(1, u.m)
+    assert q.flatten() == Quantity(1, u.m)
+
+    # Test with an array
+    q = Quantity([[1, 2, 3], [4, 5, 6]], u.m)
+    assert jnp.array_equal(q.flatten().value, jnp.array([1, 2, 3, 4, 5, 6]))
+    assert q.flatten().unit == u.m
+
+
 # ===============================================================
 # Unknown
 

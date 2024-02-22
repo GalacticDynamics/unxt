@@ -206,6 +206,12 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     def __neg__(self) -> "Quantity":
         return replace(self, value=-self.value)  # pylint: disable=E1130
 
+    # ---------------------------------
+    # Misc
+
+    def flatten(self) -> "Quantity":
+        return replace(self, value=self.value.flatten())
+
     # ===============================================================
     # I/O
 
