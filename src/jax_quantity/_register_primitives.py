@@ -81,31 +81,23 @@ def _add_p_qq(x: Quantity, y: Quantity) -> Quantity:
 
 
 @register(lax.add_p)
-def _add_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
-    # TODO: figure out how to handle these edge cases.
-    # # x = 0 is a special case
-    # if jnp.array_equal(x, 0):
-    #     return y
-    # # Dimensionless quantities can be added to normal values
-    # if y.unit == dimensionless:
-    #     return replace(y, value=lax.add(x, y.to_value(dimensionless)))
+def _add_p_vq1(x: ArrayLike, y: Quantity["dimensionless"]) -> Quantity:  # type: ignore[type-arg]
+    return Quantity(lax.add(x, y.to_value(dimensionless)), unit=dimensionless)
 
-    # otherwise we can't add a quantity to a normal value
+
+@register(lax.add_p)
+def _add_p_vq2(x: ArrayLike, y: Quantity) -> Quantity:
     msg = "Cannot add a non-quantity and quantity."
     raise ValueError(msg)
 
 
 @register(lax.add_p)
-def _add_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
-    # TODO: figure out how to handle these edge cases.
-    # # y = 0 is a special case
-    # if jnp.array_equal(y, 0):
-    #     return x
-    # # Normal values can be added to dimensionless quantities
-    # if x.unit == dimensionless:
-    #     return replace(x, value=lax.add(x.to_value(dimensionless), y))
+def _add_p_qv1(x: Quantity["dimensionless"], y: ArrayLike) -> Quantity:  # type: ignore[type-arg]
+    return Quantity(lax.add(x.to_value(dimensionless), y), unit=dimensionless)
 
-    # otherwise we can't add a normal value to a quantity
+
+@register(lax.add_p)
+def _add_p_qv2(x: Quantity, y: ArrayLike) -> Quantity:
     msg = "Cannot add a quantity and non-quantity."
     raise ValueError(msg)
 
@@ -1343,6 +1335,16 @@ def _select_n_p(which: Quantity, *cases: Quantity) -> Quantity:
     unit = cases[0].unit
     cases_ = (case.to_value(unit) for case in cases)
     return Quantity(lax.select_n(which.to_value(dimensionless), *cases_), unit=unit)
+
+
+@register(lax.select_n_p)
+def _select_n_p_vq(which: Quantity, case0: Quantity, case1: ArrayLike) -> Quantity:
+    # encountered from jnp.hypot
+    unit = case0.unit
+    return Quantity(
+        lax.select_n(which.to_value(dimensionless), case0.to_value(unit), case1),
+        unit=unit,
+    )
 
 
 @register(lax.select_n_p)

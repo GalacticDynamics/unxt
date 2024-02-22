@@ -417,6 +417,7 @@ def test_acosh():
 
 def test_add():
     """Test `add`."""
+    # Adding two quantities
     x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
     y = Quantity(xp.asarray([4, 5, 6], dtype=float), u.m)
     got = xp.add(x, y)
@@ -424,6 +425,22 @@ def test_add():
 
     assert isinstance(got, Quantity)
     assert got.unit == expected.unit
+    assert jnp.array_equal(got.value, expected.value)
+
+    # Adding a quantity and non-quantity
+    with pytest.raises(ValueError, match="Cannot add a non-quantity and quantity."):
+        xp.add(x.value, y)
+
+    with pytest.raises(ValueError, match="Cannot add a quantity and a non-quantity."):
+        xp.add(x, y.value)
+
+    # Add a non-quantity and dimensionless quantity
+    got = xp.add(x.value, Quantity(1, u.one))
+    expected = Quantity(x.value + 1, u.one)
+    assert jnp.array_equal(got.value, expected.value)
+
+    got = xp.add(Quantity(1, u.one), y.value)
+    expected = Quantity(1 + y.value, u.one)
     assert jnp.array_equal(got.value, expected.value)
 
 
