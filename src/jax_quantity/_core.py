@@ -56,10 +56,6 @@ def bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
     return _op
 
 
-def shape_str(shape: tuple[int, ...]) -> str:
-    return " ".join(map(str, shape))
-
-
 ##############################################################################
 
 
@@ -73,7 +69,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
 
     def __check_init__(self) -> None:
         """Check whether the arguments are valid."""
-        (dimensions,) = self._type_parameter
+        dimensions = self._type_parameter
         if self.unit.physical_type != dimensions:
             msg = "Physical type mismatch."  # TODO: better error message
             raise ValueError(msg)
