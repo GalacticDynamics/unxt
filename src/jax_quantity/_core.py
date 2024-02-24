@@ -108,6 +108,12 @@ class Quantity(ArrayValue):  # type: ignore[misc]
         (dim_right,) = right
         return dim_left == dim_right
 
+    def __repr__(self) -> str:
+        # fmt: off
+        dim = self._type_parameter._name_string_as_ordered_set().split("'")[1]  # noqa: SLF001
+        return f"Quantity[{dim!r}]({self.value!r}, unit={self.unit.to_string()!r})"
+        # fmt: on
+
     # ---------------------------------------------------------------
     # Constructors
 
