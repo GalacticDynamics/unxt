@@ -8,7 +8,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any, TypeVar, final
 
-import array_api_jax_compat
+import array_api_jax_compat as xp
 import equinox as eqx
 import jax
 import jax.core
@@ -22,6 +22,7 @@ from astropy.units import (
     UnitConversionError,
     get_physical_type,
 )
+from jax.numpy import dtype
 from jaxtyping import Array, ArrayLike, Shaped
 from plum import dispatch, parametric
 from quax import ArrayValue, quaxify
@@ -31,7 +32,7 @@ if TYPE_CHECKING:
     from array_api import ArrayAPINamespace
 
 
-T = TypeVar("T")
+FMT = TypeVar("FMT")
 
 
 def _flip_binop(binop: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
@@ -181,7 +182,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     # Array API
 
     def __array_namespace__(self, *, api_version: Any = None) -> "ArrayAPINamespace":
-        return array_api_jax_compat
+        return xp
 
     def __getitem__(self, key: Any) -> "Quantity":
         return replace(self, value=self.value[key])
@@ -198,6 +199,40 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     __rpow__ = quaxify(_flip_binop(operator.pow))
     __truediv__ = quaxify(operator.truediv)
     __rtruediv__ = quaxify(_flip_binop(operator.truediv))
+
+    @property
+    def dtype(self) -> dtype:
+        """Data type of the array."""
+        return self.value.dtype
+
+    @property
+    def device(self) -> jax.Device:
+        """Device where the array is located."""
+        return self.value.device
+
+    @property
+    def mT(self) -> "Quantity":  # noqa: N802
+        """Transpose of the array."""
+        return replace(self, value=xp.matrix_transpose(self.value))
+
+    @property
+    def ndim(self) -> int:
+        """Number of dimensions."""
+        return self.value.ndim
+
+    @property
+    def size(self) -> int:
+        """Total number of elements."""
+        return self.value.size
+
+    @property
+    def T(self) -> "Quantity":  # noqa: N802
+        """Transpose of the array."""
+        return replace(self, value=self.value.T)
+
+    def to_device(self, device: None | jax.Device = None) -> "Quantity":
+        """Move the array to a new device."""
+        return replace(self, value=self.value.to_device(device))
 
     # ---------------------------------
     # Boolean operations
@@ -225,7 +260,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     # ===============================================================
     # I/O
 
-    def as_type(self, format: type[T], /) -> T:
+    def as_type(self, format: type[FMT], /) -> FMT:
         """Convert to a type."""
         if format is AstropyQuantity:
             return AstropyQuantity(self.value, self.unit)
