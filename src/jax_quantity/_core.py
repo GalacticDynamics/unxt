@@ -22,7 +22,7 @@ from astropy.units import (
     UnitConversionError,
     get_physical_type,
 )
-from jax.dtypes import dtype
+from jax.numpy import dtype
 from jaxtyping import Array, ArrayLike, Shaped
 from plum import dispatch, parametric
 from quax import ArrayValue, quaxify
