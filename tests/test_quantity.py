@@ -355,11 +355,11 @@ def test_reshape():
 # Unknown
 
 
-def test_as_type_unknown():
-    """Test the ``Quantity.as_type`` method with an unknown format."""
+def test_convert_to_unknown():
+    """Test the ``Quantity.convert_to`` method with an unknown format."""
     q = Quantity(1, u.m)
     with pytest.raises(TypeError, match="Unknown format <class 'int'>."):
-        q.as_type(int)
+        q.convert_to(int)
 
 
 # ===============================================================
@@ -375,10 +375,10 @@ def test_from_astropy():
     assert q.unit == apyq.unit
 
 
-def test_as_type_astropy():
-    """Test the ``Quantity.as_type(AstropyQuantity)`` method."""
+def test_convert_to_astropy():
+    """Test the ``Quantity.convert_to(AstropyQuantity)`` method."""
     q = Quantity(1, u.m)
-    apyq = q.as_type(u.Quantity)
+    apyq = q.convert_to(u.Quantity)
     assert isinstance(apyq, u.Quantity)
     assert apyq == u.Quantity(1, u.m)
 

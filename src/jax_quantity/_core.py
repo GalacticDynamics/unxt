@@ -260,7 +260,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     # ===============================================================
     # I/O
 
-    def as_type(self, format: type[FMT], /) -> FMT:
+    def convert_to(self, format: type[FMT], /) -> FMT:
         """Convert to a type."""
         if format is AstropyQuantity:
             return AstropyQuantity(self.value, self.unit)
