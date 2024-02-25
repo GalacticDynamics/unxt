@@ -1,7 +1,7 @@
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
 
-__all__ = ["Quantity", "can_convert"]
+__all__ = ["Quantity", "can_convert_unit"]
 
 import operator
 from collections.abc import Callable, Sequence
@@ -24,7 +24,7 @@ from astropy.units import (
 )
 from jax.numpy import dtype
 from jaxtyping import Array, ArrayLike, Shaped
-from plum import dispatch, parametric
+from plum import conversion_method, parametric
 from quax import ArrayValue, quaxify
 from typing_extensions import Self
 
@@ -79,7 +79,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     # Type Parameters
 
     @classmethod
-    @dispatch  # type: ignore[misc]
+    @dispatcher  # type: ignore[misc]
     def __init_type_parameter__(
         cls, dimensions: PhysicalType | str
     ) -> tuple[PhysicalType]:
@@ -95,7 +95,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
         return (get_physical_type(Unit(unit)),)
 
     @classmethod
-    @dispatch  # type: ignore[misc]
+    @dispatcher  # type: ignore[misc]
     def __le_type_parameter__(
         cls,
         left: tuple[PhysicalType],
@@ -260,7 +260,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     # ===============================================================
     # I/O
 
-    def as_type(self, format: type[FMT], /) -> FMT:
+    def convert_to(self, format: type[FMT], /) -> FMT:
         """Convert to a type."""
         if format is AstropyQuantity:
             return AstropyQuantity(self.value, self.unit)
@@ -303,12 +303,12 @@ def constructor(cls: type[Quantity], value: AstropyQuantity) -> Quantity:
 # ===============================================================
 
 
-def can_convert(from_: Unit, to: Unit) -> bool:
+def can_convert_unit(from_: Quantity | Unit, to: Unit) -> bool:
     """Check if a unit can be converted to another unit.
 
     Parameters
     ----------
-    from_ : Unit
+    from_ : Quantity | Unit
         The unit to convert from.
     to : Unit
         The unit to convert to.
@@ -324,3 +324,13 @@ def can_convert(from_: Unit, to: Unit) -> bool:
     except UnitConversionError:
         return False
     return True
+
+
+# ===============================================================
+# Compat
+
+
+@conversion_method(type_from=Quantity, type_to=AstropyQuantity)  # type: ignore[misc]
+def convert_quantity_to_astropyquantity(obj: Quantity, /) -> AstropyQuantity:
+    """`Quantity` -> `astropy.Quantity`."""
+    return AstropyQuantity(obj.value, obj.unit)

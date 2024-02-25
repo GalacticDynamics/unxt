@@ -23,7 +23,7 @@ from jax._src.typing import Shape
 from jaxtyping import ArrayLike
 from quax import register as register_
 
-from ._core import Quantity, can_convert
+from ._core import Quantity, can_convert_unit
 
 T = TypeVar("T")
 
@@ -38,7 +38,9 @@ def register(primitive: jax.core.Primitive) -> Callable[[T], T]:
 
 def _to_value_rad_or_one(q: Quantity) -> ArrayLike:
     return (
-        q.to_value(radian) if can_convert(q.unit, radian) else q.to_value(dimensionless)
+        q.to_value(radian)
+        if can_convert_unit(q.unit, radian)
+        else q.to_value(dimensionless)
     )
 
 

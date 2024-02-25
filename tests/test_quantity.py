@@ -16,7 +16,7 @@ from hypothesis.extra.numpy import (
     arrays as np_arrays,
 )
 
-from jax_quantity import Quantity
+from jax_quantity import Quantity, can_convert_unit
 
 xps = make_strategies_namespace(jax_xp)
 
@@ -355,11 +355,11 @@ def test_reshape():
 # Unknown
 
 
-def test_as_type_unknown():
-    """Test the ``Quantity.as_type`` method with an unknown format."""
+def test_convert_to_unknown():
+    """Test the ``Quantity.convert_to`` method with an unknown format."""
     q = Quantity(1, u.m)
     with pytest.raises(TypeError, match="Unknown format <class 'int'>."):
-        q.as_type(int)
+        q.convert_to(int)
 
 
 # ===============================================================
@@ -375,9 +375,27 @@ def test_from_astropy():
     assert q.unit == apyq.unit
 
 
-def test_as_type_astropy():
-    """Test the ``Quantity.as_type(AstropyQuantity)`` method."""
+def test_convert_to_astropy():
+    """Test the ``Quantity.convert_to(AstropyQuantity)`` method."""
     q = Quantity(1, u.m)
-    apyq = q.as_type(u.Quantity)
+    apyq = q.convert_to(u.Quantity)
     assert isinstance(apyq, u.Quantity)
     assert apyq == u.Quantity(1, u.m)
+
+
+##############################################################################
+
+
+def test_can_convert_unit():
+    """Test :func:`jax_quantity.can_convert_unit`."""
+    # Unit
+    assert can_convert_unit(u.km, u.kpc) is True
+
+    # Bad unit
+    assert can_convert_unit(u.s, u.m) is False
+
+    # Quantity
+    assert can_convert_unit(Quantity(1, u.km), u.kpc) is True
+
+    # Bad quantity
+    assert can_convert_unit(Quantity(1, u.s), u.m) is False
