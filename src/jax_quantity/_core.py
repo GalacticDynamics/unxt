@@ -24,7 +24,7 @@ from astropy.units import (
 )
 from jax.numpy import dtype
 from jaxtyping import Array, ArrayLike, Shaped
-from plum import parametric
+from plum import conversion_method, parametric
 from quax import ArrayValue, quaxify
 from typing_extensions import Self
 
@@ -324,3 +324,13 @@ def can_convert_unit(from_: Quantity | Unit, to: Unit) -> bool:
     except UnitConversionError:
         return False
     return True
+
+
+# ===============================================================
+# Compat
+
+
+@conversion_method(type_from=Quantity, type_to=AstropyQuantity)  # type: ignore[misc]
+def convert_quantity_to_astropyquantity(obj: Quantity, /) -> AstropyQuantity:
+    """`Quantity` -> `astropy.Quantity`."""
+    return AstropyQuantity(obj.value, obj.unit)
