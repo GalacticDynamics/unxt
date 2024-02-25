@@ -208,7 +208,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     @property
     def device(self) -> jax.Device:
         """Device where the array is located."""
-        return self.value.device
+        return self.value.devices().pop()
 
     @property
     def mT(self) -> "Quantity":  # noqa: N802
