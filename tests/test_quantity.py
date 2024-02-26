@@ -2,7 +2,6 @@
 
 """Test the Array API."""
 
-import array_api_jax_compat
 import astropy.units as u
 import jax
 import jax.experimental.array_api as jax_xp
@@ -15,6 +14,8 @@ from hypothesis.extra.numpy import (
     array_shapes as np_array_shapes,
     arrays as np_arrays,
 )
+
+import array_api_jax_compat
 
 from jax_quantity import Quantity, can_convert_unit
 
