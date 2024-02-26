@@ -300,17 +300,6 @@ def constructor(
 
 @Quantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
 def constructor(
-    cls: type[Quantity], value: AstropyQuantity, unit: Any, /, *, dtype: Any = None
-) -> Quantity:
-    """Construct a `Quantity` from another `Quantity`.
-
-    The `value` is converted to the new `unit`.
-    """
-    return Quantity(xp.asarray(value.to_value(unit), dtype=dtype), unit)
-
-
-@Quantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
-def constructor(
     cls: type[Quantity], value: AstropyQuantity, *, dtype: Any = None
 ) -> Quantity:
     """Construct a `Quantity` from another `Quantity`.
@@ -318,6 +307,17 @@ def constructor(
     The `value` is converted to the new `unit`.
     """
     return Quantity(xp.asarray(value.value, dtype=dtype), value.unit)
+
+
+@Quantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
+def constructor(
+    cls: type[Quantity], value: AstropyQuantity, unit: Any, /, *, dtype: Any = None
+) -> Quantity:
+    """Construct a `Quantity` from another `Quantity`.
+
+    The `value` is converted to the new `unit`.
+    """
+    return Quantity(xp.asarray(value.to_value(unit), dtype=dtype), unit)
 
 
 # ===============================================================
