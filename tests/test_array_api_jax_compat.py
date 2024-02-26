@@ -5,9 +5,10 @@
 
 import re
 
-import array_api_jax_compat as xp
 import astropy.units as u
 import jax
+
+import array_api_jax_compat as xp
 
 # isort: split
 jax.config.update("jax_enable_x64", val=True)
