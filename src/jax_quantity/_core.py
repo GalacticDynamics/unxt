@@ -283,9 +283,17 @@ def constructor(cls: type[Quantity], value: Quantity, unit: Any, /) -> Quantity:
 
 
 @Quantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
-def constructor(cls: type[Quantity], value: Quantity, /) -> Quantity:
+def constructor(
+    cls: type[Quantity],
+    value: Quantity,
+    /,
+    *,
+    unit: Any | None = None,
+    dtype: Any = None,
+) -> Quantity:
     """Construct a `Quantity` from another `Quantity`, with no unit change."""
-    return replace(value)
+    unit = value.unit if unit is None else unit
+    return xp.asarray(value.to(unit), dtype=dtype)
 
 
 @Quantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
