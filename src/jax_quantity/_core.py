@@ -22,7 +22,7 @@ from astropy.units import (
     UnitConversionError,
     get_physical_type,
 )
-from jax.numpy import dtype
+from jax.numpy import dtype as DType  # noqa: N812
 from jaxtyping import Array, ArrayLike, Shaped
 from plum import conversion_method, parametric
 from quax import ArrayValue, quaxify
@@ -201,7 +201,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     __rtruediv__ = quaxify(_flip_binop(operator.truediv))
 
     @property
-    def dtype(self) -> dtype:
+    def dtype(self) -> DType:
         """Data type of the array."""
         return self.value.dtype
 
