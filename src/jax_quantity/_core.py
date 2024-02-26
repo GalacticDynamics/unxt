@@ -283,6 +283,12 @@ def constructor(cls: type[Quantity], value: Quantity, unit: Any, /) -> Quantity:
 
 
 @Quantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
+def constructor(cls: type[Quantity], value: Quantity, /) -> Quantity:
+    """Construct a `Quantity` from another `Quantity`, with no unit change."""
+    return replace(value)
+
+
+@Quantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
 def constructor(cls: type[Quantity], value: AstropyQuantity, unit: Any, /) -> Quantity:
     """Construct a `Quantity` from another `Quantity`.
 
