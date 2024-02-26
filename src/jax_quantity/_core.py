@@ -121,27 +121,27 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     @classmethod
     @dispatcher
     def constructor(
-        cls: "type[Quantity]", value: ArrayLike, unit: Any, /
+        cls: "type[Quantity]", value: ArrayLike, unit: Any, /, *, dtype: Any = None
     ) -> "Quantity":
         # Dispatch on both arguments.
         # Construct using the standard `__init__` method.
-        return cls(value, unit)
+        return cls(xp.asarray(value, dtype=dtype), unit)
 
     @classmethod  # type: ignore[no-redef]
     @dispatcher
     def constructor(
-        cls: "type[Quantity]", value: ArrayLike, *, unit: Any
+        cls: "type[Quantity]", value: ArrayLike, *, unit: Any, dtype: Any = None
     ) -> "Quantity":
         # Dispatch on the `value` only. Dispatch to the full constructor.
-        return cls.constructor(value, unit)
+        return cls.constructor(value, unit, dtype=dtype)
 
     @classmethod  # type: ignore[no-redef]
     @dispatcher
     def constructor(
-        cls: "type[Quantity]", *, value: ArrayLike, unit: Any
+        cls: "type[Quantity]", *, value: ArrayLike, unit: Any, dtype: Any = None
     ) -> "Quantity":
         # Dispatched on no argument. Dispatch to the full constructor.
-        return cls.constructor(value, unit)
+        return cls.constructor(value, unit, dtype=dtype)
 
     # ===============================================================
     # Quax
@@ -274,12 +274,14 @@ class Quantity(ArrayValue):  # type: ignore[misc]
 
 
 @Quantity.constructor._f.register  # noqa: SLF001
-def constructor(cls: type[Quantity], value: Quantity, unit: Any, /) -> Quantity:
+def constructor(
+    cls: type[Quantity], value: Quantity, unit: Any, /, *, dtype: Any = None
+) -> Quantity:
     """Construct a `Quantity` from another `Quantity`.
 
     The `value` is converted to the new `unit`.
     """
-    return value.to(unit)
+    return xp.asarray(value.to(unit), dtype=dtype)
 
 
 @Quantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
@@ -297,21 +299,25 @@ def constructor(
 
 
 @Quantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
-def constructor(cls: type[Quantity], value: AstropyQuantity, unit: Any, /) -> Quantity:
+def constructor(
+    cls: type[Quantity], value: AstropyQuantity, unit: Any, /, *, dtype: Any = None
+) -> Quantity:
     """Construct a `Quantity` from another `Quantity`.
 
     The `value` is converted to the new `unit`.
     """
-    return Quantity(value.to_value(unit), unit)
+    return Quantity(xp.asarray(value.to_value(unit), dtype=dtype), unit)
 
 
 @Quantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
-def constructor(cls: type[Quantity], value: AstropyQuantity) -> Quantity:
+def constructor(
+    cls: type[Quantity], value: AstropyQuantity, *, dtype: Any = None
+) -> Quantity:
     """Construct a `Quantity` from another `Quantity`.
 
     The `value` is converted to the new `unit`.
     """
-    return Quantity(value.value, value.unit)
+    return Quantity(xp.asarray(value.value, dtype=dtype), value.unit)
 
 
 # ===============================================================
