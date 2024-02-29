@@ -160,7 +160,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
         return jax.core.get_aval(self.value)
 
     def enable_materialise(self, _: bool = True) -> Self:  # noqa: FBT001, FBT002
-        return type(self)(self.value, self.unit)
+        return replace(self, value=self.value, unit=self.unit)
 
     # ===============================================================
     # Quantity
@@ -187,6 +187,9 @@ class Quantity(ArrayValue):  # type: ignore[misc]
 
     def __getitem__(self, key: Any) -> "Quantity":
         return replace(self, value=self.value[key])
+
+    def __len__(self) -> int:
+        return len(self.value)
 
     __add__ = quaxify(operator.add)
     __radd__ = quaxify(_flip_binop(operator.add))

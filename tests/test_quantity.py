@@ -14,6 +14,7 @@ from hypothesis.extra.numpy import (
     array_shapes as np_array_shapes,
     arrays as np_arrays,
 )
+from quax import quaxify
 
 import array_api_jax_compat
 
@@ -116,7 +117,7 @@ def test_array_namespace():
 def test_to():
     """Test the ``Quantity.to`` method."""
     q = Quantity(1, u.m)
-    assert q.to(u.km) == Quantity(0.001, u.km)
+    assert quaxify(jnp.equal)(q.to(u.km), Quantity(0.001, u.km))
 
 
 def test_to_value():
@@ -129,6 +130,12 @@ def test_to_value():
 def test_getitem():
     """Test the ``Quantity.__getitem__`` method."""
     raise NotImplementedError
+
+
+def test_len():
+    """Test the ``len(Quantity)`` method."""
+    q = Quantity([1, 2, 3], u.m)
+    assert len(q) == 3
 
 
 @pytest.mark.skip("TODO")
