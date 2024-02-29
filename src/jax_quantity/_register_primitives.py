@@ -1365,9 +1365,11 @@ def _select_n_p_jqj(which: ArrayLike, case0: Quantity, case1: ArrayLike) -> Quan
 
 @register(lax.select_n_p)
 def _select_n_p_jqq(which: ArrayLike, case0: Quantity, case1: Quantity) -> Quantity:
-    # used by floor_divide
-    unit = case0.unit / case1.unit
-    return Quantity(lax.select_n(which, case0.value, case1.value), unit=unit)
+    # used by `jnp.hypot`
+    unit = case0.unit
+    return Quantity(
+        lax.select_n(which, case0.to_value(unit), case1.to_value(unit)), unit=unit
+    )
 
 
 # ==============================================================================
