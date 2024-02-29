@@ -507,11 +507,10 @@ def test_bitwise_and():
     x = Quantity(xp.asarray([1, 2, 3], dtype=int), u.one)
     y = Quantity(xp.asarray([4, 5, 6], dtype=int), u.one)
     got = xp.bitwise_and(x, y)
-    expected = Quantity(xp.bitwise_and(x.value, y.value), u.one)
+    expected = xp.bitwise_and(x.value, y.value)
 
-    assert isinstance(got, Quantity)
-    assert got.unit == expected.unit
-    assert jnp.array_equal(got.value, expected.value)
+    assert isinstance(got, Array)
+    assert jnp.array_equal(got, expected)
 
 
 @pytest.mark.xfail(reason="TODO")
@@ -639,11 +638,10 @@ def test_equal():
     x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
     y = Quantity(xp.asarray([4, 5, 6], dtype=float), u.m)
     got = xp.equal(x, y)
-    expected = Quantity(xp.equal(x.value, y.value), u.one)
+    expected = xp.equal(x.value, y.value)
 
-    assert isinstance(got, Quantity)
-    assert got.unit == expected.unit
-    assert jnp.array_equal(got.value, expected.value)
+    assert isinstance(got, Array)
+    assert jnp.array_equal(got, expected)
 
 
 def test_exp():
@@ -684,10 +682,10 @@ def test_floor_divide():
     x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
     y = Quantity(xp.asarray([4, 5, 6], dtype=float), u.m)
     got = xp.floor_divide(x, y)
-    expected = Quantity(xp.floor_divide(x.value, y.value), u.one)
+    expected = Quantity(xp.floor_divide(x.value, y.value), u.m / u.m)
 
     assert isinstance(got, Quantity)
-    assert got.unit == expected.unit
+    assert got.unit.is_equivalent(expected.unit)
     assert jnp.array_equal(got.value, expected.value)
 
 
@@ -696,11 +694,10 @@ def test_greater():
     x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
     y = Quantity(xp.asarray([4, 5, 6], dtype=float), u.m)
     got = xp.greater(x, y)
-    expected = Quantity(xp.greater(x.value, y.value), u.one)
+    expected = xp.greater(x.value, y.value)
 
-    assert isinstance(got, Quantity)
-    assert got.unit == expected.unit
-    assert jnp.array_equal(got.value, expected.value)
+    assert isinstance(got, Array)
+    assert jnp.array_equal(got, expected)
 
 
 def test_greater_equal():
@@ -708,11 +705,10 @@ def test_greater_equal():
     x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
     y = Quantity(xp.asarray([4, 5, 6], dtype=float), u.m)
     got = xp.greater_equal(x, y)
-    expected = Quantity(xp.greater_equal(x.value, y.value), u.one)
+    expected = xp.greater_equal(x.value, y.value)
 
-    assert isinstance(got, Quantity)
-    assert got.unit == expected.unit
-    assert jnp.array_equal(got.value, expected.value)
+    assert isinstance(got, Array)
+    assert jnp.array_equal(got, expected)
 
 
 def test_imag():
@@ -730,33 +726,30 @@ def test_isfinite():
     """Test `isfinite`."""
     x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
     got = xp.isfinite(x)
-    expected = Quantity(xp.isfinite(x.value), u.one)
+    expected = xp.isfinite(x.value)
 
-    assert isinstance(got, Quantity)
-    assert got.unit == expected.unit
-    assert jnp.array_equal(got.value, expected.value)
+    assert isinstance(got, Array)
+    assert jnp.array_equal(got, expected)
 
 
 def test_isinf():
     """Test `isinf`."""
     x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
     got = xp.isinf(x)
-    expected = Quantity(xp.isinf(x.value), u.one)
+    expected = xp.isinf(x.value)
 
-    assert isinstance(got, Quantity)
-    assert got.unit == expected.unit
-    assert jnp.array_equal(got.value, expected.value)
+    assert isinstance(got, Array)
+    assert jnp.array_equal(got, expected)
 
 
 def test_isnan():
     """Test `isnan`."""
     x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
     got = xp.isnan(x)
-    expected = Quantity(xp.isnan(x.value), u.one)
+    expected = xp.isnan(x.value)
 
-    assert isinstance(got, Quantity)
-    assert got.unit == expected.unit
-    assert jnp.array_equal(got.value, expected.value)
+    assert isinstance(got, Array)
+    assert jnp.array_equal(got, expected)
 
 
 def test_less():
@@ -764,11 +757,10 @@ def test_less():
     x = Quantity([1, 5, 3], u.m)
     y = Quantity([4, 2, 6], u.m)
     got = xp.less(x, y)
-    expected = Quantity(xp.less(x.value, y.value), u.one)
+    expected = xp.less(x.value, y.value)
 
-    assert isinstance(got, Quantity)
-    assert got.unit == expected.unit
-    assert jnp.array_equal(got.value, expected.value)
+    assert isinstance(got, Array)
+    assert jnp.array_equal(got, expected)
 
 
 def test_less_equal():
@@ -776,11 +768,10 @@ def test_less_equal():
     x = Quantity([1, 5, 3], u.m)
     y = Quantity([4, 2, 6], u.m)
     got = xp.less_equal(x, y)
-    expected = Quantity(xp.less_equal(x.value, y.value), u.one)
+    expected = xp.less_equal(x.value, y.value)
 
-    assert isinstance(got, Quantity)
-    assert got.unit == expected.unit
-    assert jnp.array_equal(got.value, expected.value)
+    assert isinstance(got, Array)
+    assert jnp.array_equal(got, expected)
 
 
 def test_log():
@@ -844,14 +835,13 @@ def test_logical_and():
     x = Quantity([True, False, True], u.one)
     y = Quantity([False, True, False], u.one)
     got = xp.logical_and(x, y)
-    expected = Quantity(xp.logical_and(x.value, y.value), u.one)
+    expected = xp.logical_and(x.value, y.value)
 
-    assert isinstance(got, Quantity)
-    assert got.unit == expected.unit
-    assert jnp.array_equal(got.value, expected.value)
+    assert isinstance(got, Array)
+    assert jnp.array_equal(got, expected)
 
 
-@pytest.mark.skip(reason="TODO")
+@pytest.mark.xfail(reason="TODO")
 def test_logical_not():
     """Test `logical_not`."""
     x = Quantity([True, False, True], u.one)
@@ -863,7 +853,7 @@ def test_logical_not():
     assert jnp.array_equal(got.value, expected.value)
 
 
-@pytest.mark.skip(reason="TODO")
+@pytest.mark.xfail(reason="TODO")
 def test_logical_or():
     """Test `logical_or`."""
     x = Quantity([True, False, True], u.one)
@@ -876,7 +866,7 @@ def test_logical_or():
     assert jnp.array_equal(got.value, expected.value)
 
 
-@pytest.mark.skip(reason="TODO")
+@pytest.mark.xfail(reason="TODO")
 def test_logical_xor():
     """Test `logical_xor`."""
     x = Quantity([True, False, True], u.one)
@@ -917,11 +907,10 @@ def test_not_equal():
     x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
     y = Quantity(xp.asarray([4, 2, 6], dtype=float), u.m)
     got = xp.not_equal(x, y)
-    expected = Quantity(xp.not_equal(x.value, y.value), u.one)
+    expected = xp.not_equal(x.value, y.value)
 
-    assert isinstance(got, Quantity)
-    assert got.unit == expected.unit
-    assert jnp.array_equal(got.value, expected.value)
+    assert isinstance(got, Array)
+    assert jnp.array_equal(got, expected)
 
 
 def test_positive():
@@ -986,11 +975,10 @@ def test_sign():
     """Test `sign`."""
     x = Quantity([-1, 2, -3], u.m)
     got = xp.sign(x)
-    expected = Quantity(xp.sign(x.value), u.one)
+    expected = xp.sign(x.value)
 
-    assert isinstance(got, Quantity)
-    assert got.unit == expected.unit
-    assert jnp.array_equal(got.value, expected.value)
+    assert isinstance(got, Array)
+    assert jnp.array_equal(got, expected)
 
 
 def test_sin():

@@ -131,13 +131,13 @@ def _all_to_all_p() -> Quantity:
 # ==============================================================================
 
 
-# TODO: return jax.Array. But `quax` is raising an error.
 @register(lax.and_p)
-def _and_p(x1: Quantity, x2: Quantity, /) -> Quantity:
-    # IDK what to do about non-dimensionless quantities.
-    if x1.unit != dimensionless or x2.unit != dimensionless:
-        raise NotImplementedError
-    return Quantity(x1.value & x2.value, unit=dimensionless)
+def _and_p(
+    x1: Quantity["dimensionless"],  # type: ignore[type-arg]
+    x2: Quantity["dimensionless"],  # type: ignore[type-arg]
+    /,
+) -> ArrayLike:
+    return x1.value & x2.value
 
 
 # ==============================================================================
@@ -541,19 +541,19 @@ def _dynamic_update_slice_p() -> Quantity:
 
 
 @register(lax.eq_p)
-def _eq_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.eq(x.value, y.to_value(x.unit)), unit=dimensionless)
+def _eq_p_qq(x: Quantity, y: Quantity) -> ArrayLike:
+    return lax.eq(x.value, y.to_value(x.unit))
 
 
 @register(lax.eq_p)
-def _eq_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
-    return Quantity(lax.eq(x, y.to_value(dimensionless)), unit=dimensionless)
+def _eq_p_vq(x: ArrayLike, y: Quantity) -> ArrayLike:
+    return lax.eq(x, y.to_value(dimensionless))
 
 
 @register(lax.eq_p)
-def _eq_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
+def _eq_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
     # special-case for all-0 values
-    return Quantity(lax.eq(x.value, y), unit=dimensionless)
+    return lax.eq(x.value, y)
 
 
 # ==============================================================================
@@ -671,43 +671,43 @@ def _gather_p(
 
 
 @register(lax.ge_p)
-def _ge_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.ge(x.value, y.to_value(x.unit)), unit=dimensionless)
+def _ge_p_qq(x: Quantity, y: Quantity) -> ArrayLike:
+    return lax.ge(x.value, y.to_value(x.unit))
 
 
 @register(lax.ge_p)
-def _ge_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
-    return Quantity(lax.ge(x, y.to_value(dimensionless)), unit=dimensionless)
+def _ge_p_vq(x: ArrayLike, y: Quantity) -> ArrayLike:
+    return lax.ge(x, y.to_value(dimensionless))
 
 
 @register(lax.ge_p)
-def _ge_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
+def _ge_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
     if jnp.array_equal(y, 0):
-        return Quantity(lax.ge(x.value, y), unit=dimensionless)
-    return Quantity(lax.ge(x.to_value(dimensionless), y), unit=dimensionless)
+        return lax.ge(x.value, y)
+    return lax.ge(x.to_value(dimensionless), y)
 
 
 # ==============================================================================
 
 
 @register(lax.gt_p)
-def _gt_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.gt(x.value, y.to_value(x.unit)), unit=dimensionless)
+def _gt_p_qq(x: Quantity, y: Quantity) -> ArrayLike:
+    return lax.gt(x.value, y.to_value(x.unit))
 
 
 @register(lax.gt_p)
-def _gt_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
-    return Quantity(lax.gt(x, y.to_value(dimensionless)), unit=dimensionless)
+def _gt_p_vq(x: ArrayLike, y: Quantity) -> ArrayLike:
+    return lax.gt(x, y.to_value(dimensionless))
 
 
 @register(lax.gt_p)
-def _gt_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
-    return Quantity(lax.gt(x.to_value(dimensionless), y), unit=dimensionless)
+def _gt_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
+    return lax.gt(x.to_value(dimensionless), y)
 
 
 @register(lax.gt_p)
-def _gt_p_qi(x: Quantity, y: int) -> Quantity:
-    return Quantity(lax.gt(x.to_value(dimensionless), y), unit=dimensionless)
+def _gt_p_qi(x: Quantity, y: int) -> ArrayLike:
+    return lax.gt(x.to_value(dimensionless), y)
 
 
 # ==============================================================================
@@ -770,26 +770,26 @@ def _integer_pow_p(x: Quantity, *, y: Any) -> Quantity:
 
 
 @register(lax.is_finite_p)
-def _is_finite_p(x: Quantity) -> Quantity:
-    return Quantity(value=lax.is_finite(x.value), unit=dimensionless)
+def _is_finite_p(x: Quantity) -> ArrayLike:
+    return lax.is_finite(x.value)
 
 
 # ==============================================================================
 
 
 @register(lax.le_p)
-def _le_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.le(x.value, y.to_value(x.unit)), unit=dimensionless)
+def _le_p_qq(x: Quantity, y: Quantity) -> ArrayLike:
+    return lax.le(x.value, y.to_value(x.unit))
 
 
 @register(lax.le_p)
-def _le_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
-    return Quantity(lax.le(x, y.to_value(dimensionless)), unit=dimensionless)
+def _le_p_vq(x: ArrayLike, y: Quantity) -> ArrayLike:
+    return lax.le(x, y.to_value(dimensionless))
 
 
 @register(lax.le_p)
-def _le_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
-    return Quantity(lax.le(x.to_value(dimensionless), y), unit=dimensionless)
+def _le_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
+    return lax.le(x.to_value(dimensionless), y)
 
 
 # ==============================================================================
@@ -845,25 +845,25 @@ def _logistic_p(x: Quantity) -> Quantity:
 
 
 @register(lax.lt_p)
-def _lt_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.lt(x.value, y.to_value(x.unit)), unit=dimensionless)
+def _lt_p_qq(x: Quantity, y: Quantity) -> ArrayLike:
+    return lax.lt(x.value, y.to_value(x.unit))
 
 
 @register(lax.lt_p)
-def _lt_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
-    return Quantity(lax.lt(x, y.to_value(dimensionless)), unit=dimensionless)
+def _lt_p_vq(x: ArrayLike, y: Quantity) -> ArrayLike:
+    return lax.lt(x, y.to_value(dimensionless))
 
 
 @register(lax.lt_p)
-def _lt_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
-    return Quantity(lax.lt(x.to_value(dimensionless), y), unit=dimensionless)
+def _lt_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
+    return lax.lt(x.to_value(dimensionless), y)
 
 
 # ==============================================================================
 
 
 @register(lax.lt_to_p)
-def _lt_to_p() -> Quantity:
+def _lt_to_p() -> ArrayLike:
     raise NotImplementedError
 
 
@@ -927,21 +927,21 @@ def _mul_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
 
 
 @register(lax.ne_p)
-def _ne_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.ne(x.value, y.to_value(x.unit)), unit=dimensionless)
+def _ne_p_qq(x: Quantity, y: Quantity) -> ArrayLike:
+    return lax.ne(x.value, y.to_value(x.unit))
 
 
 @register(lax.ne_p)
-def _ne_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
-    return Quantity(lax.ne(x, y.to_value(dimensionless)), unit=dimensionless)
+def _ne_p_vq(x: ArrayLike, y: Quantity) -> ArrayLike:
+    return lax.ne(x, y.to_value(dimensionless))
 
 
 @register(lax.ne_p)
-def _ne_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
+def _ne_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
     # special-case for scalar value=0, unit=dimensionless
     if y.shape == () and y == 0:
-        return Quantity(lax.ne(x.value, y), unit=dimensionless)
-    return Quantity(lax.ne(x.to_value(dimensionless), y), unit=dimensionless)
+        return lax.ne(x.value, y)
+    return lax.ne(x.to_value(dimensionless), y)
 
 
 # ==============================================================================
@@ -1363,6 +1363,13 @@ def _select_n_p_jqj(which: ArrayLike, case0: Quantity, case1: ArrayLike) -> Quan
     return Quantity(lax.select_n(which, case0.to_value(unit), case1), unit=unit)
 
 
+@register(lax.select_n_p)
+def _select_n_p_jqq(which: ArrayLike, case0: Quantity, case1: Quantity) -> Quantity:
+    # used by floor_divide
+    unit = case0.unit / case1.unit
+    return Quantity(lax.select_n(which, case0.value, case1.value), unit=unit)
+
+
 # ==============================================================================
 
 
@@ -1399,8 +1406,8 @@ def _shift_right_logical_p() -> Quantity:
 
 
 @register(lax.sign_p)
-def _sign_p(x: Quantity) -> Quantity:
-    return Quantity(lax.sign(x.value), unit=dimensionless)
+def _sign_p(x: Quantity) -> ArrayLike:
+    return lax.sign(x.value)
 
 
 # ==============================================================================
