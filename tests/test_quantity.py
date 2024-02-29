@@ -359,6 +359,13 @@ def test_reshape():
     assert q.reshape(2, 3).unit == u.m
 
 
+def test_hypot():
+    """Test the ``jnp.hypot`` method."""
+    q1 = Quantity(3, u.m)
+    q2 = Quantity(4, u.m)
+    assert quaxify(jnp.hypot)(q1, q2) == Quantity(5, u.m)
+
+
 # ===============================================================
 # Unknown
 
