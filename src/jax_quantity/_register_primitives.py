@@ -18,6 +18,7 @@ from astropy.units import (  # pylint: disable=no-name-in-module
     radian,
 )
 from jax import lax
+from jax._src.lax.lax import DotDimensionNumbers, DTypeLike, PrecisionLike
 from jax._src.lax.slicing import GatherDimensionNumbers, GatherScatterMode
 from jax._src.typing import Shape
 from jaxtyping import ArrayLike
@@ -510,9 +511,38 @@ def _div_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
 # ==============================================================================
 
 
-@register(lax.dot_general_p)  # TODO: implement
-def _implemen() -> Quantity:
-    raise NotImplementedError
+@register(lax.dot_general_p)
+def _dot_general_jq(
+    lhs: ArrayLike,
+    rhs: Quantity,
+    *,
+    dimension_numbers: DotDimensionNumbers,
+    precision: PrecisionLike,
+    preferred_element_type: DTypeLike | None = None,
+) -> Quantity:
+    """Dot product of an array and a quantity.
+
+    >>> import jax.numpy as jnp
+    >>> from jax_quantity import Quantity
+
+    >>> theta = jnp.pi / 4  # 45 degrees
+    >>> Rz = jnp.asarray([[jnp.cos(theta), -jnp.sin(theta), 0],
+    ...                   [jnp.sin(theta), jnp.cos(theta),  0],
+    ...                   [0,              0,               1]])
+    >>> q = Quantity([1, 0, 0], "m")
+    >>> Rz @ q
+    Quantity['length'](Array([0.70710678, 0.70710678, 0. ], dtype=float64), unit='m')
+    """
+    return Quantity(
+        lax.dot_general_p.bind(
+            lhs,
+            rhs.value,
+            dimension_numbers=dimension_numbers,
+            precision=precision,
+            preferred_element_type=preferred_element_type,
+        ),
+        unit=rhs.unit,
+    )
 
 
 # ==============================================================================
