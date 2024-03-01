@@ -18,6 +18,7 @@ from astropy.units import (  # pylint: disable=no-name-in-module
     radian,
 )
 from jax import lax
+from jax._src.lax.lax import DotDimensionNumbers, DTypeLike, PrecisionLike
 from jax._src.lax.slicing import GatherDimensionNumbers, GatherScatterMode
 from jax._src.typing import Shape
 from jaxtyping import ArrayLike
@@ -349,6 +350,40 @@ def _concatenate_p(*operands: Quantity, dimension: Any) -> Quantity:
     )
 
 
+@register(lax.concatenate_p)
+def _concatenate_p_jqnd(
+    operand0: Quantity["dimensionless"],  # type: ignore[type-arg]
+    *operands: Quantity["dimensionless"] | ArrayLike,  # type: ignore[type-arg]
+    dimension: Any,
+) -> Quantity["dimensionless"]:  # type: ignore[type-arg]
+    """Concatenate quantities and arrays with dimensionless units.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> theta = Quantity(45, "deg")
+    >>> Rz = xp.asarray([[xp.cos(theta), -xp.sin(theta), 0],
+    ...                  [xp.sin(theta), xp.cos(theta),  0],
+    ...                  [0,             0,              1]])
+    >>> Rz
+    Quantity['dimensionless'](Array([[ 0.70710678, -0.70710678,  0.        ],
+           [ 0.70710678,  0.70710678,  0.        ],
+           [ 0.        ,  0.        ,  1.        ]], dtype=float64), unit='')
+
+    """
+    return Quantity(
+        lax.concatenate(
+            [
+                (op.to_value(dimensionless) if hasattr(op, "unit") else op)
+                for op in (operand0, *operands)
+            ],
+            dimension=dimension,
+        ),
+        unit=dimensionless,
+    )
+
+
 # ==============================================================================
 
 
@@ -510,9 +545,38 @@ def _div_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
 # ==============================================================================
 
 
-@register(lax.dot_general_p)  # TODO: implement
-def _implemen() -> Quantity:
-    raise NotImplementedError
+@register(lax.dot_general_p)
+def _dot_general_jq(
+    lhs: ArrayLike,
+    rhs: Quantity,
+    *,
+    dimension_numbers: DotDimensionNumbers,
+    precision: PrecisionLike,
+    preferred_element_type: DTypeLike | None = None,
+) -> Quantity:
+    """Dot product of an array and a quantity.
+
+    >>> import jax.numpy as jnp
+    >>> from jax_quantity import Quantity
+
+    >>> theta = jnp.pi / 4  # 45 degrees
+    >>> Rz = jnp.asarray([[jnp.cos(theta), -jnp.sin(theta), 0],
+    ...                   [jnp.sin(theta), jnp.cos(theta),  0],
+    ...                   [0,              0,               1]])
+    >>> q = Quantity([1, 0, 0], "m")
+    >>> Rz @ q
+    Quantity['length'](Array([0.70710678, 0.70710678, 0. ], dtype=float64), unit='m')
+    """
+    return Quantity(
+        lax.dot_general_p.bind(
+            lhs,
+            rhs.value,
+            dimension_numbers=dimension_numbers,
+            precision=precision,
+            preferred_element_type=preferred_element_type,
+        ),
+        unit=rhs.unit,
+    )
 
 
 # ==============================================================================
