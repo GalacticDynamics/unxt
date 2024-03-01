@@ -350,6 +350,40 @@ def _concatenate_p(*operands: Quantity, dimension: Any) -> Quantity:
     )
 
 
+@register(lax.concatenate_p)
+def _concatenate_p_jqnd(
+    operand0: Quantity["dimensionless"],  # type: ignore[type-arg]
+    *operands: Quantity["dimensionless"] | ArrayLike,  # type: ignore[type-arg]
+    dimension: Any,
+) -> Quantity["dimensionless"]:  # type: ignore[type-arg]
+    """Concatenate quantities and arrays with dimensionless units.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> theta = Quantity(45, "deg")
+    >>> Rz = xp.asarray([[xp.cos(theta), -xp.sin(theta), 0],
+    ...                  [xp.sin(theta), xp.cos(theta),  0],
+    ...                  [0,             0,              1]])
+    >>> Rz
+    Quantity['dimensionless'](Array([[ 0.70710678, -0.70710678,  0.        ],
+           [ 0.70710678,  0.70710678,  0.        ],
+           [ 0.        ,  0.        ,  1.        ]], dtype=float64), unit='')
+
+    """
+    return Quantity(
+        lax.concatenate(
+            [
+                (op.to_value(dimensionless) if hasattr(op, "unit") else op)
+                for op in (operand0, *operands)
+            ],
+            dimension=dimension,
+        ),
+        unit=dimensionless,
+    )
+
+
 # ==============================================================================
 
 
