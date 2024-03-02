@@ -6,7 +6,7 @@ __all__ = ["Quantity", "can_convert_unit"]
 import operator
 from collections.abc import Callable, Sequence
 from dataclasses import replace
-from typing import TYPE_CHECKING, Any, TypeVar, final
+from typing import TYPE_CHECKING, Any, ClassVar, TypeVar, final
 
 import equinox as eqx
 import jax
@@ -79,7 +79,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     # ---------------------------------------------------------------
     # Plum stuff
 
-    __faithful__: bool = True
+    __faithful__: ClassVar[bool] = True
     """Tells :mod:`plum` that this type can be cached more efficiently."""
 
     @classmethod
