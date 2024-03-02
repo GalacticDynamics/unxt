@@ -77,7 +77,10 @@ class Quantity(ArrayValue):  # type: ignore[misc]
             raise ValueError(msg)
 
     # ---------------------------------------------------------------
-    # Type Parameters
+    # Plum stuff
+
+    __faithful__: bool = True
+    """Tells :mod:`plum` that this type can be cached more efficiently."""
 
     @classmethod
     @dispatcher  # type: ignore[misc]
