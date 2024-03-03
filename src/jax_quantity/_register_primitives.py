@@ -367,9 +367,10 @@ def _concatenate_p_jqnd(
     ...                  [xp.sin(theta), xp.cos(theta),  0],
     ...                  [0,             0,              1]])
     >>> Rz
-    Quantity['dimensionless'](Array([[ 0.70710678, -0.70710678,  0.        ],
-           [ 0.70710678,  0.70710678,  0.        ],
-           [ 0.        ,  0.        ,  1.        ]], dtype=float64), unit='')
+    Quantity[...](Array([[ 0.70710677, -0.70710677,  0.        ],
+                         [ 0.70710677,  0.70710677,  0.        ],
+                         [ 0.        ,  0.        ,  1.        ]],
+                  dtype=float32), unit='')
 
     """
     return Quantity(
@@ -565,7 +566,7 @@ def _dot_general_jq(
     ...                   [0,              0,               1]])
     >>> q = Quantity([1, 0, 0], "m")
     >>> Rz @ q
-    Quantity['length'](Array([0.70710678, 0.70710678, 0. ], dtype=float64), unit='m')
+    Quantity['length'](Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
     """
     return Quantity(
         lax.dot_general_p.bind(
