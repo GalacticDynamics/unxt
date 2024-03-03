@@ -5,7 +5,7 @@ __all__ = ["Quantity", "can_convert_unit"]
 
 import operator
 from collections.abc import Callable, Sequence
-from dataclasses import replace
+from dataclasses import fields, replace
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar, final
 
 import equinox as eqx
@@ -263,6 +263,26 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     def reshape(self, *args: Any, order: str = "C") -> "Quantity":
         __tracebackhide__ = True  # pylint: disable=unused-variable
         return replace(self, value=self.value.reshape(*args, order=order))
+
+    # ===============================================================
+    # Python stuff
+
+    def __hash__(self) -> int:
+        """Hash the object as the tuple of its field values.
+
+        This raises a `TypeError` if the object is unhashable,
+        which JAX arrays are.
+
+        Examples
+        --------
+        >>> from jax_quantity import Quantity
+        >>> q1 = Quantity(1, "m")
+        >>> try: hash(q1)
+        ... except TypeError as e: print(e)
+        unhashable type: 'ArrayImpl'
+
+        """
+        return hash(tuple(getattr(self, f.name) for f in fields(self)))
 
     # ===============================================================
     # I/O
