@@ -10,10 +10,8 @@ import numpy as np
 import pytest
 from hypothesis import example, given, strategies as st
 from hypothesis.extra.array_api import make_strategies_namespace
-from hypothesis.extra.numpy import (
-    array_shapes as np_array_shapes,
-    arrays as np_arrays,
-)
+from hypothesis.extra.numpy import array_shapes as np_array_shapes, arrays as np_arrays
+from jax.dtypes import canonicalize_dtype
 from quax import quaxify
 
 import array_api_jax_compat
@@ -22,13 +20,15 @@ from jax_quantity import Quantity, can_convert_unit
 
 xps = make_strategies_namespace(jax_xp)
 
-jax.config.update("jax_enable_x64", val=True)
+
+jaxint = canonicalize_dtype(int)
+jaxfloat = canonicalize_dtype(float)
 
 integers_strategy = st.integers(
-    min_value=np.iinfo(np.int64).min, max_value=np.iinfo(np.int64).max
+    min_value=np.iinfo(jaxint).min, max_value=np.iinfo(jaxint).max
 )
 floats_strategy = st.floats(
-    min_value=np.finfo(np.float64).min, max_value=np.finfo(np.float64).max
+    min_value=np.finfo(jaxfloat).min, max_value=np.finfo(jaxfloat).max
 )
 
 
@@ -42,12 +42,12 @@ floats_strategy = st.floats(
     # | st.lists(st.lists(integers_strategy))  # TODO: enable nested lists
     # | st.lists(st.lists(floats_strategy))
     | np_arrays(
-        dtype=np.float64,
+        dtype=np.float32,
         shape=np_array_shapes(),
         elements={"allow_nan": False, "allow_infinity": False},
     )
     | xps.arrays(
-        dtype=xps.floating_dtypes(),
+        dtype=np.float32,
         shape=xps.array_shapes(),
         elements={"allow_nan": False, "allow_infinity": False},
     )
