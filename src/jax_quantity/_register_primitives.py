@@ -351,7 +351,7 @@ def _concatenate_p(*operands: Quantity, dimension: Any) -> Quantity:
 
 
 @register(lax.concatenate_p)
-def _concatenate_p_jqnd(
+def _concatenate_p_qnd(
     operand0: Quantity["dimensionless"],  # type: ignore[type-arg]
     *operands: Quantity["dimensionless"] | ArrayLike,  # type: ignore[type-arg]
     dimension: Any,
@@ -371,6 +371,41 @@ def _concatenate_p_jqnd(
                          [ 0.70710677,  0.70710677,  0.        ],
                          [ 0.        ,  0.        ,  1.        ]],
                   dtype=float32), unit='')
+
+    """
+    return Quantity(
+        lax.concatenate(
+            [
+                (op.to_value(dimensionless) if hasattr(op, "unit") else op)
+                for op in (operand0, *operands)
+            ],
+            dimension=dimension,
+        ),
+        unit=dimensionless,
+    )
+
+
+@register(lax.concatenate_p)
+def _concatenate_p_jqnd(
+    operand0: ArrayLike,
+    *operands: Quantity["dimensionless"],  # type: ignore[type-arg]
+    dimension: Any,
+) -> Quantity["dimensionless"]:  # type: ignore[type-arg]
+    """Concatenate quantities and arrays with dimensionless units.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> theta = Quantity(45, "deg")
+    >>> Rx = xp.asarray([[1.0, 0.0,           0.0           ],
+    ...                  [0.0, xp.cos(theta), -xp.sin(theta)],
+    ...                  [0.0, xp.sin(theta), xp.cos(theta) ]])
+    >>> Rx
+    Quantity[...](Array([[ 1.        ,  0.        ,  0.        ],
+                         [ 0.        ,  0.70710677, -0.70710677],
+                         [ 0.        ,  0.70710677,  0.70710677]], dtype=float32),
+                  unit='')
 
     """
     return Quantity(
