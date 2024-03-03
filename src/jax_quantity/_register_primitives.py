@@ -580,6 +580,51 @@ def _dot_general_jq(
     )
 
 
+# NOTE: encountered in `jnp.linalg.matmul`
+@register(lax.dot_general_p)
+def _dot_general_qq(
+    lhs: Quantity,
+    rhs: Quantity,
+    *,
+    dimension_numbers: DotDimensionNumbers,
+    precision: PrecisionLike,
+    preferred_element_type: DTypeLike | None = None,
+) -> Quantity:
+    """Dot product of two quantities.
+
+    Examples
+    --------
+    This is a dot product of two quantities.
+
+    >>> from jax_quantity import Quantity
+    >>> q1 = Quantity([1, 2, 3], "m")
+    >>> q2 = Quantity([4, 5, 6], "m")
+    >>> q1 @ q2
+    Quantity['area'](Array(32, dtype=int32), unit='m2')
+
+    This rule is also used by `jnp.matmul` for quantities.
+
+    >>> import array_api_jax_compat as xp
+    >>> Rz = xp.asarray([[0, -1,  0],
+    ...                  [1,  0,  0],
+    ...                  [0,  0,  1]])
+    >>> q = Quantity([1, 0, 0], "m")
+    >>> Rz @ q
+    Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
+
+    """
+    return Quantity(
+        lax.dot_general_p.bind(
+            lhs.value,
+            rhs.value,
+            dimension_numbers=dimension_numbers,
+            precision=precision,
+            preferred_element_type=preferred_element_type,
+        ),
+        unit=lhs.unit * rhs.unit,
+    )
+
+
 # ==============================================================================
 
 
