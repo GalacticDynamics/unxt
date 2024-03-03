@@ -1448,6 +1448,7 @@ def test_min():
     assert jnp.array_equal(got.value, expected.value)
 
 
+@pytest.mark.filterwarnings("ignore:Explicitly requested dtype")  # TODO: Why?
 def test_prod():
     """Test `prod`."""
     x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
@@ -1470,6 +1471,7 @@ def test_std():
     assert jnp.array_equal(got.value, expected.value)
 
 
+@pytest.mark.filterwarnings("ignore:Explicitly requested dtype")  # TODO: Why?
 def test_sum():
     """Test `sum`."""
     x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
