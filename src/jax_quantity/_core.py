@@ -279,7 +279,7 @@ class Quantity(ArrayValue):  # type: ignore[misc]
         >>> q1 = Quantity(1, "m")
         >>> try: hash(q1)
         ... except TypeError as e: print(e)
-        unhashable type: 'Quantity'
+        unhashable type: 'ArrayImpl'
 
         """
         return hash(tuple(getattr(self, f.name) for f in fields(self)))
