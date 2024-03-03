@@ -402,10 +402,10 @@ def _concatenate_p_jqnd(
     ...                  [0.0, xp.cos(theta), -xp.sin(theta)],
     ...                  [0.0, xp.sin(theta), xp.cos(theta) ]])
     >>> Rx
-     Quantity[...](Array([[ 1.        ,  0.        ,  0.        ],
-                          [ 0.        ,  0.70710677, -0.7071068 ],
-                          [ 0.        ,  0.7071068 ,  0.70710677]], dtype=float32),
-                   unit='')
+    Quantity[...](Array([[ 1.        ,  0.        ,  0.        ],
+                         [ 0.        ,  0.70710677, -0.70710677],
+                         [ 0.        ,  0.70710677,  0.70710677]], dtype=float32),
+                  unit='')
 
     """
     return Quantity(
