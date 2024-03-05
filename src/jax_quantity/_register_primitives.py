@@ -7,13 +7,12 @@ from dataclasses import replace
 from math import prod
 from typing import Any, TypeAlias, TypeVar
 
+import equinox as eqx
 import jax
 import jax.core
-import jax.numpy as jnp
 from astropy.units import (  # pylint: disable=no-name-in-module
     Unit,
     UnitBase,
-    UnitTypeError,
     dimensionless_unscaled as dimensionless,
     radian,
 )
@@ -22,9 +21,11 @@ from jax._src.lax.lax import DotDimensionNumbers, DTypeLike, PrecisionLike
 from jax._src.lax.slicing import GatherDimensionNumbers, GatherScatterMode
 from jax._src.typing import Shape
 from jaxtyping import ArrayLike
+from plum.parametric import ParametricTypeMeta
 from quax import register as register_
 
-from ._core import Quantity, can_convert_unit
+from ._base import AbstractQuantity, can_convert_unit
+from ._core import Quantity
 
 T = TypeVar("T")
 
@@ -37,12 +38,43 @@ def register(primitive: jax.core.Primitive) -> Callable[[T], T]:
     return register_(primitive)
 
 
-def _to_value_rad_or_one(q: Quantity) -> ArrayLike:
+def _to_value_rad_or_one(q: AbstractQuantity) -> ArrayLike:
     return (
         q.to_value(radian)
         if can_convert_unit(q.unit, radian)
         else q.to_value(dimensionless)
     )
+
+
+def type_np(q: AbstractQuantity) -> type[AbstractQuantity]:
+    """Return the non-parametric type of a quantity.
+
+    Examples
+    --------
+    >>> from jax_quantity import FastQuantity
+
+    >>> q = FastQuantity(1, "m")
+    >>> q
+    FastQuantity(Array(1, dtype=int32, weak_type=True), unit='m')
+
+    >>> type_np(q)
+    <class 'jax_quantity._fast.FastQuantity'>
+
+    >>> q = Quantity(1, "m")
+    >>> q
+    Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
+
+    >>> type_np(q)
+    <class 'jax_quantity._core.Quantity'>
+
+    This is different from `type` for parametric types.
+
+    >>> type(q)
+    <class 'jax_quantity._core.Quantity[PhysicalType('length')]'>
+
+    """
+    typ = type(q)
+    return typ.mro()[1] if isinstance(typ, ParametricTypeMeta) else typ
 
 
 ################################################################################
@@ -52,7 +84,27 @@ def _to_value_rad_or_one(q: Quantity) -> ArrayLike:
 
 
 @register(lax.abs_p)
-def _abs_p(x: Quantity) -> Quantity:
+def _abs_p(x: AbstractQuantity) -> AbstractQuantity:
+    """Absolute value of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(-1, "m")
+    >>> xp.abs(q)
+    Quantity['length'](Array(1, dtype=int32), unit='m')
+    >>> abs(q)
+    Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(-1, "m")
+    >>> xp.abs(q)
+    FastQuantity(Array(1, dtype=int32), unit='m')
+    >>> abs(q)
+    FastQuantity(Array(1, dtype=int32, weak_type=True), unit='m')
+
+    """
     return replace(x, value=lax.abs(x.value))
 
 
@@ -60,18 +112,72 @@ def _abs_p(x: Quantity) -> Quantity:
 
 
 @register(lax.acos_p)
-def _acos_p(x: Quantity) -> Quantity:
-    v = x.to_value(dimensionless)
-    return Quantity(value=lax.acos(v), unit=radian)
+def _acos_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"]:
+    """Inverse cosine of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(-1, "")
+    >>> xp.acos(q)
+    FastQuantity(Array(3.1415927, dtype=float32), unit='rad')
+
+    """
+    x_ = x.to_value(dimensionless)
+    return type_np(x)(value=lax.acos(x_), unit=radian)
+
+
+@register(lax.acos_p)
+def _acos_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
+    """Inverse cosine of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(-1, "")
+    >>> xp.acos(q)
+    Quantity['angle'](Array(3.1415927, dtype=float32), unit='rad')
+
+    """
+    return type_np(x)(value=lax.acos(x.value), unit=radian)
 
 
 # ==============================================================================
 
 
 @register(lax.acosh_p)
-def _acosh_p(x: Quantity) -> Quantity:
-    v = x.to_value(dimensionless)
-    return Quantity(value=lax.acosh(v), unit=radian)
+def _acosh_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"]:
+    """Inverse hyperbolic cosine of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(2.0, "")
+    >>> xp.acosh(q)
+    FastQuantity(Array(1.316958, dtype=float32), unit='rad')
+
+    """
+    x_ = x.to_value(dimensionless)
+    return type_np(x)(value=lax.acosh(x_), unit=radian)
+
+
+@register(lax.acosh_p)
+def _acosh_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
+    """Inverse hyperbolic cosine of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(2.0, "")
+    >>> xp.acosh(q)
+    Quantity['angle'](Array(1.316958, dtype=float32), unit='rad')
+
+    """
+    return type_np(x)(value=lax.acosh(x.value), unit=radian)
 
 
 # ==============================================================================
@@ -79,37 +185,126 @@ def _acosh_p(x: Quantity) -> Quantity:
 
 
 @register(lax.add_p)
-def _add_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.add(x.to_value(x.unit), y.to_value(x.unit)), unit=x.unit)
+def _add_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+    """Add two quantities.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import FastQuantity
+
+    >>> q1 = FastQuantity(1.0, "km")
+    >>> q2 = FastQuantity(500.0, "m")
+    >>> xp.add(q1, q2)
+    FastQuantity(Array(1.5, dtype=float32), unit='km')
+    >>> q1 + q2
+    FastQuantity(Array(1.5, dtype=float32, weak_type=True), unit='km')
+
+    >>> from jax_quantity import Quantity
+    >>> q1 = Quantity(1.0, "km")
+    >>> q2 = Quantity(500.0, "m")
+    >>> xp.add(q1, q2)
+    Quantity['length'](Array(1.5, dtype=float32), unit='km')
+    >>> q1 + q2
+    Quantity['length'](Array(1.5, dtype=float32, weak_type=True), unit='km')
+
+    """
+    return replace(x, value=lax.add(x.value, y.to_value(x.unit)))
 
 
 @register(lax.add_p)
-def _add_p_vq1(x: ArrayLike, y: Quantity["dimensionless"]) -> Quantity:  # type: ignore[type-arg]
-    return Quantity(lax.add(x, y.to_value(dimensionless)), unit=dimensionless)
+def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
+    """Add a value and a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> x1 = xp.asarray(500.0)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q2 = FastQuantity(1.0, "km")
+    >>> try: xp.add(x1, q2)
+    ... except Exception as e: print(e)
+    Cannot add a non-quantity and quantity.
+    >>> try: x1 + q2
+    ... except Exception as e: print(e)
+    Cannot add a non-quantity and quantity.
+    >>> q2 = FastQuantity(100.0, "")
+    >>> xp.add(x1, q2)
+    FastQuantity(Array(600., dtype=float32), unit='')
+    >>> x1 + q2
+    FastQuantity(Array(600., dtype=float32, weak_type=True), unit='')
+
+    >>> from jax_quantity import Quantity
+    >>> x1 = xp.asarray(500.0)
+    >>> q2 = Quantity(1.0, "km")
+    >>> try: x1 + q2
+    ... except Exception as e: print(e)
+    Cannot add a non-quantity and quantity.
+    >>> q2 = Quantity(100.0, "")
+    >>> xp.add(x1, q2)
+    Quantity['dimensionless'](Array(600., dtype=float32), unit='')
+    >>> x1 + q2
+    Quantity['dimensionless'](Array(600., dtype=float32, weak_type=True), unit='')
+
+    """
+    y = eqx.error_if(
+        y, y.unit != dimensionless, "Cannot add a non-quantity and quantity."
+    )
+    return replace(y, value=lax.add(x, y.to_value(dimensionless)))
 
 
 @register(lax.add_p)
-def _add_p_vq2(x: ArrayLike, y: Quantity) -> Quantity:
-    msg = "Cannot add a non-quantity and quantity."
-    raise ValueError(msg)
+def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
+    """Add a quantity and a value.
 
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> y = xp.asarray(500.0)
 
-@register(lax.add_p)
-def _add_p_qv1(x: Quantity["dimensionless"], y: ArrayLike) -> Quantity:  # type: ignore[type-arg]
-    return Quantity(lax.add(x.to_value(dimensionless), y), unit=dimensionless)
+    >>> from jax_quantity import FastQuantity
+    >>> q1 = FastQuantity(1.0, "km")
+    >>> try: xp.add(q1, y)
+    ... except Exception as e: print(e)
+    Cannot add a quantity and a non-quantity.
+    >>> try: q1 + y
+    ... except Exception as e: print(e)
+    Cannot add a quantity and a non-quantity.
 
+    >>> q1 = FastQuantity(100.0, "")
+    >>> xp.add(q1, y)
+    FastQuantity(Array(600., dtype=float32), unit='')
+    >>> q1 + y
+    FastQuantity(Array(600., dtype=float32, weak_type=True), unit='')
 
-@register(lax.add_p)
-def _add_p_qv2(x: Quantity, y: ArrayLike) -> Quantity:
-    msg = "Cannot add a quantity and a non-quantity."
-    raise ValueError(msg)
+    >>> from jax_quantity import Quantity
+    >>> q1 = Quantity(1.0, "km")
+    >>> try: xp.add(q1, y)
+    ... except Exception as e: print(e)
+    Cannot add a quantity and a non-quantity.
+    >>> try: q1 + y
+    ... except Exception as e: print(e)
+    Cannot add a quantity and a non-quantity.
+
+    >>> q1 = Quantity(100.0, "")
+    >>> xp.add(q1, y)
+    Quantity[...](Array(600., dtype=float32), unit='')
+    >>> q1 + y
+    Quantity[...](Array(600., dtype=float32, weak_type=True), unit='')
+
+    """
+    x = eqx.error_if(
+        x, x.unit != dimensionless, "Cannot add a quantity and a non-quantity."
+    )
+    return replace(x, value=lax.add(x.to_value(dimensionless), y))
 
 
 # ==============================================================================
 
 
 @register(lax.after_all_p)
-def _after_all_p() -> Quantity:
+def _after_all_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -117,7 +312,7 @@ def _after_all_p() -> Quantity:
 
 
 @register(lax.all_gather_p)
-def _all_gather_p() -> Quantity:
+def _all_gather_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -125,7 +320,7 @@ def _all_gather_p() -> Quantity:
 
 
 @register(lax.all_to_all_p)
-def _all_to_all_p() -> Quantity:
+def _all_to_all_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -133,19 +328,48 @@ def _all_to_all_p() -> Quantity:
 
 
 @register(lax.and_p)
-def _and_p(
-    x1: Quantity["dimensionless"],  # type: ignore[type-arg]
-    x2: Quantity["dimensionless"],  # type: ignore[type-arg]
-    /,
+def _and_p_aq(
+    x1: AbstractQuantity["dimensionless"], x2: AbstractQuantity["dimensionless"], /
 ) -> ArrayLike:
-    return x1.value & x2.value
+    """Bitwise AND of two quantities.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import FastQuantity
+    >>> x1 = FastQuantity(1, "")
+    >>> x2 = FastQuantity(2, "")
+    >>> xp.bitwise_and(x1, x2)
+    Array(0, dtype=int32)
+
+    """
+    return lax.and_p.bind(x1.to_value(dimensionless), x2.to_value(dimensionless))
+
+
+@register(lax.and_p)
+def _and_p_q(
+    x1: Quantity["dimensionless"], x2: Quantity["dimensionless"], /
+) -> ArrayLike:
+    """Bitwise AND of two quantities.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> x1 = Quantity(1, "")
+    >>> x2 = Quantity(2, "")
+    >>> xp.bitwise_and(x1, x2)
+    Array(0, dtype=int32)
+
+    """
+    return lax.and_p.bind(x1.value, x2.value)
 
 
 # ==============================================================================
 
 
 @register(lax.approx_top_k_p)
-def _approx_top_k_p() -> Quantity:
+def _approx_top_k_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -153,60 +377,279 @@ def _approx_top_k_p() -> Quantity:
 
 
 @register(lax.argmax_p)
-def _argmax_p(operand: Quantity, *, axes: Any, index_dtype: Any) -> Quantity:
-    return Quantity(lax.argmax(operand.value, axes[0], index_dtype), unit=operand.unit)
+def _argmax_p(
+    operand: AbstractQuantity, *, axes: Any, index_dtype: Any
+) -> AbstractQuantity:
+    """Argmax of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> x = Quantity([1, 2, 3], "m")
+    >>> xp.argmax(x)
+    Quantity['length'](Array(2, dtype=int32), unit='m')
+
+    >>> from jax_quantity import FastQuantity
+    >>> x = FastQuantity([1, 2, 3], "m")
+    >>> xp.argmax(x)
+    FastQuantity(Array(2, dtype=int32), unit='m')
+
+    """
+    return replace(operand, value=lax.argmax(operand.value, axes[0], index_dtype))
 
 
 # ==============================================================================
 
 
 @register(lax.argmin_p)
-def _argmin_p(operand: Quantity, *, axes: Any, index_dtype: Any) -> Quantity:
-    return Quantity(lax.argmin(operand.value, axes[0], index_dtype), unit=operand.unit)
+def _argmin_p(
+    operand: AbstractQuantity, *, axes: Any, index_dtype: Any
+) -> AbstractQuantity:
+    """Argmin of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> x = Quantity([1, 2, 3], "m")
+    >>> xp.argmin(x)
+    Quantity['length'](Array(0, dtype=int32), unit='m')
+
+    >>> from jax_quantity import FastQuantity
+    >>> x = FastQuantity([1, 2, 3], "m")
+    >>> xp.argmin(x)
+    FastQuantity(Array(0, dtype=int32), unit='m')
+
+    """
+    return replace(operand, value=lax.argmin(operand.value, axes[0], index_dtype))
 
 
 # ==============================================================================
 
 
 @register(lax.asin_p)
-def _asin_p(x: Quantity) -> Quantity:
-    return Quantity(lax.asin(x.to_value(dimensionless)), unit=radian)
+def _asin_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"]:
+    """Inverse sine of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(1, "")
+    >>> xp.asin(q)
+    FastQuantity(Array(1.5707964, dtype=float32), unit='rad')
+
+    """
+    return type_np(x)(lax.asin(x.to_value(dimensionless)), unit=radian)
+
+
+@register(lax.asin_p)
+def _asin_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
+    """Inverse sine of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(1, "")
+    >>> xp.asin(q)
+    Quantity['angle'](Array(1.5707964, dtype=float32), unit='rad')
+
+    """
+    return type_np(x)(lax.asin(x.to_value(dimensionless)), unit=radian)
 
 
 # ==============================================================================
 
 
 @register(lax.asinh_p)
-def _asinh_p(x: Quantity) -> Quantity:
-    return Quantity(lax.asinh(x.to_value(dimensionless)), unit=radian)
+def _asinh_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"]:
+    """Inverse hyperbolic sine of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(2, "")
+    >>> xp.asinh(q)
+    FastQuantity(Array(1.4436355, dtype=float32), unit='rad')
+
+    """
+    return type_np(x)(lax.asinh(x.to_value(dimensionless)), unit=radian)
+
+
+@register(lax.asinh_p)
+def _asinh_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
+    """Inverse hyperbolic sine of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(2, "")
+    >>> xp.asinh(q)
+    Quantity['angle'](Array(1.4436355, dtype=float32), unit='rad')
+
+    """
+    return type_np(x)(lax.asinh(x.to_value(dimensionless)), unit=radian)
 
 
 # ==============================================================================
 
 
 @register(lax.atan2_p)
-def _atan2_p(x: Quantity, y: Quantity) -> Quantity:
+def _atan2_p_aqaq(
+    x: AbstractQuantity, y: AbstractQuantity
+) -> AbstractQuantity["radian"]:
+    """Arctangent2 of two abstract quantities.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import FastQuantity
+    >>> q1 = FastQuantity(1, "m")
+    >>> q2 = FastQuantity(3, "m")
+    >>> xp.atan2(q1, q2)
+    FastQuantity(Array(0.32175055, dtype=float32), unit='rad')
+
+    """
     y_ = y.to_value(x.unit)
-    return Quantity(lax.atan2(x.value, y_), unit=radian)
+    return type_np(x)(lax.atan2(x.value, y_), unit=radian)
 
 
 @register(lax.atan2_p)
-def _atan2_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
+def _atan2_p_qq(x: Quantity, y: Quantity) -> Quantity["radian"]:
+    """Arctangent2 of two quantities.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> q1 = Quantity(1, "m")
+    >>> q2 = Quantity(3, "m")
+    >>> xp.atan2(q1, q2)
+    Quantity['angle'](Array(0.32175055, dtype=float32), unit='rad')
+
+    """
+    y_ = y.to_value(x.unit)
+    return type_np(x)(lax.atan2(x.value, y_), unit=radian)
+
+
+# ---------------------------
+
+
+@register(lax.atan2_p)
+def _atan2_p_vaq(
+    x: ArrayLike, y: AbstractQuantity["dimensionless"]
+) -> AbstractQuantity["angle"]:
+    """Arctangent2 of a value and a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import FastQuantity
+    >>> x1 = xp.asarray(1.0)
+    >>> q2 = FastQuantity(3.0, "")
+    >>> xp.atan2(x1, q2)
+    FastQuantity(Array(0.32175055, dtype=float32), unit='rad')
+
+    """
+    y_ = y.to_value(dimensionless)
+    return type_np(y)(lax.atan2(x, y_), unit=radian)
+
+
+@register(lax.atan2_p)
+def _atan2_p_vq(x: ArrayLike, y: Quantity["dimensionless"]) -> Quantity["angle"]:
+    """Arctangent2 of a value and a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> x1 = xp.asarray(1.0)
+    >>> q2 = Quantity(3.0, "")
+    >>> xp.atan2(x1, q2)
+    Quantity['angle'](Array(0.32175055, dtype=float32), unit='rad')
+
+    """
     y_ = y.to_value(dimensionless)
     return Quantity(lax.atan2(x, y_), unit=radian)
 
 
+# ---------------------------
+
+
 @register(lax.atan2_p)
-def _atan2_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
+def _atan2_p_aqv(
+    x: AbstractQuantity["dimensionless"], y: ArrayLike
+) -> AbstractQuantity["angle"]:
+    """Arctangent2 of a quantity and a value.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import FastQuantity
+    >>> q1 = FastQuantity(1.0, "")
+    >>> x2 = xp.asarray(3.0)
+    >>> xp.atan2(q1, x2)
+    FastQuantity(Array(0.32175055, dtype=float32), unit='rad')
+
+    """
     x_ = x.to_value(dimensionless)
-    return Quantity(lax.atan2(x_, y), unit=radian)
+    return type_np(x)(lax.atan2(x_, y), unit=radian)
+
+
+@register(lax.atan2_p)
+def _atan2_p_qv(x: Quantity["dimensionless"], y: ArrayLike) -> Quantity["angle"]:
+    """Arctangent2 of a quantity and a value.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> q1 = Quantity(1.0, "")
+    >>> x2 = xp.asarray(3.0)
+    >>> xp.atan2(q1, x2)
+    Quantity['angle'](Array(0.32175055, dtype=float32), unit='rad')
+
+    """
+    x_ = x.to_value(dimensionless)
+    return type_np(x)(lax.atan2(x_, y), unit=radian)
 
 
 # ==============================================================================
 
 
 @register(lax.atan_p)
-def _atan_p(x: Quantity) -> Quantity:
+def _atan_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"]:
+    """Arctangent of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(1, "")
+    >>> xp.atan(q)
+    FastQuantity(Array(0.7853982, dtype=float32), unit='rad')
+
+    """
+    return type_np(x)(lax.atan(x.to_value(dimensionless)), unit=radian)
+
+
+@register(lax.atan_p)
+def _atan_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
+    """Arctangent of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(1, "")
+    >>> xp.atan(q)
+    Quantity['angle'](Array(0.7853982, dtype=float32), unit='rad')
+
+    """
     return Quantity(lax.atan(x.to_value(dimensionless)), unit=radian)
 
 
@@ -214,15 +657,42 @@ def _atan_p(x: Quantity) -> Quantity:
 
 
 @register(lax.atanh_p)
-def _atanh_p(x: Quantity) -> Quantity:
-    return Quantity(lax.atanh(x.to_value(dimensionless)), unit=radian)
+def _atanh_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"]:
+    """Inverse hyperbolic tangent of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(2, "")
+    >>> xp.atanh(q)
+    FastQuantity(Array(nan, dtype=float32), unit='rad')
+
+    """
+    return type_np(x)(lax.atanh(x.to_value(dimensionless)), unit=radian)
+
+
+@register(lax.atanh_p)
+def _atanh_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
+    """Inverse hyperbolic tangent of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(2, "")
+    >>> xp.atanh(q)
+    Quantity['angle'](Array(nan, dtype=float32), unit='rad')
+
+    """
+    return type_np(x)(lax.atanh(x.to_value(dimensionless)), unit=radian)
 
 
 # ==============================================================================
 
 
 @register(lax.axis_index_p)
-def _axis_index_p() -> Quantity:
+def _axis_index_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -230,7 +700,7 @@ def _axis_index_p() -> Quantity:
 
 
 @register(lax.bessel_i0e_p)
-def _bessel_i0e_p() -> Quantity:
+def _bessel_i0e_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -238,7 +708,7 @@ def _bessel_i0e_p() -> Quantity:
 
 
 @register(lax.bessel_i1e_p)
-def _bessel_i1e_p() -> Quantity:
+def _bessel_i1e_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -246,7 +716,7 @@ def _bessel_i1e_p() -> Quantity:
 
 
 @register(lax.bitcast_convert_type_p)
-def _bitcast_convert_type_p() -> Quantity:
+def _bitcast_convert_type_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -255,14 +725,14 @@ def _bitcast_convert_type_p() -> Quantity:
 
 @register(lax.broadcast_in_dim_p)
 def _broadcast_in_dim_p(
-    operand: Quantity,
+    operand: AbstractQuantity,
     *,
     shape: Any,
     broadcast_dimensions: Any,
-) -> Quantity:
-    return Quantity(
-        value=lax.broadcast_in_dim(operand.value, shape, broadcast_dimensions),
-        unit=operand.unit,
+) -> AbstractQuantity:
+    """Broadcast a quantity in a specific dimension."""
+    return replace(
+        operand, value=lax.broadcast_in_dim(operand.value, shape, broadcast_dimensions)
     )
 
 
@@ -270,15 +740,50 @@ def _broadcast_in_dim_p(
 
 
 @register(lax.cbrt_p)
-def _cbrt_p(x: Quantity) -> Quantity:
-    return Quantity(lax.cbrt(x.value), unit=x.unit ** (1 / 3))
+def _cbrt_p(x: AbstractQuantity) -> AbstractQuantity:
+    """Cube root of a quantity.
+
+    Examples
+    --------
+    >>> import jax.numpy as jnp
+    >>> from quax import quaxify
+    >>> cbrt = quaxify(jnp.cbrt)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(8, "m3")
+    >>> cbrt(q)
+    FastQuantity(Array(2., dtype=float32), unit='m')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(8, "m3")
+    >>> cbrt(q)
+    Quantity['length'](Array(2., dtype=float32), unit='m')
+
+    """
+    return type_np(x)(lax.cbrt(x.value), unit=x.unit ** (1 / 3))
 
 
 # ==============================================================================
 
 
 @register(lax.ceil_p)
-def _ceil_p(x: Quantity) -> Quantity:
+def _ceil_p(x: AbstractQuantity) -> AbstractQuantity:
+    """Ceiling of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(1.5, "m")
+    >>> xp.ceil(q)
+    FastQuantity(Array(2., dtype=float32), unit='m')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(1.5, "m")
+    >>> xp.ceil(q)
+    Quantity['length'](Array(2., dtype=float32), unit='m')
+
+    """
     return replace(x, value=lax.ceil(x.value))
 
 
@@ -286,7 +791,33 @@ def _ceil_p(x: Quantity) -> Quantity:
 
 
 @register(lax.clamp_p)
-def _clamp_p(min: Quantity, x: Quantity, max: Quantity) -> Quantity:
+def _clamp_p(
+    min: AbstractQuantity, x: AbstractQuantity, max: AbstractQuantity
+) -> AbstractQuantity:
+    """Clamp a quantity between two other quantities.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax.lax import clamp
+    >>> from quax import quaxify
+    >>> clamp = quaxify(clamp)
+
+    >>> from jax_quantity import FastQuantity
+    >>> min = FastQuantity(0, "m")
+    >>> max = FastQuantity(2, "m")
+    >>> q = FastQuantity([-1, 1, 3], "m")
+    >>> clamp(min, q, max)
+    FastQuantity(Array([0, 1, 2], dtype=int32), unit='m')
+
+    >>> from jax_quantity import Quantity
+    >>> min = Quantity(0, "m")
+    >>> max = Quantity(2, "m")
+    >>> q = Quantity([-1, 1, 3], "m")
+    >>> clamp(min, q, max)
+    Quantity['length'](Array([0, 1, 2], dtype=int32), unit='m')
+
+    """
     return replace(
         x,
         value=lax.clamp(
@@ -297,32 +828,180 @@ def _clamp_p(min: Quantity, x: Quantity, max: Quantity) -> Quantity:
     )
 
 
-@register(lax.clamp_p)
-def _clamp_p_vqq(min: ArrayLike, x: Quantity, max: Quantity) -> Quantity:
-    v = x.to_value(dimensionless)
-    maxv = max.to_value(dimensionless)
-    return replace(x, value=lax.clamp(min, v, maxv))
+# ---------------------------
 
 
 @register(lax.clamp_p)
-def _clamp_p_qvq(min: Quantity, x: ArrayLike, max: Quantity) -> ArrayLike:
+def _clamp_p_vaqaq(
+    min: ArrayLike,
+    x: AbstractQuantity["dimensionless"],
+    max: AbstractQuantity["dimensionless"],
+) -> AbstractQuantity["dimensionless"]:
+    """Clamp a quantity between a value and another quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax.lax import clamp
+    >>> from quax import quaxify
+    >>> clamp = quaxify(clamp)
+
+    >>> from jax_quantity import FastQuantity
+    >>> min = xp.asarray(0)
+    >>> max = FastQuantity(2, "")
+    >>> q = FastQuantity([-1, 1, 3], "")
+    >>> clamp(min, q, max)
+    FastQuantity(Array([0, 1, 2], dtype=int32), unit='')
+
+    """
+    x_ = x.to_value(dimensionless)
+    max_ = max.to_value(dimensionless)
+    return replace(x, value=lax.clamp(min, x_, max_))
+
+
+@register(lax.clamp_p)
+def _clamp_p_vqq(
+    min: ArrayLike, x: Quantity["dimensionless"], max: Quantity["dimensionless"]
+) -> Quantity["dimensionless"]:
+    """Clamp a quantity between a value and another quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax.lax import clamp
+    >>> from quax import quaxify
+    >>> clamp = quaxify(clamp)
+
+    >>> from jax_quantity import Quantity
+    >>> min = xp.asarray(0)
+    >>> max = Quantity(2, "")
+    >>> q = Quantity([-1, 1, 3], "")
+    >>> clamp(min, q, max)
+    Quantity['dimensionless'](Array([0, 1, 2], dtype=int32), unit='')
+
+    """
+    return replace(x, value=lax.clamp(min, x.value, max.value))
+
+
+# ---------------------------
+
+
+@register(lax.clamp_p)
+def _clamp_p_aqvaq(
+    min: AbstractQuantity["dimensionless"],
+    x: ArrayLike,
+    max: AbstractQuantity["dimensionless"],
+) -> ArrayLike:
+    """Clamp a value between two quantities.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax.lax import clamp
+    >>> from quax import quaxify
+    >>> clamp = quaxify(clamp)
+
+    >>> from jax_quantity import FastQuantity
+    >>> min = FastQuantity(0, "")
+    >>> max = FastQuantity(2, "")
+    >>> x = xp.asarray([-1, 1, 3])
+    >>> clamp(min, x, max)
+    Array([0, 1, 2], dtype=int32)
+
+    """
     minv = min.to_value(dimensionless)
     maxv = max.to_value(dimensionless)
     return lax.clamp(minv, x, maxv)
 
 
 @register(lax.clamp_p)
-def _clamp_p_qqv(min: Quantity, x: Quantity, max: ArrayLike) -> Quantity:
+def _clamp_p_qvq(
+    min: Quantity["dimensionless"],
+    x: ArrayLike,
+    max: Quantity["dimensionless"],
+) -> ArrayLike:
+    """Clamp a value between two quantities.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax.lax import clamp
+    >>> from quax import quaxify
+    >>> clamp = quaxify(clamp)
+
+    >>> from jax_quantity import Quantity
+    >>> min = Quantity(0, "")
+    >>> max = Quantity(2, "")
+    >>> x = xp.asarray([-1, 1, 3])
+    >>> clamp(min, x, max)
+    Array([0, 1, 2], dtype=int32)
+
+    """
     minv = min.to_value(dimensionless)
-    v = x.to_value(dimensionless)
-    return replace(x, value=lax.clamp(minv, v, max))
+    maxv = max.to_value(dimensionless)
+    return lax.clamp(minv, x, maxv)
+
+
+# ---------------------------
+
+
+@register(lax.clamp_p)
+def _clamp_p_aqaqv(
+    min: AbstractQuantity["dimensionless"],
+    x: AbstractQuantity["dimensionless"],
+    max: ArrayLike,
+) -> AbstractQuantity["dimensionless"]:
+    """Clamp a quantity between a quantity and a value.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax.lax import clamp
+    >>> from quax import quaxify
+    >>> clamp = quaxify(clamp)
+
+    >>> from jax_quantity import FastQuantity
+    >>> min = FastQuantity(0, "")
+    >>> max = xp.asarray(2)
+    >>> q = FastQuantity([-1, 1, 3], "")
+    >>> clamp(min, q, max)
+    FastQuantity(Array([0, 1, 2], dtype=int32), unit='')
+
+    """
+    min_ = min.to_value(dimensionless)
+    x_ = x.to_value(dimensionless)
+    return replace(x, value=lax.clamp(min_, x_, max))
+
+
+@register(lax.clamp_p)
+def _clamp_p_qqv(
+    min: Quantity["dimensionless"], x: Quantity["dimensionless"], max: ArrayLike
+) -> Quantity["dimensionless"]:
+    """Clamp a quantity between a quantity and a value.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax.lax import clamp
+    >>> from quax import quaxify
+    >>> clamp = quaxify(clamp)
+
+    >>> from jax_quantity import Quantity
+    >>> min = Quantity(0, "")
+    >>> max = xp.asarray(2)
+    >>> q = Quantity([-1, 1, 3], "")
+    >>> clamp(min, q, max)
+    Quantity['dimensionless'](Array([0, 1, 2], dtype=int32), unit='')
+
+    """
+    return replace(x, value=lax.clamp(min.value, x.value, max))
 
 
 # ==============================================================================
 
 
 @register(lax.clz_p)
-def _clz_p() -> Quantity:
+def _clz_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -330,32 +1009,68 @@ def _clz_p() -> Quantity:
 
 
 @register(lax.complex_p)
-def _complex_p(x: Quantity, y: Quantity) -> Quantity:
+def _complex_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+    """Complex number from two quantities.
+
+    Examples
+    --------
+    >>> from jax import lax
+    >>> from quax import quaxify
+    >>> from jax_quantity import FastQuantity
+    >>> x = FastQuantity(1.0, "m")
+    >>> y = FastQuantity(2.0, "m")
+    >>> quaxify(lax.complex)(x, y)
+    FastQuantity(Array(1.+2.j, dtype=complex64, weak_type=True), unit='m')
+
+    """
     y_ = y.to_value(x.unit)
-    return Quantity(lax.complex(x.value, y_), unit=x.unit)
+    return replace(x, value=lax.complex(x.value, y_))
 
 
 # ==============================================================================
+# Concatenation
 
 
 @register(lax.concatenate_p)
-def _concatenate_p(*operands: Quantity, dimension: Any) -> Quantity:
-    units = operands[0].unit
-    return Quantity(
-        lax.concatenate(
-            [op.to_value(units) for op in operands],
-            dimension=dimension,
+def _concatenate_p_aq(*operands: AbstractQuantity, dimension: Any) -> AbstractQuantity:
+    """Concatenate quantities and arrays with dimensionless units.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> from jax_quantity import FastQuantity
+    >>> q1 = FastQuantity([1.0], "km")
+    >>> q2 = FastQuantity([2_000.0], "m")
+    >>> xp.concat([q1, q2])
+    FastQuantity(Array([1., 2.], dtype=float32), unit='km')
+
+    >>> from jax_quantity import Quantity
+    >>> q1 = Quantity([1.0], "km")
+    >>> q2 = Quantity([2_000.0], "m")
+    >>> xp.concat([q1, q2])
+    Quantity['length'](Array([1., 2.], dtype=float32), unit='km')
+
+    """
+    operand0 = operands[0]
+    units = operand0.unit
+    return replace(
+        operand0,
+        value=lax.concatenate(
+            [op.to_value(units) for op in operands], dimension=dimension
         ),
-        unit=units,
     )
+
+
+# ---------------------------
 
 
 @register(lax.concatenate_p)
 def _concatenate_p_qnd(
-    operand0: Quantity["dimensionless"],  # type: ignore[type-arg]
-    *operands: Quantity["dimensionless"] | ArrayLike,  # type: ignore[type-arg]
+    operand0: Quantity["dimensionless"],
+    *operands: Quantity["dimensionless"] | ArrayLike,
     dimension: Any,
-) -> Quantity["dimensionless"]:  # type: ignore[type-arg]
+) -> Quantity["dimensionless"]:
     """Concatenate quantities and arrays with dimensionless units.
 
     Examples
@@ -367,13 +1082,13 @@ def _concatenate_p_qnd(
     ...                  [xp.sin(theta), xp.cos(theta),  0],
     ...                  [0,             0,              1]])
     >>> Rz
-    Quantity[...](Array([[ 0.70710677, -0.70710677,  0.        ],
-                         [ 0.70710677,  0.70710677,  0.        ],
-                         [ 0.        ,  0.        ,  1.        ]],
-                  dtype=float32), unit='')
+    Quantity[...](Array([[ 0.70710677, -0.7071068 ,  0.        ],
+                         [ 0.7071068 ,  0.70710677,  0.        ],
+                         [ 0.        ,  0.        ,  1.        ]], dtype=float32),
+                  unit='')
 
     """
-    return Quantity(
+    return type_np(operand0)(
         lax.concatenate(
             [
                 (op.to_value(dimensionless) if hasattr(op, "unit") else op)
@@ -386,11 +1101,11 @@ def _concatenate_p_qnd(
 
 
 @register(lax.concatenate_p)
-def _concatenate_p_jqnd(
+def _concatenate_p_vqnd(
     operand0: ArrayLike,
-    *operands: Quantity["dimensionless"],  # type: ignore[type-arg]
+    *operands: Quantity["dimensionless"],
     dimension: Any,
-) -> Quantity["dimensionless"]:  # type: ignore[type-arg]
+) -> Quantity["dimensionless"]:
     """Concatenate quantities and arrays with dimensionless units.
 
     Examples
@@ -403,8 +1118,8 @@ def _concatenate_p_jqnd(
     ...                  [0.0, xp.sin(theta), xp.cos(theta) ]])
     >>> Rx
     Quantity[...](Array([[ 1.        ,  0.        ,  0.        ],
-                         [ 0.        ,  0.70710677, -0.70710677],
-                         [ 0.        ,  0.70710677,  0.70710677]], dtype=float32),
+                         [ 0.        ,  0.70710677, -0.7071068 ],
+                         [ 0.        ,  0.7071068 ,  0.70710677]], dtype=float32),
                   unit='')
 
     """
@@ -423,16 +1138,33 @@ def _concatenate_p_jqnd(
 # ==============================================================================
 
 
-# @register(lax.cond_p)  # TODO: implement
-# def _implemen(index, consts) -> Quantity:
-#     raise NotImplementedError
+@register(lax.cond_p)  # TODO: implement
+def _cond_p_q(index: AbstractQuantity, consts: AbstractQuantity) -> AbstractQuantity:
+    raise NotImplementedError
 
 
 # ==============================================================================
 
 
 @register(lax.conj_p)
-def _conj_p(x: Quantity, *, input_dtype: Any) -> Quantity:
+def _conj_p(x: AbstractQuantity, *, input_dtype: Any) -> AbstractQuantity:
+    """Conjugate of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(1 + 2j, "m")
+    >>> xp.conj(q)
+    FastQuantity(Array(1.-2.j, dtype=complex64), unit='m')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(1 + 2j, "m")
+    >>> xp.conj(q)
+    Quantity['length'](Array(1.-2.j, dtype=complex64), unit='m')
+
+    """
     del input_dtype  # TODO: use this?
     return replace(x, value=lax.conj(x.value))
 
@@ -441,7 +1173,7 @@ def _conj_p(x: Quantity, *, input_dtype: Any) -> Quantity:
 
 
 @register(lax.conv_general_dilated_p)
-def _conv_general_dilated_p() -> Quantity:
+def _conv_general_dilated_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -450,11 +1182,13 @@ def _conv_general_dilated_p() -> Quantity:
 
 @register(lax.convert_element_type_p)
 def _convert_element_type_p(
-    operand: Quantity,
+    operand: AbstractQuantity,
     *,
     new_dtype: Any,
     weak_type: Any,
-) -> Quantity:
+) -> AbstractQuantity:
+    """Convert the element type of a quantity."""
+    # TODO: examples
     del weak_type
     return replace(operand, value=lax.convert_element_type(operand.value, new_dtype))
 
@@ -463,7 +1197,26 @@ def _convert_element_type_p(
 
 
 @register(lax.copy_p)
-def _copy_p(x: Quantity) -> Quantity:
+def _copy_p(x: AbstractQuantity) -> AbstractQuantity:
+    """Copy a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> import jax.numpy as jnp
+    >>> from quax import quaxify
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(1, "m")
+    >>> quaxify(jnp.copy)(q)
+    FastQuantity(Array(1, dtype=int32), unit='m')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(1, "m")
+    >>> quaxify(jnp.copy)(q)
+    Quantity['length'](Array(1, dtype=int32), unit='m')
+
+    """
     return replace(x, value=lax.copy_p.bind(x.value))
 
 
@@ -471,7 +1224,44 @@ def _copy_p(x: Quantity) -> Quantity:
 
 
 @register(lax.cos_p)
-def _cos_p(x: Quantity) -> Quantity:
+def _cos_p_aq(x: AbstractQuantity) -> AbstractQuantity["dimensionless"]:
+    """Cosine of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(1, "rad")
+    >>> xp.cos(q)
+    FastQuantity(Array(0.54030234, dtype=float32), unit='')
+
+    >>> q = FastQuantity(1, "")
+    >>> xp.cos(q)
+    FastQuantity(Array(0.54030234, dtype=float32), unit='')
+
+    """
+    return type_np(x)(lax.cos(_to_value_rad_or_one(x)), unit=dimensionless)
+
+
+@register(lax.cos_p)
+def _cos_p_q(
+    x: Quantity["angle"] | Quantity["dimensionless"],
+) -> Quantity["dimensionless"]:
+    """Cosine of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(1, "rad")
+    >>> xp.cos(q)
+    Quantity['dimensionless'](Array(0.54030234, dtype=float32), unit='')
+
+    >>> q = Quantity(1, "")
+    >>> xp.cos(q)
+    Quantity['dimensionless'](Array(0.54030234, dtype=float32), unit='')
+
+    """
     return Quantity(lax.cos(_to_value_rad_or_one(x)), unit=dimensionless)
 
 
@@ -479,15 +1269,54 @@ def _cos_p(x: Quantity) -> Quantity:
 
 
 @register(lax.cosh_p)
-def _cosh_p(x: Quantity) -> Quantity:
-    return Quantity(lax.cosh(_to_value_rad_or_one(x)), unit=dimensionless)
+def _cosh_p_aq(
+    x: AbstractQuantity["angle"] | AbstractQuantity["dimensionless"],
+) -> AbstractQuantity["dimensionless"]:
+    """Cosine of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(1, "rad")
+    >>> xp.cosh(q)
+    FastQuantity(Array(1.5430806, dtype=float32), unit='')
+
+    >>> q = FastQuantity(1, "")
+    >>> xp.cosh(q)
+    FastQuantity(Array(1.5430806, dtype=float32), unit='')
+
+    """
+    return type_np(x)(lax.cosh(_to_value_rad_or_one(x)), unit=dimensionless)
+
+
+@register(lax.cosh_p)
+def _cosh_p_q(
+    x: Quantity["angle"] | Quantity["dimensionless"],
+) -> Quantity["dimensionless"]:
+    """Cosine of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(1, "rad")
+    >>> xp.cosh(q)
+    Quantity['dimensionless'](Array(1.5430806, dtype=float32), unit='')
+
+    >>> q = Quantity(1, "")
+    >>> xp.cosh(q)
+    Quantity['dimensionless'](Array(1.5430806, dtype=float32), unit='')
+
+    """
+    return type_np(x)(lax.cosh(_to_value_rad_or_one(x)), unit=dimensionless)
 
 
 # ==============================================================================
 
 
 @register(lax.create_token_p)
-def _create_token_p() -> Quantity:
+def _create_token_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -495,7 +1324,29 @@ def _create_token_p() -> Quantity:
 
 
 @register(lax.cumlogsumexp_p)
-def _cumlogsumexp_p(operand: Quantity, *, axis: Any, reverse: Any) -> Quantity:
+def _cumlogsumexp_p(
+    operand: AbstractQuantity, *, axis: Any, reverse: Any
+) -> AbstractQuantity:
+    """Cumulative log sum exp of a quantity.
+
+    Examples
+    --------
+    >>> from jax import lax
+    >>> from quax import quaxify
+    >>> cumlogsumexp = quaxify(lax.cumlogsumexp)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity([-1.0, -2, -3], "")
+    >>> cumlogsumexp(q)
+    FastQuantity(Array([-1. , -0.6867383 , -0.59239405], dtype=float32), unit='')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity([-1.0, -2, -3], "")
+    >>> cumlogsumexp(q)
+    Quantity['dimensionless'](Array([-1. , -0.6867383 , -0.59239405], dtype=float32),
+                              unit='')
+
+    """
     # TODO: double check units make sense here.
     return replace(
         operand,
@@ -507,7 +1358,28 @@ def _cumlogsumexp_p(operand: Quantity, *, axis: Any, reverse: Any) -> Quantity:
 
 
 @register(lax.cummax_p)
-def _cummax_p(operand: Quantity, *, axis: Any, reverse: Any) -> Quantity:
+def _cummax_p(
+    operand: AbstractQuantity, *, axis: Any, reverse: Any
+) -> AbstractQuantity:
+    """Cumulative maximum of a quantity.
+
+    Examples
+    --------
+    >>> from jax import lax
+    >>> from quax import quaxify
+    >>> cummax = quaxify(lax.cummax)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity([1, 2, 1], "m")
+    >>> cummax(q)
+    FastQuantity(Array([1, 2, 2], dtype=int32), unit='m')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity([1, 2, 1], "m")
+    >>> cummax(q)
+    Quantity['length'](Array([1, 2, 2], dtype=int32), unit='m')
+
+    """
     return replace(operand, value=lax.cummax(operand.value, axis=axis, reverse=reverse))
 
 
@@ -515,7 +1387,28 @@ def _cummax_p(operand: Quantity, *, axis: Any, reverse: Any) -> Quantity:
 
 
 @register(lax.cummin_p)
-def _cummin_p(operand: Quantity, *, axis: Any, reverse: Any) -> Quantity:
+def _cummin_p(
+    operand: AbstractQuantity, *, axis: Any, reverse: Any
+) -> AbstractQuantity:
+    """Cumulative maximum of a quantity.
+
+    Examples
+    --------
+    >>> from jax import lax
+    >>> from quax import quaxify
+    >>> cummin = quaxify(lax.cummin)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity([2, 1, 3], "m")
+    >>> cummin(q)
+    FastQuantity(Array([2, 1, 1], dtype=int32), unit='m')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity([2, 1, 3], "m")
+    >>> cummin(q)
+    Quantity['length'](Array([2, 1, 1], dtype=int32), unit='m')
+
+    """
     return replace(operand, value=lax.cummin(operand.value, axis=axis, reverse=reverse))
 
 
@@ -523,10 +1416,31 @@ def _cummin_p(operand: Quantity, *, axis: Any, reverse: Any) -> Quantity:
 
 
 @register(lax.cumprod_p)
-def _cumprod_p(operand: Quantity, *, axis: Any, reverse: Any) -> Quantity:
+def _cumprod_p(
+    operand: AbstractQuantity["dimensionless"], *, axis: Any, reverse: Any
+) -> AbstractQuantity["dimensionless"]:
+    """Cumulative product of a quantity.
+
+    Examples
+    --------
+    >>> from jax import lax
+    >>> from quax import quaxify
+    >>> cumprod = quaxify(lax.cumprod)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity([1, 2, 3], "")
+    >>> cumprod(q)
+    FastQuantity(Array([1, 2, 6], dtype=int32), unit='')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity([1, 2, 3], "")
+    >>> cumprod(q)
+    Quantity['dimensionless'](Array([1, 2, 6], dtype=int32), unit='')
+
+    """
     return replace(
         operand,
-        value=lax.cumprod(operand.value, axis=axis, reverse=reverse),
+        value=lax.cumprod(operand.to_value(dimensionless), axis=axis, reverse=reverse),
     )
 
 
@@ -534,7 +1448,28 @@ def _cumprod_p(operand: Quantity, *, axis: Any, reverse: Any) -> Quantity:
 
 
 @register(lax.cumsum_p)
-def _cumsum_p(operand: Quantity, *, axis: Any, reverse: Any) -> Quantity:
+def _cumsum_p(
+    operand: AbstractQuantity, *, axis: Any, reverse: Any
+) -> AbstractQuantity:
+    """Cumulative sum of a quantity.
+
+    Examples
+    --------
+    >>> from jax import lax
+    >>> from quax import quaxify
+    >>> cumsum = quaxify(lax.cumsum)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity([1, 2, 3], "m")
+    >>> cumsum(q)
+    FastQuantity(Array([1, 3, 6], dtype=int32), unit='m')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity([1, 2, 3], "m")
+    >>> cumsum(q)
+    Quantity['length'](Array([1, 3, 6], dtype=int32), unit='m')
+
+    """
     return replace(operand, value=lax.cumsum(operand.value, axis=axis, reverse=reverse))
 
 
@@ -542,7 +1477,26 @@ def _cumsum_p(operand: Quantity, *, axis: Any, reverse: Any) -> Quantity:
 
 
 @register(lax.device_put_p)
-def _device_put_p(x: Quantity, *, device: Any, src: Any) -> Quantity:
+def _device_put_p(x: AbstractQuantity, *, device: Any, src: Any) -> AbstractQuantity:
+    """Put a quantity on a device.
+
+    Examples
+    --------
+    >>> import jax
+    >>> from quax import quaxify
+    >>> device_put = quaxify(jax.device_put)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(1, "m")
+    >>> device_put(q)
+    FastQuantity(Array(1, dtype=int32, weak_type=True), unit='m')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(1, "m")
+    >>> device_put(q)
+    Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
+
+    """
     return replace(x, value=jax.device_put(x.value, device=device, src=src))
 
 
@@ -550,12 +1504,24 @@ def _device_put_p(x: Quantity, *, device: Any, src: Any) -> Quantity:
 
 
 @register(lax.digamma_p)
-def _digamma_p(x: Quantity) -> Quantity:
-    if x.unit != dimensionless:
-        msg = "TODO: implement the result units for `digamma`."
-        raise NotImplementedError(msg)
+def _digamma_p(
+    x: AbstractQuantity["dimensionless"],
+) -> AbstractQuantity["dimensionless"]:
+    """Digamma function of a quantity.
 
-    return Quantity(lax.digamma(x.value), unit=dimensionless)
+    Examples
+    --------
+    >>> from jax import lax
+    >>> from quax import quaxify
+    >>> digamma = quaxify(lax.digamma)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(1.0, "")
+    >>> digamma(q)
+    FastQuantity(Array(-0.5772154, dtype=float32, weak_type=True), unit='')
+
+    """
+    return replace(x, value=lax.digamma(x.to_value(dimensionless)))
 
 
 # ==============================================================================
@@ -563,19 +1529,86 @@ def _digamma_p(x: Quantity) -> Quantity:
 
 
 @register(lax.div_p)
-def _div_p_qq(x: Quantity, y: Quantity) -> Quantity:
+def _div_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+    """Division of two quantities.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> from jax_quantity import FastQuantity
+    >>> q1 = FastQuantity(1, "m")
+    >>> q2 = FastQuantity(2, "s")
+    >>> xp.divide(q1, q2)
+    FastQuantity(Array(0.5, dtype=float32), unit='m / s')
+    >>> q1 / q2
+    FastQuantity(Array(0.5, dtype=float32), unit='m / s')
+
+    >>> from jax_quantity import Quantity
+    >>> q1 = Quantity(1, "m")
+    >>> q2 = Quantity(2, "s")
+    >>> xp.divide(q1, q2)
+    Quantity['speed'](Array(0.5, dtype=float32), unit='m / s')
+    >>> q1 / q2
+    Quantity['speed'](Array(0.5, dtype=float32), unit='m / s')
+
+    """
     unit = Unit(x.unit / y.unit)
-    return Quantity(lax.div(x.value, y.value), unit=unit)
+    return type_np(x)(lax.div(x.value, y.value), unit=unit)
 
 
 @register(lax.div_p)
-def _div_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
-    return Quantity(lax.div(x, y.value), unit=1 / y.unit)
+def _div_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
+    """Division of an array by a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> x = xp.asarray([1.0, 2, 3])
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(2.0, "m")
+    >>> xp.divide(x, q)
+    FastQuantity(Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
+    >>> x / q
+    FastQuantity(Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(2.0, "m")
+    >>> xp.divide(x, q)
+    Quantity['wavenumber'](Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
+    >>> x / q
+    Quantity['wavenumber'](Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
+
+    """
+    return type_np(y)(lax.div(x, y.value), unit=1 / y.unit)
 
 
 @register(lax.div_p)
-def _div_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
-    return Quantity(lax.div(x.value, y), unit=x.unit)
+def _div_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
+    """Division of a quantity by an array.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> y = xp.asarray([1.0, 2, 3])
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(6.0, "m")
+    >>> xp.divide(q, y)
+    FastQuantity(Array([6., 3., 2.], dtype=float32), unit='m')
+    >>> q / y
+    FastQuantity(Array([6., 3., 2.], dtype=float32), unit='m')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(6.0, "m")
+    >>> xp.divide(q, y)
+    Quantity['length'](Array([6., 3., 2.], dtype=float32), unit='m')
+    >>> q / y
+    Quantity['length'](Array([6., 3., 2.], dtype=float32), unit='m')
+
+    """
+    return replace(x, value=lax.div(x.value, y))
 
 
 # ==============================================================================
@@ -584,26 +1617,36 @@ def _div_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
 @register(lax.dot_general_p)
 def _dot_general_jq(
     lhs: ArrayLike,
-    rhs: Quantity,
+    rhs: AbstractQuantity,
     *,
     dimension_numbers: DotDimensionNumbers,
     precision: PrecisionLike,
     preferred_element_type: DTypeLike | None = None,
-) -> Quantity:
+) -> AbstractQuantity:
     """Dot product of an array and a quantity.
 
     >>> import jax.numpy as jnp
-    >>> from jax_quantity import Quantity
+    >>> import array_api_jax_compat as xp
+    >>> from jax_quantity import Quantity, FastQuantity
 
     >>> theta = jnp.pi / 4  # 45 degrees
     >>> Rz = jnp.asarray([[jnp.cos(theta), -jnp.sin(theta), 0],
     ...                   [jnp.sin(theta), jnp.cos(theta),  0],
     ...                   [0,              0,               1]])
-    >>> q = Quantity([1, 0, 0], "m")
+
+    >>> q = FastQuantity([1, 0, 0], "m")
+    >>> xp.linalg.matmul(Rz, q)
+    FastQuantity(Array([0.70710677, 0.7071068 , 0. ], dtype=float32), unit='m')
     >>> Rz @ q
-    Quantity['length'](Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
+    FastQuantity(Array([0.70710677, 0.7071068 , 0. ], dtype=float32), unit='m')
+
+    >>> q = Quantity([1, 0, 0], "m")
+    >>> xp.linalg.matmul(Rz, q)
+    Quantity['length'](Array([0.70710677, 0.7071068 , 0. ], dtype=float32), unit='m')
+    >>> Rz @ q
+    Quantity['length'](Array([0.70710677, 0.7071068 , 0. ], dtype=float32), unit='m')
     """
-    return Quantity(
+    return type_np(rhs)(
         lax.dot_general_p.bind(
             lhs,
             rhs.value,
@@ -615,31 +1658,40 @@ def _dot_general_jq(
     )
 
 
-# NOTE: encountered in `jnp.linalg.matmul`
 @register(lax.dot_general_p)
 def _dot_general_qq(
-    lhs: Quantity,
-    rhs: Quantity,
+    lhs: AbstractQuantity,
+    rhs: AbstractQuantity,
     *,
     dimension_numbers: DotDimensionNumbers,
     precision: PrecisionLike,
     preferred_element_type: DTypeLike | None = None,
-) -> Quantity:
+) -> AbstractQuantity:
     """Dot product of two quantities.
 
     Examples
     --------
     This is a dot product of two quantities.
 
-    >>> from jax_quantity import Quantity
+    >>> import quaxed.array_api as xp
+    >>> from jax_quantity import Quantity, FastQuantity
+
+    >>> q1 = FastQuantity([1, 2, 3], "m")
+    >>> q2 = FastQuantity([4, 5, 6], "m")
+    >>> xp.vecdot(q1, q2)
+    FastQuantity(Array(32, dtype=int32), unit='m2')
+    >>> q1 @ q2
+    FastQuantity(Array(32, dtype=int32), unit='m2')
+
     >>> q1 = Quantity([1, 2, 3], "m")
     >>> q2 = Quantity([4, 5, 6], "m")
+    >>> xp.vecdot(q1, q2)
+    Quantity['area'](Array(32, dtype=int32), unit='m2')
     >>> q1 @ q2
     Quantity['area'](Array(32, dtype=int32), unit='m2')
 
     This rule is also used by `jnp.matmul` for quantities.
 
-    >>> import quaxed.array_api as xp
     >>> Rz = xp.asarray([[0, -1,  0],
     ...                  [1,  0,  0],
     ...                  [0,  0,  1]])
@@ -647,8 +1699,13 @@ def _dot_general_qq(
     >>> Rz @ q
     Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
 
+    This uses `matmul` for quantities.
+
+    >>> xp.linalg.matmul(Rz, q)
+    Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
+
     """
-    return Quantity(
+    return type_np(lhs)(
         lax.dot_general_p.bind(
             lhs.value,
             rhs.value,
@@ -665,12 +1722,12 @@ def _dot_general_qq(
 
 @register(lax.dynamic_slice_p)
 def _dynamic_slice_p(
-    operand: Quantity,
+    operand: AbstractQuantity,
     start_indices: ArrayLike,
     dynamic_sizes: ArrayLike,
     *,
     slice_sizes: Any,
-) -> Quantity:
+) -> AbstractQuantity:
     raise NotImplementedError  # TODO: implement
 
 
@@ -678,7 +1735,7 @@ def _dynamic_slice_p(
 
 
 @register(lax.dynamic_update_slice_p)
-def _dynamic_update_slice_p() -> Quantity:
+def _dynamic_update_slice_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -686,18 +1743,100 @@ def _dynamic_update_slice_p() -> Quantity:
 
 
 @register(lax.eq_p)
-def _eq_p_qq(x: Quantity, y: Quantity) -> ArrayLike:
+def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
+    """Equality of two quantities.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> from jax_quantity import FastQuantity
+    >>> q1 = FastQuantity(1, "m")
+    >>> q2 = FastQuantity(1, "m")
+    >>> xp.equal(q1, q2)
+    Array(True, dtype=bool)
+    >>> q1 == q2
+    Array(True, dtype=bool, weak_type=True)
+
+    >>> from jax_quantity import Quantity
+    >>> q1 = Quantity(1, "m")
+    >>> q2 = Quantity(1, "m")
+    >>> xp.equal(q1, q2)
+    Array(True, dtype=bool)
+    >>> q1 == q2
+    Array(True, dtype=bool, weak_type=True)
+
+    """
     return lax.eq(x.value, y.to_value(x.unit))
 
 
 @register(lax.eq_p)
-def _eq_p_vq(x: ArrayLike, y: Quantity) -> ArrayLike:
+def _eq_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
+    """Equality of an array and a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> x = xp.asarray([1.0, 2, 3])
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(2.0, "")
+    >>> xp.equal(x, q)
+    Array([False,  True, False], dtype=bool)
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(2.0, "")
+    >>> xp.equal(x, q)
+    Array([False,  True, False], dtype=bool)
+
+    """
     return lax.eq(x, y.to_value(dimensionless))
 
 
 @register(lax.eq_p)
-def _eq_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
-    # special-case for all-0 values
+def _eq_p_aqv(x: AbstractQuantity["dimensionless"], y: ArrayLike) -> ArrayLike:
+    """Equality of an array and a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> y = xp.asarray([1.0, 2, 3])
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(2.0, "")
+    >>> xp.equal(q, y)
+    Array([False,  True, False], dtype=bool)
+
+    """
+    return lax.eq(x.to_value(dimensionless), y)
+
+
+@register(lax.eq_p)
+def _eq_p_aq0(x: AbstractQuantity, y: float | int) -> ArrayLike:
+    """Equality of a quantity and 0."""
+    y = eqx.error_if(
+        y,
+        y != 0,
+        "Only zero is allowed for comparison with non-dimensionless quantities.",
+    )
+    return lax.eq(x.value, y)
+
+
+@register(lax.eq_p)
+def _eq_p_qv(x: Quantity["dimensionless"], y: ArrayLike) -> ArrayLike:
+    """Equality of an array and a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+    >>> y = xp.asarray([1.0, 2, 3])
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(2.0, "")
+    >>> xp.equal(q, y)
+    Array([False,  True, False], dtype=bool)
+
+    """
     return lax.eq(x.value, y)
 
 
@@ -705,7 +1844,7 @@ def _eq_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
 
 
 @register(lax.eq_to_p)
-def _eq_to_p() -> Quantity:
+def _eq_to_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -713,63 +1852,203 @@ def _eq_to_p() -> Quantity:
 
 
 @register(lax.erf_inv_p)
-def _erf_inv_p(x: Quantity) -> Quantity:
+def _erf_inv_p(
+    x: AbstractQuantity["dimensionless"],
+) -> AbstractQuantity["dimensionless"]:
+    """Inverse error function of a quantity.
+
+    Examples
+    --------
+    >>> import jax.scipy as jsp
+    >>> from quax import quaxify
+    >>> erf_inv = quaxify(jsp.special.erfinv)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(0.5, "")
+    >>> erf_inv(q)
+    FastQuantity(Array(0.47693628, dtype=float32), unit='')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(0.5, "")
+    >>> erf_inv(q)
+    Quantity['dimensionless'](Array(0.47693628, dtype=float32), unit='')
+
+    """
     # TODO: can this support non-dimensionless quantities?
-    return Quantity(lax.erf_inv(x.to_value(dimensionless)), unit=dimensionless)
+    return replace(x, value=lax.erf_inv(x.to_value(dimensionless)))
 
 
 # ==============================================================================
 
 
 @register(lax.erf_p)
-def _erf_p(x: Quantity) -> Quantity:
+def _erf_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionless"]:
+    """Error function of a quantity.
+
+    Examples
+    --------
+    >>> import jax.scipy as jsp
+    >>> from quax import quaxify
+    >>> erf = quaxify(jsp.special.erf)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(0.5, "")
+    >>> erf(q)
+    FastQuantity(Array(0.5204999, dtype=float32), unit='')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(0.5, "")
+    >>> erf(q)
+    Quantity['dimensionless'](Array(0.5204999, dtype=float32), unit='')
+
+    """
     # TODO: can this support non-dimensionless quantities?
-    return Quantity(lax.erf(x.to_value(dimensionless)), unit=dimensionless)
+    return replace(x, value=lax.erf(x.to_value(dimensionless)))
 
 
 # ==============================================================================
 
 
 @register(lax.erfc_p)
-def _erfc_p(x: Quantity) -> Quantity:
+def _erfc_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionless"]:
+    """Complementary error function of a quantity.
+
+    Examples
+    --------
+    >>> import jax.scipy as jsp
+    >>> from quax import quaxify
+    >>> erfc = quaxify(jsp.special.erfc)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(0.5, "")
+    >>> erfc(q)
+    FastQuantity(Array(0.47950017, dtype=float32), unit='')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(0.5, "")
+    >>> erfc(q)
+    Quantity['dimensionless'](Array(0.47950017, dtype=float32), unit='')
+
+    """
     # TODO: can this support non-dimensionless quantities?
-    return Quantity(lax.erfc(x.to_value(dimensionless)), unit=dimensionless)
+    return replace(x, value=lax.erfc(x.to_value(dimensionless)))
 
 
 # ==============================================================================
 
 
 @register(lax.exp2_p)
-def _exp2_p(x: Quantity) -> Quantity:
-    return Quantity(lax.exp2(x.to_value(dimensionless)), unit=dimensionless)
+def _exp2_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionless"]:
+    """2^x of a quantity.
+
+    Examples
+    --------
+    >>> import jax.numpy as jnp
+    >>> from quax import quaxify
+    >>> exp2 = quaxify(jnp.exp2)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(3, "")
+    >>> exp2(q)
+    FastQuantity(Array(8., dtype=float32), unit='')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(3, "")
+    >>> exp2(q)
+    Quantity['dimensionless'](Array(8., dtype=float32), unit='')
+
+    """
+    return replace(x, value=lax.exp2(x.to_value(dimensionless)))
 
 
 # ==============================================================================
 
 
 @register(lax.exp_p)
-def _exp_p(x: Quantity) -> Quantity:
+def _exp_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionless"]:
+    """Exponential of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(1, "")
+    >>> xp.exp(q)
+    FastQuantity(Array(2.7182817, dtype=float32), unit='')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(1, "")
+    >>> xp.exp(q)
+    Quantity['dimensionless'](Array(2.7182817, dtype=float32), unit='')
+
+    Euler's crown jewel:
+
+    >>> xp.exp(Quantity(xp.pi * 1j, "")) + 1
+    Quantity['dimensionless'](Array(0.-8.742278e-08j, dtype=complex64), unit='')
+
+    Pretty close to zero!
+
+    """
     # TODO: more meaningful error message.
-    return Quantity(lax.exp(x.to_value(dimensionless)), unit=dimensionless)
+    return replace(x, value=lax.exp(x.to_value(dimensionless)))
 
 
 # ==============================================================================
 
 
 @register(lax.expm1_p)
-def _expm1_p(x: Quantity) -> Quantity:
-    return Quantity(lax.expm1(x.to_value(dimensionless)), unit=dimensionless)
+def _expm1_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionless"]:
+    """Exponential of a quantity minus 1.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(0, "")
+    >>> xp.expm1(q)
+    FastQuantity(Array(0., dtype=float32), unit='')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(0, "")
+    >>> xp.expm1(q)
+    Quantity['dimensionless'](Array(0., dtype=float32), unit='')
+
+    """
+    return replace(x, value=lax.expm1(x.to_value(dimensionless)))
 
 
 # ==============================================================================
 
 
 @register(lax.fft_p)
-def _fft_p(x: Quantity, *, fft_type: Any, fft_lengths: Any) -> Quantity:
+def _fft_p(
+    x: AbstractQuantity["dimensionless"], *, fft_type: Any, fft_lengths: Any
+) -> AbstractQuantity["dimensionless"]:
+    """Fast Fourier transform of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity([1, 2, 3], "")
+    >>> xp.fft.fft(q)
+    FastQuantity(Array([ 6. +0.j       , -1.5+0.8660254j, -1.5-0.8660254j],
+                       dtype=complex64), unit='')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity([1, 2, 3], "")
+    >>> xp.fft.fft(q)
+    Quantity['dimensionless'](Array([ 6. +0.j       , -1.5+0.8660254j, -1.5-0.8660254j],
+                                    dtype=complex64), unit='')
+
+    """
     # TODO: what units can this support?
-    return Quantity(
-        lax.fft(x.to_value(dimensionless), fft_type, fft_lengths),
-        unit=dimensionless,
+    return replace(
+        x,
+        value=lax.fft(x.to_value(dimensionless), fft_type, fft_lengths),
     )
 
 
@@ -777,7 +2056,24 @@ def _fft_p(x: Quantity, *, fft_type: Any, fft_lengths: Any) -> Quantity:
 
 
 @register(lax.floor_p)
-def _floor_p(x: Quantity) -> Quantity:
+def _floor_p(x: AbstractQuantity) -> AbstractQuantity:
+    """Floor of a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(1.5, "")
+    >>> xp.floor(q)
+    FastQuantity(Array(1., dtype=float32), unit='')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(1.5, "")
+    >>> xp.floor(q)
+    Quantity['dimensionless'](Array(1., dtype=float32), unit='')
+
+    """
     return replace(x, value=lax.floor(x.value))
 
 
@@ -787,7 +2083,7 @@ def _floor_p(x: Quantity) -> Quantity:
 # used in `jnp.cross`
 @register(lax.gather_p)
 def _gather_p(
-    operand: Quantity,
+    operand: AbstractQuantity,
     start_indices: ArrayLike,
     *,
     dimension_numbers: GatherDimensionNumbers,
@@ -796,9 +2092,11 @@ def _gather_p(
     indices_are_sorted: bool,
     mode: str | GatherScatterMode | None,
     fill_value: Any,
-) -> Quantity:
-    return Quantity(
-        lax.gather_p.bind(
+) -> AbstractQuantity:
+    # TODO: examples
+    return replace(
+        operand,
+        value=lax.gather_p.bind(
             operand.value,
             start_indices,
             dimension_numbers=dimension_numbers,
@@ -808,7 +2106,6 @@ def _gather_p(
             mode=mode,
             fill_value=fill_value,
         ),
-        unit=operand.unit,
     )
 
 
@@ -816,19 +2113,80 @@ def _gather_p(
 
 
 @register(lax.ge_p)
-def _ge_p_qq(x: Quantity, y: Quantity) -> ArrayLike:
+def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
+    """Greater than or equal to of two quantities.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> from jax_quantity import FastQuantity
+    >>> q1 = FastQuantity(1_001., "m")
+    >>> q2 = FastQuantity(1., "km")
+    >>> xp.greater_equal(q1, q2)
+    Array(True, dtype=bool)
+    >>> q1 >= q2
+    Array(True, dtype=bool, weak_type=True)
+
+    >>> from jax_quantity import Quantity
+    >>> q1 = Quantity(1_001., "m")
+    >>> q2 = Quantity(1., "km")
+    >>> xp.greater_equal(q1, q2)
+    Array(True, dtype=bool)
+    >>> q1 >= q2
+    Array(True, dtype=bool, weak_type=True)
+
+    """
     return lax.ge(x.value, y.to_value(x.unit))
 
 
 @register(lax.ge_p)
-def _ge_p_vq(x: ArrayLike, y: Quantity) -> ArrayLike:
+def _ge_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
+    """Greater than or equal to of an array and a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> x = xp.asarray(1_001.0)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q2 = FastQuantity(1., "")
+    >>> xp.greater_equal(x, q2)
+    Array(True, dtype=bool)
+
+    >>> from jax_quantity import Quantity
+    >>> q2 = Quantity(1., "")
+    >>> xp.greater_equal(x, q2)
+    Array(True, dtype=bool)
+
+    """
     return lax.ge(x, y.to_value(dimensionless))
 
 
 @register(lax.ge_p)
-def _ge_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
-    if jnp.array_equal(y, 0):
-        return lax.ge(x.value, y)
+def _ge_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
+    """Greater than or equal to of a quantity and an array.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> y = xp.asarray(0.9)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q1 = FastQuantity(1., "")
+    >>> xp.greater_equal(q1, y)
+    Array(True, dtype=bool)
+
+    >>> from jax_quantity import Quantity
+    >>> q1 = Quantity(1., "")
+    >>> xp.greater_equal(q1, y)
+    Array(True, dtype=bool)
+
+    """
+    # if jnp.array_equal(y, 0):
+    #     return lax.ge(x.value, y)
     return lax.ge(x.to_value(dimensionless), y)
 
 
@@ -836,22 +2194,100 @@ def _ge_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
 
 
 @register(lax.gt_p)
-def _gt_p_qq(x: Quantity, y: Quantity) -> ArrayLike:
+def _gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
+    """Greater than of two quantities.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> from jax_quantity import FastQuantity
+    >>> q1 = FastQuantity(1_001., "m")
+    >>> q2 = FastQuantity(1., "km")
+    >>> xp.greater_equal(q1, q2)
+    Array(True, dtype=bool)
+
+    >>> from jax_quantity import Quantity
+    >>> q1 = Quantity(1_001., "m")
+    >>> q2 = Quantity(1., "km")
+    >>> xp.greater_equal(q1, q2)
+    Array(True, dtype=bool)
+
+    """
     return lax.gt(x.value, y.to_value(x.unit))
 
 
 @register(lax.gt_p)
-def _gt_p_vq(x: ArrayLike, y: Quantity) -> ArrayLike:
+def _gt_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
+    """Greater than of an array and a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> x = xp.asarray(1_001.0)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q2 = FastQuantity(1., "")
+    >>> xp.greater_equal(x, q2)
+    Array(True, dtype=bool)
+
+    >>> from jax_quantity import Quantity
+    >>> q2 = Quantity(1., "")
+    >>> xp.greater_equal(x, q2)
+    Array(True, dtype=bool)
+
+    """
     return lax.gt(x, y.to_value(dimensionless))
 
 
 @register(lax.gt_p)
-def _gt_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
+def _gt_p_qv(x: AbstractQuantity["dimensionless"], y: ArrayLike) -> ArrayLike:
+    """Greater than or equal to of a quantity and an array.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> y = xp.asarray(0.9)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q1 = FastQuantity(1., "")
+    >>> xp.greater_equal(q1, y)
+    Array(True, dtype=bool)
+
+    >>> from jax_quantity import Quantity
+    >>> q1 = Quantity(1., "")
+    >>> xp.greater_equal(q1, y)
+    Array(True, dtype=bool)
+
+    """
     return lax.gt(x.to_value(dimensionless), y)
 
 
 @register(lax.gt_p)
-def _gt_p_qi(x: Quantity, y: int) -> ArrayLike:
+def _gt_p_qi(x: AbstractQuantity["dimensionless"], y: int) -> ArrayLike:
+    """Greater than or equal to of a quantity and an array.
+
+    Examples
+    --------
+    >>> import jax.numpy as jnp
+    >>> from quax import quaxify
+    >>> gt = quaxify(jnp.greater)
+
+    >>> y = 0
+
+    >>> from jax_quantity import FastQuantity
+    >>> q1 = FastQuantity(1., "")
+    >>> gt(q1, y)
+    Array(True, dtype=bool, weak_type=True)
+
+    >>> from jax_quantity import Quantity
+    >>> q1 = Quantity(1., "")
+    >>> gt(q1, y)
+    Array(True, dtype=bool, weak_type=True)
+
+    """
     return lax.gt(x.to_value(dimensionless), y)
 
 
@@ -859,7 +2295,7 @@ def _gt_p_qi(x: Quantity, y: int) -> ArrayLike:
 
 
 @register(lax.igamma_grad_a_p)
-def _igamma_grad_a_p() -> Quantity:
+def _igamma_grad_a_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -867,7 +2303,7 @@ def _igamma_grad_a_p() -> Quantity:
 
 
 @register(lax.igamma_p)
-def _igamma_p() -> Quantity:
+def _igamma_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -875,7 +2311,7 @@ def _igamma_p() -> Quantity:
 
 
 @register(lax.igammac_p)
-def _igammac_p() -> Quantity:
+def _igammac_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -883,7 +2319,7 @@ def _igammac_p() -> Quantity:
 
 
 @register(lax.imag_p)
-def _imag_p(x: Quantity) -> Quantity:
+def _imag_p(x: AbstractQuantity) -> AbstractQuantity:
     return replace(x, value=lax.imag(x.value))
 
 
@@ -891,7 +2327,7 @@ def _imag_p(x: Quantity) -> Quantity:
 
 
 @register(lax.infeed_p)
-def _infeed_p() -> Quantity:
+def _infeed_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -899,8 +2335,23 @@ def _infeed_p() -> Quantity:
 
 
 @register(lax.integer_pow_p)
-def _integer_pow_p(x: Quantity, *, y: Any) -> Quantity:
-    return Quantity(value=lax.integer_pow(x.value, y), unit=x.unit**y)
+def _integer_pow_p(x: AbstractQuantity, *, y: Any) -> AbstractQuantity:
+    """Integer power of a quantity.
+
+    Examples
+    --------
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(2, "m")
+    >>> q ** 3
+    FastQuantity(Array(8, dtype=int32), unit='m3')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(2, "m")
+    >>> q ** 3
+    Quantity['volume'](Array(8, dtype=int32), unit='m3')
+
+    """
+    return type_np(x)(value=lax.integer_pow(x.value, y), unit=x.unit**y)
 
 
 # ==============================================================================
@@ -915,7 +2366,30 @@ def _integer_pow_p(x: Quantity, *, y: Any) -> Quantity:
 
 
 @register(lax.is_finite_p)
-def _is_finite_p(x: Quantity) -> ArrayLike:
+def _is_finite_p(x: AbstractQuantity) -> ArrayLike:
+    """Check if a quantity is finite.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(1, "m")
+    >>> xp.isfinite(q)
+    array(True)
+    >>> q = FastQuantity(float('inf'), "m")
+    >>> xp.isfinite(q)
+    Array(False, dtype=bool)
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(1, "m")
+    >>> xp.isfinite(q)
+    array(True)
+    >>> q = Quantity(float('inf'), "m")
+    >>> xp.isfinite(q)
+    Array(False, dtype=bool)
+
+    """
     return lax.is_finite(x.value)
 
 
@@ -923,17 +2397,74 @@ def _is_finite_p(x: Quantity) -> ArrayLike:
 
 
 @register(lax.le_p)
-def _le_p_qq(x: Quantity, y: Quantity) -> ArrayLike:
+def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
+    """Less than or equal to of two quantities.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> from jax_quantity import FastQuantity
+    >>> q1 = FastQuantity(1_001., "m")
+    >>> q2 = FastQuantity(1., "km")
+    >>> xp.less_equal(q1, q2)
+    Array(False, dtype=bool)
+
+    >>> from jax_quantity import Quantity
+    >>> q1 = Quantity(1_001., "m")
+    >>> q2 = Quantity(1., "km")
+    >>> xp.less_equal(q1, q2)
+    Array(False, dtype=bool)
+
+    """
     return lax.le(x.value, y.to_value(x.unit))
 
 
 @register(lax.le_p)
-def _le_p_vq(x: ArrayLike, y: Quantity) -> ArrayLike:
+def _le_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
+    """Less than or equal to of an array and a quantity.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> x1 = 1.001
+
+    >>> from jax_quantity import FastQuantity
+    >>> q2 = FastQuantity(1., "")
+    >>> xp.less_equal(x1, q2)
+    Array(False, dtype=bool)
+
+    >>> from jax_quantity import Quantity
+    >>> q2 = Quantity(1., "")
+    >>> xp.less_equal(q1, q2)
+    Array(False, dtype=bool)
+
+    """
     return lax.le(x, y.to_value(dimensionless))
 
 
 @register(lax.le_p)
-def _le_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
+def _le_p_qv(x: AbstractQuantity["dimensionless"], y: ArrayLike) -> ArrayLike:
+    """Less than or equal to of a quantity and an array.
+
+    Examples
+    --------
+    >>> import array_api_jax_compat as xp
+
+    >>> y1 = 0.9
+
+    >>> from jax_quantity import FastQuantity
+    >>> q1 = FastQuantity(1., "")
+    >>> xp.less_equal(q1, y1)
+    Array(False, dtype=bool)
+
+    >>> from jax_quantity import Quantity
+    >>> q1 = Quantity(1., "")
+    >>> xp.less_equal(q1, y1)
+    Array(False, dtype=bool)
+
+    """
     return lax.le(x.to_value(dimensionless), y)
 
 
@@ -949,16 +2480,37 @@ def _le_to_p() -> Quantity:
 
 
 @register(lax.lgamma_p)
-def _lgamma_p(x: Quantity) -> Quantity:
-    # TODO: handle non-dimensionless quantities.
-    return Quantity(lax.lgamma(x.to_value(dimensionless)), unit=dimensionless)
+def _lgamma_p(
+    x: AbstractQuantity["dimensionless"],
+) -> AbstractQuantity["dimensionless"]:
+    """Log-gamma function of a quantity.
+
+    Examples
+    --------
+    >>> import jax.scipy as jsp
+    >>> from quax import quaxify
+    >>> lgamma = quaxify(jsp.special.gammaln)
+
+    >>> from jax_quantity import FastQuantity
+    >>> q = FastQuantity(3, "")
+    >>> lgamma(q)
+    FastQuantity(Array(0.6931472, dtype=float32), unit='')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(3, "")
+    >>> lgamma(q)
+    Quantity['dimensionless'](Array(0.6931472, dtype=float32), unit='')
+
+    """
+    # TODO: are there any units that this can support?
+    return replace(x, value=lax.lgamma(x.to_value(dimensionless)))
 
 
 # ==============================================================================
 
 
 @register(lax.linear_solve_p)
-def _linear_solve_p() -> Quantity:
+def _linear_solve_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -966,41 +2518,45 @@ def _linear_solve_p() -> Quantity:
 
 
 @register(lax.log1p_p)
-def _log1p_p(x: Quantity) -> Quantity:
-    return Quantity(lax.log1p(x.to_value(dimensionless)), unit=dimensionless)
+def _log1p_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionless"]:
+    return replace(x, value=lax.log1p(x.to_value(dimensionless)))
 
 
 # ==============================================================================
 
 
 @register(lax.log_p)
-def _log_p(x: Quantity) -> Quantity:
-    return Quantity(lax.log(x.to_value(dimensionless)), unit=dimensionless)
+def _log_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionless"]:
+    return replace(x, value=lax.log(x.to_value(dimensionless)))
 
 
 # ==============================================================================
 
 
 @register(lax.logistic_p)
-def _logistic_p(x: Quantity) -> Quantity:
-    return Quantity(lax.logistic(x.to_value(dimensionless)), unit=dimensionless)
+def _logistic_p(
+    x: AbstractQuantity["dimensionless"],
+) -> AbstractQuantity["dimensionless"]:
+    return replace(x, value=lax.logistic(x.to_value(dimensionless)))
 
 
 # ==============================================================================
 
 
 @register(lax.lt_p)
-def _lt_p_qq(x: Quantity, y: Quantity) -> ArrayLike:
+def _lt_p_qq(
+    x: AbstractQuantity["dimensionless"], y: AbstractQuantity["dimensionless"]
+) -> ArrayLike:
     return lax.lt(x.value, y.to_value(x.unit))
 
 
 @register(lax.lt_p)
-def _lt_p_vq(x: ArrayLike, y: Quantity) -> ArrayLike:
+def _lt_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
     return lax.lt(x, y.to_value(dimensionless))
 
 
 @register(lax.lt_p)
-def _lt_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
+def _lt_p_qv(x: AbstractQuantity["dimensionless"], y: ArrayLike) -> ArrayLike:
     return lax.lt(x.to_value(dimensionless), y)
 
 
@@ -1016,36 +2572,44 @@ def _lt_to_p() -> ArrayLike:
 
 
 @register(lax.max_p)
-def _max_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.max(x.value, y.to_value(x.unit)), unit=x.unit)
+def _max_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+    return replace(x, value=lax.max(x.value, y.to_value(x.unit)))
 
 
 @register(lax.max_p)
-def _max_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
-    return Quantity(lax.max(x, y.to_value(dimensionless)), unit=dimensionless)
+def _max_p_vq(
+    x: ArrayLike, y: AbstractQuantity["dimensionless"]
+) -> AbstractQuantity["dimensionless"]:
+    return replace(y, value=lax.max(x, y.to_value(dimensionless)))
 
 
 @register(lax.max_p)
-def _max_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
-    return Quantity(lax.max(x.to_value(dimensionless), y), unit=dimensionless)
+def _max_p_qv(
+    x: AbstractQuantity["dimensionless"], y: ArrayLike
+) -> AbstractQuantity["dimensionless"]:
+    return replace(x, value=lax.max(x.to_value(dimensionless), y))
 
 
 # ==============================================================================
 
 
 @register(lax.min_p)
-def _min_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.min(x.value, y.to_value(x.unit)), unit=x.unit)
+def _min_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+    return replace(x, value=lax.min(x.value, y.to_value(x.unit)))
 
 
 @register(lax.min_p)
-def _min_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
-    return Quantity(lax.min(x, y.to_value(dimensionless)), unit=dimensionless)
+def _min_p_vq(
+    x: ArrayLike, y: AbstractQuantity["dimensionless"]
+) -> AbstractQuantity["dimensionless"]:
+    return replace(y, value=lax.min(x, y.to_value(dimensionless)))
 
 
 @register(lax.min_p)
-def _min_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
-    return Quantity(lax.min(x.to_value(dimensionless), y), unit=dimensionless)
+def _min_p_qv(
+    x: AbstractQuantity["dimensionless"], y: ArrayLike
+) -> AbstractQuantity["dimensionless"]:
+    return replace(x, value=lax.min(x.to_value(dimensionless), y))
 
 
 # ==============================================================================
@@ -1053,47 +2617,52 @@ def _min_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
 
 
 @register(lax.mul_p)
-def _mul_p_qq(x: Quantity, y: Quantity) -> Quantity:
+def _mul_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     unit = Unit(x.unit * y.unit)
-    return Quantity(lax.mul(x.value, y.value), unit=unit)
+    return type_np(x)(lax.mul(x.value, y.value), unit=unit)
 
 
 @register(lax.mul_p)
-def _mul_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
-    return Quantity(lax.mul(x, y.value), unit=y.unit)
+def _mul_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
+    return replace(y, value=lax.mul(x, y.value))
 
 
 @register(lax.mul_p)
-def _mul_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
-    return Quantity(lax.mul(x.value, y), unit=x.unit)
+def _mul_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
+    return replace(x, value=lax.mul(x.value, y))
 
 
 # ==============================================================================
 
 
 @register(lax.ne_p)
-def _ne_p_qq(x: Quantity, y: Quantity) -> ArrayLike:
+def _ne_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     return lax.ne(x.value, y.to_value(x.unit))
 
 
 @register(lax.ne_p)
-def _ne_p_vq(x: ArrayLike, y: Quantity) -> ArrayLike:
+def _ne_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
     return lax.ne(x, y.to_value(dimensionless))
 
 
 @register(lax.ne_p)
-def _ne_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
+def _ne_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     # special-case for scalar value=0, unit=dimensionless
-    if y.shape == () and y == 0:
+    if y.shape == () and y == 0:  # TODO: proper jax
         return lax.ne(x.value, y)
     return lax.ne(x.to_value(dimensionless), y)
+
+
+# @register(lax.ne_p)
+# def _ne_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
+#     return lax.
 
 
 # ==============================================================================
 
 
 @register(lax.neg_p)
-def _neg_p(x: Quantity) -> Quantity:
+def _neg_p(x: AbstractQuantity) -> AbstractQuantity:
     return replace(x, value=lax.neg(x.value))
 
 
@@ -1101,7 +2670,7 @@ def _neg_p(x: Quantity) -> Quantity:
 
 
 @register(lax.nextafter_p)
-def _nextafter_p() -> Quantity:
+def _nextafter_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1109,7 +2678,7 @@ def _nextafter_p() -> Quantity:
 
 
 @register(lax.not_p)
-def _not_p() -> Quantity:
+def _not_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1117,7 +2686,7 @@ def _not_p() -> Quantity:
 
 
 @register(lax.or_p)
-def _or_p() -> Quantity:
+def _or_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1125,7 +2694,7 @@ def _or_p() -> Quantity:
 
 
 @register(lax.outfeed_p)
-def _outfeed_p() -> Quantity:
+def _outfeed_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1133,7 +2702,7 @@ def _outfeed_p() -> Quantity:
 
 
 @register(lax.pad_p)
-def _pad_p() -> Quantity:
+def _pad_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1141,7 +2710,7 @@ def _pad_p() -> Quantity:
 
 
 @register(lax.pmax_p)
-def _pmax_p() -> Quantity:
+def _pmax_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1149,7 +2718,7 @@ def _pmax_p() -> Quantity:
 
 
 @register(lax.pmin_p)
-def _pmin_p() -> Quantity:
+def _pmin_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1157,7 +2726,7 @@ def _pmin_p() -> Quantity:
 
 
 @register(lax.polygamma_p)
-def _polygamma_p() -> Quantity:
+def _polygamma_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1165,7 +2734,7 @@ def _polygamma_p() -> Quantity:
 
 
 @register(lax.population_count_p)
-def _population_count_p() -> Quantity:
+def _population_count_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1173,29 +2742,22 @@ def _population_count_p() -> Quantity:
 
 
 @register(lax.pow_p)
-def _pow_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    if y.unit != dimensionless:
-        msg = f"power must be dimensionless, got {y.unit}"
-        raise UnitTypeError(msg)
-
+def _pow_p_qq(x: AbstractQuantity, y: Quantity["dimensionless"]) -> AbstractQuantity:
     y0 = y.value.flatten()[0]
-    if not all(y.value == y0):
-        msg = "power must be a scalar"
-        raise ValueError(msg)
-
-    return Quantity(value=lax.pow(x.value, y0), unit=x.unit**y0)
+    y = eqx.error_if(y, any(y.value != y0), "power must be a scalar")
+    return type_np(x)(value=lax.pow(x.value, y0), unit=x.unit**y0)
 
 
 @register(lax.pow_p)
-def _pow_p_qf(x: Quantity, y: int | float) -> Quantity:
-    return Quantity(value=lax.pow(x.value, y), unit=x.unit**y)
+def _pow_p_qf(x: AbstractQuantity, y: int | float) -> AbstractQuantity:
+    return type_np(x)(value=lax.pow(x.value, y), unit=x.unit**y)
 
 
 # ==============================================================================
 
 
 @register(lax.ppermute_p)
-def _ppermute_p() -> Quantity:
+def _ppermute_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1203,7 +2765,7 @@ def _ppermute_p() -> Quantity:
 
 
 @register(lax.psum_p)
-def _psum_p() -> Quantity:
+def _psum_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1211,7 +2773,7 @@ def _psum_p() -> Quantity:
 
 
 @register(lax.random_gamma_grad_p)
-def _random_gamma_grad_p() -> Quantity:
+def _random_gamma_grad_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1219,7 +2781,7 @@ def _random_gamma_grad_p() -> Quantity:
 
 
 @register(lax.real_p)
-def _real_p(x: Quantity) -> Quantity:
+def _real_p(x: AbstractQuantity) -> AbstractQuantity:
     return replace(x, value=lax.real(x.value))
 
 
@@ -1227,11 +2789,7 @@ def _real_p(x: Quantity) -> Quantity:
 
 
 @register(lax.reduce_and_p)
-def _reduce_and_p(
-    operand: Quantity,
-    *,
-    axes: Sequence[int],
-) -> Any:
+def _reduce_and_p(operand: AbstractQuantity, *, axes: Sequence[int]) -> Any:
     return lax.reduce_and_p.bind(operand.value, axes=tuple(axes))
 
 
@@ -1239,33 +2797,35 @@ def _reduce_and_p(
 
 
 @register(lax.reduce_max_p)
-def _reduce_max_p(operand: Quantity, *, axes: Axes) -> Quantity:
-    return Quantity(
-        value=lax.reduce_max_p.bind(operand.value, axes=axes), unit=operand.unit
-    )
+def _reduce_max_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
+    return replace(operand, value=lax.reduce_max_p.bind(operand.value, axes=axes))
 
 
 # ==============================================================================
 
 
 @register(lax.reduce_min_p)
-def _reduce_min_p(operand: Quantity, *, axes: Axes) -> Quantity:
-    return Quantity(lax.reduce_min_p.bind(operand.value, axes=axes), unit=operand.unit)
+def _reduce_min_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
+    return operand(lax.reduce_min_p.bind(operand.value, axes=axes))
 
 
 # ==============================================================================
 
 
 @register(lax.reduce_or_p)
-def _reduce_or_p(operand: Quantity, *, axes: Axes) -> Quantity:
-    return Quantity(lax.reduce_or_p.bind(operand.value, axes=axes), unit=dimensionless)
+def _reduce_or_p(
+    operand: AbstractQuantity, *, axes: Axes
+) -> AbstractQuantity["dimensionless"]:
+    return type_np(operand)(
+        lax.reduce_or_p.bind(operand.value, axes=axes), unit=dimensionless
+    )
 
 
 # ==============================================================================
 
 
 @register(lax.reduce_p)
-def _reduce_p() -> Quantity:
+def _reduce_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1273,7 +2833,7 @@ def _reduce_p() -> Quantity:
 
 
 @register(lax.reduce_precision_p)
-def _reduce_precision_p() -> Quantity:
+def _reduce_precision_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1281,8 +2841,8 @@ def _reduce_precision_p() -> Quantity:
 
 
 @register(lax.reduce_prod_p)
-def _reduce_prod_p(operand: Quantity, *, axes: Axes) -> Quantity:
-    return Quantity(
+def _reduce_prod_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
+    return type_np(operand)(
         lax.reduce_prod_p.bind(operand.value, axes=axes),
         unit=operand.unit ** prod(operand.shape[ax] for ax in axes),
     )
@@ -1292,15 +2852,15 @@ def _reduce_prod_p(operand: Quantity, *, axes: Axes) -> Quantity:
 
 
 @register(lax.reduce_sum_p)
-def _reduce_sum_p(operand: Quantity, *, axes: Axes) -> Quantity:
-    return Quantity(lax.reduce_sum_p.bind(operand.value, axes=axes), unit=operand.unit)
+def _reduce_sum_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
+    return replace(operand, value=lax.reduce_sum_p.bind(operand.value, axes=axes))
 
 
 # ==============================================================================
 
 
 @register(lax.reduce_window_max_p)
-def _reduce_window_max_p() -> Quantity:
+def _reduce_window_max_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1308,7 +2868,7 @@ def _reduce_window_max_p() -> Quantity:
 
 
 @register(lax.reduce_window_min_p)
-def _reduce_window_min_p() -> Quantity:
+def _reduce_window_min_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1316,7 +2876,7 @@ def _reduce_window_min_p() -> Quantity:
 
 
 @register(lax.reduce_window_p)
-def _reduce_window_p() -> Quantity:
+def _reduce_window_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1324,7 +2884,7 @@ def _reduce_window_p() -> Quantity:
 
 
 @register(lax.reduce_window_sum_p)
-def _reduce_window_sum_p() -> Quantity:
+def _reduce_window_sum_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1332,7 +2892,7 @@ def _reduce_window_sum_p() -> Quantity:
 
 
 @register(lax.reduce_xor_p)
-def _reduce_xor_p() -> Quantity:
+def _reduce_xor_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1340,7 +2900,7 @@ def _reduce_xor_p() -> Quantity:
 
 
 @register(lax.regularized_incomplete_beta_p)
-def _regularized_incomplete_beta_p() -> Quantity:
+def _regularized_incomplete_beta_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1348,25 +2908,25 @@ def _regularized_incomplete_beta_p() -> Quantity:
 
 
 @register(lax.rem_p)
-def _rem_p(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(lax.rem(x.value, y.to_value(x.unit)), unit=x.unit)
+def _rem_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+    return replace(x, value=lax.rem(x.value, y.to_value(x.unit)))
 
 
 # ==============================================================================
 
 
 @register(lax.reshape_p)
-def _reshape_p(operand: Quantity, *, new_sizes: Any, dimensions: Any) -> Quantity:
-    return Quantity(
-        lax.reshape(operand.value, new_sizes, dimensions), unit=operand.unit
-    )
+def _reshape_p(
+    operand: AbstractQuantity, *, new_sizes: Any, dimensions: Any
+) -> AbstractQuantity:
+    return replace(operand, value=lax.reshape(operand.value, new_sizes, dimensions))
 
 
 # ==============================================================================
 
 
 @register(lax.rev_p)
-def _rev_p(operand: Quantity, *, dimensions: Any) -> Quantity:
+def _rev_p(operand: AbstractQuantity, *, dimensions: Any) -> AbstractQuantity:
     return replace(operand, value=lax.rev(operand.value, dimensions))
 
 
@@ -1374,7 +2934,7 @@ def _rev_p(operand: Quantity, *, dimensions: Any) -> Quantity:
 
 
 @register(lax.rng_bit_generator_p)
-def _rng_bit_generator_p() -> Quantity:
+def _rng_bit_generator_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1382,7 +2942,7 @@ def _rng_bit_generator_p() -> Quantity:
 
 
 @register(lax.rng_uniform_p)
-def _rng_uniform_p() -> Quantity:
+def _rng_uniform_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1390,7 +2950,7 @@ def _rng_uniform_p() -> Quantity:
 
 
 @register(lax.round_p)
-def _round_p(x: Quantity, *, rounding_method: Any) -> Quantity:
+def _round_p(x: AbstractQuantity, *, rounding_method: Any) -> AbstractQuantity:
     return replace(x, value=lax.round(x.value, rounding_method))
 
 
@@ -1398,15 +2958,15 @@ def _round_p(x: Quantity, *, rounding_method: Any) -> Quantity:
 
 
 @register(lax.rsqrt_p)
-def _rsqrt_p(x: Quantity) -> Quantity:
-    return Quantity(lax.rsqrt(x.value), unit=x.unit ** (-1 / 2))
+def _rsqrt_p(x: AbstractQuantity) -> AbstractQuantity:
+    return type_np(x)(lax.rsqrt(x.value), unit=x.unit ** (-1 / 2))
 
 
 # ==============================================================================
 
 
 @register(lax.scan_p)
-def _scan_p() -> Quantity:
+def _scan_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1414,7 +2974,7 @@ def _scan_p() -> Quantity:
 
 
 @register(lax.scatter_add_p)
-def _scatter_add_p() -> Quantity:
+def _scatter_add_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1422,7 +2982,7 @@ def _scatter_add_p() -> Quantity:
 
 
 @register(lax.scatter_max_p)
-def _scatter_max_p() -> Quantity:
+def _scatter_max_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1430,7 +2990,7 @@ def _scatter_max_p() -> Quantity:
 
 
 @register(lax.scatter_min_p)
-def _scatter_min_p() -> Quantity:
+def _scatter_min_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1438,7 +2998,7 @@ def _scatter_min_p() -> Quantity:
 
 
 @register(lax.scatter_mul_p)
-def _scatter_mul_p() -> Quantity:
+def _scatter_mul_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1446,7 +3006,7 @@ def _scatter_mul_p() -> Quantity:
 
 
 @register(lax.scatter_p)
-def _scatter_p() -> Quantity:
+def _scatter_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1454,7 +3014,7 @@ def _scatter_p() -> Quantity:
 
 
 @register(lax.select_and_gather_add_p)
-def _select_and_gather_add_p() -> Quantity:
+def _select_and_gather_add_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1462,7 +3022,7 @@ def _select_and_gather_add_p() -> Quantity:
 
 
 @register(lax.select_and_scatter_add_p)
-def _select_and_scatter_add_p() -> Quantity:
+def _select_and_scatter_add_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1470,7 +3030,7 @@ def _select_and_scatter_add_p() -> Quantity:
 
 
 @register(lax.select_and_scatter_p)
-def _select_and_scatter_p() -> Quantity:
+def _select_and_scatter_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1478,50 +3038,58 @@ def _select_and_scatter_p() -> Quantity:
 
 
 @register(lax.select_n_p)
-def _select_n_p(which: Quantity, *cases: Quantity) -> Quantity:
+def _select_n_p(
+    which: AbstractQuantity["dimensionless"], *cases: AbstractQuantity
+) -> AbstractQuantity:
     unit = cases[0].unit
     cases_ = (case.to_value(unit) for case in cases)
-    return Quantity(lax.select_n(which.to_value(dimensionless), *cases_), unit=unit)
+    return type_np(which)(
+        lax.select_n(which.to_value(dimensionless), *cases_), unit=unit
+    )
 
 
 @register(lax.select_n_p)
-def _select_n_p_vq(which: Quantity, case0: Quantity, case1: ArrayLike) -> Quantity:
+def _select_n_p_vq(
+    which: AbstractQuantity["dimensionless"], case0: AbstractQuantity, case1: ArrayLike
+) -> AbstractQuantity:
     # encountered from jnp.hypot
     unit = case0.unit
-    return Quantity(
+    return type_np(which)(
         lax.select_n(which.to_value(dimensionless), case0.to_value(unit), case1),
         unit=unit,
     )
 
 
 @register(lax.select_n_p)
-def _select_n_p_jjq(which: ArrayLike, case0: ArrayLike, case1: Quantity) -> Quantity:
+def _select_n_p_jjq(
+    which: ArrayLike, case0: ArrayLike, case1: AbstractQuantity
+) -> AbstractQuantity:
     # Used by a `xp.linalg.trace`
-    unit = case1.unit
-    return Quantity(lax.select_n(which, case0, case1.to_value(unit)), unit=unit)
+    return replace(case1, value=lax.select_n(which, case0, case1.value))
 
 
 @register(lax.select_n_p)
-def _select_n_p_jqj(which: ArrayLike, case0: Quantity, case1: ArrayLike) -> Quantity:
+def _select_n_p_jqj(
+    which: ArrayLike, case0: AbstractQuantity, case1: ArrayLike
+) -> AbstractQuantity:
     # Used by a `triu`
-    unit = case0.unit
-    return Quantity(lax.select_n(which, case0.to_value(unit), case1), unit=unit)
+    return replace(case0, value=lax.select_n(which, case0.value, case1))
 
 
 @register(lax.select_n_p)
-def _select_n_p_jqq(which: ArrayLike, case0: Quantity, case1: Quantity) -> Quantity:
+def _select_n_p_jqq(
+    which: ArrayLike, case0: AbstractQuantity, case1: AbstractQuantity
+) -> AbstractQuantity:
     # used by `jnp.hypot`
     unit = case0.unit
-    return Quantity(
-        lax.select_n(which, case0.to_value(unit), case1.to_value(unit)), unit=unit
-    )
+    return replace(case0, value=lax.select_n(which, case0.value, case1.to_value(unit)))
 
 
 # ==============================================================================
 
 
 @register(lax.sharding_constraint_p)
-def _sharding_constraint_p() -> Quantity:
+def _sharding_constraint_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1529,7 +3097,7 @@ def _sharding_constraint_p() -> Quantity:
 
 
 @register(lax.shift_left_p)
-def _shift_left_p() -> Quantity:
+def _shift_left_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1537,7 +3105,7 @@ def _shift_left_p() -> Quantity:
 
 
 @register(lax.shift_right_arithmetic_p)
-def _shift_right_arithmetic_p() -> Quantity:
+def _shift_right_arithmetic_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1545,7 +3113,7 @@ def _shift_right_arithmetic_p() -> Quantity:
 
 
 @register(lax.shift_right_logical_p)
-def _shift_right_logical_p() -> Quantity:
+def _shift_right_logical_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1553,7 +3121,7 @@ def _shift_right_logical_p() -> Quantity:
 
 
 @register(lax.sign_p)
-def _sign_p(x: Quantity) -> ArrayLike:
+def _sign_p(x: AbstractQuantity) -> ArrayLike:
     return lax.sign(x.value)
 
 
@@ -1561,16 +3129,20 @@ def _sign_p(x: Quantity) -> ArrayLike:
 
 
 @register(lax.sin_p)
-def _sin_p(x: Quantity) -> Quantity:
-    return Quantity(lax.sin(_to_value_rad_or_one(x)), unit=dimensionless)
+def _sin_p(
+    x: AbstractQuantity["angle"] | AbstractQuantity["dimensionless"],
+) -> AbstractQuantity["dimensionless"]:
+    return type_np(x)(lax.sin(_to_value_rad_or_one(x)), unit=dimensionless)
 
 
 # ==============================================================================
 
 
 @register(lax.sinh_p)
-def _sinh_p(x: Quantity) -> Quantity:
-    return Quantity(lax.sinh(_to_value_rad_or_one(x)), unit=dimensionless)
+def _sinh_p(
+    x: AbstractQuantity["angle"] | AbstractQuantity["dimensionless"],
+) -> AbstractQuantity["dimensionless"]:
+    return type_np(x)(lax.sinh(_to_value_rad_or_one(x)), unit=dimensionless)
 
 
 # ==============================================================================
@@ -1578,20 +3150,20 @@ def _sinh_p(x: Quantity) -> Quantity:
 
 @register(lax.slice_p)
 def _slice_p(
-    operand: Quantity,
+    operand: AbstractQuantity,
     *,
     start_indices: Any,
     limit_indices: Any,
     strides: Any,
-) -> Quantity:
-    return Quantity(
-        lax.slice_p.bind(
+) -> AbstractQuantity:
+    return replace(
+        operand,
+        value=lax.slice_p.bind(
             operand.value,
             start_indices=start_indices,
             limit_indices=limit_indices,
             strides=strides,
         ),
-        unit=operand.unit,
     )
 
 
@@ -1601,13 +3173,13 @@ def _slice_p(
 # Called by `argsort`
 @register(lax.sort_p)
 def _sort_p_two_operands(
-    operand0: Quantity,
+    operand0: AbstractQuantity,
     operand1: ArrayLike,
     *,
     dimension: int,
     is_stable: bool,
     num_keys: int,
-) -> tuple[Quantity, Quantity]:
+) -> tuple[AbstractQuantity, ArrayLike]:
     out0, out1 = lax.sort_p.bind(
         operand0.value,
         operand1,
@@ -1615,41 +3187,41 @@ def _sort_p_two_operands(
         is_stable=is_stable,
         num_keys=num_keys,
     )
-    return Quantity(out0, unit=operand0.unit), Quantity(out1, unit=dimensionless)
+    return (replace(operand0, value=out0), out1)
 
 
 # Called by `sort`
 @register(lax.sort_p)
 def _sort_p_one_operand(
-    operand: Quantity, *, dimension: int, is_stable: bool, num_keys: int
-) -> tuple[Quantity]:
+    operand: AbstractQuantity, *, dimension: int, is_stable: bool, num_keys: int
+) -> tuple[AbstractQuantity]:
     (out,) = lax.sort_p.bind(
         operand.value, dimension=dimension, is_stable=is_stable, num_keys=num_keys
     )
-    return (Quantity(out, unit=operand.unit),)
+    return (type_np(operand)(out, unit=operand.unit),)
 
 
 # ==============================================================================
 
 
 @register(lax.sqrt_p)
-def _sqrt_p(x: Quantity) -> Quantity:
-    return Quantity(lax.sqrt(x.value), unit=x.unit ** (1 / 2))
+def _sqrt_p(x: AbstractQuantity) -> AbstractQuantity:
+    return type_np(x)(lax.sqrt(x.value), unit=x.unit ** (1 / 2))
 
 
 # ==============================================================================
 
 
 @register(lax.squeeze_p)
-def _squeeze_p(x: Quantity, *, dimensions: Any) -> Quantity:
-    return Quantity(lax.squeeze(x.value, dimensions), unit=x.unit)
+def _squeeze_p(x: AbstractQuantity, *, dimensions: Any) -> AbstractQuantity:
+    return type_np(x)(lax.squeeze(x.value, dimensions), unit=x.unit)
 
 
 # ==============================================================================
 
 
 @register(lax.stop_gradient_p)
-def _stop_gradient_p(x: Quantity) -> Quantity:
+def _stop_gradient_p(x: AbstractQuantity) -> AbstractQuantity:
     return replace(x, value=lax.stop_gradient(x.value))
 
 
@@ -1658,44 +3230,45 @@ def _stop_gradient_p(x: Quantity) -> Quantity:
 
 
 @register(lax.sub_p)
-def _sub_p_qq(x: Quantity, y: Quantity) -> Quantity:
-    return Quantity(
-        lax.sub(x.to_value(x.unit), y.to_value(x.unit)),
-        unit=x.unit,
-    )
+def _sub_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+    return replace(x, value=lax.sub(x.to_value(x.unit), y.to_value(x.unit)))
 
 
 @register(lax.sub_p)
-def _sub_p_vq(x: ArrayLike, y: Quantity) -> Quantity:
-    return Quantity(lax.sub(x, y.value), unit=y.unit)
+def _sub_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
+    return replace(y, value=lax.sub(x, y.value))
 
 
 @register(lax.sub_p)
-def _sub_p_qv(x: Quantity, y: ArrayLike) -> Quantity:
-    return Quantity(lax.sub(x.value, y), unit=x.unit)
+def _sub_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
+    return replace(x, value=lax.sub(x.value, y))
 
 
 # ==============================================================================
 
 
 @register(lax.tan_p)
-def _tan_p(x: Quantity) -> Quantity:
-    return Quantity(lax.tan(_to_value_rad_or_one(x)), unit=dimensionless)
+def _tan_p(
+    x: AbstractQuantity["angle"] | AbstractQuantity["dimensionless"],
+) -> AbstractQuantity["dimensionless"]:
+    return type_np(x)(lax.tan(_to_value_rad_or_one(x)), unit=dimensionless)
 
 
 # ==============================================================================
 
 
 @register(lax.tanh_p)
-def _tanh_p(x: Quantity) -> Quantity:
-    return Quantity(lax.tanh(_to_value_rad_or_one(x)), unit=dimensionless)
+def _tanh_p(
+    x: AbstractQuantity["angle"] | AbstractQuantity["dimensionless"],
+) -> AbstractQuantity["dimensionless"]:
+    return type_np(x)(lax.tanh(_to_value_rad_or_one(x)), unit=dimensionless)
 
 
 # ==============================================================================
 
 
 @register(lax.top_k_p)
-def _top_k_p() -> Quantity:
+def _top_k_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1703,15 +3276,15 @@ def _top_k_p() -> Quantity:
 
 
 @register(lax.transpose_p)
-def _transpose_p(operand: Quantity, *, permutation: Any) -> Quantity:
-    return Quantity(lax.transpose(operand.value, permutation), unit=operand.unit)
+def _transpose_p(operand: AbstractQuantity, *, permutation: Any) -> AbstractQuantity:
+    return replace(operand, value=lax.transpose(operand.value, permutation))
 
 
 # ==============================================================================
 
 
 @register(lax.while_p)
-def _while_p() -> Quantity:
+def _while_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1719,7 +3292,7 @@ def _while_p() -> Quantity:
 
 
 @register(lax.xor_p)
-def _xor_p() -> Quantity:
+def _xor_p() -> AbstractQuantity:
     raise NotImplementedError
 
 
@@ -1727,5 +3300,5 @@ def _xor_p() -> Quantity:
 
 
 @register(lax.zeta_p)
-def _zeta_p() -> Quantity:
+def _zeta_p() -> AbstractQuantity:
     raise NotImplementedError

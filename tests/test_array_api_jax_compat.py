@@ -427,12 +427,12 @@ def test_add():
 
     # Adding a quantity and non-quantity
     with pytest.raises(
-        ValueError, match=re.escape("Cannot add a non-quantity and quantity.")
+        Exception, match=re.escape("Cannot add a non-quantity and quantity.")
     ):
         xp.add(x.value, y)
 
     with pytest.raises(
-        ValueError, match=re.escape("Cannot add a quantity and a non-quantity.")
+        Exception, match=re.escape("Cannot add a quantity and a non-quantity.")
     ):
         xp.add(x, y.value)
 
@@ -1394,9 +1394,8 @@ def test_argsort():
     q = Quantity(xp.asarray([3, 2, 1], dtype=float), u.m)
     got = xp.argsort(q)
 
-    assert isinstance(got, Quantity)
-    assert got.unit == u.one
-    assert jnp.array_equal(got.value, xp.argsort(q.value))
+    assert isinstance(got, Array)
+    assert jnp.array_equal(got, xp.argsort(q.value))
 
 
 def test_sort():
