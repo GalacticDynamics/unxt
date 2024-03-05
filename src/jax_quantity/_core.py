@@ -17,6 +17,7 @@ from astropy.units import (
     PhysicalType,
     Quantity as AstropyQuantity,
     Unit,
+    UnitBase,
     UnitConversionError,
     get_physical_type,
 )
@@ -64,15 +65,106 @@ def bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
 @final
 @parametric
 class Quantity(ArrayValue):  # type: ignore[misc]
-    """Represents an array, with each axis bound to a name."""
+    """Represents an array, with each axis bound to a name.
+
+    Parameters
+    ----------
+    value : array-like
+        The array of values. Anything that can be converted to an array by
+        `jax.numpy.asarray`.
+    unit : Unit-like
+        The unit of the array. Anything that can be converted to a unit by
+        `astropy.units.Unit`.
+
+    Examples
+    --------
+    >>> from jax_quantity import Quantity
+
+    From an integer:
+
+    >>> Quantity(1, "m")
+    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+
+    From a float:
+
+    >>> Quantity(1.0, "m")
+    Quantity['length'](Array(1., dtype=float32, ...), unit='m')
+
+    From a list:
+
+    >>> Quantity([1, 2, 3], "m")
+    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+
+    From a tuple:
+
+    >>> Quantity((1, 2, 3), "m")
+    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+
+    From a :class:`numpy.ndarray`:
+
+    >>> import numpy as np
+    >>> Quantity(np.array([1, 2, 3]), "m")
+    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+
+    From a :class:`jax.Array`:
+
+    >>> import jax.numpy as jnp
+    >>> Quantity(jnp.array([1, 2, 3]), "m")
+    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+
+    The unit can also be given as a :class:`astropy.units.Unit`:
+
+    >>> import astropy.units as u
+    >>> Quantity(1, u.m)
+    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+
+    In the previous examples, the dimensions parameter was inferred from the
+    values. It can also be given explicitly:
+
+    >>> Quantity["length"](1, "m")
+    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+
+    This can be used for runtime checking of the input dimensions!
+
+    >>> try: Quantity["length"](1, "s")
+    ... except Exception as e: print(e)
+    Physical type mismatch.
+
+    The dimensions can also be given as a :class:`astropy.units.PhysicalType`:
+
+    >>> dimensions = u.km.physical_type
+    >>> dimensions
+    PhysicalType('length')
+    >>> Quantity[dimensions](1.0, "m")
+    Quantity['length'](Array(1., dtype=float32, ...), unit='m')
+
+    Or as a unit:
+
+    >>> Quantity[u.m](1.0, "m")
+    Quantity['length'](Array(1., dtype=float32, ...), unit='m')
+
+    Some tricky cases are when the physical type is unknown:
+
+    >>> unit = u.m ** 2 / (u.kg * u.s ** 2)
+    >>> unit.physical_type
+    PhysicalType('unknown')
+
+    The dimensions can be given as a string in all cases, but is necessary when
+    the physical type is unknown:
+
+    >>> Quantity['m2 kg-1 s-2'](1.0, unit)
+    Quantity['m2 kg-1 s-2'](Array(1., dtype=float32, ...), unit='m2 / (kg s2)')
+
+    """
 
     value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
     unit: Unit = eqx.field(static=True, converter=Unit)
 
     def __check_init__(self) -> None:
         """Check whether the arguments are valid."""
-        dimensions = self._type_parameter
-        if self.unit.physical_type != dimensions:
+        expected_dimensions = self._type_parameter._physical_type_id  # noqa: SLF001
+        got_dimensions = self.unit.physical_type._physical_type_id  # noqa: SLF001
+        if got_dimensions != expected_dimensions:
             msg = "Physical type mismatch."  # TODO: better error message
             raise ValueError(msg)
 
@@ -83,20 +175,35 @@ class Quantity(ArrayValue):  # type: ignore[misc]
     """Tells :mod:`plum` that this type can be cached more efficiently."""
 
     @classmethod
-    @dispatcher  # type: ignore[misc]
-    def __init_type_parameter__(
-        cls, dimensions: PhysicalType | str
-    ) -> tuple[PhysicalType]:
+    @dispatcher
+    def __init_type_parameter__(cls, dimensions: PhysicalType) -> tuple[PhysicalType]:
         """Check whether the type parameters are valid."""
-        # In this case, we use `@dispatch` to check the validity of the type parameter.
-        return (get_physical_type(dimensions),)
+        return (dimensions,)
+
+    @classmethod  # type: ignore[no-redef]
+    @dispatcher
+    def __init_type_parameter__(cls, dimensions: str) -> tuple[PhysicalType]:
+        """Check whether the type parameters are valid."""
+        try:
+            dims = get_physical_type(dimensions)
+        except ValueError:
+            dims = PhysicalType(Unit(dimensions), dimensions)
+        return (dims,)
+
+    @classmethod  # type: ignore[no-redef]
+    @dispatcher
+    def __init_type_parameter__(cls, unit: UnitBase) -> tuple[PhysicalType]:
+        """Infer the type parameter from the arguments."""
+        if unit.physical_type != "unknown":
+            return (unit.physical_type,)
+        return (PhysicalType(unit, unit.to_string(fraction=False)),)
 
     @classmethod
     def __infer_type_parameter__(
         cls, value: ArrayLike, unit: Any
     ) -> tuple[PhysicalType]:
         """Infer the type parameter from the arguments."""
-        return (get_physical_type(Unit(unit)),)
+        return (Unit(unit).physical_type,)
 
     @classmethod
     @dispatcher  # type: ignore[misc]
@@ -115,7 +222,13 @@ class Quantity(ArrayValue):  # type: ignore[misc]
 
     def __repr__(self) -> str:
         # fmt: off
-        dim = self._type_parameter._name_string_as_ordered_set().split("'")[1]  # noqa: SLF001
+        if self._type_parameter == "unknown":
+            dim = " ".join(
+                f"{unit}{power}" if power != 1 else unit
+                for unit, power in self._type_parameter._physical_type_id  # noqa: SLF001
+            )
+        else:
+            dim = self._type_parameter._name_string_as_ordered_set().split("'")[1]  # noqa: SLF001
         return f"Quantity[{dim!r}]({self.value!r}, unit={self.unit.to_string()!r})"
         # fmt: on
 
