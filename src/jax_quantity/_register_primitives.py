@@ -1082,8 +1082,8 @@ def _concatenate_p_qnd(
     ...                  [xp.sin(theta), xp.cos(theta),  0],
     ...                  [0,             0,              1]])
     >>> Rz
-    Quantity[...](Array([[ 0.70710677, -0.7071068 ,  0.        ],
-                         [ 0.7071068 ,  0.70710677,  0.        ],
+    Quantity[...](Array([[ 0.70710677, -0.70710677,  0.        ],
+                         [ 0.70710677,  0.70710677,  0.        ],
                          [ 0.        ,  0.        ,  1.        ]], dtype=float32),
                   unit='')
 
@@ -1118,8 +1118,8 @@ def _concatenate_p_vqnd(
     ...                  [0.0, xp.sin(theta), xp.cos(theta) ]])
     >>> Rx
     Quantity[...](Array([[ 1.        ,  0.        ,  0.        ],
-                         [ 0.        ,  0.70710677, -0.7071068 ],
-                         [ 0.        ,  0.7071068 ,  0.70710677]], dtype=float32),
+                         [ 0.        ,  0.70710677, -0.70710677],
+                         [ 0.        ,  0.70710677,  0.70710677]], dtype=float32),
                   unit='')
 
     """
@@ -1233,11 +1233,11 @@ def _cos_p_aq(x: AbstractQuantity) -> AbstractQuantity["dimensionless"]:
     >>> from jax_quantity import FastQuantity
     >>> q = FastQuantity(1, "rad")
     >>> xp.cos(q)
-    FastQuantity(Array(0.54030234, dtype=float32), unit='')
+    FastQuantity(Array(0.5403023, dtype=float32), unit='')
 
     >>> q = FastQuantity(1, "")
     >>> xp.cos(q)
-    FastQuantity(Array(0.54030234, dtype=float32), unit='')
+    FastQuantity(Array(0.5403023, dtype=float32), unit='')
 
     """
     return type_np(x)(lax.cos(_to_value_rad_or_one(x)), unit=dimensionless)
@@ -1255,11 +1255,11 @@ def _cos_p_q(
     >>> from jax_quantity import Quantity
     >>> q = Quantity(1, "rad")
     >>> xp.cos(q)
-    Quantity['dimensionless'](Array(0.54030234, dtype=float32), unit='')
+    Quantity['dimensionless'](Array(0.5403023, dtype=float32), unit='')
 
     >>> q = Quantity(1, "")
     >>> xp.cos(q)
-    Quantity['dimensionless'](Array(0.54030234, dtype=float32), unit='')
+    Quantity['dimensionless'](Array(0.5403023, dtype=float32), unit='')
 
     """
     return Quantity(lax.cos(_to_value_rad_or_one(x)), unit=dimensionless)
@@ -1636,15 +1636,15 @@ def _dot_general_jq(
 
     >>> q = FastQuantity([1, 0, 0], "m")
     >>> xp.linalg.matmul(Rz, q)
-    FastQuantity(Array([0.70710677, 0.7071068 , 0. ], dtype=float32), unit='m')
+    FastQuantity(Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
     >>> Rz @ q
-    FastQuantity(Array([0.70710677, 0.7071068 , 0. ], dtype=float32), unit='m')
+    FastQuantity(Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
 
     >>> q = Quantity([1, 0, 0], "m")
     >>> xp.linalg.matmul(Rz, q)
-    Quantity['length'](Array([0.70710677, 0.7071068 , 0. ], dtype=float32), unit='m')
+    Quantity['length'](Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
     >>> Rz @ q
-    Quantity['length'](Array([0.70710677, 0.7071068 , 0. ], dtype=float32), unit='m')
+    Quantity['length'](Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
     """
     return type_np(rhs)(
         lax.dot_general_p.bind(
