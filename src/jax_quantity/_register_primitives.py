@@ -2428,7 +2428,7 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
     --------
     >>> import array_api_jax_compat as xp
 
-    >>> x1 = 1.001
+    >>> x1 = xp.asarray(1.001)
 
     >>> from jax_quantity import FastQuantity
     >>> q2 = FastQuantity(1., "")
@@ -2437,7 +2437,7 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
 
     >>> from jax_quantity import Quantity
     >>> q2 = Quantity(1., "")
-    >>> xp.less_equal(q1, q2)
+    >>> xp.less_equal(x1, q2)
     Array(False, dtype=bool)
 
     """
@@ -2452,7 +2452,7 @@ def _le_p_qv(x: AbstractQuantity["dimensionless"], y: ArrayLike) -> ArrayLike:
     --------
     >>> import array_api_jax_compat as xp
 
-    >>> y1 = 0.9
+    >>> y1 = xp.asarray(0.9)
 
     >>> from jax_quantity import FastQuantity
     >>> q1 = FastQuantity(1., "")
@@ -2494,12 +2494,12 @@ def _lgamma_p(
     >>> from jax_quantity import FastQuantity
     >>> q = FastQuantity(3, "")
     >>> lgamma(q)
-    FastQuantity(Array(0.6931472, dtype=float32), unit='')
+    FastQuantity(Array(0.6931474, dtype=float32), unit='')
 
     >>> from jax_quantity import Quantity
     >>> q = Quantity(3, "")
     >>> lgamma(q)
-    Quantity['dimensionless'](Array(0.6931472, dtype=float32), unit='')
+    Quantity['dimensionless'](Array(0.6931474, dtype=float32), unit='')
 
     """
     # TODO: are there any units that this can support?

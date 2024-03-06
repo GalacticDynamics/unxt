@@ -79,40 +79,40 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     From an integer:
 
     >>> Quantity(1, "m")
-    Quantity(Array(1, dtype=int32, ...), unit='m')
+    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     From a float:
 
     >>> Quantity(1.0, "m")
-    Quantity(Array(1., dtype=float32, ...), unit='m')
+    Quantity['length'](Array(1., dtype=float32, ...), unit='m')
 
     From a list:
 
     >>> Quantity([1, 2, 3], "m")
-    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
     From a tuple:
 
     >>> Quantity((1, 2, 3), "m")
-    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
     From a :class:`numpy.ndarray`:
 
     >>> import numpy as np
     >>> Quantity(np.array([1, 2, 3]), "m")
-    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
     From a :class:`jax.Array`:
 
     >>> import jax.numpy as jnp
     >>> Quantity(jnp.array([1, 2, 3]), "m")
-    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
     The unit can also be given as a :class:`astropy.units.Unit`:
 
     >>> import astropy.units as u
     >>> Quantity(1, u.m)
-    Quantity(Array(1, dtype=int32, ...), unit='m')
+    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
 
