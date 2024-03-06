@@ -108,9 +108,9 @@
   warn_unused_configs = true
 
   [[tool.mypy.overrides]]
+    disable_error_code = ["type-arg", "name-defined"]
     disallow_incomplete_defs = true
     disallow_untyped_defs = true
-    disable_error_code = ["type-arg", "name-defined"]
     module = "jax_quantity.*"
 
   [[tool.mypy.overrides]]
