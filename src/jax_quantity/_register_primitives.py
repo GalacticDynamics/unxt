@@ -2806,7 +2806,7 @@ def _reduce_max_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
 
 @register(lax.reduce_min_p)
 def _reduce_min_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
-    return operand(lax.reduce_min_p.bind(operand.value, axes=axes))
+    return replace(operand, value=lax.reduce_min_p.bind(operand.value, axes=axes))
 
 
 # ==============================================================================
