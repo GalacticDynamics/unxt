@@ -7,8 +7,8 @@ import jax.core
 import jax.experimental.array_api as jax_xp
 from jax import Device
 
-from array_api_jax_compat._dispatch import dispatcher as dispatcher_
-from array_api_jax_compat._types import DType
+from quaxed.array_api._types import DType
+from quaxed.array_apispatch import dispatcher as dispatcher_
 
 from ._core import Quantity
 

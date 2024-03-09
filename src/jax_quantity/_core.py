@@ -27,8 +27,8 @@ from plum import conversion_method, parametric
 from quax import ArrayValue, quaxify
 from typing_extensions import Self
 
-import array_api_jax_compat as xp
-from array_api_jax_compat._dispatch import dispatcher
+import quaxed.array_api as xp
+from quaxed.array_api._dispatch import dispatcher
 
 if TYPE_CHECKING:
     from array_api import ArrayAPINamespace

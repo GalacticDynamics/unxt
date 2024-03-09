@@ -360,7 +360,7 @@ def _concatenate_p_qnd(
 
     Examples
     --------
-    >>> import array_api_jax_compat as xp
+    >>> import quaxed.array_api as xp
     >>> from jax_quantity import Quantity
     >>> theta = Quantity(45, "deg")
     >>> Rz = xp.asarray([[xp.cos(theta), -xp.sin(theta), 0],
@@ -395,7 +395,7 @@ def _concatenate_p_jqnd(
 
     Examples
     --------
-    >>> import array_api_jax_compat as xp
+    >>> import quaxed.array_api as xp
     >>> from jax_quantity import Quantity
     >>> theta = Quantity(45, "deg")
     >>> Rx = xp.asarray([[1.0, 0.0,           0.0           ],
@@ -639,7 +639,7 @@ def _dot_general_qq(
 
     This rule is also used by `jnp.matmul` for quantities.
 
-    >>> import array_api_jax_compat as xp
+    >>> import quaxed.array_api as xp
     >>> Rz = xp.asarray([[0, -1,  0],
     ...                  [1,  0,  0],
     ...                  [0,  0,  1]])

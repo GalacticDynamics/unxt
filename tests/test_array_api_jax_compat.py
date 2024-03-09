@@ -16,7 +16,7 @@ from jax._src.numpy.setops import (
 )
 from jax.experimental.array_api._data_type_functions import FInfo, IInfo
 
-import array_api_jax_compat as xp
+import quaxed.array_api as xp
 
 from jax_quantity import Quantity
 
