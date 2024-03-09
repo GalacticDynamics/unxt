@@ -14,7 +14,7 @@ from hypothesis.extra.numpy import array_shapes as np_array_shapes, arrays as np
 from jax.dtypes import canonicalize_dtype
 from quax import quaxify
 
-import array_api_jax_compat
+import quaxed.array_api
 
 from jax_quantity import Quantity, can_convert_unit
 
@@ -111,7 +111,7 @@ def test_unit(unit):
 
 def test_array_namespace():
     """Test the array namespace."""
-    assert Quantity(1, u.m).__array_namespace__() is array_api_jax_compat
+    assert Quantity(1, u.m).__array_namespace__() is quaxed.array_api
 
 
 def test_to():
