@@ -8,12 +8,10 @@ from collections.abc import Callable, Sequence
 from dataclasses import fields, replace
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
-import array_api_jax_compat as xp
 import equinox as eqx
 import jax
 import jax.core
 import jax.numpy as jnp
-from array_api_jax_compat._dispatch import dispatcher
 from astropy.units import (
     CompositeUnit,
     Quantity as AstropyQuantity,
@@ -25,6 +23,9 @@ from jaxtyping import Array, ArrayLike, Shaped
 from plum import conversion_method
 from quax import ArrayValue, quaxify
 from typing_extensions import Self
+
+import quaxed.array_api as xp
+from quaxed.array_api._dispatch import dispatcher
 
 if TYPE_CHECKING:
     from array_api import ArrayAPINamespace
