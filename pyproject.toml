@@ -108,6 +108,7 @@
   warn_unused_configs = true
 
   [[tool.mypy.overrides]]
+    disable_error_code = ["type-arg", "name-defined"]
     disallow_incomplete_defs = true
     disallow_untyped_defs = true
     module = "jax_quantity.*"
@@ -146,6 +147,7 @@
       "D213",    # Multi-line docstring summary should start at the second line
       "ERA001",  # Commented out code
       "F811",    # redefinition of unused '...'  <- plum-dispatch
+      "F821",    # undefined name '...'  <- jaxtyping
       "FIX002",  # Line contains TODO
       "ISC001",  # Conflicts with formatter
       "PD",      # Pandas
