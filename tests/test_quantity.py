@@ -367,7 +367,9 @@ def test_hypot():
 
     q1 = Quantity([1, 2, 3], u.m)
     q2 = Quantity([4, 5, 6], u.m)
-    assert quaxify(jnp.hypot)(q1, q2) == Quantity(5, u.m)
+    assert all(
+        quaxify(jnp.hypot)(q1, q2) == Quantity([4.1231055, 5.3851647, 6.7082043], u.m)
+    )
 
 
 # ===============================================================

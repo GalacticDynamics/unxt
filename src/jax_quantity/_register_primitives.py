@@ -9,7 +9,6 @@ from typing import Any, TypeAlias, TypeVar
 
 import equinox as eqx
 import jax
-import jax.numpy as jnp
 from astropy.units import (  # pylint: disable=no-name-in-module
     Unit,
     UnitBase,
@@ -1810,7 +1809,7 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
 
     """
     # TODO: better support for jit
-    if (x.unit == dimensionless) or jnp.all(y == 0):
+    if (x.unit == dimensionless) or (not y.shape and y == 0):
         return lax.eq(x.value, y)
 
     return lax.eq(x.to_value(dimensionless), y)
