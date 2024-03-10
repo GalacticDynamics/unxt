@@ -818,9 +818,7 @@ def _clamp_p_vaqaq(
     Quantity['dimensionless'](Array([0, 1, 2], dtype=int32), unit='')
 
     """
-    x_ = x.to_value(one)
-    max_ = max.to_value(one)
-    return replace(x, value=lax.clamp(min, x_, max_))
+    return replace(x, value=lax.clamp(min, x.to_value(one), max.to_value(one)))
 
 
 # ---------------------------
@@ -849,9 +847,7 @@ def _clamp_p_aqvaq(
     Array([0, 1, 2], dtype=int32)
 
     """
-    minv = min.to_value(one)
-    maxv = max.to_value(one)
-    return lax.clamp(minv, x, maxv)
+    return lax.clamp(min.to_value(one), x, max.to_value(one))
 
 
 @register(lax.clamp_p)
@@ -877,9 +873,7 @@ def _clamp_p_qvq(
     Array([0, 1, 2], dtype=int32)
 
     """
-    minv = min.to_value(one)
-    maxv = max.to_value(one)
-    return lax.clamp(minv, x, maxv)
+    return lax.clamp(min.to_value(one), x, max.to_value(one))
 
 
 # ---------------------------
@@ -908,9 +902,7 @@ def _clamp_p_aqaqv(
     UncheckedQuantity(Array([0, 1, 2], dtype=int32), unit='')
 
     """
-    min_ = min.to_value(one)
-    x_ = x.to_value(one)
-    return replace(x, value=lax.clamp(min_, x_, max))
+    return replace(x, value=lax.clamp(min.to_value(one), x.to_value(one), max))
 
 
 @register(lax.clamp_p)
