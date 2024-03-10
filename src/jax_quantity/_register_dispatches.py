@@ -59,22 +59,26 @@ def empty_like(x: Quantity, /, *, dtype: Any = None, device: Any = None) -> Quan
 
 @dispatcher
 def full_like(
-    x: Quantity,
-    *,
-    fill_value: Any,
-    dtype: Any = None,
-    device: Any = None,
+    x: Quantity, /, *, fill_value: Any, dtype: Any = None, device: Any = None
 ) -> Quantity:
+    return full_like(x, fill_value, dtype=dtype, device=device)
+
+
+@dispatcher  # type: ignore[no-redef]
+def full_like(
+    x: Quantity, fill_value: Quantity, /, *, dtype: Any = None, device: Any = None
+) -> Quantity:
+    fill_val = fill_value.to_value(x.unit)
     return Quantity(
-        jax_xp.full_like(x.value, fill_value, dtype=dtype, device=device), unit=x.unit
+        jax_xp.full_like(x.value, fill_val, dtype=dtype, device=device), unit=x.unit
     )
 
 
 @dispatcher  # type: ignore[no-redef]
 def full_like(
     x: Quantity,
-    /,
     fill_value: bool | int | float | complex,
+    /,
     *,
     dtype: Any = None,
     device: Any = None,
