@@ -1028,7 +1028,7 @@ def _concatenate_p_qnd(
             ],
             dimension=dimension,
         ),
-        unit=dimensionless,
+        unit=one,
     )
 
 
@@ -1063,7 +1063,7 @@ def _concatenate_p_vqnd(
             ],
             dimension=dimension,
         ),
-        unit=dimensionless,
+        unit=one,
     )
 
 
@@ -1172,7 +1172,7 @@ def _cos_p_aq(x: AbstractQuantity) -> AbstractQuantity["dimensionless"]:
     UncheckedQuantity(Array(0.5403023, dtype=float32), unit='')
 
     """
-    return type_np(x)(lax.cos(_to_value_rad_or_one(x)), unit=dimensionless)
+    return type_np(x)(lax.cos(_to_value_rad_or_one(x)), unit=one)
 
 
 @register(lax.cos_p)
@@ -1194,7 +1194,7 @@ def _cos_p_q(
     Quantity['dimensionless'](Array(0.5403023, dtype=float32), unit='')
 
     """
-    return Quantity(lax.cos(_to_value_rad_or_one(x)), unit=dimensionless)
+    return Quantity(lax.cos(_to_value_rad_or_one(x)), unit=one)
 
 
 # ==============================================================================
@@ -1219,7 +1219,7 @@ def _cosh_p_aq(
     UncheckedQuantity(Array(1.5430806, dtype=float32), unit='')
 
     """
-    return type_np(x)(lax.cosh(_to_value_rad_or_one(x)), unit=dimensionless)
+    return type_np(x)(lax.cosh(_to_value_rad_or_one(x)), unit=one)
 
 
 @register(lax.cosh_p)
@@ -1241,7 +1241,7 @@ def _cosh_p_q(
     Quantity['dimensionless'](Array(1.5430806, dtype=float32), unit='')
 
     """
-    return type_np(x)(lax.cosh(_to_value_rad_or_one(x)), unit=dimensionless)
+    return type_np(x)(lax.cosh(_to_value_rad_or_one(x)), unit=one)
 
 
 # ==============================================================================
@@ -2570,7 +2570,7 @@ def _ne_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
 
 @register(lax.ne_p)
 def _ne_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
-    # special-case for scalar value=0, unit=dimensionless
+    # special-case for scalar value=0, unit=one
     if y.shape == () and y == 0:  # TODO: proper jax
         return lax.ne(x.value, y)
     return lax.ne(x.to_value(one), y)
@@ -2740,9 +2740,7 @@ def _reduce_min_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
 def _reduce_or_p(
     operand: AbstractQuantity, *, axes: Axes
 ) -> AbstractQuantity["dimensionless"]:
-    return type_np(operand)(
-        lax.reduce_or_p.bind(operand.value, axes=axes), unit=dimensionless
-    )
+    return type_np(operand)(lax.reduce_or_p.bind(operand.value, axes=axes), unit=one)
 
 
 # ==============================================================================
@@ -3054,7 +3052,7 @@ def _sign_p(x: AbstractQuantity) -> ArrayLike:
 def _sin_p(
     x: AbstractQuantity["angle"] | AbstractQuantity["dimensionless"],
 ) -> AbstractQuantity["dimensionless"]:
-    return type_np(x)(lax.sin(_to_value_rad_or_one(x)), unit=dimensionless)
+    return type_np(x)(lax.sin(_to_value_rad_or_one(x)), unit=one)
 
 
 # ==============================================================================
@@ -3064,7 +3062,7 @@ def _sin_p(
 def _sinh_p(
     x: AbstractQuantity["angle"] | AbstractQuantity["dimensionless"],
 ) -> AbstractQuantity["dimensionless"]:
-    return type_np(x)(lax.sinh(_to_value_rad_or_one(x)), unit=dimensionless)
+    return type_np(x)(lax.sinh(_to_value_rad_or_one(x)), unit=one)
 
 
 # ==============================================================================
@@ -3173,7 +3171,7 @@ def _sub_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 def _tan_p(
     x: AbstractQuantity["angle"] | AbstractQuantity["dimensionless"],
 ) -> AbstractQuantity["dimensionless"]:
-    return type_np(x)(lax.tan(_to_value_rad_or_one(x)), unit=dimensionless)
+    return type_np(x)(lax.tan(_to_value_rad_or_one(x)), unit=one)
 
 
 # ==============================================================================
@@ -3183,7 +3181,7 @@ def _tan_p(
 def _tanh_p(
     x: AbstractQuantity["angle"] | AbstractQuantity["dimensionless"],
 ) -> AbstractQuantity["dimensionless"]:
-    return type_np(x)(lax.tanh(_to_value_rad_or_one(x)), unit=dimensionless)
+    return type_np(x)(lax.tanh(_to_value_rad_or_one(x)), unit=one)
 
 
 # ==============================================================================
