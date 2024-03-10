@@ -12,9 +12,9 @@ from hypothesis import example, given, strategies as st
 from hypothesis.extra.array_api import make_strategies_namespace
 from hypothesis.extra.numpy import array_shapes as np_array_shapes, arrays as np_arrays
 from jax.dtypes import canonicalize_dtype
-from quax import quaxify
 
 import quaxed.array_api
+import quaxed.numpy as qnp
 
 from jax_quantity import Quantity, can_convert_unit
 
@@ -117,7 +117,7 @@ def test_array_namespace():
 def test_to():
     """Test the ``Quantity.to`` method."""
     q = Quantity(1, u.m)
-    assert quaxify(jnp.equal)(q.to(u.km), Quantity(0.001, u.km))
+    assert qnp.equal(q.to(u.km), Quantity(0.001, u.km))
 
 
 def test_to_value():
@@ -363,13 +363,11 @@ def test_hypot():
     """Test the ``jnp.hypot`` method."""
     q1 = Quantity(3, u.m)
     q2 = Quantity(4, u.m)
-    assert quaxify(jnp.hypot)(q1, q2) == Quantity(5, u.m)
+    assert qnp.hypot(q1, q2) == Quantity(5, u.m)
 
     q1 = Quantity([1, 2, 3], u.m)
     q2 = Quantity([4, 5, 6], u.m)
-    assert all(
-        quaxify(jnp.hypot)(q1, q2) == Quantity([4.1231055, 5.3851647, 6.7082043], u.m)
-    )
+    assert all(qnp.hypot(q1, q2) == Quantity([4.1231055, 5.3851647, 6.7082043], u.m))
 
 
 # ===============================================================

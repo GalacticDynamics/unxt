@@ -23,7 +23,7 @@
     "Typing :: Typed",
   ]
   dependencies = [
-    "quaxed >= 0.2",
+    "quaxed >= 0.3",
     "astropy",
     "equinox",
     "jax",

@@ -702,18 +702,16 @@ def _cbrt_p(x: AbstractQuantity) -> AbstractQuantity:
 
     Examples
     --------
-    >>> import jax.numpy as jnp
-    >>> from quax import quaxify
-    >>> cbrt = quaxify(jnp.cbrt)
+    >>> import quaxed.numpy as jnp
 
     >>> from jax_quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(8, "m3")
-    >>> cbrt(q)
+    >>> jnp.cbrt(q)
     UncheckedQuantity(Array(2., dtype=float32), unit='m')
 
     >>> from jax_quantity import Quantity
     >>> q = Quantity(8, "m3")
-    >>> cbrt(q)
+    >>> jnp.cbrt(q)
     Quantity['length'](Array(2., dtype=float32), unit='m')
 
     """
@@ -756,22 +754,20 @@ def _clamp_p(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax.lax import clamp
-    >>> from quax import quaxify
-    >>> clamp = quaxify(clamp)
+    >>> import quaxed.lax as lax
 
     >>> from jax_quantity import UncheckedQuantity
     >>> min = UncheckedQuantity(0, "m")
     >>> max = UncheckedQuantity(2, "m")
     >>> q = UncheckedQuantity([-1, 1, 3], "m")
-    >>> clamp(min, q, max)
+    >>> lax.clamp(min, q, max)
     UncheckedQuantity(Array([0, 1, 2], dtype=int32), unit='m')
 
     >>> from jax_quantity import Quantity
     >>> min = Quantity(0, "m")
     >>> max = Quantity(2, "m")
     >>> q = Quantity([-1, 1, 3], "m")
-    >>> clamp(min, q, max)
+    >>> lax.clamp(min, q, max)
     Quantity['length'](Array([0, 1, 2], dtype=int32), unit='m')
 
     """
@@ -799,22 +795,20 @@ def _clamp_p_vaqaq(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax.lax import clamp
-    >>> from quax import quaxify
-    >>> clamp = quaxify(clamp)
+    >>> import quaxed.lax as lax
 
     >>> from jax_quantity import UncheckedQuantity
     >>> min = xp.asarray(0)
     >>> max = UncheckedQuantity(2, "")
     >>> q = UncheckedQuantity([-1, 1, 3], "")
-    >>> clamp(min, q, max)
+    >>> lax.clamp(min, q, max)
     UncheckedQuantity(Array([0, 1, 2], dtype=int32), unit='')
 
     >>> from jax_quantity import Quantity
     >>> min = xp.asarray(0)
     >>> max = Quantity(2, "")
     >>> q = Quantity([-1, 1, 3], "")
-    >>> clamp(min, q, max)
+    >>> lax.clamp(min, q, max)
     Quantity['dimensionless'](Array([0, 1, 2], dtype=int32), unit='')
 
     """
@@ -835,15 +829,13 @@ def _clamp_p_aqvaq(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax.lax import clamp
-    >>> from quax import quaxify
-    >>> clamp = quaxify(clamp)
+    >>> import quaxed.lax as lax
 
     >>> from jax_quantity import UncheckedQuantity
     >>> min = UncheckedQuantity(0, "")
     >>> max = UncheckedQuantity(2, "")
     >>> x = xp.asarray([-1, 1, 3])
-    >>> clamp(min, x, max)
+    >>> lax.clamp(min, x, max)
     Array([0, 1, 2], dtype=int32)
 
     """
@@ -861,15 +853,13 @@ def _clamp_p_qvq(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax.lax import clamp
-    >>> from quax import quaxify
-    >>> clamp = quaxify(clamp)
+    >>> import quaxed.lax as lax
 
     >>> from jax_quantity import Quantity
     >>> min = Quantity(0, "")
     >>> max = Quantity(2, "")
     >>> x = xp.asarray([-1, 1, 3])
-    >>> clamp(min, x, max)
+    >>> lax.clamp(min, x, max)
     Array([0, 1, 2], dtype=int32)
 
     """
@@ -890,15 +880,13 @@ def _clamp_p_aqaqv(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax.lax import clamp
-    >>> from quax import quaxify
-    >>> clamp = quaxify(clamp)
+    >>> import quaxed.lax as lax
 
     >>> from jax_quantity import UncheckedQuantity
     >>> min = UncheckedQuantity(0, "")
     >>> max = xp.asarray(2)
     >>> q = UncheckedQuantity([-1, 1, 3], "")
-    >>> clamp(min, q, max)
+    >>> lax.clamp(min, q, max)
     UncheckedQuantity(Array([0, 1, 2], dtype=int32), unit='')
 
     """
@@ -914,15 +902,13 @@ def _clamp_p_qqv(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax.lax import clamp
-    >>> from quax import quaxify
-    >>> clamp = quaxify(clamp)
+    >>> import quaxed.lax as lax
 
     >>> from jax_quantity import Quantity
     >>> min = Quantity(0, "")
     >>> max = xp.asarray(2)
     >>> q = Quantity([-1, 1, 3], "")
-    >>> clamp(min, q, max)
+    >>> lax.clamp(min, q, max)
     Quantity['dimensionless'](Array([0, 1, 2], dtype=int32), unit='')
 
     """
@@ -946,12 +932,11 @@ def _complex_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
     Examples
     --------
-    >>> from jax import lax
-    >>> from quax import quaxify
+    >>> from quaxed import lax
     >>> from jax_quantity import UncheckedQuantity
     >>> x = UncheckedQuantity(1.0, "m")
     >>> y = UncheckedQuantity(2.0, "m")
-    >>> quaxify(lax.complex)(x, y)
+    >>> lax.complex(x, y)
     UncheckedQuantity(Array(1.+2.j, dtype=complex64, weak_type=True), unit='m')
 
     """
@@ -1135,17 +1120,16 @@ def _copy_p(x: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> import jax.numpy as jnp
-    >>> from quax import quaxify
+    >>> import quaxed.numpy as jnp
 
     >>> from jax_quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "m")
-    >>> quaxify(jnp.copy)(q)
+    >>> jnp.copy(q)
     UncheckedQuantity(Array(1, dtype=int32), unit='m')
 
     >>> from jax_quantity import Quantity
     >>> q = Quantity(1, "m")
-    >>> quaxify(jnp.copy)(q)
+    >>> jnp.copy(q)
     Quantity['length'](Array(1, dtype=int32), unit='m')
 
     """
@@ -1263,18 +1247,16 @@ def _cumlogsumexp_p(
 
     Examples
     --------
-    >>> from jax import lax
-    >>> from quax import quaxify
-    >>> cumlogsumexp = quaxify(lax.cumlogsumexp)
+    >>> from quaxed import lax
 
     >>> from jax_quantity import UncheckedQuantity
     >>> q = UncheckedQuantity([-1.0, -2, -3], "")
-    >>> cumlogsumexp(q)
+    >>> lax.cumlogsumexp(q)
     UncheckedQuantity(Array([-1. , -0.6867383 , -0.59239405], dtype=float32), unit='')
 
     >>> from jax_quantity import Quantity
     >>> q = Quantity([-1.0, -2, -3], "")
-    >>> cumlogsumexp(q)
+    >>> lax.cumlogsumexp(q)
     Quantity['dimensionless'](Array([-1. , -0.6867383 , -0.59239405], dtype=float32),
                               unit='')
 
@@ -1297,18 +1279,16 @@ def _cummax_p(
 
     Examples
     --------
-    >>> from jax import lax
-    >>> from quax import quaxify
-    >>> cummax = quaxify(lax.cummax)
+    >>> from quaxed import lax
 
     >>> from jax_quantity import UncheckedQuantity
     >>> q = UncheckedQuantity([1, 2, 1], "m")
-    >>> cummax(q)
+    >>> lax.cummax(q)
     UncheckedQuantity(Array([1, 2, 2], dtype=int32), unit='m')
 
     >>> from jax_quantity import Quantity
     >>> q = Quantity([1, 2, 1], "m")
-    >>> cummax(q)
+    >>> lax.cummax(q)
     Quantity['length'](Array([1, 2, 2], dtype=int32), unit='m')
 
     """
@@ -1326,18 +1306,16 @@ def _cummin_p(
 
     Examples
     --------
-    >>> from jax import lax
-    >>> from quax import quaxify
-    >>> cummin = quaxify(lax.cummin)
+    >>> from quaxed import lax
 
     >>> from jax_quantity import UncheckedQuantity
     >>> q = UncheckedQuantity([2, 1, 3], "m")
-    >>> cummin(q)
+    >>> lax.cummin(q)
     UncheckedQuantity(Array([2, 1, 1], dtype=int32), unit='m')
 
     >>> from jax_quantity import Quantity
     >>> q = Quantity([2, 1, 3], "m")
-    >>> cummin(q)
+    >>> lax.cummin(q)
     Quantity['length'](Array([2, 1, 1], dtype=int32), unit='m')
 
     """
@@ -1355,18 +1333,16 @@ def _cumprod_p(
 
     Examples
     --------
-    >>> from jax import lax
-    >>> from quax import quaxify
-    >>> cumprod = quaxify(lax.cumprod)
+    >>> from quaxed import lax
 
     >>> from jax_quantity import UncheckedQuantity
     >>> q = UncheckedQuantity([1, 2, 3], "")
-    >>> cumprod(q)
+    >>> lax.cumprod(q)
     UncheckedQuantity(Array([1, 2, 6], dtype=int32), unit='')
 
     >>> from jax_quantity import Quantity
     >>> q = Quantity([1, 2, 3], "")
-    >>> cumprod(q)
+    >>> lax.cumprod(q)
     Quantity['dimensionless'](Array([1, 2, 6], dtype=int32), unit='')
 
     """
@@ -1387,18 +1363,16 @@ def _cumsum_p(
 
     Examples
     --------
-    >>> from jax import lax
-    >>> from quax import quaxify
-    >>> cumsum = quaxify(lax.cumsum)
+    >>> from quaxed import lax
 
     >>> from jax_quantity import UncheckedQuantity
     >>> q = UncheckedQuantity([1, 2, 3], "m")
-    >>> cumsum(q)
+    >>> lax.cumsum(q)
     UncheckedQuantity(Array([1, 3, 6], dtype=int32), unit='m')
 
     >>> from jax_quantity import Quantity
     >>> q = Quantity([1, 2, 3], "m")
-    >>> cumsum(q)
+    >>> lax.cumsum(q)
     Quantity['length'](Array([1, 3, 6], dtype=int32), unit='m')
 
     """
@@ -1414,9 +1388,7 @@ def _device_put_p(x: AbstractQuantity, *, device: Any, src: Any) -> AbstractQuan
 
     Examples
     --------
-    >>> import jax
-    >>> from quax import quaxify
-    >>> device_put = quaxify(jax.device_put)
+    >>> from quaxed import device_put
 
     >>> from jax_quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "m")
@@ -1443,14 +1415,17 @@ def _digamma_p(
 
     Examples
     --------
-    >>> from jax import lax
-    >>> from quax import quaxify
-    >>> digamma = quaxify(lax.digamma)
+    >>> from quaxed import lax
 
     >>> from jax_quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(1.0, "")
-    >>> digamma(q)
+    >>> lax.digamma(q)
     UncheckedQuantity(Array(-0.5772154, dtype=float32, weak_type=True), unit='')
+
+    >>> from jax_quantity import Quantity
+    >>> q = Quantity(1.0, "")
+    >>> lax.digamma(q)
+    Quantity['dimensionless'](Array(-0.5772154, dtype=float32, weak_type=True), unit='')
 
     """
     return replace(x, value=lax.digamma(x.to_value(one)))
@@ -1782,19 +1757,17 @@ def _erf_inv_p(
 
     Examples
     --------
-    >>> import jax.scipy as jsp
-    >>> from quax import quaxify
-    >>> erf_inv = quaxify(jsp.special.erfinv)
+    >>> from quaxed import lax
 
     >>> from jax_quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(0.5, "")
-    >>> erf_inv(q)
-    UncheckedQuantity(Array(0.47693628, dtype=float32), unit='')
+    >>> lax.erf_inv(q)
+    UncheckedQuantity(Array(0.47693628, dtype=float32, ...), unit='')
 
     >>> from jax_quantity import Quantity
     >>> q = Quantity(0.5, "")
-    >>> erf_inv(q)
-    Quantity['dimensionless'](Array(0.47693628, dtype=float32), unit='')
+    >>> lax.erf_inv(q)
+    Quantity['dimensionless'](Array(0.47693628, dtype=float32, ...), unit='')
 
     """
     # TODO: can this support non-dimensionless quantities?
@@ -1810,19 +1783,18 @@ def _erf_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionl
 
     Examples
     --------
-    >>> import jax.scipy as jsp
+    >>> from quaxed import lax
     >>> from quax import quaxify
-    >>> erf = quaxify(jsp.special.erf)
 
     >>> from jax_quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(0.5, "")
-    >>> erf(q)
-    UncheckedQuantity(Array(0.5204999, dtype=float32), unit='')
+    >>> lax.erf(q)
+    UncheckedQuantity(Array(0.5204999, dtype=float32, ...), unit='')
 
     >>> from jax_quantity import Quantity
     >>> q = Quantity(0.5, "")
-    >>> erf(q)
-    Quantity['dimensionless'](Array(0.5204999, dtype=float32), unit='')
+    >>> lax.erf(q)
+    Quantity['dimensionless'](Array(0.5204999, dtype=float32, ...), unit='')
 
     """
     # TODO: can this support non-dimensionless quantities?
@@ -1838,19 +1810,17 @@ def _erfc_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimension
 
     Examples
     --------
-    >>> import jax.scipy as jsp
-    >>> from quax import quaxify
-    >>> erfc = quaxify(jsp.special.erfc)
+    >>> from quaxed import lax
 
     >>> from jax_quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(0.5, "")
-    >>> erfc(q)
-    UncheckedQuantity(Array(0.47950017, dtype=float32), unit='')
+    >>> lax.erfc(q)
+    UncheckedQuantity(Array(0.47950017, dtype=float32, ...), unit='')
 
     >>> from jax_quantity import Quantity
     >>> q = Quantity(0.5, "")
-    >>> erfc(q)
-    Quantity['dimensionless'](Array(0.47950017, dtype=float32), unit='')
+    >>> lax.erfc(q)
+    Quantity['dimensionless'](Array(0.47950017, dtype=float32, ...), unit='')
 
     """
     # TODO: can this support non-dimensionless quantities?
@@ -1866,18 +1836,16 @@ def _exp2_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimension
 
     Examples
     --------
-    >>> import jax.numpy as jnp
-    >>> from quax import quaxify
-    >>> exp2 = quaxify(jnp.exp2)
+    >>> import quaxed.numpy as jnp
 
     >>> from jax_quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(3, "")
-    >>> exp2(q)
+    >>> jnp.exp2(q)
     UncheckedQuantity(Array(8., dtype=float32), unit='')
 
     >>> from jax_quantity import Quantity
     >>> q = Quantity(3, "")
-    >>> exp2(q)
+    >>> jnp.exp2(q)
     Quantity['dimensionless'](Array(8., dtype=float32), unit='')
 
     """
@@ -2194,20 +2162,18 @@ def _gt_p_qi(x: AbstractQuantity["dimensionless"], y: int) -> ArrayLike:
 
     Examples
     --------
-    >>> import jax.numpy as jnp
-    >>> from quax import quaxify
-    >>> gt = quaxify(jnp.greater)
+    >>> import quaxed.numpy as jnp
 
     >>> y = 0
 
     >>> from jax_quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1., "")
-    >>> gt(q1, y)
+    >>> jnp.greater(q1, y)
     Array(True, dtype=bool, weak_type=True)
 
     >>> from jax_quantity import Quantity
     >>> q1 = Quantity(1., "")
-    >>> gt(q1, y)
+    >>> jnp.greater(q1, y)
     Array(True, dtype=bool, weak_type=True)
 
     """
@@ -2410,18 +2376,16 @@ def _lgamma_p(
 
     Examples
     --------
-    >>> import jax.scipy as jsp
-    >>> from quax import quaxify
-    >>> lgamma = quaxify(jsp.special.gammaln)
+    >>> import quaxed.scipy as jsp
 
     >>> from jax_quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(3, "")
-    >>> lgamma(q)
+    >>> jsp.special.gammaln(q)
     UncheckedQuantity(Array(0.6931474, dtype=float32), unit='')
 
     >>> from jax_quantity import Quantity
     >>> q = Quantity(3, "")
-    >>> lgamma(q)
+    >>> jsp.special.gammaln(q)
     Quantity['dimensionless'](Array(0.6931474, dtype=float32), unit='')
 
     """
