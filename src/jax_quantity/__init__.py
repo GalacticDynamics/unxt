@@ -1,8 +1,8 @@
 # pylint: disable=import-error
 
-"""Copyright (c) 2023 Nathaniel Starkman. All rights reserved.
+"""jax-quantity: Quantities in JAX.
 
-jax-quantity: Quantities in JAX
+Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
 from . import _base, _core, _fast

@@ -3,7 +3,6 @@
 
 __all__ = ["AbstractQuantity", "can_convert_unit"]
 
-import operator
 from collections.abc import Callable, Sequence
 from dataclasses import fields, replace
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
@@ -21,10 +20,11 @@ from astropy.units import (
 from jax.numpy import dtype as DType  # noqa: N812
 from jaxtyping import Array, ArrayLike, Shaped
 from plum import conversion_method
-from quax import ArrayValue, quaxify
+from quax import ArrayValue
 from typing_extensions import Self
 
 import quaxed.array_api as xp
+import quaxed.operator as qoperator
 from quaxed.array_api._dispatch import dispatcher
 
 if TYPE_CHECKING:
@@ -214,25 +214,25 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     def __len__(self) -> int:
         return len(self.value)
 
-    __abs__ = quaxify(operator.abs)
+    __abs__ = qoperator.abs
 
-    __add__ = quaxify(operator.add)
-    __radd__ = quaxify(_flip_binop(operator.add))
+    __add__ = qoperator.add
+    __radd__ = _flip_binop(qoperator.add)
 
-    __sub__ = quaxify(operator.sub)
-    __rsub__ = quaxify(_flip_binop(operator.sub))
+    __sub__ = qoperator.sub
+    __rsub__ = _flip_binop(qoperator.sub)
 
-    __mul__ = quaxify(operator.mul)
-    __rmul__ = quaxify(_flip_binop(operator.mul))
+    __mul__ = qoperator.mul
+    __rmul__ = _flip_binop(qoperator.mul)
 
-    __matmul__ = quaxify(operator.matmul)
-    __rmatmul__ = quaxify(_flip_binop(operator.matmul))
+    __matmul__ = qoperator.matmul
+    __rmatmul__ = _flip_binop(qoperator.matmul)
 
-    __pow__ = quaxify(operator.pow)
-    __rpow__ = quaxify(_flip_binop(operator.pow))
+    __pow__ = qoperator.pow
+    __rpow__ = _flip_binop(qoperator.pow)
 
-    __truediv__ = quaxify(operator.truediv)
-    __rtruediv__ = quaxify(_flip_binop(operator.truediv))
+    __truediv__ = qoperator.truediv
+    __rtruediv__ = _flip_binop(qoperator.truediv)
 
     @property
     def dtype(self) -> DType:
