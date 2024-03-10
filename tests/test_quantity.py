@@ -365,6 +365,10 @@ def test_hypot():
     q2 = Quantity(4, u.m)
     assert quaxify(jnp.hypot)(q1, q2) == Quantity(5, u.m)
 
+    q1 = Quantity([1, 2, 3], u.m)
+    q2 = Quantity([4, 5, 6], u.m)
+    assert quaxify(jnp.hypot)(q1, q2) == Quantity(5, u.m)
+
 
 # ===============================================================
 # Unknown

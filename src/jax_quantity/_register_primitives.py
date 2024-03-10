@@ -1794,7 +1794,7 @@ def _eq_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
 
 
 @register(lax.eq_p)
-def _eq_p_aqv(x: AbstractQuantity["dimensionless"], y: ArrayLike) -> ArrayLike:
+def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     """Equality of an array and a quantity.
 
     Examples
@@ -1808,6 +1808,10 @@ def _eq_p_aqv(x: AbstractQuantity["dimensionless"], y: ArrayLike) -> ArrayLike:
     Array([False,  True, False], dtype=bool)
 
     """
+    # TODO: better support for jit
+    if (x.unit == dimensionless) or (y == 0):
+        return lax.eq(x.value, y)
+
     return lax.eq(x.to_value(dimensionless), y)
 
 
