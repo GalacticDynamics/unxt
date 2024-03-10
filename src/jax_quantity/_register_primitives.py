@@ -9,7 +9,6 @@ from typing import Any, TypeAlias, TypeVar
 
 import equinox as eqx
 import jax
-import jax.core
 from astropy.units import (  # pylint: disable=no-name-in-module
     Unit,
     UnitBase,
@@ -20,6 +19,7 @@ from jax import lax
 from jax._src.lax.lax import DotDimensionNumbers, DTypeLike, PrecisionLike
 from jax._src.lax.slicing import GatherDimensionNumbers, GatherScatterMode
 from jax._src.typing import Shape
+from jax.core import Primitive
 from jaxtyping import ArrayLike
 from plum.parametric import ParametricTypeMeta
 from quax import register as register_
@@ -33,7 +33,7 @@ Axes: TypeAlias = tuple[int, ...]
 UnitClasses: TypeAlias = UnitBase
 
 
-def register(primitive: jax.core.Primitive) -> Callable[[T], T]:
+def register(primitive: Primitive) -> Callable[[T], T]:
     """:func`quax.register`, but makes mypy happy."""
     return register_(primitive)
 
@@ -1794,7 +1794,7 @@ def _eq_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
 
 
 @register(lax.eq_p)
-def _eq_p_aqv(x: AbstractQuantity["dimensionless"], y: ArrayLike) -> ArrayLike:
+def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     """Equality of an array and a quantity.
 
     Examples
@@ -1808,6 +1808,10 @@ def _eq_p_aqv(x: AbstractQuantity["dimensionless"], y: ArrayLike) -> ArrayLike:
     Array([False,  True, False], dtype=bool)
 
     """
+    # TODO: better support for jit
+    if (x.unit == dimensionless) or (not y.shape and y == 0):
+        return lax.eq(x.value, y)
+
     return lax.eq(x.to_value(dimensionless), y)
 
 
