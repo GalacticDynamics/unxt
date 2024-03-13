@@ -25,3 +25,6 @@
 [rtd-link]:                 https://jax-quantity.readthedocs.io/en/latest/?badge=latest
 
 <!-- prettier-ignore-end -->
+
+NOTE: this package is being renamed to `unxt`. `jax-quantity` will not be
+maintained. Please use `unxt` instead.
