@@ -38,7 +38,7 @@ class Quantity(AbstractQuantity):
 
     Examples
     --------
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
 
     From an integer:
 

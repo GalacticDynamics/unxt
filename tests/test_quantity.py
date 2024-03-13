@@ -16,7 +16,7 @@ from jax.dtypes import canonicalize_dtype
 import quaxed.array_api
 import quaxed.numpy as qnp
 
-from jax_quantity import Quantity, can_convert_unit
+from unxt import Quantity, can_convert_unit
 
 xps = make_strategies_namespace(jax_xp)
 
@@ -406,7 +406,7 @@ def test_convert_to_astropy():
 
 
 def test_can_convert_unit():
-    """Test :func:`jax_quantity.can_convert_unit`."""
+    """Test :func:`unxt.can_convert_unit`."""
     # Unit
     assert can_convert_unit(u.km, u.kpc) is True
 

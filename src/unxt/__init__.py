@@ -1,6 +1,6 @@
 # pylint: disable=import-error
 
-"""jax-quantity: Quantities in JAX.
+"""unxt: Quantities in JAX.
 
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """

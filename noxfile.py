@@ -32,7 +32,7 @@ def pylint(session: nox.Session) -> None:
     # This needs to be installed into the package environment, and is slower
     # than a pre-commit check
     session.install(".", "pylint")
-    session.run("pylint", "jax_quantity", *session.posargs)
+    session.run("pylint", "unxt", *session.posargs)
 
 
 @nox.session
@@ -101,7 +101,7 @@ def build_api_docs(session: nox.Session) -> None:
         "--module-first",
         "--no-toc",
         "--force",
-        "../src/jax_quantity",
+        "../src/unxt",
     )
 
 

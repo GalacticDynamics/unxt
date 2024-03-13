@@ -2,11 +2,11 @@
 
 from plum import is_faithful
 
-from jax_quantity import Quantity
+from unxt import Quantity
 
 
 def test_is_faithful():
-    """Test :class:`jax_quantity.Quantity` is a faithful type.
+    """Test :class:`unxt.Quantity` is a faithful type.
 
     See
     https://beartype.github.io/plum/types.html#performance-and-faithful-types

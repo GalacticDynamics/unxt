@@ -4,10 +4,10 @@
 
 import importlib.metadata
 
-project = "jax-quantity"
+project = "unxt"
 copyright = "2023, Nathaniel Starkman"
 author = "Nathaniel Starkman"
-version = release = importlib.metadata.version("jax_quantity")
+version = release = importlib.metadata.version("unxt")
 
 extensions = [
     "myst_parser",
