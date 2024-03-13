@@ -1,4 +1,4 @@
-# jax-quantity
+# unxt
 
 ```{toctree}
 :maxdepth: 2

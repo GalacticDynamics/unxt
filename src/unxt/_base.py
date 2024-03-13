@@ -74,7 +74,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
 
     Examples
     --------
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
 
     From an integer:
 
@@ -302,7 +302,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
 
         Examples
         --------
-        >>> from jax_quantity import Quantity
+        >>> from unxt import Quantity
         >>> q1 = Quantity(1, "m")
         >>> try: hash(q1)
         ... except TypeError as e: print(e)
@@ -392,7 +392,7 @@ def can_convert_unit(from_: AbstractQuantity | Unit, to: Unit) -> bool:
 
     Parameters
     ----------
-    from_ : :clas:`jax_quantity.AbstractQuantity` | Unit
+    from_ : :clas:`unxt.AbstractQuantity` | Unit
         The unit to convert from.
     to : Unit
         The unit to convert to.

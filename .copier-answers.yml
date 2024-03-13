@@ -6,7 +6,7 @@ email: nstarman@users.noreply.github.com
 full_name: Nathaniel Starkman
 license: BSD
 org: GalacticDynamics
-project_name: jax-quantity
+project_name: unxt
 project_short_description: Quantities in JAX
-url: https://github.com/GalacticDynamics/jax-quantity
+url: https://github.com/GalacticDynamics/unxt
 vcs: true

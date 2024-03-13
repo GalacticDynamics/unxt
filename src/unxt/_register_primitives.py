@@ -47,26 +47,26 @@ def type_np(q: AbstractQuantity) -> type[AbstractQuantity]:
 
     Examples
     --------
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
 
     >>> q = UncheckedQuantity(1, "m")
     >>> q
     UncheckedQuantity(Array(1, dtype=int32, weak_type=True), unit='m')
 
     >>> type_np(q)
-    <class 'jax_quantity._fast.UncheckedQuantity'>
+    <class 'unxt._fast.UncheckedQuantity'>
 
     >>> q = Quantity(1, "m")
     >>> q
     Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
 
     >>> type_np(q)
-    <class 'jax_quantity._core.Quantity'>
+    <class 'unxt._core.Quantity'>
 
     This is different from `type` for parametric types.
 
     >>> type(q)
-    <class 'jax_quantity._core.Quantity[PhysicalType('length')]'>
+    <class 'unxt._core.Quantity[PhysicalType('length')]'>
 
     """
     typ = type(q)
@@ -86,14 +86,14 @@ def _abs_p(x: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(-1, "m")
     >>> xp.abs(q)
     Quantity['length'](Array(1, dtype=int32), unit='m')
     >>> abs(q)
     Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(-1, "m")
     >>> xp.abs(q)
     UncheckedQuantity(Array(1, dtype=int32), unit='m')
@@ -114,12 +114,12 @@ def _acos_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(-1, "")
     >>> xp.acos(q)
     UncheckedQuantity(Array(3.1415927, dtype=float32), unit='rad')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(-1, "")
     >>> xp.acos(q)
     Quantity['angle'](Array(3.1415927, dtype=float32), unit='rad')
@@ -139,12 +139,12 @@ def _acosh_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(2.0, "")
     >>> xp.acosh(q)
     UncheckedQuantity(Array(1.316958, dtype=float32), unit='rad')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(2.0, "")
     >>> xp.acosh(q)
     Quantity['angle'](Array(1.316958, dtype=float32), unit='rad')
@@ -165,7 +165,7 @@ def _add_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
 
     >>> q1 = UncheckedQuantity(1.0, "km")
     >>> q2 = UncheckedQuantity(500.0, "m")
@@ -174,7 +174,7 @@ def _add_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> q1 + q2
     UncheckedQuantity(Array(1.5, dtype=float32, weak_type=True), unit='km')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q1 = Quantity(1.0, "km")
     >>> q2 = Quantity(500.0, "m")
     >>> xp.add(q1, q2)
@@ -195,7 +195,7 @@ def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     >>> import quaxed.array_api as xp
     >>> x1 = xp.asarray(500.0)
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q2 = UncheckedQuantity(1.0, "km")
     >>> try: xp.add(x1, q2)
     ... except Exception as e: print(e)
@@ -209,7 +209,7 @@ def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     >>> x1 + q2
     UncheckedQuantity(Array(600., dtype=float32, weak_type=True), unit='')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> x1 = xp.asarray(500.0)
     >>> q2 = Quantity(1.0, "km")
     >>> try: x1 + q2
@@ -235,7 +235,7 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     >>> import quaxed.array_api as xp
     >>> y = xp.asarray(500.0)
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1.0, "km")
     >>> try: xp.add(q1, y)
     ... except Exception as e: print(e)
@@ -250,7 +250,7 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     >>> q1 + y
     UncheckedQuantity(Array(600., dtype=float32, weak_type=True), unit='')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q1 = Quantity(1.0, "km")
     >>> try: xp.add(q1, y)
     ... except Exception as e: print(e)
@@ -306,13 +306,13 @@ def _and_p_aq(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> x1 = UncheckedQuantity(1, "")
     >>> x2 = UncheckedQuantity(2, "")
     >>> xp.bitwise_and(x1, x2)
     Array(0, dtype=int32)
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> x1 = Quantity(1, "")
     >>> x2 = Quantity(2, "")
     >>> xp.bitwise_and(x1, x2)
@@ -342,12 +342,12 @@ def _argmax_p(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> x = Quantity([1, 2, 3], "m")
     >>> xp.argmax(x)
     Quantity['length'](Array(2, dtype=int32), unit='m')
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> x = UncheckedQuantity([1, 2, 3], "m")
     >>> xp.argmax(x)
     UncheckedQuantity(Array(2, dtype=int32), unit='m')
@@ -368,12 +368,12 @@ def _argmin_p(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> x = Quantity([1, 2, 3], "m")
     >>> xp.argmin(x)
     Quantity['length'](Array(0, dtype=int32), unit='m')
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> x = UncheckedQuantity([1, 2, 3], "m")
     >>> xp.argmin(x)
     UncheckedQuantity(Array(0, dtype=int32), unit='m')
@@ -392,7 +392,7 @@ def _asin_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "")
     >>> xp.asin(q)
     UncheckedQuantity(Array(1.5707964, dtype=float32), unit='rad')
@@ -408,7 +408,7 @@ def _asin_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(1, "")
     >>> xp.asin(q)
     Quantity['angle'](Array(1.5707964, dtype=float32), unit='rad')
@@ -427,7 +427,7 @@ def _asinh_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(2, "")
     >>> xp.asinh(q)
     UncheckedQuantity(Array(1.4436355, dtype=float32), unit='rad')
@@ -443,7 +443,7 @@ def _asinh_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(2, "")
     >>> xp.asinh(q)
     Quantity['angle'](Array(1.4436355, dtype=float32), unit='rad')
@@ -464,7 +464,7 @@ def _atan2_p_aqaq(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1, "m")
     >>> q2 = UncheckedQuantity(3, "m")
     >>> xp.atan2(q1, q2)
@@ -482,7 +482,7 @@ def _atan2_p_qq(x: Quantity, y: Quantity) -> Quantity["radian"]:
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q1 = Quantity(1, "m")
     >>> q2 = Quantity(3, "m")
     >>> xp.atan2(q1, q2)
@@ -505,7 +505,7 @@ def _atan2_p_vaq(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> x1 = xp.asarray(1.0)
     >>> q2 = UncheckedQuantity(3.0, "")
     >>> xp.atan2(x1, q2)
@@ -523,7 +523,7 @@ def _atan2_p_vq(x: ArrayLike, y: Quantity["dimensionless"]) -> Quantity["angle"]
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> x1 = xp.asarray(1.0)
     >>> q2 = Quantity(3.0, "")
     >>> xp.atan2(x1, q2)
@@ -546,7 +546,7 @@ def _atan2_p_aqv(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1.0, "")
     >>> x2 = xp.asarray(3.0)
     >>> xp.atan2(q1, x2)
@@ -564,7 +564,7 @@ def _atan2_p_qv(x: Quantity["dimensionless"], y: ArrayLike) -> Quantity["angle"]
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q1 = Quantity(1.0, "")
     >>> x2 = xp.asarray(3.0)
     >>> xp.atan2(q1, x2)
@@ -585,7 +585,7 @@ def _atan_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "")
     >>> xp.atan(q)
     UncheckedQuantity(Array(0.7853982, dtype=float32), unit='rad')
@@ -601,7 +601,7 @@ def _atan_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(1, "")
     >>> xp.atan(q)
     Quantity['angle'](Array(0.7853982, dtype=float32), unit='rad')
@@ -620,7 +620,7 @@ def _atanh_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(2, "")
     >>> xp.atanh(q)
     UncheckedQuantity(Array(nan, dtype=float32), unit='rad')
@@ -636,7 +636,7 @@ def _atanh_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(2, "")
     >>> xp.atanh(q)
     Quantity['angle'](Array(nan, dtype=float32), unit='rad')
@@ -704,12 +704,12 @@ def _cbrt_p(x: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(8, "m3")
     >>> jnp.cbrt(q)
     UncheckedQuantity(Array(2., dtype=float32), unit='m')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(8, "m3")
     >>> jnp.cbrt(q)
     Quantity['length'](Array(2., dtype=float32), unit='m')
@@ -728,12 +728,12 @@ def _ceil_p(x: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1.5, "m")
     >>> xp.ceil(q)
     UncheckedQuantity(Array(2., dtype=float32), unit='m')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(1.5, "m")
     >>> xp.ceil(q)
     Quantity['length'](Array(2., dtype=float32), unit='m')
@@ -756,14 +756,14 @@ def _clamp_p(
     >>> import quaxed.array_api as xp
     >>> import quaxed.lax as lax
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> min = UncheckedQuantity(0, "m")
     >>> max = UncheckedQuantity(2, "m")
     >>> q = UncheckedQuantity([-1, 1, 3], "m")
     >>> lax.clamp(min, q, max)
     UncheckedQuantity(Array([0, 1, 2], dtype=int32), unit='m')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> min = Quantity(0, "m")
     >>> max = Quantity(2, "m")
     >>> q = Quantity([-1, 1, 3], "m")
@@ -797,14 +797,14 @@ def _clamp_p_vaqaq(
     >>> import quaxed.array_api as xp
     >>> import quaxed.lax as lax
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> min = xp.asarray(0)
     >>> max = UncheckedQuantity(2, "")
     >>> q = UncheckedQuantity([-1, 1, 3], "")
     >>> lax.clamp(min, q, max)
     UncheckedQuantity(Array([0, 1, 2], dtype=int32), unit='')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> min = xp.asarray(0)
     >>> max = Quantity(2, "")
     >>> q = Quantity([-1, 1, 3], "")
@@ -831,7 +831,7 @@ def _clamp_p_aqvaq(
     >>> import quaxed.array_api as xp
     >>> import quaxed.lax as lax
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> min = UncheckedQuantity(0, "")
     >>> max = UncheckedQuantity(2, "")
     >>> x = xp.asarray([-1, 1, 3])
@@ -855,7 +855,7 @@ def _clamp_p_qvq(
     >>> import quaxed.array_api as xp
     >>> import quaxed.lax as lax
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> min = Quantity(0, "")
     >>> max = Quantity(2, "")
     >>> x = xp.asarray([-1, 1, 3])
@@ -882,7 +882,7 @@ def _clamp_p_aqaqv(
     >>> import quaxed.array_api as xp
     >>> import quaxed.lax as lax
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> min = UncheckedQuantity(0, "")
     >>> max = xp.asarray(2)
     >>> q = UncheckedQuantity([-1, 1, 3], "")
@@ -904,7 +904,7 @@ def _clamp_p_qqv(
     >>> import quaxed.array_api as xp
     >>> import quaxed.lax as lax
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> min = Quantity(0, "")
     >>> max = xp.asarray(2)
     >>> q = Quantity([-1, 1, 3], "")
@@ -933,7 +933,7 @@ def _complex_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> from quaxed import lax
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> x = UncheckedQuantity(1.0, "m")
     >>> y = UncheckedQuantity(2.0, "m")
     >>> lax.complex(x, y)
@@ -956,13 +956,13 @@ def _concatenate_p_aq(*operands: AbstractQuantity, dimension: Any) -> AbstractQu
     --------
     >>> import quaxed.array_api as xp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity([1.0], "km")
     >>> q2 = UncheckedQuantity([2_000.0], "m")
     >>> xp.concat([q1, q2])
     UncheckedQuantity(Array([1., 2.], dtype=float32), unit='km')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q1 = Quantity([1.0], "km")
     >>> q2 = Quantity([2_000.0], "m")
     >>> xp.concat([q1, q2])
@@ -993,7 +993,7 @@ def _concatenate_p_qnd(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> theta = Quantity(45, "deg")
     >>> Rz = xp.asarray([[xp.cos(theta), -xp.sin(theta), 0],
     ...                  [xp.sin(theta), xp.cos(theta),  0],
@@ -1028,7 +1028,7 @@ def _concatenate_p_vqnd(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> theta = Quantity(45, "deg")
     >>> Rx = xp.asarray([[1.0, 0.0,           0.0           ],
     ...                  [0.0, xp.cos(theta), -xp.sin(theta)],
@@ -1071,12 +1071,12 @@ def _conj_p(x: AbstractQuantity, *, input_dtype: Any) -> AbstractQuantity:
     --------
     >>> import quaxed.array_api as xp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1 + 2j, "m")
     >>> xp.conj(q)
     UncheckedQuantity(Array(1.-2.j, dtype=complex64), unit='m')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(1 + 2j, "m")
     >>> xp.conj(q)
     Quantity['length'](Array(1.-2.j, dtype=complex64), unit='m')
@@ -1122,12 +1122,12 @@ def _copy_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> import quaxed.array_api as xp
     >>> import quaxed.numpy as jnp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "m")
     >>> jnp.copy(q)
     UncheckedQuantity(Array(1, dtype=int32), unit='m')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(1, "m")
     >>> jnp.copy(q)
     Quantity['length'](Array(1, dtype=int32), unit='m')
@@ -1146,7 +1146,7 @@ def _cos_p_aq(x: AbstractQuantity) -> AbstractQuantity["dimensionless"]:
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "rad")
     >>> xp.cos(q)
     UncheckedQuantity(Array(0.5403023, dtype=float32), unit='')
@@ -1168,7 +1168,7 @@ def _cos_p_q(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(1, "rad")
     >>> xp.cos(q)
     Quantity['dimensionless'](Array(0.5403023, dtype=float32), unit='')
@@ -1193,7 +1193,7 @@ def _cosh_p_aq(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "rad")
     >>> xp.cosh(q)
     UncheckedQuantity(Array(1.5430806, dtype=float32), unit='')
@@ -1215,7 +1215,7 @@ def _cosh_p_q(
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(1, "rad")
     >>> xp.cosh(q)
     Quantity['dimensionless'](Array(1.5430806, dtype=float32), unit='')
@@ -1249,12 +1249,12 @@ def _cumlogsumexp_p(
     --------
     >>> from quaxed import lax
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity([-1.0, -2, -3], "")
     >>> lax.cumlogsumexp(q)
     UncheckedQuantity(Array([-1. , -0.6867383 , -0.59239405], dtype=float32), unit='')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity([-1.0, -2, -3], "")
     >>> lax.cumlogsumexp(q)
     Quantity['dimensionless'](Array([-1. , -0.6867383 , -0.59239405], dtype=float32),
@@ -1281,12 +1281,12 @@ def _cummax_p(
     --------
     >>> from quaxed import lax
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity([1, 2, 1], "m")
     >>> lax.cummax(q)
     UncheckedQuantity(Array([1, 2, 2], dtype=int32), unit='m')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity([1, 2, 1], "m")
     >>> lax.cummax(q)
     Quantity['length'](Array([1, 2, 2], dtype=int32), unit='m')
@@ -1308,12 +1308,12 @@ def _cummin_p(
     --------
     >>> from quaxed import lax
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity([2, 1, 3], "m")
     >>> lax.cummin(q)
     UncheckedQuantity(Array([2, 1, 1], dtype=int32), unit='m')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity([2, 1, 3], "m")
     >>> lax.cummin(q)
     Quantity['length'](Array([2, 1, 1], dtype=int32), unit='m')
@@ -1335,12 +1335,12 @@ def _cumprod_p(
     --------
     >>> from quaxed import lax
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity([1, 2, 3], "")
     >>> lax.cumprod(q)
     UncheckedQuantity(Array([1, 2, 6], dtype=int32), unit='')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity([1, 2, 3], "")
     >>> lax.cumprod(q)
     Quantity['dimensionless'](Array([1, 2, 6], dtype=int32), unit='')
@@ -1365,12 +1365,12 @@ def _cumsum_p(
     --------
     >>> from quaxed import lax
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity([1, 2, 3], "m")
     >>> lax.cumsum(q)
     UncheckedQuantity(Array([1, 3, 6], dtype=int32), unit='m')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity([1, 2, 3], "m")
     >>> lax.cumsum(q)
     Quantity['length'](Array([1, 3, 6], dtype=int32), unit='m')
@@ -1390,12 +1390,12 @@ def _device_put_p(x: AbstractQuantity, *, device: Any, src: Any) -> AbstractQuan
     --------
     >>> from quaxed import device_put
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "m")
     >>> device_put(q)
     UncheckedQuantity(Array(1, dtype=int32, weak_type=True), unit='m')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(1, "m")
     >>> device_put(q)
     Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
@@ -1417,12 +1417,12 @@ def _digamma_p(
     --------
     >>> from quaxed import lax
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1.0, "")
     >>> lax.digamma(q)
     UncheckedQuantity(Array(-0.5772154, dtype=float32, weak_type=True), unit='')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(1.0, "")
     >>> lax.digamma(q)
     Quantity['dimensionless'](Array(-0.5772154, dtype=float32, weak_type=True), unit='')
@@ -1443,7 +1443,7 @@ def _div_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> import quaxed.array_api as xp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1, "m")
     >>> q2 = UncheckedQuantity(2, "s")
     >>> xp.divide(q1, q2)
@@ -1451,7 +1451,7 @@ def _div_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> q1 / q2
     UncheckedQuantity(Array(0.5, dtype=float32), unit='m / s')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q1 = Quantity(1, "m")
     >>> q2 = Quantity(2, "s")
     >>> xp.divide(q1, q2)
@@ -1473,14 +1473,14 @@ def _div_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     >>> import quaxed.array_api as xp
     >>> x = xp.asarray([1.0, 2, 3])
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(2.0, "m")
     >>> xp.divide(x, q)
     UncheckedQuantity(Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
     >>> x / q
     UncheckedQuantity(Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(2.0, "m")
     >>> xp.divide(x, q)
     Quantity['wavenumber'](Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
@@ -1500,14 +1500,14 @@ def _div_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     >>> import quaxed.array_api as xp
     >>> y = xp.asarray([1.0, 2, 3])
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(6.0, "m")
     >>> xp.divide(q, y)
     UncheckedQuantity(Array([6., 3., 2.], dtype=float32), unit='m')
     >>> q / y
     UncheckedQuantity(Array([6., 3., 2.], dtype=float32), unit='m')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(6.0, "m")
     >>> xp.divide(q, y)
     Quantity['length'](Array([6., 3., 2.], dtype=float32), unit='m')
@@ -1534,7 +1534,7 @@ def _dot_general_jq(
 
     >>> import jax.numpy as jnp
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity, UncheckedQuantity
+    >>> from unxt import Quantity, UncheckedQuantity
 
     >>> theta = jnp.pi / 4  # 45 degrees
     >>> Rz = jnp.asarray([[jnp.cos(theta), -jnp.sin(theta), 0],
@@ -1581,7 +1581,7 @@ def _dot_general_qq(
     This is a dot product of two quantities.
 
     >>> import quaxed.array_api as xp
-    >>> from jax_quantity import Quantity, UncheckedQuantity
+    >>> from unxt import Quantity, UncheckedQuantity
 
     >>> q1 = UncheckedQuantity([1, 2, 3], "m")
     >>> q2 = UncheckedQuantity([4, 5, 6], "m")
@@ -1657,7 +1657,7 @@ def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     --------
     >>> import quaxed.array_api as xp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1, "m")
     >>> q2 = UncheckedQuantity(1, "m")
     >>> xp.equal(q1, q2)
@@ -1665,7 +1665,7 @@ def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     >>> q1 == q2
     Array(True, dtype=bool, weak_type=True)
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q1 = Quantity(1, "m")
     >>> q2 = Quantity(1, "m")
     >>> xp.equal(q1, q2)
@@ -1686,12 +1686,12 @@ def _eq_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
     >>> import quaxed.array_api as xp
     >>> x = xp.asarray([1.0, 2, 3])
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(2.0, "")
     >>> xp.equal(x, q)
     Array([False,  True, False], dtype=bool)
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(2.0, "")
     >>> xp.equal(x, q)
     Array([False,  True, False], dtype=bool)
@@ -1709,12 +1709,12 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> import quaxed.array_api as xp
     >>> y = xp.asarray([1.0, 2, 3])
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(2.0, "")
     >>> xp.equal(q, y)
     Array([False,  True, False], dtype=bool)
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(2.0, "")
     >>> xp.equal(q, y)
     Array([False,  True, False], dtype=bool)
@@ -1759,12 +1759,12 @@ def _erf_inv_p(
     --------
     >>> from quaxed import lax
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(0.5, "")
     >>> lax.erf_inv(q)
     UncheckedQuantity(Array(0.47693628, dtype=float32, ...), unit='')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(0.5, "")
     >>> lax.erf_inv(q)
     Quantity['dimensionless'](Array(0.47693628, dtype=float32, ...), unit='')
@@ -1786,12 +1786,12 @@ def _erf_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionl
     >>> from quaxed import lax
     >>> from quax import quaxify
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(0.5, "")
     >>> lax.erf(q)
     UncheckedQuantity(Array(0.5204999, dtype=float32, ...), unit='')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(0.5, "")
     >>> lax.erf(q)
     Quantity['dimensionless'](Array(0.5204999, dtype=float32, ...), unit='')
@@ -1812,12 +1812,12 @@ def _erfc_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimension
     --------
     >>> from quaxed import lax
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(0.5, "")
     >>> lax.erfc(q)
     UncheckedQuantity(Array(0.47950017, dtype=float32, ...), unit='')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(0.5, "")
     >>> lax.erfc(q)
     Quantity['dimensionless'](Array(0.47950017, dtype=float32, ...), unit='')
@@ -1838,12 +1838,12 @@ def _exp2_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimension
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(3, "")
     >>> jnp.exp2(q)
     UncheckedQuantity(Array(8., dtype=float32), unit='')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(3, "")
     >>> jnp.exp2(q)
     Quantity['dimensionless'](Array(8., dtype=float32), unit='')
@@ -1863,12 +1863,12 @@ def _exp_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionl
     --------
     >>> import quaxed.array_api as xp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "")
     >>> xp.exp(q)
     UncheckedQuantity(Array(2.7182817, dtype=float32), unit='')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(1, "")
     >>> xp.exp(q)
     Quantity['dimensionless'](Array(2.7182817, dtype=float32), unit='')
@@ -1896,12 +1896,12 @@ def _expm1_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensio
     --------
     >>> import quaxed.array_api as xp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(0, "")
     >>> xp.expm1(q)
     UncheckedQuantity(Array(0., dtype=float32), unit='')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(0, "")
     >>> xp.expm1(q)
     Quantity['dimensionless'](Array(0., dtype=float32), unit='')
@@ -1923,13 +1923,13 @@ def _fft_p(
     --------
     >>> import quaxed.array_api as xp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity([1, 2, 3], "")
     >>> xp.fft.fft(q)
     UncheckedQuantity(Array([ 6. +0.j       , -1.5+0.8660254j, -1.5-0.8660254j],
                        dtype=complex64), unit='')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity([1, 2, 3], "")
     >>> xp.fft.fft(q)
     Quantity['dimensionless'](Array([ 6. +0.j       , -1.5+0.8660254j, -1.5-0.8660254j],
@@ -1954,12 +1954,12 @@ def _floor_p(x: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> import quaxed.array_api as xp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1.5, "")
     >>> xp.floor(q)
     UncheckedQuantity(Array(1., dtype=float32), unit='')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(1.5, "")
     >>> xp.floor(q)
     Quantity['dimensionless'](Array(1., dtype=float32), unit='')
@@ -2011,7 +2011,7 @@ def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     --------
     >>> import quaxed.array_api as xp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1_001., "m")
     >>> q2 = UncheckedQuantity(1., "km")
     >>> xp.greater_equal(q1, q2)
@@ -2019,7 +2019,7 @@ def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     >>> q1 >= q2
     Array(True, dtype=bool, weak_type=True)
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q1 = Quantity(1_001., "m")
     >>> q2 = Quantity(1., "km")
     >>> xp.greater_equal(q1, q2)
@@ -2041,12 +2041,12 @@ def _ge_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
 
     >>> x = xp.asarray(1_001.0)
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q2 = UncheckedQuantity(1., "")
     >>> xp.greater_equal(x, q2)
     Array(True, dtype=bool)
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q2 = Quantity(1., "")
     >>> xp.greater_equal(x, q2)
     Array(True, dtype=bool)
@@ -2065,12 +2065,12 @@ def _ge_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
 
     >>> y = xp.asarray(0.9)
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1., "")
     >>> xp.greater_equal(q1, y)
     Array(True, dtype=bool)
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q1 = Quantity(1., "")
     >>> xp.greater_equal(q1, y)
     Array(True, dtype=bool)
@@ -2092,13 +2092,13 @@ def _gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     --------
     >>> import quaxed.array_api as xp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1_001., "m")
     >>> q2 = UncheckedQuantity(1., "km")
     >>> xp.greater_equal(q1, q2)
     Array(True, dtype=bool)
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q1 = Quantity(1_001., "m")
     >>> q2 = Quantity(1., "km")
     >>> xp.greater_equal(q1, q2)
@@ -2118,12 +2118,12 @@ def _gt_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
 
     >>> x = xp.asarray(1_001.0)
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q2 = UncheckedQuantity(1., "")
     >>> xp.greater_equal(x, q2)
     Array(True, dtype=bool)
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q2 = Quantity(1., "")
     >>> xp.greater_equal(x, q2)
     Array(True, dtype=bool)
@@ -2142,12 +2142,12 @@ def _gt_p_qv(x: AbstractQuantity["dimensionless"], y: ArrayLike) -> ArrayLike:
 
     >>> y = xp.asarray(0.9)
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1., "")
     >>> xp.greater_equal(q1, y)
     Array(True, dtype=bool)
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q1 = Quantity(1., "")
     >>> xp.greater_equal(q1, y)
     Array(True, dtype=bool)
@@ -2166,12 +2166,12 @@ def _gt_p_qi(x: AbstractQuantity["dimensionless"], y: int) -> ArrayLike:
 
     >>> y = 0
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1., "")
     >>> jnp.greater(q1, y)
     Array(True, dtype=bool, weak_type=True)
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q1 = Quantity(1., "")
     >>> jnp.greater(q1, y)
     Array(True, dtype=bool, weak_type=True)
@@ -2229,12 +2229,12 @@ def _integer_pow_p(x: AbstractQuantity, *, y: Any) -> AbstractQuantity:
 
     Examples
     --------
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(2, "m")
     >>> q ** 3
     UncheckedQuantity(Array(8, dtype=int32), unit='m3')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(2, "m")
     >>> q ** 3
     Quantity['volume'](Array(8, dtype=int32), unit='m3')
@@ -2262,7 +2262,7 @@ def _is_finite_p(x: AbstractQuantity) -> ArrayLike:
     --------
     >>> import quaxed.array_api as xp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "m")
     >>> xp.isfinite(q)
     array(True)
@@ -2270,7 +2270,7 @@ def _is_finite_p(x: AbstractQuantity) -> ArrayLike:
     >>> xp.isfinite(q)
     Array(False, dtype=bool)
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(1, "m")
     >>> xp.isfinite(q)
     array(True)
@@ -2293,13 +2293,13 @@ def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     --------
     >>> import quaxed.array_api as xp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1_001., "m")
     >>> q2 = UncheckedQuantity(1., "km")
     >>> xp.less_equal(q1, q2)
     Array(False, dtype=bool)
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q1 = Quantity(1_001., "m")
     >>> q2 = Quantity(1., "km")
     >>> xp.less_equal(q1, q2)
@@ -2319,12 +2319,12 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
 
     >>> x1 = xp.asarray(1.001)
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q2 = UncheckedQuantity(1., "")
     >>> xp.less_equal(x1, q2)
     Array(False, dtype=bool)
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q2 = Quantity(1., "")
     >>> xp.less_equal(x1, q2)
     Array(False, dtype=bool)
@@ -2343,12 +2343,12 @@ def _le_p_qv(x: AbstractQuantity["dimensionless"], y: ArrayLike) -> ArrayLike:
 
     >>> y1 = xp.asarray(0.9)
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1., "")
     >>> xp.less_equal(q1, y1)
     Array(False, dtype=bool)
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q1 = Quantity(1., "")
     >>> xp.less_equal(q1, y1)
     Array(False, dtype=bool)
@@ -2378,12 +2378,12 @@ def _lgamma_p(
     --------
     >>> import quaxed.scipy as jsp
 
-    >>> from jax_quantity import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(3, "")
     >>> jsp.special.gammaln(q)
     UncheckedQuantity(Array(0.6931474, dtype=float32), unit='')
 
-    >>> from jax_quantity import Quantity
+    >>> from unxt import Quantity
     >>> q = Quantity(3, "")
     >>> jsp.special.gammaln(q)
     Quantity['dimensionless'](Array(0.6931474, dtype=float32), unit='')

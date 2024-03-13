@@ -2,9 +2,9 @@
 
 import importlib.metadata
 
-import jax_quantity as m
+import unxt as m
 
 
 def test_version():
     """Test version."""
-    assert importlib.metadata.version("jax_quantity") == m.__version__
+    assert importlib.metadata.version("unxt") == m.__version__
