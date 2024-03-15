@@ -10,6 +10,7 @@ from . import (
     _core,
     _fast,
     _utils,
+    experimental,  # noqa: F401
 )
 from ._base import *
 from ._core import *
