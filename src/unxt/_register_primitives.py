@@ -25,11 +25,11 @@ from jax._src.lax.slicing import (
 from jax._src.typing import Shape
 from jax.core import Primitive
 from jaxtyping import Array, ArrayLike
-from plum.parametric import ParametricTypeMeta
 from quax import register as register_
 
 from ._base import AbstractQuantity, can_convert_unit
 from ._core import Quantity
+from ._utils import type_nonparametric as type_np
 
 T = TypeVar("T")
 
@@ -44,37 +44,6 @@ def register(primitive: Primitive) -> Callable[[T], T]:
 
 def _to_value_rad_or_one(q: AbstractQuantity) -> ArrayLike:
     return q.to_value(radian) if can_convert_unit(q.unit, radian) else q.to_value(one)
-
-
-def type_np(q: AbstractQuantity) -> type[AbstractQuantity]:
-    """Return the non-parametric type of a quantity.
-
-    Examples
-    --------
-    >>> from unxt import UncheckedQuantity
-
-    >>> q = UncheckedQuantity(1, "m")
-    >>> q
-    UncheckedQuantity(Array(1, dtype=int32, weak_type=True), unit='m')
-
-    >>> type_np(q)
-    <class 'unxt._fast.UncheckedQuantity'>
-
-    >>> q = Quantity(1, "m")
-    >>> q
-    Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
-
-    >>> type_np(q)
-    <class 'unxt._core.Quantity'>
-
-    This is different from `type` for parametric types.
-
-    >>> type(q)
-    <class 'unxt._core.Quantity[PhysicalType('length')]'>
-
-    """
-    typ = type(q)
-    return typ.mro()[1] if isinstance(typ, ParametricTypeMeta) else typ
 
 
 ################################################################################
