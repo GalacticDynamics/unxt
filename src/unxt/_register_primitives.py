@@ -18,7 +18,10 @@ from astropy.units import (  # pylint: disable=no-name-in-module
 from jax import lax
 from jax._src.ad_util import add_any_p
 from jax._src.lax.lax import DotDimensionNumbers, DTypeLike, PrecisionLike
-from jax._src.lax.slicing import GatherDimensionNumbers, GatherScatterMode
+from jax._src.lax.slicing import (
+    GatherDimensionNumbers,
+    GatherScatterMode,
+)
 from jax._src.typing import Shape
 from jax.core import Primitive
 from jaxtyping import Array, ArrayLike
@@ -2647,7 +2650,7 @@ def _pow_p_qq(x: AbstractQuantity, y: Quantity["dimensionless"]) -> AbstractQuan
 
 
 @register(lax.pow_p)
-def _pow_p_qf(x: AbstractQuantity, y: int | float) -> AbstractQuantity:
+def _pow_p_qf(x: AbstractQuantity, y: ArrayLike | int | float) -> AbstractQuantity:
     return type_np(x)(value=lax.pow(x.value, y), unit=x.unit**y)
 
 
@@ -2870,8 +2873,39 @@ def _scan_p() -> AbstractQuantity:
 
 
 @register(lax.scatter_add_p)
-def _scatter_add_p() -> AbstractQuantity:
-    raise NotImplementedError
+def _scatter_add_p_qvq(
+    operand: AbstractQuantity,
+    scatter_indices: ArrayLike,
+    updates: AbstractQuantity,
+    **kwargs: Any,
+) -> AbstractQuantity:
+    """Scatter-add operator."""
+    return replace(
+        operand,
+        value=lax.scatter_add_p.bind(
+            operand.value, scatter_indices, updates.to_value(operand.units), **kwargs
+        ),
+    )
+
+
+@register(lax.scatter_add_p)
+def _scatter_add_p_vvq(
+    operand: ArrayLike,
+    scatter_indices: ArrayLike,
+    updates: AbstractQuantity,
+    **kwargs: Any,
+) -> AbstractQuantity:
+    """Scatter-add operator between an Array and a Quantity.
+
+    This is an interesting case where the Quantity is the `updates` and the Array
+    is the `operand`. For some reason when doing a ``scatter_add`` between two
+    Quantity objects an intermediate Array operand is created. Therefore we
+    need to pretend that the Array has the same units as the `updates`.
+    """
+    return replace(
+        updates,
+        value=lax.scatter_add_p.bind(operand, scatter_indices, updates.value, **kwargs),
+    )
 
 
 # ==============================================================================
