@@ -16,6 +16,7 @@ from astropy.units import (  # pylint: disable=no-name-in-module
     radian,
 )
 from jax import lax
+from jax._src.ad_util import add_any_p
 from jax._src.lax.lax import DotDimensionNumbers, DTypeLike, PrecisionLike
 from jax._src.lax.slicing import GatherDimensionNumbers, GatherScatterMode
 from jax._src.typing import Shape
@@ -268,6 +269,15 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     """
     x = eqx.error_if(x, x.unit != one, "Cannot add a quantity and a non-quantity.")
     return replace(x, value=lax.add(x.to_value(one), y))
+
+
+# ==============================================================================
+
+
+@register(add_any_p)
+def _add_any_p(x: Quantity, y: Quantity) -> Quantity:
+    """Add two quantities using the ``jax._src.ad_util.add_any_p``."""
+    return replace(x, value=add_any_p.bind(x.value, y.value))
 
 
 # ==============================================================================
