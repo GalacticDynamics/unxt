@@ -5,7 +5,7 @@
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-__all__ = ["type_nonparametric"]
+__all__ = ["type_unparametrized"]
 
 from plum.parametric import ParametricTypeMeta
 
@@ -13,7 +13,7 @@ from ._base import AbstractQuantity
 
 
 # TODO: upstream to `plum`
-def type_nonparametric(q: AbstractQuantity) -> type[AbstractQuantity]:
+def type_unparametrized(q: AbstractQuantity) -> type[AbstractQuantity]:
     """Return the non-parametric type of a Quantity.
 
     :mod:`plum.parametric` produces parametric subtypes of Quantity.  This
@@ -27,14 +27,14 @@ def type_nonparametric(q: AbstractQuantity) -> type[AbstractQuantity]:
     >>> q
     UncheckedQuantity(Array(1, dtype=int32, weak_type=True), unit='m')
 
-    >>> type_nonparametric(q)
+    >>> type_unparametrized(q)
     <class 'unxt._fast.UncheckedQuantity'>
 
     >>> q = Quantity(1, "m")
     >>> q
     Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
 
-    >>> type_nonparametric(q)
+    >>> type_unparametrized(q)
     <class 'unxt._core.Quantity'>
 
     This is different from `type` for parametric types.

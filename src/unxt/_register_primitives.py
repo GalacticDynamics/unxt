@@ -29,7 +29,7 @@ from quax import register as register_
 
 from ._base import AbstractQuantity, can_convert_unit
 from ._core import Quantity
-from ._utils import type_nonparametric as type_np
+from ._utils import type_unparametrized as type_np
 
 T = TypeVar("T")
 
