@@ -143,6 +143,7 @@
       "COM812",  # <- for ruff.format
       "D103",    # Missing docstring in public function  # TODO: resolve
       "D105",    # Missing docstring in magic method
+      "D107",    # Missing docstring in __init__
       "D203",    # 1 blank line required before class docstring
       "D213",    # Multi-line docstring summary should start at the second line
       "ERA001",  # Commented out code
