@@ -42,10 +42,10 @@ def grad(fun: Callable[P, R], *, units: tuple[Unit, ...]) -> Callable[P, R]:
         )
         # Call the grad, returning a Quantity
         value = fun(*args)
-        grad = gradfun_mag(*args_)
+        grad_value = gradfun_mag(*args_)
         # Adjust the Quantity by the units of the derivative
         # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
-        return type_unparametrized(value)(grad, value.unit / units[0])
+        return type_unparametrized(value)(grad_value, value.unit / units[0])
 
     return gradfun
 
