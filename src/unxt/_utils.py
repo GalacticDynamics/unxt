@@ -21,7 +21,7 @@ def type_unparametrized(q: AbstractQuantity) -> type[AbstractQuantity]:
 
     Examples
     --------
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt import UncheckedQuantity, Quantity
 
     >>> q = UncheckedQuantity(1, "m")
     >>> q
