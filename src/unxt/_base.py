@@ -19,7 +19,6 @@ from astropy.units import (
 )
 from jax.numpy import dtype as DType  # noqa: N812
 from jaxtyping import Array, ArrayLike, Shaped
-from plum import conversion_method
 from quax import ArrayValue
 from typing_extensions import Self
 
@@ -408,13 +407,3 @@ def can_convert_unit(from_: AbstractQuantity | Unit, to: Unit) -> bool:
     except UnitConversionError:
         return False
     return True
-
-
-# ===============================================================
-# Compat
-
-
-@conversion_method(type_from=AbstractQuantity, type_to=AstropyQuantity)  # type: ignore[misc]
-def convert_quantity_to_astropyquantity(obj: AbstractQuantity, /) -> AstropyQuantity:
-    """`AbstractQuantity` -> `astropy.AbstractQuantity`."""
-    return AstropyQuantity(obj.value, obj.unit)
