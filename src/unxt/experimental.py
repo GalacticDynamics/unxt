@@ -7,7 +7,7 @@ THIS MODULE IS NOT GUARANTEED TO HAVE A STABLE API!
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-__all__ = ["jacfwd"]
+__all__ = ["grad", "hessian", "jacfwd"]
 
 from collections.abc import Callable
 from functools import partial
