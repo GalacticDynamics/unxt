@@ -7,12 +7,13 @@ THIS MODULE IS NOT GUARANTEED TO HAVE A STABLE API!
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-__all__ = ["jacfwd"]
+__all__ = ["grad", "hessian", "jacfwd"]
 
 from collections.abc import Callable
 from functools import partial
 from typing import ParamSpec, TypeVar
 
+import equinox as eqx
 import jax
 from astropy.units import UnitBase as Unit
 from jaxtyping import ArrayLike
@@ -50,7 +51,9 @@ def grad(fun: Callable[P, R], *, units: tuple[Unit, ...]) -> Callable[P, R]:
     return gradfun
 
 
-def jacfwd(fun: Callable[P, R], *, units: tuple[Unit, ...]) -> Callable[P, R]:
+def jacfwd(
+    fun: Callable[P, R], argnums: int = 0, *, units: tuple[Unit, ...]
+) -> Callable[P, R]:
     """Jacobian of ``fun`` evaluated column-by-column using forward-mode AD.
 
     In general, if you can use ``quaxed.jacfwd``, that's the better option!  The
@@ -60,8 +63,13 @@ def jacfwd(fun: Callable[P, R], *, units: tuple[Unit, ...]) -> Callable[P, R]:
     units
 
     """
+    argnums = eqx.error_if(
+        argnums,
+        not isinstance(argnums, int),
+        "only int argnums are currently supported",
+    )
 
-    @partial(jax.jacfwd)
+    @partial(jax.jacfwd, argnums=argnums)
     def jacfun_mag(*args: P.args) -> R:
         args_ = (
             (a if unit is None else Quantity(a, unit))
@@ -81,7 +89,7 @@ def jacfwd(fun: Callable[P, R], *, units: tuple[Unit, ...]) -> Callable[P, R]:
         # Adjust the Quantity by the units of the derivative
         # TODO: check the unit correction
         # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
-        return type_unparametrized(value)(value.value, value.unit / units[0])
+        return type_unparametrized(value)(value.value, value.unit / units[argnums])
 
     return jacfun
 
