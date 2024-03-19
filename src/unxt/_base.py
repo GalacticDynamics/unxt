@@ -290,6 +290,17 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         __tracebackhide__ = True  # pylint: disable=unused-variable
         return replace(self, value=self.value.reshape(*args, order=order))
 
+    def __mod__(self, other: Any) -> "Self":
+        """Take the mod."""
+        if not isinstance(other, AbstractQuantity):
+            return NotImplemented
+
+        if not can_convert_unit(other.unit, self.unit):
+            raise UnitConversionError
+
+        # TODO: figure out how to defer to quaxed (e.g. quaxed.operator.mod)
+        return replace(self, value=self.value % other.to_value(self.unit))
+
     # ===============================================================
     # Python stuff
 
