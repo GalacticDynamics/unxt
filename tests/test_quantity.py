@@ -370,6 +370,21 @@ def test_hypot():
     assert all(qnp.hypot(q1, q2) == Quantity([4.1231055, 5.3851647, 6.7082043], u.m))
 
 
+def test_mod():
+    """Test taking the modulus."""
+    q = Quantity(480.0, "deg")
+
+    with pytest.raises(TypeError):
+        _ = q % 2
+
+    with pytest.raises(u.UnitConversionError):
+        _ = q % Quantity(2, "m")
+
+    got = q % Quantity(360, "deg")
+    expect = Quantity(120, "deg")
+    assert got == expect
+
+
 # ===============================================================
 # Unknown
 
