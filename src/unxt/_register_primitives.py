@@ -1701,6 +1701,14 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> xp.equal(q, y)
     Array([False,  True, False], dtype=bool)
 
+    Check against the special cases:
+
+    >>> q == 0
+    False
+
+    >>> q == inf
+    False
+
     """
     # TODO: better support for jit
     if not y.shape and (y in (0, jnp.inf)):
