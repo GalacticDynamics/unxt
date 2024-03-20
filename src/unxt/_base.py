@@ -299,7 +299,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
 
         >>> q = Quantity(480, "deg")
         >>> q % Quantity(360, "deg")
-        Quantity['angle'](Array(120, dtype=int64, ...), unit='deg')
+        Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
 
         """
         if not isinstance(other, AbstractQuantity):
