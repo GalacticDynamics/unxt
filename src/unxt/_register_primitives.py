@@ -1706,7 +1706,7 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> q == 0
     False
 
-    >>> q == inf
+    >>> q == xp.inf
     False
 
     """
