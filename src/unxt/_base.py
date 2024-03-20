@@ -291,7 +291,17 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         return replace(self, value=self.value.reshape(*args, order=order))
 
     def __mod__(self, other: Any) -> "Self":
-        """Take the mod."""
+        """Take the mod.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+
+        >>> q = Quantity(480, "deg")
+        >>> q % Quantity(360, "deg")
+        Quantity['angle'](Array(120, dtype=int64, ...), unit='deg')
+
+        """
         if not isinstance(other, AbstractQuantity):
             return NotImplemented
 
