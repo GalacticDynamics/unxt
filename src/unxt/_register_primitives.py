@@ -15,7 +15,7 @@ from astropy.units import (  # pylint: disable=no-name-in-module
     dimensionless_unscaled as one,
     radian,
 )
-from jax import lax
+from jax import lax, numpy as jnp
 from jax._src.ad_util import add_any_p
 from jax._src.lax.lax import DotDimensionNumbers, DTypeLike, PrecisionLike
 from jax._src.lax.slicing import (
@@ -1703,7 +1703,7 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
 
     """
     # TODO: better support for jit
-    if (x.unit == one) or (not y.shape and y == 0):
+    if not y.shape and (y in (0, jnp.inf)):
         return lax.eq(x.value, y)
 
     return lax.eq(x.to_value(one), y)
