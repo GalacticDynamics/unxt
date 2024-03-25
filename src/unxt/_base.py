@@ -124,12 +124,6 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     __faithful__: ClassVar[bool] = True
     """Tells :mod:`plum` that this type can be cached more efficiently."""
 
-    def __class_getitem__(
-        cls: type["AbstractQuantity"], item: Any
-    ) -> type["AbstractQuantity"]:
-        """No-op support for `AbstractQuantity[...]` syntax."""
-        return cls
-
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self.value!r}, unit={self.unit.to_string()!r})"
 
