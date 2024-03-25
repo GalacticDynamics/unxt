@@ -5,7 +5,7 @@ __all__: list[str] = []
 from collections.abc import Callable, Sequence
 from dataclasses import replace
 from math import prod
-from typing import Any, TypeAlias, TypeVar
+from typing import Annotated as Antd, Any, TypeAlias, TypeVar
 
 import equinox as eqx
 import jax
@@ -81,7 +81,9 @@ def _abs_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.acos_p)
-def _acos_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"]:
+def _acos_p_aq(
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "angle"]:
     """Inverse cosine of a quantity.
 
     Examples
@@ -106,7 +108,9 @@ def _acos_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"
 
 
 @register(lax.acosh_p)
-def _acosh_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"]:
+def _acosh_p_aq(
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "angle"]:
     """Inverse hyperbolic cosine of a quantity.
 
     Examples
@@ -281,7 +285,9 @@ def _all_to_all_p() -> AbstractQuantity:
 
 @register(lax.and_p)
 def _and_p_aq(
-    x1: AbstractQuantity["dimensionless"], x2: AbstractQuantity["dimensionless"], /
+    x1: Antd[AbstractQuantity, "dimensionless"],
+    x2: Antd[AbstractQuantity, "dimensionless"],
+    /,
 ) -> ArrayLike:
     """Bitwise AND of two quantities.
 
@@ -368,7 +374,9 @@ def _argmin_p(
 
 
 @register(lax.asin_p)
-def _asin_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"]:
+def _asin_p_aq(
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "angle"]:
     """Inverse sine of a quantity.
 
     Examples
@@ -403,7 +411,9 @@ def _asin_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
 
 
 @register(lax.asinh_p)
-def _asinh_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"]:
+def _asinh_p_aq(
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "angle"]:
     """Inverse hyperbolic sine of a quantity.
 
     Examples
@@ -440,7 +450,7 @@ def _asinh_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
 @register(lax.atan2_p)
 def _atan2_p_aqaq(
     x: AbstractQuantity, y: AbstractQuantity
-) -> AbstractQuantity["radian"]:
+) -> Antd[AbstractQuantity, "radian"]:
     """Arctangent2 of two abstract quantities.
 
     Examples
@@ -480,8 +490,8 @@ def _atan2_p_qq(x: Quantity, y: Quantity) -> Quantity["radian"]:
 
 @register(lax.atan2_p)
 def _atan2_p_vaq(
-    x: ArrayLike, y: AbstractQuantity["dimensionless"]
-) -> AbstractQuantity["angle"]:
+    x: ArrayLike, y: Antd[AbstractQuantity, "dimensionless"]
+) -> Antd[AbstractQuantity, "angle"]:
     """Arctangent2 of a value and a quantity.
 
     Examples
@@ -521,8 +531,8 @@ def _atan2_p_vq(x: ArrayLike, y: Quantity["dimensionless"]) -> Quantity["angle"]
 
 @register(lax.atan2_p)
 def _atan2_p_aqv(
-    x: AbstractQuantity["dimensionless"], y: ArrayLike
-) -> AbstractQuantity["angle"]:
+    x: Antd[AbstractQuantity, "dimensionless"], y: ArrayLike
+) -> Antd[AbstractQuantity, "angle"]:
     """Arctangent2 of a quantity and a value.
 
     Examples
@@ -561,7 +571,9 @@ def _atan2_p_qv(x: Quantity["dimensionless"], y: ArrayLike) -> Quantity["angle"]
 
 
 @register(lax.atan_p)
-def _atan_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"]:
+def _atan_p_aq(
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "angle"]:
     """Arctangent of a quantity.
 
     Examples
@@ -596,7 +608,9 @@ def _atan_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
 
 
 @register(lax.atanh_p)
-def _atanh_p_aq(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["angle"]:
+def _atanh_p_aq(
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "angle"]:
     """Inverse hyperbolic tangent of a quantity.
 
     Examples
@@ -769,9 +783,9 @@ def _clamp_p(
 @register(lax.clamp_p)
 def _clamp_p_vaqaq(
     min: ArrayLike,
-    x: AbstractQuantity["dimensionless"],
-    max: AbstractQuantity["dimensionless"],
-) -> AbstractQuantity["dimensionless"]:
+    x: Antd[AbstractQuantity, "dimensionless"],
+    max: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     """Clamp a quantity between a value and another quantity.
 
     Examples
@@ -802,9 +816,9 @@ def _clamp_p_vaqaq(
 
 @register(lax.clamp_p)
 def _clamp_p_aqvaq(
-    min: AbstractQuantity["dimensionless"],
+    min: Antd[AbstractQuantity, "dimensionless"],
     x: ArrayLike,
-    max: AbstractQuantity["dimensionless"],
+    max: Antd[AbstractQuantity, "dimensionless"],
 ) -> ArrayLike:
     """Clamp a value between two quantities.
 
@@ -853,10 +867,10 @@ def _clamp_p_qvq(
 
 @register(lax.clamp_p)
 def _clamp_p_aqaqv(
-    min: AbstractQuantity["dimensionless"],
-    x: AbstractQuantity["dimensionless"],
+    min: Antd[AbstractQuantity, "dimensionless"],
+    x: Antd[AbstractQuantity, "dimensionless"],
     max: ArrayLike,
-) -> AbstractQuantity["dimensionless"]:
+) -> Antd[AbstractQuantity, "dimensionless"]:
     """Clamp a quantity between a quantity and a value.
 
     Examples
@@ -1122,7 +1136,7 @@ def _copy_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.cos_p)
-def _cos_p_aq(x: AbstractQuantity) -> AbstractQuantity["dimensionless"]:
+def _cos_p_aq(x: AbstractQuantity) -> Antd[AbstractQuantity, "dimensionless"]:
     """Cosine of a quantity.
 
     Examples
@@ -1168,8 +1182,8 @@ def _cos_p_q(
 
 @register(lax.cosh_p)
 def _cosh_p_aq(
-    x: AbstractQuantity["angle"] | AbstractQuantity["dimensionless"],
-) -> AbstractQuantity["dimensionless"]:
+    x: Antd[AbstractQuantity, "angle"] | Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     """Cosine of a quantity.
 
     Examples
@@ -1309,8 +1323,8 @@ def _cummin_p(
 
 @register(lax.cumprod_p)
 def _cumprod_p(
-    operand: AbstractQuantity["dimensionless"], *, axis: Any, reverse: Any
-) -> AbstractQuantity["dimensionless"]:
+    operand: Antd[AbstractQuantity, "dimensionless"], *, axis: Any, reverse: Any
+) -> Antd[AbstractQuantity, "dimensionless"]:
     """Cumulative product of a quantity.
 
     Examples
@@ -1391,8 +1405,8 @@ def _device_put_p(x: AbstractQuantity, *, device: Any, src: Any) -> AbstractQuan
 
 @register(lax.digamma_p)
 def _digamma_p(
-    x: AbstractQuantity["dimensionless"],
-) -> AbstractQuantity["dimensionless"]:
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     """Digamma function of a quantity.
 
     Examples
@@ -1660,7 +1674,7 @@ def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
 
 
 @register(lax.eq_p)
-def _eq_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
+def _eq_p_vq(x: ArrayLike, y: Antd[AbstractQuantity, "dimensionless"]) -> ArrayLike:
     """Equality of an array and a quantity.
 
     Examples
@@ -1741,8 +1755,8 @@ def _eq_to_p() -> AbstractQuantity:
 
 @register(lax.erf_inv_p)
 def _erf_inv_p(
-    x: AbstractQuantity["dimensionless"],
-) -> AbstractQuantity["dimensionless"]:
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     """Inverse error function of a quantity.
 
     Examples
@@ -1768,7 +1782,9 @@ def _erf_inv_p(
 
 
 @register(lax.erf_p)
-def _erf_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionless"]:
+def _erf_p(
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     """Error function of a quantity.
 
     Examples
@@ -1795,7 +1811,9 @@ def _erf_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionl
 
 
 @register(lax.erfc_p)
-def _erfc_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionless"]:
+def _erfc_p(
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     """Complementary error function of a quantity.
 
     Examples
@@ -1821,7 +1839,9 @@ def _erfc_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimension
 
 
 @register(lax.exp2_p)
-def _exp2_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionless"]:
+def _exp2_p(
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     """2^x of a quantity.
 
     Examples
@@ -1846,7 +1866,9 @@ def _exp2_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimension
 
 
 @register(lax.exp_p)
-def _exp_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionless"]:
+def _exp_p(
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     """Exponential of a quantity.
 
     Examples
@@ -1879,7 +1901,9 @@ def _exp_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionl
 
 
 @register(lax.expm1_p)
-def _expm1_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionless"]:
+def _expm1_p(
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     """Exponential of a quantity minus 1.
 
     Examples
@@ -1905,8 +1929,8 @@ def _expm1_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensio
 
 @register(lax.fft_p)
 def _fft_p(
-    x: AbstractQuantity["dimensionless"], *, fft_type: Any, fft_lengths: Any
-) -> AbstractQuantity["dimensionless"]:
+    x: Antd[AbstractQuantity, "dimensionless"], *, fft_type: Any, fft_lengths: Any
+) -> Antd[AbstractQuantity, "dimensionless"]:
     """Fast Fourier transform of a quantity.
 
     Examples
@@ -2022,7 +2046,7 @@ def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
 
 
 @register(lax.ge_p)
-def _ge_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
+def _ge_p_vq(x: ArrayLike, y: Antd[AbstractQuantity, "dimensionless"]) -> ArrayLike:
     """Greater than or equal to of an array and a quantity.
 
     Examples
@@ -2099,7 +2123,7 @@ def _gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
 
 
 @register(lax.gt_p)
-def _gt_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
+def _gt_p_vq(x: ArrayLike, y: Antd[AbstractQuantity, "dimensionless"]) -> ArrayLike:
     """Greater than of an array and a quantity.
 
     Examples
@@ -2123,7 +2147,7 @@ def _gt_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
 
 
 @register(lax.gt_p)
-def _gt_p_qv(x: AbstractQuantity["dimensionless"], y: ArrayLike) -> ArrayLike:
+def _gt_p_qv(x: Antd[AbstractQuantity, "dimensionless"], y: ArrayLike) -> ArrayLike:
     """Greater than or equal to of a quantity and an array.
 
     Examples
@@ -2147,7 +2171,7 @@ def _gt_p_qv(x: AbstractQuantity["dimensionless"], y: ArrayLike) -> ArrayLike:
 
 
 @register(lax.gt_p)
-def _gt_p_qi(x: AbstractQuantity["dimensionless"], y: int) -> ArrayLike:
+def _gt_p_qi(x: Antd[AbstractQuantity, "dimensionless"], y: int) -> ArrayLike:
     """Greater than or equal to of a quantity and an array.
 
     Examples
@@ -2300,7 +2324,7 @@ def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
 
 
 @register(lax.le_p)
-def _le_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
+def _le_p_vq(x: ArrayLike, y: Antd[AbstractQuantity, "dimensionless"]) -> ArrayLike:
     """Less than or equal to of an array and a quantity.
 
     Examples
@@ -2324,7 +2348,7 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
 
 
 @register(lax.le_p)
-def _le_p_qv(x: AbstractQuantity["dimensionless"], y: ArrayLike) -> ArrayLike:
+def _le_p_qv(x: Antd[AbstractQuantity, "dimensionless"], y: ArrayLike) -> ArrayLike:
     """Less than or equal to of a quantity and an array.
 
     Examples
@@ -2360,8 +2384,8 @@ def _le_to_p() -> Quantity:
 
 @register(lax.lgamma_p)
 def _lgamma_p(
-    x: AbstractQuantity["dimensionless"],
-) -> AbstractQuantity["dimensionless"]:
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     """Log-gamma function of a quantity.
 
     Examples
@@ -2395,7 +2419,9 @@ def _linear_solve_p() -> AbstractQuantity:
 
 
 @register(lax.log1p_p)
-def _log1p_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionless"]:
+def _log1p_p(
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     return replace(x, value=lax.log1p(x.to_value(one)))
 
 
@@ -2403,7 +2429,9 @@ def _log1p_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensio
 
 
 @register(lax.log_p)
-def _log_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionless"]:
+def _log_p(
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     return replace(x, value=lax.log(x.to_value(one)))
 
 
@@ -2412,8 +2440,8 @@ def _log_p(x: AbstractQuantity["dimensionless"]) -> AbstractQuantity["dimensionl
 
 @register(lax.logistic_p)
 def _logistic_p(
-    x: AbstractQuantity["dimensionless"],
-) -> AbstractQuantity["dimensionless"]:
+    x: Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     return replace(x, value=lax.logistic(x.to_value(one)))
 
 
@@ -2422,18 +2450,19 @@ def _logistic_p(
 
 @register(lax.lt_p)
 def _lt_p_qq(
-    x: AbstractQuantity["dimensionless"], y: AbstractQuantity["dimensionless"]
+    x: Antd[AbstractQuantity, "dimensionless"],
+    y: Antd[AbstractQuantity, "dimensionless"],
 ) -> ArrayLike:
     return lax.lt(x.value, y.to_value(x.unit))
 
 
 @register(lax.lt_p)
-def _lt_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
+def _lt_p_vq(x: ArrayLike, y: Antd[AbstractQuantity, "dimensionless"]) -> ArrayLike:
     return lax.lt(x, y.to_value(one))
 
 
 @register(lax.lt_p)
-def _lt_p_qv(x: AbstractQuantity["dimensionless"], y: ArrayLike) -> ArrayLike:
+def _lt_p_qv(x: Antd[AbstractQuantity, "dimensionless"], y: ArrayLike) -> ArrayLike:
     return lax.lt(x.to_value(one), y)
 
 
@@ -2455,15 +2484,15 @@ def _max_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
 @register(lax.max_p)
 def _max_p_vq(
-    x: ArrayLike, y: AbstractQuantity["dimensionless"]
-) -> AbstractQuantity["dimensionless"]:
+    x: ArrayLike, y: Antd[AbstractQuantity, "dimensionless"]
+) -> Antd[AbstractQuantity, "dimensionless"]:
     return replace(y, value=lax.max(x, y.to_value(one)))
 
 
 @register(lax.max_p)
 def _max_p_qv(
-    x: AbstractQuantity["dimensionless"], y: ArrayLike
-) -> AbstractQuantity["dimensionless"]:
+    x: Antd[AbstractQuantity, "dimensionless"], y: ArrayLike
+) -> Antd[AbstractQuantity, "dimensionless"]:
     return replace(x, value=lax.max(x.to_value(one), y))
 
 
@@ -2477,15 +2506,15 @@ def _min_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
 @register(lax.min_p)
 def _min_p_vq(
-    x: ArrayLike, y: AbstractQuantity["dimensionless"]
-) -> AbstractQuantity["dimensionless"]:
+    x: ArrayLike, y: Antd[AbstractQuantity, "dimensionless"]
+) -> Antd[AbstractQuantity, "dimensionless"]:
     return replace(y, value=lax.min(x, y.to_value(one)))
 
 
 @register(lax.min_p)
 def _min_p_qv(
-    x: AbstractQuantity["dimensionless"], y: ArrayLike
-) -> AbstractQuantity["dimensionless"]:
+    x: Antd[AbstractQuantity, "dimensionless"], y: ArrayLike
+) -> Antd[AbstractQuantity, "dimensionless"]:
     return replace(x, value=lax.min(x.to_value(one), y))
 
 
@@ -2518,7 +2547,7 @@ def _ne_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
 
 
 @register(lax.ne_p)
-def _ne_p_vq(x: ArrayLike, y: AbstractQuantity["dimensionless"]) -> ArrayLike:
+def _ne_p_vq(x: ArrayLike, y: Antd[AbstractQuantity, "dimensionless"]) -> ArrayLike:
     return lax.ne(x, y.to_value(one))
 
 
@@ -2693,7 +2722,7 @@ def _reduce_min_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
 @register(lax.reduce_or_p)
 def _reduce_or_p(
     operand: AbstractQuantity, *, axes: Axes
-) -> AbstractQuantity["dimensionless"]:
+) -> Antd[AbstractQuantity, "dimensionless"]:
     return type_np(operand)(lax.reduce_or_p.bind(operand.value, axes=axes), unit=one)
 
 
@@ -2946,7 +2975,7 @@ def _select_and_scatter_p() -> AbstractQuantity:
 
 @register(lax.select_n_p)
 def _select_n_p(
-    which: AbstractQuantity["dimensionless"], *cases: AbstractQuantity
+    which: Antd[AbstractQuantity, "dimensionless"], *cases: AbstractQuantity
 ) -> AbstractQuantity:
     unit = cases[0].unit
     cases_ = (case.to_value(unit) for case in cases)
@@ -2955,7 +2984,9 @@ def _select_n_p(
 
 @register(lax.select_n_p)
 def _select_n_p_vq(
-    which: AbstractQuantity["dimensionless"], case0: AbstractQuantity, case1: ArrayLike
+    which: Antd[AbstractQuantity, "dimensionless"],
+    case0: AbstractQuantity,
+    case1: ArrayLike,
 ) -> AbstractQuantity:
     # encountered from jnp.hypot
     unit = case0.unit
@@ -3035,8 +3066,8 @@ def _sign_p(x: AbstractQuantity) -> ArrayLike:
 
 @register(lax.sin_p)
 def _sin_p(
-    x: AbstractQuantity["angle"] | AbstractQuantity["dimensionless"],
-) -> AbstractQuantity["dimensionless"]:
+    x: Antd[AbstractQuantity, "angle"] | Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     return type_np(x)(lax.sin(_to_value_rad_or_one(x)), unit=one)
 
 
@@ -3045,8 +3076,8 @@ def _sin_p(
 
 @register(lax.sinh_p)
 def _sinh_p(
-    x: AbstractQuantity["angle"] | AbstractQuantity["dimensionless"],
-) -> AbstractQuantity["dimensionless"]:
+    x: Antd[AbstractQuantity, "angle"] | Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     return type_np(x)(lax.sinh(_to_value_rad_or_one(x)), unit=one)
 
 
@@ -3154,8 +3185,8 @@ def _sub_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 @register(lax.tan_p)
 def _tan_p(
-    x: AbstractQuantity["angle"] | AbstractQuantity["dimensionless"],
-) -> AbstractQuantity["dimensionless"]:
+    x: Antd[AbstractQuantity, "angle"] | Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     return type_np(x)(lax.tan(_to_value_rad_or_one(x)), unit=one)
 
 
@@ -3164,8 +3195,8 @@ def _tan_p(
 
 @register(lax.tanh_p)
 def _tanh_p(
-    x: AbstractQuantity["angle"] | AbstractQuantity["dimensionless"],
-) -> AbstractQuantity["dimensionless"]:
+    x: Antd[AbstractQuantity, "angle"] | Antd[AbstractQuantity, "dimensionless"],
+) -> Antd[AbstractQuantity, "dimensionless"]:
     return type_np(x)(lax.tanh(_to_value_rad_or_one(x)), unit=one)
 
 

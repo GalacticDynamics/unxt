@@ -12,3 +12,9 @@ class UncheckedQuantity(AbstractQuantity):
 
     This class is not parametrized by its dimensionality.
     """
+
+    def __class_getitem__(
+        cls: type["UncheckedQuantity"], item: Any
+    ) -> type["UncheckedQuantity"]:
+        """No-op support for `UncheckedQuantity[...]` syntax."""
+        return cls
