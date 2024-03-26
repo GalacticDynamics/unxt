@@ -188,10 +188,10 @@ class DimensionlessUnitSystem(UnitSystem):
 
 
 # define galactic unit system
-galactic = UnitSystem(u.kpc, u.Myr, u.Msun, u.radian, u.km / u.s)
+galactic = UnitSystem(u.kpc, u.Myr, u.Msun, u.radian, u.km / u.s)  # pylint: disable=no-member
 
 # solar system units
-solarsystem = UnitSystem(u.au, u.M_sun, u.yr, u.radian)
+solarsystem = UnitSystem(u.au, u.M_sun, u.yr, u.radian)  # pylint: disable=no-member
 
 # dimensionless
 dimensionless = DimensionlessUnitSystem()

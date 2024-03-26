@@ -25,8 +25,10 @@ P = ParamSpec("P")
 R = TypeVar("R", bound=Quantity)
 
 
-def grad(fun: Callable[P, R], *, units: tuple[Unit, ...]) -> Callable[P, R]:
-    @partial(jax.grad)
+def grad(
+    fun: Callable[P, R], argnums: int = 0, *, units: tuple[Unit, ...]
+) -> Callable[P, R]:
+    @partial(jax.grad, argnums=argnums)
     def gradfun_mag(*args: P.args) -> ArrayLike:
         args_ = (
             (a if unit is None else Quantity(a, unit))
@@ -46,7 +48,7 @@ def grad(fun: Callable[P, R], *, units: tuple[Unit, ...]) -> Callable[P, R]:
         grad_value = gradfun_mag(*args_)
         # Adjust the Quantity by the units of the derivative
         # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
-        return type_unparametrized(value)(grad_value, value.unit / units[0])
+        return type_unparametrized(value)(grad_value, value.unit / units[argnums])
 
     return gradfun
 
