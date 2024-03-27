@@ -9,6 +9,7 @@ from . import (
     _base,
     _compat,
     _core,
+    _distance,
     _fast,
     _utils,
     experimental,  # noqa: F401
@@ -17,6 +18,7 @@ from . import (
 from ._base import *
 from ._compat import *
 from ._core import *
+from ._distance import *
 from ._fast import *
 from ._utils import *
 from ._version import version as __version__
@@ -35,6 +37,7 @@ __all__ = [
     "unitsystem",
 ]
 __all__ += _core.__all__
+__all__ += _distance.__all__
 __all__ += _base.__all__
 __all__ += _fast.__all__
 __all__ += _utils.__all__
