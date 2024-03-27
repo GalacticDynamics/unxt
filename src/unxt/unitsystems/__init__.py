@@ -1,6 +1,7 @@
 """Tools for representing systems of units using ``astropy.units``."""
 
 from . import _base, _core, _realizations, _utils
+from ._base import *
 from ._core import *
 from ._realizations import *
 from ._utils import *
