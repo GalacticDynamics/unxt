@@ -6,14 +6,15 @@ __all__ = ["unitsystem"]
 import astropy.units as u
 from plum import dispatch
 
-from ._core import UnitSystem
+from ._base import AbstractUnitSystem
+from ._core import DimensionlessUnitSystem, UnitSystem
 from ._realizations import NAMED_UNIT_SYSTEMS, dimensionless
 from unxt._base import AbstractQuantity
 from unxt._typing import Unit
 
 
 @dispatch
-def unitsystem(units: UnitSystem, /) -> UnitSystem:
+def unitsystem(units: AbstractUnitSystem, /) -> AbstractUnitSystem:
     """Convert a UnitSystem or tuple of arguments to a UnitSystem.
 
     Examples
@@ -38,7 +39,7 @@ def unitsystem(
         | list[Unit | u.Quantity | AbstractQuantity]
     ),
     /,
-) -> UnitSystem:
+) -> AbstractUnitSystem:
     """Convert a UnitSystem or tuple of arguments to a UnitSystem.
 
     Examples
@@ -57,7 +58,7 @@ def unitsystem(
 
 
 @dispatch  # type: ignore[no-redef]
-def unitsystem(_: None, /) -> UnitSystem:
+def unitsystem(_: None, /) -> DimensionlessUnitSystem:
     """Dimensionless unit system from None.
 
     Examples
@@ -87,7 +88,7 @@ def unitsystem(unit0: Unit, /, *units: Unit) -> UnitSystem:
 
 
 @dispatch  # type: ignore[no-redef]
-def unitsystem(name: str, /) -> UnitSystem:
+def unitsystem(name: str, /) -> AbstractUnitSystem:
     """Return unit system from name.
 
     Examples
