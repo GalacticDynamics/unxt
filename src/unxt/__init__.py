@@ -36,9 +36,9 @@ __all__ = [
     "UnitSystem",
     "unitsystem",
 ]
+__all__ += _base.__all__
 __all__ += _core.__all__
 __all__ += _distance.__all__
-__all__ += _base.__all__
 __all__ += _fast.__all__
 __all__ += _utils.__all__
 __all__ += _compat.__all__

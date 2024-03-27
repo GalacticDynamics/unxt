@@ -7,6 +7,7 @@ from typing import TypeVar, final
 
 import astropy.units as u
 
+import quaxed.array_api as xp
 import quaxed.numpy as qnp
 
 from ._base import AbstractQuantity
@@ -45,3 +46,10 @@ class Distance(AbstractQuantity):
     ) -> Quantity:
         """The distance modulus."""
         return 5 * qnp.log10(self / base_length)
+
+
+@Distance.constructor._f.register  # type: ignore[attr-defined,misc]  # noqa: SLF001
+def constructor(cls: type[Distance], value: Quantity["angle"], /) -> Distance:
+    """Construct a `Distance` from an angle through the parallax."""
+    d = parallax_base_length / xp.tan(value)
+    return cls(d.value, d.unit)
