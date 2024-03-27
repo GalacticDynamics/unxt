@@ -25,7 +25,7 @@ from jaxtyping import Array, ArrayLike
 from quax import register as register_
 
 from ._base import AbstractQuantity, can_convert_unit
-from ._core import Quantity
+from ._core import AbstractParametricQuantity, Quantity
 from ._utils import type_unparametrized as type_np
 
 T = TypeVar("T")
@@ -244,7 +244,9 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 
 @register(add_any_p)
-def _add_any_p(x: Quantity, y: Quantity) -> Quantity:
+def _add_any_p(
+    x: AbstractParametricQuantity, y: AbstractParametricQuantity
+) -> AbstractParametricQuantity:
     """Add two quantities using the ``jax._src.ad_util.add_any_p``."""
     return replace(x, value=add_any_p.bind(x.value, y.value))
 
@@ -379,7 +381,9 @@ def _asin_p_aq(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.asin_p)
-def _asin_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
+def _asin_p_q(
+    x: AbstractParametricQuantity["dimensionless"],
+) -> AbstractParametricQuantity["angle"]:
     """Inverse sine of a quantity.
 
     Examples
@@ -414,7 +418,9 @@ def _asinh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.asinh_p)
-def _asinh_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
+def _asinh_p_q(
+    x: AbstractParametricQuantity["dimensionless"],
+) -> AbstractParametricQuantity["angle"]:
     """Inverse hyperbolic sine of a quantity.
 
     Examples
@@ -451,7 +457,9 @@ def _atan2_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.atan2_p)
-def _atan2_p_qq(x: Quantity, y: Quantity) -> Quantity["radian"]:
+def _atan2_p_qq(
+    x: AbstractParametricQuantity, y: AbstractParametricQuantity
+) -> AbstractParametricQuantity["radian"]:
     """Arctangent2 of two quantities.
 
     Examples
@@ -490,7 +498,9 @@ def _atan2_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.atan2_p)
-def _atan2_p_vq(x: ArrayLike, y: Quantity["dimensionless"]) -> Quantity["angle"]:
+def _atan2_p_vq(
+    x: ArrayLike, y: AbstractParametricQuantity["dimensionless"]
+) -> AbstractParametricQuantity["angle"]:
     """Arctangent2 of a value and a quantity.
 
     Examples
@@ -529,7 +539,9 @@ def _atan2_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 
 @register(lax.atan2_p)
-def _atan2_p_qv(x: Quantity["dimensionless"], y: ArrayLike) -> Quantity["angle"]:
+def _atan2_p_qv(
+    x: AbstractParametricQuantity["dimensionless"], y: ArrayLike
+) -> AbstractParametricQuantity["angle"]:
     """Arctangent2 of a quantity and a value.
 
     Examples
@@ -566,7 +578,9 @@ def _atan_p_aq(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.atan_p)
-def _atan_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
+def _atan_p_q(
+    x: AbstractParametricQuantity["dimensionless"],
+) -> AbstractParametricQuantity["angle"]:
     """Arctangent of a quantity.
 
     Examples
@@ -601,7 +615,9 @@ def _atanh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.atanh_p)
-def _atanh_p_q(x: Quantity["dimensionless"]) -> Quantity["angle"]:
+def _atanh_p_q(
+    x: AbstractParametricQuantity["dimensionless"],
+) -> AbstractParametricQuantity["angle"]:
     """Inverse hyperbolic tangent of a quantity.
 
     Examples
@@ -808,7 +824,9 @@ def _clamp_p_aqvaq(
 
 @register(lax.clamp_p)
 def _clamp_p_qvq(
-    min: Quantity["dimensionless"], x: ArrayLike, max: Quantity["dimensionless"]
+    min: AbstractParametricQuantity["dimensionless"],
+    x: ArrayLike,
+    max: AbstractParametricQuantity["dimensionless"],
 ) -> ArrayLike:
     """Clamp a value between two quantities.
 
@@ -855,8 +873,10 @@ def _clamp_p_aqaqv(
 
 @register(lax.clamp_p)
 def _clamp_p_qqv(
-    min: Quantity["dimensionless"], x: Quantity["dimensionless"], max: ArrayLike
-) -> Quantity["dimensionless"]:
+    min: AbstractParametricQuantity["dimensionless"],
+    x: AbstractParametricQuantity["dimensionless"],
+    max: ArrayLike,
+) -> AbstractParametricQuantity["dimensionless"]:
     """Clamp a quantity between a quantity and a value.
 
     Examples
@@ -944,10 +964,10 @@ def _concatenate_p_aq(*operands: AbstractQuantity, dimension: Any) -> AbstractQu
 
 @register(lax.concatenate_p)
 def _concatenate_p_qnd(
-    operand0: Quantity["dimensionless"],
-    *operands: Quantity["dimensionless"] | ArrayLike,
+    operand0: AbstractParametricQuantity["dimensionless"],
+    *operands: AbstractParametricQuantity["dimensionless"] | ArrayLike,
     dimension: Any,
-) -> Quantity["dimensionless"]:
+) -> AbstractParametricQuantity["dimensionless"]:
     """Concatenate quantities and arrays with dimensionless units.
 
     Examples
@@ -980,9 +1000,9 @@ def _concatenate_p_qnd(
 @register(lax.concatenate_p)
 def _concatenate_p_vqnd(
     operand0: ArrayLike,
-    *operands: Quantity["dimensionless"],
+    *operands: AbstractParametricQuantity["dimensionless"],
     dimension: Any,
-) -> Quantity["dimensionless"]:
+) -> AbstractParametricQuantity["dimensionless"]:
     """Concatenate quantities and arrays with dimensionless units.
 
     Examples
@@ -1121,8 +1141,8 @@ def _cos_p_aq(x: AbstractQuantity) -> AbstractQuantity:
 
 @register(lax.cos_p)
 def _cos_p_q(
-    x: Quantity["angle"] | Quantity["dimensionless"],
-) -> Quantity["dimensionless"]:
+    x: AbstractParametricQuantity["angle"] | Quantity["dimensionless"],
+) -> AbstractParametricQuantity["dimensionless"]:
     """Cosine of a quantity.
 
     Examples
@@ -1166,8 +1186,8 @@ def _cosh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
 
 @register(lax.cosh_p)
 def _cosh_p_q(
-    x: Quantity["angle"] | Quantity["dimensionless"],
-) -> Quantity["dimensionless"]:
+    x: AbstractParametricQuantity["angle"] | Quantity["dimensionless"],
+) -> AbstractParametricQuantity["dimensionless"]:
     """Cosine of a quantity.
 
     Examples
@@ -2207,7 +2227,7 @@ def _integer_pow_p(x: AbstractQuantity, *, y: Any) -> AbstractQuantity:
 
 
 # @register(lax.iota_p)
-# def _iota_p(dtype: Quantity) -> Quantity:
+# def _iota_p(dtype: AbstractParametricQuantity) -> AbstractParametricQuantity:
 #     raise NotImplementedError
 
 
@@ -2321,7 +2341,7 @@ def _le_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
 
 
 @register(lax.le_to_p)
-def _le_to_p() -> Quantity:
+def _le_to_p() -> AbstractParametricQuantity:
     raise NotImplementedError
 
 
@@ -2487,7 +2507,7 @@ def _ne_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
 
 
 # @register(lax.ne_p)
-# def _ne_p_qv(x: Quantity, y: ArrayLike) -> ArrayLike:
+# def _ne_p_qv(x: AbstractParametricQuantity, y: ArrayLike) -> ArrayLike:
 #     return lax.
 
 
@@ -2575,7 +2595,9 @@ def _population_count_p() -> AbstractQuantity:
 
 
 @register(lax.pow_p)
-def _pow_p_qq(x: AbstractQuantity, y: Quantity["dimensionless"]) -> AbstractQuantity:
+def _pow_p_qq(
+    x: AbstractQuantity, y: AbstractParametricQuantity["dimensionless"]
+) -> AbstractQuantity:
     y_: Array = y.to_value(one)
     y0 = y_[(0,) * y_.ndim]
     y_ = eqx.error_if(y_, any(y_ != y0), "power must be a scalar")

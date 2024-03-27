@@ -1,7 +1,7 @@
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
 
-__all__ = ["Quantity"]
+__all__ = ["AbstractParametricQuantity", "Quantity"]
 
 from typing import Any, TypeVar, final
 
@@ -22,10 +22,11 @@ FMT = TypeVar("FMT")
 ##############################################################################
 
 
-@final
 @parametric
-class Quantity(AbstractQuantity):
-    """Represents an array, with each axis bound to a name.
+class AbstractParametricQuantity(AbstractQuantity):
+    """Arrays with associated units.
+
+    This class is parametrized by the dimensions of the units.
 
     Parameters
     ----------
@@ -188,3 +189,9 @@ class Quantity(AbstractQuantity):
             dim = self._type_parameter._name_string_as_ordered_set().split("'")[1]  # noqa: SLF001
         return f"Quantity[{dim!r}]({self.value!r}, unit={self.unit.to_string()!r})"
         # fmt: on
+
+
+@final
+@parametric
+class Quantity(AbstractParametricQuantity):
+    pass
