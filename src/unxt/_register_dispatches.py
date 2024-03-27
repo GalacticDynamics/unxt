@@ -10,7 +10,9 @@ from jax import Device
 from quaxed.array_api._dispatch import dispatcher as dispatcher_
 from quaxed.array_api._types import DType
 
+from ._base import AbstractQuantity
 from ._core import Quantity
+from ._utils import type_unparametrized as type_np
 
 T = TypeVar("T")
 
@@ -49,8 +51,10 @@ def arange(
 
 
 @dispatcher
-def empty_like(x: Quantity, /, *, dtype: Any = None, device: Any = None) -> Quantity:
-    out = Quantity(jax_xp.empty_like(x.value, dtype=dtype), unit=x.unit)
+def empty_like(
+    x: AbstractQuantity, /, *, dtype: Any = None, device: Any = None
+) -> AbstractQuantity:
+    out = type_np(x)(jax_xp.empty_like(x.value, dtype=dtype), unit=x.unit)
     return jax.device_put(out, device=device)
 
 
@@ -59,31 +63,41 @@ def empty_like(x: Quantity, /, *, dtype: Any = None, device: Any = None) -> Quan
 
 @dispatcher
 def full_like(
-    x: Quantity, /, *, fill_value: Any, dtype: Any = None, device: Any = None
-) -> Quantity:
+    x: AbstractQuantity,
+    /,
+    *,
+    fill_value: Any,
+    dtype: Any = None,
+    device: Any = None,
+) -> AbstractQuantity:
     return full_like(x, fill_value, dtype=dtype, device=device)
 
 
 @dispatcher  # type: ignore[no-redef]
 def full_like(
-    x: Quantity, fill_value: Quantity, /, *, dtype: Any = None, device: Any = None
-) -> Quantity:
+    x: AbstractQuantity,
+    fill_value: AbstractQuantity,
+    /,
+    *,
+    dtype: Any = None,
+    device: Any = None,
+) -> AbstractQuantity:
     fill_val = fill_value.to_value(x.unit)
-    return Quantity(
+    return type_np(x)(
         jax_xp.full_like(x.value, fill_val, dtype=dtype, device=device), unit=x.unit
     )
 
 
 @dispatcher  # type: ignore[no-redef]
 def full_like(
-    x: Quantity,
+    x: AbstractQuantity,
     fill_value: bool | int | float | complex,
     /,
     *,
     dtype: Any = None,
     device: Any = None,
-) -> Quantity:
-    return Quantity(
+) -> AbstractQuantity:
+    return type_np(x)(
         jax_xp.full_like(x.value, fill_value, dtype=dtype, device=device), unit=x.unit
     )
 
@@ -116,12 +130,16 @@ def linspace(
 
 
 @dispatcher
-def ones_like(x: Quantity, /, *, dtype: Any = None, device: Any = None) -> Quantity:
-    out = Quantity(jax_xp.ones_like(x.value, dtype=dtype), unit=x.unit)
+def ones_like(
+    x: AbstractQuantity, /, *, dtype: Any = None, device: Any = None
+) -> AbstractQuantity:
+    out = type_np(x)(jax_xp.ones_like(x.value, dtype=dtype), unit=x.unit)
     return jax.device_put(out, device=device)
 
 
 @dispatcher
-def zeros_like(x: Quantity, /, *, dtype: Any = None, device: Any = None) -> Quantity:
-    out = Quantity(jax_xp.zeros_like(x.value, dtype=dtype), unit=x.unit)
+def zeros_like(
+    x: AbstractQuantity, /, *, dtype: Any = None, device: Any = None
+) -> AbstractQuantity:
+    out = type_np(x)(jax_xp.zeros_like(x.value, dtype=dtype), unit=x.unit)
     return jax.device_put(out, device=device)
