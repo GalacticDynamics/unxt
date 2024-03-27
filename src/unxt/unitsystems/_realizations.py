@@ -12,6 +12,7 @@ __all__ = [
 
 import astropy.units as u
 
+from ._base import AbstractUnitSystem
 from ._core import DimensionlessUnitSystem, UnitSystem
 
 # define galactic unit system
@@ -24,7 +25,7 @@ solarsystem = UnitSystem(u.au, u.M_sun, u.yr, u.radian)  # pylint: disable=no-me
 dimensionless = DimensionlessUnitSystem()
 
 
-NAMED_UNIT_SYSTEMS: dict[str, UnitSystem] = {
+NAMED_UNIT_SYSTEMS: dict[str, AbstractUnitSystem] = {
     "galactic": galactic,
     "solarsystem": solarsystem,
     "dimensionless": dimensionless,
