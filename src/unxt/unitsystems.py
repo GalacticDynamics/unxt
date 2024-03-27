@@ -4,14 +4,18 @@ __all__ = [
     # unit system classes
     "UnitSystem",
     "DimensionlessUnitSystem",
+    # general unit system constructor
+    "unitsystem",
     # unit system instance
     "galactic",
     "dimensionless",
     "solarsystem",
+    # unit system alias
+    "NAMED_UNIT_SYSTEMS",
 ]
 
 from collections.abc import Iterator
-from typing import ClassVar, Literal, Union, cast, final
+from typing import ClassVar, Union, cast, final
 
 import astropy.units as u
 from astropy.units.physical import _physical_unit_mapping
@@ -197,6 +201,13 @@ solarsystem = UnitSystem(u.au, u.M_sun, u.yr, u.radian)  # pylint: disable=no-me
 dimensionless = DimensionlessUnitSystem()
 
 
+NAMED_UNIT_SYSTEMS: dict[str, UnitSystem] = {
+    "galactic": galactic,
+    "solarsystem": solarsystem,
+    "dimensionless": dimensionless,
+}
+
+
 # ===========================
 # Unit-system constructor
 
@@ -276,8 +287,8 @@ def unitsystem(unit0: Unit, /, *units: Unit) -> UnitSystem:
 
 
 @dispatch  # type: ignore[no-redef]
-def unitsystem(_: Literal["galactic"], /) -> UnitSystem:
-    """Galactic unit system by string.
+def unitsystem(name: str, /) -> UnitSystem:
+    """Return unit system from name.
 
     Examples
     --------
@@ -285,33 +296,11 @@ def unitsystem(_: Literal["galactic"], /) -> UnitSystem:
     >>> unitsystem("galactic")
     UnitSystem(kpc, Myr, solMass, rad)
 
-    """
-    return galactic
-
-
-@dispatch  # type: ignore[no-redef]
-def unitsystem(_: Literal["solarsystem"], /) -> UnitSystem:
-    """Solar system unit system by string.
-
-    Examples
-    --------
-    >>> from unxt.unitsystems import unitsystem
     >>> unitsystem("solarsystem")
     UnitSystem(AU, yr, solMass, rad)
 
-    """
-    return solarsystem
-
-
-@dispatch  # type: ignore[no-redef]
-def unitsystem(_: Literal["dimensionless"], /) -> UnitSystem:
-    """Dimensionless unit system by string.
-
-    Examples
-    --------
-    >>> from unxt.unitsystems import unitsystem
     >>> unitsystem("dimensionless")
     DimensionlessUnitSystem()
 
     """
-    return dimensionless
+    return NAMED_UNIT_SYSTEMS[name]
