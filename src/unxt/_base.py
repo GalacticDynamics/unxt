@@ -354,7 +354,8 @@ def constructor(
 
     The `value` is converted to the new `unit`.
     """
-    return xp.asarray(value.to(unit), dtype=dtype)
+    value = xp.asarray(value.to(unit), dtype=dtype)
+    return cls(value.value, unit)
 
 
 @AbstractQuantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
@@ -368,7 +369,8 @@ def constructor(
 ) -> AbstractQuantity:
     """Construct a `Quantity` from another `Quantity`, with no unit change."""
     unit = value.unit if unit is None else unit
-    return xp.asarray(value.to(unit), dtype=dtype)
+    value = xp.asarray(value.to(unit), dtype=dtype)
+    return cls(value.value, unit)
 
 
 @AbstractQuantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
