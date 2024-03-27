@@ -183,6 +183,7 @@
     "line-too-long",
     "missing-function-docstring", # TODO: resolve
     "missing-module-docstring",
+    "property-with-parameters",   # handled by ruff
     "protected-access",           # handled by ruff
     "redefined-builtin",          # handled by ruff
     "unused-argument",            # handled by ruff
