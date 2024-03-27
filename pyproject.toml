@@ -186,6 +186,7 @@
     "protected-access",           # handled by ruff
     "redefined-builtin",          # handled by ruff
     "unused-argument",            # handled by ruff
+    "wrong-import-order",         # handled by ruff
     "wrong-import-position",
   ]
   py-version = "3.10"

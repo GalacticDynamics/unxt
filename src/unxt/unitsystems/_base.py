@@ -34,12 +34,15 @@ class AbstractUnitSystem:
 
     def __init__(
         self,
-        units: Union[Unit, u.Quantity, AbstractQuantity, "UnitSystem"],
+        units: Union[Unit, u.Quantity, AbstractQuantity, "AbstractUnitSystem"],
         *args: Unit | u.Quantity | AbstractQuantity,
     ) -> None:
-        if isinstance(units, UnitSystem):
+        if isinstance(units, AbstractUnitSystem):
             if len(args) > 0:
-                msg = "If passing in a UnitSystem, cannot pass in additional units."
+                msg = (
+                    "If passing in a AbstractUnitSystem, "
+                    "cannot pass in additional units."
+                )
                 raise ValueError(msg)
 
             self._registry = units._registry.copy()  # noqa: SLF001
@@ -92,10 +95,10 @@ class AbstractUnitSystem:
         yield from self._core_units
 
     def __repr__(self) -> str:
-        return f"UnitSystem({', '.join(str(uu) for uu in self._core_units)})"
+        return f"{type(self).__name__}({', '.join(map(str, self._core_units))})"
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, UnitSystem):
+        if not isinstance(other, AbstractUnitSystem):
             return NotImplemented
         return bool(self._registry == other._registry)
 
