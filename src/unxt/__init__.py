@@ -20,7 +20,7 @@ from ._core import *
 from ._fast import *
 from ._utils import *
 from ._version import version as __version__
-from .unitsystems import UnitSystem, unitsystem
+from .unitsystems import AbstractUnitSystem, UnitSystem, unitsystem
 
 # isort: split
 # Register dispatches
@@ -30,6 +30,7 @@ __all__ = [
     "__version__",
     # units systems
     "unitsystems",
+    "AbstractUnitSystem",
     "UnitSystem",
     "unitsystem",
 ]
