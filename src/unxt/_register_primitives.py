@@ -717,7 +717,7 @@ def _cbrt_p_d(x: Distance) -> Quantity:
     >>> from unxt import Distance
     >>> d = Distance(8, "m")
     >>> jnp.cbrt(d)
-    Quantity['length'](Array(2., dtype=float32), unit='m')
+    Quantity['m1/3'](Array(2., dtype=float32), unit='m(1/3)')
 
     """
     return Quantity(lax.cbrt(x.value), unit=x.unit ** (1 / 3))
@@ -1607,7 +1607,7 @@ def _dot_general_qq(
     >>> from unxt import Distance
 
     >>> q1 = Distance([1, 2, 3], "m")
-    >>> q2 = Distance([4, 5, 6], "m")
+    >>> q2 = Quantity([4, 5, 6], "m")
     >>> xp.vecdot(q1, q2)
     Quantity['area'](Array(32, dtype=int32), unit='m2')
     >>> q1 @ q2
@@ -1629,6 +1629,58 @@ def _dot_general_qq(
 
     """
     lhs, rhs = promote(lhs, rhs)
+    return type_np(lhs)(
+        lax.dot_general_p.bind(
+            lhs.value,
+            rhs.value,
+            dimension_numbers=dimension_numbers,
+            precision=precision,
+            preferred_element_type=preferred_element_type,
+        ),
+        unit=lhs.unit * rhs.unit,
+    )
+
+
+@register(lax.dot_general_p)
+def _dot_general_dd(
+    lhs: Distance,
+    rhs: Distance,
+    *,
+    dimension_numbers: DotDimensionNumbers,
+    precision: PrecisionLike,
+    preferred_element_type: DTypeLike | None = None,
+) -> Quantity:
+    """Dot product of two Distances.
+
+    Examples
+    --------
+    This is a dot product of two Distances.
+
+    >>> import quaxed.array_api as xp
+    >>> from unxt import Distance
+
+    >>> q1 = Distance([1, 2, 3], "m")
+    >>> q2 = Distance([4, 5, 6], "m")
+    >>> xp.vecdot(q1, q2)
+    Quantity['area'](Array(32, dtype=int32), unit='m2')
+    >>> q1 @ q2
+    Quantity['area'](Array(32, dtype=int32), unit='m2')
+
+    This rule is also used by `jnp.matmul` for quantities.
+
+    >>> Rz = xp.asarray([[0, -1,  0],
+    ...                  [1,  0,  0],
+    ...                  [0,  0,  1]])
+    >>> q = Quantity([1, 0, 0], "m")
+    >>> Rz @ q
+    Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
+
+    This uses `matmul` for quantities.
+
+    >>> xp.linalg.matmul(Rz, q)
+    Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
+
+    """
     return type_np(lhs)(
         lax.dot_general_p.bind(
             lhs.value,
