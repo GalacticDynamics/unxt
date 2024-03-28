@@ -22,7 +22,7 @@ from jax._src.lax.slicing import GatherDimensionNumbers, GatherScatterMode
 from jax._src.typing import Shape
 from jax.core import Primitive
 from jaxtyping import Array, ArrayLike
-from plum import promote
+from plum import convert, promote
 from quax import register as register_
 
 from ._base import AbstractQuantity, can_convert_unit
