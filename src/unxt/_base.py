@@ -19,6 +19,7 @@ from astropy.units import (
 )
 from jax.numpy import dtype as DType  # noqa: N812
 from jaxtyping import Array, ArrayLike, Shaped
+from plum import add_promotion_rule
 from quax import ArrayValue
 from typing_extensions import Self
 
@@ -398,6 +399,12 @@ def constructor(
     The `value` is converted to the new `unit`.
     """
     return cls(xp.asarray(value.to_value(unit), dtype=dtype), unit)
+
+
+# -----------------------------------------------
+# Promotion rules
+
+add_promotion_rule(AbstractQuantity, AbstractQuantity, AbstractQuantity)
 
 
 # ===============================================================

@@ -22,6 +22,7 @@ from jax._src.lax.slicing import GatherDimensionNumbers, GatherScatterMode
 from jax._src.typing import Shape
 from jax.core import Primitive
 from jaxtyping import Array, ArrayLike
+from plum import promote
 from quax import register as register_
 
 from ._base import AbstractQuantity, can_convert_unit
@@ -1437,7 +1438,8 @@ def _div_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
     """
     unit = Unit(x.unit / y.unit)
-    return type_np(x)(lax.div(x.value, y.value), unit=unit)
+    xp, yp = promote(x, y)
+    return type_np(xp)(lax.div(xp.value, yp.value), unit=unit)
 
 
 @register(lax.div_p)
