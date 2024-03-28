@@ -8,8 +8,8 @@ from typing import ClassVar, Union, cast
 import astropy.units as u
 from astropy.units.physical import _physical_unit_mapping
 
-from unxt._base import AbstractQuantity
-from unxt._core import Quantity
+from unxt._quantity.base import AbstractQuantity
+from unxt._quantity.core import Quantity
 from unxt._typing import Unit
 
 

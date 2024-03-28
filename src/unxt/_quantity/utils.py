@@ -9,7 +9,7 @@ __all__ = ["type_unparametrized"]
 
 from plum.parametric import ParametricTypeMeta
 
-from ._base import AbstractQuantity
+from .base import AbstractQuantity
 
 
 # TODO: upstream to `plum`

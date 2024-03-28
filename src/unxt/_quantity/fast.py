@@ -5,7 +5,7 @@ __all__ = ["UncheckedQuantity"]
 
 from typing import Any
 
-from ._base import AbstractQuantity
+from .base import AbstractQuantity
 
 
 class UncheckedQuantity(AbstractQuantity):

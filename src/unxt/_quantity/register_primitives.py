@@ -25,10 +25,10 @@ from jaxtyping import Array, ArrayLike
 from plum import promote
 from quax import register as register_
 
-from ._base import AbstractQuantity, can_convert_unit
-from ._core import AbstractParametricQuantity, Quantity
-from ._distance import Distance
-from ._utils import type_unparametrized as type_np
+from .base import AbstractQuantity, can_convert_unit
+from .core import AbstractParametricQuantity, Quantity
+from .distance import Distance
+from .utils import type_unparametrized as type_np
 
 T = TypeVar("T")
 

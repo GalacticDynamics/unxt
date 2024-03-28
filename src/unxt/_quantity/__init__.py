@@ -3,22 +3,22 @@
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-from . import _base, _compat, _core, _distance, _fast, _utils
-from ._base import *
-from ._compat import *
-from ._core import *
-from ._distance import *
-from ._fast import *
-from ._utils import *
+from . import base, compat, core, distance, fast, utils
+from .base import *
+from .compat import *
+from .core import *
+from .distance import *
+from .fast import *
+from .utils import *
 
 # isort: split
 # Register dispatches
-from . import _register_dispatches, _register_primitives  # noqa: F401
+from . import register_dispatches, register_primitives  # noqa: F401
 
 __all__: list[str] = []
-__all__ += _base.__all__
-__all__ += _core.__all__
-__all__ += _distance.__all__
-__all__ += _fast.__all__
-__all__ += _utils.__all__
-__all__ += _compat.__all__
+__all__ += base.__all__
+__all__ += core.__all__
+__all__ += distance.__all__
+__all__ += fast.__all__
+__all__ += utils.__all__
+__all__ += compat.__all__

@@ -6,9 +6,9 @@ __all__: list[str] = []
 from astropy.units import Quantity as AstropyQuantity
 from plum import conversion_method
 
-from ._base import AbstractQuantity
-from ._core import Quantity
-from ._fast import UncheckedQuantity
+from .base import AbstractQuantity
+from .core import Quantity
+from .fast import UncheckedQuantity
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=AstropyQuantity)  # type: ignore[misc]
