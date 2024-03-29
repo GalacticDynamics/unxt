@@ -25,8 +25,6 @@ from jaxtyping import Array, ArrayLike
 from plum import promote
 from quax import register as register_
 
-import quaxed.array_api as xp
-
 from ._base import AbstractQuantity, can_convert_unit
 from ._core import AbstractParametricQuantity, Quantity
 from ._distance import Distance
@@ -2318,6 +2316,21 @@ def _integer_pow_p(x: AbstractQuantity, *, y: Any) -> AbstractQuantity:
     return type_np(x)(value=lax.integer_pow(x.value, y), unit=x.unit**y)
 
 
+@register(lax.integer_pow_p)
+def _integer_pow_p_d(x: Distance, *, y: Any) -> Quantity:
+    """Integer power of a Distance.
+
+    Examples
+    --------
+    >>> from unxt import Distance
+    >>> q = Distance(2, "m")
+    >>> q ** 3
+    Quantity['volume'](Array(8, dtype=int32), unit='m3')
+
+    """
+    return Quantity(value=lax.integer_pow(x.value, y), unit=x.unit**y)
+
+
 # ==============================================================================
 
 
@@ -2700,25 +2713,29 @@ def _pow_p_qq(
 
 
 @register(lax.pow_p)
-def _pow_p_qf(x: AbstractQuantity, y: ArrayLike | int | float) -> AbstractQuantity:
+def _pow_p_qf(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     return type_np(x)(value=lax.pow(x.value, y), unit=x.unit**y)
 
 
 @register(lax.pow_p)
-def _pow_p_d(x: Distance, y: Any) -> Quantity:
+def _pow_p_d(
+    x: Distance,
+    y: ArrayLike | AbstractParametricQuantity["dimensionless"],
+) -> Quantity:
     """Power of a Distance by redispatching to Quantity.
 
     Examples
     --------
+    >>> import math
     >>> from unxt import Distance
 
-    >>> q1 = Distance(10, "m")
-    >>> y = 3
+    >>> q1 = Distance(10.0, "m")
+    >>> y = 3.0
     >>> q1 ** y
     Quantity["volume"](Array(1000, dtype=int32), unit='m3')
 
     """
-    return xp.pow(Quantity(x.value, x.unit), y)  # TODO: better call to power
+    return Quantity(x.value, x.unit) ** y  # TODO: better call to power
 
 
 # ==============================================================================
