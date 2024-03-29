@@ -1681,7 +1681,7 @@ def _dot_general_dd(
     Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
 
     """
-    return type_np(lhs)(
+    return Quantity(
         lax.dot_general_p.bind(
             lhs.value,
             rhs.value,
@@ -2880,7 +2880,7 @@ def _rem_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> q1 = UncheckedQuantity(10, "m")
     >>> q2 = UncheckedQuantity(3, "m")
     >>> q1 % q2
-    UncheckedQuantity(Array(1, dtype=int32), unit='m')
+    UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
 
     >>> from unxt import Quantity
     >>> q1 = Quantity(10, "m")
@@ -2892,7 +2892,7 @@ def _rem_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> q1 = Distance(10, "m")
     >>> q2 = Quantity(3, "m")
     >>> q1 % q2
-    Distance(Array(1, dtype=int32), unit='m')
+    Distance(Array(1, dtype=int32, ...), unit='m')
 
     """
     return replace(x, value=lax.rem(x.value, y.to_value(x.unit)))
