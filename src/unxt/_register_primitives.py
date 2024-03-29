@@ -22,10 +22,12 @@ from jax._src.lax.slicing import GatherDimensionNumbers, GatherScatterMode
 from jax._src.typing import Shape
 from jax.core import Primitive
 from jaxtyping import Array, ArrayLike
+from plum import promote
 from quax import register as register_
 
 from ._base import AbstractQuantity, can_convert_unit
 from ._core import AbstractParametricQuantity, Quantity
+from ._distance import Distance
 from ._utils import type_unparametrized as type_np
 
 T = TypeVar("T")
@@ -452,6 +454,7 @@ def _atan2_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     UncheckedQuantity(Array(0.32175055, dtype=float32), unit='rad')
 
     """
+    x, y = promote(x, y)  # e.g. Distance -> Quantity
     y_ = y.to_value(x.unit)
     return type_np(x)(lax.atan2(x.value, y_), unit=radian)
 
@@ -472,6 +475,7 @@ def _atan2_p_qq(
     Quantity['angle'](Array(0.32175055, dtype=float32), unit='rad')
 
     """
+    x, y = promote(x, y)  # e.g. Distance -> Quantity
     y_ = y.to_value(x.unit)
     return type_np(x)(lax.atan2(x.value, y_), unit=radian)
 
@@ -702,6 +706,23 @@ def _cbrt_p(x: AbstractQuantity) -> AbstractQuantity:
     return type_np(x)(lax.cbrt(x.value), unit=x.unit ** (1 / 3))
 
 
+# TODO: can this be done with promotion/conversion instead?
+@register(lax.cbrt_p)
+def _cbrt_p_d(x: Distance) -> Quantity:
+    """Cube root of a distance.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> from unxt import Distance
+    >>> d = Distance(8, "m")
+    >>> jnp.cbrt(d)
+    Quantity['m1/3'](Array(2., dtype=float32), unit='m(1/3)')
+
+    """
+    return Quantity(lax.cbrt(x.value), unit=x.unit ** (1 / 3))
+
+
 # ==============================================================================
 
 
@@ -919,7 +940,14 @@ def _complex_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> lax.complex(x, y)
     UncheckedQuantity(Array(1.+2.j, dtype=complex64, weak_type=True), unit='m')
 
+    >>> from unxt import Quantity
+    >>> x = Quantity(1.0, "m")
+    >>> y = Quantity(2.0, "m")
+    >>> lax.complex(x, y)
+    Quantity['length'](Array(1.+2.j, dtype=complex64, weak_type=True), unit='m')
+
     """
+    x, y = promote(x, y)  # e.g. Distance -> Quantity
     y_ = y.to_value(x.unit)
     return replace(x, value=lax.complex(x.value, y_))
 
@@ -930,7 +958,7 @@ def _complex_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
 @register(lax.concatenate_p)
 def _concatenate_p_aq(*operands: AbstractQuantity, dimension: Any) -> AbstractQuantity:
-    """Concatenate quantities and arrays with dimensionless units.
+    """Concatenate quantities.
 
     Examples
     --------
@@ -1436,6 +1464,7 @@ def _div_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     Quantity['speed'](Array(0.5, dtype=float32), unit='m / s')
 
     """
+    x, y = promote(x, y)
     unit = Unit(x.unit / y.unit)
     return type_np(x)(lax.div(x.value, y.value), unit=unit)
 
@@ -1557,7 +1586,7 @@ def _dot_general_qq(
     This is a dot product of two quantities.
 
     >>> import quaxed.array_api as xp
-    >>> from unxt import Quantity, UncheckedQuantity
+    >>> from unxt import UncheckedQuantity
 
     >>> q1 = UncheckedQuantity([1, 2, 3], "m")
     >>> q2 = UncheckedQuantity([4, 5, 6], "m")
@@ -1566,7 +1595,18 @@ def _dot_general_qq(
     >>> q1 @ q2
     UncheckedQuantity(Array(32, dtype=int32), unit='m2')
 
+    >>> from unxt import Quantity
+
     >>> q1 = Quantity([1, 2, 3], "m")
+    >>> q2 = Quantity([4, 5, 6], "m")
+    >>> xp.vecdot(q1, q2)
+    Quantity['area'](Array(32, dtype=int32), unit='m2')
+    >>> q1 @ q2
+    Quantity['area'](Array(32, dtype=int32), unit='m2')
+
+    >>> from unxt import Distance
+
+    >>> q1 = Distance([1, 2, 3], "m")
     >>> q2 = Quantity([4, 5, 6], "m")
     >>> xp.vecdot(q1, q2)
     Quantity['area'](Array(32, dtype=int32), unit='m2')
@@ -1588,7 +1628,60 @@ def _dot_general_qq(
     Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
 
     """
+    lhs, rhs = promote(lhs, rhs)
     return type_np(lhs)(
+        lax.dot_general_p.bind(
+            lhs.value,
+            rhs.value,
+            dimension_numbers=dimension_numbers,
+            precision=precision,
+            preferred_element_type=preferred_element_type,
+        ),
+        unit=lhs.unit * rhs.unit,
+    )
+
+
+@register(lax.dot_general_p)
+def _dot_general_dd(
+    lhs: Distance,
+    rhs: Distance,
+    *,
+    dimension_numbers: DotDimensionNumbers,
+    precision: PrecisionLike,
+    preferred_element_type: DTypeLike | None = None,
+) -> Quantity:
+    """Dot product of two Distances.
+
+    Examples
+    --------
+    This is a dot product of two Distances.
+
+    >>> import quaxed.array_api as xp
+    >>> from unxt import Distance
+
+    >>> q1 = Distance([1, 2, 3], "m")
+    >>> q2 = Distance([4, 5, 6], "m")
+    >>> xp.vecdot(q1, q2)
+    Quantity['area'](Array(32, dtype=int32), unit='m2')
+    >>> q1 @ q2
+    Quantity['area'](Array(32, dtype=int32), unit='m2')
+
+    This rule is also used by `jnp.matmul` for quantities.
+
+    >>> Rz = xp.asarray([[0, -1,  0],
+    ...                  [1,  0,  0],
+    ...                  [0,  0,  1]])
+    >>> q = Quantity([1, 0, 0], "m")
+    >>> Rz @ q
+    Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
+
+    This uses `matmul` for quantities.
+
+    >>> xp.linalg.matmul(Rz, q)
+    Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
+
+    """
+    return Quantity(
         lax.dot_general_p.bind(
             lhs.value,
             rhs.value,
@@ -2223,6 +2316,21 @@ def _integer_pow_p(x: AbstractQuantity, *, y: Any) -> AbstractQuantity:
     return type_np(x)(value=lax.integer_pow(x.value, y), unit=x.unit**y)
 
 
+@register(lax.integer_pow_p)
+def _integer_pow_p_d(x: Distance, *, y: Any) -> Quantity:
+    """Integer power of a Distance.
+
+    Examples
+    --------
+    >>> from unxt import Distance
+    >>> q = Distance(2, "m")
+    >>> q ** 3
+    Quantity['volume'](Array(8, dtype=int32), unit='m3')
+
+    """
+    return Quantity(value=lax.integer_pow(x.value, y), unit=x.unit**y)
+
+
 # ==============================================================================
 
 
@@ -2605,8 +2713,26 @@ def _pow_p_qq(
 
 
 @register(lax.pow_p)
-def _pow_p_qf(x: AbstractQuantity, y: ArrayLike | int | float) -> AbstractQuantity:
+def _pow_p_qf(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     return type_np(x)(value=lax.pow(x.value, y), unit=x.unit**y)
+
+
+@register(lax.pow_p)
+def _pow_p_d(x: Distance, y: ArrayLike) -> Quantity:
+    """Power of a Distance by redispatching to Quantity.
+
+    Examples
+    --------
+    >>> import math
+    >>> from unxt import Distance
+
+    >>> q1 = Distance(10.0, "m")
+    >>> y = 3.0
+    >>> q1 ** y
+    Quantity['volume'](Array(1000., dtype=float32, ...), unit='m3')
+
+    """
+    return Quantity(x.value, x.unit) ** y  # TODO: better call to power
 
 
 # ==============================================================================
@@ -2761,6 +2887,30 @@ def _regularized_incomplete_beta_p() -> AbstractQuantity:
 
 @register(lax.rem_p)
 def _rem_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+    """Remainder of two quantities.
+
+    Examples
+    --------
+    >>> from unxt import UncheckedQuantity
+
+    >>> q1 = UncheckedQuantity(10, "m")
+    >>> q2 = UncheckedQuantity(3, "m")
+    >>> q1 % q2
+    UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
+
+    >>> from unxt import Quantity
+    >>> q1 = Quantity(10, "m")
+    >>> q2 = Quantity(3, "m")
+    >>> q1 % q2
+    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+
+    >>> from unxt import Distance
+    >>> q1 = Distance(10, "m")
+    >>> q2 = Quantity(3, "m")
+    >>> q1 % q2
+    Distance(Array(1, dtype=int32, ...), unit='m')
+
+    """
     return replace(x, value=lax.rem(x.value, y.to_value(x.unit)))
 
 

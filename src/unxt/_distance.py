@@ -6,6 +6,7 @@ __all__ = ["Distance"]
 from typing import Any, TypeVar, final
 
 import astropy.units as u
+from plum import add_conversion_method, add_promotion_rule
 
 import quaxed.array_api as xp
 import quaxed.numpy as qnp
@@ -48,6 +49,10 @@ class Distance(AbstractQuantity):
         return 5 * qnp.log10(self / base_length)
 
 
+# ============================================================================
+# Additional constructors
+
+
 @Distance.constructor._f.register  # type: ignore[attr-defined,misc]  # noqa: SLF001
 def constructor(
     cls: type[Distance], value: Quantity["angle"], /, *, dtype: Any = None
@@ -55,3 +60,21 @@ def constructor(
     """Construct a `Distance` from an angle through the parallax."""
     d = parallax_base_length / xp.tan(value)
     return cls(xp.asarray(d.value, dtype=dtype), d.unit)
+
+
+# ============================================================================
+# Conversion and Promotion
+
+# Add a rule that when a Distance interacts with a Quantity, the distance
+# degrades to a Quantity. This is necessary for many operations, e.g. division
+# of a distance by non-dimensionless quantity where the resulting units are not
+# those of a distance.
+add_promotion_rule(Distance, Quantity, Quantity)
+
+
+def _convert_distance_to_quantity(x: Distance) -> Quantity:
+    """Convert a distance to a quantity."""
+    return Quantity(x.value, x.unit)
+
+
+add_conversion_method(Distance, Quantity, _convert_distance_to_quantity)
