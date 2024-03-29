@@ -11,8 +11,8 @@ from plum import add_conversion_method, add_promotion_rule
 import quaxed.array_api as xp
 import quaxed.numpy as qnp
 
-from ._base import AbstractQuantity
-from ._core import Quantity
+from .base import AbstractQuantity
+from .core import Quantity
 
 FMT = TypeVar("FMT")
 

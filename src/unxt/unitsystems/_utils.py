@@ -9,7 +9,7 @@ from plum import dispatch
 from ._base import AbstractUnitSystem
 from ._core import DimensionlessUnitSystem, UnitSystem
 from ._realizations import NAMED_UNIT_SYSTEMS, dimensionless
-from unxt._base import AbstractQuantity
+from unxt._quantity.base import AbstractQuantity
 from unxt._typing import Unit
 
 

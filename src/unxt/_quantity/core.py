@@ -14,7 +14,7 @@ from plum import parametric
 
 from quaxed.array_api._dispatch import dispatcher
 
-from ._base import AbstractQuantity
+from .base import AbstractQuantity
 
 FMT = TypeVar("FMT")
 

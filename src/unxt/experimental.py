@@ -18,8 +18,8 @@ import jax
 from astropy.units import UnitBase as Unit
 from jaxtyping import ArrayLike
 
-from ._core import Quantity
-from ._utils import type_unparametrized
+from ._quantity.core import Quantity
+from ._quantity.utils import type_unparametrized
 
 P = ParamSpec("P")
 R = TypeVar("R", bound=Quantity)

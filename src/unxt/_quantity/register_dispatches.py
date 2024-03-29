@@ -10,9 +10,9 @@ from jax import Device
 from quaxed.array_api._dispatch import dispatcher as dispatcher_
 from quaxed.array_api._types import DType
 
-from ._base import AbstractQuantity
-from ._core import Quantity
-from ._utils import type_unparametrized as type_np
+from .base import AbstractQuantity
+from .core import Quantity
+from .utils import type_unparametrized as type_np
 
 T = TypeVar("T")
 
