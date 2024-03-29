@@ -22,8 +22,10 @@ from jax._src.lax.slicing import GatherDimensionNumbers, GatherScatterMode
 from jax._src.typing import Shape
 from jax.core import Primitive
 from jaxtyping import Array, ArrayLike
-from plum import convert, promote
+from plum import promote
 from quax import register as register_
+
+import quaxed.array_api as xp
 
 from ._base import AbstractQuantity, can_convert_unit
 from ._core import AbstractParametricQuantity, Quantity
@@ -2716,7 +2718,7 @@ def _pow_p_d(x: Distance, y: Any) -> Quantity:
     Quantity["volume"](Array(1000, dtype=int32), unit='m3')
 
     """
-    return convert(x, Quantity) ** y  # TODO: better call to power
+    return xp.pow(Quantity(x.value, x.unit), y)  # TODO: better call to power
 
 
 # ==============================================================================
@@ -2886,7 +2888,7 @@ def _rem_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> q1 = Quantity(10, "m")
     >>> q2 = Quantity(3, "m")
     >>> q1 % q2
-    Quantity['length'](Array(1, dtype=int32), unit='m')
+    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     >>> from unxt import Distance
     >>> q1 = Distance(10, "m")
