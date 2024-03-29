@@ -28,19 +28,19 @@ def type_unparametrized(q: AbstractQuantity) -> type[AbstractQuantity]:
     UncheckedQuantity(Array(1, dtype=int32, weak_type=True), unit='m')
 
     >>> type_unparametrized(q)
-    <class 'unxt._fast.UncheckedQuantity'>
+    <class 'unxt...UncheckedQuantity'>
 
     >>> q = Quantity(1, "m")
     >>> q
     Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
 
     >>> type_unparametrized(q)
-    <class 'unxt._core.Quantity'>
+    <class 'unxt...Quantity'>
 
     This is different from `type` for parametric types.
 
     >>> type(q)
-    <class 'unxt._core.Quantity[PhysicalType('length')]'>
+    <class 'unxt...Quantity[PhysicalType('length')]'>
 
     """
     typ = type(q)
