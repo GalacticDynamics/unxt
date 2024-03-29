@@ -2729,7 +2729,7 @@ def _pow_p_d(x: Distance, y: ArrayLike) -> Quantity:
     >>> q1 = Distance(10.0, "m")
     >>> y = 3.0
     >>> q1 ** y
-    Quantity["volume"](Array(1000, dtype=int32), unit='m3')
+    Quantity['volume'](Array(1000., dtype=float32, ...), unit='m3')
 
     """
     return Quantity(x.value, x.unit) ** y  # TODO: better call to power
