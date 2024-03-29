@@ -2718,10 +2718,7 @@ def _pow_p_qf(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 
 @register(lax.pow_p)
-def _pow_p_d(
-    x: Distance,
-    y: ArrayLike | AbstractParametricQuantity["dimensionless"],
-) -> Quantity:
+def _pow_p_d(x: Distance, y: ArrayLike) -> Quantity:
     """Power of a Distance by redispatching to Quantity.
 
     Examples
