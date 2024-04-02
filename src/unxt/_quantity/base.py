@@ -48,7 +48,7 @@ def bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
             return NotImplemented
 
         try:
-            other_value = other.to_value(self.unit)
+            other_value = other.to_units_value(self.unit)
         except UnitConversionError:
             return jnp.full(self.value.shape, fill_value=False, dtype=bool)
 
@@ -141,6 +141,35 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         *,
         dtype: Any = None,
     ) -> "AbstractQuantity":
+        """Construct a `Quantity` from an array-like value and a unit.
+
+        Parameters
+        ----------
+        value : ArrayLike
+            The array-like value.
+        unit : Any
+            The unit of the value.
+
+        dtype : Any, optional
+            The data type of the array.
+
+        Returns
+        -------
+        AbstractQuantity
+
+        Examples
+        --------
+        For this example we'll use the `Quantity` class. The same applies to
+        any subclass of `AbstractQuantity`.
+
+        >>> import jax.numpy as jnp
+        >>> from unxt import Quantity
+
+        >>> x = jnp.array([1.0, 2, 3])
+        >>> Quantity.constructor(x, "m")
+        Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+
+        """
         # Dispatch on both arguments.
         # Construct using the standard `__init__` method.
         return cls(xp.asarray(value, dtype=dtype), unit)
@@ -150,6 +179,12 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     def constructor(
         cls: "type[AbstractQuantity]", value: ArrayLike, *, unit: Any, dtype: Any = None
     ) -> "AbstractQuantity":
+        """Construct a `Quantity` from an array-like value and a unit kwarg.
+
+        This is a convenience method for constructing a `Quantity` when the
+        unit is given as a keyword argument. It is equivalent to calling
+        ``Quantity.constructor(value, unit)`` as positional arguments.
+        """
         # Dispatch on the `value` only. Dispatch to the full constructor.
         return cls.constructor(value, unit, dtype=dtype)
 
@@ -158,8 +193,16 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     def constructor(
         cls: "type[AbstractQuantity]", *, value: ArrayLike, unit: Any, dtype: Any = None
     ) -> "AbstractQuantity":
+        """Construct a `Quantity` from value and unit kwargs.
+
+        This is a convenience method for constructing a `Quantity` when both the
+        value and the unit are given as a keyword arguments. It is equivalent to
+        calling ``Quantity.constructor(value, unit)`` as positional arguments.
+        """
         # Dispatched on no argument. Dispatch to the full constructor.
         return cls.constructor(value, unit, dtype=dtype)
+
+    # See below for additional constructors.
 
     # ===============================================================
     # Quax
@@ -180,12 +223,52 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         return replace(self, value=self.value, unit=self.unit)
 
     # ===============================================================
-    # Quantity
+    # Quantity API
 
-    def to(self, units: Unit) -> "AbstractQuantity":
+    def to_units(self, units: Unit) -> "AbstractQuantity":
+        """Convert the quantity to the given units.
+
+        Parameters
+        ----------
+        units : Unit
+            The units to convert to.
+
+        Returns
+        -------
+        AbstractQuantity
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+
+        >>> q = Quantity(1, "m")
+        >>> q.to_units("cm")
+        Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
+
+        """
         return replace(self, value=self.value * self.unit.to(units), unit=units)
 
-    def to_value(self, units: Unit) -> ArrayLike:
+    def to_units_value(self, units: Unit) -> ArrayLike:
+        """Return the value in the given units.
+
+        Parameters
+        ----------
+        units : Unit
+            The units to convert to.
+
+        Returns
+        -------
+        ArrayLike
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+
+        >>> q = Quantity(1, "m")
+        >>> q.to_units_value("cm")
+        Array(100., dtype=float32, weak_type=True)
+
+        """
         if units == self.unit:
             return self.value
         return self.value * self.unit.to(units)  # TODO: allow affine transforms
@@ -195,6 +278,22 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         du = self.unit.decompose(bases)  # decomposed units
         base_units = CompositeUnit(scale=1, bases=du.bases, powers=du.powers)
         return replace(self, value=self.value * du.scale, unit=base_units)
+
+    # ===============================================================
+    # Astropy Quantity API
+
+    def to(self, units: Unit) -> "AbstractQuantity":
+        """Convert the quantity to the given units.
+
+        See :meth:`AbstractQuantity.to_units`.
+        """
+        return self.to_units(units)
+
+    def to_value(self, units: Unit) -> ArrayLike:
+        """Return the value in the given units.
+
+        See :meth:`AbstractQuantity.to_units_value`.
+        """
 
     # ===============================================================
     # Array API
@@ -304,7 +403,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
             raise UnitConversionError
 
         # TODO: figure out how to defer to quaxed (e.g. quaxed.operator.mod)
-        return replace(self, value=self.value % other.to_value(self.unit))
+        return replace(self, value=self.value % other.to_units_value(self.unit))
 
     # ===============================================================
     # Python stuff
@@ -354,8 +453,17 @@ def constructor(
     """Construct a `Quantity` from another `Quantity`.
 
     The `value` is converted to the new `unit`.
+
+    Examples
+    --------
+    >>> from unxt import Quantity
+
+    >>> q = Quantity(1, "m")
+    >>> Quantity.constructor(q, "cm")
+    Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
+
     """
-    value = xp.asarray(value.to(unit), dtype=dtype)
+    value = xp.asarray(value.to_units(unit), dtype=dtype)
     return cls(value.value, unit)
 
 
@@ -370,7 +478,7 @@ def constructor(
 ) -> AbstractQuantity:
     """Construct a `Quantity` from another `Quantity`, with no unit change."""
     unit = value.unit if unit is None else unit
-    value = xp.asarray(value.to(unit), dtype=dtype)
+    value = xp.asarray(value.to_units(unit), dtype=dtype)
     return cls(value.value, unit)
 
 

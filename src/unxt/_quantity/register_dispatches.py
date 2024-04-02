@@ -38,8 +38,8 @@ def arange(
     return Quantity(
         jax_xp.arange(
             start.value,
-            stop=stop.to_value(unit) if stop is not None else None,
-            step=step.to_value(unit) if step is not None else None,
+            stop=stop.to_units_value(unit) if stop is not None else None,
+            step=step.to_units_value(unit) if step is not None else None,
             dtype=dtype,
             device=device,
         ),
@@ -82,7 +82,7 @@ def full_like(
     dtype: Any = None,
     device: Any = None,
 ) -> AbstractQuantity:
-    fill_val = fill_value.to_value(x.unit)
+    fill_val = fill_value.to_units_value(x.unit)
     return type_np(x)(
         jax_xp.full_like(x.value, fill_val, dtype=dtype, device=device), unit=x.unit
     )
@@ -118,8 +118,8 @@ def linspace(
     unit = start.unit
     return Quantity(
         jax_xp.linspace(
-            start.to_value(unit),
-            stop.to_value(unit),
+            start.to_units_value(unit),
+            stop.to_units_value(unit),
             num=num,
             dtype=dtype,
             device=device,

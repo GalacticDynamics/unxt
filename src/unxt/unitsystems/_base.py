@@ -119,4 +119,5 @@ class AbstractUnitSystem:
     def as_preferred(self, quantity: AbstractQuantity | u.Quantity) -> Quantity:
         """Convert a quantity to the preferred unit for this unit system."""
         unit = self.preferred(quantity.unit.physical_type)
+        # Note that it's necessary to
         return cast(AbstractQuantity, Quantity.constructor(quantity.to(unit), unit))
