@@ -114,16 +114,16 @@ def test_array_namespace():
     assert Quantity(1, u.m).__array_namespace__() is quaxed.array_api
 
 
-def test_to():
-    """Test the ``Quantity.to`` method."""
+def test_to_units():
+    """Test the ``Quantity.to_units`` method."""
     q = Quantity(1, u.m)
-    assert qnp.equal(q.to(u.km), Quantity(0.001, u.km))
+    assert qnp.equal(q.to_units(u.km), Quantity(0.001, u.km))
 
 
-def test_to_value():
-    """Test the ``Quantity.to`` method."""
+def test_to_units_value():
+    """Test the ``Quantity.to_units_value`` method."""
     q = Quantity(1, u.m)
-    assert q.to_value(u.km) == Quantity(0.001, u.km).value
+    assert q.to_units_value(u.km) == Quantity(0.001, u.km).value
 
 
 @pytest.mark.skip("TODO")

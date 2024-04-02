@@ -80,7 +80,7 @@ def test_arange_stop():
     start = Quantity(2, u.m)
     stop = Quantity(10, u.km)
     got = xp.arange(start, stop)
-    expected = Quantity(xp.arange(start.value, stop.to_value(start.unit)), u.m)
+    expected = Quantity(xp.arange(start.value, stop.to_units_value(start.unit)), u.m)
 
     assert isinstance(got, Quantity)
     assert got.unit == expected.unit
@@ -94,7 +94,11 @@ def test_arange_step():
     step = Quantity(2, u.m)
     got = xp.arange(start, stop, step)
     expected = Quantity(
-        xp.arange(start.value, stop.to_value(start.unit), step.to_value(start.unit)),
+        xp.arange(
+            start.value,
+            stop.to_units_value(start.unit),
+            step.to_units_value(start.unit),
+        ),
         u.m,
     )
 
