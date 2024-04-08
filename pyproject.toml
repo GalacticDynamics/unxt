@@ -24,9 +24,9 @@
   ]
   dependencies = [
     "quaxed >= 0.3",
-    "astropy",
-    "equinox",
-    "jax",
+    "astropy>=6.0",
+    "equinox>0.11",
+    "jax>0.4",
     "jaxlib",
     "jaxtyping",
     "quax>=0.0.3",
