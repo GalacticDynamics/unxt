@@ -294,6 +294,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
 
         See :meth:`AbstractQuantity.to_units_value`.
         """
+        return self.to_units_value(units)
 
     # ===============================================================
     # Array API
