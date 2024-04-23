@@ -98,19 +98,6 @@ class Distance(AbstractDistance):
         return 5 * qnp.log10(self / base_length)
 
 
-# ============================================================================
-# Additional constructors
-
-
-@Distance.constructor._f.register  # type: ignore[attr-defined,misc]  # noqa: SLF001
-def constructor(
-    cls: type[Distance], value: Parallax | Quantity["angle"], /, *, dtype: Any = None
-) -> Distance:
-    """Construct a `Distance` from an angle through the parallax."""
-    d = parallax_base_length / xp.tan(value)
-    return cls(xp.asarray(d.value, dtype=dtype), d.unit)
-
-
 ##############################################################################
 
 
@@ -145,7 +132,7 @@ class Parallax(AbstractDistance):
         return Distance(v.value, v.unit)
 
     @property
-    def parallax(self) -> Parallax:
+    def parallax(self) -> "Parallax":
         """The parallax of the distance."""
         return self
 
@@ -159,7 +146,16 @@ class Parallax(AbstractDistance):
 # Additional constructors
 
 
-@Parallax.constructor._f.register  # type: ignore[attr-defined,misc,no-redef]  # noqa: SLF001
+@Distance.constructor._f.register  # noqa: SLF001
+def constructor(
+    cls: type[Distance], value: Parallax | Quantity["angle"], /, *, dtype: Any = None
+) -> Distance:
+    """Construct a `Distance` from an angle through the parallax."""
+    d = parallax_base_length / xp.tan(value)
+    return cls(xp.asarray(d.value, dtype=dtype), d.unit)
+
+
+@Parallax.constructor._f.register  # type: ignore[no-redef]  # noqa: SLF001
 def constructor(
     cls: type[Parallax], value: Distance | Quantity["length"], /, *, dtype: Any = None
 ) -> Parallax:
