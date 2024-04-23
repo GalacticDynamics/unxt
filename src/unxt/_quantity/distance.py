@@ -32,12 +32,12 @@ class AbstractDistance(AbstractQuantity):
 
     @property
     @abstractmethod
-    def distance(self) -> Distance:
+    def distance(self) -> "Distance":
         """The distance."""
 
     @property
     @abstractmethod
-    def parallax(self) -> Parallax:
+    def parallax(self) -> "Parallax":
         """The parallax."""
 
     @property
@@ -78,14 +78,14 @@ class Distance(AbstractDistance):
             raise ValueError(msg)
 
     @property
-    def distance(self) -> Distance:
+    def distance(self) -> "Distance":
         """The distance."""
         return self
 
     @property
     def parallax(  # noqa: PLR0206  (needed for quax boundary)
         self, base_length: Quantity["length"] = parallax_base_length
-    ) -> Parallax:
+    ) -> "Parallax":
         """The parallax of the distance."""
         v = qnp.arctan2(base_length, self)
         return Parallax(v.value, v.unit)
