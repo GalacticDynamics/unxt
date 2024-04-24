@@ -9,6 +9,7 @@ from typing import Any, TypeVar, final
 
 import astropy.units as u
 import equinox as eqx
+import jax.numpy as jnp
 from plum import add_conversion_method, add_promotion_rule
 
 import quaxed.array_api as xp
@@ -95,7 +96,7 @@ class Distance(AbstractDistance):
         self, base_length: Quantity["length"] = distance_modulus_base_distance
     ) -> Quantity:
         """The distance modulus."""
-        return 5 * qnp.log10(self / base_length)
+        return 5 * xp.log10(self / base_length)
 
 
 ##############################################################################
@@ -119,16 +120,19 @@ class Parallax(AbstractDistance):
             msg = "Parallax must have dimensions angle."
             raise ValueError(msg)
 
-        if self.check_negative and (self.value < 0).any():
-            msg = "Parallax must be positive."
-            raise ValueError(msg)
+        if self.check_negative:
+            eqx.error_if(
+                self.value,
+                jnp.any(jnp.less(self.value, 0)),
+                "Parallax must be non-negative.",
+            )
 
     @property
     def distance(  # noqa: PLR0206  (needed for quax boundary)
         self, base_length: Quantity["length"] = parallax_base_length
     ) -> Distance:
         """The distance."""
-        v = base_length / qnp.tan(self)
+        v = base_length / xp.tan(self)
         return Distance(v.value, v.unit)
 
     @property
@@ -160,5 +164,5 @@ def constructor(
     cls: type[Parallax], value: Distance | Quantity["length"], /, *, dtype: Any = None
 ) -> Parallax:
     """Construct a `Parallax` from a distance."""
-    p = qnp.arctan2(parallax_base_length, value)
+    p = xp.atan2(parallax_base_length, value)
     return cls(xp.asarray(p.value, dtype=dtype), p.unit)
