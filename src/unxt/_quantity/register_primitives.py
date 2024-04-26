@@ -28,7 +28,7 @@ from quax import register as register_
 from .base import AbstractQuantity, can_convert_unit
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
-from .distance import Distance
+from .distance import AbstractDistance
 from .utils import type_unparametrized as type_np
 
 T = TypeVar("T")
@@ -713,7 +713,7 @@ def _cbrt_p(x: AbstractQuantity) -> AbstractQuantity:
 
 # TODO: can this be done with promotion/conversion instead?
 @register(lax.cbrt_p)
-def _cbrt_p_d(x: Distance) -> Quantity:
+def _cbrt_p_d(x: AbstractDistance) -> Quantity:
     """Cube root of a distance.
 
     Examples
@@ -1654,8 +1654,8 @@ def _dot_general_qq(
 
 @register(lax.dot_general_p)
 def _dot_general_dd(
-    lhs: Distance,
-    rhs: Distance,
+    lhs: AbstractDistance,
+    rhs: AbstractDistance,
     *,
     dimension_numbers: DotDimensionNumbers,
     precision: PrecisionLike,
@@ -2328,7 +2328,7 @@ def _integer_pow_p(x: AbstractQuantity, *, y: Any) -> AbstractQuantity:
 
 
 @register(lax.integer_pow_p)
-def _integer_pow_p_d(x: Distance, *, y: Any) -> Quantity:
+def _integer_pow_p_d(x: AbstractDistance, *, y: Any) -> Quantity:
     """Integer power of a Distance.
 
     Examples
@@ -2729,7 +2729,7 @@ def _pow_p_qf(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 
 @register(lax.pow_p)
-def _pow_p_d(x: Distance, y: ArrayLike) -> Quantity:
+def _pow_p_d(x: AbstractDistance, y: ArrayLike) -> Quantity:
     """Power of a Distance by redispatching to Quantity.
 
     Examples
@@ -3287,6 +3287,12 @@ def _sub_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 @register(lax.tan_p)
 def _tan_p(x: AbstractQuantity) -> AbstractQuantity:
     return type_np(x)(lax.tan(_to_value_rad_or_one(x)), unit=one)
+
+
+# TODO: figure out a promotion alternative that works in general
+@register(lax.tan_p)
+def _tan_p_d(x: AbstractDistance) -> Quantity["dimensionless"]:
+    return Quantity(lax.tan(_to_value_rad_or_one(x)), unit=one)
 
 
 # ==============================================================================
