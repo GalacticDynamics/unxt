@@ -2276,8 +2276,9 @@ def _igamma_grad_a_p() -> AbstractQuantity:
 
 
 @register(lax.igamma_p)
-def _igamma_p() -> AbstractQuantity:
-    raise NotImplementedError
+def _igamma_p(a: AbstractQuantity, x: AbstractQuantity) -> AbstractQuantity:
+    """Regularized incomplete gamma function of a and x."""
+    return lax.igamma(a.to_units_value(one), x.to_units_value(one))
 
 
 # ==============================================================================
@@ -2726,6 +2727,13 @@ def _pow_p_qq(
 @register(lax.pow_p)
 def _pow_p_qf(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     return type_np(x)(value=lax.pow(x.value, y), unit=x.unit**y)
+
+
+@register(lax.pow_p)
+def _pow_p_vq(
+    x: ArrayLike, y: AbstractParametricQuantity["dimensionless"]
+) -> AbstractQuantity:
+    return replace(y, value=lax.pow(x, y.value))
 
 
 @register(lax.pow_p)
