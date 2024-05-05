@@ -929,7 +929,6 @@ def test_positive():
     assert jnp.array_equal(got.value, expected.value)
 
 
-@pytest.mark.xfail(reason="FIX ME!")
 def test_pow_quantity_power():
     """Test `pow`."""
     x = Quantity(xp.asarray([1, 2, 3], dtype=float), u.m)
