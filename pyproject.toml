@@ -176,7 +176,7 @@
 
 
 [tool.pylint]
-  ignore-paths = [".*/_version.py"]
+  ignore-paths = [".*/_version.py", ".*/_compat.py"]
   messages_control.disable = [
     "design",
     "fixme",
