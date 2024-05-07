@@ -66,16 +66,16 @@ def _abs_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import Quantity
     >>> q = Quantity(-1, "m")
     >>> xp.abs(q)
-    Quantity['length'](Array(1, dtype=int32), unit='m')
+    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
     >>> abs(q)
-    Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
+    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(-1, "m")
     >>> xp.abs(q)
-    UncheckedQuantity(Array(1, dtype=int32), unit='m')
+    UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
     >>> abs(q)
-    UncheckedQuantity(Array(1, dtype=int32, weak_type=True), unit='m')
+    UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
 
     """
     return replace(x, value=lax.abs(x.value))
@@ -119,12 +119,12 @@ def _acosh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(2.0, "")
     >>> xp.acosh(q)
-    UncheckedQuantity(Array(1.316958, dtype=float32), unit='rad')
+    UncheckedQuantity(Array(1.316958, dtype=float32, ...), unit='rad')
 
     >>> from unxt import Quantity
     >>> q = Quantity(2.0, "")
     >>> xp.acosh(q)
-    Quantity['angle'](Array(1.316958, dtype=float32), unit='rad')
+    Quantity['angle'](Array(1.316958, dtype=float32, ...), unit='rad')
 
     """
     x_ = x.to_units_value(one)
@@ -147,17 +147,17 @@ def _add_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> q1 = UncheckedQuantity(1.0, "km")
     >>> q2 = UncheckedQuantity(500.0, "m")
     >>> xp.add(q1, q2)
-    UncheckedQuantity(Array(1.5, dtype=float32), unit='km')
+    UncheckedQuantity(Array(1.5, dtype=float32, ...), unit='km')
     >>> q1 + q2
-    UncheckedQuantity(Array(1.5, dtype=float32, weak_type=True), unit='km')
+    UncheckedQuantity(Array(1.5, dtype=float32, ...), unit='km')
 
     >>> from unxt import Quantity
     >>> q1 = Quantity(1.0, "km")
     >>> q2 = Quantity(500.0, "m")
     >>> xp.add(q1, q2)
-    Quantity['length'](Array(1.5, dtype=float32), unit='km')
+    Quantity['length'](Array(1.5, dtype=float32, ...), unit='km')
     >>> q1 + q2
-    Quantity['length'](Array(1.5, dtype=float32, weak_type=True), unit='km')
+    Quantity['length'](Array(1.5, dtype=float32, ...), unit='km')
 
     """
     return replace(x, value=lax.add(x.value, y.to_units_value(x.unit)))
@@ -182,9 +182,9 @@ def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     Cannot add a non-quantity and quantity.
     >>> q2 = UncheckedQuantity(100.0, "")
     >>> xp.add(x1, q2)
-    UncheckedQuantity(Array(600., dtype=float32), unit='')
+    UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
     >>> x1 + q2
-    UncheckedQuantity(Array(600., dtype=float32, weak_type=True), unit='')
+    UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
 
     >>> from unxt import Quantity
     >>> x1 = xp.asarray(500.0)
@@ -194,9 +194,9 @@ def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     Cannot add a non-quantity and quantity.
     >>> q2 = Quantity(100.0, "")
     >>> xp.add(x1, q2)
-    Quantity['dimensionless'](Array(600., dtype=float32), unit='')
+    Quantity['dimensionless'](Array(600., dtype=float32, ...), unit='')
     >>> x1 + q2
-    Quantity['dimensionless'](Array(600., dtype=float32, weak_type=True), unit='')
+    Quantity['dimensionless'](Array(600., dtype=float32, ...), unit='')
 
     """
     y = eqx.error_if(y, y.unit != one, "Cannot add a non-quantity and quantity.")
@@ -223,9 +223,9 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
     >>> q1 = UncheckedQuantity(100.0, "")
     >>> xp.add(q1, y)
-    UncheckedQuantity(Array(600., dtype=float32), unit='')
+    UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
     >>> q1 + y
-    UncheckedQuantity(Array(600., dtype=float32, weak_type=True), unit='')
+    UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
 
     >>> from unxt import Quantity
     >>> q1 = Quantity(1.0, "km")
@@ -238,9 +238,9 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
     >>> q1 = Quantity(100.0, "")
     >>> xp.add(q1, y)
-    Quantity[...](Array(600., dtype=float32), unit='')
+    Quantity[...](Array(600., dtype=float32, ...), unit='')
     >>> q1 + y
-    Quantity[...](Array(600., dtype=float32, weak_type=True), unit='')
+    Quantity[...](Array(600., dtype=float32, ...), unit='')
 
     """
     x = eqx.error_if(x, x.unit != one, "Cannot add a quantity and a non-quantity.")
@@ -296,13 +296,13 @@ def _and_p_aq(x1: AbstractQuantity, x2: AbstractQuantity, /) -> ArrayLike:
     >>> x1 = UncheckedQuantity(1, "")
     >>> x2 = UncheckedQuantity(2, "")
     >>> xp.bitwise_and(x1, x2)
-    Array(0, dtype=int32)
+    Array(0, dtype=int32, ...)
 
     >>> from unxt import Quantity
     >>> x1 = Quantity(1, "")
     >>> x2 = Quantity(2, "")
     >>> xp.bitwise_and(x1, x2)
-    Array(0, dtype=int32)
+    Array(0, dtype=int32, ...)
 
     """
     return lax.and_p.bind(x1.to_units_value(one), x2.to_units_value(one))
@@ -499,7 +499,7 @@ def _atan2_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     >>> x1 = xp.asarray(1.0)
     >>> q2 = UncheckedQuantity(3.0, "")
     >>> xp.atan2(x1, q2)
-    UncheckedQuantity(Array(0.32175055, dtype=float32), unit='rad')
+    UncheckedQuantity(Array(0.32175055, dtype=float32, ...), unit='rad')
 
     """
     y_ = y.to_units_value(one)
@@ -519,7 +519,7 @@ def _atan2_p_vq(
     >>> x1 = xp.asarray(1.0)
     >>> q2 = Quantity(3.0, "")
     >>> xp.atan2(x1, q2)
-    Quantity['angle'](Array(0.32175055, dtype=float32), unit='rad')
+    Quantity['angle'](Array(0.32175055, dtype=float32, ...), unit='rad')
 
     """
     y_ = y.to_units_value(one)
@@ -540,7 +540,7 @@ def _atan2_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     >>> q1 = UncheckedQuantity(1.0, "")
     >>> x2 = xp.asarray(3.0)
     >>> xp.atan2(q1, x2)
-    UncheckedQuantity(Array(0.32175055, dtype=float32), unit='rad')
+    UncheckedQuantity(Array(0.32175055, dtype=float32, ...), unit='rad')
 
     """
     x_ = x.to_units_value(one)
@@ -560,7 +560,7 @@ def _atan2_p_qv(
     >>> q1 = Quantity(1.0, "")
     >>> x2 = xp.asarray(3.0)
     >>> xp.atan2(q1, x2)
-    Quantity['angle'](Array(0.32175055, dtype=float32), unit='rad')
+    Quantity['angle'](Array(0.32175055, dtype=float32, ...), unit='rad')
 
     """
     x_ = x.to_units_value(one)
@@ -741,12 +741,12 @@ def _ceil_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1.5, "m")
     >>> xp.ceil(q)
-    UncheckedQuantity(Array(2., dtype=float32), unit='m')
+    UncheckedQuantity(Array(2., dtype=float32, ...), unit='m')
 
     >>> from unxt import Quantity
     >>> q = Quantity(1.5, "m")
     >>> xp.ceil(q)
-    Quantity['length'](Array(2., dtype=float32), unit='m')
+    Quantity['length'](Array(2., dtype=float32, ...), unit='m')
 
     """
     return replace(x, value=lax.ceil(x.value))
@@ -949,13 +949,13 @@ def _complex_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> x = UncheckedQuantity(1.0, "m")
     >>> y = UncheckedQuantity(2.0, "m")
     >>> lax.complex(x, y)
-    UncheckedQuantity(Array(1.+2.j, dtype=complex64, weak_type=True), unit='m')
+    UncheckedQuantity(Array(1.+2.j, dtype=complex64, ...), unit='m')
 
     >>> from unxt import Quantity
     >>> x = Quantity(1.0, "m")
     >>> y = Quantity(2.0, "m")
     >>> lax.complex(x, y)
-    Quantity['length'](Array(1.+2.j, dtype=complex64, weak_type=True), unit='m')
+    Quantity['length'](Array(1.+2.j, dtype=complex64, ...), unit='m')
 
     """
     x, y = promote(x, y)  # e.g. Distance -> Quantity
@@ -1093,12 +1093,12 @@ def _conj_p(x: AbstractQuantity, *, input_dtype: Any) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1 + 2j, "m")
     >>> xp.conj(q)
-    UncheckedQuantity(Array(1.-2.j, dtype=complex64), unit='m')
+    UncheckedQuantity(Array(1.-2.j, dtype=complex64, ...), unit='m')
 
     >>> from unxt import Quantity
     >>> q = Quantity(1 + 2j, "m")
     >>> xp.conj(q)
-    Quantity['length'](Array(1.-2.j, dtype=complex64), unit='m')
+    Quantity['length'](Array(1.-2.j, dtype=complex64, ...), unit='m')
 
     """
     del input_dtype  # TODO: use this?
@@ -1410,12 +1410,12 @@ def _device_put_p(x: AbstractQuantity, *, device: Any, src: Any) -> AbstractQuan
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "m")
     >>> device_put(q)
-    UncheckedQuantity(Array(1, dtype=int32, weak_type=True), unit='m')
+    UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
 
     >>> from unxt import Quantity
     >>> q = Quantity(1, "m")
     >>> device_put(q)
-    Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
+    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
     return replace(x, value=jax.device_put(x.value, device=device, src=src))
@@ -1435,12 +1435,12 @@ def _digamma_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1.0, "")
     >>> lax.digamma(q)
-    UncheckedQuantity(Array(-0.5772154, dtype=float32, weak_type=True), unit='')
+    UncheckedQuantity(Array(-0.5772154, dtype=float32, ...), unit='')
 
     >>> from unxt import Quantity
     >>> q = Quantity(1.0, "")
     >>> lax.digamma(q)
-    Quantity['dimensionless'](Array(-0.5772154, dtype=float32, weak_type=True), unit='')
+    Quantity['dimensionless'](Array(-0.5772154, dtype=float32, ...), unit='')
 
     """
     return replace(x, value=lax.digamma(x.to_units_value(one)))
@@ -1741,17 +1741,17 @@ def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     >>> q1 = UncheckedQuantity(1, "m")
     >>> q2 = UncheckedQuantity(1, "m")
     >>> xp.equal(q1, q2)
-    Array(True, dtype=bool)
+    Array(True, dtype=bool, ...)
     >>> q1 == q2
-    Array(True, dtype=bool, weak_type=True)
+    Array(True, dtype=bool, ...)
 
     >>> from unxt import Quantity
     >>> q1 = Quantity(1, "m")
     >>> q2 = Quantity(1, "m")
     >>> xp.equal(q1, q2)
-    Array(True, dtype=bool)
+    Array(True, dtype=bool, ...)
     >>> q1 == q2
-    Array(True, dtype=bool, weak_type=True)
+    Array(True, dtype=bool, ...)
 
     """
     return lax.eq(x.value, y.to_units_value(x.unit))
@@ -1962,7 +1962,7 @@ def _exp_p(x: AbstractQuantity) -> AbstractQuantity:
     Euler's crown jewel:
 
     >>> xp.exp(Quantity(xp.pi * 1j, "")) + 1
-    Quantity['dimensionless'](Array(0.-8.742278e-08j, dtype=complex64), unit='')
+    Quantity['dimensionless'](Array(0.-8.742278e-08j, dtype=complex64, ...), unit='')
 
     Pretty close to zero!
 
@@ -2041,12 +2041,12 @@ def _floor_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1.5, "")
     >>> xp.floor(q)
-    UncheckedQuantity(Array(1., dtype=float32), unit='')
+    UncheckedQuantity(Array(1., dtype=float32, ...), unit='')
 
     >>> from unxt import Quantity
     >>> q = Quantity(1.5, "")
     >>> xp.floor(q)
-    Quantity['dimensionless'](Array(1., dtype=float32), unit='')
+    Quantity['dimensionless'](Array(1., dtype=float32, ...), unit='')
 
     """
     return replace(x, value=lax.floor(x.value))
@@ -2099,17 +2099,17 @@ def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     >>> q1 = UncheckedQuantity(1_001., "m")
     >>> q2 = UncheckedQuantity(1., "km")
     >>> xp.greater_equal(q1, q2)
-    Array(True, dtype=bool)
+    Array(True, dtype=bool, ...)
     >>> q1 >= q2
-    Array(True, dtype=bool, weak_type=True)
+    Array(True, dtype=bool, ...)
 
     >>> from unxt import Quantity
     >>> q1 = Quantity(1_001., "m")
     >>> q2 = Quantity(1., "km")
     >>> xp.greater_equal(q1, q2)
-    Array(True, dtype=bool)
+    Array(True, dtype=bool, ...)
     >>> q1 >= q2
-    Array(True, dtype=bool, weak_type=True)
+    Array(True, dtype=bool, ...)
 
     """
     return lax.ge(x.value, y.to_units_value(x.unit))
@@ -2128,12 +2128,12 @@ def _ge_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     >>> from unxt import UncheckedQuantity
     >>> q2 = UncheckedQuantity(1., "")
     >>> xp.greater_equal(x, q2)
-    Array(True, dtype=bool)
+    Array(True, dtype=bool, ...)
 
     >>> from unxt import Quantity
     >>> q2 = Quantity(1., "")
     >>> xp.greater_equal(x, q2)
-    Array(True, dtype=bool)
+    Array(True, dtype=bool, ...)
 
     """
     return lax.ge(x, y.to_units_value(one))
@@ -2152,12 +2152,12 @@ def _ge_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1., "")
     >>> xp.greater_equal(q1, y)
-    Array(True, dtype=bool)
+    Array(True, dtype=bool, ...)
 
     >>> from unxt import Quantity
     >>> q1 = Quantity(1., "")
     >>> xp.greater_equal(q1, y)
-    Array(True, dtype=bool)
+    Array(True, dtype=bool, ...)
 
     """
     # if jnp.array_equal(y, 0):
@@ -2180,13 +2180,13 @@ def _gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     >>> q1 = UncheckedQuantity(1_001., "m")
     >>> q2 = UncheckedQuantity(1., "km")
     >>> xp.greater_equal(q1, q2)
-    Array(True, dtype=bool)
+    Array(True, dtype=bool, ...)
 
     >>> from unxt import Quantity
     >>> q1 = Quantity(1_001., "m")
     >>> q2 = Quantity(1., "km")
     >>> xp.greater_equal(q1, q2)
-    Array(True, dtype=bool)
+    Array(True, dtype=bool, ...)
 
     """
     return lax.gt(x.value, y.to_units_value(x.unit))
@@ -2205,12 +2205,12 @@ def _gt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     >>> from unxt import UncheckedQuantity
     >>> q2 = UncheckedQuantity(1., "")
     >>> xp.greater_equal(x, q2)
-    Array(True, dtype=bool)
+    Array(True, dtype=bool, ...)
 
     >>> from unxt import Quantity
     >>> q2 = Quantity(1., "")
     >>> xp.greater_equal(x, q2)
-    Array(True, dtype=bool)
+    Array(True, dtype=bool, ...)
 
     """
     return lax.gt(x, y.to_units_value(one))
@@ -2229,12 +2229,12 @@ def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1., "")
     >>> xp.greater_equal(q1, y)
-    Array(True, dtype=bool)
+    Array(True, dtype=bool, ...)
 
     >>> from unxt import Quantity
     >>> q1 = Quantity(1., "")
     >>> xp.greater_equal(q1, y)
-    Array(True, dtype=bool)
+    Array(True, dtype=bool, ...)
 
     """
     return lax.gt(x.to_units_value(one), y)
@@ -2253,12 +2253,12 @@ def _gt_p_qi(x: AbstractQuantity, y: int) -> ArrayLike:
     >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1., "")
     >>> jnp.greater(q1, y)
-    Array(True, dtype=bool, weak_type=True)
+    Array(True, dtype=bool, ...)
 
     >>> from unxt import Quantity
     >>> q1 = Quantity(1., "")
     >>> jnp.greater(q1, y)
-    Array(True, dtype=bool, weak_type=True)
+    Array(True, dtype=bool, ...)
 
     """
     return lax.gt(x.to_units_value(one), y)
@@ -2368,7 +2368,7 @@ def _is_finite_p(x: AbstractQuantity) -> ArrayLike:
     array(True)
     >>> q = UncheckedQuantity(float('inf'), "m")
     >>> xp.isfinite(q)
-    Array(False, dtype=bool)
+    Array(False, dtype=bool, ...)
 
     >>> from unxt import Quantity
     >>> q = Quantity(1, "m")
@@ -2376,7 +2376,7 @@ def _is_finite_p(x: AbstractQuantity) -> ArrayLike:
     array(True)
     >>> q = Quantity(float('inf'), "m")
     >>> xp.isfinite(q)
-    Array(False, dtype=bool)
+    Array(False, dtype=bool, ...)
 
     """
     return lax.is_finite(x.value)
@@ -2397,13 +2397,13 @@ def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     >>> q1 = UncheckedQuantity(1_001., "m")
     >>> q2 = UncheckedQuantity(1., "km")
     >>> xp.less_equal(q1, q2)
-    Array(False, dtype=bool)
+    Array(False, dtype=bool, ...)
 
     >>> from unxt import Quantity
     >>> q1 = Quantity(1_001., "m")
     >>> q2 = Quantity(1., "km")
     >>> xp.less_equal(q1, q2)
-    Array(False, dtype=bool)
+    Array(False, dtype=bool, ...)
 
     """
     return lax.le(x.value, y.to_units_value(x.unit))
@@ -2422,12 +2422,12 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     >>> from unxt import UncheckedQuantity
     >>> q2 = UncheckedQuantity(1., "")
     >>> xp.less_equal(x1, q2)
-    Array(False, dtype=bool)
+    Array(False, dtype=bool, ...)
 
     >>> from unxt import Quantity
     >>> q2 = Quantity(1., "")
     >>> xp.less_equal(x1, q2)
-    Array(False, dtype=bool)
+    Array(False, dtype=bool, ...)
 
     """
     return lax.le(x, y.to_units_value(one))
@@ -2446,12 +2446,12 @@ def _le_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1., "")
     >>> xp.less_equal(q1, y1)
-    Array(False, dtype=bool)
+    Array(False, dtype=bool, ...)
 
     >>> from unxt import Quantity
     >>> q1 = Quantity(1., "")
     >>> xp.less_equal(q1, y1)
-    Array(False, dtype=bool)
+    Array(False, dtype=bool, ...)
 
     """
     return lax.le(x.to_units_value(one), y)

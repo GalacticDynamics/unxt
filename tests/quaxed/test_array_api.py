@@ -14,10 +14,10 @@ from jax._src.numpy.setops import (
     _UniqueCountsResult,
     _UniqueInverseResult,
 )
-from jax.experimental.array_api._data_type_functions import FInfo, IInfo
 
 import quaxed.array_api as xp
 import quaxed.numpy as qnp
+from quaxed.array_api._data_type_functions import FInfo, IInfo
 
 from unxt import Quantity
 
@@ -361,7 +361,7 @@ def test_iinfo():
     expected = xp.iinfo(jnp.int32)
 
     assert isinstance(got, IInfo)
-    for attr in IInfo.__slots__:
+    for attr in ("kind", "bits", "min", "max", "dtype"):
         assert getattr(got, attr) == getattr(expected, attr)
 
 
