@@ -14,10 +14,10 @@ from jax._src.numpy.setops import (
     _UniqueCountsResult,
     _UniqueInverseResult,
 )
-from jax.experimental.array_api._data_type_functions import FInfo, IInfo
 
 import quaxed.array_api as xp
 import quaxed.numpy as qnp
+from quaxed.array_api._data_type_functions import FInfo, IInfo
 
 from unxt import Quantity
 
