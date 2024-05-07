@@ -519,7 +519,7 @@ def _atan2_p_vq(
     >>> x1 = xp.asarray(1.0)
     >>> q2 = Quantity(3.0, "")
     >>> xp.atan2(x1, q2)
-    Quantity['angle'](Array(0.32175055, dtype=float32), unit='rad')
+    Quantity['angle'](Array(0.32175055, dtype=float32, ...), unit='rad')
 
     """
     y_ = y.to_units_value(one)
