@@ -5,6 +5,7 @@ from typing import Any, TypeVar
 import jax
 import jax.core
 import jax.experimental.array_api as jax_xp
+import numpy as np
 from jax import Device
 
 from quaxed._types import DType
@@ -109,7 +110,7 @@ def full_like(
 def linspace(
     start: Quantity,
     stop: Quantity,
-    num: int,
+    num: int | np.integer,
     *,
     dtype: DType | None = None,
     device: Device | None = None,
