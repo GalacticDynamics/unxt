@@ -374,7 +374,7 @@ def test_mod():
     """Test taking the modulus."""
     q = Quantity(480.0, "deg")
 
-    with pytest.raises(TypeError):
+    with pytest.raises(AttributeError):
         _ = q % 2
 
     with pytest.raises(u.UnitConversionError):

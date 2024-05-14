@@ -2934,7 +2934,7 @@ def _rem_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.rem_p)
-def _rem_p_qv(x: Quantity["dimensionless"], y: ArrayLike) -> Quantity["dimensionless"]:
+def _rem_p_uqv(x: Quantity["dimensionless"], y: ArrayLike) -> Quantity["dimensionless"]:
     """Remainder of two quantities.
 
     Examples

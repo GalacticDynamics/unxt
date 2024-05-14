@@ -3,10 +3,13 @@
 
 __all__ = ["Quantity"]
 
+from dataclasses import replace
 from typing import final
 
+from jaxtyping import ArrayLike
 from plum import parametric
 
+from .base import AbstractQuantity
 from .base_parametric import AbstractParametricQuantity
 
 
@@ -106,3 +109,19 @@ class Quantity(AbstractParametricQuantity):
     Quantity['m2 kg-1 s-2'](Array(1., dtype=float32, ...), unit='m2 / (kg s2)')
 
     """
+
+
+@AbstractQuantity.__mod__.dispatch  # type: ignore[misc]
+def mod(self: Quantity["dimensionless"], other: ArrayLike) -> Quantity["dimensionless"]:
+    """Take the mod.
+
+    Examples
+    --------
+    >>> from unxt import Quantity
+
+    >>> q = Quantity(480, "deg")
+    >>> q % Quantity(360, "deg")
+    Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
+
+    """
+    return replace(self, value=self.value % other)
