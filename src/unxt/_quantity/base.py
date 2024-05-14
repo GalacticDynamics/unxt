@@ -17,10 +17,12 @@ from astropy.units import (
     Unit,
     UnitConversionError,
 )
+from jax import lax
 from jax.numpy import dtype as DType  # noqa: N812
 from jaxtyping import Array, ArrayLike, Shaped
 from plum import add_promotion_rule
 from quax import ArrayValue
+from quax._core import _rules
 from typing_extensions import Self
 
 import quaxed.array_api as xp
@@ -397,14 +399,10 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
 
         """
-        if not isinstance(other, AbstractQuantity):
-            return NotImplemented
-
-        if not can_convert_unit(other.unit, self.unit):
-            raise UnitConversionError
-
         # TODO: figure out how to defer to quaxed (e.g. quaxed.operator.mod)
-        return replace(self, value=self.value % other.to_units_value(self.unit))
+        #       and not need to call this private implementation.
+        func = _rules[lax.rem_p].invoke(type(self), type(other))
+        return func(self, other)
 
     # ===============================================================
     # Python stuff
