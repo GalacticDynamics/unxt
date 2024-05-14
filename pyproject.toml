@@ -184,11 +184,13 @@
     "invalid-name",               # handled by ruff
     "line-too-long",
     "missing-function-docstring", # TODO: resolve
+    "missing-kwoa",               # plum-dispatch
     "missing-module-docstring",
     "not-callable",               # handled by mypy
     "property-with-parameters",   # handled by ruff
     "protected-access",           # handled by ruff
     "redefined-builtin",          # handled by ruff
+    "too-many-function-args",     # plum-dispatch
     "unused-argument",            # handled by ruff
     "wrong-import-order",         # handled by ruff
     "wrong-import-position",
