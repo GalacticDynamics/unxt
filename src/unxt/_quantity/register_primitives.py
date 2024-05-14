@@ -2905,7 +2905,7 @@ def _regularized_incomplete_beta_p() -> AbstractQuantity:
 
 
 @register(lax.rem_p)
-def _rem_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+def _rem_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     """Remainder of two quantities.
 
     Examples
@@ -2931,6 +2931,24 @@ def _rem_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
     """
     return replace(x, value=lax.rem(x.value, y.to_units_value(x.unit)))
+
+
+@register(lax.rem_p)
+def _rem_p_uqv(x: Quantity["dimensionless"], y: ArrayLike) -> Quantity["dimensionless"]:
+    """Remainder of two quantities.
+
+    Examples
+    --------
+    >>> import jax.numpy as jnp
+    >>> from unxt import Quantity
+
+    >>> q1 = Quantity(10, "")
+    >>> q2 = jnp.array(3)
+    >>> q1 % q2
+    Quantity['dimensionless'](Array(1, dtype=int32, ...), unit='')
+
+    """
+    return replace(x, value=lax.rem(x.value, y))
 
 
 # ==============================================================================

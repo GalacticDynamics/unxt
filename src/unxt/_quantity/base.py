@@ -385,7 +385,8 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         __tracebackhide__ = True  # pylint: disable=unused-variable
         return replace(self, value=self.value.reshape(*args, order=order))
 
-    def __mod__(self, other: Any) -> "Self":
+    @dispatcher  # type: ignore[misc]
+    def __mod__(self: "AbstractQuantity", other: Any) -> "AbstractQuantity":
         """Take the mod.
 
         Examples
@@ -397,9 +398,6 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
 
         """
-        if not isinstance(other, AbstractQuantity):
-            return NotImplemented
-
         if not can_convert_unit(other.unit, self.unit):
             raise UnitConversionError
 
