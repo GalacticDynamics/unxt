@@ -1794,10 +1794,28 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> xp.equal(q, y)
     Array([False,  True, False], dtype=bool)
 
+    >>> q = UncheckedQuantity([3., 2, 1], "")
+    >>> xp.equal(q, y)
+    Array([False,  True, False], dtype=bool)
+
+    >>> q = UncheckedQuantity([3., 2, 1], "m")
+    >>> try: xp.equal(q, y)
+    ... except Exception as e: print(e)
+    'm' (length) and '' (dimensionless) are not convertible
+
     >>> from unxt import Quantity
     >>> q = Quantity(2.0, "")
     >>> xp.equal(q, y)
     Array([False,  True, False], dtype=bool)
+
+    >>> q = Quantity([3., 2, 1], "")
+    >>> xp.equal(q, y)
+    Array([False,  True, False], dtype=bool)
+
+    >>> q = Quantity([3., 2, 1], "m")
+    >>> try: xp.equal(q, y)
+    ... except Exception as e: print(e)
+    'm' (length) and '' (dimensionless) are not convertible
 
     Check against the special cases:
 
@@ -1808,11 +1826,15 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     False
 
     """
-    # TODO: better support for jit
-    if not y.shape and (y in (0, jnp.inf)):
+    is_special = jnp.isscalar(y) and (jnp.isinf(y) | (y == 0))
+
+    def special_case(_: Any) -> Array:
         return lax.eq(x.value, y)
 
-    return lax.eq(x.to_units_value(one), y)
+    def regular_case(_: Any) -> Array:
+        return lax.eq(x.to_units_value(one), y)
+
+    return lax.cond(is_special, special_case, regular_case, operand=None)
 
 
 @register(lax.eq_p)

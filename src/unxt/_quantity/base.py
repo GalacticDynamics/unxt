@@ -5,7 +5,7 @@ __all__ = ["AbstractQuantity", "can_convert_unit"]
 
 from collections.abc import Callable, Sequence
 from dataclasses import fields, replace
-from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, TypeGuard, TypeVar
 
 import equinox as eqx
 import jax
@@ -55,6 +55,10 @@ def bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
         return op(self.value, other_value)
 
     return _op
+
+
+def _is_tracing(x: Any) -> TypeGuard[jax.core.Tracer]:
+    return isinstance(x, jax.core.Tracer)
 
 
 ##############################################################################
@@ -246,7 +250,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
 
         """
-        return replace(self, value=self.value * self.unit.to(units), unit=units)
+        return replace(self, value=self.to_units_value(units), unit=units)
 
     def to_units_value(self, units: Unit) -> ArrayLike:
         """Return the value in the given units.
@@ -269,9 +273,16 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         Array(100., dtype=float32, weak_type=True)
 
         """
-        if units == self.unit:
+        # Hot-path: if no unit conversion is necessary
+        if self.unit == units:
             return self.value
-        return self.value * self.unit.to(units)  # TODO: allow affine transforms
+
+        # Hot-path: if in tracing mode
+        # TODO: jaxpr units so we can understand them at trace time.
+        if _is_tracing(self.value) and not can_convert_unit(self.unit, units):
+            return self.value
+
+        return self.value * self.unit.to(units)
 
     def decompose(self, bases: Sequence[Unit]) -> "AbstractQuantity":
         """Decompose the quantity into the given bases."""
