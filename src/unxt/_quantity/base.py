@@ -273,6 +273,10 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         Array(100., dtype=float32, weak_type=True)
 
         """
+        # Hot-path: if no unit conversion is necessary
+        if self.unit == units:
+            return self.value
+
         # Hot-path: if in tracing mode
         # TODO: jaxpr units so we can understand them at trace time.
         if _is_tracing(self.value):
