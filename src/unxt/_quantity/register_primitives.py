@@ -1801,6 +1801,7 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> q = UncheckedQuantity([3., 2, 1], "m")
     >>> try: xp.equal(q, y)
     ... except Exception as e: print(e)
+    'm' (length) and '' (dimensionless) are not convertible
 
     >>> from unxt import Quantity
     >>> q = Quantity(2.0, "")
@@ -1814,6 +1815,7 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> q = Quantity([3., 2, 1], "m")
     >>> try: xp.equal(q, y)
     ... except Exception as e: print(e)
+    'm' (length) and '' (dimensionless) are not convertible
 
     Check against the special cases:
 
