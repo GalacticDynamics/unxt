@@ -279,7 +279,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
 
         # Hot-path: if in tracing mode
         # TODO: jaxpr units so we can understand them at trace time.
-        if _is_tracing(self.value):
+        if _is_tracing(self.value) and not can_convert_unit(self.unit, units):
             return self.value
 
         return self.value * self.unit.to(units)
