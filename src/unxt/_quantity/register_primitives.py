@@ -3215,6 +3215,23 @@ def _shift_right_logical_p() -> AbstractQuantity:
 
 @register(lax.sign_p)
 def _sign_p(x: AbstractQuantity) -> ArrayLike:
+    """Sign of a quantity.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as qnp
+
+    >>> from unxt import UncheckedQuantity
+    >>> q = UncheckedQuantity(10, "m")
+    >>> qnp.sign(q)
+    Array(1, dtype=int32, ...)
+
+    >>> from unxt import Quantity
+    >>> q = Quantity(10, "m")
+    >>> qnp.sign(q)
+    Array(1, dtype=int32, ...)
+
+    """
     return lax.sign(x.value)
 
 
