@@ -1,5 +1,5 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
-_commit: 2023.12.21
+_commit: 2024.04.23
 _src_path: gh:scientific-python/cookie
 backend: hatch
 email: nstarman@users.noreply.github.com

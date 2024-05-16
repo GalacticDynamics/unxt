@@ -12,6 +12,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # Many color libraries just need this to be set to any value, but at least
+  # one distinguishes color depth, where "3" -> "256-bit color".
   FORCE_COLOR: 3
 
 jobs:
@@ -67,3 +69,5 @@ jobs:
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v4.3.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
