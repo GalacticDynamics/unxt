@@ -3307,8 +3307,49 @@ def _sort_p_one_operand(
 
 
 @register(lax.sqrt_p)
-def _sqrt_p(x: AbstractQuantity) -> AbstractQuantity:
+def _sqrt_p_q(x: AbstractQuantity) -> AbstractQuantity:
+    """Square root of a quantity.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as qnp
+
+    >>> from unxt import UncheckedQuantity
+    >>> q = UncheckedQuantity(9, "m")
+    >>> qnp.sqrt(q)
+    UncheckedQuantity(Array(3., dtype=float32), unit='m(1/2)')
+
+    >>> from unxt import Quantity
+    >>> q = Quantity(9, "m")
+    >>> qnp.sqrt(q)
+    Quantity['m0.5'](Array(3., dtype=float32), unit='m(1/2)')
+
+    """
+    # Apply sqrt to the value and adjust the unit
     return type_np(x)(lax.sqrt(x.value), unit=x.unit ** (1 / 2))
+
+
+@register(lax.sqrt_p)
+def _sqrt_p_d(x: AbstractDistance) -> Quantity:
+    """Square root of a quantity.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as qnp
+
+    >>> from unxt import Distance
+    >>> q = Distance(9, "m")
+    >>> qnp.sqrt(q)
+    Quantity['m0.5'](Array(3., dtype=float32), unit='m(1/2)')
+
+    >>> from unxt import Parallax
+    >>> q = Parallax(9, "mas")
+    >>> qnp.sqrt(q)
+    Quantity['rad0.5'](Array(3., dtype=float32), unit='mas(1/2)')
+
+    """
+    # Promote to something that supports sqrt units.
+    return Quantity(lax.sqrt(x.value), unit=x.unit ** (1 / 2))
 
 
 # ==============================================================================
