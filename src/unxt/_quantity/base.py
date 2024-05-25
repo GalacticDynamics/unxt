@@ -179,7 +179,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         >>> Quantity.constructor([1.0, 2, 3], "m")
         Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
 
-        >>> Quantity.constructor([1.0, 2, 3], "m")
+        >>> Quantity.constructor((1.0, 2, 3), "m")
         Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
 
         """
