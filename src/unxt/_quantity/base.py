@@ -5,12 +5,13 @@ __all__ = ["AbstractQuantity", "can_convert_unit"]
 
 from collections.abc import Callable, Sequence
 from dataclasses import fields, replace
-from typing import TYPE_CHECKING, Any, ClassVar, TypeGuard, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, TypeAlias, TypeGuard, TypeVar
 
 import equinox as eqx
 import jax
 import jax.core
 import jax.numpy as jnp
+import numpy as np
 from astropy.units import (
     CompositeUnit,
     Quantity as AstropyQuantity,
@@ -32,6 +33,8 @@ if TYPE_CHECKING:
 
 
 FMT = TypeVar("FMT")
+ArrayLikeScalar: TypeAlias = np.bool_ | np.number | bool | int | float | complex
+ArrayLikeSequence: TypeAlias = list[ArrayLikeScalar] | tuple[ArrayLikeScalar, ...]
 
 
 def _flip_binop(binop: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
@@ -139,7 +142,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     @dispatcher
     def constructor(
         cls: "type[AbstractQuantity]",
-        value: ArrayLike,
+        value: ArrayLike | ArrayLikeSequence,
         unit: Any,
         /,
         *,
@@ -149,7 +152,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
 
         Parameters
         ----------
-        value : ArrayLike
+        value : ArrayLike | list[...] | tuple[...]
             The array-like value.
         unit : Any
             The unit of the value.
@@ -173,6 +176,11 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         >>> Quantity.constructor(x, "m")
         Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
 
+        >>> Quantity.constructor([1.0, 2, 3], "m")
+        Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+
+        >>> Quantity.constructor([1.0, 2, 3], "m")
+
         """
         # Dispatch on both arguments.
         # Construct using the standard `__init__` method.
@@ -181,7 +189,11 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     @classmethod  # type: ignore[no-redef]
     @dispatcher
     def constructor(
-        cls: "type[AbstractQuantity]", value: ArrayLike, *, unit: Any, dtype: Any = None
+        cls: "type[AbstractQuantity]",
+        value: ArrayLike | ArrayLikeSequence,
+        *,
+        unit: Any,
+        dtype: Any = None,
     ) -> "AbstractQuantity":
         """Construct a `Quantity` from an array-like value and a unit kwarg.
 
@@ -195,7 +207,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     @classmethod  # type: ignore[no-redef]
     @dispatcher
     def constructor(
-        cls: "type[AbstractQuantity]", *, value: ArrayLike, unit: Any, dtype: Any = None
+        cls: "type[AbstractQuantity]", *, value: Any, unit: Any, dtype: Any = None
     ) -> "AbstractQuantity":
         """Construct a `Quantity` from value and unit kwargs.
 
