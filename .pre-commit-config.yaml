@@ -6,7 +6,7 @@ default_stages: [pre-commit, pre-push]
 
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.26.0
+    rev: v3.27.0
     hooks:
       - id: commitizen
       # - id: commitizen-branch
@@ -43,14 +43,14 @@ repos:
       - id: rst-inline-touching-normal
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.28.3
+    rev: 0.28.4
     hooks:
       - id: check-dependabot
       - id: check-github-workflows
       - id: check-readthedocs
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.4.4"
+    rev: "v0.4.5"
     hooks:
       # Run the linter
       - id: ruff
@@ -82,7 +82,7 @@ repos:
           - pytest
 
   - repo: https://github.com/codespell-project/codespell
-    rev: "v2.2.6"
+    rev: "v2.3.0"
     hooks:
       - id: codespell
 
