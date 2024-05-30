@@ -3,7 +3,7 @@
 
 __all__ = ["AbstractQuantity", "can_convert_unit"]
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import fields, replace
 from typing import TYPE_CHECKING, Any, ClassVar, TypeAlias, TypeGuard, TypeVar
 
@@ -218,6 +218,43 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         """
         # Dispatched on no argument. Dispatch to the full constructor.
         return cls.constructor(value, unit, dtype=dtype)
+
+    @classmethod  # type: ignore[no-redef]
+    @dispatcher
+    def constructor(
+        cls: "type[AbstractQuantity]", mapping: Mapping[str, Any]
+    ) -> "AbstractQuantity":
+        """Construct a `Quantity` from a Mapping.
+
+        Parameters
+        ----------
+        mapping : Mapping[str, Any]
+            Mapping of the fields of the `Quantity`, e.g. 'value' and 'unit'.
+
+        Returns
+        -------
+        AbstractQuantity
+
+        Examples
+        --------
+        For this example we'll use the `Quantity` class. The same applies to
+        any subclass of `AbstractQuantity`.
+
+        >>> import jax.numpy as jnp
+        >>> from unxt import Quantity
+
+        >>> x = jnp.array([1.0, 2, 3])
+        >>> q = Quantity.constructor({"value": x, "unit": "m"})
+        >>> q
+        Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+
+        >>> Quantity.constructor({"value": q, "unit": "km"})
+        Quantity['length'](Array([0.001, 0.002, 0.003], dtype=float32), unit='km')
+
+        """
+        # Dispatch on both arguments.
+        # Construct using the standard `__init__` method.
+        return cls.constructor(**mapping)
 
     # See below for additional constructors.
 

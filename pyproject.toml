@@ -191,6 +191,7 @@
     "protected-access",           # handled by ruff
     "redefined-builtin",          # handled by ruff
     "too-many-function-args",     # plum-dispatch
+    "unexpected-keyword-arg",     # plum-dispatch
     "unused-argument",            # handled by ruff
     "wrong-import-order",         # handled by ruff
     "wrong-import-position",
