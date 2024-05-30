@@ -248,8 +248,8 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         >>> q
         Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
 
-        >>> Quantity.constructor({"value": q, "unit": "m"})
-        Quantity['length'](Array([0.001, 0.002, 0.003], dtype=float32), unit='m')
+        >>> Quantity.constructor({"value": q, "unit": "km"})
+        Quantity['length'](Array([0.001, 0.002, 0.003], dtype=float32), unit='km')
 
         """
         # Dispatch on both arguments.
