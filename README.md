@@ -1,26 +1,31 @@
 <h1 align='center'> unxt </h1>
 <h2 align="center">Unitful Quantities in JAX</h2>
 
-Unxt is unitful quantities and calculations in [JAX](https://jax.readthedocs.io/en/latest/), built on [Equinox](https://docs.kidger.site/equinox/) and [Quax](https://github.com/patrick-kidger/quax).
+Unxt is unitful quantities and calculations in
+[JAX](https://jax.readthedocs.io/en/latest/), built on
+[Equinox](https://docs.kidger.site/equinox/) and
+[Quax](https://github.com/patrick-kidger/quax).
 
-Yes, it supports auto-differentiation (`grad`, `jacobian`, `hessian`) and vectorization (`vmap`, etc).
+Yes, it supports auto-differentiation (`grad`, `jacobian`, `hessian`) and
+vectorization (`vmap`, etc).
 
 ## Installation
 
 [![PyPI platforms][pypi-platforms]][pypi-link]
 [![PyPI version][pypi-version]][pypi-link]
+
 <!-- [![Conda-Forge][conda-badge]][conda-link] -->
 
 ```bash
 pip install unxt
 ```
 
-
 ## Documentation
+
 [![Documentation Status][rtd-badge]][rtd-link]
 
-Coming soon. In the meantime, if you've used `astropy.units`, then `unxt` should be familiar!
-
+Coming soon. In the meantime, if you've used `astropy.units`, then `unxt` should
+be familiar!
 
 ## Quick example
 
@@ -54,9 +59,10 @@ Quantity['area'](Array([0., 1., 4., 9.], dtype=float64), unit='kpc2')
 
 ```
 
-`unxt` is built on [`quax`](https://github.com/patrick-kidger/quax), which enables custom array-ish objects in JAX.
-For convenience we use the [`quaxed`](https://pypi.org/project/quaxed/) library, which is just a `quax` wrapper around
-`jax` to avoid boilerplate wrappers.
+`unxt` is built on [`quax`](https://github.com/patrick-kidger/quax), which
+enables custom array-ish objects in JAX. For convenience we use the
+[`quaxed`](https://pypi.org/project/quaxed/) library, which is just a `quax`
+wrapper around `jax` to avoid boilerplate wrappers.
 
 ```python
 >>> from quaxed import grad, vmap
@@ -90,12 +96,11 @@ Physical type mismatch.
 
 If you found this library to be useful in academic work, then please cite.
 
-
 ## Development
+
 [![Actions Status][actions-badge]][actions-link]
 
 We welcome contributions!
-
 
 <!-- SPHINX-START -->
 
