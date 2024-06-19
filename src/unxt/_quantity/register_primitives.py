@@ -1400,7 +1400,7 @@ def _cumsum_p(
 
 
 @register(lax.device_put_p)
-def _device_put_p(x: AbstractQuantity, *, device: Any, src: Any) -> AbstractQuantity:
+def _device_put_p(x: AbstractQuantity, **kwargs: Any) -> AbstractQuantity:
     """Put a quantity on a device.
 
     Examples
@@ -1418,7 +1418,7 @@ def _device_put_p(x: AbstractQuantity, *, device: Any, src: Any) -> AbstractQuan
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
-    return replace(x, value=jax.device_put(x.value, device=device, src=src))
+    return replace(x, value=jax.device_put(x.value, **kwargs))
 
 
 # ==============================================================================
