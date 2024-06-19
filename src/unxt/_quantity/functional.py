@@ -156,7 +156,7 @@ def to_units_value(value: AstropyQuantity, units: Unit | str, /) -> ArrayLike:
 
     >>> q = u.Quantity(1, "m")
     >>> to_units_value(q, "cm")
-    100.0
+    np.float64(100.0)
 
     """
     return value.to_value(units)
