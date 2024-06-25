@@ -192,6 +192,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     def constructor(
         cls: "type[AbstractQuantity]",
         value: ArrayLike | ArrayLikeSequence,
+        /,
         *,
         unit: Any,
         dtype: Any = None,
@@ -544,7 +545,7 @@ def constructor(
 
 @AbstractQuantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
 def constructor(
-    cls: type[AbstractQuantity], value: AstropyQuantity, *, dtype: Any = None
+    cls: type[AbstractQuantity], value: AstropyQuantity, /, *, dtype: Any = None
 ) -> AbstractQuantity:
     """Construct a `Quantity` from another `Quantity`.
 
