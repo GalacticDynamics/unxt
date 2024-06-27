@@ -30,6 +30,8 @@
     "jaxlib",
     "jaxtyping",
     "quax>=0.0.3",
+    # Pinned for above dependencies
+    "plum-dispatch >= 2.4.3",
   ]
   description = "Quantities in JAX"
   dynamic = ["version"]
@@ -39,8 +41,8 @@
   requires-python = ">=3.10"
 
   [project.optional-dependencies]
-    all = ["unxt[docs]", "unxt[dev]", "unxt[test]"]
-    dev = ["unxt[test]"]
+    all = []
+    dev = ["unxt[docs]", "unxt[test]"]
     docs = [
       "sphinx>=7.0",
       "myst_parser>=0.13",
@@ -53,6 +55,7 @@
       "pytest >=6,<8",
       "pytest-cov >=3",
       "pytest-arraydiff",
+      "pytest-github-actions-annotate-failures",
       "sybil",
     ]
 
