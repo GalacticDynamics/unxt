@@ -30,6 +30,8 @@
     "jaxlib",
     "jaxtyping",
     "quax>=0.0.3",
+    # Pinned for above dependencies
+    "plum-dispatch >= 2.4.3",
   ]
   description = "Quantities in JAX"
   dynamic = ["version"]
