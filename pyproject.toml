@@ -53,7 +53,7 @@
     ]
     test = [
       "hypothesis[numpy]",
-      "pytest >=6,<8",
+      "pytest >=6",
       "pytest-cov >=3",
       "pytest-arraydiff",
       "pytest-github-actions-annotate-failures",
