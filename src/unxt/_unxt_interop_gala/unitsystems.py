@@ -3,13 +3,6 @@
 
 __all__: list[str] = []
 
-try:  # TODO: less hacky way of supporting optional dependencies
-    import pytest
-except ImportError:  # pragma: no cover
-    pass
-else:
-    _ = pytest.importorskip("gala")
-
 from gala.units import (
     DimensionlessUnitSystem as GalaDimensionlessUnitSystem,
     UnitSystem as GalaUnitSystem,

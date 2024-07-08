@@ -5,7 +5,7 @@ from ._base import *
 from ._core import *
 from ._realizations import *
 from ._utils import *
-from unxt._utils.optional_deps import HAS_GALA
+from unxt._optional_deps import HAS_GALA
 
 __all__: list[str] = []
 __all__ += _base.__all__
