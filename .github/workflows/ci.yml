@@ -17,28 +17,28 @@ env:
   FORCE_COLOR: 3
 
 jobs:
-  # pre-commit:
-  #   name: Format
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
-  #     - uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.x"
-  #     - uses: pre-commit/action@v3.0.1
-  #       with:
-  #         extra_args: --hook-stage manual --all-files
-  #     - name: Run PyLint
-  #       run: |
-  #         echo "::add-matcher::$GITHUB_WORKSPACE/.github/matchers/pylint.json"
-  #         pipx run nox -s pylint
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      #     - uses: pre-commit/action@v3.0.1
+      #       with:
+      #         extra_args: --hook-stage manual --all-files
+      - name: Run PyLint
+        run: |
+          echo "::add-matcher::$GITHUB_WORKSPACE/.github/matchers/pylint.json"
+          pipx run nox -s pylint
 
   checks:
     name: Check Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
-    # needs: [pre-commit]
+    needs: [format]
     strategy:
       fail-fast: false
       matrix:
@@ -75,7 +75,7 @@ jobs:
   check_interop:
     name: Check Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
-    # needs: [pre-commit]
+    needs: [format]
     strategy:
       fail-fast: false
       matrix:
