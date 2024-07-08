@@ -9,8 +9,7 @@ from gala.units import (
 )
 from plum import dispatch
 
-from ._core import DimensionlessUnitSystem, UnitSystem
-from ._realizations import dimensionless
+from unxt.unitsystems import DimensionlessUnitSystem, UnitSystem, dimensionless
 
 
 @dispatch
