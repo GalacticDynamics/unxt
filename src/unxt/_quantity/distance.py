@@ -160,17 +160,43 @@ class DistanceModulus(AbstractDistance):
 
     @property
     def distance(self) -> Distance:
-        """The distance."""
+        """The distance.
+
+        The distance is calculated as :math:`10^{(m / 5 + 1)}`.
+
+        Examples
+        --------
+        >>> from unxt import DistanceModulus
+        >>> DistanceModulus(10, "mag").distance
+        Distance(Array(1000., dtype=float32, ...), unit='pc')
+
+        """
         return Distance(10 ** (self.value / 5 + 1), "pc")
 
     @property
     def parallax(self) -> Parallax:
-        """The parallax."""
+        """The parallax.
+
+        Examples
+        --------
+        >>> from unxt import DistanceModulus
+        >>> DistanceModulus(10, "mag").parallax.to("mas")
+        Parallax(Array(0.99999994, dtype=float32), unit='mas')
+
+        """
         return self.distance.parallax  # TODO: specific shortcut
 
     @property
     def distance_modulus(self) -> "DistanceModulus":
-        """The distance modulus."""
+        """The distance modulus.
+
+        Examples
+        --------
+        >>> from unxt import DistanceModulus
+        >>> DistanceModulus(10, "mag").distance_modulus
+        DistanceModulus(Array(10, dtype=int32, ...), unit='mag')
+
+        """
         return self
 
 
