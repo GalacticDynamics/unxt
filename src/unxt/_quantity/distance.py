@@ -1,7 +1,7 @@
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
 
-__all__ = ["AbstractDistance", "Distance", "Parallax"]
+__all__ = ["AbstractDistance", "Distance", "Parallax", "DistanceModulus"]
 
 from abc import abstractmethod
 from dataclasses import KW_ONLY
@@ -143,7 +143,61 @@ class Parallax(AbstractDistance):
     @property
     def distance_modulus(self) -> Quantity:
         """The distance modulus."""
-        return self.distance.distance_modulus  # TODO: shortcut
+        return self.distance.distance_modulus  # TODO: specific shortcut
+
+
+##############################################################################
+
+
+class DistanceModulus(AbstractDistance):
+    """Distance modulus quantity."""
+
+    def __check_init__(self) -> None:
+        """Check the initialization."""
+        if self.unit != u.mag:
+            msg = "Distance modulus must have units of magnitude."
+            raise ValueError(msg)
+
+    @property
+    def distance(self) -> Distance:
+        """The distance.
+
+        The distance is calculated as :math:`10^{(m / 5 + 1)}`.
+
+        Examples
+        --------
+        >>> from unxt import DistanceModulus
+        >>> DistanceModulus(10, "mag").distance
+        Distance(Array(1000., dtype=float32, ...), unit='pc')
+
+        """
+        return Distance(10 ** (self.value / 5 + 1), "pc")
+
+    @property
+    def parallax(self) -> Parallax:
+        """The parallax.
+
+        Examples
+        --------
+        >>> from unxt import DistanceModulus
+        >>> DistanceModulus(10, "mag").parallax.to("mas")
+        Parallax(Array(0.99999994, dtype=float32), unit='mas')
+
+        """
+        return self.distance.parallax  # TODO: specific shortcut
+
+    @property
+    def distance_modulus(self) -> "DistanceModulus":
+        """The distance modulus.
+
+        Examples
+        --------
+        >>> from unxt import DistanceModulus
+        >>> DistanceModulus(10, "mag").distance_modulus
+        DistanceModulus(Array(10, dtype=int32, ...), unit='mag')
+
+        """
+        return self
 
 
 # ============================================================================
@@ -157,6 +211,19 @@ def constructor(
     """Construct a `Distance` from an angle through the parallax."""
     d = parallax_base_length / xp.tan(value)
     return cls(xp.asarray(d.value, dtype=dtype), d.unit)
+
+
+@Distance.constructor._f.register  # type: ignore[no-redef]  # noqa: SLF001
+def constructor(
+    cls: type[Distance],
+    value: DistanceModulus | Quantity["mag"],
+    /,
+    *,
+    dtype: Any = None,
+) -> Distance:
+    """Construct a `Distance` from a mag through the dist mod."""
+    d = 10 ** (value.to_units_value("mag") / 5 + 1)
+    return cls(xp.asarray(d, dtype=dtype), "pc")
 
 
 @Parallax.constructor._f.register  # type: ignore[no-redef]  # noqa: SLF001

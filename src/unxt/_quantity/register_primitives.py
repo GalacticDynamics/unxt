@@ -77,6 +77,21 @@ def _abs_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> abs(q)
     UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
 
+    >>> from unxt import Distance
+    >>> d = Distance(-1, "m")
+    >>> xp.abs(d)
+    Distance(Array(1, dtype=int32, ...), unit='m')
+
+    >>> from unxt import Parallax
+    >>> p = Parallax(-1, "mas", check_negative=False)
+    >>> xp.abs(p)
+    Parallax(Array(1, dtype=int32, ...), unit='mas')
+
+    >>> from unxt import DistanceModulus
+    >>> dm = DistanceModulus(-1, "mag")
+    >>> xp.abs(dm)
+    DistanceModulus(Array(1, dtype=int32, weak_type=True), unit='mag')
+
     """
     return replace(x, value=lax.abs(x.value))
 
@@ -158,6 +173,24 @@ def _add_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     Quantity['length'](Array(1.5, dtype=float32, ...), unit='km')
     >>> q1 + q2
     Quantity['length'](Array(1.5, dtype=float32, ...), unit='km')
+
+    >>> from unxt import Distance
+    >>> d1 = Distance(1.0, "km")
+    >>> d2 = Distance(500.0, "m")
+    >>> xp.add(d1, d2)
+    Distance(Array(1.5, dtype=float32, ...), unit='km')
+
+    >>> from unxt import Parallax
+    >>> p1 = Parallax(1.0, "mas")
+    >>> p2 = Parallax(500.0, "uas")
+    >>> xp.add(p1, p2)
+    Parallax(Array(1.5, dtype=float32, ...), unit='mas')
+
+    >>> from unxt import DistanceModulus
+    >>> dm1 = DistanceModulus(1.0, "mag")
+    >>> dm2 = DistanceModulus(500.0, "mag")
+    >>> xp.add(dm1, dm2)
+    DistanceModulus(Array(501., dtype=float32, ...), unit='mag')
 
     """
     return replace(x, value=lax.add(x.value, y.to_units_value(x.unit)))
