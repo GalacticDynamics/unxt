@@ -3,7 +3,7 @@
 
 __all__: list[str] = []
 
-from gala.units import (
+from gala.units import (  # pylint: disable=import-error
     DimensionlessUnitSystem as GalaDimensionlessUnitSystem,
     UnitSystem as GalaUnitSystem,
 )
