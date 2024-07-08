@@ -41,7 +41,8 @@
   requires-python = ">=3.10"
 
   [project.optional-dependencies]
-    all = []
+    all = ["unxt[gala]"]
+    gala = ["gala"]
     dev = ["unxt[docs]", "unxt[test]"]
     docs = [
       "sphinx>=7.0",

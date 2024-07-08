@@ -3,21 +3,13 @@
 
 __all__: list[str] = []
 
-try:  # TODO: less hacky way of supporting optional dependencies
-    import pytest
-except ImportError:  # pragma: no cover
-    pass
-else:
-    _ = pytest.importorskip("gala")
-
-from gala.units import (
+from gala.units import (  # pylint: disable=import-error
     DimensionlessUnitSystem as GalaDimensionlessUnitSystem,
     UnitSystem as GalaUnitSystem,
 )
 from plum import dispatch
 
-from ._core import DimensionlessUnitSystem, UnitSystem
-from ._realizations import dimensionless
+from unxt.unitsystems import DimensionlessUnitSystem, UnitSystem, dimensionless
 
 
 @dispatch

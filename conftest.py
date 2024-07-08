@@ -2,6 +2,7 @@
 
 import platform
 from doctest import ELLIPSIS, NORMALIZE_WHITESPACE
+from importlib.util import find_spec
 
 from sybil import Sybil
 from sybil.parsers.rest import DocTestParser, PythonCodeBlockParser, SkipParser
@@ -22,3 +23,11 @@ pytest_collect_file = Sybil(
     parsers=parsers,
     patterns=["*.rst", "*.py"],
 ).pytest()
+
+
+# TODO: via separate optional_deps package
+HAS_GALA = find_spec("gala") is not None
+
+collect_ignore_glob = []
+if not HAS_GALA:
+    collect_ignore_glob.append("src/unxt/_unxt_interop_gala/*")
