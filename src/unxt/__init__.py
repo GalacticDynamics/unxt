@@ -13,6 +13,9 @@ from ._quantity import *
 from ._version import version as __version__
 from .unitsystems import AbstractUnitSystem, UnitSystem, unitsystem
 
+# isort: split
+from . import _unxt_interop_astropy  # noqa: F401
+
 if HAS_GALA:
     from . import _unxt_interop_gala  # noqa: F401
 

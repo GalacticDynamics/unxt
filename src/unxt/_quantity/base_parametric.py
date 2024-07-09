@@ -8,13 +8,14 @@ from typing import Any
 import equinox as eqx
 import jax
 import jax.core
-from astropy.units import PhysicalType, Unit, UnitBase, get_physical_type
+from astropy.units import PhysicalType, Unit, get_physical_type
 from jaxtyping import Array, ArrayLike, Shaped
 from plum import parametric
 
 from quaxed.array_api._dispatch import dispatcher
 
 from .base import AbstractQuantity
+from unxt._typing import Unit as UnitTypes
 
 
 @parametric
@@ -66,7 +67,7 @@ class AbstractParametricQuantity(AbstractQuantity):
 
     @classmethod  # type: ignore[no-redef]
     @dispatcher
-    def __init_type_parameter__(cls, unit: UnitBase) -> tuple[PhysicalType]:
+    def __init_type_parameter__(cls, unit: UnitTypes) -> tuple[PhysicalType]:
         """Infer the type parameter from the arguments."""
         if unit.physical_type != "unknown":
             return (unit.physical_type,)
