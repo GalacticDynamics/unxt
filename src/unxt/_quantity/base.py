@@ -12,12 +12,7 @@ import jax
 import jax.core
 import jax.numpy as jnp
 import numpy as np
-from astropy.units import (
-    CompositeUnit,
-    Quantity as AstropyQuantity,
-    Unit,
-    UnitConversionError,
-)
+from astropy.units import CompositeUnit, UnitConversionError
 from jax.numpy import dtype as DType  # noqa: N812
 from jaxtyping import Array, ArrayLike, Shaped
 from plum import add_promotion_rule
@@ -27,6 +22,8 @@ from typing_extensions import Self
 import quaxed.array_api as xp
 import quaxed.operator as qoperator
 from quaxed.array_api._dispatch import dispatcher
+
+from unxt._units import Unit
 
 if TYPE_CHECKING:
     from array_api import ArrayAPINamespace
@@ -486,17 +483,6 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         """
         return hash(tuple(getattr(self, f.name) for f in fields(self)))
 
-    # ===============================================================
-    # I/O
-
-    def convert_to(self, format: type[FMT], /) -> FMT:
-        """Convert to a type."""
-        if format is AstropyQuantity:
-            return AstropyQuantity(self.value, self.unit)
-
-        msg = f"Unknown format {format}."
-        raise TypeError(msg)
-
 
 # -----------------------------------------------
 # Register additional constructors
@@ -543,33 +529,6 @@ def constructor(
     return cls(value.value, unit)
 
 
-@AbstractQuantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
-def constructor(
-    cls: type[AbstractQuantity], value: AstropyQuantity, /, *, dtype: Any = None
-) -> AbstractQuantity:
-    """Construct a `Quantity` from another `Quantity`.
-
-    The `value` is converted to the new `unit`.
-    """
-    return cls(xp.asarray(value.value, dtype=dtype), value.unit)
-
-
-@AbstractQuantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
-def constructor(
-    cls: type[AbstractQuantity],
-    value: AstropyQuantity,
-    unit: Any,
-    /,
-    *,
-    dtype: Any = None,
-) -> AbstractQuantity:
-    """Construct a `Quantity` from another `Quantity`.
-
-    The `value` is converted to the new `unit`.
-    """
-    return cls(xp.asarray(value.to_value(unit), dtype=dtype), unit)
-
-
 # -----------------------------------------------
 # Promotion rules
 
@@ -579,14 +538,14 @@ add_promotion_rule(AbstractQuantity, AbstractQuantity, AbstractQuantity)
 # ===============================================================
 
 
-def can_convert_unit(from_: AbstractQuantity | Unit, to: Unit) -> bool:
+def can_convert_unit(from_unit: AbstractQuantity | Unit, to_unit: Unit, /) -> bool:
     """Check if a unit can be converted to another unit.
 
     Parameters
     ----------
-    from_ : :clas:`unxt.AbstractQuantity` | Unit
+    from_unit : :clas:`unxt.AbstractQuantity` | Unit
         The unit to convert from.
-    to : Unit
+    to_unit : Unit
         The unit to convert to.
 
     Returns
@@ -596,7 +555,7 @@ def can_convert_unit(from_: AbstractQuantity | Unit, to: Unit) -> bool:
 
     """
     try:
-        from_.to(to)
+        from_unit.to(to_unit)
     except UnitConversionError:
         return False
     return True

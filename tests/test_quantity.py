@@ -12,6 +12,7 @@ from hypothesis import example, given, strategies as st
 from hypothesis.extra.array_api import make_strategies_namespace
 from hypothesis.extra.numpy import array_shapes as np_array_shapes, arrays as np_arrays
 from jax.dtypes import canonicalize_dtype
+from plum import convert
 
 import quaxed.array_api
 import quaxed.numpy as qnp
@@ -386,17 +387,6 @@ def test_mod():
 
 
 # ===============================================================
-# Unknown
-
-
-def test_convert_to_unknown():
-    """Test the ``Quantity.convert_to`` method with an unknown format."""
-    q = Quantity(1, u.m)
-    with pytest.raises(TypeError, match="Unknown format <class 'int'>."):
-        q.convert_to(int)
-
-
-# ===============================================================
 # Astropy
 
 
@@ -410,9 +400,9 @@ def test_from_astropy():
 
 
 def test_convert_to_astropy():
-    """Test the ``Quantity.convert_to(AstropyQuantity)`` method."""
+    """Test the ``convert(Quantity, AstropyQuantity)`` method."""
     q = Quantity(1, u.m)
-    apyq = q.convert_to(u.Quantity)
+    apyq = convert(q, u.Quantity)
     assert isinstance(apyq, u.Quantity)
     assert apyq == u.Quantity(1, u.m)
 

@@ -10,7 +10,7 @@ from typing import Any, TypeVar, final
 import astropy.units as u
 import equinox as eqx
 import jax.numpy as jnp
-from plum import add_conversion_method, add_promotion_rule
+from plum import add_promotion_rule, conversion_method
 
 import quaxed.array_api as xp
 import quaxed.numpy as qnp
@@ -57,12 +57,10 @@ class AbstractDistance(AbstractQuantity):
 add_promotion_rule(AbstractDistance, Quantity, Quantity)
 
 
+@conversion_method(type_from=AbstractDistance, type_to=Quantity)  # type: ignore[misc]
 def _convert_distance_to_quantity(x: AbstractDistance) -> Quantity:
     """Convert a distance to a quantity."""
     return Quantity(x.value, x.unit)
-
-
-add_conversion_method(AbstractDistance, Quantity, _convert_distance_to_quantity)
 
 
 ##############################################################################

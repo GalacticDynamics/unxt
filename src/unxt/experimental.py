@@ -15,11 +15,11 @@ from typing import ParamSpec, TypeVar
 
 import equinox as eqx
 import jax
-from astropy.units import UnitBase as Unit
 from jaxtyping import ArrayLike
 
 from ._quantity.core import Quantity
 from ._quantity.utils import type_unparametrized
+from ._typing import Unit
 
 P = ParamSpec("P")
 R = TypeVar("R", bound=Quantity)

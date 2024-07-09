@@ -3,10 +3,9 @@
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-from . import base, base_parametric, compat, core, distance, fast, functional, utils
+from . import base, base_parametric, core, distance, fast, functional, utils
 from .base import *
 from .base_parametric import *
-from .compat import *
 from .core import *
 from .distance import *
 from .fast import *
@@ -25,4 +24,3 @@ __all__ += distance.__all__
 __all__ += fast.__all__
 __all__ += functional.__all__
 __all__ += utils.__all__
-__all__ += compat.__all__

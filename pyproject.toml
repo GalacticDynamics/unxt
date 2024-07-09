@@ -184,6 +184,7 @@
 [tool.pylint]
   ignore-paths = [".*/_version.py", ".*/_compat.py"]
   messages_control.disable = [
+    "cyclic-import",  # TODO: resolve
     "design",
     "fixme",
     "function-redefined",         # plum-dispatch

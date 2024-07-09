@@ -10,8 +10,6 @@ from typing import Any, TypeAlias, TypeVar
 import equinox as eqx
 import jax
 from astropy.units import (  # pylint: disable=no-name-in-module
-    Unit,
-    UnitBase,
     dimensionless_unscaled as one,
     radian,
 )
@@ -30,11 +28,11 @@ from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
 from .distance import AbstractDistance
 from .utils import type_unparametrized as type_np
+from unxt._units import Unit
 
 T = TypeVar("T")
 
 Axes: TypeAlias = tuple[int, ...]
-UnitClasses: TypeAlias = UnitBase
 
 
 def register(primitive: Primitive) -> Callable[[T], T]:
