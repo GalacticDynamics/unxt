@@ -7,13 +7,13 @@ import jax.core
 import jax.experimental.array_api as jax_xp
 import numpy as np
 from jax import Device
+from plum.parametric import type_unparametrized as type_np
 
 from quaxed._types import DType
 from quaxed.array_api._dispatch import dispatcher as dispatcher_
 
 from .base import AbstractQuantity
 from .core import Quantity
-from .utils import type_unparametrized as type_np
 
 T = TypeVar("T")
 
