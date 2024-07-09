@@ -16,9 +16,9 @@ from typing import ParamSpec, TypeVar
 import equinox as eqx
 import jax
 from jaxtyping import ArrayLike
+from plum.parametric import type_unparametrized
 
 from ._quantity.core import Quantity
-from ._quantity.utils import type_unparametrized
 from ._typing import Unit
 
 P = ParamSpec("P")

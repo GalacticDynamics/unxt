@@ -21,13 +21,13 @@ from jax._src.typing import Shape
 from jax.core import Primitive
 from jaxtyping import Array, ArrayLike
 from plum import promote
+from plum.parametric import type_unparametrized as type_np
 from quax import register as register_
 
 from .base import AbstractQuantity, can_convert_unit
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
 from .distance import AbstractDistance
-from .utils import type_unparametrized as type_np
 from unxt._units import Unit
 
 T = TypeVar("T")
