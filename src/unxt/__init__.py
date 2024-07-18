@@ -13,12 +13,12 @@ from ._quantity import *
 from ._version import version as __version__
 from .unitsystems import AbstractUnitSystem, UnitSystem, unitsystem
 
+# Register interoperability
 # isort: split
 if HAS_ASTROPY:
-    from ._interop import unxt_interop_astropy
-
+    from ._interop import unxt_interop_astropy as _
 if HAS_GALA:
-    from ._interop import unxt_interop_gala
+    from ._interop import unxt_interop_gala as _  # type: ignore[no-redef]  # noqa: F401
 
 __all__ = [
     "__version__",
@@ -31,4 +31,4 @@ __all__ = [
 __all__ += _quantity.__all__
 
 # Clean up namespace
-del HAS_ASTROPY, HAS_GALA, _quantity, unxt_interop_astropy, unxt_interop_gala
+del HAS_ASTROPY, HAS_GALA, _quantity
