@@ -8,16 +8,17 @@ from . import (
     experimental,  # noqa: F401
     unitsystems,
 )
-from ._optional_deps import HAS_GALA
+from ._optional_deps import HAS_ASTROPY, HAS_GALA
 from ._quantity import *
 from ._version import version as __version__
 from .unitsystems import AbstractUnitSystem, UnitSystem, unitsystem
 
+# Register interoperability
 # isort: split
-from . import _unxt_interop_astropy  # noqa: F401
-
+if HAS_ASTROPY:
+    from ._interop import unxt_interop_astropy as _
 if HAS_GALA:
-    from . import _unxt_interop_gala  # noqa: F401
+    from ._interop import unxt_interop_gala as _  # type: ignore[no-redef]  # noqa: F401
 
 __all__ = [
     "__version__",
@@ -30,4 +31,4 @@ __all__ = [
 __all__ += _quantity.__all__
 
 # Clean up namespace
-del HAS_GALA, _quantity
+del HAS_ASTROPY, HAS_GALA, _quantity
