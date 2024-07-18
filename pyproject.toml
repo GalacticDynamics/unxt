@@ -41,9 +41,8 @@
   requires-python = ">=3.10"
 
   [project.optional-dependencies]
-    all = ["unxt[gala]"]
-    gala = ["gala"]
-    dev = ["unxt[docs]", "unxt[test]"]
+    all = ["unxt[interop-gala]"]
+    interop-gala = ["gala"]
     docs = [
       "sphinx>=7.0",
       "myst_parser>=0.13",
@@ -59,6 +58,7 @@
       "pytest-github-actions-annotate-failures",
       "sybil",
     ]
+    dev = ["unxt[all]", "unxt[docs]", "unxt[test]"]
 
   [project.urls]
     "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"
