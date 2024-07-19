@@ -386,6 +386,76 @@ def test_mod():
     assert got == expect
 
 
+# --------------------------------------------------------------
+
+
+def test_at():
+    """Test the ``Quantity.at`` method."""
+    x = jnp.arange(10, dtype=float)
+    q = Quantity(x, "km")
+
+    # Get
+    # TODO: test fill_value
+    assert q.at[1].get() == Quantity(1.0, "km")
+    assert qnp.array_equal(q.at[:3].get(), Quantity([0.0, 1, 2], "km"))
+
+    # Set
+    q2 = q.at[1].set(Quantity(1.2, "km"))
+    assert q2[1] == Quantity(1.2, "km")
+    assert q[1] == Quantity(1.0, "km")  # original is unchanged
+
+    q2 = q.at[:3].set(Quantity([1.2, 2.3, 3.4], "km"))
+    assert qnp.array_equal(q2[:3], Quantity([1.2, 2.3, 3.4], "km"))
+    assert qnp.array_equal(q[:3], Quantity([0.0, 1, 2], "km"))  # original is unchanged
+
+    # Apply
+    with pytest.raises(NotImplementedError):
+        q.at[1].apply(lambda x: x + 1)
+
+    # Add
+    q2 = q.at[1].add(Quantity(1.2, "km"))
+    assert q2[1] == Quantity(2.2, "km")
+    assert q[1] == Quantity(1.0, "km")  # original is unchanged
+
+    # Multiply
+    q2 = q.at[1].mul(2)
+    assert q2[1] == Quantity(2.0, "km")
+    assert q[1] == Quantity(1.0, "km")  # original is unchanged
+
+    with pytest.raises(RuntimeError):
+        q.at[1].mul(Quantity(2, "m"))
+
+    # Divide
+    q2 = q.at[1].divide(2)
+    assert q2[1] == Quantity(0.5, "km")
+    assert q[1] == Quantity(1.0, "km")  # original is unchanged
+
+    with pytest.raises(RuntimeError):
+        q.at[1].divide(Quantity(2, "m"))
+
+    # Power
+    with pytest.raises(NotImplementedError):
+        q.at[1].power(2)
+
+    # Min
+    q2 = q.at[1].min(Quantity(0.5, "km"))
+    assert q2[1] == Quantity(0.5, "km")
+    assert q[1] == Quantity(1.0, "km")  # original is unchanged
+
+    q2 = q.at[1].min(Quantity(1.5, "km"))
+    assert q2[1] == Quantity(1.0, "km")
+    assert q[1] == Quantity(1.0, "km")  # original is unchanged
+
+    # Max
+    q2 = q.at[1].max(Quantity(1.5, "km"))
+    assert q2[1] == Quantity(1.5, "km")
+    assert q[1] == Quantity(1.0, "km")  # original is unchanged
+
+    q2 = q.at[1].max(Quantity(0.5, "km"))
+    assert q2[1] == Quantity(1.0, "km")
+    assert q[1] == Quantity(1.0, "km")  # original is unchanged
+
+
 # ===============================================================
 # Astropy
 
