@@ -11,6 +11,7 @@ from plum.parametric import type_unparametrized as type_np
 
 from quaxed._types import DType
 from quaxed.array_api._dispatch import dispatcher as dispatcher_
+from quaxed.numpy._dispatch import dispatcher as np_dispatcher_
 
 from .base import AbstractQuantity
 from .core import Quantity
@@ -23,9 +24,15 @@ def dispatcher(f: T) -> T:  # TODO: figure out mypy stub issue.
     return dispatcher_(f)
 
 
+def np_dispatcher(f: T) -> T:  # TODO: figure out mypy stub issue.
+    """Dispatcher that makes mypy happy."""
+    return np_dispatcher_(f)
+
+
 # -----------------------------------------------
 
 
+@np_dispatcher
 @dispatcher
 def arange(
     start: Quantity,
@@ -51,6 +58,7 @@ def arange(
 # -----------------------------------------------
 
 
+@np_dispatcher
 @dispatcher
 def empty_like(
     x: AbstractQuantity, /, *, dtype: Any = None, device: Any = None
@@ -62,6 +70,7 @@ def empty_like(
 # -----------------------------------------------
 
 
+@np_dispatcher
 @dispatcher
 def full_like(
     x: AbstractQuantity,
@@ -74,8 +83,7 @@ def full_like(
     return full_like(x, fill_value, dtype=dtype, device=device)
 
 
-@dispatcher  # type: ignore[no-redef]
-def full_like(
+def full_like(  # type: ignore[no-redef]
     x: AbstractQuantity,
     fill_value: AbstractQuantity,
     /,
@@ -89,8 +97,12 @@ def full_like(
     )
 
 
-@dispatcher  # type: ignore[no-redef]
-def full_like(
+# TODO: fix when https://github.com/beartype/plum/pull/186
+np_dispatcher(full_like)
+dispatcher(full_like)
+
+
+def full_like(  # type: ignore[no-redef]
     x: AbstractQuantity,
     fill_value: bool | int | float | complex,
     /,
@@ -103,14 +115,21 @@ def full_like(
     )
 
 
+# TODO: fix when https://github.com/beartype/plum/pull/186
+np_dispatcher(full_like)
+dispatcher(full_like)
+
+
 # -----------------------------------------------
 
 
+@np_dispatcher
 @dispatcher
 def linspace(
     start: Quantity,
     stop: Quantity,
     num: int | np.integer,
+    /,
     *,
     dtype: DType | None = None,
     device: Device | None = None,
@@ -130,6 +149,7 @@ def linspace(
     )
 
 
+@np_dispatcher
 @dispatcher
 def ones_like(
     x: AbstractQuantity, /, *, dtype: Any = None, device: Any = None
@@ -138,6 +158,7 @@ def ones_like(
     return jax.device_put(out, device=device)
 
 
+@np_dispatcher
 @dispatcher
 def zeros_like(
     x: AbstractQuantity, /, *, dtype: Any = None, device: Any = None
