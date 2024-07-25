@@ -536,6 +536,32 @@ def constructor(
     return cls(value.value, unit)
 
 
+@AbstractQuantity.constructor._f.register  # type: ignore[no-redef]  # noqa: SLF001
+def constructor(
+    cls: type[AbstractQuantity],
+    value: AbstractQuantity,
+    unit: None,
+    /,
+    *,
+    dtype: Any = None,
+) -> AbstractQuantity:
+    """Construct a `Quantity` from another `Quantity`.
+
+    The `value` is converted to the new `unit`.
+
+    Examples
+    --------
+    >>> from unxt import Quantity
+
+    >>> q = Quantity(1, "m")
+    >>> Quantity.constructor(q, None)
+    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+
+    """
+    value = xp.asarray(value, dtype=dtype)
+    return cls(value.value, value.unit)
+
+
 @AbstractQuantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
 def constructor(
     cls: type[AbstractQuantity],
