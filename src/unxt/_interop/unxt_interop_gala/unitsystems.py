@@ -9,16 +9,42 @@ from gala.units import (  # pylint: disable=import-error
 )
 from plum import dispatch
 
-from unxt.unitsystems import DimensionlessUnitSystem, UnitSystem, dimensionless
+from unxt.unitsystems import AbstractUnitSystem, DimensionlessUnitSystem, dimensionless
 
 
 @dispatch
-def unitsystem(value: GalaUnitSystem, /) -> UnitSystem:
-    usys = UnitSystem(*value._core_units)  # noqa: SLF001
-    usys._registry = value._registry  # noqa: SLF001
-    return usys
+def unitsystem(value: GalaUnitSystem, /) -> AbstractUnitSystem:
+    """Return a `gala.units.UnitSystem` as a `unxt.AbstractUnitSystem`.
+
+    Examples
+    --------
+    >>> from gala.units import UnitSystem
+    >>> import astropy.units as u
+    >>> usys = UnitSystem(u.km, u.s, u.Msun, u.radian)
+
+    >>> from unxt import unitsystem
+    >>> unitsystem(usys)
+    LTMAUnitSystem(length=Unit("km"), time=Unit("s"),
+                   mass=Unit("solMass"), angle=Unit("rad"))
+
+    """
+    # Create a new unit system instance, and possibly class.
+    return unitsystem(*value._core_units)  # noqa: SLF001
 
 
 @dispatch  # type: ignore[no-redef]
 def unitsystem(_: GalaDimensionlessUnitSystem, /) -> DimensionlessUnitSystem:
+    """Return a `gala.units.DimensionlessUnitSystem` as a `unxt.DimensionlessUnitSystem`.
+
+    Examples
+    --------
+    >>> from gala.units import DimensionlessUnitSystem
+    >>> import astropy.units as u
+    >>> usys = DimensionlessUnitSystem()
+
+    >>> from unxt import unitsystem
+    >>> unitsystem(usys)
+    DimensionlessUnitSystem()
+
+    """  # noqa: E501
     return dimensionless
