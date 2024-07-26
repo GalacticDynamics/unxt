@@ -1,85 +1,72 @@
 """Test the `unxt.unitsystems` module."""
 
 import pickle
+from dataclasses import dataclass
 from pathlib import Path
 
 import astropy.units as u
 import numpy as np
 import pytest
 
-from unxt.unitsystems import UnitSystem, dimensionless
+from unxt.unitsystems import AbstractUnitSystem, dimensionless, unitsystem
+
+# ===================================================================
 
 
-class TestUnitSystem:
-    """Test `unxt.UnitSystem`."""
+def test_unitsystem_constructor() -> None:
+    """Test the :class:`~unxt.UnitSystem` constructor."""
+    usys = unitsystem(5 * u.kpc, 50 * u.Myr, 1e5 * u.Msun, u.rad)
+    assert np.isclose((8 * u.Myr).decompose(usys).value, 8 / 50)
 
-    def test_constructor(self) -> None:
-        """Test the `unxt.UnitSystem` constructor."""
-        usys = UnitSystem(u.kpc, u.Myr, u.radian, u.Msun)
 
-        match = "must specify a unit for the physical type .*mass"
-        with pytest.raises(ValueError, match=match):
-            UnitSystem(u.kpc, u.Myr, u.radian)  # no mass
+def test_compare() -> None:
+    """Test the :meth:`~unxt.UnitSystem.compare` method."""
+    usys1 = unitsystem(u.kpc, u.Myr, u.radian, u.Msun, u.mas / u.yr)
+    usys1_clone = unitsystem(u.kpc, u.Myr, u.radian, u.Msun, u.mas / u.yr)
 
-        match = "must specify a unit for the physical type .*angle"
-        with pytest.raises(ValueError, match=match):
-            UnitSystem(u.kpc, u.Myr, u.Msun)
+    usys2 = unitsystem(u.kpc, u.Myr, u.radian, u.Msun, u.kiloarcsecond / u.yr)
+    usys3 = unitsystem(u.kpc, u.Myr, u.radian, u.kg, u.mas / u.yr)
 
-        match = "must specify a unit for the physical type .*time"
-        with pytest.raises(ValueError, match=match):
-            UnitSystem(u.kpc, u.radian, u.Msun)
+    assert usys1 == usys1_clone
+    assert usys1_clone == usys1
 
-        match = "must specify a unit for the physical type .*length"
-        with pytest.raises(ValueError, match=match):
-            UnitSystem(u.Myr, u.radian, u.Msun)
+    assert usys1 != usys2
+    assert usys2 != usys1
 
-        usys = UnitSystem(u.kpc, u.Myr, u.radian, u.Msun)
-        usys = UnitSystem(usys)
+    assert usys1 != usys3
+    assert usys3 != usys1
 
-    def test_constructor_quantity(self) -> None:
-        """Test the `unxt.UnitSystem` constructor with quantities."""
-        usys = UnitSystem(5 * u.kpc, 50 * u.Myr, 1e5 * u.Msun, u.rad)
-        assert np.isclose((8 * u.Myr).decompose(usys).value, 8 / 50)
 
-    def test_preferred(self) -> None:
-        """Test the :meth:`unxt.UnitSystem.preferred` method."""
-        usys = UnitSystem(u.kpc, u.Myr, u.radian, u.Msun, u.km / u.s)
-        q = 15.0 * u.km / u.s
-        assert usys.preferred("velocity") == u.km / u.s
-        assert q.decompose(usys).unit == u.kpc / u.Myr
-        assert usys.as_preferred(q).unit == u.km / u.s
+def test_pickle(tmpdir: Path) -> None:
+    """Test pickling and unpickling a :class:`~unxt.UnitSystem`."""
+    usys = unitsystem(u.kpc, u.Myr, u.radian, u.Msun)
 
-    # ===============================================================
+    path = tmpdir / "test.pkl"
+    with path.open(mode="wb") as f:
+        pickle.dump(usys, f)
 
-    def test_compare(self) -> None:
-        """Test the :meth:`unxt.UnitSystem.compare` method."""
-        usys1 = UnitSystem(u.kpc, u.Myr, u.radian, u.Msun, u.mas / u.yr)
-        usys1_clone = UnitSystem(u.kpc, u.Myr, u.radian, u.Msun, u.mas / u.yr)
+    with path.open(mode="rb") as f:
+        usys2 = pickle.load(f)  # noqa: S301
 
-        usys2 = UnitSystem(u.kpc, u.Myr, u.radian, u.Msun, u.kiloarcsecond / u.yr)
-        usys3 = UnitSystem(u.kpc, u.Myr, u.radian, u.kg, u.mas / u.yr)
+    assert usys == usys2
 
-        assert usys1 == usys1_clone
-        assert usys1_clone == usys1
 
-        assert usys1 != usys2
-        assert usys2 != usys1
+def test_non_slot():
+    # Passes
+    class NoSlots1(AbstractUnitSystem):
+        pass
 
-        assert usys1 != usys3
-        assert usys3 != usys1
+    # Fails
+    with pytest.raises(TypeError, match="cannot inherit"):
 
-    def test_pickle(self, tmpdir: Path) -> None:
-        """Test pickling and unpickling a `unxt.UnitSystem`."""
-        usys = UnitSystem(u.kpc, u.Myr, u.radian, u.Msun)
+        @dataclass
+        class NoSlots2(AbstractUnitSystem):
+            pass
 
-        path = tmpdir / "test.pkl"
-        with path.open(mode="wb") as f:
-            pickle.dump(usys, f)
-
-        with path.open(mode="rb") as f:
-            usys2 = pickle.load(f)  # noqa: S301
-
-        assert usys == usys2
+    # Passes
+    @dataclass(frozen=True, slots=True)
+    class NoSlots3(AbstractUnitSystem):
+        pass
 
 
 class TestDimensionlessUnitSystem:
@@ -88,14 +75,11 @@ class TestDimensionlessUnitSystem:
     def test_getitem(self) -> None:
         """Test :meth:`unxt.unitsystems.DimensionlessUnitSystem.__getitem__`."""
         assert dimensionless["dimensionless"] == u.one
-        assert dimensionless["length"] == u.one
+
+        with pytest.raises(u.UnitConversionError):
+            dimensionless["length"]
 
     def test_decompose(self) -> None:
         """Test that dimensionless unitsystem can be decomposed."""
         with pytest.raises(ValueError, match="can not be decomposed into"):
             (15 * u.kpc).decompose(dimensionless)
-
-    def test_preferred(self) -> None:
-        """Test the ``DimensionlessUnitSystem.preferred`` method."""
-        with pytest.raises(ValueError, match="are not convertible"):
-            dimensionless.as_preferred(15 * u.kpc)

@@ -1,89 +1,168 @@
 """Tools for representing systems of units using ``astropy.units``."""
 
-__all__ = ["UnitSystem", "DimensionlessUnitSystem"]
+__all__ = ["unitsystem"]
 
-from typing import ClassVar, final
+
+from collections.abc import Sequence
+from dataclasses import field, make_dataclass
+from typing import Annotated, Any
 
 import astropy.units as u
+import equinox as eqx
+from plum import dispatch
 
-from .base import AbstractUnitSystem
-from unxt._unxt.typing_ext import Unit
+from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
+from .builtin import DimensionlessUnitSystem
+from .realizations import NAMED_UNIT_SYSTEMS, dimensionless
+from .utils import get_dimension_name
 
 
-@final
-class UnitSystem(AbstractUnitSystem):
-    """Represents a system of units.
-
-    At minimum, this consists of a set of length, time, mass, and angle units,
-    but may also contain preferred representations for composite units. For
-    example, the base unit system could be ``{kpc, Myr, Msun, radian}``, but you
-    can also specify a preferred velocity unit, such as ``km/s``.
-
-    This class behaves like a dictionary with keys set by physical types (i.e.
-    "length", "velocity", "energy", etc.). If a unit for a particular physical
-    type is not specified on creation, a composite unit will be created with the
-    base units. See the examples below for some demonstrations.
-
-    Parameters
-    ----------
-    *units, **units
-        The units that define the unit system. At minimum, this must contain
-        length, time, mass, and angle units. If passing in keyword arguments,
-        the keys must be valid `astropy.units` physical types.
+@dispatch
+def unitsystem(units: AbstractUnitSystem, /) -> AbstractUnitSystem:
+    """Convert a UnitSystem or tuple of arguments to a UnitSystem.
 
     Examples
     --------
-    If only base units are specified, any physical type specified as a key to
-    this object will be composed out of the base units::
+    >>> import astropy.units as u
+    >>> from unxt.unitsystems import unitsystem
+    >>> usys = unitsystem(u.kpc, u.Myr, u.Msun, u.radian, u.km/u.s)
+    >>> usys
+    LTMAVUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
+                    angle=Unit("rad"), speed=Unit("km / s"))
 
-        >>> usys = UnitSystem(u.m, u.s, u.kg, u.radian)
-        >>> usys["velocity"]
-        Unit("m / s")
-
-    However, preferred representations for composite units can also be
-    specified::
-
-        >>> usys = UnitSystem(u.m, u.s, u.kg, u.radian, u.erg)
-        >>> usys["energy"]
-        Unit("m2 kg / s2")
-        >>> usys.preferred("energy")
-        Unit("erg")
-
-    This is useful for Galactic dynamics where lengths and times are usually
-    given in terms of ``kpc`` and ``Myr``, but velocities are often specified in
-    ``km/s``::
-
-        >>> usys = UnitSystem(u.kpc, u.Myr, u.Msun, u.radian, u.km/u.s)
-        >>> usys["velocity"]
-        Unit("kpc / Myr")
-        >>> usys.preferred("velocity")
-        Unit("km / s")
+    >>> unitsystem(usys) is usys
+    True
 
     """
+    return units
 
-    _required_dimensions: ClassVar[list[u.PhysicalType]] = [
-        u.get_physical_type("length"),
-        u.get_physical_type("time"),
-        u.get_physical_type("mass"),
-        u.get_physical_type("angle"),
+
+@dispatch  # type: ignore[no-redef]
+def unitsystem(units: Sequence[Any], /) -> AbstractUnitSystem:
+    """Convert a UnitSystem or tuple of arguments to a UnitSystem.
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> from unxt.unitsystems import unitsystem
+
+    >>> unitsystem(())
+    DimensionlessUnitSystem()
+
+    >>> unitsystem((u.kpc, u.Myr, u.Msun, u.radian, u.km/u.s))
+    LTMAVUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
+                    angle=Unit("rad"), speed=Unit("km / s"))
+
+    >>> unitsystem([u.kpc, u.Myr, u.Msun, u.radian, u.km/u.s])
+    LTMAVUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
+                    angle=Unit("rad"), speed=Unit("km / s"))
+
+    """
+    return unitsystem(*units) if len(units) > 0 else dimensionless
+
+
+@dispatch  # type: ignore[no-redef]
+def unitsystem(_: None, /) -> DimensionlessUnitSystem:
+    """Dimensionless unit system from None.
+
+    Examples
+    --------
+    >>> from unxt.unitsystems import unitsystem
+    >>> unitsystem(None)
+    DimensionlessUnitSystem()
+
+    """
+    return dimensionless
+
+
+@dispatch  # type: ignore[no-redef]
+def unitsystem(*units: Any) -> AbstractUnitSystem:
+    """Convert a set of arguments to a UnitSystem.
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> from unxt.unitsystems import unitsystem
+
+    >>> unitsystem(u.kpc, u.Myr, u.Msun, u.radian)
+    LTMAUnitSystem(length=Unit("kpc"), time=Unit("Myr"),
+                   mass=Unit("solMass"), angle=Unit("rad"))
+
+    """
+    # Convert everything to a unit
+    units = tuple(map(u.Unit, units))
+
+    # Check that the units all have different dimensions
+    dimensions = tuple(x.physical_type for x in units)
+    dimensions = eqx.error_if(
+        dimensions,
+        len(set(dimensions)) < len(dimensions),
+        "some dimensions are repeated",
+    )
+
+    # Return if the unit system is already registered
+    if dimensions in UNITSYSTEMS_REGISTRY:
+        return UNITSYSTEMS_REGISTRY[dimensions](*units)
+
+    # Otherwise, create a new unit system
+    # dimension names of all the units
+    du = {get_dimension_name(x).replace(" ", "_"): x.physical_type for x in units}
+    # name: physical types
+    cls_name = "".join(k.title().replace("_", "") for k in du) + "UnitSystem"
+    # fields: name, unit
+    fields = [
+        (
+            k,
+            Annotated[u.UnitBase, v],
+            field(init=True, repr=True, hash=True, compare=True),  # pylint: disable=invalid-field-call
+        )
+        for k, v in du.items()
     ]
 
+    def _reduce_(self: AbstractUnitSystem) -> tuple:
+        return (_call_unitsystem, self.base_units, None, None, None, None)
 
-@final
-class DimensionlessUnitSystem(AbstractUnitSystem):
-    """A unit system with only dimensionless units."""
+    # Make and register the dataclass class
+    unitsystem_cls: type[AbstractUnitSystem] = make_dataclass(
+        cls_name,
+        fields,
+        bases=(AbstractUnitSystem,),
+        namespace={"__reduce__": _reduce_},
+        frozen=True,
+        slots=True,
+        eq=True,
+        repr=True,
+        init=True,
+    )
 
-    _required_dimensions: ClassVar[list[u.PhysicalType]] = []
+    # Make the dataclass instance
+    return unitsystem_cls(*units)
 
-    def __init__(self) -> None:
-        super().__init__(u.one)
-        self._core_units = [u.one]
 
-    def __getitem__(self, key: str | u.PhysicalType) -> Unit:
-        return u.one
+@dispatch  # type: ignore[no-redef]
+def unitsystem(name: str, /) -> AbstractUnitSystem:
+    """Return unit system from name.
 
-    def __str__(self) -> str:
-        return "UnitSystem(dimensionless)"
+    Examples
+    --------
+    >>> from unxt.unitsystems import unitsystem
+    >>> unitsystem("galactic")
+    LTMAVUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
+                    angle=Unit("rad"), speed=Unit("km / s"))
 
-    def __repr__(self) -> str:
-        return "DimensionlessUnitSystem()"
+    >>> unitsystem("solarsystem")
+    LTMAUnitSystem(length=Unit("AU"), time=Unit("yr"),
+                   mass=Unit("solMass"), angle=Unit("rad"))
+
+    >>> unitsystem("dimensionless")
+    DimensionlessUnitSystem()
+
+    """
+    return NAMED_UNIT_SYSTEMS[name]
+
+
+# ----
+
+
+def _call_unitsystem(*args: Any) -> AbstractUnitSystem:
+    return unitsystem(*args)
