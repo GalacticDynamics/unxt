@@ -8,7 +8,6 @@ from math import prod
 from typing import Any, TypeAlias, TypeVar
 
 import equinox as eqx
-import jax
 from astropy.units import (  # pylint: disable=no-name-in-module
     dimensionless_unscaled as one,
     radian,
@@ -1447,7 +1446,7 @@ def _device_put_p(x: AbstractQuantity, **kwargs: Any) -> AbstractQuantity:
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
-    return replace(x, value=jax.device_put(x.value, **kwargs))
+    return replace(x, value=lax.device_put_p.bind(x.value, **kwargs))
 
 
 # ==============================================================================
