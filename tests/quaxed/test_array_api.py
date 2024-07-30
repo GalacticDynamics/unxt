@@ -351,7 +351,7 @@ def test_finfo():
     expected = xp.finfo(jnp.float32)
 
     assert isinstance(got, FInfo)
-    for attr in FInfo.__slots__:
+    for attr in ("bits", "eps", "max", "min", "smallest_normal", "dtype"):
         assert getattr(got, attr) == getattr(expected, attr)
 
 
