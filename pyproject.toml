@@ -26,8 +26,8 @@
     "quaxed >= 0.4",
     "astropy>=6.0",
     "equinox>0.11",
-    "jax>0.4",
-    "jaxlib",
+    "jax > 0.4",
+    "jaxlib > 0.4",
     "jaxtyping",
     "quax>=0.0.3",
     # Pinned for above dependencies

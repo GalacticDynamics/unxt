@@ -179,7 +179,7 @@ class DistanceModulus(AbstractDistance):
         --------
         >>> from unxt import DistanceModulus
         >>> DistanceModulus(10, "mag").parallax.to("mas")
-        Parallax(Array(0.99999994, dtype=float32), unit='mas')
+        Parallax(Array(0.99999994, dtype=float32, ...), unit='mas')
 
         """
         return self.distance.parallax  # TODO: specific shortcut

@@ -8,7 +8,7 @@ from math import prod
 from typing import Any, TypeAlias, TypeVar
 
 import equinox as eqx
-import jax
+import jax.tree as jt
 from astropy.units import (  # pylint: disable=no-name-in-module
     dimensionless_unscaled as one,
     radian,
@@ -107,12 +107,12 @@ def _acos_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(-1, "")
     >>> xp.acos(q)
-    UncheckedQuantity(Array(3.1415927, dtype=float32), unit='rad')
+    UncheckedQuantity(Array(3.1415927, dtype=float32, ...), unit='rad')
 
     >>> from unxt import Quantity
     >>> q = Quantity(-1, "")
     >>> xp.acos(q)
-    Quantity['angle'](Array(3.1415927, dtype=float32), unit='rad')
+    Quantity['angle'](Array(3.1415927, dtype=float32, ...), unit='rad')
 
     """
     x_ = x.to_units_value(one)
@@ -412,7 +412,7 @@ def _asin_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "")
     >>> xp.asin(q)
-    UncheckedQuantity(Array(1.5707964, dtype=float32), unit='rad')
+    UncheckedQuantity(Array(1.5707964, dtype=float32, ...), unit='rad')
 
     """
     return type_np(x)(lax.asin(x.to_units_value(one)), unit=radian)
@@ -430,7 +430,7 @@ def _asin_p_q(
     >>> from unxt import Quantity
     >>> q = Quantity(1, "")
     >>> xp.asin(q)
-    Quantity['angle'](Array(1.5707964, dtype=float32), unit='rad')
+    Quantity['angle'](Array(1.5707964, dtype=float32, ...), unit='rad')
 
     """
     return type_np(x)(lax.asin(x.to_units_value(one)), unit=radian)
@@ -449,7 +449,7 @@ def _asinh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(2, "")
     >>> xp.asinh(q)
-    UncheckedQuantity(Array(1.4436355, dtype=float32), unit='rad')
+    UncheckedQuantity(Array(1.4436355, dtype=float32, ...), unit='rad')
 
     """
     return type_np(x)(lax.asinh(x.to_units_value(one)), unit=radian)
@@ -467,7 +467,7 @@ def _asinh_p_q(
     >>> from unxt import Quantity
     >>> q = Quantity(2, "")
     >>> xp.asinh(q)
-    Quantity['angle'](Array(1.4436355, dtype=float32), unit='rad')
+    Quantity['angle'](Array(1.4436355, dtype=float32, ...), unit='rad')
 
     """
     return type_np(x)(lax.asinh(x.to_units_value(one)), unit=radian)
@@ -487,7 +487,7 @@ def _atan2_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> q1 = UncheckedQuantity(1, "m")
     >>> q2 = UncheckedQuantity(3, "m")
     >>> xp.atan2(q1, q2)
-    UncheckedQuantity(Array(0.32175055, dtype=float32), unit='rad')
+    UncheckedQuantity(Array(0.32175055, dtype=float32, ...), unit='rad')
 
     """
     x, y = promote(x, y)  # e.g. Distance -> Quantity
@@ -508,7 +508,7 @@ def _atan2_p_qq(
     >>> q1 = Quantity(1, "m")
     >>> q2 = Quantity(3, "m")
     >>> xp.atan2(q1, q2)
-    Quantity['angle'](Array(0.32175055, dtype=float32), unit='rad')
+    Quantity['angle'](Array(0.32175055, dtype=float32, ...), unit='rad')
 
     """
     x, y = promote(x, y)  # e.g. Distance -> Quantity
@@ -611,7 +611,7 @@ def _atan_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "")
     >>> xp.atan(q)
-    UncheckedQuantity(Array(0.7853982, dtype=float32), unit='rad')
+    UncheckedQuantity(Array(0.7853982, dtype=float32, ...), unit='rad')
 
     """
     return type_np(x)(lax.atan(x.to_units_value(one)), unit=radian)
@@ -629,7 +629,7 @@ def _atan_p_q(
     >>> from unxt import Quantity
     >>> q = Quantity(1, "")
     >>> xp.atan(q)
-    Quantity['angle'](Array(0.7853982, dtype=float32), unit='rad')
+    Quantity['angle'](Array(0.7853982, dtype=float32, ...), unit='rad')
 
     """
     return Quantity(lax.atan(x.to_units_value(one)), unit=radian)
@@ -648,7 +648,7 @@ def _atanh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(2, "")
     >>> xp.atanh(q)
-    UncheckedQuantity(Array(nan, dtype=float32), unit='rad')
+    UncheckedQuantity(Array(nan, dtype=float32, ...), unit='rad')
 
     """
     return type_np(x)(lax.atanh(x.to_units_value(one)), unit=radian)
@@ -666,7 +666,7 @@ def _atanh_p_q(
     >>> from unxt import Quantity
     >>> q = Quantity(2, "")
     >>> xp.atanh(q)
-    Quantity['angle'](Array(nan, dtype=float32), unit='rad')
+    Quantity['angle'](Array(nan, dtype=float32, ...), unit='rad')
 
     """
     return type_np(x)(lax.atanh(x.to_units_value(one)), unit=radian)
@@ -731,12 +731,12 @@ def _cbrt_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(8, "m3")
     >>> jnp.cbrt(q)
-    UncheckedQuantity(Array(2., dtype=float32), unit='m')
+    UncheckedQuantity(Array(2., dtype=float32, ...), unit='m')
 
     >>> from unxt import Quantity
     >>> q = Quantity(8, "m3")
     >>> jnp.cbrt(q)
-    Quantity['length'](Array(2., dtype=float32), unit='m')
+    Quantity['length'](Array(2., dtype=float32, ...), unit='m')
 
     """
     return type_np(x)(lax.cbrt(x.value), unit=x.unit ** (1 / 3))
@@ -753,7 +753,7 @@ def _cbrt_p_d(x: AbstractDistance) -> Quantity:
     >>> from unxt import Distance
     >>> d = Distance(8, "m")
     >>> jnp.cbrt(d)
-    Quantity['m1/3'](Array(2., dtype=float32), unit='m(1/3)')
+    Quantity['m1/3'](Array(2., dtype=float32, ...), unit='m(1/3)')
 
     """
     return Quantity(lax.cbrt(x.value), unit=x.unit ** (1 / 3))
@@ -1149,15 +1149,13 @@ def _conv_general_dilated_p() -> AbstractQuantity:
 
 @register(lax.convert_element_type_p)
 def _convert_element_type_p(
-    operand: AbstractQuantity,
-    *,
-    new_dtype: Any,
-    weak_type: Any,
+    operand: AbstractQuantity, **kwargs: Any
 ) -> AbstractQuantity:
     """Convert the element type of a quantity."""
     # TODO: examples
-    del weak_type
-    return replace(operand, value=lax.convert_element_type(operand.value, new_dtype))
+    return replace(
+        operand, value=lax.convert_element_type_p.bind(operand.value, **kwargs)
+    )
 
 
 # ==============================================================================
@@ -1175,12 +1173,12 @@ def _copy_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "m")
     >>> jnp.copy(q)
-    UncheckedQuantity(Array(1, dtype=int32), unit='m')
+    UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
 
     >>> from unxt import Quantity
     >>> q = Quantity(1, "m")
     >>> jnp.copy(q)
-    Quantity['length'](Array(1, dtype=int32), unit='m')
+    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
     return replace(x, value=lax.copy_p.bind(x.value))
@@ -1199,11 +1197,11 @@ def _cos_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "rad")
     >>> xp.cos(q)
-    UncheckedQuantity(Array(0.5403023, dtype=float32), unit='')
+    UncheckedQuantity(Array(0.5403023, dtype=float32, ...), unit='')
 
     >>> q = UncheckedQuantity(1, "")
     >>> xp.cos(q)
-    UncheckedQuantity(Array(0.5403023, dtype=float32), unit='')
+    UncheckedQuantity(Array(0.5403023, dtype=float32, ...), unit='')
 
     """
     return type_np(x)(lax.cos(_to_value_rad_or_one(x)), unit=one)
@@ -1221,11 +1219,11 @@ def _cos_p_q(
     >>> from unxt import Quantity
     >>> q = Quantity(1, "rad")
     >>> xp.cos(q)
-    Quantity['dimensionless'](Array(0.5403023, dtype=float32), unit='')
+    Quantity['dimensionless'](Array(0.5403023, dtype=float32, ...), unit='')
 
     >>> q = Quantity(1, "")
     >>> xp.cos(q)
-    Quantity['dimensionless'](Array(0.5403023, dtype=float32), unit='')
+    Quantity['dimensionless'](Array(0.5403023, dtype=float32, ...), unit='')
 
     """
     return Quantity(lax.cos(_to_value_rad_or_one(x)), unit=one)
@@ -1244,11 +1242,11 @@ def _cosh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "rad")
     >>> xp.cosh(q)
-    UncheckedQuantity(Array(1.5430806, dtype=float32), unit='')
+    UncheckedQuantity(Array(1.5430806, dtype=float32, ...), unit='')
 
     >>> q = UncheckedQuantity(1, "")
     >>> xp.cosh(q)
-    UncheckedQuantity(Array(1.5430806, dtype=float32), unit='')
+    UncheckedQuantity(Array(1.5430806, dtype=float32, ...), unit='')
 
     """
     return type_np(x)(lax.cosh(_to_value_rad_or_one(x)), unit=one)
@@ -1266,11 +1264,11 @@ def _cosh_p_q(
     >>> from unxt import Quantity
     >>> q = Quantity(1, "rad")
     >>> xp.cosh(q)
-    Quantity['dimensionless'](Array(1.5430806, dtype=float32), unit='')
+    Quantity['dimensionless'](Array(1.5430806, dtype=float32, ...), unit='')
 
     >>> q = Quantity(1, "")
     >>> xp.cosh(q)
-    Quantity['dimensionless'](Array(1.5430806, dtype=float32), unit='')
+    Quantity['dimensionless'](Array(1.5430806, dtype=float32, ...), unit='')
 
     """
     return type_np(x)(lax.cosh(_to_value_rad_or_one(x)), unit=one)
@@ -1449,7 +1447,7 @@ def _device_put_p(x: AbstractQuantity, **kwargs: Any) -> AbstractQuantity:
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
-    return replace(x, value=jax.device_put(x.value, **kwargs))
+    return jt.map(lambda y: lax.device_put_p.bind(y, **kwargs), x)
 
 
 # ==============================================================================
@@ -1493,17 +1491,17 @@ def _div_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> q1 = UncheckedQuantity(1, "m")
     >>> q2 = UncheckedQuantity(2, "s")
     >>> xp.divide(q1, q2)
-    UncheckedQuantity(Array(0.5, dtype=float32), unit='m / s')
+    UncheckedQuantity(Array(0.5, dtype=float32, ...), unit='m / s')
     >>> q1 / q2
-    UncheckedQuantity(Array(0.5, dtype=float32), unit='m / s')
+    UncheckedQuantity(Array(0.5, dtype=float32, ...), unit='m / s')
 
     >>> from unxt import Quantity
     >>> q1 = Quantity(1, "m")
     >>> q2 = Quantity(2, "s")
     >>> xp.divide(q1, q2)
-    Quantity['speed'](Array(0.5, dtype=float32), unit='m / s')
+    Quantity['speed'](Array(0.5, dtype=float32, ...), unit='m / s')
     >>> q1 / q2
-    Quantity['speed'](Array(0.5, dtype=float32), unit='m / s')
+    Quantity['speed'](Array(0.5, dtype=float32, ...), unit='m / s')
 
     """
     x, y = promote(x, y)
@@ -1980,12 +1978,12 @@ def _exp2_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(3, "")
     >>> jnp.exp2(q)
-    UncheckedQuantity(Array(8., dtype=float32), unit='')
+    UncheckedQuantity(Array(8., dtype=float32, ...), unit='')
 
     >>> from unxt import Quantity
     >>> q = Quantity(3, "")
     >>> jnp.exp2(q)
-    Quantity['dimensionless'](Array(8., dtype=float32), unit='')
+    Quantity['dimensionless'](Array(8., dtype=float32, ...), unit='')
 
     """
     return replace(x, value=lax.exp2(x.to_units_value(one)))
@@ -2005,12 +2003,12 @@ def _exp_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "")
     >>> xp.exp(q)
-    UncheckedQuantity(Array(2.7182817, dtype=float32), unit='')
+    UncheckedQuantity(Array(2.7182817, dtype=float32, ...), unit='')
 
     >>> from unxt import Quantity
     >>> q = Quantity(1, "")
     >>> xp.exp(q)
-    Quantity['dimensionless'](Array(2.7182817, dtype=float32), unit='')
+    Quantity['dimensionless'](Array(2.7182817, dtype=float32, ...), unit='')
 
     Euler's crown jewel:
 
@@ -2038,12 +2036,12 @@ def _expm1_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(0, "")
     >>> xp.expm1(q)
-    UncheckedQuantity(Array(0., dtype=float32), unit='')
+    UncheckedQuantity(Array(0., dtype=float32, ...), unit='')
 
     >>> from unxt import Quantity
     >>> q = Quantity(0, "")
     >>> xp.expm1(q)
-    Quantity['dimensionless'](Array(0., dtype=float32), unit='')
+    Quantity['dimensionless'](Array(0., dtype=float32, ...), unit='')
 
     """
     return replace(x, value=lax.expm1(x.to_units_value(one)))
@@ -2370,12 +2368,12 @@ def _integer_pow_p(x: AbstractQuantity, *, y: Any) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(2, "m")
     >>> q ** 3
-    UncheckedQuantity(Array(8, dtype=int32), unit='m3')
+    UncheckedQuantity(Array(8, dtype=int32, ...), unit='m3')
 
     >>> from unxt import Quantity
     >>> q = Quantity(2, "m")
     >>> q ** 3
-    Quantity['volume'](Array(8, dtype=int32), unit='m3')
+    Quantity['volume'](Array(8, dtype=int32, ...), unit='m3')
 
     """
     return type_np(x)(value=lax.integer_pow(x.value, y), unit=x.unit**y)
@@ -2390,7 +2388,7 @@ def _integer_pow_p_d(x: AbstractDistance, *, y: Any) -> Quantity:
     >>> from unxt import Distance
     >>> q = Distance(2, "m")
     >>> q ** 3
-    Quantity['volume'](Array(8, dtype=int32), unit='m3')
+    Quantity['volume'](Array(8, dtype=int32, ...), unit='m3')
 
     """
     return Quantity(value=lax.integer_pow(x.value, y), unit=x.unit**y)
@@ -2532,12 +2530,12 @@ def _lgamma_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(3, "")
     >>> jsp.special.gammaln(q)
-    UncheckedQuantity(Array(0.6931474, dtype=float32), unit='')
+    UncheckedQuantity(Array(0.6931474, dtype=float32, ...), unit='')
 
     >>> from unxt import Quantity
     >>> q = Quantity(3, "")
     >>> jsp.special.gammaln(q)
-    Quantity['dimensionless'](Array(0.6931474, dtype=float32), unit='')
+    Quantity['dimensionless'](Array(0.6931474, dtype=float32, ...), unit='')
 
     """
     # TODO: are there any units that this can support?
@@ -3348,12 +3346,12 @@ def _sqrt_p_q(x: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(9, "m")
     >>> qnp.sqrt(q)
-    UncheckedQuantity(Array(3., dtype=float32), unit='m(1/2)')
+    UncheckedQuantity(Array(3., dtype=float32, ...), unit='m(1/2)')
 
     >>> from unxt import Quantity
     >>> q = Quantity(9, "m")
     >>> qnp.sqrt(q)
-    Quantity['m0.5'](Array(3., dtype=float32), unit='m(1/2)')
+    Quantity['m0.5'](Array(3., dtype=float32, ...), unit='m(1/2)')
 
     """
     # Apply sqrt to the value and adjust the unit
@@ -3371,12 +3369,12 @@ def _sqrt_p_d(x: AbstractDistance) -> Quantity:
     >>> from unxt import Distance
     >>> q = Distance(9, "m")
     >>> qnp.sqrt(q)
-    Quantity['m0.5'](Array(3., dtype=float32), unit='m(1/2)')
+    Quantity['m0.5'](Array(3., dtype=float32, ...), unit='m(1/2)')
 
     >>> from unxt import Parallax
     >>> q = Parallax(9, "mas")
     >>> qnp.sqrt(q)
-    Quantity['rad0.5'](Array(3., dtype=float32), unit='mas(1/2)')
+    Quantity['rad0.5'](Array(3., dtype=float32, ...), unit='mas(1/2)')
 
     """
     # Promote to something that supports sqrt units.
