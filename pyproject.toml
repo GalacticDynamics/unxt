@@ -51,16 +51,17 @@
       "sphinx_autodoc_typehints",
       "furo>=2023.08.17",
     ]
+    test-all = ["unxt[all]", "unxt[test]", "unxt[test-mpl]"]
     test = [
       "hypothesis[numpy]",
       "pytest >=6",
       "pytest-arraydiff",
       "pytest-cov >=3",
       "pytest-github-actions-annotate-failures",
-      "pytest-mpl",
       "sybil",
     ]
-    dev = ["unxt[all,docs,test]"]
+    test-mpl = ["pytest-mpl"]
+    dev = ["unxt[all,docs,test-all]"]
 
   [project.urls]
     "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"

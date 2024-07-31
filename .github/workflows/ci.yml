@@ -93,7 +93,7 @@ jobs:
           allow-prereleases: true
 
       - name: Install package
-        run: python -m pip install .[all,test]
+        run: python -m pip install .[all,test-all]
 
       - name: Test package
         run: >-
