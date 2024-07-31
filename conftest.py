@@ -28,7 +28,9 @@ pytest_collect_file = Sybil(
 # TODO: via separate optional_deps package
 HAS_ASTROPY = find_spec("astropy") is not None
 HAS_GALA = find_spec("gala") is not None
-HAS_MATPLOTLIB = find_spec("matplotlib") is not None
+HAS_MATPLOTLIB = (find_spec("matplotlib") is not None) and (
+    find_spec("zeroth") is not None
+)
 
 collect_ignore_glob = []
 if not HAS_ASTROPY:

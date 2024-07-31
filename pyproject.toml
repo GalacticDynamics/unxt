@@ -88,7 +88,6 @@
     "--showlocals",
     "--strict-markers",
     "--strict-config",
-    "--mpl",  # pytest-mpl
   ]
   filterwarnings = [
     "error",
