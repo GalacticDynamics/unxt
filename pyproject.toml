@@ -41,8 +41,9 @@
   requires-python = ">=3.10"
 
   [project.optional-dependencies]
-    all = ["unxt[interop-gala]"]
+    all = ["unxt[interop-gala]", "unxt[interop-mpl]"]
     interop-gala = ["gala"]
+    interop-mpl = ["matplotlib", "zeroth"]
     docs = [
       "sphinx>=7.0",
       "myst_parser>=0.13",
@@ -53,12 +54,13 @@
     test = [
       "hypothesis[numpy]",
       "pytest >=6",
-      "pytest-cov >=3",
       "pytest-arraydiff",
+      "pytest-cov >=3",
       "pytest-github-actions-annotate-failures",
+      "pytest-mpl",
       "sybil",
     ]
-    dev = ["unxt[all]", "unxt[docs]", "unxt[test]"]
+    dev = ["unxt[all,docs,test]"]
 
   [project.urls]
     "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"
@@ -86,6 +88,7 @@
     "--showlocals",
     "--strict-markers",
     "--strict-config",
+    "--mpl",  # pytest-mpl
   ]
   filterwarnings = [
     "error",
