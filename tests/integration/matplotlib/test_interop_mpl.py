@@ -2,10 +2,11 @@
 
 """Test the Array API."""
 
-import matplotlib.pyplot as plt
 import pytest
 
 from unxt import Quantity
+
+plt = pytest.importorskip("matplotlib.pyplot")
 
 
 @pytest.mark.mpl_image_compare()
