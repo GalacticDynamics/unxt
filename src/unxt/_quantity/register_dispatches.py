@@ -1,5 +1,6 @@
 # pylint: disable=import-error
 
+from collections.abc import Callable
 from typing import Any, TypeVar
 
 import jax
@@ -7,11 +8,12 @@ import jax.core
 import jax.experimental.array_api as jax_xp
 import numpy as np
 from jax import Device
+from plum import Dispatcher, Function
 from plum.parametric import type_unparametrized as type_np
 
 from quaxed._types import DType
-from quaxed.array_api._dispatch import dispatcher as dispatcher_
-from quaxed.numpy._dispatch import dispatcher as np_dispatcher_
+from quaxed.array_api._dispatch import dispatcher as xp_dispatcher
+from quaxed.numpy._dispatch import dispatcher as np_dispatcher
 
 from .base import AbstractQuantity
 from .core import Quantity
@@ -19,21 +21,21 @@ from .core import Quantity
 T = TypeVar("T")
 
 
-def dispatcher(f: T) -> T:  # TODO: figure out mypy stub issue.
-    """Dispatcher that makes mypy happy."""
-    return dispatcher_(f)
+def chain_dispatchers(*dispatchers: Dispatcher) -> Callable[[Any], Function]:
+    """Apply many dispatchers to a function."""
 
+    def decorator(method: Any) -> Function:
+        for dispatcher in dispatchers:
+            f = dispatcher(method)
+        return f
 
-def np_dispatcher(f: T) -> T:  # TODO: figure out mypy stub issue.
-    """Dispatcher that makes mypy happy."""
-    return np_dispatcher_(f)
+    return decorator
 
 
 # -----------------------------------------------
 
 
-@np_dispatcher
-@dispatcher
+@chain_dispatchers(np_dispatcher, xp_dispatcher)
 def arange(
     start: Quantity,
     stop: Quantity | None = None,
@@ -58,8 +60,7 @@ def arange(
 # -----------------------------------------------
 
 
-@np_dispatcher
-@dispatcher
+@chain_dispatchers(np_dispatcher, xp_dispatcher)
 def empty_like(
     x: AbstractQuantity, /, *, dtype: Any = None, device: Any = None
 ) -> AbstractQuantity:
@@ -70,8 +71,7 @@ def empty_like(
 # -----------------------------------------------
 
 
-@np_dispatcher
-@dispatcher
+@chain_dispatchers(np_dispatcher, xp_dispatcher)
 def full_like(
     x: AbstractQuantity,
     /,
@@ -83,7 +83,8 @@ def full_like(
     return full_like(x, fill_value, dtype=dtype, device=device)
 
 
-def full_like(  # type: ignore[no-redef]
+@chain_dispatchers(np_dispatcher, xp_dispatcher)  # type: ignore[no-redef]
+def full_like(
     x: AbstractQuantity,
     fill_value: AbstractQuantity,
     /,
@@ -97,12 +98,8 @@ def full_like(  # type: ignore[no-redef]
     )
 
 
-# TODO: fix when https://github.com/beartype/plum/pull/186
-np_dispatcher(full_like)
-dispatcher(full_like)
-
-
-def full_like(  # type: ignore[no-redef]
+@chain_dispatchers(np_dispatcher, xp_dispatcher)  # type: ignore[no-redef]
+def full_like(
     x: AbstractQuantity,
     fill_value: bool | int | float | complex,
     /,
@@ -115,16 +112,10 @@ def full_like(  # type: ignore[no-redef]
     )
 
 
-# TODO: fix when https://github.com/beartype/plum/pull/186
-np_dispatcher(full_like)
-dispatcher(full_like)
-
-
 # -----------------------------------------------
 
 
-@np_dispatcher
-@dispatcher
+@chain_dispatchers(np_dispatcher, xp_dispatcher)
 def linspace(
     start: Quantity,
     stop: Quantity,
@@ -149,8 +140,7 @@ def linspace(
     )
 
 
-@np_dispatcher
-@dispatcher
+@chain_dispatchers(np_dispatcher, xp_dispatcher)
 def ones_like(
     x: AbstractQuantity, /, *, dtype: Any = None, device: Any = None
 ) -> AbstractQuantity:
@@ -158,8 +148,7 @@ def ones_like(
     return jax.device_put(out, device=device)
 
 
-@np_dispatcher
-@dispatcher
+@chain_dispatchers(np_dispatcher, xp_dispatcher)
 def zeros_like(
     x: AbstractQuantity, /, *, dtype: Any = None, device: Any = None
 ) -> AbstractQuantity:
