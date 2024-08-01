@@ -38,6 +38,10 @@ class AbstractParametricQuantity(AbstractQuantity):
     value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
     unit: Unit = eqx.field(static=True, converter=Unit)
 
+    def __post_init__(self) -> None:
+        """Check whether the arguments are valid."""
+        self._type_parameter: PhysicalType
+
     def __check_init__(self) -> None:
         """Check whether the arguments are valid."""
         expected_dimensions = self._type_parameter._physical_type_id  # noqa: SLF001

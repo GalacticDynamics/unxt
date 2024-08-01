@@ -43,7 +43,7 @@ class AbstractDistance(AbstractQuantity):
 
     @property
     @abstractmethod
-    def distance_modulus(self) -> Quantity:
+    def distance_modulus(self) -> "DistanceModulus":
         """The distance modulus."""
 
 
@@ -92,7 +92,7 @@ class Distance(AbstractDistance):
     @property
     def distance_modulus(  # noqa: PLR0206  (needed for quax boundary)
         self, base_length: Quantity["length"] = distance_modulus_base_distance
-    ) -> Quantity:
+    ) -> "DistanceModulus":
         """The distance modulus."""
         return 5 * xp.log10(self / base_length)
 
@@ -139,7 +139,7 @@ class Parallax(AbstractDistance):
         return self
 
     @property
-    def distance_modulus(self) -> Quantity:
+    def distance_modulus(self) -> "DistanceModulus":
         """The distance modulus."""
         return self.distance.distance_modulus  # TODO: specific shortcut
 

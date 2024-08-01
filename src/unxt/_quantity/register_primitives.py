@@ -2328,8 +2328,26 @@ def _igamma_grad_a_p() -> AbstractQuantity:
 
 @register(lax.igamma_p)
 def _igamma_p(a: AbstractQuantity, x: AbstractQuantity) -> AbstractQuantity:
-    """Regularized incomplete gamma function of a and x."""
-    return lax.igamma(a.to_units_value(one), x.to_units_value(one))
+    """Regularized incomplete gamma function of a and x.
+
+    Examples
+    --------
+    >>> from quaxed import lax
+
+    >>> from unxt import UncheckedQuantity
+    >>> a = UncheckedQuantity(1.0, "")
+    >>> x = UncheckedQuantity(1.0, "")
+    >>> lax.igamma(a, x)
+    UncheckedQuantity(Array(0.6321202, dtype=float32, ...), unit='')
+
+    >>> from unxt import Quantity
+    >>> a = Quantity(1.0, "")
+    >>> x = Quantity(1.0, "")
+    >>> lax.igamma(a, x)
+    Quantity['dimensionless'](Array(0.6321202, dtype=float32, ...), unit='')
+
+    """
+    return replace(x, value=lax.igamma(a.to_units_value(one), x.to_units_value(one)))
 
 
 # ==============================================================================
@@ -3451,7 +3469,9 @@ def _top_k_p() -> AbstractQuantity:
 
 @register(lax.transpose_p)
 def _transpose_p(operand: AbstractQuantity, *, permutation: Any) -> AbstractQuantity:
-    return replace(operand, value=lax.transpose(operand.value, permutation))
+    return replace(
+        operand, value=lax.transpose_p.bind(operand.value, permutation=permutation)
+    )
 
 
 # ==============================================================================
