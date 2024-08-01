@@ -71,7 +71,7 @@ def constructor(
 # Conversion Methods
 
 
-@conversion_method(type_from=AbstractQuantity, type_to=AstropyQuantity)  # type: ignore[misc]
+@conversion_method(type_from=AbstractQuantity, type_to=AstropyQuantity)
 def convert_unxt_quantity_to_astropy_quantity(
     q: AbstractQuantity, /
 ) -> AstropyQuantity:
@@ -90,7 +90,7 @@ def convert_unxt_quantity_to_astropy_quantity(
     return AstropyQuantity(q.value, q.unit)
 
 
-@conversion_method(type_from=AbstractQuantity, type_to=AstropyDistance)  # type: ignore[misc]
+@conversion_method(type_from=AbstractQuantity, type_to=AstropyDistance)
 def convert_unxt_quantity_to_astropy_distance(
     q: AbstractQuantity, /
 ) -> AstropyDistance:
@@ -109,7 +109,7 @@ def convert_unxt_quantity_to_astropy_distance(
     return AstropyDistance(q.value, q.unit)
 
 
-@conversion_method(type_from=AbstractQuantity, type_to=AstropyAngle)  # type: ignore[misc]
+@conversion_method(type_from=AbstractQuantity, type_to=AstropyAngle)
 def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAngle:
     """Convert a `unxt.AbstractQuantity` to a `astropy.coordinates.Angle`.
 
@@ -130,7 +130,7 @@ def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAng
 # to_units
 
 
-@dispatch  # type: ignore[misc]
+@dispatch
 def to_units(value: AstropyQuantity, units: Unit, /) -> Quantity:
     """Convert an Astropy Quantity to the given units.
 
@@ -151,7 +151,7 @@ def to_units(value: AstropyQuantity, units: Unit, /) -> Quantity:
 # to_units_value
 
 
-@dispatch  # type: ignore[misc]
+@dispatch
 def to_units_value(value: AstropyQuantity, units: Unit | str, /) -> ArrayLike:
     """Convert an Astropy Quantity to an array with the given units.
 
@@ -172,7 +172,7 @@ def to_units_value(value: AstropyQuantity, units: Unit | str, /) -> ArrayLike:
 # Quantity
 
 
-@conversion_method(type_from=AstropyQuantity, type_to=Quantity)  # type: ignore[misc]
+@conversion_method(type_from=AstropyQuantity, type_to=Quantity)
 def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity:
     """Convert a `astropy.units.Quantity` to a `unxt.Quantity`.
 
@@ -193,7 +193,7 @@ def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity
 # UncheckedQuantity
 
 
-@conversion_method(type_from=AstropyQuantity, type_to=UncheckedQuantity)  # type: ignore[misc]
+@conversion_method(type_from=AstropyQuantity, type_to=UncheckedQuantity)
 def convert_astropy_quantity_to_unxt_uncheckedquantity(
     q: AstropyQuantity, /
 ) -> UncheckedQuantity:
@@ -216,7 +216,7 @@ def convert_astropy_quantity_to_unxt_uncheckedquantity(
 # Distance
 
 
-@conversion_method(type_from=AstropyQuantity, type_to=Distance)  # type: ignore[misc]
+@conversion_method(type_from=AstropyQuantity, type_to=Distance)
 def convert_astropy_quantity_to_unxt_distance(q: AstropyQuantity, /) -> Distance:
     """Convert a `astropy.units.Quantity` to a `unxt.Distance`.
 
@@ -237,7 +237,7 @@ def convert_astropy_quantity_to_unxt_distance(q: AstropyQuantity, /) -> Distance
 # Parallax
 
 
-@conversion_method(type_from=AstropyQuantity, type_to=Parallax)  # type: ignore[misc]
+@conversion_method(type_from=AstropyQuantity, type_to=Parallax)
 def convert_astropy_quantity_to_unxt_parallax(q: AstropyQuantity, /) -> Parallax:
     """Convert a `astropy.units.Quantity` to a `unxt.Parallax`.
 
@@ -258,7 +258,7 @@ def convert_astropy_quantity_to_unxt_parallax(q: AstropyQuantity, /) -> Parallax
 # Distance Modulus
 
 
-@conversion_method(type_from=AstropyQuantity, type_to=DistanceModulus)  # type: ignore[misc]
+@conversion_method(type_from=AstropyQuantity, type_to=DistanceModulus)
 def convert_astropy_quantity_to_unxt_distmod(q: AstropyQuantity, /) -> DistanceModulus:
     """Convert a `astropy.units.Quantity` to a `unxt.DistanceModulus`.
 

@@ -118,7 +118,10 @@
   warn_unused_configs = true
 
   [[tool.mypy.overrides]]
-    disable_error_code = ["type-arg", "name-defined"]
+    disable_error_code = [
+      "type-arg", "name-defined",
+      "call-arg",  # equinox classes aren't recognized as dataclasses
+    ]
     disallow_incomplete_defs = true
     disallow_untyped_defs = true
     module = "unxt.*"
@@ -180,6 +183,7 @@
 
     [tool.ruff.lint.isort]
       combine-as-imports = true
+      extra-standard-library = ["typing_extensions"]
       known-first-party = ["quaxed"]
       known-local-folder = ["unxt"]
 

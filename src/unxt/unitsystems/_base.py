@@ -9,7 +9,6 @@ import astropy.units as u
 from astropy.units.physical import _physical_unit_mapping
 
 from unxt._quantity.base import AbstractQuantity
-from unxt._quantity.core import Quantity
 from unxt._typing import Unit
 
 
@@ -116,8 +115,10 @@ class AbstractUnitSystem:
             return self._registry[key]
         return self[key]
 
-    def as_preferred(self, quantity: AbstractQuantity | u.Quantity) -> Quantity:
+    def as_preferred(self, quantity: AbstractQuantity | u.Quantity) -> AbstractQuantity:
         """Convert a quantity to the preferred unit for this unit system."""
         unit = self.preferred(quantity.unit.physical_type)
         # Note that it's necessary to
-        return cast(AbstractQuantity, Quantity.constructor(quantity.to(unit), unit))
+        return cast(
+            AbstractQuantity, type(quantity).constructor(quantity.to(unit), unit)
+        )

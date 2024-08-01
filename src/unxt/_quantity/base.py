@@ -5,7 +5,8 @@ __all__ = ["AbstractQuantity", "can_convert_unit"]
 
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import fields, replace
-from typing import TYPE_CHECKING, Any, ClassVar, TypeAlias, TypeGuard, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeGuard, TypeVar
+from typing_extensions import Self
 
 import equinox as eqx
 import jax
@@ -18,7 +19,6 @@ from jax.numpy import dtype as DType  # noqa: N812
 from jaxtyping import Array, ArrayLike, Shaped
 from plum import add_promotion_rule
 from quax import ArrayValue
-from typing_extensions import Self
 
 import quaxed.array_api as xp
 import quaxed.operator as qoperator
@@ -66,9 +66,9 @@ def _is_tracing(x: Any) -> TypeGuard[jax.core.Tracer]:
 # runtime-checkable type annotation in `AbstractQuantity.at`.
 # `_QuantityIndexUpdateRef` is defined after `AbstractQuantity` because it
 # references `AbstractQuantity` in its runtime-checkable type annotations.
-class _QuantityIndexUpdateHelper(_IndexUpdateHelper):  # type: ignore[misc]
+class _QuantityIndexUpdateHelper(_IndexUpdateHelper):
     def __getitem__(self, index: Any) -> "_IndexUpdateRef":
-        return _QuantityIndexUpdateRef(self.array, index)
+        return _QuantityIndexUpdateRef(self.array, index)  # type: ignore[no-untyped-call]
 
     def __repr__(self) -> str:
         return f"_QuantityIndexUpdateHelper({self.array!r})"
@@ -77,7 +77,7 @@ class _QuantityIndexUpdateHelper(_IndexUpdateHelper):  # type: ignore[misc]
 ##############################################################################
 
 
-class AbstractQuantity(ArrayValue):  # type: ignore[misc]
+class AbstractQuantity(ArrayValue):
     """Represents an array, with each axis bound to a name.
 
     Parameters
@@ -277,15 +277,15 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         """Shape of the array."""
         return self.value.shape
 
-    def materialise(self) -> None:
+    def materialise(self) -> NoReturn:
         msg = "Refusing to materialise `Quantity`."
         raise RuntimeError(msg)
 
     def aval(self) -> jax.core.ShapedArray:
-        return jax.core.get_aval(self.value)
+        return jax.core.get_aval(self.value)  # type: ignore[no-untyped-call]
 
     def enable_materialise(self, _: bool = True) -> Self:  # noqa: FBT001, FBT002
-        return replace(self, value=self.value, unit=self.unit)
+        return replace(self, value=self.value, unit=self.unit)  # type: ignore[type-var]
 
     # ===============================================================
     # Quantity API
@@ -311,9 +311,9 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
 
         """
-        return replace(self, value=self.to_units_value(units), unit=units)
+        return replace(self, value=self.to_units_value(units), unit=units)  # type: ignore[type-var]
 
-    def to_units_value(self, units: Unit) -> ArrayLike:
+    def to_units_value(self, units: Unit) -> Array:
         """Return the value in the given units.
 
         Parameters
@@ -349,7 +349,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         """Decompose the quantity into the given bases."""
         du = self.unit.decompose(bases)  # decomposed units
         base_units = CompositeUnit(scale=1, bases=du.bases, powers=du.powers)
-        return replace(self, value=self.value * du.scale, unit=base_units)
+        return replace(self, value=self.value * du.scale, unit=base_units)  # type: ignore[type-var]
 
     # ===============================================================
     # Astropy Quantity API
@@ -375,7 +375,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         return xp
 
     def __getitem__(self, key: Any) -> "AbstractQuantity":
-        return replace(self, value=self.value[key])
+        return replace(self, value=self.value[key])  # type: ignore[type-var]
 
     def __len__(self) -> int:
         return len(self.value)
@@ -413,7 +413,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     @property
     def mT(self) -> "AbstractQuantity":  # noqa: N802
         """Transpose of the array."""
-        return replace(self, value=xp.matrix_transpose(self.value))
+        return replace(self, value=xp.matrix_transpose(self.value))  # type: ignore[type-var]
 
     @property
     def ndim(self) -> int:
@@ -428,11 +428,11 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     @property
     def T(self) -> "AbstractQuantity":  # noqa: N802
         """Transpose of the array."""
-        return replace(self, value=self.value.T)
+        return replace(self, value=self.value.T)  # type: ignore[type-var]
 
     def to_device(self, device: None | jax.Device = None) -> "AbstractQuantity":
         """Move the array to a new device."""
-        return replace(self, value=self.value.to_device(device))
+        return replace(self, value=self.value.to_device(device))  # type: ignore[attr-defined,type-var]
 
     # ---------------------------------
     # Boolean operations
@@ -445,17 +445,17 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     __ne__ = bool_op(jnp.not_equal)
 
     def __neg__(self) -> "AbstractQuantity":
-        return replace(self, value=-self.value)  # pylint: disable=E1130
+        return replace(self, value=-self.value)  # type: ignore[type-var]  # pylint: disable=E1130
 
     # ---------------------------------
     # Misc
 
     def flatten(self) -> "AbstractQuantity":
-        return replace(self, value=self.value.flatten())
+        return replace(self, value=self.value.flatten())  # type: ignore[type-var]
 
     def reshape(self, *args: Any, order: str = "C") -> "AbstractQuantity":
         __tracebackhide__ = True  # pylint: disable=unused-variable
-        return replace(self, value=self.value.reshape(*args, order=order))
+        return replace(self, value=self.value.reshape(*args, order=order))  # type: ignore[type-var]
 
     @dispatcher  # type: ignore[misc]
     def __mod__(self: "AbstractQuantity", other: Any) -> "AbstractQuantity":
@@ -474,14 +474,14 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
             raise UnitConversionError
 
         # TODO: figure out how to defer to quaxed (e.g. quaxed.operator.mod)
-        return replace(self, value=self.value % other.to_units_value(self.unit))
+        return replace(self, value=self.value % other.to_units_value(self.unit))  # type: ignore[type-var]
 
     # ===============================================================
     # JAX API
 
     @property
     def at(self) -> _QuantityIndexUpdateHelper:
-        return _QuantityIndexUpdateHelper(self)
+        return _QuantityIndexUpdateHelper(self)  # type: ignore[no-untyped-call]
 
     at.__doc__ = jax.Array.at.__doc__  # TODO: set by decorator
 
@@ -503,7 +503,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
         unhashable type: ...
 
         """
-        return hash(tuple(getattr(self, f.name) for f in fields(self)))
+        return hash(tuple(getattr(self, f.name) for f in fields(self)))  # type: ignore[arg-type]
 
 
 # -----------------------------------------------
@@ -580,7 +580,7 @@ def constructor(
 # -----------------------------------------------
 # Promotion rules
 
-add_promotion_rule(AbstractQuantity, AbstractQuantity, AbstractQuantity)
+add_promotion_rule(AbstractQuantity, AbstractQuantity, AbstractQuantity)  # type: ignore[no-untyped-call]
 
 
 # ===============================================================
@@ -609,12 +609,12 @@ def can_convert_unit(from_unit: AbstractQuantity | Unit, to_unit: Unit, /) -> bo
     return True
 
 
-class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
+class _QuantityIndexUpdateRef(_IndexUpdateRef):
     # This is a subclass of `_IndexUpdateRef` that is used to implement the `at`
     # attribute of `AbstractQuantity`. See also `_QuantityIndexUpdateHelper`.
 
     def __repr__(self) -> str:
-        return super().__repr__().replace("_IndexUpdateRef", "_QuantityIndexUpdateRef")
+        return super().__repr__().replace("_IndexUpdateRef", "_QuantityIndexUpdateRef")  # type: ignore[no-untyped-call]
 
     def get(
         self,
