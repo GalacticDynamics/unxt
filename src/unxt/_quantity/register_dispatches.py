@@ -46,7 +46,7 @@ def arange(
 ) -> Quantity:
     unit = start.unit
     return Quantity(
-        jax_xp.arange(
+        jax_xp.arange(  # type: ignore[no-untyped-call]
             start.value,
             stop=stop.to_units_value(unit) if stop is not None else None,
             step=step.to_units_value(unit) if step is not None else None,
@@ -128,7 +128,7 @@ def linspace(
 ) -> Quantity:
     unit = start.unit
     return Quantity(
-        jax_xp.linspace(
+        jax_xp.linspace(  # type: ignore[no-untyped-call]
             start.to_units_value(unit),
             stop.to_units_value(unit),
             num=num,

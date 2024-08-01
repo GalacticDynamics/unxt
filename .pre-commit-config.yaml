@@ -81,6 +81,7 @@ repos:
         files: src
         additional_dependencies:
           - pytest
+          - quax
 
   - repo: https://github.com/codespell-project/codespell
     rev: "v2.3.0"

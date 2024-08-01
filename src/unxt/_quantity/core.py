@@ -124,4 +124,4 @@ def mod(self: Quantity["dimensionless"], other: ArrayLike) -> Quantity["dimensio
     Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
 
     """
-    return replace(self, value=self.value % other)
+    return replace(self, value=self.value % other)  # type: ignore[type-var]

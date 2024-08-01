@@ -43,7 +43,7 @@ class AbstractDistance(AbstractQuantity):
 
     @property
     @abstractmethod
-    def distance_modulus(self) -> Quantity:
+    def distance_modulus(self) -> "DistanceModulus":
         """The distance modulus."""
 
 
@@ -54,10 +54,10 @@ class AbstractDistance(AbstractQuantity):
 # distance degrades to a Quantity. This is necessary for many operations, e.g.
 # division of a distance by non-dimensionless quantity where the resulting units
 # are not those of a distance.
-add_promotion_rule(AbstractDistance, Quantity, Quantity)
+add_promotion_rule(AbstractDistance, Quantity, Quantity)  # type: ignore[no-untyped-call]
 
 
-@conversion_method(type_from=AbstractDistance, type_to=Quantity)  # type: ignore[misc]
+@conversion_method(type_from=AbstractDistance, type_to=Quantity)  # type: ignore[arg-type,type-abstract]
 def _convert_distance_to_quantity(x: AbstractDistance) -> Quantity:
     """Convert a distance to a quantity."""
     return Quantity(x.value, x.unit)
@@ -92,7 +92,7 @@ class Distance(AbstractDistance):
     @property
     def distance_modulus(  # noqa: PLR0206  (needed for quax boundary)
         self, base_length: Quantity["length"] = distance_modulus_base_distance
-    ) -> Quantity:
+    ) -> "DistanceModulus":
         """The distance modulus."""
         return 5 * xp.log10(self / base_length)
 
@@ -139,7 +139,7 @@ class Parallax(AbstractDistance):
         return self
 
     @property
-    def distance_modulus(self) -> Quantity:
+    def distance_modulus(self) -> "DistanceModulus":
         """The distance modulus."""
         return self.distance.distance_modulus  # TODO: specific shortcut
 
