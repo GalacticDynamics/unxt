@@ -6,6 +6,7 @@ __all__ = ["AbstractQuantity", "can_convert_unit"]
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import fields, replace
 from typing import TYPE_CHECKING, Any, ClassVar, TypeAlias, TypeGuard, TypeVar
+from typing_extensions import Self
 
 import equinox as eqx
 import jax
@@ -18,7 +19,6 @@ from jax.numpy import dtype as DType  # noqa: N812
 from jaxtyping import Array, ArrayLike, Shaped
 from plum import add_promotion_rule
 from quax import ArrayValue
-from typing_extensions import Self
 
 import quaxed.array_api as xp
 import quaxed.operator as qoperator
