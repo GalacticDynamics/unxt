@@ -35,7 +35,7 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
     )
     """Keyword arguments to use when making the :meth:`matplotlib.units.AxisInfo`."""
 
-    def convert(self, obj: Any, unit: Any, axis: Axes) -> Array:
+    def convert(self, obj: Any, unit: Any, axis: Axes) -> Array | list[Array]:
         """Convert *obj* using *unit* for the specified *axis*."""
         # Hot-path Quantity
         if isinstance(obj, AbstractQuantity):

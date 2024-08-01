@@ -3469,7 +3469,9 @@ def _top_k_p() -> AbstractQuantity:
 
 @register(lax.transpose_p)
 def _transpose_p(operand: AbstractQuantity, *, permutation: Any) -> AbstractQuantity:
-    return replace(operand, value=lax.transpose_p.bind(operand.value, permutation))
+    return replace(
+        operand, value=lax.transpose_p.bind(operand.value, permutation=permutation)
+    )
 
 
 # ==============================================================================
