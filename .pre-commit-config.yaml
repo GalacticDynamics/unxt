@@ -73,6 +73,7 @@ repos:
       - id: prettier
         types_or: [yaml, markdown, html, css, scss, javascript, json]
         args: [--prose-wrap=always]
+        exclude: docs/api/quantities.md
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: "v1.11.1"
