@@ -125,7 +125,10 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     """
 
     value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
+    """The value of the Quantity."""
+
     unit: Unit = eqx.field(static=True, converter=Unit)
+    """The unit associated with this value."""
 
     # ---------------------------------------------------------------
     # Plum stuff
