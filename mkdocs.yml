@@ -61,8 +61,8 @@ plugins:
   - search # default search plugin; needs manually re-enabling when using any other plugins
   - autorefs # Cross-links to headings
   - include_exclude_files:
-      include:
-        - ".htaccess"
+      # include:
+      #   - ".htaccess"
       exclude:
         - "_overrides"
   - mknotebooks # Jupyter notebooks
