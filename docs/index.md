@@ -53,10 +53,10 @@ except Exception as e:
 # 'Gyr' (time) and 'kpc' (length) are not convertible
 ```
 
-`unxt` is built on [`quax`](https://github.com/patrick-kidger/quax), which
-enables custom array-ish objects in JAX. For convenience we use the
-[`quaxed`](https://pypi.org/project/quaxed/) library, which is just a `quax`
-wrapper around `jax` to avoid boilerplate wrappers.
+`unxt` is built on [`quax`](https://docs.kidger.site/quax/), which enables
+custom array-ish objects in JAX. For convenience we use the
+[`quaxed`](https://quaxed.readthedocs.io/en/latest/?badge=latest) library, which
+is just a `quax` wrapper around `jax` to avoid boilerplate wrappers.
 
 ```python
 from quaxed import grad, vmap
