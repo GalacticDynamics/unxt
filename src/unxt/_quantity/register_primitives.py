@@ -15,7 +15,6 @@ from astropy.units import (  # pylint: disable=no-name-in-module
 )
 from jax import lax, numpy as jnp
 from jax._src.ad_util import add_any_p
-from jax._src.lax.lax import DotDimensionNumbers, DTypeLike, PrecisionLike
 from jax._src.lax.slicing import GatherDimensionNumbers, GatherScatterMode
 from jax._src.typing import Shape
 from jax.core import Primitive
@@ -1568,12 +1567,7 @@ def _div_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 @register(lax.dot_general_p)
 def _dot_general_jq(
-    lhs: ArrayLike,
-    rhs: AbstractQuantity,
-    *,
-    dimension_numbers: DotDimensionNumbers,
-    precision: PrecisionLike,
-    preferred_element_type: DTypeLike | None = None,
+    lhs: ArrayLike, rhs: AbstractQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
     """Dot product of an array and a quantity.
 
@@ -1599,25 +1593,14 @@ def _dot_general_jq(
     Quantity['length'](Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
     """
     return type_np(rhs)(
-        lax.dot_general_p.bind(
-            lhs,
-            rhs.value,
-            dimension_numbers=dimension_numbers,
-            precision=precision,
-            preferred_element_type=preferred_element_type,
-        ),
+        lax.dot_general_p.bind(lhs, rhs.value, **kwargs),
         unit=rhs.unit,
     )
 
 
 @register(lax.dot_general_p)
 def _dot_general_qq(
-    lhs: AbstractQuantity,
-    rhs: AbstractQuantity,
-    *,
-    dimension_numbers: DotDimensionNumbers,
-    precision: PrecisionLike,
-    preferred_element_type: DTypeLike | None = None,
+    lhs: AbstractQuantity, rhs: AbstractQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
     """Dot product of two quantities.
 
@@ -1670,25 +1653,14 @@ def _dot_general_qq(
     """
     lhs, rhs = promote(lhs, rhs)
     return type_np(lhs)(
-        lax.dot_general_p.bind(
-            lhs.value,
-            rhs.value,
-            dimension_numbers=dimension_numbers,
-            precision=precision,
-            preferred_element_type=preferred_element_type,
-        ),
+        lax.dot_general_p.bind(lhs.value, rhs.value, **kwargs),
         unit=lhs.unit * rhs.unit,
     )
 
 
 @register(lax.dot_general_p)
 def _dot_general_dd(
-    lhs: AbstractDistance,
-    rhs: AbstractDistance,
-    *,
-    dimension_numbers: DotDimensionNumbers,
-    precision: PrecisionLike,
-    preferred_element_type: DTypeLike | None = None,
+    lhs: AbstractDistance, rhs: AbstractDistance, /, **kwargs: Any
 ) -> Quantity:
     """Dot product of two Distances.
 
@@ -1722,13 +1694,7 @@ def _dot_general_dd(
 
     """
     return Quantity(
-        lax.dot_general_p.bind(
-            lhs.value,
-            rhs.value,
-            dimension_numbers=dimension_numbers,
-            precision=precision,
-            preferred_element_type=preferred_element_type,
-        ),
+        lax.dot_general_p.bind(lhs.value, rhs.value, **kwargs),
         unit=lhs.unit * rhs.unit,
     )
 
