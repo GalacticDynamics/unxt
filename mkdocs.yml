@@ -102,4 +102,4 @@ nav:
   - Interoperability:
       - "interop.md"
   - Tutorials:
-      - "diffrax.md"
+      - "tutorials/diffrax.md"
