@@ -2896,18 +2896,100 @@ def _mul_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 @register(lax.ne_p)
 def _ne_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
-    return lax.ne(x.value, y.to_units_value(x.unit))
+    """Inequality of two quantities.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+
+    >>> from unxt import UncheckedQuantity
+    >>> q1 = UncheckedQuantity(1, "m")
+    >>> q2 = UncheckedQuantity(2, "m")
+    >>> xp.not_equal(q1, q2)
+    Array(True, dtype=bool, ...)
+    >>> q1 != q2
+    Array(True, dtype=bool, ...)
+
+    >>> q2 = UncheckedQuantity(1, "m")
+    >>> xp.not_equal(q1, q2)
+    Array(False, dtype=bool, ...)
+    >>> q1 != q2
+    Array(False, dtype=bool, ...)
+
+    >>> from unxt import Quantity
+    >>> q1 = Quantity(1, "m")
+    >>> q2 = Quantity(2, "m")
+    >>> xp.not_equal(q1, q2)
+    Array(True, dtype=bool, ...)
+    >>> q1 != q2
+    Array(True, dtype=bool, ...)
+
+    >>> q2 = Quantity(1, "m")
+    >>> xp.not_equal(q1, q2)
+    Array(False, dtype=bool, ...)
+    >>> q1 != q2
+    Array(False, dtype=bool, ...)
+
+    """
+    try:
+        yv = y.to_units_value(x.unit)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=True, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.ne(x.value, yv)
 
 
 @register(lax.ne_p)
 def _ne_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
-    return lax.ne(x, y.to_units_value(one))
+    """Inequality of an array and a quantity.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+
+    >>> from unxt import UncheckedQuantity
+    >>> x = 1
+    >>> q2 = UncheckedQuantity(2, "")
+    >>> xp.not_equal(x, q2)
+    Array(True, dtype=bool, ...)
+    >>> x != q2
+    Array(True, dtype=bool, ...)
+
+    >>> q2 = UncheckedQuantity(1, "")
+    >>> xp.not_equal(x, q2)
+    Array(False, dtype=bool, ...)
+    >>> x != q2
+    Array(False, dtype=bool, ...)
+
+    >>> from unxt import Quantity
+    >>> x = Quantity(1, "")
+    >>> q2 = Quantity(2, "")
+    >>> xp.not_equal(x, q2)
+    Array(True, dtype=bool, ...)
+    >>> x != q2
+    Array(True, dtype=bool, ...)
+
+    >>> q2 = Quantity(1, "")
+    >>> xp.not_equal(x, q2)
+    Array(False, dtype=bool, ...)
+    >>> x != q2
+    Array(False, dtype=bool, ...)
+
+    """
+    try:
+        yv = y.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=True, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.ne(x, yv)
 
 
 @register(lax.ne_p)
 def _ne_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     # special-case for scalar value=0, unit=one
-    if y.shape == () and y == 0:  # TODO: proper jax
+    if jnp.shape(y) == () and y == 0:  # TODO: proper jax
         return lax.ne(x.value, y)
     return lax.ne(x.to_units_value(one), y)
 

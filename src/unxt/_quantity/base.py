@@ -42,25 +42,9 @@ def _flip_binop(binop: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
     return _binop
 
 
-def simple_bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
+def bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
     def _op(self: "AbstractQuantity", other: Any) -> Shaped[Array, "..."]:
         return op(self, other)
-
-    return _op
-
-
-def bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
-    # TODO: support operations on dimensionless quantities with array.
-    def _op(self: "AbstractQuantity", other: Any) -> Shaped[Array, "..."]:
-        if not isinstance(other, AbstractQuantity):
-            return NotImplemented
-
-        try:
-            other_value = other.to_units_value(self.unit)
-        except UnitConversionError:
-            return jnp.full(self.value.shape, fill_value=False, dtype=bool)
-
-        return op(self.value, other_value)
 
     return _op
 
@@ -444,11 +428,11 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     # ---------------------------------
     # Boolean operations
 
-    __lt__ = simple_bool_op(jnp.less)
-    __le__ = simple_bool_op(jnp.less_equal)
-    __eq__ = simple_bool_op(jnp.equal)
-    __ge__ = simple_bool_op(jnp.greater_equal)
-    __gt__ = simple_bool_op(jnp.greater)
+    __lt__ = bool_op(jnp.less)
+    __le__ = bool_op(jnp.less_equal)
+    __eq__ = bool_op(jnp.equal)
+    __ge__ = bool_op(jnp.greater_equal)
+    __gt__ = bool_op(jnp.greater)
     __ne__ = bool_op(jnp.not_equal)
 
     def __neg__(self) -> "AbstractQuantity":
