@@ -1792,7 +1792,13 @@ def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     """
-    return lax.eq(x.value, y.to_units_value(x.unit))
+    try:
+        yv = y.to_units_value(x.unit)
+    except UnitConversionError:
+        return jnp.full(x.shape, fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return qlax.eq(x.value, yv)
 
 
 @register(lax.eq_p)
@@ -1815,7 +1821,13 @@ def _eq_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     Array([False,  True, False], dtype=bool)
 
     """
-    return lax.eq(x, y.to_units_value(one))
+    try:
+        yv = y.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(x.shape, fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return lax.eq(x, yv)
 
 
 @register(lax.eq_p)
