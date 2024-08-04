@@ -21,6 +21,8 @@ from plum import promote
 from plum.parametric import type_unparametrized as type_np
 from quax import register as register_
 
+from quaxed import lax as qlax
+
 from .base import AbstractQuantity, can_convert_unit
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
@@ -3409,17 +3411,108 @@ def _stop_gradient_p(x: AbstractQuantity) -> AbstractQuantity:
 
 @register(lax.sub_p)
 def _sub_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+    """Subtract two quantities.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+    >>> from unxt import UncheckedQuantity
+
+    >>> q1 = UncheckedQuantity(1.0, "km")
+    >>> q2 = UncheckedQuantity(500.0, "m")
+    >>> xp.subtract(q1, q2)
+    UncheckedQuantity(Array(0.5, dtype=float32, ...), unit='km')
+    >>> q1 - q2
+    UncheckedQuantity(Array(0.5, dtype=float32, ...), unit='km')
+
+    >>> from unxt import Quantity
+    >>> q1 = Quantity(1.0, "km")
+    >>> q2 = Quantity(500.0, "m")
+    >>> xp.subtract(q1, q2)
+    Quantity['length'](Array(0.5, dtype=float32, ...), unit='km')
+    >>> q1 - q2
+    Quantity['length'](Array(0.5, dtype=float32, ...), unit='km')
+
+    >>> from unxt import Distance
+    >>> d1 = Distance(1.0, "km")
+    >>> d2 = Distance(500.0, "m")
+    >>> xp.subtract(d1, d2)
+    Distance(Array(0.5, dtype=float32, ...), unit='km')
+
+    >>> from unxt import Parallax
+    >>> p1 = Parallax(1.0, "mas")
+    >>> p2 = Parallax(500.0, "uas")
+    >>> xp.subtract(p1, p2)
+    Parallax(Array(0.5, dtype=float32, ...), unit='mas')
+
+    >>> from unxt import DistanceModulus
+    >>> dm1 = DistanceModulus(1.0, "mag")
+    >>> dm2 = DistanceModulus(500.0, "mag")
+    >>> xp.subtract(dm1, dm2)
+    DistanceModulus(Array(-499., dtype=float32, ...), unit='mag')
+
+    """
     return replace(x, value=lax.sub(x.to_units_value(x.unit), y.to_units_value(x.unit)))
 
 
 @register(lax.sub_p)
 def _sub_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
-    return replace(y, value=lax.sub(x, y.value))
+    """Subtract a quantity from an array.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+    >>> from unxt import UncheckedQuantity
+
+    >>> x = 1_000
+    >>> q = UncheckedQuantity(500.0, "")
+    >>> xp.subtract(x, q)
+    UncheckedQuantity(Array(500., dtype=float32, ...), unit='')
+
+    >>> x - q
+    UncheckedQuantity(Array(500., dtype=float32, ...), unit='')
+
+    >>> from unxt import Quantity
+    >>> q = Quantity(500.0, "")
+    >>> xp.subtract(x, q)
+    Quantity['dimensionless'](Array(500., dtype=float32, ...), unit='')
+
+    >>> x - q
+    Quantity['dimensionless'](Array(500., dtype=float32, ...), unit='')
+
+    """
+    y = y.to_units(one)
+    return replace(y, value=qlax.sub(x, y.value))
 
 
 @register(lax.sub_p)
 def _sub_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
-    return replace(x, value=lax.sub(x.value, y))
+    """Subtract an array from a quantity.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+    >>> from unxt import UncheckedQuantity
+
+    >>> q = UncheckedQuantity(500.0, "")
+    >>> y = 1_000
+    >>> xp.subtract(q, y)
+    UncheckedQuantity(Array(-500., dtype=float32, ...), unit='')
+
+    >>> q - y
+    UncheckedQuantity(Array(-500., dtype=float32, ...), unit='')
+
+    >>> from unxt import Quantity
+    >>> q = Quantity(500.0, "")
+    >>> xp.subtract(q, y)
+    Quantity['dimensionless'](Array(-500., dtype=float32, ...), unit='')
+
+    >>> q - y
+    Quantity['dimensionless'](Array(-500., dtype=float32, ...), unit='')
+
+    """
+    x = x.to_units(one)
+    return replace(x, value=qlax.sub(x.value, y))
 
 
 # ==============================================================================
