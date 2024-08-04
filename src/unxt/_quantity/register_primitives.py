@@ -48,6 +48,10 @@ def _to_value_rad_or_one(q: AbstractQuantity) -> ArrayLike:
     )
 
 
+def _bshape(arrs: tuple[Any, ...], /) -> tuple[int, ...]:
+    return jnp.broadcast_shapes(*map(jnp.shape, arrs))
+
+
 ################################################################################
 # Registering Primitives
 
@@ -1795,14 +1799,14 @@ def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     try:
         yv = y.to_units_value(x.unit)
     except UnitConversionError:
-        return jnp.full(x.shape, fill_value=False, dtype=bool)
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
     # re-dispatch on the values
     return qlax.eq(x.value, yv)
 
 
 @register(lax.eq_p)
-def _eq_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
+def _eq_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     """Equality of an array and a quantity.
 
     Examples
@@ -1824,14 +1828,14 @@ def _eq_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     try:
         yv = y.to_units_value(one)
     except UnitConversionError:
-        return jnp.full(x.shape, fill_value=False, dtype=bool)
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
     # re-dispatch on the values
     return lax.eq(x, yv)
 
 
 @register(lax.eq_p)
-def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
+def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     """Equality of an array and a quantity.
 
     Examples
@@ -1849,9 +1853,8 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     Array([False,  True, False], dtype=bool)
 
     >>> q = UncheckedQuantity([3., 2, 1], "m")
-    >>> try: xp.equal(q, y)
-    ... except Exception as e: print(e)
-    'm' (length) and '' (dimensionless) are not convertible
+    >>> xp.equal(q, y)
+    Array([False, False, False], dtype=bool)
 
     >>> from unxt import Quantity
     >>> q = Quantity(2.0, "")
@@ -1863,26 +1866,30 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     Array([False,  True, False], dtype=bool)
 
     >>> q = Quantity([3., 2, 1], "m")
-    >>> try: xp.equal(q, y)
-    ... except Exception as e: print(e)
-    'm' (length) and '' (dimensionless) are not convertible
+    >>> xp.equal(q, y)
+    Array([False, False, False], dtype=bool)
 
     Check against the special cases:
 
     >>> q == 0
-    False
+    Array([False, False, False], dtype=bool)
 
     >>> q == xp.inf
-    False
+    Array([False, False, False], dtype=bool)
 
     """
     is_special = jnp.isscalar(y) and (jnp.isinf(y) | (y == 0))
 
-    def special_case(_: Any) -> Array:
+    def special_case(_: Any, /) -> Array:
         return lax.eq(x.value, y)
 
-    def regular_case(_: Any) -> Array:
-        return lax.eq(x.to_units_value(one), y)
+    def regular_case(_: Any, /) -> Array:
+        try:
+            xv = x.to_units_value(one)
+        except UnitConversionError:
+            return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+        return lax.eq(xv, y)
 
     return lax.cond(is_special, special_case, regular_case, operand=None)
 
@@ -2169,14 +2176,14 @@ def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     try:
         yv = y.to_units_value(x.unit)
     except UnitConversionError:
-        return jnp.full(x.shape, fill_value=False, dtype=bool)
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
     # re-dispatch on the value
     return qlax.ge(x.value, yv)
 
 
 @register(lax.ge_p)
-def _ge_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
+def _ge_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     """Greater than or equal to of an array and a quantity.
 
     Examples
@@ -2199,14 +2206,14 @@ def _ge_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     try:
         yv = y.to_units_value(one)
     except UnitConversionError:
-        return jnp.full(x.shape, fill_value=False, dtype=bool)
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
     # re-dispatch on the value
-    return qlax.ge(x.value, yv)
+    return qlax.ge(x, yv)
 
 
 @register(lax.ge_p)
-def _ge_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
+def _ge_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     """Greater than or equal to of a quantity and an array.
 
     Examples
@@ -2227,9 +2234,9 @@ def _ge_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
 
     """
     try:
-        xv = y.to_units_value(one)
+        xv = x.to_units_value(one)
     except UnitConversionError:
-        return jnp.full(x.shape, fill_value=False, dtype=bool)
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
     # re-dispatch on the value
     return qlax.ge(xv, y)
@@ -2474,7 +2481,7 @@ def _is_finite_p(x: AbstractQuantity) -> ArrayLike:
 
 
 @register(lax.le_p)
-def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
+def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
     """Less than or equal to of two quantities.
 
     Examples
@@ -2497,14 +2504,14 @@ def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     try:
         yv = y.to_units_value(x.unit)
     except UnitConversionError:
-        return jnp.full(x.shape, fill_value=False, dtype=bool)
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
     # re-dispatch on the values
     return qlax.le(x.value, yv)
 
 
 @register(lax.le_p)
-def _le_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
+def _le_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     """Less than or equal to of an array and a quantity.
 
     Examples
@@ -2527,14 +2534,14 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     try:
         yv = y.to_units_value(one)
     except UnitConversionError:
-        return jnp.full(x.shape, fill_value=False, dtype=bool)
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
     # re-dispatch on the values
-    return qlax.le(x.value, yv)
+    return qlax.le(x, yv)
 
 
 @register(lax.le_p)
-def _le_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
+def _le_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     """Less than or equal to of a quantity and an array.
 
     Examples
@@ -2557,7 +2564,7 @@ def _le_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     try:
         xv = x.to_units_value(one)
     except UnitConversionError:
-        return jnp.full(x.shape, fill_value=False, dtype=bool)
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
     # re-dispatch on the values
     return qlax.le(xv, y)
@@ -2633,7 +2640,7 @@ def _logistic_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.lt_p)
-def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
+def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
     """Less than of two quantities.
 
     Examples
@@ -2682,14 +2689,14 @@ def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     try:
         yv = y.to_units_value(x.unit)
     except UnitConversionError:
-        return jnp.full(x.shape, fill_value=False, dtype=bool)
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
     # re-dispatch on the values
     return qlax.lt(x.value, yv)
 
 
 @register(lax.lt_p)
-def _lt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
+def _lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     """Less than of an array and a quantity.
 
     Examples
@@ -2736,14 +2743,14 @@ def _lt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     try:
         yv = y.to_units_value(one)
     except UnitConversionError:
-        return jnp.full(x.shape, fill_value=False, dtype=bool)
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
     # re-dispatch on the values
     return qlax.lt(x, yv)
 
 
 @register(lax.lt_p)
-def _lt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
+def _lt_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     """Compare a unitless Quantity to a value.
 
     Examples
@@ -2792,7 +2799,7 @@ def _lt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     try:
         xv = x.to_units_value(one)
     except UnitConversionError:
-        return jnp.full(x.shape, fill_value=False, dtype=bool)
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
     # re-dispatch on the values
     return qlax.lt(xv, y)
