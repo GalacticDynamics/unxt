@@ -3,10 +3,9 @@
 
 """Test the Array API."""
 
-import equinox as eqx
 import pytest
 
-import quaxed.numpy as qnp
+import quaxed.numpy as jnp
 
 from unxt import Quantity
 
@@ -18,9 +17,9 @@ def test_allclose():
     """Test `e`."""
     q = Quantity(100.0, "m")
 
-    match = "Cannot add a non-quantity and quantity"
-    with pytest.raises(eqx.EquinoxTracetimeError, match=match):
-        assert qnp.allclose(q, Quantity(0.1, "km"))
+    match = "Physical type mismatch."
+    with pytest.raises(ValueError, match=match):
+        assert jnp.allclose(q, Quantity(0.1, "km"))
 
     # Need the `atol` argument.
-    assert qnp.allclose(q, Quantity(0.1, "km"), atol=Quantity(1e-6, "m"))
+    assert jnp.allclose(q, Quantity(0.1, "km"), atol=Quantity(1e-6, "m"))
