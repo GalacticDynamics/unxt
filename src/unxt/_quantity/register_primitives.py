@@ -2365,37 +2365,6 @@ def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     return qlax.gt(xv, y)
 
 
-# TODO: merge with _gt_p_qv
-@register(lax.gt_p)
-def _gt_p_qi(x: AbstractQuantity, y: int) -> ArrayLike:
-    """Greater than or equal to of a quantity and an array.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-
-    >>> y = 0
-
-    >>> from unxt import UncheckedQuantity
-    >>> q1 = UncheckedQuantity(1., "")
-    >>> jnp.greater(q1, y)
-    Array(True, dtype=bool, ...)
-
-    >>> from unxt import Quantity
-    >>> q1 = Quantity(1., "")
-    >>> jnp.greater(q1, y)
-    Array(True, dtype=bool, ...)
-
-    """
-    try:
-        xv = x.to_units_value(one)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-    # re-dispatch on the value
-    return qlax.gt(xv, y)
-
-
 # ==============================================================================
 
 
