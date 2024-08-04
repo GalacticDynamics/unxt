@@ -12,16 +12,15 @@ from typing_extensions import Self
 import equinox as eqx
 import jax
 import jax.core
-import jax.numpy as jnp
 from astropy.units import CompositeUnit, UnitConversionError
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
-from jax.numpy import dtype as DType  # noqa: N812
 from jaxtyping import Array, ArrayLike, Shaped
-from numpy import bool_ as np_bool, number as np_number
+from numpy import bool_ as np_bool, dtype as DType, number as np_number  # noqa: N812
 from plum import add_promotion_rule
 from quax import ArrayValue
 
 import quaxed.array_api as xp
+import quaxed.numpy as jnp
 import quaxed.operator as qoperator
 from quaxed.array_api._dispatch import dispatcher
 
@@ -41,6 +40,13 @@ def _flip_binop(binop: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
         return binop(y, x)
 
     return _binop
+
+
+def simple_bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
+    def _op(self: "AbstractQuantity", other: Any) -> Shaped[Array, "..."]:
+        return op(self, other)
+
+    return _op
 
 
 def bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
@@ -438,7 +444,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     # ---------------------------------
     # Boolean operations
 
-    __lt__ = bool_op(jnp.less)
+    __lt__ = simple_bool_op(jnp.less)
     __le__ = bool_op(jnp.less_equal)
     __eq__ = bool_op(jnp.equal)
     __ge__ = bool_op(jnp.greater_equal)

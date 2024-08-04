@@ -10,6 +10,7 @@ from typing import Any, TypeAlias, TypeVar
 import equinox as eqx
 import jax.tree as jt
 from astropy.units import (  # pylint: disable=no-name-in-module
+    UnitConversionError,
     dimensionless_unscaled as one,
     radian,
 )
@@ -2587,17 +2588,168 @@ def _logistic_p(x: AbstractQuantity) -> AbstractQuantity:
 
 @register(lax.lt_p)
 def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
-    return lax.lt(x.value, y.to_units_value(x.unit))
+    """Less than of two quantities.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+
+    :class:`UncheckedQuantity`:
+
+    >>> from unxt import UncheckedQuantity
+
+    >>> x = UncheckedQuantity(1., "km")
+    >>> y = UncheckedQuantity(2000., "m")
+    >>> x < y
+    Array(True, dtype=bool, ...)
+
+    >>> xp.less(x, y)
+    Array(True, dtype=bool, ...)
+
+    >>> x = UncheckedQuantity([1., 2, 3], "km")
+    >>> x < y
+    Array([ True, False, False], dtype=bool)
+
+    >>> xp.less(x, y)
+    Array([ True, False, False], dtype=bool)
+
+    :class:`Quantity`:
+
+    >>> from unxt import Quantity
+
+    >>> x = Quantity(1., "km")
+    >>> y = Quantity(2000., "m")
+    >>> x < y
+    Array(True, dtype=bool, ...)
+
+    >>> xp.less(x, y)
+    Array(True, dtype=bool, ...)
+
+    >>> x = Quantity([1., 2, 3], "km")
+    >>> x < y
+    Array([ True, False, False], dtype=bool)
+
+    >>> xp.less(x, y)
+    Array([ True, False, False], dtype=bool)
+
+    """
+    try:
+        yv = y.to_units_value(x.unit)
+    except UnitConversionError:
+        return jnp.full(x.shape, fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return qlax.lt(x.value, yv)
 
 
 @register(lax.lt_p)
 def _lt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
-    return lax.lt(x, y.to_units_value(one))
+    """Less than of an array and a quantity.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+
+    :class:`UncheckedQuantity`:
+
+    >>> from unxt import UncheckedQuantity
+
+    >>> x = xp.asarray([1.])
+    >>> y = UncheckedQuantity(2., "")
+
+    Note that :class:`JAX` does support passing the comparison to
+    a different class.
+
+    >>> try: x < y
+    ... except Exception as e: print(e)
+    '<' not supported between instances of
+    'jaxlib.xla_extension.ArrayImpl' and 'UncheckedQuantity'
+
+    But we can always use the `xp.less` function.
+
+    >>> xp.less(x, y)
+    Array([ True], dtype=bool)
+
+    >>> x = xp.asarray([1., 2, 3])
+    >>> xp.less(x, y)
+    Array([ True, False, False], dtype=bool)
+
+    :class:`Quantity`:
+
+    >>> from unxt import Quantity
+
+    >>> y = Quantity(2., "")
+    >>> xp.less(x, y)
+    Array([ True, False, False], dtype=bool)
+
+    >>> x = xp.asarray([1., 2, 3])
+    >>> xp.less(x, y)
+    Array([ True, False, False], dtype=bool)
+
+    """
+    try:
+        yv = y.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(x.shape, fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return qlax.lt(x, yv)
 
 
 @register(lax.lt_p)
 def _lt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
-    return lax.lt(x.to_units_value(one), y)
+    """Compare a unitless Quantity to a value.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+
+    :class:`UncheckedQuantity`:
+
+    >>> from unxt import UncheckedQuantity
+
+    >>> x = UncheckedQuantity(1, "")
+    >>> y = 2
+    >>> x < y
+    Array(True, dtype=bool, ...)
+
+    >>> xp.less(x, y)
+    Array(True, dtype=bool, ...)
+
+    >>> x = UncheckedQuantity([1, 2, 3], "")
+    >>> x < y
+    Array([ True, False, False], dtype=bool)
+
+    >>> xp.less(x, y)
+    Array([ True, False, False], dtype=bool)
+
+    :class:`Quantity`:
+
+    >>> from unxt import Quantity
+
+    >>> x = Quantity(1, "")
+    >>> y = 2
+    >>> x < y
+    Array(True, dtype=bool, ...)
+
+    >>> xp.less(x, y)
+    Array(True, dtype=bool, ...)
+
+    >>> x = Quantity([1, 2, 3], "")
+    >>> x < y
+    Array([ True, False, False], dtype=bool)
+
+    >>> xp.less(x, y)
+    Array([ True, False, False], dtype=bool)
+
+    """
+    try:
+        xv = x.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(x.shape, fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return qlax.lt(xv, y)
 
 
 # ==============================================================================
