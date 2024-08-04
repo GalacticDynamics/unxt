@@ -445,7 +445,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     # Boolean operations
 
     __lt__ = simple_bool_op(jnp.less)
-    __le__ = bool_op(jnp.less_equal)
+    __le__ = simple_bool_op(jnp.less_equal)
     __eq__ = bool_op(jnp.equal)
     __ge__ = bool_op(jnp.greater_equal)
     __gt__ = bool_op(jnp.greater)

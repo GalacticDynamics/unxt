@@ -2466,7 +2466,13 @@ def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     Array(False, dtype=bool, ...)
 
     """
-    return lax.le(x.value, y.to_units_value(x.unit))
+    try:
+        yv = y.to_units_value(x.unit)
+    except UnitConversionError:
+        return jnp.full(x.shape, fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return qlax.le(x.value, yv)
 
 
 @register(lax.le_p)
@@ -2490,7 +2496,13 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     Array(False, dtype=bool, ...)
 
     """
-    return lax.le(x, y.to_units_value(one))
+    try:
+        yv = y.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(x.shape, fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return qlax.le(x.value, yv)
 
 
 @register(lax.le_p)
@@ -2514,7 +2526,13 @@ def _le_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     Array(False, dtype=bool, ...)
 
     """
-    return lax.le(x.to_units_value(one), y)
+    try:
+        xv = x.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(x.shape, fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return qlax.le(xv, y)
 
 
 # ==============================================================================
