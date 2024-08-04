@@ -200,37 +200,58 @@ def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> x1 = xp.asarray(500.0)
+
+    >>> x = xp.asarray(500.0)
+
+    :class:`unxt.UncheckedQuantity`:
 
     >>> from unxt import UncheckedQuantity
+    >>> y = UncheckedQuantity(1.0, "km")
+
+    >>> try: xp.add(x, y)
+    ... except Exception as e: print(e)
+    'km' (length) and '' (dimensionless) are not convertible
+
+    >>> try: x + y
+    ... except Exception as e: print(e)
+    'km' (length) and '' (dimensionless) are not convertible
+
+    >>> y = UncheckedQuantity(100.0, "")
+    >>> xp.add(x, y)
+    UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
+
+    >>> x + y
+    UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
+
     >>> q2 = UncheckedQuantity(1.0, "km")
-    >>> try: xp.add(x1, q2)
-    ... except Exception as e: print(e)
-    Cannot add a non-quantity and quantity.
-    >>> try: x1 + q2
-    ... except Exception as e: print(e)
-    Cannot add a non-quantity and quantity.
-    >>> q2 = UncheckedQuantity(100.0, "")
-    >>> xp.add(x1, q2)
-    UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
-    >>> x1 + q2
-    UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
+    >>> q3 = UncheckedQuantity(1_000.0, "m")
+    >>> xp.add(x, q2 / q3)
+    UncheckedQuantity(Array(501., dtype=float32, weak_type=True), unit='')
+
+    :class:`unxt.Quantity`:
 
     >>> from unxt import Quantity
-    >>> x1 = xp.asarray(500.0)
+    >>> x = xp.asarray(500.0)
     >>> q2 = Quantity(1.0, "km")
-    >>> try: x1 + q2
+    >>> try: x + q2
     ... except Exception as e: print(e)
-    Cannot add a non-quantity and quantity.
+    'km' (length) and '' (dimensionless) are not convertible
+
     >>> q2 = Quantity(100.0, "")
-    >>> xp.add(x1, q2)
-    Quantity['dimensionless'](Array(600., dtype=float32, ...), unit='')
-    >>> x1 + q2
+    >>> xp.add(x, q2)
     Quantity['dimensionless'](Array(600., dtype=float32, ...), unit='')
 
+    >>> x + q2
+    Quantity['dimensionless'](Array(600., dtype=float32, ...), unit='')
+
+    >>> q2 = Quantity(1.0, "km")
+    >>> q3 = Quantity(1_000.0, "m")
+    >>> xp.add(x, q2 / q3)
+    Quantity['dimensionless'](Array(501., dtype=float32, weak_type=True), unit='')
+
     """
-    y = eqx.error_if(y, y.unit != one, "Cannot add a non-quantity and quantity.")
-    return replace(y, value=lax.add(x, y.to_units_value(one)))
+    y = y.to_units(one)
+    return replace(y, value=lax.add(x, y.value))
 
 
 @register(lax.add_p)
@@ -240,41 +261,62 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.array_api as xp
+
     >>> y = xp.asarray(500.0)
+
+    :class:`unxt.UncheckedQuantity`:
 
     >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1.0, "km")
+
     >>> try: xp.add(q1, y)
     ... except Exception as e: print(e)
-    Cannot add a quantity and a non-quantity.
+    'km' (length) and '' (dimensionless) are not convertible
+
     >>> try: q1 + y
     ... except Exception as e: print(e)
-    Cannot add a quantity and a non-quantity.
+    'km' (length) and '' (dimensionless) are not convertible
 
     >>> q1 = UncheckedQuantity(100.0, "")
     >>> xp.add(q1, y)
     UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
+
     >>> q1 + y
     UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
 
+    >>> q2 = UncheckedQuantity(1.0, "km")
+    >>> q3 = UncheckedQuantity(1_000.0, "m")
+    >>> xp.add(q2 / q3, y)
+    UncheckedQuantity(Array(501., dtype=float32, weak_type=True), unit='')
+
+    :class:`unxt.Quantity`:
+
     >>> from unxt import Quantity
     >>> q1 = Quantity(1.0, "km")
+
     >>> try: xp.add(q1, y)
     ... except Exception as e: print(e)
-    Cannot add a quantity and a non-quantity.
+    'km' (length) and '' (dimensionless) are not convertible
+
     >>> try: q1 + y
     ... except Exception as e: print(e)
-    Cannot add a quantity and a non-quantity.
+    'km' (length) and '' (dimensionless) are not convertible
 
     >>> q1 = Quantity(100.0, "")
     >>> xp.add(q1, y)
     Quantity[...](Array(600., dtype=float32, ...), unit='')
+
     >>> q1 + y
     Quantity[...](Array(600., dtype=float32, ...), unit='')
 
+    >>> q2 = Quantity(1.0, "km")
+    >>> q3 = Quantity(1_000.0, "m")
+    >>> xp.add(q2 / q3, y)
+    Quantity['dimensionless'](Array(501., dtype=float32, weak_type=True), unit='')
+
     """
-    x = eqx.error_if(x, x.unit != one, "Cannot add a quantity and a non-quantity.")
-    return replace(x, value=lax.add(x.to_units_value(one), y))
+    x = x.to_units(one)
+    return replace(x, value=lax.add(x.value, y))
 
 
 # ==============================================================================
