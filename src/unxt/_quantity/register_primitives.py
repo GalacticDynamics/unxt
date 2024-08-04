@@ -2166,7 +2166,13 @@ def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     """
-    return lax.ge(x.value, y.to_units_value(x.unit))
+    try:
+        yv = y.to_units_value(x.unit)
+    except UnitConversionError:
+        return jnp.full(x.shape, fill_value=False, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.ge(x.value, yv)
 
 
 @register(lax.ge_p)
@@ -2190,7 +2196,13 @@ def _ge_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     """
-    return lax.ge(x, y.to_units_value(one))
+    try:
+        yv = y.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(x.shape, fill_value=False, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.ge(x.value, yv)
 
 
 @register(lax.ge_p)
@@ -2214,9 +2226,13 @@ def _ge_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     """
-    # if jnp.array_equal(y, 0):
-    #     return lax.ge(x.value, y)
-    return lax.ge(x.to_units_value(one), y)
+    try:
+        xv = y.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(x.shape, fill_value=False, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.ge(xv, y)
 
 
 # ==============================================================================
