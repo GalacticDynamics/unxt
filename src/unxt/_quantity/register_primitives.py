@@ -2991,7 +2991,13 @@ def _ne_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     # special-case for scalar value=0, unit=one
     if jnp.shape(y) == () and y == 0:  # TODO: proper jax
         return lax.ne(x.value, y)
-    return lax.ne(x.to_units_value(one), y)
+
+    try:
+        xv = x.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=True, dtype=bool)
+
+    return lax.ne(xv, y)
 
 
 # @register(lax.ne_p)
