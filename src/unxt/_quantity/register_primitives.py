@@ -1156,6 +1156,15 @@ def _cond_p_q(index: AbstractQuantity, consts: AbstractQuantity) -> AbstractQuan
     raise NotImplementedError
 
 
+@register(lax.cond_p)  # TODO: implement
+def _cond_p_vq(
+    index: ArrayLike, consts: AbstractQuantity, *, branches: Any
+) -> AbstractQuantity:
+    # print(branches)
+    # raise AttributeError
+    return lax.cond_p.bind(index, consts.value, branches=branches)
+
+
 # ==============================================================================
 
 
@@ -1824,6 +1833,11 @@ def _eq_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     >>> xp.equal(x, q)
     Array([False,  True, False], dtype=bool)
 
+    >>> q = Quantity(2.0, "m")
+    >>> try: xp.equal(x, q)
+    ... except Exception as e: print(e)
+    Array([False, False, False], dtype=bool)
+
     """
     try:
         yv = y.to_units_value(one)
@@ -2202,6 +2216,10 @@ def _ge_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     >>> xp.greater_equal(x, q2)
     Array(True, dtype=bool, ...)
 
+    >>> q2 = Quantity(1., "m")
+    >>> xp.greater_equal(x, q2)
+    Array(False, dtype=bool)
+
     """
     try:
         yv = y.to_units_value(one)
@@ -2231,6 +2249,10 @@ def _ge_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     >>> q1 = Quantity(1., "")
     >>> xp.greater_equal(q1, y)
     Array(True, dtype=bool, ...)
+
+    >>> q1 = Quantity(1., "m")
+    >>> xp.greater_equal(q1, y)
+    Array(False, dtype=bool)
 
     """
     try:
@@ -2295,6 +2317,10 @@ def _gt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     >>> xp.greater_equal(x, q2)
     Array(True, dtype=bool, ...)
 
+    >>> q2 = Quantity(1., "m")
+    >>> xp.greater_equal(x, q2)
+    Array(False, dtype=bool)
+
     """
     try:
         yv = y.to_units_value(one)
@@ -2325,6 +2351,10 @@ def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> xp.greater_equal(q1, y)
     Array(True, dtype=bool, ...)
 
+    >>> q1 = Quantity(1., "m")
+    >>> xp.greater_equal(q1, y)
+    Array(False, dtype=bool)
+
     """
     try:
         xv = x.to_units_value(one)
@@ -2335,6 +2365,7 @@ def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     return qlax.gt(xv, y)
 
 
+# TODO: merge with _gt_p_qv
 @register(lax.gt_p)
 def _gt_p_qi(x: AbstractQuantity, y: int) -> ArrayLike:
     """Greater than or equal to of a quantity and an array.
@@ -2554,6 +2585,10 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     >>> xp.less_equal(x1, q2)
     Array(False, dtype=bool, ...)
 
+    >>> q2 = Quantity(1., "m")
+    >>> xp.less_equal(x1, q2)
+    Array(False, dtype=bool)
+
     """
     try:
         yv = y.to_units_value(one)
@@ -2583,6 +2618,10 @@ def _le_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     >>> q1 = Quantity(1., "")
     >>> xp.less_equal(q1, y1)
     Array(False, dtype=bool, ...)
+
+    >>> q1 = Quantity(1., "m")
+    >>> xp.less_equal(q1, y1)
+    Array(False, dtype=bool)
 
     """
     try:
@@ -2761,6 +2800,10 @@ def _lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     >>> xp.less(x, y)
     Array([ True, False, False], dtype=bool)
 
+    >>> y = Quantity(2., "m")
+    >>> xp.less(x, y)
+    Array([False, False, False], dtype=bool)
+
     """
     try:
         yv = y.to_units_value(one)
@@ -2816,6 +2859,10 @@ def _lt_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
 
     >>> xp.less(x, y)
     Array([ True, False, False], dtype=bool)
+
+    >>> x = Quantity([1, 2], "m")
+    >>> xp.less(x, y)
+    Array([False, False], dtype=bool)
 
     """
     try:
