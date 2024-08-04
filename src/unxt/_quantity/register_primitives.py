@@ -2266,7 +2266,13 @@ def _gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     """
-    return lax.gt(x.value, y.to_units_value(x.unit))
+    try:
+        yv = y.to_units_value(x.unit)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.gt(x.value, yv)
 
 
 @register(lax.gt_p)
@@ -2290,7 +2296,13 @@ def _gt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     """
-    return lax.gt(x, y.to_units_value(one))
+    try:
+        yv = y.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.gt(x, yv)
 
 
 @register(lax.gt_p)
@@ -2314,7 +2326,13 @@ def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     """
-    return lax.gt(x.to_units_value(one), y)
+    try:
+        xv = x.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.gt(xv, y)
 
 
 @register(lax.gt_p)
@@ -2338,7 +2356,13 @@ def _gt_p_qi(x: AbstractQuantity, y: int) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     """
-    return lax.gt(x.to_units_value(one), y)
+    try:
+        xv = x.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.gt(xv, y)
 
 
 # ==============================================================================
@@ -2713,10 +2737,8 @@ def _lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     Note that :class:`JAX` does support passing the comparison to
     a different class.
 
-    >>> try: x < y
-    ... except Exception as e: print(e)
-    '<' not supported between instances of
-    'jaxlib.xla_extension.ArrayImpl' and 'UncheckedQuantity'
+    >>> x < y
+    Array([ True], dtype=bool)
 
     But we can always use the `xp.less` function.
 

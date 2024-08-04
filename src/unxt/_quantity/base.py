@@ -448,7 +448,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     __le__ = simple_bool_op(jnp.less_equal)
     __eq__ = simple_bool_op(jnp.equal)
     __ge__ = simple_bool_op(jnp.greater_equal)
-    __gt__ = bool_op(jnp.greater)
+    __gt__ = simple_bool_op(jnp.greater)
     __ne__ = bool_op(jnp.not_equal)
 
     def __neg__(self) -> "AbstractQuantity":
