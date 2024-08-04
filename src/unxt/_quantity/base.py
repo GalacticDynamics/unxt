@@ -12,11 +12,11 @@ import equinox as eqx
 import jax
 import jax.core
 import jax.numpy as jnp
-import numpy as np
 from astropy.units import CompositeUnit, UnitConversionError
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jax.numpy import dtype as DType  # noqa: N812
 from jaxtyping import Array, ArrayLike, Shaped
+from numpy import bool_ as np_bool, number as np_number
 from plum import add_promotion_rule
 from quax import ArrayValue
 
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 
 FMT = TypeVar("FMT")
-ArrayLikeScalar: TypeAlias = np.bool_ | np.number | bool | int | float | complex
+ArrayLikeScalar: TypeAlias = np_bool | np_number | bool | int | float | complex
 ArrayLikeSequence: TypeAlias = list[ArrayLikeScalar] | tuple[ArrayLikeScalar, ...]
 
 
