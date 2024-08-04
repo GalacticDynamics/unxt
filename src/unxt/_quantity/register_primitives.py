@@ -15,8 +15,6 @@ from astropy.units import (  # pylint: disable=no-name-in-module
 )
 from jax import lax, numpy as jnp
 from jax._src.ad_util import add_any_p
-from jax._src.lax.slicing import GatherDimensionNumbers, GatherScatterMode
-from jax._src.typing import Shape
 from jax.core import Primitive
 from jaxtyping import Array, ArrayLike
 from plum import promote
@@ -2117,29 +2115,11 @@ def _floor_p(x: AbstractQuantity) -> AbstractQuantity:
 # used in `jnp.cross`
 @register(lax.gather_p)
 def _gather_p(
-    operand: AbstractQuantity,
-    start_indices: ArrayLike,
-    *,
-    dimension_numbers: GatherDimensionNumbers,
-    slice_sizes: Shape,
-    unique_indices: bool,
-    indices_are_sorted: bool,
-    mode: str | GatherScatterMode | None,
-    fill_value: Any,
+    operand: AbstractQuantity, start_indices: ArrayLike, **kwargs: Any
 ) -> AbstractQuantity:
     # TODO: examples
     return replace(
-        operand,
-        value=lax.gather_p.bind(
-            operand.value,
-            start_indices,
-            dimension_numbers=dimension_numbers,
-            slice_sizes=slice_sizes,
-            unique_indices=unique_indices,
-            indices_are_sorted=indices_are_sorted,
-            mode=mode,
-            fill_value=fill_value,
-        ),
+        operand, value=lax.gather_p.bind(operand.value, start_indices, **kwargs)
     )
 
 
