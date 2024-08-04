@@ -5,6 +5,7 @@ __all__ = ["AbstractQuantity", "can_convert_unit"]
 
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import fields, replace
+from functools import partial
 from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeGuard, TypeVar
 from typing_extensions import Self
 
@@ -479,11 +480,9 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     # ===============================================================
     # JAX API
 
-    @property
+    @partial(property, doc=jax.Array.at.__doc__)
     def at(self) -> _QuantityIndexUpdateHelper:
         return _QuantityIndexUpdateHelper(self)
-
-    at.__doc__ = jax.Array.at.__doc__  # TODO: set by decorator
 
     # ===============================================================
     # Python stuff
