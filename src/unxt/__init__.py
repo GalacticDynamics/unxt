@@ -11,7 +11,7 @@ from . import (
 from ._optional_deps import HAS_ASTROPY, HAS_GALA, HAS_MATPLOTLIB
 from ._quantity import *
 from ._version import version as __version__
-from .unitsystems import AbstractUnitSystem, UnitSystem, unitsystem
+from .unitsystems import AbstractUnitSystem, unitsystem
 
 # Register interoperability
 # isort: split
@@ -33,7 +33,6 @@ __all__ = [
     # units systems
     "unitsystems",  # module
     "AbstractUnitSystem",  # base class
-    "UnitSystem",  # main user-facing class
     "unitsystem",  # convenience constructor
 ]
 __all__ += _quantity.__all__
