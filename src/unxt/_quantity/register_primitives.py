@@ -2855,18 +2855,76 @@ def _lt_to_p() -> ArrayLike:
 
 
 @register(lax.max_p)
-def _max_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
-    return replace(x, value=lax.max(x.value, y.to_units_value(x.unit)))
+def _max_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> AbstractQuantity:
+    """Maximum of two quantities.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+
+    >>> from unxt import UncheckedQuantity
+    >>> q1 = UncheckedQuantity(1, "m")
+    >>> q2 = UncheckedQuantity(2, "m")
+    >>> jnp.maximum(q1, q2)
+    UncheckedQuantity(Array(2, dtype=int32, ...), unit='m')
+
+    >>> from unxt import Quantity
+    >>> q1 = Quantity(1, "m")
+    >>> q2 = Quantity(2, "m")
+    >>> jnp.maximum(q1, q2)
+    Quantity['length'](Array(2, dtype=int32, ...), unit='m')
+
+    """
+    yv = y.to_units_value(x.unit)
+    return replace(x, value=qlax.max(x.value, yv))
 
 
 @register(lax.max_p)
 def _max_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
-    return replace(y, value=lax.max(x, y.to_units_value(one)))
+    """Maximum of an array and quantity.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+
+    >>> from unxt import UncheckedQuantity
+    >>> x = jnp.array([1.])
+    >>> q2 = UncheckedQuantity(2, "")
+    >>> jnp.maximum(x, q2)
+    UncheckedQuantity(Array([2.], dtype=float32), unit='')
+
+    >>> from unxt import Quantity
+    >>> q2 = Quantity(2, "")
+    >>> jnp.maximum(x, q2)
+    Quantity['dimensionless'](Array([2.], dtype=float32), unit='')
+
+    """
+    yv = y.to_units_value(one)
+    return replace(y, value=lax.max(x, yv))
 
 
 @register(lax.max_p)
 def _max_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
-    return replace(x, value=lax.max(x.to_units_value(one), y))
+    """Maximum of an array and quantity.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+
+    >>> from unxt import UncheckedQuantity
+    >>> q1 = UncheckedQuantity(2, "")
+    >>> y = jnp.array([1.])
+    >>> jnp.maximum(q1, y)
+    UncheckedQuantity(Array([2.], dtype=float32), unit='')
+
+    >>> from unxt import Quantity
+    >>> q1 = Quantity(2, "")
+    >>> jnp.maximum(q1, y)
+    Quantity['dimensionless'](Array([2.], dtype=float32), unit='')
+
+    """
+    xv = x.to_units_value(one)
+    return replace(x, value=lax.max(xv, y))
 
 
 # ==============================================================================
