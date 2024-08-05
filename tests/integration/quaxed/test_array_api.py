@@ -431,14 +431,11 @@ def test_add():
     assert jnp.array_equal(got.value, expected.value)
 
     # Adding a quantity and non-quantity
-    with pytest.raises(
-        Exception, match=re.escape("Cannot add a non-quantity and quantity.")
-    ):
+    match = re.escape("'m' (length) and '' (dimensionless) are not convertible")
+    with pytest.raises(ValueError, match=match):
         xp.add(x.value, y)
 
-    with pytest.raises(
-        Exception, match=re.escape("Cannot add a quantity and a non-quantity.")
-    ):
+    with pytest.raises(ValueError, match=match):
         xp.add(x, y.value)
 
     # Add a non-quantity and dimensionless quantity

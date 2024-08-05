@@ -10,18 +10,19 @@ from typing import Any, TypeAlias, TypeVar
 import equinox as eqx
 import jax.tree as jt
 from astropy.units import (  # pylint: disable=no-name-in-module
+    UnitConversionError,
     dimensionless_unscaled as one,
     radian,
 )
 from jax import lax, numpy as jnp
 from jax._src.ad_util import add_any_p
-from jax._src.lax.slicing import GatherDimensionNumbers, GatherScatterMode
-from jax._src.typing import Shape
 from jax.core import Primitive
 from jaxtyping import Array, ArrayLike
 from plum import promote
 from plum.parametric import type_unparametrized as type_np
 from quax import register as register_
+
+from quaxed import lax as qlax
 
 from .base import AbstractQuantity, can_convert_unit
 from .base_parametric import AbstractParametricQuantity
@@ -45,6 +46,10 @@ def _to_value_rad_or_one(q: AbstractQuantity) -> ArrayLike:
         if can_convert_unit(q.unit, radian)
         else q.to_units_value(one)
     )
+
+
+def _bshape(arrs: tuple[Any, ...], /) -> tuple[int, ...]:
+    return jnp.broadcast_shapes(*map(jnp.shape, arrs))
 
 
 ################################################################################
@@ -200,37 +205,58 @@ def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.array_api as xp
-    >>> x1 = xp.asarray(500.0)
+
+    >>> x = xp.asarray(500.0)
+
+    :class:`unxt.UncheckedQuantity`:
 
     >>> from unxt import UncheckedQuantity
+    >>> y = UncheckedQuantity(1.0, "km")
+
+    >>> try: xp.add(x, y)
+    ... except Exception as e: print(e)
+    'km' (length) and '' (dimensionless) are not convertible
+
+    >>> try: x + y
+    ... except Exception as e: print(e)
+    'km' (length) and '' (dimensionless) are not convertible
+
+    >>> y = UncheckedQuantity(100.0, "")
+    >>> xp.add(x, y)
+    UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
+
+    >>> x + y
+    UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
+
     >>> q2 = UncheckedQuantity(1.0, "km")
-    >>> try: xp.add(x1, q2)
-    ... except Exception as e: print(e)
-    Cannot add a non-quantity and quantity.
-    >>> try: x1 + q2
-    ... except Exception as e: print(e)
-    Cannot add a non-quantity and quantity.
-    >>> q2 = UncheckedQuantity(100.0, "")
-    >>> xp.add(x1, q2)
-    UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
-    >>> x1 + q2
-    UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
+    >>> q3 = UncheckedQuantity(1_000.0, "m")
+    >>> xp.add(x, q2 / q3)
+    UncheckedQuantity(Array(501., dtype=float32, weak_type=True), unit='')
+
+    :class:`unxt.Quantity`:
 
     >>> from unxt import Quantity
-    >>> x1 = xp.asarray(500.0)
+    >>> x = xp.asarray(500.0)
     >>> q2 = Quantity(1.0, "km")
-    >>> try: x1 + q2
+    >>> try: x + q2
     ... except Exception as e: print(e)
-    Cannot add a non-quantity and quantity.
+    'km' (length) and '' (dimensionless) are not convertible
+
     >>> q2 = Quantity(100.0, "")
-    >>> xp.add(x1, q2)
-    Quantity['dimensionless'](Array(600., dtype=float32, ...), unit='')
-    >>> x1 + q2
+    >>> xp.add(x, q2)
     Quantity['dimensionless'](Array(600., dtype=float32, ...), unit='')
 
+    >>> x + q2
+    Quantity['dimensionless'](Array(600., dtype=float32, ...), unit='')
+
+    >>> q2 = Quantity(1.0, "km")
+    >>> q3 = Quantity(1_000.0, "m")
+    >>> xp.add(x, q2 / q3)
+    Quantity['dimensionless'](Array(501., dtype=float32, weak_type=True), unit='')
+
     """
-    y = eqx.error_if(y, y.unit != one, "Cannot add a non-quantity and quantity.")
-    return replace(y, value=lax.add(x, y.to_units_value(one)))
+    y = y.to_units(one)
+    return replace(y, value=lax.add(x, y.value))
 
 
 @register(lax.add_p)
@@ -240,41 +266,62 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.array_api as xp
+
     >>> y = xp.asarray(500.0)
+
+    :class:`unxt.UncheckedQuantity`:
 
     >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1.0, "km")
+
     >>> try: xp.add(q1, y)
     ... except Exception as e: print(e)
-    Cannot add a quantity and a non-quantity.
+    'km' (length) and '' (dimensionless) are not convertible
+
     >>> try: q1 + y
     ... except Exception as e: print(e)
-    Cannot add a quantity and a non-quantity.
+    'km' (length) and '' (dimensionless) are not convertible
 
     >>> q1 = UncheckedQuantity(100.0, "")
     >>> xp.add(q1, y)
     UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
+
     >>> q1 + y
     UncheckedQuantity(Array(600., dtype=float32, ...), unit='')
 
+    >>> q2 = UncheckedQuantity(1.0, "km")
+    >>> q3 = UncheckedQuantity(1_000.0, "m")
+    >>> xp.add(q2 / q3, y)
+    UncheckedQuantity(Array(501., dtype=float32, weak_type=True), unit='')
+
+    :class:`unxt.Quantity`:
+
     >>> from unxt import Quantity
     >>> q1 = Quantity(1.0, "km")
+
     >>> try: xp.add(q1, y)
     ... except Exception as e: print(e)
-    Cannot add a quantity and a non-quantity.
+    'km' (length) and '' (dimensionless) are not convertible
+
     >>> try: q1 + y
     ... except Exception as e: print(e)
-    Cannot add a quantity and a non-quantity.
+    'km' (length) and '' (dimensionless) are not convertible
 
     >>> q1 = Quantity(100.0, "")
     >>> xp.add(q1, y)
     Quantity[...](Array(600., dtype=float32, ...), unit='')
+
     >>> q1 + y
     Quantity[...](Array(600., dtype=float32, ...), unit='')
 
+    >>> q2 = Quantity(1.0, "km")
+    >>> q3 = Quantity(1_000.0, "m")
+    >>> xp.add(q2 / q3, y)
+    Quantity['dimensionless'](Array(501., dtype=float32, weak_type=True), unit='')
+
     """
-    x = eqx.error_if(x, x.unit != one, "Cannot add a quantity and a non-quantity.")
-    return replace(x, value=lax.add(x.to_units_value(one), y))
+    x = x.to_units(one)
+    return replace(x, value=lax.add(x.value, y))
 
 
 # ==============================================================================
@@ -1109,6 +1156,15 @@ def _cond_p_q(index: AbstractQuantity, consts: AbstractQuantity) -> AbstractQuan
     raise NotImplementedError
 
 
+@register(lax.cond_p)  # TODO: implement
+def _cond_p_vq(
+    index: ArrayLike, consts: AbstractQuantity, *, branches: Any
+) -> AbstractQuantity:
+    # print(branches)
+    # raise AttributeError
+    return lax.cond_p.bind(index, consts.value, branches=branches)
+
+
 # ==============================================================================
 
 
@@ -1749,11 +1805,17 @@ def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     """
-    return lax.eq(x.value, y.to_units_value(x.unit))
+    try:
+        yv = y.to_units_value(x.unit)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return qlax.eq(x.value, yv)
 
 
 @register(lax.eq_p)
-def _eq_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
+def _eq_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     """Equality of an array and a quantity.
 
     Examples
@@ -1771,12 +1833,23 @@ def _eq_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     >>> xp.equal(x, q)
     Array([False,  True, False], dtype=bool)
 
+    >>> q = Quantity(2.0, "m")
+    >>> try: xp.equal(x, q)
+    ... except Exception as e: print(e)
+    Array([False, False, False], dtype=bool)
+
     """
-    return lax.eq(x, y.to_units_value(one))
+    try:
+        yv = y.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return lax.eq(x, yv)
 
 
 @register(lax.eq_p)
-def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
+def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     """Equality of an array and a quantity.
 
     Examples
@@ -1794,9 +1867,8 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     Array([False,  True, False], dtype=bool)
 
     >>> q = UncheckedQuantity([3., 2, 1], "m")
-    >>> try: xp.equal(q, y)
-    ... except Exception as e: print(e)
-    'm' (length) and '' (dimensionless) are not convertible
+    >>> xp.equal(q, y)
+    Array([False, False, False], dtype=bool)
 
     >>> from unxt import Quantity
     >>> q = Quantity(2.0, "")
@@ -1808,26 +1880,30 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     Array([False,  True, False], dtype=bool)
 
     >>> q = Quantity([3., 2, 1], "m")
-    >>> try: xp.equal(q, y)
-    ... except Exception as e: print(e)
-    'm' (length) and '' (dimensionless) are not convertible
+    >>> xp.equal(q, y)
+    Array([False, False, False], dtype=bool)
 
     Check against the special cases:
 
     >>> q == 0
-    False
+    Array([False, False, False], dtype=bool)
 
     >>> q == xp.inf
-    False
+    Array([False, False, False], dtype=bool)
 
     """
     is_special = jnp.isscalar(y) and (jnp.isinf(y) | (y == 0))
 
-    def special_case(_: Any) -> Array:
+    def special_case(_: Any, /) -> Array:
         return lax.eq(x.value, y)
 
-    def regular_case(_: Any) -> Array:
-        return lax.eq(x.to_units_value(one), y)
+    def regular_case(_: Any, /) -> Array:
+        try:
+            xv = x.to_units_value(one)
+        except UnitConversionError:
+            return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+        return lax.eq(xv, y)
 
     return lax.cond(is_special, special_case, regular_case, operand=None)
 
@@ -2075,29 +2151,11 @@ def _floor_p(x: AbstractQuantity) -> AbstractQuantity:
 # used in `jnp.cross`
 @register(lax.gather_p)
 def _gather_p(
-    operand: AbstractQuantity,
-    start_indices: ArrayLike,
-    *,
-    dimension_numbers: GatherDimensionNumbers,
-    slice_sizes: Shape,
-    unique_indices: bool,
-    indices_are_sorted: bool,
-    mode: str | GatherScatterMode | None,
-    fill_value: Any,
+    operand: AbstractQuantity, start_indices: ArrayLike, **kwargs: Any
 ) -> AbstractQuantity:
     # TODO: examples
     return replace(
-        operand,
-        value=lax.gather_p.bind(
-            operand.value,
-            start_indices,
-            dimension_numbers=dimension_numbers,
-            slice_sizes=slice_sizes,
-            unique_indices=unique_indices,
-            indices_are_sorted=indices_are_sorted,
-            mode=mode,
-            fill_value=fill_value,
-        ),
+        operand, value=lax.gather_p.bind(operand.value, start_indices, **kwargs)
     )
 
 
@@ -2129,11 +2187,17 @@ def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     """
-    return lax.ge(x.value, y.to_units_value(x.unit))
+    try:
+        yv = y.to_units_value(x.unit)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.ge(x.value, yv)
 
 
 @register(lax.ge_p)
-def _ge_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
+def _ge_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     """Greater than or equal to of an array and a quantity.
 
     Examples
@@ -2152,12 +2216,22 @@ def _ge_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     >>> xp.greater_equal(x, q2)
     Array(True, dtype=bool, ...)
 
+    >>> q2 = Quantity(1., "m")
+    >>> xp.greater_equal(x, q2)
+    Array(False, dtype=bool)
+
     """
-    return lax.ge(x, y.to_units_value(one))
+    try:
+        yv = y.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.ge(x, yv)
 
 
 @register(lax.ge_p)
-def _ge_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
+def _ge_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     """Greater than or equal to of a quantity and an array.
 
     Examples
@@ -2176,10 +2250,18 @@ def _ge_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> xp.greater_equal(q1, y)
     Array(True, dtype=bool, ...)
 
+    >>> q1 = Quantity(1., "m")
+    >>> xp.greater_equal(q1, y)
+    Array(False, dtype=bool)
+
     """
-    # if jnp.array_equal(y, 0):
-    #     return lax.ge(x.value, y)
-    return lax.ge(x.to_units_value(one), y)
+    try:
+        xv = x.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.ge(xv, y)
 
 
 # ==============================================================================
@@ -2206,7 +2288,13 @@ def _gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     """
-    return lax.gt(x.value, y.to_units_value(x.unit))
+    try:
+        yv = y.to_units_value(x.unit)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.gt(x.value, yv)
 
 
 @register(lax.gt_p)
@@ -2229,8 +2317,18 @@ def _gt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     >>> xp.greater_equal(x, q2)
     Array(True, dtype=bool, ...)
 
+    >>> q2 = Quantity(1., "m")
+    >>> xp.greater_equal(x, q2)
+    Array(False, dtype=bool)
+
     """
-    return lax.gt(x, y.to_units_value(one))
+    try:
+        yv = y.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.gt(x, yv)
 
 
 @register(lax.gt_p)
@@ -2253,32 +2351,18 @@ def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> xp.greater_equal(q1, y)
     Array(True, dtype=bool, ...)
 
-    """
-    return lax.gt(x.to_units_value(one), y)
-
-
-@register(lax.gt_p)
-def _gt_p_qi(x: AbstractQuantity, y: int) -> ArrayLike:
-    """Greater than or equal to of a quantity and an array.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-
-    >>> y = 0
-
-    >>> from unxt import UncheckedQuantity
-    >>> q1 = UncheckedQuantity(1., "")
-    >>> jnp.greater(q1, y)
-    Array(True, dtype=bool, ...)
-
-    >>> from unxt import Quantity
-    >>> q1 = Quantity(1., "")
-    >>> jnp.greater(q1, y)
-    Array(True, dtype=bool, ...)
+    >>> q1 = Quantity(1., "m")
+    >>> xp.greater_equal(q1, y)
+    Array(False, dtype=bool)
 
     """
-    return lax.gt(x.to_units_value(one), y)
+    try:
+        xv = x.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.gt(xv, y)
 
 
 # ==============================================================================
@@ -2421,7 +2505,7 @@ def _is_finite_p(x: AbstractQuantity) -> ArrayLike:
 
 
 @register(lax.le_p)
-def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
+def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
     """Less than or equal to of two quantities.
 
     Examples
@@ -2441,11 +2525,17 @@ def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     Array(False, dtype=bool, ...)
 
     """
-    return lax.le(x.value, y.to_units_value(x.unit))
+    try:
+        yv = y.to_units_value(x.unit)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return qlax.le(x.value, yv)
 
 
 @register(lax.le_p)
-def _le_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
+def _le_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     """Less than or equal to of an array and a quantity.
 
     Examples
@@ -2464,12 +2554,22 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     >>> xp.less_equal(x1, q2)
     Array(False, dtype=bool, ...)
 
+    >>> q2 = Quantity(1., "m")
+    >>> xp.less_equal(x1, q2)
+    Array(False, dtype=bool)
+
     """
-    return lax.le(x, y.to_units_value(one))
+    try:
+        yv = y.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return qlax.le(x, yv)
 
 
 @register(lax.le_p)
-def _le_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
+def _le_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     """Less than or equal to of a quantity and an array.
 
     Examples
@@ -2488,8 +2588,18 @@ def _le_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> xp.less_equal(q1, y1)
     Array(False, dtype=bool, ...)
 
+    >>> q1 = Quantity(1., "m")
+    >>> xp.less_equal(q1, y1)
+    Array(False, dtype=bool)
+
     """
-    return lax.le(x.to_units_value(one), y)
+    try:
+        xv = x.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return qlax.le(xv, y)
 
 
 # ==============================================================================
@@ -2562,18 +2672,175 @@ def _logistic_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.lt_p)
-def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
-    return lax.lt(x.value, y.to_units_value(x.unit))
+def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
+    """Less than of two quantities.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+
+    :class:`UncheckedQuantity`:
+
+    >>> from unxt import UncheckedQuantity
+
+    >>> x = UncheckedQuantity(1., "km")
+    >>> y = UncheckedQuantity(2000., "m")
+    >>> x < y
+    Array(True, dtype=bool, ...)
+
+    >>> xp.less(x, y)
+    Array(True, dtype=bool, ...)
+
+    >>> x = UncheckedQuantity([1., 2, 3], "km")
+    >>> x < y
+    Array([ True, False, False], dtype=bool)
+
+    >>> xp.less(x, y)
+    Array([ True, False, False], dtype=bool)
+
+    :class:`Quantity`:
+
+    >>> from unxt import Quantity
+
+    >>> x = Quantity(1., "km")
+    >>> y = Quantity(2000., "m")
+    >>> x < y
+    Array(True, dtype=bool, ...)
+
+    >>> xp.less(x, y)
+    Array(True, dtype=bool, ...)
+
+    >>> x = Quantity([1., 2, 3], "km")
+    >>> x < y
+    Array([ True, False, False], dtype=bool)
+
+    >>> xp.less(x, y)
+    Array([ True, False, False], dtype=bool)
+
+    """
+    try:
+        yv = y.to_units_value(x.unit)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return qlax.lt(x.value, yv)
 
 
 @register(lax.lt_p)
-def _lt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
-    return lax.lt(x, y.to_units_value(one))
+def _lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
+    """Less than of an array and a quantity.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+
+    :class:`UncheckedQuantity`:
+
+    >>> from unxt import UncheckedQuantity
+
+    >>> x = xp.asarray([1.])
+    >>> y = UncheckedQuantity(2., "")
+
+    Note that :class:`JAX` does support passing the comparison to
+    a different class.
+
+    >>> x < y
+    Array([ True], dtype=bool)
+
+    But we can always use the `xp.less` function.
+
+    >>> xp.less(x, y)
+    Array([ True], dtype=bool)
+
+    >>> x = xp.asarray([1., 2, 3])
+    >>> xp.less(x, y)
+    Array([ True, False, False], dtype=bool)
+
+    :class:`Quantity`:
+
+    >>> from unxt import Quantity
+
+    >>> y = Quantity(2., "")
+    >>> xp.less(x, y)
+    Array([ True, False, False], dtype=bool)
+
+    >>> x = xp.asarray([1., 2, 3])
+    >>> xp.less(x, y)
+    Array([ True, False, False], dtype=bool)
+
+    >>> y = Quantity(2., "m")
+    >>> xp.less(x, y)
+    Array([False, False, False], dtype=bool)
+
+    """
+    try:
+        yv = y.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return qlax.lt(x, yv)
 
 
 @register(lax.lt_p)
-def _lt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
-    return lax.lt(x.to_units_value(one), y)
+def _lt_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
+    """Compare a unitless Quantity to a value.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+
+    :class:`UncheckedQuantity`:
+
+    >>> from unxt import UncheckedQuantity
+
+    >>> x = UncheckedQuantity(1, "")
+    >>> y = 2
+    >>> x < y
+    Array(True, dtype=bool, ...)
+
+    >>> xp.less(x, y)
+    Array(True, dtype=bool, ...)
+
+    >>> x = UncheckedQuantity([1, 2, 3], "")
+    >>> x < y
+    Array([ True, False, False], dtype=bool)
+
+    >>> xp.less(x, y)
+    Array([ True, False, False], dtype=bool)
+
+    :class:`Quantity`:
+
+    >>> from unxt import Quantity
+
+    >>> x = Quantity(1, "")
+    >>> y = 2
+    >>> x < y
+    Array(True, dtype=bool, ...)
+
+    >>> xp.less(x, y)
+    Array(True, dtype=bool, ...)
+
+    >>> x = Quantity([1, 2, 3], "")
+    >>> x < y
+    Array([ True, False, False], dtype=bool)
+
+    >>> xp.less(x, y)
+    Array([ True, False, False], dtype=bool)
+
+    >>> x = Quantity([1, 2], "m")
+    >>> xp.less(x, y)
+    Array([False, False], dtype=bool)
+
+    """
+    try:
+        xv = x.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
+
+    # re-dispatch on the values
+    return qlax.lt(xv, y)
 
 
 # ==============================================================================
@@ -2588,18 +2855,76 @@ def _lt_to_p() -> ArrayLike:
 
 
 @register(lax.max_p)
-def _max_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
-    return replace(x, value=lax.max(x.value, y.to_units_value(x.unit)))
+def _max_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> AbstractQuantity:
+    """Maximum of two quantities.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+
+    >>> from unxt import UncheckedQuantity
+    >>> q1 = UncheckedQuantity(1, "m")
+    >>> q2 = UncheckedQuantity(2, "m")
+    >>> jnp.maximum(q1, q2)
+    UncheckedQuantity(Array(2, dtype=int32, ...), unit='m')
+
+    >>> from unxt import Quantity
+    >>> q1 = Quantity(1, "m")
+    >>> q2 = Quantity(2, "m")
+    >>> jnp.maximum(q1, q2)
+    Quantity['length'](Array(2, dtype=int32, ...), unit='m')
+
+    """
+    yv = y.to_units_value(x.unit)
+    return replace(x, value=qlax.max(x.value, yv))
 
 
 @register(lax.max_p)
 def _max_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
-    return replace(y, value=lax.max(x, y.to_units_value(one)))
+    """Maximum of an array and quantity.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+
+    >>> from unxt import UncheckedQuantity
+    >>> x = jnp.array([1.])
+    >>> q2 = UncheckedQuantity(2, "")
+    >>> jnp.maximum(x, q2)
+    UncheckedQuantity(Array([2.], dtype=float32), unit='')
+
+    >>> from unxt import Quantity
+    >>> q2 = Quantity(2, "")
+    >>> jnp.maximum(x, q2)
+    Quantity['dimensionless'](Array([2.], dtype=float32), unit='')
+
+    """
+    yv = y.to_units_value(one)
+    return replace(y, value=lax.max(x, yv))
 
 
 @register(lax.max_p)
 def _max_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
-    return replace(x, value=lax.max(x.to_units_value(one), y))
+    """Maximum of an array and quantity.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+
+    >>> from unxt import UncheckedQuantity
+    >>> q1 = UncheckedQuantity(2, "")
+    >>> y = jnp.array([1.])
+    >>> jnp.maximum(q1, y)
+    UncheckedQuantity(Array([2.], dtype=float32), unit='')
+
+    >>> from unxt import Quantity
+    >>> q1 = Quantity(2, "")
+    >>> jnp.maximum(q1, y)
+    Quantity['dimensionless'](Array([2.], dtype=float32), unit='')
+
+    """
+    xv = x.to_units_value(one)
+    return replace(x, value=lax.max(xv, y))
 
 
 # ==============================================================================
@@ -2645,20 +2970,108 @@ def _mul_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 @register(lax.ne_p)
 def _ne_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
-    return lax.ne(x.value, y.to_units_value(x.unit))
+    """Inequality of two quantities.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+
+    >>> from unxt import UncheckedQuantity
+    >>> q1 = UncheckedQuantity(1, "m")
+    >>> q2 = UncheckedQuantity(2, "m")
+    >>> xp.not_equal(q1, q2)
+    Array(True, dtype=bool, ...)
+    >>> q1 != q2
+    Array(True, dtype=bool, ...)
+
+    >>> q2 = UncheckedQuantity(1, "m")
+    >>> xp.not_equal(q1, q2)
+    Array(False, dtype=bool, ...)
+    >>> q1 != q2
+    Array(False, dtype=bool, ...)
+
+    >>> from unxt import Quantity
+    >>> q1 = Quantity(1, "m")
+    >>> q2 = Quantity(2, "m")
+    >>> xp.not_equal(q1, q2)
+    Array(True, dtype=bool, ...)
+    >>> q1 != q2
+    Array(True, dtype=bool, ...)
+
+    >>> q2 = Quantity(1, "m")
+    >>> xp.not_equal(q1, q2)
+    Array(False, dtype=bool, ...)
+    >>> q1 != q2
+    Array(False, dtype=bool, ...)
+
+    """
+    try:
+        yv = y.to_units_value(x.unit)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=True, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.ne(x.value, yv)
 
 
 @register(lax.ne_p)
 def _ne_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
-    return lax.ne(x, y.to_units_value(one))
+    """Inequality of an array and a quantity.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+
+    >>> from unxt import UncheckedQuantity
+    >>> x = 1
+    >>> q2 = UncheckedQuantity(2, "")
+    >>> xp.not_equal(x, q2)
+    Array(True, dtype=bool, ...)
+    >>> x != q2
+    Array(True, dtype=bool, ...)
+
+    >>> q2 = UncheckedQuantity(1, "")
+    >>> xp.not_equal(x, q2)
+    Array(False, dtype=bool, ...)
+    >>> x != q2
+    Array(False, dtype=bool, ...)
+
+    >>> from unxt import Quantity
+    >>> x = Quantity(1, "")
+    >>> q2 = Quantity(2, "")
+    >>> xp.not_equal(x, q2)
+    Array(True, dtype=bool, ...)
+    >>> x != q2
+    Array(True, dtype=bool, ...)
+
+    >>> q2 = Quantity(1, "")
+    >>> xp.not_equal(x, q2)
+    Array(False, dtype=bool, ...)
+    >>> x != q2
+    Array(False, dtype=bool, ...)
+
+    """
+    try:
+        yv = y.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=True, dtype=bool)
+
+    # re-dispatch on the value
+    return qlax.ne(x, yv)
 
 
 @register(lax.ne_p)
 def _ne_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     # special-case for scalar value=0, unit=one
-    if y.shape == () and y == 0:  # TODO: proper jax
+    if jnp.shape(y) == () and y == 0:  # TODO: proper jax
         return lax.ne(x.value, y)
-    return lax.ne(x.to_units_value(one), y)
+
+    try:
+        xv = x.to_units_value(one)
+    except UnitConversionError:
+        return jnp.full(_bshape((x, y)), fill_value=True, dtype=bool)
+
+    return lax.ne(xv, y)
 
 
 # @register(lax.ne_p)
@@ -3387,17 +3800,108 @@ def _stop_gradient_p(x: AbstractQuantity) -> AbstractQuantity:
 
 @register(lax.sub_p)
 def _sub_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+    """Subtract two quantities.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+    >>> from unxt import UncheckedQuantity
+
+    >>> q1 = UncheckedQuantity(1.0, "km")
+    >>> q2 = UncheckedQuantity(500.0, "m")
+    >>> xp.subtract(q1, q2)
+    UncheckedQuantity(Array(0.5, dtype=float32, ...), unit='km')
+    >>> q1 - q2
+    UncheckedQuantity(Array(0.5, dtype=float32, ...), unit='km')
+
+    >>> from unxt import Quantity
+    >>> q1 = Quantity(1.0, "km")
+    >>> q2 = Quantity(500.0, "m")
+    >>> xp.subtract(q1, q2)
+    Quantity['length'](Array(0.5, dtype=float32, ...), unit='km')
+    >>> q1 - q2
+    Quantity['length'](Array(0.5, dtype=float32, ...), unit='km')
+
+    >>> from unxt import Distance
+    >>> d1 = Distance(1.0, "km")
+    >>> d2 = Distance(500.0, "m")
+    >>> xp.subtract(d1, d2)
+    Distance(Array(0.5, dtype=float32, ...), unit='km')
+
+    >>> from unxt import Parallax
+    >>> p1 = Parallax(1.0, "mas")
+    >>> p2 = Parallax(500.0, "uas")
+    >>> xp.subtract(p1, p2)
+    Parallax(Array(0.5, dtype=float32, ...), unit='mas')
+
+    >>> from unxt import DistanceModulus
+    >>> dm1 = DistanceModulus(1.0, "mag")
+    >>> dm2 = DistanceModulus(500.0, "mag")
+    >>> xp.subtract(dm1, dm2)
+    DistanceModulus(Array(-499., dtype=float32, ...), unit='mag')
+
+    """
     return replace(x, value=lax.sub(x.to_units_value(x.unit), y.to_units_value(x.unit)))
 
 
 @register(lax.sub_p)
 def _sub_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
-    return replace(y, value=lax.sub(x, y.value))
+    """Subtract a quantity from an array.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+    >>> from unxt import UncheckedQuantity
+
+    >>> x = 1_000
+    >>> q = UncheckedQuantity(500.0, "")
+    >>> xp.subtract(x, q)
+    UncheckedQuantity(Array(500., dtype=float32, ...), unit='')
+
+    >>> x - q
+    UncheckedQuantity(Array(500., dtype=float32, ...), unit='')
+
+    >>> from unxt import Quantity
+    >>> q = Quantity(500.0, "")
+    >>> xp.subtract(x, q)
+    Quantity['dimensionless'](Array(500., dtype=float32, ...), unit='')
+
+    >>> x - q
+    Quantity['dimensionless'](Array(500., dtype=float32, ...), unit='')
+
+    """
+    y = y.to_units(one)
+    return replace(y, value=qlax.sub(x, y.value))
 
 
 @register(lax.sub_p)
 def _sub_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
-    return replace(x, value=lax.sub(x.value, y))
+    """Subtract an array from a quantity.
+
+    Examples
+    --------
+    >>> import quaxed.array_api as xp
+    >>> from unxt import UncheckedQuantity
+
+    >>> q = UncheckedQuantity(500.0, "")
+    >>> y = 1_000
+    >>> xp.subtract(q, y)
+    UncheckedQuantity(Array(-500., dtype=float32, ...), unit='')
+
+    >>> q - y
+    UncheckedQuantity(Array(-500., dtype=float32, ...), unit='')
+
+    >>> from unxt import Quantity
+    >>> q = Quantity(500.0, "")
+    >>> xp.subtract(q, y)
+    Quantity['dimensionless'](Array(-500., dtype=float32, ...), unit='')
+
+    >>> q - y
+    Quantity['dimensionless'](Array(-500., dtype=float32, ...), unit='')
+
+    """
+    x = x.to_units(one)
+    return replace(x, value=qlax.sub(x.value, y))
 
 
 # ==============================================================================

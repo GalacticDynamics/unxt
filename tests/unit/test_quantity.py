@@ -321,7 +321,8 @@ def test_ne():
     assert jnp.array_equal(q != Quantity(2, u.m), jnp.array([True, False, True]))
 
     # Test with incompatible units
-    assert jnp.array_equal(q != Quantity(0, u.s), jnp.array([False, False, False]))
+    assert jnp.array_equal(q != Quantity(0, u.s), jnp.array([True, True, True]))
+    assert jnp.array_equal(q != Quantity(4, u.s), jnp.array([True, True, True]))
 
 
 def test_neg():

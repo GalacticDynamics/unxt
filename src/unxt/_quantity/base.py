@@ -5,22 +5,22 @@ __all__ = ["AbstractQuantity", "can_convert_unit"]
 
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import fields, replace
+from functools import partial
 from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeGuard, TypeVar
 from typing_extensions import Self
 
 import equinox as eqx
 import jax
 import jax.core
-import jax.numpy as jnp
-import numpy as np
 from astropy.units import CompositeUnit, UnitConversionError
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
-from jax.numpy import dtype as DType  # noqa: N812
 from jaxtyping import Array, ArrayLike, Shaped
+from numpy import bool_ as np_bool, dtype as DType, number as np_number  # noqa: N812
 from plum import add_promotion_rule
 from quax import ArrayValue
 
 import quaxed.array_api as xp
+import quaxed.numpy as jnp
 import quaxed.operator as qoperator
 from quaxed.array_api._dispatch import dispatcher
 
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 
 FMT = TypeVar("FMT")
-ArrayLikeScalar: TypeAlias = np.bool_ | np.number | bool | int | float | complex
+ArrayLikeScalar: TypeAlias = np_bool | np_number | bool | int | float | complex
 ArrayLikeSequence: TypeAlias = list[ArrayLikeScalar] | tuple[ArrayLikeScalar, ...]
 
 
@@ -43,17 +43,8 @@ def _flip_binop(binop: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
 
 
 def bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
-    # TODO: support operations on dimensionless quantities with array.
     def _op(self: "AbstractQuantity", other: Any) -> Shaped[Array, "..."]:
-        if not isinstance(other, AbstractQuantity):
-            return NotImplemented
-
-        try:
-            other_value = other.to_units_value(self.unit)
-        except UnitConversionError:
-            return jnp.full(self.value.shape, fill_value=False, dtype=bool)
-
-        return op(self.value, other_value)
+        return op(self, other)
 
     return _op
 
@@ -479,11 +470,9 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     # ===============================================================
     # JAX API
 
-    @property
+    @partial(property, doc=jax.Array.at.__doc__)
     def at(self) -> _QuantityIndexUpdateHelper:
         return _QuantityIndexUpdateHelper(self)
-
-    at.__doc__ = jax.Array.at.__doc__  # TODO: set by decorator
 
     # ===============================================================
     # Python stuff
