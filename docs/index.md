@@ -1,9 +1,7 @@
 # unxt
 
-Unxt is unitful quantities and calculations in
-[JAX](https://jax.readthedocs.io/en/latest/), built on
-[Equinox](https://docs.kidger.site/equinox/) and
-[Quax](https://github.com/patrick-kidger/quax).
+Unxt is unitful quantities and calculations in [JAX][jax]], built on
+[Equinox][equinox] and [Quax][quax].
 
 Yes, it supports auto-differentiation (`grad`, `jacobian`, `hessian`) and
 vectorization (`vmap`, etc).
@@ -53,10 +51,9 @@ except Exception as e:
 # 'Gyr' (time) and 'kpc' (length) are not convertible
 ```
 
-`unxt` is built on [`quax`](https://docs.kidger.site/quax/), which enables
-custom array-ish objects in JAX. For convenience we use the
-[`quaxed`](https://quaxed.readthedocs.io/en/latest/?badge=latest) library, which
-is just a `quax` wrapper around `jax` to avoid boilerplate wrappers.
+`unxt` is built on [`quax`][quax], which enables custom array-ish objects in
+JAX. For convenience we use the [`quaxed`][quaxed] library, which is just a
+`quax.quaxify` wrapper around `jax` to avoid boilerplate code.
 
 ```python
 from quaxed import grad, vmap
@@ -94,16 +91,21 @@ If you found this library to be useful in academic work, then please cite.
 
 ## See also: other libraries in the Quax ecosystem
 
-[Quax](https://github.com/patrick-kidger/quax): the base library.
+[Quax][quax]: the base library.
 
-[coordinax](https://github.com/GalacticDyanamics/coordinax): Vector
-representations (built on `unxt`).
+[coordinax][coordinax]: Vector representations (built on `unxt`).
 
-[galax](https://github.com/GalacticDyanamics/galax): Galactic dynamics in Jax
-(built on `unxt` and `coordinax`).
+[galax][galax]: Galactic dynamics in Jax (built on `unxt` and
+[coordinax][coordinax]).
 
 <!-- LINKS -->
 
+[coordinax]: https://github.com/GalacticDyanamics/coordinax
+[equinox]: https://docs.kidger.site/equinox/
+[galax]: https://github.com/GalacticDyanamics/galax
+[jax]: https://jax.readthedocs.io/en/latest/
+[quax]: https://github.com/patrick-kidger/quax
+[quaxed]: https://quaxed.readthedocs.io/en/latest/
 [pypi-link]: https://pypi.org/project/unxt/
 [pypi-platforms]: https://img.shields.io/pypi/pyversions/unxt
 [pypi-version]: https://img.shields.io/pypi/v/unxt

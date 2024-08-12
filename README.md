@@ -1,10 +1,8 @@
 <h1 align='center'> unxt </h1>
 <h2 align="center">Unitful Quantities in JAX</h2>
 
-Unxt is unitful quantities and calculations in
-[JAX](https://jax.readthedocs.io/en/latest/), built on
-[Equinox](https://docs.kidger.site/equinox/) and
-[Quax](https://github.com/patrick-kidger/quax).
+Unxt is unitful quantities and calculations in [JAX][jax], built on
+[Equinox][equinox] and [Quax][quax].
 
 Yes, it supports auto-differentiation (`grad`, `jacobian`, `hessian`) and
 vectorization (`vmap`, etc).
@@ -63,8 +61,8 @@ except Exception as e:
 
 `unxt` is built on [`quax`](https://github.com/patrick-kidger/quax), which
 enables custom array-ish objects in JAX. For convenience we use the
-[`quaxed`](https://pypi.org/project/quaxed/) library, which is just a `quax`
-wrapper around `jax` to avoid boilerplate wrappers.
+[`quaxed`](https://pypi.org/project/quaxed/) library, which is just a
+`quax.quaxify` wrapper around `jax` to avoid boilerplate code.
 
 ```python
 from quaxed import grad, vmap
@@ -106,15 +104,15 @@ If you found this library to be useful in academic work, then please cite.
 
 We welcome contributions!
 
-<!-- SPHINX-START -->
-
 <!-- prettier-ignore-start -->
+[equinox]: https://docs.kidger.site/equinox/
+[jax]: https://jax.readthedocs.io/en/latest/
+[quax]: https://github.com/patrick-kidger/quax
+
 [actions-badge]:            https://github.com/GalacticDynamics/unxt/workflows/CI/badge.svg
 [actions-link]:             https://github.com/GalacticDynamics/unxt/actions
 [conda-badge]:              https://img.shields.io/conda/vn/conda-forge/unxt
 [conda-link]:               https://github.com/conda-forge/unxt-feedstock
-<!-- [github-discussions-badge]: https://img.shields.io/static/v1?label=Discussions&message=Ask&color=blue&logo=github
-[github-discussions-link]:  https://github.com/GalacticDynamics/unxt/discussions -->
 [pypi-link]:                https://pypi.org/project/unxt/
 [pypi-platforms]:           https://img.shields.io/pypi/pyversions/unxt
 [pypi-version]:             https://img.shields.io/pypi/v/unxt
