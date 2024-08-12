@@ -95,19 +95,19 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     >>> Quantity((1, 2, 3), "m")
     Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
-    From a :class:`numpy.ndarray`:
+    From a `numpy.ndarray`:
 
     >>> import numpy as np
     >>> Quantity(np.array([1, 2, 3]), "m")
     Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
-    From a :class:`jax.Array`:
+    From a `jax.Array`:
 
     >>> import jax.numpy as jnp
     >>> Quantity(jnp.array([1, 2, 3]), "m")
     Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
-    The unit can also be given as a :class:`astropy.units.Unit`:
+    The unit can also be given as a `astropy.units.Unit`:
 
     >>> import astropy.units as u
     >>> Quantity(1, u.m)
@@ -125,7 +125,7 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     # Plum stuff
 
     __faithful__: ClassVar[bool] = True
-    """Tells :mod:`plum` that this type can be cached more efficiently."""
+    """Tells `plum` that this type can be cached more efficiently."""
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self.value!r}, unit={self.unit.to_string()!r})"

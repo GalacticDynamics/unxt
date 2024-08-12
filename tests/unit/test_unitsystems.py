@@ -1,4 +1,4 @@
-"""Test the :mod:`~unxt.unitsystems` module."""
+"""Test the `unxt.unitsystems` module."""
 
 import pickle
 from pathlib import Path
@@ -11,10 +11,10 @@ from unxt.unitsystems import UnitSystem, dimensionless
 
 
 class TestUnitSystem:
-    """Test :class:`~unxt.UnitSystem`."""
+    """Test `unxt.UnitSystem`."""
 
     def test_constructor(self) -> None:
-        """Test the :class:`~unxt.UnitSystem` constructor."""
+        """Test the `unxt.UnitSystem` constructor."""
         usys = UnitSystem(u.kpc, u.Myr, u.radian, u.Msun)
 
         match = "must specify a unit for the physical type .*mass"
@@ -37,12 +37,12 @@ class TestUnitSystem:
         usys = UnitSystem(usys)
 
     def test_constructor_quantity(self) -> None:
-        """Test the :class:`~unxt.UnitSystem` constructor with quantities."""
+        """Test the `unxt.UnitSystem` constructor with quantities."""
         usys = UnitSystem(5 * u.kpc, 50 * u.Myr, 1e5 * u.Msun, u.rad)
         assert np.isclose((8 * u.Myr).decompose(usys).value, 8 / 50)
 
     def test_preferred(self) -> None:
-        """Test the :meth:`~unxt.UnitSystem.preferred` method."""
+        """Test the :meth:`unxt.UnitSystem.preferred` method."""
         usys = UnitSystem(u.kpc, u.Myr, u.radian, u.Msun, u.km / u.s)
         q = 15.0 * u.km / u.s
         assert usys.preferred("velocity") == u.km / u.s
@@ -52,7 +52,7 @@ class TestUnitSystem:
     # ===============================================================
 
     def test_compare(self) -> None:
-        """Test the :meth:`~unxt.UnitSystem.compare` method."""
+        """Test the :meth:`unxt.UnitSystem.compare` method."""
         usys1 = UnitSystem(u.kpc, u.Myr, u.radian, u.Msun, u.mas / u.yr)
         usys1_clone = UnitSystem(u.kpc, u.Myr, u.radian, u.Msun, u.mas / u.yr)
 
@@ -69,7 +69,7 @@ class TestUnitSystem:
         assert usys3 != usys1
 
     def test_pickle(self, tmpdir: Path) -> None:
-        """Test pickling and unpickling a :class:`~unxt.UnitSystem`."""
+        """Test pickling and unpickling a `unxt.UnitSystem`."""
         usys = UnitSystem(u.kpc, u.Myr, u.radian, u.Msun)
 
         path = tmpdir / "test.pkl"
@@ -83,10 +83,10 @@ class TestUnitSystem:
 
 
 class TestDimensionlessUnitSystem:
-    """Test :class:`~unxt.unitsystems.DimensionlessUnitSystem`."""
+    """Test `unxt.unitsystems.DimensionlessUnitSystem`."""
 
     def test_getitem(self) -> None:
-        """Test :meth:`~unxt.unitsystems.DimensionlessUnitSystem.__getitem__`."""
+        """Test :meth:`unxt.unitsystems.DimensionlessUnitSystem.__getitem__`."""
         assert dimensionless["dimensionless"] == u.one
         assert dimensionless["length"] == u.one
 

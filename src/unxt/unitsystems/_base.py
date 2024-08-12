@@ -22,7 +22,7 @@ class AbstractUnitSystem:
 
     See Also
     --------
-    :class:`unxt.unitsystems.UnitSystem`
+    `unxt.unitsystems.UnitSystem`
 
     """
 

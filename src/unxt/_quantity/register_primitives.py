@@ -208,7 +208,7 @@ def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
 
     >>> x = xp.asarray(500.0)
 
-    :class:`unxt.UncheckedQuantity`:
+    `unxt.UncheckedQuantity`:
 
     >>> from unxt import UncheckedQuantity
     >>> y = UncheckedQuantity(1.0, "km")
@@ -233,7 +233,7 @@ def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     >>> xp.add(x, q2 / q3)
     UncheckedQuantity(Array(501., dtype=float32, weak_type=True), unit='')
 
-    :class:`unxt.Quantity`:
+    `unxt.Quantity`:
 
     >>> from unxt import Quantity
     >>> x = xp.asarray(500.0)
@@ -269,7 +269,7 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
     >>> y = xp.asarray(500.0)
 
-    :class:`unxt.UncheckedQuantity`:
+    `unxt.UncheckedQuantity`:
 
     >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1.0, "km")
@@ -294,7 +294,7 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     >>> xp.add(q2 / q3, y)
     UncheckedQuantity(Array(501., dtype=float32, weak_type=True), unit='')
 
-    :class:`unxt.Quantity`:
+    `unxt.Quantity`:
 
     >>> from unxt import Quantity
     >>> q1 = Quantity(1.0, "km")
@@ -2679,7 +2679,7 @@ def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
     --------
     >>> import quaxed.array_api as xp
 
-    :class:`UncheckedQuantity`:
+    `UncheckedQuantity`:
 
     >>> from unxt import UncheckedQuantity
 
@@ -2698,7 +2698,7 @@ def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
     >>> xp.less(x, y)
     Array([ True, False, False], dtype=bool)
 
-    :class:`Quantity`:
+    `Quantity`:
 
     >>> from unxt import Quantity
 
@@ -2735,14 +2735,14 @@ def _lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     --------
     >>> import quaxed.array_api as xp
 
-    :class:`UncheckedQuantity`:
+    `UncheckedQuantity`:
 
     >>> from unxt import UncheckedQuantity
 
     >>> x = xp.asarray([1.])
     >>> y = UncheckedQuantity(2., "")
 
-    Note that :class:`JAX` does support passing the comparison to
+    Note that `JAX` does support passing the comparison to
     a different class.
 
     >>> x < y
@@ -2757,7 +2757,7 @@ def _lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     >>> xp.less(x, y)
     Array([ True, False, False], dtype=bool)
 
-    :class:`Quantity`:
+    `Quantity`:
 
     >>> from unxt import Quantity
 
@@ -2791,7 +2791,7 @@ def _lt_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     --------
     >>> import quaxed.array_api as xp
 
-    :class:`UncheckedQuantity`:
+    `UncheckedQuantity`:
 
     >>> from unxt import UncheckedQuantity
 
@@ -2810,7 +2810,7 @@ def _lt_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     >>> xp.less(x, y)
     Array([ True, False, False], dtype=bool)
 
-    :class:`Quantity`:
+    `Quantity`:
 
     >>> from unxt import Quantity
 

@@ -1,4 +1,4 @@
-"""Tests for :mod:`plum` related things."""
+"""Tests for `plum` related things."""
 
 from plum import is_faithful
 
@@ -6,7 +6,7 @@ from unxt import Quantity
 
 
 def test_is_faithful():
-    """Test :class:`unxt.Quantity` is a faithful type.
+    """Test `unxt.Quantity` is a faithful type.
 
     See
     https://beartype.github.io/plum/types.html#performance-and-faithful-types
