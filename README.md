@@ -20,12 +20,11 @@ pip install unxt
 
 ## Documentation
 
+For full documentation see:
+
 [![Documentation Status][rtd-badge]][rtd-link]
 
-Coming soon. In the meantime, if you've used `astropy.units`, then `unxt` should
-be familiar!
-
-## Quick example
+### Quick example
 
 ```python
 from unxt import Quantity
