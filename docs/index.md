@@ -87,7 +87,9 @@ except ValueError as e:
 
 [![DOI][zenodo-badge]][zenodo-link]
 
-If you found this library to be useful in academic work, then please cite.
+If you found this library to be useful and want to support the development and
+maintenance of lower-level code libraries for the scientific community, please
+consider citing this work.
 
 ## See also: other libraries in the Quax ecosystem
 
