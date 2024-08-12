@@ -71,15 +71,6 @@ class _QuantityIndexUpdateHelper(_IndexUpdateHelper):  # type: ignore[misc]
 class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     """Represents an array, with each axis bound to a name.
 
-    Parameters
-    ----------
-    value : array-like
-        The array of values. Anything that can be converted to an array by
-        `jax.numpy.asarray`.
-    unit : Unit-like
-        The unit of the array. Anything that can be converted to a unit by
-        `astropy.units.Unit`.
-
     Examples
     --------
     >>> from unxt import Quantity

@@ -20,15 +20,6 @@ class Quantity(AbstractParametricQuantity):
 
     This class is parametrized by the dimensions of the units.
 
-    Parameters
-    ----------
-    value : array-like
-        The array of values. Anything that can be converted to an array by
-        `jax.numpy.asarray`.
-    unit : Unit-like
-        The unit of the array. Anything that can be converted to a unit by
-        `astropy.units.Unit`.
-
     Examples
     --------
     >>> from unxt import Quantity

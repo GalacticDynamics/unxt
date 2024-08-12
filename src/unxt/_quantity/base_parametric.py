@@ -24,19 +24,13 @@ class AbstractParametricQuantity(AbstractQuantity):
 
     This class is parametrized by the dimensions of the units.
 
-    Parameters
-    ----------
-    value : array-like
-        The array of values. Anything that can be converted to an array by
-        `jax.numpy.asarray`.
-    unit : Unit-like
-        The unit of the array. Anything that can be converted to a unit by
-        `astropy.units.Unit`.
-
     """
 
     value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
+    """The value of the Quantity."""
+
     unit: Unit = eqx.field(static=True, converter=Unit)
+    """The unit associated with this value."""
 
     def __post_init__(self) -> None:
         """Check whether the arguments are valid."""
