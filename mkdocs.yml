@@ -55,7 +55,7 @@ markdown_extensions:
   - admonition
   - toc:
       permalink: "¤" # Adds a clickable permalink to each section heading
-      toc_depth: 4
+      toc_depth: 3
 
 plugins:
   - search # default search plugin; needs manually re-enabling when using any other plugins
