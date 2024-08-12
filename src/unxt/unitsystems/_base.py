@@ -20,10 +20,6 @@ class AbstractUnitSystem:
     specified on creation, a composite unit will be created with the base units. See the
     examples below for some demonstrations.
 
-    See Also
-    --------
-    `unxt.unitsystems.UnitSystem`
-
     """
 
     _core_units: list[Unit]
