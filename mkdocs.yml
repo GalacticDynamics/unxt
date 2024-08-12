@@ -22,8 +22,8 @@ theme:
         name: Switch to light mode
   icon:
     repo: fontawesome/brands/github # GitHub logo in top right
-  # logo: "_static/favicon.png" # Our logo in top left
-  # favicon: "_static/favicon.png"
+  logo: "_static/favicon.png" # Our logo in top left
+  favicon: "_static/favicon.png"
   # custom_dir: "docs/_overrides" # Overriding part of the HTML
 
 site_name: Unxt
