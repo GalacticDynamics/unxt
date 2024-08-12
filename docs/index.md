@@ -1,6 +1,6 @@
 # unxt
 
-Unxt is unitful quantities and calculations in [JAX][jax]], built on
+Unxt is unitful quantities and calculations in [JAX][jax], built on
 [Equinox][equinox] and [Quax][quax].
 
 Yes, it supports auto-differentiation (`grad`, `jacobian`, `hessian`) and
