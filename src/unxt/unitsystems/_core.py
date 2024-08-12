@@ -14,33 +14,34 @@ from unxt._typing import Unit
 class UnitSystem(AbstractUnitSystem):
     """Represents a system of units.
 
-    At minimum, this consists of a set of length, time, mass, and angle units, but may
-    also contain preferred representations for composite units. For example, the base
-    unit system could be ``{kpc, Myr, Msun, radian}``, but you can also specify a
-    preferred velocity unit, such as ``km/s``.
+    At minimum, this consists of a set of length, time, mass, and angle units,
+    but may also contain preferred representations for composite units. For
+    example, the base unit system could be ``{kpc, Myr, Msun, radian}``, but you
+    can also specify a preferred velocity unit, such as ``km/s``.
 
-    This class behaves like a dictionary with keys set by physical types (i.e. "length",
-    "velocity", "energy", etc.). If a unit for a particular physical type is not
-    specified on creation, a composite unit will be created with the base units. See the
-    examples below for some demonstrations.
+    This class behaves like a dictionary with keys set by physical types (i.e.
+    "length", "velocity", "energy", etc.). If a unit for a particular physical
+    type is not specified on creation, a composite unit will be created with the
+    base units. See the examples below for some demonstrations.
 
     Parameters
     ----------
     *units, **units
-        The units that define the unit system. At minimum, this must contain length,
-        time, mass, and angle units. If passing in keyword arguments, the keys must be
-        valid :mod:`astropy.units` physical types.
+        The units that define the unit system. At minimum, this must contain
+        length, time, mass, and angle units. If passing in keyword arguments,
+        the keys must be valid `astropy.units` physical types.
 
     Examples
     --------
-    If only base units are specified, any physical type specified as a key
-    to this object will be composed out of the base units::
+    If only base units are specified, any physical type specified as a key to
+    this object will be composed out of the base units::
 
         >>> usys = UnitSystem(u.m, u.s, u.kg, u.radian)
         >>> usys["velocity"]
         Unit("m / s")
 
-    However, preferred representations for composite units can also be specified::
+    However, preferred representations for composite units can also be
+    specified::
 
         >>> usys = UnitSystem(u.m, u.s, u.kg, u.radian, u.erg)
         >>> usys["energy"]
@@ -48,8 +49,9 @@ class UnitSystem(AbstractUnitSystem):
         >>> usys.preferred("energy")
         Unit("erg")
 
-    This is useful for Galactic dynamics where lengths and times are usually given in
-    terms of ``kpc`` and ``Myr``, but velocities are often specified in ``km/s``::
+    This is useful for Galactic dynamics where lengths and times are usually
+    given in terms of ``kpc`` and ``Myr``, but velocities are often specified in
+    ``km/s``::
 
         >>> usys = UnitSystem(u.kpc, u.Myr, u.Msun, u.radian, u.km/u.s)
         >>> usys["velocity"]

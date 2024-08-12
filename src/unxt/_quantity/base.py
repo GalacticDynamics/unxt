@@ -71,15 +71,6 @@ class _QuantityIndexUpdateHelper(_IndexUpdateHelper):  # type: ignore[misc]
 class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     """Represents an array, with each axis bound to a name.
 
-    Parameters
-    ----------
-    value : array-like
-        The array of values. Anything that can be converted to an array by
-        `jax.numpy.asarray`.
-    unit : Unit-like
-        The unit of the array. Anything that can be converted to a unit by
-        `astropy.units.Unit`.
-
     Examples
     --------
     >>> from unxt import Quantity
@@ -104,19 +95,19 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     >>> Quantity((1, 2, 3), "m")
     Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
-    From a :class:`numpy.ndarray`:
+    From a `numpy.ndarray`:
 
     >>> import numpy as np
     >>> Quantity(np.array([1, 2, 3]), "m")
     Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
-    From a :class:`jax.Array`:
+    From a `jax.Array`:
 
     >>> import jax.numpy as jnp
     >>> Quantity(jnp.array([1, 2, 3]), "m")
     Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
-    The unit can also be given as a :class:`astropy.units.Unit`:
+    The unit can also be given as a `astropy.units.Unit`:
 
     >>> import astropy.units as u
     >>> Quantity(1, u.m)
@@ -125,13 +116,16 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
     """
 
     value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
+    """The value of the Quantity."""
+
     unit: Unit = eqx.field(static=True, converter=Unit)
+    """The unit associated with this value."""
 
     # ---------------------------------------------------------------
     # Plum stuff
 
     __faithful__: ClassVar[bool] = True
-    """Tells :mod:`plum` that this type can be cached more efficiently."""
+    """Tells `plum` that this type can be cached more efficiently."""
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self.value!r}, unit={self.unit.to_string()!r})"

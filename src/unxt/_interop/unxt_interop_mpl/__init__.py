@@ -1,4 +1,4 @@
-"""Interoperability with :mod:`matplotlib`."""
+"""Interoperability with `matplotlib`."""
 # pylint: disable=import-error
 
 # This module was adapted from both the `astropy` and `pint` package's
@@ -22,11 +22,11 @@ from unxt._quantity.fast import UncheckedQuantity
 
 @dataclass
 class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
-    """Support :mod:`unxt` in :mod:`matplotlib`'s unit conversion framework.
+    """Support `unxt` in `matplotlib`'s unit conversion framework.
 
-    This class is a subclass of :class:`matplotlib.units.ConversionInterface`
-    and is used to convert :class:`unxt.Quantity` instances for use with
-    :mod:`matplotlib`.
+    This class is a subclass of `matplotlib.units.ConversionInterface`
+    and is used to convert `unxt.Quantity` instances for use with
+    `matplotlib`.
 
     """
 
@@ -70,7 +70,7 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
 
 
 def setup_matplotlib_support_for_unxt(*, enable: bool = True) -> None:
-    """Set up matplotlib's unit support for :mod:`unxt`.
+    """Set up matplotlib's unit support for `unxt`.
 
     Parameters
     ----------

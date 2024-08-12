@@ -20,15 +20,6 @@ class Quantity(AbstractParametricQuantity):
 
     This class is parametrized by the dimensions of the units.
 
-    Parameters
-    ----------
-    value : array-like
-        The array of values. Anything that can be converted to an array by
-        `jax.numpy.asarray`.
-    unit : Unit-like
-        The unit of the array. Anything that can be converted to a unit by
-        `astropy.units.Unit`.
-
     Examples
     --------
     >>> from unxt import Quantity
@@ -53,19 +44,19 @@ class Quantity(AbstractParametricQuantity):
     >>> Quantity((1, 2, 3), "m")
     Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
-    From a :class:`numpy.ndarray`:
+    From a `numpy.ndarray`:
 
     >>> import numpy as np
     >>> Quantity(np.array([1, 2, 3]), "m")
     Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
-    From a :class:`jax.Array`:
+    From a `jax.Array`:
 
     >>> import jax.numpy as jnp
     >>> Quantity(jnp.array([1, 2, 3]), "m")
     Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
-    The unit can also be given as a :class:`astropy.units.Unit`:
+    The unit can also be given as a `astropy.units.Unit`:
 
     >>> import astropy.units as u
     >>> Quantity(1, u.m)
@@ -83,7 +74,7 @@ class Quantity(AbstractParametricQuantity):
     ... except Exception as e: print(e)
     Physical type mismatch.
 
-    The dimensions can also be given as a :class:`astropy.units.PhysicalType`:
+    The dimensions can also be given as a `astropy.units.PhysicalType`:
 
     >>> dimensions = u.km.physical_type
     >>> dimensions
