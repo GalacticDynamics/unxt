@@ -102,9 +102,9 @@ consider citing this work.
 
 <!-- LINKS -->
 
-[coordinax]: https://github.com/GalacticDyanamics/coordinax
+[coordinax]: https://github.com/GalacticDynamics/coordinax
 [equinox]: https://docs.kidger.site/equinox/
-[galax]: https://github.com/GalacticDyanamics/galax
+[galax]: https://github.com/GalacticDynamics/galax
 [jax]: https://jax.readthedocs.io/en/latest/
 [quax]: https://github.com/patrick-kidger/quax
 [quaxed]: https://quaxed.readthedocs.io/en/latest/
