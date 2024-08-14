@@ -1615,7 +1615,7 @@ def _div_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     Quantity['length'](Array([6., 3., 2.], dtype=float32), unit='m')
 
     """
-    return replace(x, value=lax.div(x.value, y))
+    return replace(x, value=qlax.div(x.value, y))
 
 
 # ==============================================================================
