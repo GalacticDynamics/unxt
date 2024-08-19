@@ -1,6 +1,6 @@
 [build-system]
   build-backend = "hatchling.build"
-  requires = ["hatchling", "hatch-vcs"]
+  requires      = ["hatch-vcs", "hatchling"]
 
 
 [project]
@@ -9,27 +9,28 @@
   ]
   classifiers = [
     "Development Status :: 3 - Alpha",
-    "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python",
     "Topic :: Scientific/Engineering",
     "Typing :: Typed",
   ]
   dependencies = [
-    "astropy>=6.0",
+    "astropy >= 6.0",
     "equinox>0.11",
     "is_annotated >= 1.0",
     "jax > 0.4",
     "jaxlib > 0.4",
     "jaxtyping",
     "quax>=0.0.3",
+    "quaxed >= 0.4",
     "quaxed >= 0.5.2",
     "xmmutablemap",
     # Pinned for above dependencies
@@ -43,23 +44,24 @@
   requires-python = ">=3.10"
 
   [project.optional-dependencies]
-    all = ["unxt[interop-gala,interop-mpl]"]
-    interop-gala = ["gala"]
-    interop-mpl = ["matplotlib", "zeroth"]
+    all = ["unxt[backend-astropy,interop-gala,interop-mpl]"]
+    backend-astropy = ["astropy >= 6.0"]
+    dev = ["unxt[all,docs,test-all]"]
     docs = [
-      "griffe < 1.0",  # For Python structure signatures
-      "mkdocs==1.6.0",  # Main documentation generator.
-      "mkdocs-material==9.5",  # Theme
-      "mkdocs_include_exclude_files==0.0.1",  # Tweak which files are included/excluded
-      "mkdocstrings[python] >= 0.18",  # Autogenerate documentation from docstrings.
-      "mknotebooks==0.8",  # Turn Jupyter Lab notebooks into webpages.
+      "griffe < 1.0",                        # For Python structure signatures
+      "jinja2==3.1",
+      "mkdocs-material==9.5",                # Theme
+      "mkdocs==1.6.0",                       # Main documentation generator.
+      "mkdocs_include_exclude_files==0.0.1", # Tweak which files are included/excluded
+      "mkdocstrings[python] >= 0.18",        # Autogenerate documentation from docstrings.
+      "mknotebooks==0.8",                    # Turn Jupyter Lab notebooks into webpages.
       "nbconvert==7.16",
       "pygments==2.16.0",
-      "pymdown-extensions==10.2",  # Markdown extensions e.g. to handle LaTeX.
-      "pytkdocs_tweaks==0.0.8",  # Tweaks mkdocstrings to improve various aspects
-      "jinja2==3.1"
+      "pymdown-extensions==10.2",            # Markdown extensions e.g. to handle LaTeX.
+      "pytkdocs_tweaks==0.0.8",              # Tweaks mkdocstrings to improve various aspects
     ]
-    test-all = ["unxt[all]", "unxt[test]", "unxt[test-mpl]"]
+    interop-gala = ["gala"]
+    interop-mpl = ["matplotlib", "zeroth"]
     test = [
       "hypothesis[numpy]",
       "pytest >=6",
@@ -68,35 +70,35 @@
       "pytest-github-actions-annotate-failures",
       "sybil",
     ]
+    test-all = ["unxt[all]", "unxt[test-mpl]", "unxt[test]"]
     test-mpl = ["pytest-mpl"]
-    dev = ["unxt[all,docs,test-all]"]
 
   [project.urls]
     "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"
-    Changelog = "https://github.com/GalacticDynamics/unxt/releases"
-    Discussions = "https://github.com/GalacticDynamics/unxt/discussions"
-    Homepage = "https://github.com/GalacticDynamics/unxt"
+    Changelog     = "https://github.com/GalacticDynamics/unxt/releases"
+    Discussions   = "https://github.com/GalacticDynamics/unxt/discussions"
+    Homepage      = "https://github.com/GalacticDynamics/unxt"
 
 
 [tool.hatch]
-  build.hooks.vcs.version-file = "src/unxt/_version.py"
+  build.hooks.vcs.version-file     = "src/unxt/_version.py"
   metadata.allow-direct-references = true
-  version.source = "vcs"
+  version.source                   = "vcs"
 
 
   [tool.hatch.env.default]
-    features = ["test"]
+    features     = ["test"]
     scripts.test = "pytest {args}"
 
 
 [tool.pytest.ini_options]
   addopts = [
-    "-ra",
-    "-p no:doctest",  # using sybil
     "--arraydiff",
     "--showlocals",
-    "--strict-markers",
     "--strict-config",
+    "--strict-markers",
+    "-p no:doctest",    # using sybil
+    "-ra",
   ]
   filterwarnings = [
     "error",
@@ -106,44 +108,44 @@
   ]
   log_cli_level = "INFO"
   minversion = "6.0"
-  testpaths = ["tests/", "docs", "src/"]
+  testpaths = ["docs", "src/", "tests/"]
   xfail_strict = true
 
 
 [tool.coverage]
   report.exclude_also = ['\.\.\.', 'if typing.TYPE_CHECKING:']
-  run.source = ["unxt"]
+  run.source          = ["unxt"]
 
 [tool.mypy]
   disallow_incomplete_defs = false
-  disallow_untyped_defs = false
-  enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
-  files = ["src", "tests"]
-  python_version = "3.10"
-  strict = true
-  warn_return_any = false
-  warn_unreachable = true
-  warn_unused_configs = true
+  disallow_untyped_defs    = false
+  enable_error_code        = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+  files                    = ["src", "tests"]
+  python_version           = "3.10"
+  strict                   = true
+  warn_return_any          = false
+  warn_unreachable         = true
+  warn_unused_configs      = true
 
   [[tool.mypy.overrides]]
-    disable_error_code = ["type-arg", "name-defined"]
+    disable_error_code       = ["name-defined", "type-arg"]
     disallow_incomplete_defs = true
-    disallow_untyped_defs = true
-    module = "unxt.*"
+    disallow_untyped_defs    = true
+    module                   = "unxt.*"
 
   [[tool.mypy.overrides]]
     ignore_missing_imports = true
     module = [
       "array_api.*",
-      "quaxed.*",
       "astropy.*",
       "equinox.*",
       "hypothesis.*",
       "jax.*",
-      "unxt.*",
       "jaxtyping.*",
       "numpy.*",
       "quax.*",
+      "quaxed.*",
+      "unxt.*",
     ]
 
 
@@ -179,22 +181,22 @@
     ]
 
     [tool.ruff.lint.per-file-ignores]
-      "__init__.py" = ["F403"]
+      "__init__.py"  = ["F403"]
       "docs/conf.py" = ["A001", "INP001"]
-      "noxfile.py" = ["T20"]
-      "tests/**" = ["ANN", "S101", "SLF001", "T20"]
+      "noxfile.py"   = ["T20"]
+      "tests/**"     = ["ANN", "S101", "SLF001", "T20"]
 
     [tool.ruff.lint.isort]
-      combine-as-imports = true
+      combine-as-imports     = true
       extra-standard-library = ["typing_extensions"]
-      known-first-party = ["quaxed"]
-      known-local-folder = ["unxt"]
+      known-first-party      = ["quaxed"]
+      known-local-folder     = ["unxt"]
 
 
 [tool.pylint]
-  ignore-paths = [".*/_version.py", ".*/_compat.py"]
+  ignore-paths = [".*/_compat.py", ".*/_version.py"]
   messages_control.disable = [
-    "cyclic-import",  # TODO: resolve
+    "cyclic-import",              # TODO: resolve
     "design",
     "fixme",
     "function-redefined",         # plum-dispatch
