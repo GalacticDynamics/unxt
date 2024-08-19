@@ -18,8 +18,8 @@ import jax
 from jaxtyping import ArrayLike
 from plum.parametric import type_unparametrized
 
-from ._quantity.core import Quantity
-from ._typing import Unit
+from .quantity.core import Quantity
+from .typing_ext import Unit
 
 P = ParamSpec("P")
 R = TypeVar("R", bound=Quantity)

@@ -28,7 +28,7 @@ from .base import AbstractQuantity, can_convert_unit
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
 from .distance import AbstractDistance
-from unxt._units import Unit
+from unxt._unxt.units import Unit
 
 T = TypeVar("T")
 

@@ -12,8 +12,8 @@ __all__ = [
 
 import astropy.units as u
 
-from ._base import AbstractUnitSystem
-from ._core import DimensionlessUnitSystem, UnitSystem
+from .base import AbstractUnitSystem
+from .core import DimensionlessUnitSystem, UnitSystem
 
 # define galactic unit system
 galactic = UnitSystem(u.kpc, u.Myr, u.Msun, u.radian, u.km / u.s)  # pylint: disable=no-member

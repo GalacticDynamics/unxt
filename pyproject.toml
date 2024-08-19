@@ -175,8 +175,6 @@
       "TD002",   # Missing author in TODO
       "TD003",   # Missing issue link on the line following this TODO
     ]
-    # Uncomment if using a _compat.typing backport
-    # typing-modules = ["unxt._compat.typing"]
 
     [tool.ruff.lint.per-file-ignores]
       "__init__.py" = ["F403"]
@@ -210,6 +208,8 @@
     "too-many-function-args",     # plum-dispatch
     "unexpected-keyword-arg",     # plum-dispatch
     "unused-argument",            # handled by ruff
+    "unused-wildcard-import",     # handled by ruff
+    "wildcard-import",            # handled by ruff
     "wrong-import-order",         # handled by ruff
     "wrong-import-position",
   ]

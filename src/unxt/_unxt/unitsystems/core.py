@@ -6,8 +6,8 @@ from typing import ClassVar, final
 
 import astropy.units as u
 
-from ._base import AbstractUnitSystem
-from unxt._typing import Unit
+from .base import AbstractUnitSystem
+from unxt._unxt.typing_ext import Unit
 
 
 @final
