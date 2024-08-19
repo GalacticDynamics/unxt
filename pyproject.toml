@@ -51,7 +51,7 @@
       "mkdocs_include_exclude_files==0.0.1",  # Tweak which files are included/excluded
       "mkdocstrings[python] >= 0.18",  # Autogenerate documentation from docstrings.
       "mknotebooks==0.8",  # Turn Jupyter Lab notebooks into webpages.
-      "nbconvert==6.5.0",
+      "nbconvert==7.16",
       "pygments==2.16.0",
       "pymdown-extensions==10.2",  # Markdown extensions e.g. to handle LaTeX.
       "pytkdocs_tweaks==0.0.8",  # Tweaks mkdocstrings to improve various aspects
