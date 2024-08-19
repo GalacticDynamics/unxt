@@ -56,7 +56,7 @@
       "pymdown-extensions==9.4",  # Markdown extensions e.g. to handle LaTeX.
       "pytkdocs_tweaks==0.0.8",  # Tweaks mkdocstrings to improve various aspects
       "jinja2==3.0.3"            # Older version. After 3.1.0 seems to be incompatible with current versions of mkdocstrings.
-  ]
+    ]
     test-all = ["unxt[all]", "unxt[test]", "unxt[test-mpl]"]
     test = [
       "hypothesis[numpy]",
