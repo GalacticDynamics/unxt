@@ -4,12 +4,12 @@ __all__ = ["to_units", "to_units_value"]
 
 from typing import Any
 
-from jax.typing import ArrayLike
+from jaxtyping import ArrayLike
 from plum import dispatch
 
 from .base import AbstractQuantity
 from .core import Quantity
-from unxt._typing import Unit
+from unxt._unxt.typing_ext import Unit
 
 # ============================================================================
 # to_units
