@@ -57,6 +57,10 @@ def parse_field_names_and_dimensions(
         field_names.append(get_dimension_name(name))
         dimensions.append(f_dims[0])
 
+    if len(set(dimensions)) < len(dimensions):
+        msg = "Some dimensions are repeated."
+        raise ValueError(msg)
+
     return tuple(field_names), tuple(dimensions)
 
 
