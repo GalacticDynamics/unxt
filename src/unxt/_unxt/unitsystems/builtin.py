@@ -6,6 +6,7 @@ __all__ = ["DimensionlessUnitSystem", "LTMAUnitSystem", "LTMAVUnitSystem"]
 
 from dataclasses import dataclass
 from typing import Annotated, TypeAlias, final
+from typing_extensions import override
 
 import astropy.units as u
 from astropy.units import dimensionless_unscaled
@@ -34,13 +35,12 @@ class DimensionlessUnitSystem(AbstractUnitSystem):
         _dimless_insts[cls] = self
         return self
 
-    def __post_init__(self) -> None:
-        if self.dimensionless is not dimensionless_unscaled:
-            msg = "DimensionlessUnitSystem must have a dimensionless unit"
-            raise ValueError(msg)
-
     def __repr__(self) -> str:
         return "DimensionlessUnitSystem()"
+
+    @override
+    def __str__(self) -> str:
+        return self.__repr__()
 
 
 @final

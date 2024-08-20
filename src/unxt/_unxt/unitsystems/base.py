@@ -3,7 +3,7 @@
 __all__ = ["AbstractUnitSystem", "UNITSYSTEMS_REGISTRY"]
 
 from collections.abc import Iterator
-from dataclasses import dataclass, is_dataclass
+from dataclasses import dataclass
 from types import MappingProxyType
 from typing import ClassVar, get_args, get_type_hints
 
@@ -18,6 +18,46 @@ Unit = u.UnitBase
 
 _UNITSYSTEMS_REGISTRY: dict[tuple[Dimension, ...], type["AbstractUnitSystem"]] = {}
 UNITSYSTEMS_REGISTRY = MappingProxyType(_UNITSYSTEMS_REGISTRY)
+
+
+def parse_field_names_and_dimensions(
+    cls: type,
+) -> tuple[tuple[str, ...], tuple[Dimension, ...]]:
+    # Register class with a tuple of it's dimensions.
+    # This requires processing the type hints, not the dataclass fields
+    # since those are made after the original class is defined.
+    type_hints = get_type_hints(cls, include_extras=True)
+
+    field_names = []
+    dimensions = []
+    for name, type_hint in type_hints.items():
+        # Check it's Annotated
+        if not is_annotated(type_hint):
+            continue
+
+        # Get the arguments to Annotated
+        origin, *f_args = get_args(type_hint)
+
+        # Check that the first argument is a UnitBase
+        if not issubclass(origin, Unit):
+            continue
+
+        # Need for one of the arguments to be a PhysicalType
+        f_dims = [x for x in f_args if isinstance(x, Dimension)]
+        if not f_dims:
+            msg = f"Field {name!r} must be an Annotated with a dimension."
+            raise TypeError(msg)
+        if len(f_dims) > 1:
+            msg = (
+                f"Field {name!r} must be an Annotated with only one dimension; "
+                f"got {f_dims}"
+            )
+            raise TypeError(msg)
+
+        field_names.append(get_dimension_name(name))
+        dimensions.append(f_dims[0])
+
+    return tuple(field_names), tuple(dimensions)
 
 
 @dataclass(frozen=True, slots=True, eq=True)
@@ -81,65 +121,21 @@ class AbstractUnitSystem:
     _base_dimensions: ClassVar[tuple[Dimension, ...]]
 
     def __init_subclass__(cls) -> None:
-        if is_dataclass(cls) and not (  # type: ignore[redundant-expr]
-            cls.__dataclass_params__.frozen  # type: ignore[attr-defined]  # pylint: disable=no-member
-            and hasattr(cls, "__slots__")
-        ):
-            msg = f"{cls.__name__} must have frozen=slots=True"
-            raise TypeError(msg)
-
         # Register class with a tuple of it's dimensions.
         # This requires processing the type hints, not the dataclass fields
         # since those are made after the original class is defined.
-        type_hints = get_type_hints(cls, include_extras=True)
-
-        field_names = []
-        dimensions_ = []
-        for name, type_hint in type_hints.items():
-            # Check it's Annotated
-            if not is_annotated(type_hint):
-                continue
-
-            # Get the arguments to Annotated
-            origin, *f_args = get_args(type_hint)
-
-            # Check that the first argument is a UnitBase
-            if not issubclass(origin, Unit):
-                continue
-
-            # Need for one of the arguments to be a PhysicalType
-            f_dims = [x for x in f_args if isinstance(x, Dimension)]
-            if not f_dims:
-                msg = f"Field {name} must be an Annotated with a dimension."
-                raise TypeError(msg)
-            if len(f_dims) > 1:
-                msg = f"Field {name} must be an Annotated with only one dimension."
-                raise TypeError(msg)
-
-            field_names.append(get_dimension_name(name))
-            dimensions_.append(f_dims[0])
-
-        dimensions = tuple(dimensions_)  # freeze
+        field_names, dimensions = parse_field_names_and_dimensions(cls)
 
         # Check the unitsystem is not already registered
-        if dimensions in _UNITSYSTEMS_REGISTRY:
-            # If `make_dataclass(slots=True)` then the class is made twice, the
-            # second time adding the `__slots__` attribute
-            if is_dataclass(cls) and "__slots__" in cls.__dict__:  # type: ignore[redundant-expr]
-                return
-
+        # If `make_dataclass(slots=True)` then the class is made twice, the
+        # second time adding the `__slots__` attribute
+        if dimensions in _UNITSYSTEMS_REGISTRY and "__slots__" not in cls.__dict__:
             msg = f"Unit system with dimensions {dimensions} already exists."
             raise ValueError(msg)
 
         # Add attributes to the class
         cls._base_field_names = tuple(field_names)
         cls._base_dimensions = dimensions
-
-        # Register the class
-        # If `make_dataclass(slots=True)` then the class is made twice, the
-        # second time adding the `__slots__` attribute
-        if is_dataclass(cls) and "__slots__" not in cls.__dict__:  # type: ignore[redundant-expr]
-            return
 
         _UNITSYSTEMS_REGISTRY[dimensions] = cls
 
@@ -182,6 +178,7 @@ class AbstractUnitSystem:
         # Note: This is required for q.decompose(usys) to work, where q is a Quantity
         return len(self.base_dimensions)
 
+    # TODO: should this be changed to _base_field_names -> Iterator[str]?
     def __iter__(self) -> Iterator[UnitT]:
         yield from self.base_units
 

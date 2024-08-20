@@ -3,12 +3,30 @@
 import pickle
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Annotated
 
 import astropy.units as u
 import numpy as np
 import pytest
 
-from unxt.unitsystems import AbstractUnitSystem, dimensionless, unitsystem
+from unxt import unitsystems
+from unxt.unitsystems import (
+    AbstractUnitSystem,
+    DimensionlessUnitSystem,
+    dimensionless,
+    equivalent,
+    unitsystem,
+)
+
+
+@pytest.fixture()
+def clean_unitsystems_registry(monkeypatch):
+    clean_registry = {}
+    monkeypatch.setattr(
+        "unxt._unxt.unitsystems.base._UNITSYSTEMS_REGISTRY", clean_registry
+    )
+    return clean_registry
+
 
 # ===================================================================
 
@@ -51,22 +69,77 @@ def test_pickle(tmpdir: Path) -> None:
     assert usys == usys2
 
 
-def test_non_slot():
+def test_non_frozen(clean_unitsystems_registry):
     # Passes
-    class NoSlots1(AbstractUnitSystem):
+    class NoFrozen1(AbstractUnitSystem):
         pass
 
-    # Fails
-    with pytest.raises(TypeError, match="cannot inherit"):
+    clean_unitsystems_registry.clear()
 
-        @dataclass
-        class NoSlots2(AbstractUnitSystem):
+    # Fails
+    with pytest.raises(TypeError, match="cannot inherit non-frozen"):
+
+        @dataclass(slots=False)
+        class NoFrozen2(AbstractUnitSystem):
             pass
+
+    clean_unitsystems_registry.clear()
 
     # Passes
     @dataclass(frozen=True, slots=True)
-    class NoSlots3(AbstractUnitSystem):
+    class NoFrozen3(AbstractUnitSystem):
         pass
+
+
+@pytest.mark.usefixtures("clean_unitsystems_registry")
+def test_non_unit_fields():
+    """Test that non-Unit fields are skipped."""
+
+    @dataclass(frozen=True, slots=True)
+    class SomeNoneUnitFields(AbstractUnitSystem):
+        a: Annotated[u.Unit, u.get_physical_type("length")]
+        b: int
+
+    assert SomeNoneUnitFields._base_field_names == ("a",)
+
+
+@pytest.mark.usefixtures("clean_unitsystems_registry")
+def test_wrong_annotation():
+    """Test that non-Unit fields are skipped."""
+    # No dimension annotation
+    with pytest.raises(
+        TypeError, match="Field 'a' must be an Annotated with a dimension"
+    ):
+
+        @dataclass(frozen=True, slots=True)
+        class BadAnnotations(AbstractUnitSystem):
+            a: Annotated[u.Unit, "no dimension annotation"]
+
+    # Too many dimension annotations
+    match = "Field 'a' must be an Annotated with only one dimension"
+    with pytest.raises(TypeError, match=match):
+
+        @dataclass(frozen=True, slots=True)
+        class BadAnnotations(AbstractUnitSystem):
+            a: Annotated[
+                u.Unit, u.get_physical_type("length"), u.get_physical_type("time")
+            ]
+
+
+def test_unitsystem_already_registered():
+    """Test that a unit system can only be registered once."""
+
+    class MyUnitSystem(AbstractUnitSystem):
+        length: Annotated[u.Unit, u.get_physical_type("length")]
+        time: Annotated[u.Unit, u.get_physical_type("time")]
+
+    assert MyUnitSystem._base_dimensions in unitsystems.UNITSYSTEMS_REGISTRY
+
+    with pytest.raises(ValueError, match="already exists"):
+
+        class MyUnitSystem(AbstractUnitSystem):
+            length: Annotated[u.Unit, u.get_physical_type("length")]
+            time: Annotated[u.Unit, u.get_physical_type("time")]
 
 
 class TestDimensionlessUnitSystem:
@@ -83,3 +156,22 @@ class TestDimensionlessUnitSystem:
         """Test that dimensionless unitsystem can be decomposed."""
         with pytest.raises(ValueError, match="can not be decomposed into"):
             (15 * u.kpc).decompose(dimensionless)
+
+    def test_str(self) -> None:
+        """Test that the string representation is correct."""
+        assert str(dimensionless) == "DimensionlessUnitSystem()"
+
+
+def test_dimensionless_singleton():
+    """Test that the dimensionless unit system is a singleton."""
+    assert DimensionlessUnitSystem() is dimensionless
+
+
+def test_equivalent():
+    """Test that equivalent unit systems are equal."""
+    usys1 = unitsystem(u.kpc, u.Myr, u.radian, u.Msun, u.mas / u.yr)
+    usys2 = unitsystem(u.km, u.yr, u.deg, u.kg, u.deg / u.s)
+    assert equivalent(usys1, usys2)
+
+    usys3 = unitsystem(u.kpc, u.Myr, u.radian)
+    assert not equivalent(usys1, usys3)

@@ -62,6 +62,10 @@ def get_dimension_name(pt: str, /) -> str:
     >>> get_dimension_name("not real")
     'not real'
 
+    >>> try: get_dimension_name("*62")
+    ... except ValueError as e: print(e)
+    Input contains non-letter characters
+
     """
     # A regex search to match anything that's not a letter or a whitespace.
     if re.search(r"[^a-zA-Z_ ]", pt):
