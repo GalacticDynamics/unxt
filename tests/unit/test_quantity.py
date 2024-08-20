@@ -87,16 +87,16 @@ def test_parametric():
     """Test the parametric strategy."""
     # Inferred
     q = Quantity(1, u.m)
-    (dimensions,) = q._type_parameter  # noqa: SLF001
+    (dimensions,) = q._type_parameter
     assert dimensions == u.get_physical_type(u.m)
 
     # Explicit
     q = Quantity["length"](1, u.m)
-    (dimensions,) = q._type_parameter  # noqa: SLF001
+    (dimensions,) = q._type_parameter
     assert dimensions == u.get_physical_type(u.m)
 
     q = Quantity["length"](jnp.ones((1, 2)), u.m)
-    (dimensions,) = q._type_parameter  # noqa: SLF001
+    (dimensions,) = q._type_parameter
     assert dimensions == u.get_physical_type(u.m)
 
     # type-checks
