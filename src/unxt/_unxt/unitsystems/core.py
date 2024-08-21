@@ -25,10 +25,10 @@ def unitsystem(units: AbstractUnitSystem, /) -> AbstractUnitSystem:
     --------
     >>> import astropy.units as u
     >>> from unxt.unitsystems import unitsystem
-    >>> usys = unitsystem(u.kpc, u.Myr, u.Msun, u.radian, u.km/u.s)
+    >>> usys = unitsystem(u.kpc, u.Myr, u.Msun, u.radian)
     >>> usys
-    LTMAVUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
-                    angle=Unit("rad"), speed=Unit("km / s"))
+    LTMAUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
+                    angle=Unit("rad"))
 
     >>> unitsystem(usys) is usys
     True
@@ -49,13 +49,13 @@ def unitsystem(units: Sequence[Any], /) -> AbstractUnitSystem:
     >>> unitsystem(())
     DimensionlessUnitSystem()
 
-    >>> unitsystem((u.kpc, u.Myr, u.Msun, u.radian, u.km/u.s))
-    LTMAVUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
-                    angle=Unit("rad"), speed=Unit("km / s"))
+    >>> unitsystem((u.kpc, u.Myr, u.Msun, u.radian))
+    LTMAUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
+                    angle=Unit("rad"))
 
-    >>> unitsystem([u.kpc, u.Myr, u.Msun, u.radian, u.km/u.s])
-    LTMAVUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
-                    angle=Unit("rad"), speed=Unit("km / s"))
+    >>> unitsystem([u.kpc, u.Myr, u.Msun, u.radian])
+    LTMAUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
+                    angle=Unit("rad"))
 
     """
     return unitsystem(*units) if len(units) > 0 else dimensionless
@@ -147,8 +147,8 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
     --------
     >>> from unxt.unitsystems import unitsystem
     >>> unitsystem("galactic")
-    LTMAVUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
-                    angle=Unit("rad"), speed=Unit("km / s"))
+    LTMAUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
+                    angle=Unit("rad"))
 
     >>> unitsystem("solarsystem")
     LTMAUnitSystem(length=Unit("AU"), time=Unit("yr"),

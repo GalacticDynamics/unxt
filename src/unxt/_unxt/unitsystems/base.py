@@ -3,13 +3,14 @@
 __all__ = ["AbstractUnitSystem", "UNITSYSTEMS_REGISTRY"]
 
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import KW_ONLY, dataclass, field
 from types import MappingProxyType
 from typing import ClassVar, get_args, get_type_hints
 
 import astropy.units as u
 from astropy.units import PhysicalType as Dimension
 from astropy.units.physical import _physical_unit_mapping
+from xmmutablemap import ImmutableMap
 
 from .utils import get_dimension_name, is_annotated
 from unxt._unxt.typing_ext import Unit as UnitT
@@ -146,8 +147,22 @@ class AbstractUnitSystem:
     # ===============================================================
     # Instance-level
 
+    _: KW_ONLY
+    preferred_units: ImmutableMap[Dimension, Unit] = field(
+        default_factory=ImmutableMap,
+        repr=False,  # NOTE: should turn on when eqx.Module.__repr__ is customizable
+    )
+
     def __post_init__(self) -> None:
-        pass
+        # Check the preferred units.
+        # 1. keys are dimensions  # TODO: will be moved to a converter
+        assert all(isinstance(k, Dimension) for k in self.preferred_units)  # noqa: S101
+        # 2. values are units   # TODO: will be moved to a converter
+        assert all(isinstance(v, Unit) for v in self.preferred_units.values())  # noqa: S101
+        # 3. dimensions are not in the base dimensions
+        if any(k in self.base_dimensions for k in self.preferred_units):
+            msg = "Preferred units must not be in the base dimensions."
+            raise ValueError(msg)
 
     @property  # TODO: classproperty
     def base_dimensions(self) -> tuple[Dimension, ...]:
@@ -163,6 +178,9 @@ class AbstractUnitSystem:
         key = u.get_physical_type(key)
         if key in self.base_dimensions:
             return getattr(self, get_dimension_name(key))
+
+        if key in self.preferred_units:
+            return self.preferred_units[key]
 
         unit = None
         for k, v in _physical_unit_mapping.items():

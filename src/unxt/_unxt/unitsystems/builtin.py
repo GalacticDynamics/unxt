@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["DimensionlessUnitSystem", "LTMAUnitSystem", "LTMAVUnitSystem"]
+__all__ = ["DimensionlessUnitSystem", "LTMAUnitSystem", "SIUnitSystem"]
 
 from dataclasses import dataclass
 from typing import Annotated, TypeAlias, final
@@ -56,11 +56,16 @@ class LTMAUnitSystem(AbstractUnitSystem):
 
 @final
 @dataclass(frozen=True, slots=True)
-class LTMAVUnitSystem(AbstractUnitSystem):
-    """Length, time, mass, angle, speed unit system."""
+class SIUnitSystem(AbstractUnitSystem):
+    """SI unit system + angles."""
 
+    # Base SI dimensions
     length: Annotated[Unit, ud.length]
     time: Annotated[Unit, ud.time]
+    amount: Annotated[Unit, ud.amount]
+    electic_current: Annotated[Unit, ud.current]
+    temperature: Annotated[Unit, ud.temperature]
+    luminous_intensity: Annotated[Unit, ud.luminous_intensity]
     mass: Annotated[Unit, ud.mass]
+    # + angles
     angle: Annotated[Unit, ud.angle]
-    speed: Annotated[Unit, ud.speed]

@@ -12,13 +12,16 @@ __all__ = [
 import astropy.units as u
 
 from .base import AbstractUnitSystem
-from .builtin import DimensionlessUnitSystem, LTMAUnitSystem, LTMAVUnitSystem
+from .builtin import DimensionlessUnitSystem, LTMAUnitSystem
+from .builtin_dimensions import speed
 
 # Dimensionless. This is a singleton.
 dimensionless = DimensionlessUnitSystem()
 
 # Galactic unit system
-galactic = LTMAVUnitSystem(u.kpc, u.Myr, u.Msun, u.radian, u.km / u.s)  # pylint: disable=no-member
+galactic = LTMAUnitSystem(  # pylint: disable=no-member
+    u.kpc, u.Myr, u.Msun, u.radian, preferred_units={speed: u.km / u.s}
+)
 
 # Solar system units
 solarsystem = LTMAUnitSystem(u.au, u.yr, u.Msun, u.radian)  # pylint: disable=no-member
