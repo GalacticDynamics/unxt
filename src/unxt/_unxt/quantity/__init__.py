@@ -12,8 +12,8 @@ from .fast import *
 from .functional import *
 
 # isort: split
-# Register dispatches
-from . import register_dispatches, register_primitives  # noqa: F401
+# Register dispatches and conversions
+from . import compat, register_dispatches, register_primitives  # noqa: F401
 
 __all__: list[str] = []
 __all__ += base.__all__
