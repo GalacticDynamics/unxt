@@ -26,6 +26,8 @@ def _quantity_to_unchecked(q: AbstractQuantity, /) -> UncheckedQuantity:
     UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
 
     """
+    if isinstance(q, UncheckedQuantity):
+        return q
     return UncheckedQuantity(q.value, q.unit)
 
 
@@ -45,6 +47,8 @@ def _quantity_to_checked(q: AbstractQuantity, /) -> Quantity:
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
+    if isinstance(q, Quantity):
+        return q
     return Quantity(q.value, q.unit)
 
 
@@ -64,6 +68,8 @@ def _quantity_to_distance(q: AbstractQuantity, /) -> Distance:
     Distance(Array(1, dtype=int32, ...), unit='m')
 
     """
+    if isinstance(q, Distance):
+        return q
     return Distance(q.value, q.unit)
 
 
@@ -83,6 +89,8 @@ def _quantity_to_parallax(q: AbstractQuantity, /) -> Parallax:
     Parallax(Array(1, dtype=int32, weak_type=True), unit='mas')
 
     """
+    if isinstance(q, Parallax):
+        return q
     return Parallax(q.value, q.unit)
 
 
@@ -102,4 +110,6 @@ def _quantity_to_distmod(q: AbstractQuantity, /) -> DistanceModulus:
     DistanceModulus(Array(1, dtype=int32, ...), unit='mag')
 
     """
+    if isinstance(q, DistanceModulus):
+        return q
     return DistanceModulus(q.value, q.unit)
