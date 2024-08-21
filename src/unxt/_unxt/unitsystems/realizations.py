@@ -1,4 +1,5 @@
 """Realizations of unit systems."""
+# pylint: disable=no-member
 
 __all__ = [
     # unit system instance
@@ -19,12 +20,16 @@ from .builtin_dimensions import speed
 dimensionless = DimensionlessUnitSystem()
 
 # Galactic unit system
-galactic = LTMAUnitSystem(  # pylint: disable=no-member
-    u.kpc, u.Myr, u.Msun, u.radian, preferred_units={speed: u.km / u.s}
+galactic = LTMAUnitSystem(
+    length=u.kpc,
+    time=u.Myr,
+    mass=u.Msun,
+    angle=u.radian,
+    preferred_units={speed: u.km / u.s},
 )
 
 # Solar system units
-solarsystem = LTMAUnitSystem(u.au, u.yr, u.Msun, u.radian)  # pylint: disable=no-member
+solarsystem = LTMAUnitSystem(length=u.au, time=u.yr, mass=u.Msun, angle=u.radian)
 
 
 NAMED_UNIT_SYSTEMS: dict[str, AbstractUnitSystem] = {
