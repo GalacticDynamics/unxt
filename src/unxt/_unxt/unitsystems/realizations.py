@@ -14,7 +14,6 @@ import astropy.units as u
 
 from .base import AbstractUnitSystem
 from .builtin import DimensionlessUnitSystem, LTMAUnitSystem
-from .builtin_dimensions import speed
 
 # Dimensionless. This is a singleton.
 dimensionless = DimensionlessUnitSystem()
@@ -25,7 +24,7 @@ galactic = LTMAUnitSystem(
     time=u.Myr,
     mass=u.Msun,
     angle=u.radian,
-    preferred_units={speed: u.km / u.s},
+    # preferred_units={speed: u.km / u.s},
 )
 
 # Solar system units
