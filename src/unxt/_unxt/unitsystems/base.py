@@ -83,7 +83,7 @@ class AbstractUnitSystem:
     >>> import astropy.units as u
     >>> usys = unitsystem(u.m, u.s, u.kg, u.radian)
     >>> usys
-    LTMAUnitSystem(length=Unit("m"), time=Unit("s"), mass=Unit("kg"), angle=Unit("rad"))
+    unitsystem(m, s, kg, rad)
 
     >>> usys["velocity"]
     Unit("m / s")

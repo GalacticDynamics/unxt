@@ -24,8 +24,7 @@ def unitsystem(value: GalaUnitSystem, /) -> AbstractUnitSystem:
 
     >>> from unxt import unitsystem
     >>> unitsystem(usys)
-    LTMAUnitSystem(length=Unit("km"), time=Unit("s"),
-                   mass=Unit("solMass"), angle=Unit("rad"))
+    unitsystem(km, s, solMass, rad)
 
     """
     # Create a new unit system instance, and possibly class.

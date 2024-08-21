@@ -27,8 +27,7 @@ def unitsystem(units: AbstractUnitSystem, /) -> AbstractUnitSystem:
     >>> from unxt.unitsystems import unitsystem
     >>> usys = unitsystem(u.kpc, u.Myr, u.Msun, u.radian)
     >>> usys
-    LTMAUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
-                    angle=Unit("rad"))
+    unitsystem(kpc, Myr, solMass, rad)
 
     >>> unitsystem(usys) is usys
     True
@@ -50,12 +49,10 @@ def unitsystem(units: Sequence[Any], /) -> AbstractUnitSystem:
     DimensionlessUnitSystem()
 
     >>> unitsystem((u.kpc, u.Myr, u.Msun, u.radian))
-    LTMAUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
-                    angle=Unit("rad"))
+    unitsystem(kpc, Myr, solMass, rad)
 
     >>> unitsystem([u.kpc, u.Myr, u.Msun, u.radian])
-    LTMAUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
-                    angle=Unit("rad"))
+    unitsystem(kpc, Myr, solMass, rad)
 
     """
     return unitsystem(*units) if len(units) > 0 else dimensionless
@@ -85,8 +82,7 @@ def unitsystem(*units: Any) -> AbstractUnitSystem:
     >>> from unxt.unitsystems import unitsystem
 
     >>> unitsystem(u.kpc, u.Myr, u.Msun, u.radian)
-    LTMAUnitSystem(length=Unit("kpc"), time=Unit("Myr"),
-                   mass=Unit("solMass"), angle=Unit("rad"))
+    unitsystem(kpc, Myr, solMass, rad)
 
     """
     # Convert everything to a unit
@@ -147,12 +143,10 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
     --------
     >>> from unxt.unitsystems import unitsystem
     >>> unitsystem("galactic")
-    LTMAUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"),
-                    angle=Unit("rad"))
+    unitsystem(kpc, Myr, solMass, rad)
 
     >>> unitsystem("solarsystem")
-    LTMAUnitSystem(length=Unit("AU"), time=Unit("yr"),
-                   mass=Unit("solMass"), angle=Unit("rad"))
+    unitsystem(AU, yr, solMass, rad)
 
     >>> unitsystem("dimensionless")
     DimensionlessUnitSystem()

@@ -44,7 +44,7 @@ class DimensionlessUnitSystem(AbstractUnitSystem):
 
 
 @final
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, repr=False)
 class LTMAUnitSystem(AbstractUnitSystem):
     """Length, time, mass, angle unit system."""
 
@@ -52,6 +52,10 @@ class LTMAUnitSystem(AbstractUnitSystem):
     time: Annotated[Unit, ud.time]
     mass: Annotated[Unit, ud.mass]
     angle: Annotated[Unit, ud.angle]
+
+    def __repr__(self) -> str:
+        fs = ", ".join(map(str, self.base_units))
+        return f"unitsystem({fs})"
 
 
 @final
