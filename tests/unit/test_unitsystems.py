@@ -9,12 +9,10 @@ import astropy.units as u
 import numpy as np
 import pytest
 
-import unxt._unxt.unitsystems.builtin_dimensions as ud
 from unxt import unitsystems
 from unxt.unitsystems import (
     AbstractUnitSystem,
     DimensionlessUnitSystem,
-    LTMAUnitSystem,
     dimensionless,
     equivalent,
     unitsystem,
@@ -177,28 +175,3 @@ def test_equivalent():
 
     usys3 = unitsystem(u.kpc, u.Myr, u.radian)
     assert not equivalent(usys1, usys3)
-
-
-def test_preferred_units_in_base_units():
-    """Test error when preferred units are in base units."""
-    match = "Preferred units must not be in the base dimensions."
-    with pytest.raises(ValueError, match=match):
-        _ = LTMAUnitSystem(
-            length=u.kpc,
-            time=u.Myr,
-            mass=u.Msun,
-            angle=u.radian,
-            preferred_units={ud.length: u.kpc},
-        )
-
-
-def test_get_preferred_dimension():
-    """Test getting the preferred dimension."""
-    usys = LTMAUnitSystem(
-        length=u.kpc,
-        time=u.Myr,
-        mass=u.Msun,
-        angle=u.radian,
-        preferred_units={ud.speed: u.km / u.s},
-    )
-    assert usys["speed"] == u.km / u.s
