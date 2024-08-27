@@ -13,7 +13,7 @@ import jax.numpy as jnp
 from plum import add_promotion_rule, conversion_method
 
 import quaxed.array_api as xp
-import quaxed.numpy as qnp
+import quaxed.numpy as jnp
 
 from .base import AbstractQuantity
 from .core import Quantity
@@ -86,7 +86,7 @@ class Distance(AbstractDistance):
         self, base_length: Quantity["length"] = parallax_base_length
     ) -> "Parallax":
         """The parallax of the distance."""
-        v = qnp.arctan2(base_length, self)
+        v = jnp.arctan2(base_length, self)
         return Parallax(v.value, v.unit)
 
     @property

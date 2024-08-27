@@ -15,7 +15,7 @@ from jax.dtypes import canonicalize_dtype
 from plum import convert
 
 import quaxed.array_api
-import quaxed.numpy as qnp
+import quaxed.numpy as jnp
 
 from unxt import Quantity, can_convert_unit
 
@@ -118,7 +118,7 @@ def test_array_namespace():
 def test_to_units():
     """Test the ``Quantity.to_units`` method."""
     q = Quantity(1, u.m)
-    assert qnp.equal(q.to_units(u.km), Quantity(0.001, u.km))
+    assert jnp.equal(q.to_units(u.km), Quantity(0.001, u.km))
 
 
 def test_to_units_value():
@@ -365,11 +365,11 @@ def test_hypot():
     """Test the ``jnp.hypot`` method."""
     q1 = Quantity(3, u.m)
     q2 = Quantity(4, u.m)
-    assert qnp.hypot(q1, q2) == Quantity(5, u.m)
+    assert jnp.hypot(q1, q2) == Quantity(5, u.m)
 
     q1 = Quantity([1, 2, 3], u.m)
     q2 = Quantity([4, 5, 6], u.m)
-    assert all(qnp.hypot(q1, q2) == Quantity([4.1231055, 5.3851647, 6.7082043], u.m))
+    assert all(jnp.hypot(q1, q2) == Quantity([4.1231055, 5.3851647, 6.7082043], u.m))
 
 
 def test_mod():
@@ -398,7 +398,7 @@ def test_at():
     # Get
     # TODO: test fill_value
     assert q.at[1].get() == Quantity(1.0, "km")
-    assert qnp.array_equal(q.at[:3].get(), Quantity([0.0, 1, 2], "km"))
+    assert jnp.array_equal(q.at[:3].get(), Quantity([0.0, 1, 2], "km"))
 
     # Set
     q2 = q.at[1].set(Quantity(1.2, "km"))
@@ -406,8 +406,8 @@ def test_at():
     assert q[1] == Quantity(1.0, "km")  # original is unchanged
 
     q2 = q.at[:3].set(Quantity([1.2, 2.3, 3.4], "km"))
-    assert qnp.array_equal(q2[:3], Quantity([1.2, 2.3, 3.4], "km"))
-    assert qnp.array_equal(q[:3], Quantity([0.0, 1, 2], "km"))  # original is unchanged
+    assert jnp.array_equal(q2[:3], Quantity([1.2, 2.3, 3.4], "km"))
+    assert jnp.array_equal(q[:3], Quantity([0.0, 1, 2], "km"))  # original is unchanged
 
     # Apply
     with pytest.raises(NotImplementedError):

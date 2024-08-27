@@ -10,8 +10,9 @@ from typing import ClassVar, get_args, get_type_hints
 import astropy.units as u
 from astropy.units import PhysicalType as Dimension
 from astropy.units.physical import _physical_unit_mapping
+from is_annotated import isannotated
 
-from .utils import get_dimension_name, is_annotated
+from .utils import get_dimension_name
 from unxt._unxt.typing_ext import Unit as UnitT
 
 Unit = u.UnitBase
@@ -32,7 +33,7 @@ def parse_field_names_and_dimensions(
     dimensions = []
     for name, type_hint in type_hints.items():
         # Check it's Annotated
-        if not is_annotated(type_hint):
+        if not isannotated(type_hint):
             continue
 
         # Get the arguments to Annotated

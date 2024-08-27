@@ -31,6 +31,7 @@
     "jaxtyping",
     "quax>=0.0.3",
     "xmmutablemap",
+    "is_annotated >= 1.0",
     # Pinned for above dependencies
     "plum-dispatch >= 2.4.3",
   ]

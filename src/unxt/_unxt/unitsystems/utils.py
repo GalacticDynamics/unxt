@@ -3,39 +3,13 @@
 __all__: list[str] = []
 
 import re
-from typing import (  # type: ignore[attr-defined]
-    Annotated,
-    Any,
-    TypeGuard,
-    _AnnotatedAlias,
-)
+from typing import Any
 
 from astropy.units import PhysicalType as Dimension
 from plum import dispatch
 
 from .builtin_dimensions import speed
 from unxt._unxt.typing_ext import Unit
-
-AnnotationType = type(Annotated[int, "_"])
-
-
-def is_annotated(hint: Any) -> TypeGuard[_AnnotatedAlias]:
-    """Check if a type hint is an `Annotated` type.
-
-    Examples
-    --------
-    >>> from unxt._unxt.unitsystems.utils import is_annotated
-
-    >>> is_annotated(int)
-    False
-
-    >>> from typing import Annotated
-    >>> is_annotated(Annotated[int, "2"])
-    True
-
-    """
-    return type(hint) is AnnotationType  # pylint: disable=unidiomatic-typecheck
-
 
 # ------------------------------------
 
