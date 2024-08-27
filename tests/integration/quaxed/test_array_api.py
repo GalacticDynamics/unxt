@@ -16,7 +16,7 @@ from jax._src.numpy.setops import (
 )
 
 import quaxed.array_api as xp
-import quaxed.numpy as qnp
+import quaxed.numpy as jnp
 from quaxed.array_api._data_type_functions import FInfo, IInfo
 
 from unxt import Quantity
@@ -817,7 +817,7 @@ def test_log10():
 
     assert isinstance(got, Quantity)
     assert got.unit == expected.unit
-    assert qnp.allclose(got, expected, atol=Quantity(1e-8, ""))
+    assert jnp.allclose(got, expected, atol=Quantity(1e-8, ""))
 
 
 def test_logaddexp():

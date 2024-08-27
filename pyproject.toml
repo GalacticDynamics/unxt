@@ -23,13 +23,14 @@
     "Typing :: Typed",
   ]
   dependencies = [
-    "quaxed >= 0.4",
     "astropy>=6.0",
     "equinox>0.11",
+    "is_annotated >= 1.0",
     "jax > 0.4",
     "jaxlib > 0.4",
     "jaxtyping",
     "quax>=0.0.3",
+    "quaxed >= 0.5.2",
     "xmmutablemap",
     # Pinned for above dependencies
     "plum-dispatch >= 2.4.3",

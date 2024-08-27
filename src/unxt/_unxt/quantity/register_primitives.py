@@ -3645,16 +3645,16 @@ def _sign_p(x: AbstractQuantity) -> ArrayLike:
 
     Examples
     --------
-    >>> import quaxed.numpy as qnp
+    >>> import quaxed.numpy as jnp
 
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(10, "m")
-    >>> qnp.sign(q)
+    >>> jnp.sign(q)
     Array(1, dtype=int32, ...)
 
     >>> from unxt import Quantity
     >>> q = Quantity(10, "m")
-    >>> qnp.sign(q)
+    >>> jnp.sign(q)
     Array(1, dtype=int32, ...)
 
     """
@@ -3738,16 +3738,16 @@ def _sqrt_p_q(x: AbstractQuantity) -> AbstractQuantity:
 
     Examples
     --------
-    >>> import quaxed.numpy as qnp
+    >>> import quaxed.numpy as jnp
 
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(9, "m")
-    >>> qnp.sqrt(q)
+    >>> jnp.sqrt(q)
     UncheckedQuantity(Array(3., dtype=float32, ...), unit='m(1/2)')
 
     >>> from unxt import Quantity
     >>> q = Quantity(9, "m")
-    >>> qnp.sqrt(q)
+    >>> jnp.sqrt(q)
     Quantity['m0.5'](Array(3., dtype=float32, ...), unit='m(1/2)')
 
     """
@@ -3761,16 +3761,16 @@ def _sqrt_p_d(x: AbstractDistance) -> Quantity:
 
     Examples
     --------
-    >>> import quaxed.numpy as qnp
+    >>> import quaxed.numpy as jnp
 
     >>> from unxt import Distance
     >>> q = Distance(9, "m")
-    >>> qnp.sqrt(q)
+    >>> jnp.sqrt(q)
     Quantity['m0.5'](Array(3., dtype=float32, ...), unit='m(1/2)')
 
     >>> from unxt import Parallax
     >>> q = Parallax(9, "mas")
-    >>> qnp.sqrt(q)
+    >>> jnp.sqrt(q)
     Quantity['rad0.5'](Array(3., dtype=float32, ...), unit='mas(1/2)')
 
     """
