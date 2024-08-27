@@ -73,7 +73,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   check_interop:
-    name: Check Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
+    name: Check Interoperability
     runs-on: ${{ matrix.runs-on }}
     needs: [format]
     strategy:
