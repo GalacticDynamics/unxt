@@ -30,7 +30,7 @@
     "jaxlib > 0.4",
     "jaxtyping",
     "quax>=0.0.3",
-    "quaxed >= 0.5",
+    "quaxed >= 0.5.2",
     "xmmutablemap",
     # Pinned for above dependencies
     "plum-dispatch >= 2.4.3",
