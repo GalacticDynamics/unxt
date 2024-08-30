@@ -21,7 +21,19 @@ Unit: TypeAlias = u.UnitBase
 @final
 @dataclass(frozen=True, slots=True)
 class DimensionlessUnitSystem(SingletonMixin, AbstractUnitSystem):
-    """A unit system with only dimensionless units."""
+    """A unit system with only dimensionless units.
+
+    This is a singleton class.
+
+    Examples
+    --------
+    >>> from unxt.unitsystems import DimensionlessUnitSystem
+    >>> dims1 = DimensionlessUnitSystem()
+    >>> dims2 = DimensionlessUnitSystem()
+    >>> dims1 is dims2
+    True
+
+    """
 
     dimensionless: Annotated[Unit, ud.dimensionless] = dimensionless_unscaled
 
