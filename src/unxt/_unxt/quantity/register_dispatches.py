@@ -1,7 +1,7 @@
 # pylint: disable=import-error
 
 from collections.abc import Callable
-from typing import Any, TypeVar
+from typing import Any
 
 import jax
 import jax.core
@@ -15,8 +15,6 @@ from quaxed.numpy._dispatch import dispatcher as np_dispatcher
 
 from .base import AbstractQuantity
 from .core import Quantity
-
-T = TypeVar("T")
 
 
 def chain_dispatchers(*dispatchers: Dispatcher) -> Callable[[Any], Function]:
