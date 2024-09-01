@@ -1500,7 +1500,8 @@ def _div_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     Quantity['wavenumber'](Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
 
     """
-    return type_np(y)(lax.div(x, y.value), unit=1 / y.unit)
+    units_ = (1 / y.unit).unit  # TODO: better construction of the unit
+    return type_np(y)(lax.div(x, y.value), unit=units_)
 
 
 @register(lax.div_p)
