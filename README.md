@@ -18,9 +18,7 @@ vectorization (`vmap`, etc).
 pip install unxt
 ```
 
-## Documentation
-
-For full documentation see:
+## [Documentation][rtd-link]
 
 [![Documentation Status][rtd-badge]][rtd-link]
 
