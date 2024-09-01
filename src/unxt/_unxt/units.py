@@ -87,7 +87,7 @@ def units_of(obj: AbstractUnits, /) -> AbstractUnits:
 
 
 @dispatch  # type: ignore[misc]
-def dimensions_of(units: AbstractUnits, /) -> u.PhysicalType:
+def dimensions_of(obj: AbstractUnits, /) -> u.PhysicalType:
     """Return the dimensions of the given units.
 
     Examples
@@ -97,4 +97,4 @@ def dimensions_of(units: AbstractUnits, /) -> u.PhysicalType:
     PhysicalType('length')
 
     """
-    return units.physical_type
+    return obj.physical_type
