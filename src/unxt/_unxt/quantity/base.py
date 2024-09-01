@@ -4,7 +4,6 @@
 __all__ = ["AbstractQuantity", "can_convert_unit"]
 
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import fields, replace
 from functools import partial
 from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeGuard, TypeVar
 from typing_extensions import Self
@@ -13,6 +12,7 @@ import equinox as eqx
 import jax
 import jax.core
 from astropy.units import CompositeUnit, UnitConversionError
+from dataclassish import fields, replace
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Shaped
 from numpy import bool_ as np_bool, dtype as DType, number as np_number  # noqa: N812
