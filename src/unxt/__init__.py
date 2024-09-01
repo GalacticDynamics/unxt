@@ -10,7 +10,7 @@ from ._unxt import (
 )
 from ._unxt.quantity import *
 from ._version import version as __version__
-from .unitsystems import AbstractUnitSystem, unitsystem
+from .unitsystems import AbstractUnitSystem, unitsystem, unitsystem_of
 
 # isort: split
 from . import _interop  # noqa: F401  # register interop
@@ -21,6 +21,7 @@ __all__ = [
     "unitsystems",  # module
     "AbstractUnitSystem",  # base class
     "unitsystem",  # convenience constructor
+    "unitsystem_of",  # get the unit system
 ]
 __all__ += quantity.__all__
 

@@ -1,6 +1,6 @@
 """Tools for representing systems of units using ``astropy.units``."""
 
-__all__ = ["unitsystem"]
+__all__ = ["unitsystem", "unitsystem_of"]
 
 
 from collections.abc import Sequence
@@ -15,6 +15,9 @@ from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
 from .builtin import DimensionlessUnitSystem
 from .realizations import NAMED_UNIT_SYSTEMS, dimensionless
 from .utils import get_dimension_name
+
+# ===================================================================
+# `unitsystem` function
 
 
 @dispatch
@@ -160,3 +163,42 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
 
 def _call_unitsystem(*args: Any) -> AbstractUnitSystem:
     return unitsystem(*args)
+
+
+# ===================================================================
+# `unitsystem_of` function
+
+
+@dispatch.abstract
+def unitsystem_of(obj: Any, /) -> AbstractUnitSystem:
+    """Return the unit system of the object."""
+
+
+@dispatch
+def unitsystem_of(obj: Any, /) -> DimensionlessUnitSystem:
+    """Return the unit system of the object.
+
+    Examples
+    --------
+    >>> from unxt.unitsystems import unitsystem_of
+
+    >>> unitsystem_of(1)
+    DimensionlessUnitSystem()
+
+    """
+    return dimensionless
+
+
+@dispatch
+def unitsystem_of(obj: AbstractUnitSystem, /) -> AbstractUnitSystem:
+    """Return the unit system from the unit system.
+
+    Examples
+    --------
+    >>> from unxt.unitsystems import galactic, unitsystem_of
+
+    >>> unitsystem_of(galactic) is galactic
+    True
+
+    """
+    return obj
