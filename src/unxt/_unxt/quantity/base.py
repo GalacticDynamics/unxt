@@ -62,6 +62,16 @@ class _QuantityIndexUpdateHelper(_IndexUpdateHelper):  # type: ignore[misc]
         return _QuantityIndexUpdateRef(self.array, index)
 
     def __repr__(self) -> str:
+        """Return a string representation of the object.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([1, 2, 3, 4], "m")
+        >>> q.at
+        _QuantityIndexUpdateHelper(Quantity['length'](Array([1, 2, 3, 4], dtype=int32), unit='m'))
+
+        """  # noqa: E501
         return f"_QuantityIndexUpdateHelper({self.array!r})"
 
 
@@ -256,9 +266,15 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     ) -> "AbstractQuantity":
         """Construct a `Quantity` from an array-like value and a unit kwarg.
 
-        This is a convenience method for constructing a `Quantity` when the
-        unit is given as a keyword argument. It is equivalent to calling
-        ``Quantity.constructor(value, unit)`` as positional arguments.
+        Examples
+        --------
+        For this example we'll use the `Quantity` class. The same applies to
+        any subclass of `AbstractQuantity`.
+
+        >>> from unxt import Quantity
+        >>> Quantity.constructor([1.0, 2, 3], unit="m")
+        Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+
         """
         # Dispatch on the `value` only. Dispatch to the full constructor.
         return cls.constructor(value, unit, dtype=dtype)
@@ -270,9 +286,15 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     ) -> "AbstractQuantity":
         """Construct a `Quantity` from value and unit kwargs.
 
-        This is a convenience method for constructing a `Quantity` when both the
-        value and the unit are given as a keyword arguments. It is equivalent to
-        calling ``Quantity.constructor(value, unit)`` as positional arguments.
+        Examples
+        --------
+        For this example we'll use the `Quantity` class. The same applies to
+        any subclass of `AbstractQuantity`.
+
+        >>> from unxt import Quantity
+        >>> Quantity.constructor(value=[1.0, 2, 3], unit="m")
+        Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+
         """
         # Dispatched on no argument. Dispatch to the full constructor.
         return cls.constructor(value, unit, dtype=dtype)
@@ -426,12 +448,28 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
 
     @property
     def dtype(self) -> DType:
-        """Data type of the array."""
+        """Data type of the array.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> Quantity(1, "m").dtype
+        dtype('int32')
+
+        """
         return self.value.dtype
 
     @property
     def device(self) -> jax.Device:
-        """Device where the array is located."""
+        """Device where the array is located.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> Quantity(1, "m").device
+        CpuDevice(id=0)
+
+        """
         return self.value.devices().pop()
 
     @property

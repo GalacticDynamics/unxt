@@ -17,5 +17,13 @@ class UncheckedQuantity(AbstractQuantity):
     def __class_getitem__(
         cls: type["UncheckedQuantity"], item: Any
     ) -> type["UncheckedQuantity"]:
-        """No-op support for `UncheckedQuantity[...]` syntax."""
+        """No-op support for `UncheckedQuantity[...]` syntax.
+
+        This method is called when the class is subscripted, e.g.:
+
+        >>> from unxt import UncheckedQuantity
+        >>> UncheckedQuantity["length"]
+        <class 'unxt._unxt.quantity.fast.UncheckedQuantity'>
+
+        """
         return cls

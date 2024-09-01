@@ -22,8 +22,11 @@ def _quantity_to_unchecked(q: AbstractQuantity, /) -> UncheckedQuantity:
     >>> q
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
-    >>> convert(q, UncheckedQuantity)
-    UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
+    The self-conversion doesn't copy the object:
+
+    >>> q = UncheckedQuantity(1, "m")
+    >>> convert(q, UncheckedQuantity) is q
+    True
 
     """
     if isinstance(q, UncheckedQuantity):
@@ -46,6 +49,12 @@ def _quantity_to_checked(q: AbstractQuantity, /) -> Quantity:
     >>> convert(q, Quantity)
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
+    The self-conversion doesn't copy the object:
+
+    >>> q = Quantity(1, "m")
+    >>> convert(q, Quantity) is q
+    True
+
     """
     if isinstance(q, Quantity):
         return q
@@ -66,6 +75,12 @@ def _quantity_to_distance(q: AbstractQuantity, /) -> Distance:
 
     >>> convert(q, Distance)
     Distance(Array(1, dtype=int32, ...), unit='m')
+
+    The self-conversion doesn't copy the object:
+
+    >>> q = Distance(1, "m")
+    >>> convert(q, Distance) is q
+    True
 
     """
     if isinstance(q, Distance):
@@ -88,6 +103,12 @@ def _quantity_to_parallax(q: AbstractQuantity, /) -> Parallax:
     >>> convert(q, Parallax)
     Parallax(Array(1, dtype=int32, weak_type=True), unit='mas')
 
+    The self-conversion doesn't copy the object:
+
+    >>> q = Parallax(1, "mas")
+    >>> convert(q, Parallax) is q
+    True
+
     """
     if isinstance(q, Parallax):
         return q
@@ -108,6 +129,12 @@ def _quantity_to_distmod(q: AbstractQuantity, /) -> DistanceModulus:
 
     >>> convert(q, DistanceModulus)
     DistanceModulus(Array(1, dtype=int32, ...), unit='mag')
+
+    The self-conversion doesn't copy the object:
+
+    >>> q = DistanceModulus(1, "mag")
+    >>> convert(q, DistanceModulus) is q
+    True
 
     """
     if isinstance(q, DistanceModulus):
