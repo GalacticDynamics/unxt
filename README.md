@@ -101,6 +101,7 @@ consider citing this work.
 
 ## Development
 
+[![codecov][codecov-badge]][codecov-link]
 [![Actions Status][actions-badge]][actions-link]
 
 We welcome contributions!
@@ -112,6 +113,8 @@ We welcome contributions!
 
 [actions-badge]:            https://github.com/GalacticDynamics/unxt/workflows/CI/badge.svg
 [actions-link]:             https://github.com/GalacticDynamics/unxt/actions
+[codecov-badge]:            https://codecov.io/gh/GalacticDynamics/unxt/graph/badge.svg
+[codecov-link]:             https://codecov.io/gh/GalacticDynamics/unxt
 [conda-badge]:              https://img.shields.io/conda/vn/conda-forge/unxt
 [conda-link]:               https://github.com/conda-forge/unxt-feedstock
 [pypi-link]:                https://pypi.org/project/unxt/
