@@ -1,6 +1,6 @@
 """Functional approach to Quantities."""
 
-__all__ = ["to_units", "to_units_value"]
+__all__ = ["to_units"]
 
 from typing import Any
 
@@ -16,14 +16,14 @@ from unxt._unxt.typing_ext import Unit
 
 
 @dispatch.abstract
-def to_units(value: Any, units: Unit | str, /) -> AbstractQuantity:
+def to_units(value: Any, units: Any, /) -> AbstractQuantity:
     """Convert a value to a Quantity with the given units.
 
     Parameters
     ----------
     value : Any, positional-only
         The value to convert to a Quantity.
-    units : Unit, positional-only
+    units : Any, positional-only
         The units to convert the value to.
 
     Returns
@@ -63,57 +63,3 @@ def to_units(value: ArrayLike, units: Unit | str, /) -> Quantity:
 
     """
     return Quantity.constructor(value, units)
-
-
-# ============================================================================
-# to_units_value
-
-
-@dispatch.abstract
-def to_units_value(value: Any, units: Unit | str, /) -> ArrayLike:
-    """Convert a value to an array with the given units.
-
-    Parameters
-    ----------
-    value : Any, positional-only
-        The value to convert to an array.
-    units : Unit | str, positional-only
-        The units to convert the value to.
-
-    Returns
-    -------
-    ArrayLike
-        The value converted to an array with the given units.
-
-    """
-
-
-@dispatch  # type: ignore[no-redef]
-def to_units_value(value: AbstractQuantity, units: Unit | str, /) -> ArrayLike:
-    """Convert a Quantity to an array with the given units.
-
-    Examples
-    --------
-    >>> from unxt import Quantity, to_units_value
-
-    >>> q = Quantity(1, "m")
-    >>> to_units_value(q, "cm")
-    Array(100., dtype=float32, ...)
-
-    """
-    return value.to_units_value(units)
-
-
-@dispatch  # type: ignore[no-redef]
-def to_units_value(value: ArrayLike, units: Unit | str, /) -> ArrayLike:
-    """Convert a value to an array with the given units.
-
-    Examples
-    --------
-    >>> from unxt import to_units_value
-
-    >>> to_units_value(1, "m")
-    1
-
-    """
-    return value
