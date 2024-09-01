@@ -4,5 +4,6 @@ __all__: list[str] = []
 
 from . import (  # noqa: F401
     quantity,
+    units,
     unitsystems,
 )

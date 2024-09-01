@@ -9,6 +9,7 @@ from ._unxt import (
     quantity,
 )
 from ._unxt.quantity import *
+from ._unxt.units import units, units_of
 from ._version import version as __version__
 from .unitsystems import AbstractUnitSystem, unitsystem, unitsystem_of
 
@@ -17,6 +18,9 @@ from . import _interop  # noqa: F401  # register interop
 
 __all__ = [
     "__version__",
+    # units
+    "units",
+    "units_of",
     # units systems
     "unitsystems",  # module
     "AbstractUnitSystem",  # base class
