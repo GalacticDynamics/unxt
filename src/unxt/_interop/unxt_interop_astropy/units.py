@@ -13,7 +13,7 @@ AstropyUnits: TypeAlias = u.UnitBase
 # Register dispatches
 
 
-@dispatch  # type: ignore[misc]
+@dispatch
 def units(obj: u.UnitBase | u.Unit, /) -> AstropyUnits:
     """Construct the units from an Astropy unit.
 
@@ -23,6 +23,21 @@ def units(obj: u.UnitBase | u.Unit, /) -> AstropyUnits:
     >>> from unxt import units
     >>> units(u.km)
     Unit("km")
+
+    """
+    return u.Unit(obj)
+
+
+@dispatch
+def units(obj: u.Quantity, /) -> AstropyUnits:
+    """Construct the units from an Astropy quantity.
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> from unxt import units
+    >>> units(u.Quantity(2, "km"))
+    Unit("2 km")
 
     """
     return u.Unit(obj)
