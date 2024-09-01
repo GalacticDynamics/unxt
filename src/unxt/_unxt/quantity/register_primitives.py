@@ -338,30 +338,6 @@ def _add_any_p(
 # ==============================================================================
 
 
-@register(lax.after_all_p)
-def _after_all_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.all_gather_p)
-def _all_gather_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.all_to_all_p)
-def _all_to_all_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
 @register(lax.and_p)
 def _and_p_aq(x1: AbstractQuantity, x2: AbstractQuantity, /) -> ArrayLike:
     """Bitwise AND of two quantities.
@@ -383,14 +359,6 @@ def _and_p_aq(x1: AbstractQuantity, x2: AbstractQuantity, /) -> ArrayLike:
 
     """
     return lax.and_p.bind(x1.to_units_value(one), x2.to_units_value(one))
-
-
-# ==============================================================================
-
-
-@register(lax.approx_top_k_p)
-def _approx_top_k_p() -> AbstractQuantity:
-    raise NotImplementedError
 
 
 # ==============================================================================
@@ -721,38 +689,6 @@ def _atanh_p_q(
 # ==============================================================================
 
 
-@register(lax.axis_index_p)
-def _axis_index_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.bessel_i0e_p)
-def _bessel_i0e_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.bessel_i1e_p)
-def _bessel_i1e_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.bitcast_convert_type_p)
-def _bitcast_convert_type_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
 @register(lax.broadcast_in_dim_p)
 def _broadcast_in_dim_p(
     operand: AbstractQuantity, *, shape: Any, broadcast_dimensions: Any
@@ -1007,14 +943,6 @@ def _clamp_p_qqv(
 # ==============================================================================
 
 
-@register(lax.clz_p)
-def _clz_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
 @register(lax.complex_p)
 def _complex_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     """Complex number from two quantities.
@@ -1194,14 +1122,6 @@ def _conj_p(x: AbstractQuantity, *, input_dtype: Any) -> AbstractQuantity:
 # ==============================================================================
 
 
-@register(lax.conv_general_dilated_p)
-def _conv_general_dilated_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
 @register(lax.convert_element_type_p)
 def _convert_element_type_p(
     operand: AbstractQuantity, **kwargs: Any
@@ -1327,14 +1247,6 @@ def _cosh_p_q(
 
     """
     return type_np(x)(lax.cosh(_to_value_rad_or_one(x)), unit=one)
-
-
-# ==============================================================================
-
-
-@register(lax.create_token_p)
-def _create_token_p() -> AbstractQuantity:
-    raise NotImplementedError
 
 
 # ==============================================================================
@@ -1758,28 +1670,6 @@ def _dot_general_dd(
 # ==============================================================================
 
 
-@register(lax.dynamic_slice_p)
-def _dynamic_slice_p(
-    operand: AbstractQuantity,
-    start_indices: ArrayLike,
-    dynamic_sizes: ArrayLike,
-    *,
-    slice_sizes: Any,
-) -> AbstractQuantity:
-    raise NotImplementedError  # TODO: implement
-
-
-# ==============================================================================
-
-
-@register(lax.dynamic_update_slice_p)
-def _dynamic_update_slice_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
 @register(lax.eq_p)
 def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     """Equality of two quantities.
@@ -1917,14 +1807,6 @@ def _eq_p_aq0(x: AbstractQuantity, y: float | int) -> ArrayLike:
         "Only zero is allowed for comparison with non-dimensionless quantities.",
     )
     return lax.eq(x.value, y)
-
-
-# ==============================================================================
-
-
-@register(lax.eq_to_p)
-def _eq_to_p() -> AbstractQuantity:
-    raise NotImplementedError
 
 
 # ==============================================================================
@@ -2368,14 +2250,6 @@ def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
 # ==============================================================================
 
 
-@register(lax.igamma_grad_a_p)
-def _igamma_grad_a_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
 @register(lax.igamma_p)
 def _igamma_p(a: AbstractQuantity, x: AbstractQuantity) -> AbstractQuantity:
     """Regularized incomplete gamma function of a and x.
@@ -2403,25 +2277,9 @@ def _igamma_p(a: AbstractQuantity, x: AbstractQuantity) -> AbstractQuantity:
 # ==============================================================================
 
 
-@register(lax.igammac_p)
-def _igammac_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
 @register(lax.imag_p)
 def _imag_p(x: AbstractQuantity) -> AbstractQuantity:
     return replace(x, value=lax.imag(x.value))
-
-
-# ==============================================================================
-
-
-@register(lax.infeed_p)
-def _infeed_p() -> AbstractQuantity:
-    raise NotImplementedError
 
 
 # ==============================================================================
@@ -2460,14 +2318,6 @@ def _integer_pow_p_d(x: AbstractDistance, *, y: Any) -> Quantity:
 
     """
     return Quantity(value=lax.integer_pow(x.value, y), unit=x.unit**y)
-
-
-# ==============================================================================
-
-
-# @register(lax.iota_p)
-# def _iota_p(dtype: AbstractParametricQuantity) -> AbstractParametricQuantity:
-#     raise NotImplementedError
 
 
 # ==============================================================================
@@ -2605,14 +2455,6 @@ def _le_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
 # ==============================================================================
 
 
-@register(lax.le_to_p)
-def _le_to_p() -> AbstractParametricQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
 @register(lax.lgamma_p)
 def _lgamma_p(x: AbstractQuantity) -> AbstractQuantity:
     """Log-gamma function of a quantity.
@@ -2634,14 +2476,6 @@ def _lgamma_p(x: AbstractQuantity) -> AbstractQuantity:
     """
     # TODO: are there any units that this can support?
     return replace(x, value=lax.lgamma(x.to_units_value(one)))
-
-
-# ==============================================================================
-
-
-@register(lax.linear_solve_p)
-def _linear_solve_p() -> AbstractQuantity:
-    raise NotImplementedError
 
 
 # ==============================================================================
@@ -2841,14 +2675,6 @@ def _lt_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
 
     # re-dispatch on the values
     return qlax.lt(xv, y)
-
-
-# ==============================================================================
-
-
-@register(lax.lt_to_p)
-def _lt_to_p() -> ArrayLike:
-    raise NotImplementedError
 
 
 # ==============================================================================
@@ -3090,78 +2916,6 @@ def _neg_p(x: AbstractQuantity) -> AbstractQuantity:
 # ==============================================================================
 
 
-@register(lax.nextafter_p)
-def _nextafter_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.not_p)
-def _not_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.or_p)
-def _or_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.outfeed_p)
-def _outfeed_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.pad_p)
-def _pad_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.pmax_p)
-def _pmax_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.pmin_p)
-def _pmin_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.polygamma_p)
-def _polygamma_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.population_count_p)
-def _population_count_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
 @register(lax.pow_p)
 def _pow_p_qq(
     x: AbstractQuantity, y: AbstractParametricQuantity["dimensionless"]
@@ -3200,30 +2954,6 @@ def _pow_p_d(x: AbstractDistance, y: ArrayLike) -> Quantity:
 
     """
     return Quantity(x.value, x.unit) ** y  # TODO: better call to power
-
-
-# ==============================================================================
-
-
-@register(lax.ppermute_p)
-def _ppermute_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.psum_p)
-def _psum_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.random_gamma_grad_p)
-def _random_gamma_grad_p() -> AbstractQuantity:
-    raise NotImplementedError
 
 
 # ==============================================================================
@@ -3269,22 +2999,6 @@ def _reduce_or_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
 # ==============================================================================
 
 
-@register(lax.reduce_p)
-def _reduce_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.reduce_precision_p)
-def _reduce_precision_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
 @register(lax.reduce_prod_p)
 def _reduce_prod_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
     return type_np(operand)(
@@ -3299,54 +3013,6 @@ def _reduce_prod_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity
 @register(lax.reduce_sum_p)
 def _reduce_sum_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
     return replace(operand, value=lax.reduce_sum_p.bind(operand.value, axes=axes))
-
-
-# ==============================================================================
-
-
-@register(lax.reduce_window_max_p)
-def _reduce_window_max_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.reduce_window_min_p)
-def _reduce_window_min_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.reduce_window_p)
-def _reduce_window_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.reduce_window_sum_p)
-def _reduce_window_sum_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.reduce_xor_p)
-def _reduce_xor_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.regularized_incomplete_beta_p)
-def _regularized_incomplete_beta_p() -> AbstractQuantity:
-    raise NotImplementedError
 
 
 # ==============================================================================
@@ -3420,22 +3086,6 @@ def _rev_p(operand: AbstractQuantity, *, dimensions: Any) -> AbstractQuantity:
 # ==============================================================================
 
 
-@register(lax.rng_bit_generator_p)
-def _rng_bit_generator_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.rng_uniform_p)
-def _rng_uniform_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
 @register(lax.round_p)
 def _round_p(x: AbstractQuantity, *, rounding_method: Any) -> AbstractQuantity:
     return replace(x, value=lax.round(x.value, rounding_method))
@@ -3447,14 +3097,6 @@ def _round_p(x: AbstractQuantity, *, rounding_method: Any) -> AbstractQuantity:
 @register(lax.rsqrt_p)
 def _rsqrt_p(x: AbstractQuantity) -> AbstractQuantity:
     return type_np(x)(lax.rsqrt(x.value), unit=x.unit ** (-1 / 2))
-
-
-# ==============================================================================
-
-
-@register(lax.scan_p)
-def _scan_p() -> AbstractQuantity:
-    raise NotImplementedError
 
 
 # ==============================================================================
@@ -3497,62 +3139,6 @@ def _scatter_add_p_vvq(
         updates,
         value=lax.scatter_add_p.bind(operand, scatter_indices, updates.value, **kwargs),
     )
-
-
-# ==============================================================================
-
-
-@register(lax.scatter_max_p)
-def _scatter_max_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.scatter_min_p)
-def _scatter_min_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.scatter_mul_p)
-def _scatter_mul_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.scatter_p)
-def _scatter_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.select_and_gather_add_p)
-def _select_and_gather_add_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.select_and_scatter_add_p)
-def _select_and_scatter_add_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.select_and_scatter_p)
-def _select_and_scatter_p() -> AbstractQuantity:
-    raise NotImplementedError
 
 
 # ==============================================================================
@@ -3602,38 +3188,6 @@ def _select_n_p_jqq(
     return replace(
         case0, value=lax.select_n(which, case0.value, case1.to_units_value(unit))
     )
-
-
-# ==============================================================================
-
-
-@register(lax.sharding_constraint_p)
-def _sharding_constraint_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.shift_left_p)
-def _shift_left_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.shift_right_arithmetic_p)
-def _shift_right_arithmetic_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.shift_right_logical_p)
-def _shift_right_logical_p() -> AbstractQuantity:
-    raise NotImplementedError
 
 
 # ==============================================================================
@@ -3929,40 +3483,8 @@ def _tanh_p(x: AbstractQuantity) -> AbstractQuantity:
 # ==============================================================================
 
 
-@register(lax.top_k_p)
-def _top_k_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
 @register(lax.transpose_p)
 def _transpose_p(operand: AbstractQuantity, *, permutation: Any) -> AbstractQuantity:
     return replace(
         operand, value=lax.transpose_p.bind(operand.value, permutation=permutation)
     )
-
-
-# ==============================================================================
-
-
-@register(lax.while_p)
-def _while_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.xor_p)
-def _xor_p() -> AbstractQuantity:
-    raise NotImplementedError
-
-
-# ==============================================================================
-
-
-@register(lax.zeta_p)
-def _zeta_p() -> AbstractQuantity:
-    raise NotImplementedError

@@ -158,6 +158,25 @@ class AbstractUnitSystem:
         return tuple(getattr(self, k) for k in self._base_field_names)
 
     def __getitem__(self, key: Dimension | str) -> UnitT:
+        """Get the unit for a given physical type.
+
+        Examples
+        --------
+        >>> from unxt import unitsystem
+        >>> import astropy.units as u
+        >>> usys = unitsystem(u.m, u.s, u.kg, u.radian)
+
+        Something in the base dimensions:
+
+        >>> usys["length"]
+        Unit("m")
+
+        Something not in the base dimensions:
+
+        >>> usys["velocity"]
+        Unit("m / s")
+
+        """
         key = u.get_physical_type(key)
         if key in self.base_dimensions:
             return getattr(self, get_dimension_name(key))
@@ -167,23 +186,59 @@ class AbstractUnitSystem:
             if v == key:
                 unit = u.Unit(" ".join([f"{x}**{y}" for x, y in k]))
                 break
-
-        if unit is None:
-            msg = f"Physical type '{key}' doesn't exist in unit registry."
-            raise ValueError(msg)
+        # IDK if it's possible to get here
+        else:
+            msg = f"Physical type {key!r} doesn't exist in unit registry."  # pragma: no cover  # noqa: E501
+            raise ValueError(msg)  # pragma: no cover
 
         unit = unit.decompose(self.base_units)
         unit._scale = 1.0  # noqa: SLF001
         return unit
 
     def __len__(self) -> int:
+        """Return the number of base units in the system.
+
+        Examples
+        --------
+        >>> from unxt import unitsystem
+        >>> import astropy.units as u
+        >>> usys = unitsystem(u.m, u.s, u.kg, u.radian)
+        >>> len(usys)
+        4
+
+        """
         # Note: This is required for q.decompose(usys) to work, where q is a Quantity
         return len(self.base_dimensions)
 
     # TODO: should this be changed to _base_field_names -> Iterator[str]?
     def __iter__(self) -> Iterator[UnitT]:
+        """Iterate over the base units.
+
+        This is different than a dictionary, which would iterate over the
+        physical types (the keys).
+
+        Examples
+        --------
+        >>> from unxt import unitsystem
+        >>> import astropy.units as u
+        >>> usys = unitsystem(u.m, u.s, u.kg, u.radian)
+        >>> list(iter(usys))
+        [Unit("m"), Unit("s"), Unit("kg"), Unit("rad")]
+
+        """
         yield from self.base_units
 
     def __str__(self) -> str:
+        """Return a string representation of the unit system.
+
+        Examples
+        --------
+        >>> from unxt import unitsystem
+        >>> import astropy.units as u
+        >>> usys = unitsystem(u.m, u.s, u.kg, u.radian)
+        >>> str(usys)
+        'LTMAUnitSystem(length, time, mass, angle)'
+
+        """
         fs = ", ".join(map(str, self._base_field_names))
         return f"{type(self).__name__}({fs})"
