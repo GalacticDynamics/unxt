@@ -5,8 +5,8 @@ __all__: list[str] = []
 from typing import Any
 
 from astropy.coordinates import Angle as AstropyAngle, Distance as AstropyDistance
-from astropy.units import Quantity as AstropyQuantity, UnitBase as Unit
-from plum import conversion_method, dispatch
+from astropy.units import Quantity as AstropyQuantity
+from plum import conversion_method
 
 import quaxed.array_api as xp
 
@@ -123,27 +123,6 @@ def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAng
 
     """
     return AstropyAngle(q.value, q.unit)
-
-
-# ---------------------------
-# to_units
-
-
-@dispatch  # type: ignore[misc]
-def to_units(value: AstropyQuantity, units: Unit, /) -> Quantity:
-    """Convert an Astropy Quantity to the given units.
-
-    Examples
-    --------
-    >>> from unxt import to_units
-    >>> import astropy.units as u
-
-    >>> q = u.Quantity(1, "m")
-    >>> to_units(q, "cm")
-    Quantity['length'](Array(100., dtype=float32), unit='cm')
-
-    """
-    return Quantity.constructor(value, units)
 
 
 # ============================================================================
