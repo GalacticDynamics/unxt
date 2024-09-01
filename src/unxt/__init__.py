@@ -8,6 +8,7 @@ from ._unxt import (
     experimental,  # noqa: F401
     quantity,
 )
+from ._unxt.dimensions import dimensions_of
 from ._unxt.quantity import *
 from ._unxt.units import units, units_of
 from ._version import version as __version__
@@ -18,6 +19,8 @@ from . import _interop  # noqa: F401  # register interop
 
 __all__ = [
     "__version__",
+    # dimensions
+    "dimensions_of",
     # units
     "units",
     "units_of",

@@ -2,12 +2,16 @@
 
 __all__: list[str] = []
 
-from plum import conversion_method
+from plum import conversion_method, dispatch
 
 from .base import AbstractQuantity
 from .core import Quantity
 from .distance import Distance, DistanceModulus, Parallax
 from .fast import UncheckedQuantity
+from unxt._unxt.dimensions import AbstractDimensions, dimensions_of
+
+# ===================================================================
+# Conversion
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=UncheckedQuantity)  # type: ignore[misc]
@@ -140,3 +144,22 @@ def _quantity_to_distmod(q: AbstractQuantity, /) -> DistanceModulus:
     if isinstance(q, DistanceModulus):
         return q
     return DistanceModulus(q.value, q.unit)
+
+
+# ===================================================================
+# Get dimensions
+
+
+@dispatch  # type: ignore[misc]
+def dimensions_of(obj: AbstractQuantity, /) -> AbstractDimensions:
+    """Return the dimensions of a quantity.
+
+    Examples
+    --------
+    >>> from unxt import dimensions_of, Quantity
+    >>> q = Quantity(1, "m")
+    >>> dimensions_of(q)
+    PhysicalType('length')
+
+    """
+    return dimensions_of(obj.unit)
