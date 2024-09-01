@@ -14,6 +14,7 @@ from is_annotated import isannotated
 
 from .utils import get_dimension_name
 from unxt._unxt.typing_ext import Unit as UnitT
+from unxt._unxt.units import units
 
 Unit = u.UnitBase
 
@@ -184,7 +185,7 @@ class AbstractUnitSystem:
         unit = None
         for k, v in _physical_unit_mapping.items():
             if v == key:
-                unit = u.Unit(" ".join([f"{x}**{y}" for x, y in k]))
+                unit = units(" ".join([f"{x}**{y}" for x, y in k]))
                 break
         # IDK if it's possible to get here
         else:

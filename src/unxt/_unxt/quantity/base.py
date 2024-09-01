@@ -16,7 +16,7 @@ from dataclassish import fields, replace
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Shaped
 from numpy import bool_ as np_bool, dtype as DType, number as np_number  # noqa: N812
-from plum import add_promotion_rule
+from plum import add_promotion_rule, dispatch
 from quax import ArrayValue
 
 import quaxed.array_api as xp
@@ -24,6 +24,7 @@ import quaxed.numpy as jnp
 import quaxed.operator as qoperator
 from quaxed.array_api._dispatch import dispatcher
 
+from unxt._unxt.dimensions import AbstractDimensions
 from unxt._unxt.units import Unit
 
 if TYPE_CHECKING:
@@ -826,3 +827,22 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
             mode=mode,
         )
         return replace(self.array, value=value)
+
+
+# ===================================================================
+# Get dimensions
+
+
+@dispatch  # type: ignore[misc]
+def dimensions_of(obj: AbstractQuantity, /) -> AbstractDimensions:
+    """Return the dimensions of a quantity.
+
+    Examples
+    --------
+    >>> from unxt import dimensions_of, Quantity
+    >>> q = Quantity(1, "m")
+    >>> dimensions_of(q)
+    PhysicalType('length')
+
+    """
+    return dimensions_of(obj.unit)

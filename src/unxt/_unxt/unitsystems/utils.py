@@ -9,6 +9,7 @@ from astropy.units import PhysicalType as Dimension
 from plum import dispatch
 
 from .builtin_dimensions import speed
+from unxt._unxt.dimensions import dimensions_of
 from unxt._unxt.typing_ext import Unit
 
 # ------------------------------------
@@ -83,4 +84,4 @@ def get_dimension_name(pt: Unit, /) -> str:
     'length'
 
     """
-    return get_dimension_name(pt.physical_type)
+    return get_dimension_name(dimensions_of(pt))
