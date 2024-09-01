@@ -68,7 +68,69 @@ class _QuantityIndexUpdateHelper(_IndexUpdateHelper):  # type: ignore[misc]
 ##############################################################################
 
 
-class AbstractQuantity(ArrayValue):  # type: ignore[misc]
+class AstropyQuantityCompatMixin:
+    """Mixin for compatibility with `astropy.units.Quantity`."""
+
+    value: ArrayLike
+    unit: Unit
+    to_units: Callable[[Any], "AbstractQuantity"]
+    to_units_value: Callable[[Any], ArrayLike]
+
+    def to(self, units: Any, /) -> "AbstractQuantity":
+        """Convert the quantity to the given units.
+
+        See :meth:`AbstractQuantity.to_units`.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+
+        >>> q = Quantity(1, "m")
+        >>> q.to("cm")
+        Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
+
+        """
+        return self.to_units(units)
+
+    def to_value(self, units: Any, /) -> ArrayLike:
+        """Return the value in the given units.
+
+        See :meth:`AbstractQuantity.to_units_value`.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+
+        >>> q = Quantity(1, "m")
+        >>> q.to_value("cm")
+        Array(100., dtype=float32, weak_type=True)
+
+        """
+        return self.to_units_value(units)
+
+    # TODO: support conversion of elements to Unit
+    def decompose(self, bases: Sequence[Unit], /) -> "AbstractQuantity":
+        """Decompose the quantity into the given bases.
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> from unxt import Quantity
+
+        >>> q = Quantity(1, "m")
+        >>> q.decompose([u.cm, u.s])
+        Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
+
+        """
+        du = self.unit.decompose(bases)  # decomposed units
+        base_units = CompositeUnit(scale=1, bases=du.bases, powers=du.powers)
+        return replace(self, value=self.value * du.scale, unit=base_units)
+
+
+# ---------------------------------------------------------------
+
+
+class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[misc]
     """Represents an array, with each axis bound to a name.
 
     Examples
@@ -329,29 +391,6 @@ class AbstractQuantity(ArrayValue):  # type: ignore[misc]
             return self.value
 
         return self.value * self.unit.to(units)
-
-    def decompose(self, bases: Sequence[Unit]) -> "AbstractQuantity":
-        """Decompose the quantity into the given bases."""
-        du = self.unit.decompose(bases)  # decomposed units
-        base_units = CompositeUnit(scale=1, bases=du.bases, powers=du.powers)
-        return replace(self, value=self.value * du.scale, unit=base_units)
-
-    # ===============================================================
-    # Astropy Quantity API
-
-    def to(self, units: Unit) -> "AbstractQuantity":
-        """Convert the quantity to the given units.
-
-        See :meth:`AbstractQuantity.to_units`.
-        """
-        return self.to_units(units)
-
-    def to_value(self, units: Unit) -> ArrayLike:
-        """Return the value in the given units.
-
-        See :meth:`AbstractQuantity.to_units_value`.
-        """
-        return self.to_units_value(units)
 
     # ===============================================================
     # Array API
