@@ -80,3 +80,21 @@ def units_of(obj: AbstractUnits, /) -> AbstractUnits:
 
     """
     return obj
+
+
+# ===================================================================
+# Get dimensions
+
+
+@dispatch  # type: ignore[misc]
+def dimensions_of(units: AbstractUnits, /) -> u.PhysicalType:
+    """Return the dimensions of the given units.
+
+    Examples
+    --------
+    >>> from unxt import dimensions_of
+    >>> dimensions_of(u.km)
+    PhysicalType('length')
+
+    """
+    return units.physical_type
