@@ -28,7 +28,7 @@ from .base import AbstractQuantity, can_convert_unit
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
 from .distance import AbstractDistance
-from unxt._unxt.units import Unit
+from unxt._unxt.units import units
 
 T = TypeVar("T")
 
@@ -994,11 +994,11 @@ def _concatenate_p_aq(*operands: AbstractQuantity, dimension: Any) -> AbstractQu
 
     """
     operand0 = operands[0]
-    units = operand0.unit
+    units_ = operand0.unit
     return replace(
         operand0,
         value=lax.concatenate(
-            [op.to_units_value(units) for op in operands], dimension=dimension
+            [op.to_units_value(units_) for op in operands], dimension=dimension
         ),
     )
 
@@ -1472,7 +1472,7 @@ def _div_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
     """
     x, y = promote(x, y)
-    unit = Unit(x.unit / y.unit)
+    unit = units(x.unit / y.unit)
     return type_np(x)(lax.div(x.value, y.value), unit=unit)
 
 
@@ -1500,7 +1500,8 @@ def _div_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     Quantity['wavenumber'](Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
 
     """
-    return type_np(y)(lax.div(x, y.value), unit=1 / y.unit)
+    units_ = (1 / y.unit).unit  # TODO: better construction of the unit
+    return type_np(y)(lax.div(x, y.value), unit=units_)
 
 
 @register(lax.div_p)
@@ -2777,7 +2778,7 @@ def _min_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 @register(lax.mul_p)
 def _mul_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
-    unit = Unit(x.unit * y.unit)
+    unit = units(x.unit * y.unit)
     return type_np(x)(lax.mul(x.value, y.value), unit=unit)
 
 

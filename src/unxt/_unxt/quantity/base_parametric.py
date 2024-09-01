@@ -15,7 +15,9 @@ from plum import parametric
 from quaxed.array_api._dispatch import dispatcher
 
 from .base import AbstractQuantity
+from unxt._unxt.dimensions import dimensions_of
 from unxt._unxt.typing_ext import Unit as UnitTypes
+from unxt._unxt.units import units
 
 
 @parametric
@@ -39,7 +41,7 @@ class AbstractParametricQuantity(AbstractQuantity):
     def __check_init__(self) -> None:
         """Check whether the arguments are valid."""
         expected_dimensions = self._type_parameter._physical_type_id  # noqa: SLF001
-        got_dimensions = self.unit.physical_type._physical_type_id  # noqa: SLF001
+        got_dimensions = dimensions_of(self)._physical_type_id  # noqa: SLF001
         if got_dimensions != expected_dimensions:
             msg = "Physical type mismatch."  # TODO: better error message
             raise ValueError(msg)
@@ -60,15 +62,16 @@ class AbstractParametricQuantity(AbstractQuantity):
         try:
             dims = get_physical_type(dimensions)
         except ValueError:
-            dims = PhysicalType(Unit(dimensions), dimensions)
+            dims = PhysicalType(units(dimensions), dimensions)
         return (dims,)
 
     @classmethod  # type: ignore[no-redef]
     @dispatcher
     def __init_type_parameter__(cls, unit: UnitTypes) -> tuple[PhysicalType]:
         """Infer the type parameter from the arguments."""
-        if unit.physical_type != "unknown":
-            return (unit.physical_type,)
+        dims = dimensions_of(unit)
+        if dims != "unknown":
+            return (dims,)
         return (PhysicalType(unit, unit.to_string(fraction=False)),)
 
     @classmethod
@@ -76,7 +79,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         cls, value: ArrayLike, unit: Any
     ) -> tuple[PhysicalType]:
         """Infer the type parameter from the arguments."""
-        return (Unit(unit).physical_type,)
+        return (dimensions_of(units(unit)),)
 
     @classmethod
     @dispatcher  # type: ignore[misc]

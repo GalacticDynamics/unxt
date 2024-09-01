@@ -22,7 +22,7 @@ class Quantity(AbstractParametricQuantity):
 
     Examples
     --------
-    >>> from unxt import Quantity
+    >>> from unxt import Quantity, dimensions_of
 
     From an integer:
 
@@ -76,7 +76,7 @@ class Quantity(AbstractParametricQuantity):
 
     The dimensions can also be given as a `astropy.units.PhysicalType`:
 
-    >>> dimensions = u.km.physical_type
+    >>> dimensions = dimensions_of(u.km)
     >>> dimensions
     PhysicalType('length')
     >>> Quantity[dimensions](1.0, "m")
@@ -90,7 +90,7 @@ class Quantity(AbstractParametricQuantity):
     Some tricky cases are when the physical type is unknown:
 
     >>> unit = u.m ** 2 / (u.kg * u.s ** 2)
-    >>> unit.physical_type
+    >>> dimensions_of(unit)
     PhysicalType('unknown')
 
     The dimensions can be given as a string in all cases, but is necessary when

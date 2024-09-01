@@ -15,13 +15,15 @@ from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
 from .builtin import DimensionlessUnitSystem
 from .realizations import NAMED_UNIT_SYSTEMS, dimensionless
 from .utils import get_dimension_name
+from unxt._unxt.dimensions import dimensions_of
+from unxt._unxt.units import units
 
 # ===================================================================
 # `unitsystem` function
 
 
 @dispatch
-def unitsystem(units: AbstractUnitSystem, /) -> AbstractUnitSystem:
+def unitsystem(usys: AbstractUnitSystem, /) -> AbstractUnitSystem:
     """Convert a UnitSystem or tuple of arguments to a UnitSystem.
 
     Examples
@@ -36,11 +38,11 @@ def unitsystem(units: AbstractUnitSystem, /) -> AbstractUnitSystem:
     True
 
     """
-    return units
+    return usys
 
 
 @dispatch  # type: ignore[no-redef]
-def unitsystem(units: Sequence[Any], /) -> AbstractUnitSystem:
+def unitsystem(units_: Sequence[Any], /) -> AbstractUnitSystem:
     """Convert a UnitSystem or tuple of arguments to a UnitSystem.
 
     Examples
@@ -58,7 +60,7 @@ def unitsystem(units: Sequence[Any], /) -> AbstractUnitSystem:
     unitsystem(kpc, Myr, solMass, rad)
 
     """
-    return unitsystem(*units) if len(units) > 0 else dimensionless
+    return unitsystem(*units_) if len(units_) > 0 else dimensionless
 
 
 @dispatch  # type: ignore[no-redef]
@@ -76,7 +78,7 @@ def unitsystem(_: None, /) -> DimensionlessUnitSystem:
 
 
 @dispatch  # type: ignore[no-redef]
-def unitsystem(*units: Any) -> AbstractUnitSystem:
+def unitsystem(*units_: Any) -> AbstractUnitSystem:
     """Convert a set of arguments to a UnitSystem.
 
     Examples
@@ -89,10 +91,10 @@ def unitsystem(*units: Any) -> AbstractUnitSystem:
 
     """
     # Convert everything to a unit
-    units = tuple(map(u.Unit, units))
+    units_ = tuple(map(units, units_))
 
     # Check that the units all have different dimensions
-    dimensions = tuple(x.physical_type for x in units)
+    dimensions = tuple(map(dimensions_of, units_))
     dimensions = eqx.error_if(
         dimensions,
         len(set(dimensions)) < len(dimensions),
@@ -101,11 +103,11 @@ def unitsystem(*units: Any) -> AbstractUnitSystem:
 
     # Return if the unit system is already registered
     if dimensions in UNITSYSTEMS_REGISTRY:
-        return UNITSYSTEMS_REGISTRY[dimensions](*units)
+        return UNITSYSTEMS_REGISTRY[dimensions](*units_)
 
     # Otherwise, create a new unit system
     # dimension names of all the units
-    du = {get_dimension_name(x).replace(" ", "_"): x.physical_type for x in units}
+    du = {get_dimension_name(x).replace(" ", "_"): dimensions_of(x) for x in units_}
     # name: physical types
     cls_name = "".join(k.title().replace("_", "") for k in du) + "UnitSystem"
     # fields: name, unit
@@ -135,7 +137,7 @@ def unitsystem(*units: Any) -> AbstractUnitSystem:
     )
 
     # Make the dataclass instance
-    return unitsystem_cls(*units)
+    return unitsystem_cls(*units_)
 
 
 @dispatch  # type: ignore[no-redef]

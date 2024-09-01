@@ -17,6 +17,7 @@ import quaxed.numpy as jnp
 
 from .base import AbstractQuantity
 from .core import Quantity
+from unxt._unxt.dimensions import dimensions_of
 
 FMT = TypeVar("FMT")
 
@@ -88,7 +89,7 @@ class Distance(AbstractDistance):
 
     def __check_init__(self) -> None:
         """Check the initialization."""
-        if self.unit.physical_type != length_dimension:
+        if dimensions_of(self) != length_dimension:
             msg = "Distance must have dimensions length."
             raise ValueError(msg)
 
@@ -185,7 +186,7 @@ class Parallax(AbstractDistance):
 
     def __check_init__(self) -> None:
         """Check the initialization."""
-        if self.unit.physical_type != angle_dimension:
+        if dimensions_of(self) != angle_dimension:
             msg = "Parallax must have angular dimensions."
             raise ValueError(msg)
 
