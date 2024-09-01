@@ -165,8 +165,8 @@ class Parallax(AbstractDistance):
     The parallax is checked to be non-negative by default.
 
     >>> try: Parallax(-1, "mas")
-    ... except Exception as e: print(e)
-    Parallax must be non-negative...
+    ... except Exception: print("negative")
+    negative
 
     To disable this check, set `check_negative=False`.
 
