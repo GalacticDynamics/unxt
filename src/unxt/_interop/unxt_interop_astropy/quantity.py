@@ -6,7 +6,6 @@ from typing import Any
 
 from astropy.coordinates import Angle as AstropyAngle, Distance as AstropyDistance
 from astropy.units import Quantity as AstropyQuantity, UnitBase as Unit
-from jaxtyping import ArrayLike
 from plum import conversion_method, dispatch
 
 import quaxed.array_api as xp
@@ -145,27 +144,6 @@ def to_units(value: AstropyQuantity, units: Unit, /) -> Quantity:
 
     """
     return Quantity.constructor(value, units)
-
-
-# ---------------------------
-# to_units_value
-
-
-@dispatch  # type: ignore[misc]
-def to_units_value(value: AstropyQuantity, units: Unit | str, /) -> ArrayLike:
-    """Convert an Astropy Quantity to an array with the given units.
-
-    Examples
-    --------
-    >>> from unxt import to_units_value
-    >>> import astropy.units as u
-
-    >>> q = u.Quantity(1, "m")
-    >>> to_units_value(q, "cm")
-    np.float64(100.0)
-
-    """
-    return value.to_value(units)
 
 
 # ============================================================================
