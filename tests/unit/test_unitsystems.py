@@ -19,7 +19,7 @@ from unxt.unitsystems import (
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def clean_unitsystems_registry(monkeypatch):
     clean_registry = {}
     monkeypatch.setattr(
