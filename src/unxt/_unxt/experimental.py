@@ -28,6 +28,9 @@ R = TypeVar("R", bound=Quantity)
 def grad(
     fun: Callable[P, R], argnums: int = 0, *, units: tuple[Unit, ...]
 ) -> Callable[P, R]:
+    # Gradient of a function with units
+
+    # Gradient of function, stripping and adding units
     @partial(jax.grad, argnums=argnums)
     def gradfun_mag(*args: P.args) -> ArrayLike:
         args_ = (
