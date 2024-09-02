@@ -22,50 +22,6 @@ _UNITSYSTEMS_REGISTRY: dict[tuple[Dimension, ...], type["AbstractUnitSystem"]] =
 UNITSYSTEMS_REGISTRY = MappingProxyType(_UNITSYSTEMS_REGISTRY)
 
 
-def parse_field_names_and_dimensions(
-    cls: type,
-) -> tuple[tuple[str, ...], tuple[Dimension, ...]]:
-    # Register class with a tuple of it's dimensions.
-    # This requires processing the type hints, not the dataclass fields
-    # since those are made after the original class is defined.
-    type_hints = get_type_hints(cls, include_extras=True)
-
-    field_names = []
-    dimensions = []
-    for name, type_hint in type_hints.items():
-        # Check it's Annotated
-        if not isannotated(type_hint):
-            continue
-
-        # Get the arguments to Annotated
-        origin, *f_args = get_args(type_hint)
-
-        # Check that the first argument is a UnitBase
-        if not issubclass(origin, Unit):
-            continue
-
-        # Need for one of the arguments to be a PhysicalType
-        f_dims = [x for x in f_args if isinstance(x, Dimension)]
-        if not f_dims:
-            msg = f"Field {name!r} must be an Annotated with a dimension."
-            raise TypeError(msg)
-        if len(f_dims) > 1:
-            msg = (
-                f"Field {name!r} must be an Annotated with only one dimension; "
-                f"got {f_dims}"
-            )
-            raise TypeError(msg)
-
-        field_names.append(get_dimension_name(name))
-        dimensions.append(f_dims[0])
-
-    if len(set(dimensions)) < len(dimensions):
-        msg = "Some dimensions are repeated."
-        raise ValueError(msg)
-
-    return tuple(field_names), tuple(dimensions)
-
-
 @dataclass(frozen=True, slots=True, eq=True)
 class AbstractUnitSystem:
     """Represents a system of units.
@@ -243,3 +199,50 @@ class AbstractUnitSystem:
         """
         fs = ", ".join(map(str, self._base_field_names))
         return f"{type(self).__name__}({fs})"
+
+
+# ---------------------------------------------------------------
+
+
+def parse_field_names_and_dimensions(
+    cls: type,
+) -> tuple[tuple[str, ...], tuple[Dimension, ...]]:
+    # Register class with a tuple of it's dimensions.
+    # This requires processing the type hints, not the dataclass fields
+    # since those are made after the original class is defined.
+    type_hints = get_type_hints(cls, include_extras=True)
+
+    field_names = []
+    dimensions = []
+    for name, type_hint in type_hints.items():
+        # Check it's Annotated
+        if not isannotated(type_hint):
+            continue
+
+        # Get the arguments to Annotated
+        origin, *f_args = get_args(type_hint)
+
+        # Check that the first argument is a UnitBase
+        if not issubclass(origin, Unit):
+            continue
+
+        # Need for one of the arguments to be a PhysicalType
+        f_dims = [x for x in f_args if isinstance(x, Dimension)]
+        if not f_dims:
+            msg = f"Field {name!r} must be an Annotated with a dimension."
+            raise TypeError(msg)
+        if len(f_dims) > 1:
+            msg = (
+                f"Field {name!r} must be an Annotated with only one dimension; "
+                f"got {f_dims}"
+            )
+            raise TypeError(msg)
+
+        field_names.append(get_dimension_name(name))
+        dimensions.append(f_dims[0])
+
+    if len(set(dimensions)) < len(dimensions):
+        msg = "Some dimensions are repeated."
+        raise ValueError(msg)
+
+    return tuple(field_names), tuple(dimensions)
