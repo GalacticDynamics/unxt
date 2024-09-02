@@ -5,7 +5,7 @@ __all__ = ["AbstractQuantity", "can_convert_unit"]
 
 from collections.abc import Callable, Mapping, Sequence
 from functools import partial
-from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeGuard, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeVar
 from typing_extensions import Self
 
 import equinox as eqx
@@ -25,7 +25,7 @@ import quaxed.operator as qoperator
 from quaxed.array_api._dispatch import dispatcher
 
 from unxt._unxt.dimensions.core import AbstractDimensions
-from unxt._unxt.units.core import Unit
+from unxt._unxt.units.core import AbstractUnits, Unit, units
 
 if TYPE_CHECKING:
     from array_api import ArrayAPINamespace
@@ -50,32 +50,6 @@ def bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
     return _op
 
 
-def _is_tracing(x: Any) -> TypeGuard[jax.core.Tracer]:
-    return isinstance(x, jax.core.Tracer)
-
-
-# `_QuantityIndexUpdateHelper` is defined up here because it is used in the
-# runtime-checkable type annotation in `AbstractQuantity.at`.
-# `_QuantityIndexUpdateRef` is defined after `AbstractQuantity` because it
-# references `AbstractQuantity` in its runtime-checkable type annotations.
-class _QuantityIndexUpdateHelper(_IndexUpdateHelper):  # type: ignore[misc]
-    def __getitem__(self, index: Any) -> "_IndexUpdateRef":
-        return _QuantityIndexUpdateRef(self.array, index)
-
-    def __repr__(self) -> str:
-        """Return a string representation of the object.
-
-        Examples
-        --------
-        >>> from unxt import Quantity
-        >>> q = Quantity([1, 2, 3, 4], "m")
-        >>> q.at
-        _QuantityIndexUpdateHelper(Quantity['length'](Array([1, 2, 3, 4], dtype=int32), unit='m'))
-
-        """  # noqa: E501
-        return f"_QuantityIndexUpdateHelper({self.array!r})"
-
-
 ##############################################################################
 
 
@@ -87,10 +61,10 @@ class AstropyQuantityCompatMixin:
     to_units: Callable[[Any], "AbstractQuantity"]
     to_units_value: Callable[[Any], ArrayLike]
 
-    def to(self, units: Any, /) -> "AbstractQuantity":
+    def to(self, u: Any, /) -> "AbstractQuantity":
         """Convert the quantity to the given units.
 
-        See :meth:`AbstractQuantity.to_units`.
+        See `AbstractQuantity.to_units`.
 
         Examples
         --------
@@ -101,12 +75,12 @@ class AstropyQuantityCompatMixin:
         Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
 
         """
-        return self.to_units(units)
+        return self.to_units(u)  # redirect to the standard method
 
-    def to_value(self, units: Any, /) -> ArrayLike:
+    def to_value(self, u: Any, /) -> ArrayLike:
         """Return the value in the given units.
 
-        See :meth:`AbstractQuantity.to_units_value`.
+        See `unxt.AbstractQuantity.to_units_value`.
 
         Examples
         --------
@@ -117,7 +91,7 @@ class AstropyQuantityCompatMixin:
         Array(100., dtype=float32, weak_type=True)
 
         """
-        return self.to_units_value(units)
+        return self.to_units_value(u)  # redirect to the standard method
 
     # TODO: support conversion of elements to Unit
     def decompose(self, bases: Sequence[Unit], /) -> "AbstractQuantity":
@@ -265,12 +239,12 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         unit: Any,
         dtype: Any = None,
     ) -> "AbstractQuantity":
-        """Construct a `Quantity` from an array-like value and a unit kwarg.
+        """Construct a [`AbstractQuantity`][] from an array-like value and a unit kwarg.
 
         Examples
         --------
-        For this example we'll use the `Quantity` class. The same applies to
-        any subclass of `AbstractQuantity`.
+        For this example we'll use the [`Quantity`][] class. The same applies to
+        any subclass of [`AbstractQuantity`][].
 
         >>> from unxt import Quantity
         >>> Quantity.constructor([1.0, 2, 3], unit="m")
@@ -285,7 +259,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     def constructor(
         cls: "type[AbstractQuantity]", *, value: Any, unit: Any, dtype: Any = None
     ) -> "AbstractQuantity":
-        """Construct a `Quantity` from value and unit kwargs.
+        """Construct a `AbstractQuantity` from value and unit kwargs.
 
         Examples
         --------
@@ -360,12 +334,12 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     # ===============================================================
     # Quantity API
 
-    def to_units(self, units: Unit) -> "AbstractQuantity":
+    def to_units(self, u: Unit, /) -> "AbstractQuantity":
         """Convert the quantity to the given units.
 
         Parameters
         ----------
-        units : Unit
+        u : Unit
             The units to convert to.
 
         Returns
@@ -381,14 +355,14 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
 
         """
-        return replace(self, value=self.to_units_value(units), unit=units)
+        return uconvert(u, self)
 
-    def to_units_value(self, units: Unit) -> Array:
+    def to_units_value(self, u: Unit, /) -> Array:
         """Return the value in the given units.
 
         Parameters
         ----------
-        units : Unit
+        u : Unit
             The units to convert to.
 
         Returns
@@ -404,16 +378,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         Array(100., dtype=float32, weak_type=True)
 
         """
-        # Hot-path: if no unit conversion is necessary
-        if self.unit == units:
-            return self.value
-
-        # Hot-path: if in tracing mode
-        # TODO: jaxpr units so we can understand them at trace time.
-        if _is_tracing(self.value) and not can_convert_unit(self.unit, units):
-            return self.value
-
-        return self.value * self.unit.to(units)
+        return ustrip(u, self)
 
     # ===============================================================
     # Array API
@@ -543,7 +508,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     # JAX API
 
     @partial(property, doc=jax.Array.at.__doc__)
-    def at(self) -> _QuantityIndexUpdateHelper:
+    def at(self) -> "_QuantityIndexUpdateHelper":
         return _QuantityIndexUpdateHelper(self)
 
     # ===============================================================
@@ -645,29 +610,29 @@ add_promotion_rule(AbstractQuantity, AbstractQuantity, AbstractQuantity)
 
 
 # ===============================================================
+# Support for ``at``.
 
 
-def can_convert_unit(from_unit: AbstractQuantity | Unit, to_unit: Unit, /) -> bool:
-    """Check if a unit can be converted to another unit.
+# `_QuantityIndexUpdateHelper` is defined up here because it is used in the
+# runtime-checkable type annotation in `AbstractQuantity.at`.
+# `_QuantityIndexUpdateRef` is defined after `AbstractQuantity` because it
+# references `AbstractQuantity` in its runtime-checkable type annotations.
+class _QuantityIndexUpdateHelper(_IndexUpdateHelper):  # type: ignore[misc]
+    def __getitem__(self, index: Any) -> "_IndexUpdateRef":
+        return _QuantityIndexUpdateRef(self.array, index)
 
-    Parameters
-    ----------
-    from_unit : :clas:`unxt.AbstractQuantity` | Unit
-        The unit to convert from.
-    to_unit : Unit
-        The unit to convert to.
+    def __repr__(self) -> str:
+        """Return a string representation of the object.
 
-    Returns
-    -------
-    bool
-        Whether the conversion is possible.
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([1, 2, 3, 4], "m")
+        >>> q.at
+        _QuantityIndexUpdateHelper(Quantity['length'](Array([1, 2, 3, 4], dtype=int32), unit='m'))
 
-    """
-    try:
-        from_unit.to(to_unit)
-    except UnitConversionError:
-        return False
-    return True
+        """  # noqa: E501
+        return f"_QuantityIndexUpdateHelper({self.array!r})"
 
 
 class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
@@ -830,6 +795,32 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
 
 
 # ===================================================================
+
+
+def can_convert_unit(from_unit: AbstractQuantity | Unit, to_unit: Unit, /) -> bool:
+    """Check if a unit can be converted to another unit.
+
+    Parameters
+    ----------
+    from_unit : :clas:`unxt.AbstractQuantity` | Unit
+        The unit to convert from.
+    to_unit : Unit
+        The unit to convert to.
+
+    Returns
+    -------
+    bool
+        Whether the conversion is possible.
+
+    """
+    try:
+        from_unit.to(to_unit)
+    except UnitConversionError:
+        return False
+    return True
+
+
+# ===================================================================
 # Get dimensions
 
 
@@ -846,3 +837,88 @@ def dimensions_of(obj: AbstractQuantity, /) -> AbstractDimensions:
 
     """
     return dimensions_of(obj.unit)
+
+
+# ===================================================================
+# Convert units
+
+
+@dispatch
+def uconvert(u: AbstractUnits, x: AbstractQuantity, /) -> AbstractQuantity:
+    """Convert the quantity to the specified units.
+
+    Examples
+    --------
+    >>> from unxt import Quantity, units
+
+    >>> x = Quantity(1000, "m")
+    >>> uconvert(units("km"), x)
+    Quantity['length'](Array(1., dtype=float32, ...), unit='km')
+
+    """
+    # Hot-path: if no unit conversion is necessary
+    if x.unit == u:
+        return x
+
+    # TODO: jaxpr units so we can understand them at trace time.
+    # Hot-path: if in tracing mode
+    # if isinstance(x.value, jax.core.Tracer) and not can_convert_unit(x.unit, u):
+    #     return x.value
+
+    # Astropy correction factor
+    # TODO: this only works with multiplicative unit conversions
+    factor = x.unit.to(u)
+
+    return replace(x, value=x.value * factor, unit=u)
+
+
+@dispatch
+def uconvert(u: str, x: AbstractQuantity, /) -> AbstractQuantity:
+    """Convert the quantity to the specified units.
+
+    Examples
+    --------
+    >>> from unxt import Quantity, units
+
+    >>> x = Quantity(1000, "m")
+    >>> uconvert("km", x)
+    Quantity['length'](Array(1., dtype=float32, ...), unit='km')
+
+    """
+    return uconvert(units(u), x)
+
+
+# ===================================================================
+# Strip units
+
+
+@dispatch
+def ustrip(u: AbstractUnits, x: AbstractQuantity, /) -> Array:
+    """Strip the units from the quantity.
+
+    Examples
+    --------
+    >>> from unxt import Quantity, units
+
+    >>> q = Quantity(1000, "m")
+    >>> ustrip(units("km"), q)
+    Array(1., dtype=float32, ...)
+
+    """
+    return uconvert(u, x).value
+
+
+@dispatch
+def ustrip(u: str, x: AbstractQuantity, /) -> Array:
+    """Strip the units from the quantity.
+
+    Examples
+    --------
+    >>> from unxt import Quantity
+
+    >>> q = Quantity(1000, "m")
+    >>> ustrip("km", q)
+    Array(1., dtype=float32, ...)
+
+    """
+    return uconvert(units(u), x).value
