@@ -15,8 +15,8 @@ from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
 from .builtin import DimensionlessUnitSystem
 from .realizations import NAMED_UNIT_SYSTEMS, dimensionless
 from .utils import get_dimension_name
-from unxt._unxt.dimensions import dimensions_of
-from unxt._unxt.units import units
+from unxt._unxt.dimensions.core import dimensions_of
+from unxt._unxt.units.core import units
 
 # ===================================================================
 # `unitsystem` function

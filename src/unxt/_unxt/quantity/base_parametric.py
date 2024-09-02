@@ -15,9 +15,9 @@ from plum import parametric
 from quaxed.array_api._dispatch import dispatcher
 
 from .base import AbstractQuantity
-from unxt._unxt.dimensions import dimensions_of
+from unxt._unxt.dimensions.core import dimensions_of
 from unxt._unxt.typing_ext import Unit as UnitTypes
-from unxt._unxt.units import units
+from unxt._unxt.units.core import units
 
 
 @parametric

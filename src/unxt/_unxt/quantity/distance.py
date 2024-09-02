@@ -17,7 +17,7 @@ import quaxed.numpy as jnp
 
 from .base import AbstractQuantity
 from .core import Quantity
-from unxt._unxt.dimensions import dimensions_of
+from unxt._unxt.dimensions.core import dimensions_of
 
 FMT = TypeVar("FMT")
 

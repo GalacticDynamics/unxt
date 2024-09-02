@@ -24,8 +24,8 @@ import quaxed.numpy as jnp
 import quaxed.operator as qoperator
 from quaxed.array_api._dispatch import dispatcher
 
-from unxt._unxt.dimensions import AbstractDimensions
-from unxt._unxt.units import Unit
+from unxt._unxt.dimensions.core import AbstractDimensions
+from unxt._unxt.units.core import Unit
 
 if TYPE_CHECKING:
     from array_api import ArrayAPINamespace

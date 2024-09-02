@@ -8,9 +8,9 @@ from ._unxt import (
     experimental,  # noqa: F401
     quantity,
 )
-from ._unxt.dimensions import dimensions, dimensions_of
+from ._unxt.dimensions.core import dimensions, dimensions_of
 from ._unxt.quantity import *
-from ._unxt.units import units, units_of
+from ._unxt.units.core import units, units_of
 from ._version import version as __version__
 from .unitsystems import AbstractUnitSystem, unitsystem, unitsystem_of
 

@@ -1,12 +1,12 @@
 """Tools for representing systems of units."""
 
-from ._unxt.unitsystems import base, builtin, compare, core, realizations, utils
-from ._unxt.unitsystems.base import *  # noqa: F403
-from ._unxt.unitsystems.builtin import *  # noqa: F403
-from ._unxt.unitsystems.compare import *  # noqa: F403
-from ._unxt.unitsystems.core import *  # noqa: F403
-from ._unxt.unitsystems.realizations import *  # noqa: F403
-from ._unxt.unitsystems.utils import *  # noqa: F403
+from ._unxt.units.system import base, builtin, compare, core, realizations, utils
+from ._unxt.units.system.base import *  # noqa: F403
+from ._unxt.units.system.builtin import *  # noqa: F403
+from ._unxt.units.system.compare import *  # noqa: F403
+from ._unxt.units.system.core import *  # noqa: F403
+from ._unxt.units.system.realizations import *  # noqa: F403
+from ._unxt.units.system.utils import *  # noqa: F403
 
 __all__: list[str] = []
 __all__ += base.__all__
