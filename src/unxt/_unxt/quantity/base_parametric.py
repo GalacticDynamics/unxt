@@ -41,7 +41,7 @@ class AbstractParametricQuantity(AbstractQuantity):
     def __check_init__(self) -> None:
         """Check whether the arguments are valid."""
         expected_dimensions = self._type_parameter._physical_type_id  # noqa: SLF001
-        got_dimensions = dimensions_of(self)._physical_type_id  # noqa: SLF001
+        got_dimensions = dimensions_of(self.unit)._physical_type_id  # noqa: SLF001
         if got_dimensions != expected_dimensions:
             msg = "Physical type mismatch."  # TODO: better error message
             raise ValueError(msg)

@@ -42,7 +42,7 @@ def register(primitive: Primitive) -> Callable[[T], T]:
 
 
 def _to_value_rad_or_one(q: AbstractQuantity) -> ArrayLike:
-    return ustrip(radian, q) if can_convert_unit(q.unit, radian) else ustrip(one, q)
+    return ustrip(radian if can_convert_unit(q.unit, radian) else one, q)
 
 
 def _bshape(arrs: tuple[Any, ...], /) -> tuple[int, ...]:
