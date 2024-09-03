@@ -29,7 +29,7 @@ class AbstractParametricQuantity(AbstractQuantity):
     """
 
     value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
-    """The value of the Quantity."""
+    """The value of the `AbstractQuantity`."""
 
     unit: Unit = eqx.field(static=True, converter=Unit)
     """The unit associated with this value."""
