@@ -80,7 +80,7 @@ class AstropyQuantityCompatMixin:
     def to_value(self, u: Any, /) -> ArrayLike:
         """Return the value in the given units.
 
-        See `unxt.AbstractQuantity.to_units_value`.
+        See `AbstractQuantity.to_units_value`.
 
         Examples
         --------
@@ -163,7 +163,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     """
 
     value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
-    """The value of the Quantity."""
+    """The value of the `AbstractQuantity`."""
 
     unit: Unit = eqx.field(static=True, converter=units)
     """The unit associated with this value."""
@@ -339,7 +339,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
 
         Parameters
         ----------
-        u : Unit
+        u : `Unit`
             The units to convert to.
 
         Returns
@@ -362,7 +362,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
 
         Parameters
         ----------
-        u : Unit
+        u : `Unit`
             The units to convert to.
 
         Returns
@@ -487,7 +487,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
 
     @dispatcher  # type: ignore[misc]
     def __mod__(self: "AbstractQuantity", other: Any) -> "AbstractQuantity":
-        """Take the mod.
+        """Take the modulus.
 
         Examples
         --------
