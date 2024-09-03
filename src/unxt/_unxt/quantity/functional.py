@@ -28,6 +28,9 @@ def uconvert(u: Any, x: Any, /) -> Any:
     raise NotImplementedError  # pragma: no cover
 
 
+# ===================================================================
+
+
 @dispatch.abstract  # type: ignore[misc]
 def ustrip(u: Any, x: Any, /) -> Any:
     """Strip the units from the quantity.

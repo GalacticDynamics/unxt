@@ -8,7 +8,7 @@ from typing import Any
 from astropy.units import PhysicalType as Dimension
 from plum import dispatch
 
-from .builtin_dimensions import speed
+from . import builtin_dimensions as bdims
 from unxt._unxt.dimensions.core import dimensions_of
 from unxt._unxt.typing_ext import Unit
 
@@ -67,9 +67,12 @@ def get_dimension_name(pt: Dimension, /) -> str:
     """
     # Note: this is not deterministic b/c ``_physical_type`` is a set
     #       that's why the `if` statement is needed.
-    if pt == speed:
-        return "speed"
-    return get_dimension_name(next(iter(pt._physical_type)))  # noqa: SLF001
+    match pt:
+        case bdims.speed:
+            out = "speed"
+        case _:
+            out = get_dimension_name(next(iter(pt._physical_type)))  # noqa: SLF001
+    return out
 
 
 @dispatch  # type: ignore[no-redef]
