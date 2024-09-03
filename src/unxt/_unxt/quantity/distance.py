@@ -17,6 +17,7 @@ import quaxed.numpy as jnp
 
 from .base import AbstractQuantity
 from .core import Quantity
+from .functional import ustrip
 from unxt._unxt.dimensions.core import dimensions_of
 
 FMT = TypeVar("FMT")
@@ -358,7 +359,7 @@ def constructor(
     Distance(Array(1000., dtype=float32, ...), unit='pc')
 
     """
-    d = 10 ** (value.to_units_value("mag") / 5 + 1)
+    d = 10 ** (ustrip("mag", value) / 5 + 1)
     return cls(xp.asarray(d, dtype=dtype), "pc")
 
 

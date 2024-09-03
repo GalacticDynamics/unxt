@@ -28,7 +28,7 @@ from .base import AbstractQuantity, can_convert_unit
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
 from .distance import AbstractDistance
-from .functional import uconvert
+from .functional import uconvert, ustrip
 from unxt._unxt.units.core import units
 
 T = TypeVar("T")
@@ -42,11 +42,7 @@ def register(primitive: Primitive) -> Callable[[T], T]:
 
 
 def _to_value_rad_or_one(q: AbstractQuantity) -> ArrayLike:
-    return (
-        q.to_units_value(radian)
-        if can_convert_unit(q.unit, radian)
-        else q.to_units_value(one)
-    )
+    return ustrip(radian, q) if can_convert_unit(q.unit, radian) else ustrip(one, q)
 
 
 def _bshape(arrs: tuple[Any, ...], /) -> tuple[int, ...]:
@@ -120,7 +116,7 @@ def _acos_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     Quantity['angle'](Array(3.1415927, dtype=float32, ...), unit='rad')
 
     """
-    x_ = x.to_units_value(one)
+    x_ = ustrip(one, x)
     return type_np(x)(value=lax.acos(x_), unit=radian)
 
 
@@ -145,7 +141,7 @@ def _acosh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     Quantity['angle'](Array(1.316958, dtype=float32, ...), unit='rad')
 
     """
-    x_ = x.to_units_value(one)
+    x_ = ustrip(one, x)
     return type_np(x)(value=lax.acosh(x_), unit=radian)
 
 
@@ -196,7 +192,7 @@ def _add_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     DistanceModulus(Array(501., dtype=float32, ...), unit='mag')
 
     """
-    return replace(x, value=lax.add(x.value, y.to_units_value(x.unit)))
+    return replace(x, value=lax.add(x.value, ustrip(x.unit, y)))
 
 
 @register(lax.add_p)
@@ -321,7 +317,7 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     Quantity['dimensionless'](Array(501., dtype=float32, weak_type=True), unit='')
 
     """
-    x = x.to_units(one)
+    x = uconvert(one, x)
     return replace(x, value=lax.add(x.value, y))
 
 
@@ -359,7 +355,7 @@ def _and_p_aq(x1: AbstractQuantity, x2: AbstractQuantity, /) -> ArrayLike:
     Array(0, dtype=int32, ...)
 
     """
-    return lax.and_p.bind(x1.to_units_value(one), x2.to_units_value(one))
+    return lax.and_p.bind(ustrip(one, x1), ustrip(one, x2))
 
 
 # ==============================================================================
@@ -430,7 +426,7 @@ def _asin_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     UncheckedQuantity(Array(1.5707964, dtype=float32, ...), unit='rad')
 
     """
-    return type_np(x)(lax.asin(x.to_units_value(one)), unit=radian)
+    return type_np(x)(lax.asin(ustrip(one, x)), unit=radian)
 
 
 @register(lax.asin_p)
@@ -448,7 +444,7 @@ def _asin_p_q(
     Quantity['angle'](Array(1.5707964, dtype=float32, ...), unit='rad')
 
     """
-    return type_np(x)(lax.asin(x.to_units_value(one)), unit=radian)
+    return type_np(x)(lax.asin(ustrip(one, x)), unit=radian)
 
 
 # ==============================================================================
@@ -467,7 +463,7 @@ def _asinh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     UncheckedQuantity(Array(1.4436355, dtype=float32, ...), unit='rad')
 
     """
-    return type_np(x)(lax.asinh(x.to_units_value(one)), unit=radian)
+    return type_np(x)(lax.asinh(ustrip(one, x)), unit=radian)
 
 
 @register(lax.asinh_p)
@@ -485,7 +481,7 @@ def _asinh_p_q(
     Quantity['angle'](Array(1.4436355, dtype=float32, ...), unit='rad')
 
     """
-    return type_np(x)(lax.asinh(x.to_units_value(one)), unit=radian)
+    return type_np(x)(lax.asinh(ustrip(one, x)), unit=radian)
 
 
 # ==============================================================================
@@ -506,7 +502,7 @@ def _atan2_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
     """
     x, y = promote(x, y)  # e.g. Distance -> Quantity
-    y_ = y.to_units_value(x.unit)
+    y_ = ustrip(x.unit, y)
     return type_np(x)(lax.atan2(x.value, y_), unit=radian)
 
 
@@ -527,7 +523,7 @@ def _atan2_p_qq(
 
     """
     x, y = promote(x, y)  # e.g. Distance -> Quantity
-    y_ = y.to_units_value(x.unit)
+    y_ = ustrip(x.unit, y)
     return type_np(x)(lax.atan2(x.value, y_), unit=radian)
 
 
@@ -548,7 +544,7 @@ def _atan2_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     UncheckedQuantity(Array(0.32175055, dtype=float32, ...), unit='rad')
 
     """
-    y_ = y.to_units_value(one)
+    y_ = ustrip(one, y)
     return type_np(y)(lax.atan2(x, y_), unit=radian)
 
 
@@ -568,7 +564,7 @@ def _atan2_p_vq(
     Quantity['angle'](Array(0.32175055, dtype=float32, ...), unit='rad')
 
     """
-    y_ = y.to_units_value(one)
+    y_ = ustrip(one, y)
     return Quantity(lax.atan2(x, y_), unit=radian)
 
 
@@ -589,7 +585,7 @@ def _atan2_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     UncheckedQuantity(Array(0.32175055, dtype=float32, ...), unit='rad')
 
     """
-    x_ = x.to_units_value(one)
+    x_ = ustrip(one, x)
     return type_np(x)(lax.atan2(x_, y), unit=radian)
 
 
@@ -609,7 +605,7 @@ def _atan2_p_qv(
     Quantity['angle'](Array(0.32175055, dtype=float32, ...), unit='rad')
 
     """
-    x_ = x.to_units_value(one)
+    x_ = ustrip(one, x)
     return type_np(x)(lax.atan2(x_, y), unit=radian)
 
 
@@ -629,7 +625,7 @@ def _atan_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     UncheckedQuantity(Array(0.7853982, dtype=float32, ...), unit='rad')
 
     """
-    return type_np(x)(lax.atan(x.to_units_value(one)), unit=radian)
+    return type_np(x)(lax.atan(ustrip(one, x)), unit=radian)
 
 
 @register(lax.atan_p)
@@ -647,7 +643,7 @@ def _atan_p_q(
     Quantity['angle'](Array(0.7853982, dtype=float32, ...), unit='rad')
 
     """
-    return Quantity(lax.atan(x.to_units_value(one)), unit=radian)
+    return Quantity(lax.atan(ustrip(one, x)), unit=radian)
 
 
 # ==============================================================================
@@ -666,7 +662,7 @@ def _atanh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     UncheckedQuantity(Array(nan, dtype=float32, ...), unit='rad')
 
     """
-    return type_np(x)(lax.atanh(x.to_units_value(one)), unit=radian)
+    return type_np(x)(lax.atanh(ustrip(one, x)), unit=radian)
 
 
 @register(lax.atanh_p)
@@ -684,7 +680,7 @@ def _atanh_p_q(
     Quantity['angle'](Array(nan, dtype=float32, ...), unit='rad')
 
     """
-    return type_np(x)(lax.atanh(x.to_units_value(one)), unit=radian)
+    return type_np(x)(lax.atanh(ustrip(one, x)), unit=radian)
 
 
 # ==============================================================================
@@ -796,12 +792,7 @@ def _clamp_p(
 
     """
     return replace(
-        x,
-        value=lax.clamp(
-            min.to_units_value(x.unit),
-            x.value,
-            max.to_units_value(x.unit),
-        ),
+        x, value=lax.clamp(ustrip(x.unit, min), x.value, ustrip(x.unit, max))
     )
 
 
@@ -834,9 +825,7 @@ def _clamp_p_vaqaq(
     Quantity['dimensionless'](Array([0, 1, 2], dtype=int32), unit='')
 
     """
-    return replace(
-        x, value=lax.clamp(min, x.to_units_value(one), max.to_units_value(one))
-    )
+    return replace(x, value=lax.clamp(min, ustrip(one, x), ustrip(one, max)))
 
 
 # ---------------------------
@@ -861,7 +850,7 @@ def _clamp_p_aqvaq(
     Array([0, 1, 2], dtype=int32)
 
     """
-    return lax.clamp(min.to_units_value(one), x, max.to_units_value(one))
+    return lax.clamp(ustrip(one, min), x, ustrip(one, max))
 
 
 @register(lax.clamp_p)
@@ -885,7 +874,7 @@ def _clamp_p_qvq(
     Array([0, 1, 2], dtype=int32)
 
     """
-    return lax.clamp(min.to_units_value(one), x, max.to_units_value(one))
+    return lax.clamp(ustrip(one, min), x, ustrip(one, max))
 
 
 # ---------------------------
@@ -910,9 +899,7 @@ def _clamp_p_aqaqv(
     UncheckedQuantity(Array([0, 1, 2], dtype=int32), unit='')
 
     """
-    return replace(
-        x, value=lax.clamp(min.to_units_value(one), x.to_units_value(one), max)
-    )
+    return replace(x, value=lax.clamp(ustrip(one, min), ustrip(one, x), max))
 
 
 @register(lax.clamp_p)
@@ -936,9 +923,7 @@ def _clamp_p_qqv(
     Quantity['dimensionless'](Array([0, 1, 2], dtype=int32), unit='')
 
     """
-    return replace(
-        x, value=lax.clamp(min.to_units_value(one), x.to_units_value(one), max)
-    )
+    return replace(x, value=lax.clamp(ustrip(one, min), ustrip(one, x), max))
 
 
 # ==============================================================================
@@ -965,7 +950,7 @@ def _complex_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
     """
     x, y = promote(x, y)  # e.g. Distance -> Quantity
-    y_ = y.to_units_value(x.unit)
+    y_ = ustrip(x.unit, y)
     return replace(x, value=lax.complex(x.value, y_))
 
 
@@ -999,7 +984,7 @@ def _concatenate_p_aq(*operands: AbstractQuantity, dimension: Any) -> AbstractQu
     return replace(
         operand0,
         value=lax.concatenate(
-            [op.to_units_value(units_) for op in operands], dimension=dimension
+            [ustrip(units_, op) for op in operands], dimension=dimension
         ),
     )
 
@@ -1033,7 +1018,7 @@ def _concatenate_p_qnd(
     return type_np(operand0)(
         lax.concatenate(
             [
-                (op.to_units_value(one) if hasattr(op, "unit") else op)
+                (ustrip(one, op) if hasattr(op, "unit") else op)
                 for op in (operand0, *operands)
             ],
             dimension=dimension,
@@ -1068,7 +1053,7 @@ def _concatenate_p_vqnd(
     return Quantity(
         lax.concatenate(
             [
-                (op.to_units_value(one) if hasattr(op, "unit") else op)
+                (ustrip(one, op) if hasattr(op, "unit") else op)
                 for op in (operand0, *operands)
             ],
             dimension=dimension,
@@ -1361,8 +1346,7 @@ def _cumprod_p(
 
     """
     return replace(
-        operand,
-        value=lax.cumprod(operand.to_units_value(one), axis=axis, reverse=reverse),
+        operand, value=lax.cumprod(ustrip(one, operand), axis=axis, reverse=reverse)
     )
 
 
@@ -1440,7 +1424,7 @@ def _digamma_p(x: AbstractQuantity) -> AbstractQuantity:
     Quantity['dimensionless'](Array(-0.5772154, dtype=float32, ...), unit='')
 
     """
-    return replace(x, value=lax.digamma(x.to_units_value(one)))
+    return replace(x, value=lax.digamma(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -1698,7 +1682,7 @@ def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
 
     """
     try:
-        yv = y.to_units_value(x.unit)
+        yv = ustrip(x.unit, y)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
@@ -1732,7 +1716,7 @@ def _eq_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
 
     """
     try:
-        yv = y.to_units_value(one)
+        yv = ustrip(one, y)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
@@ -1791,7 +1775,7 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
 
     def regular_case(_: Any, /) -> Array:
         try:
-            xv = x.to_units_value(one)
+            xv = ustrip(one, x)
         except UnitConversionError:
             return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
@@ -1834,7 +1818,7 @@ def _erf_inv_p(x: AbstractQuantity) -> AbstractQuantity:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return replace(x, value=lax.erf_inv(x.to_units_value(one)))
+    return replace(x, value=lax.erf_inv(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -1861,7 +1845,7 @@ def _erf_p(x: AbstractQuantity) -> AbstractQuantity:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return replace(x, value=lax.erf(x.to_units_value(one)))
+    return replace(x, value=lax.erf(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -1887,7 +1871,7 @@ def _erfc_p(x: AbstractQuantity) -> AbstractQuantity:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return replace(x, value=lax.erfc(x.to_units_value(one)))
+    return replace(x, value=lax.erfc(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -1912,7 +1896,7 @@ def _exp2_p(x: AbstractQuantity) -> AbstractQuantity:
     Quantity['dimensionless'](Array(8., dtype=float32, ...), unit='')
 
     """
-    return replace(x, value=lax.exp2(x.to_units_value(one)))
+    return replace(x, value=lax.exp2(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -1945,7 +1929,7 @@ def _exp_p(x: AbstractQuantity) -> AbstractQuantity:
 
     """
     # TODO: more meaningful error message.
-    return replace(x, value=lax.exp(x.to_units_value(one)))
+    return replace(x, value=lax.exp(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -1970,7 +1954,7 @@ def _expm1_p(x: AbstractQuantity) -> AbstractQuantity:
     Quantity['dimensionless'](Array(0., dtype=float32, ...), unit='')
 
     """
-    return replace(x, value=lax.expm1(x.to_units_value(one)))
+    return replace(x, value=lax.expm1(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2000,7 +1984,7 @@ def _fft_p(x: AbstractQuantity, *, fft_type: Any, fft_lengths: Any) -> AbstractQ
     # TODO: what units can this support?
     return replace(
         x,
-        value=lax.fft(x.to_units_value(one), fft_type, fft_lengths),
+        value=lax.fft(ustrip(one, x), fft_type, fft_lengths),
     )
 
 
@@ -2072,7 +2056,7 @@ def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
 
     """
     try:
-        yv = y.to_units_value(x.unit)
+        yv = ustrip(x.unit, y)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
@@ -2106,7 +2090,7 @@ def _ge_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
 
     """
     try:
-        yv = y.to_units_value(one)
+        yv = ustrip(one, y)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
@@ -2140,7 +2124,7 @@ def _ge_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
 
     """
     try:
-        xv = x.to_units_value(one)
+        xv = ustrip(one, x)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
@@ -2173,7 +2157,7 @@ def _gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
 
     """
     try:
-        yv = y.to_units_value(x.unit)
+        yv = ustrip(x.unit, y)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
@@ -2207,7 +2191,7 @@ def _gt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
 
     """
     try:
-        yv = y.to_units_value(one)
+        yv = ustrip(one, y)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
@@ -2241,7 +2225,7 @@ def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
 
     """
     try:
-        xv = x.to_units_value(one)
+        xv = ustrip(one, x)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
@@ -2273,7 +2257,7 @@ def _igamma_p(a: AbstractQuantity, x: AbstractQuantity) -> AbstractQuantity:
     Quantity['dimensionless'](Array(0.6321202, dtype=float32, ...), unit='')
 
     """
-    return replace(x, value=lax.igamma(a.to_units_value(one), x.to_units_value(one)))
+    return replace(x, value=lax.igamma(ustrip(one, a), ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2378,7 +2362,7 @@ def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
 
     """
     try:
-        yv = y.to_units_value(x.unit)
+        yv = ustrip(x.unit, y)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
@@ -2412,7 +2396,7 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
 
     """
     try:
-        yv = y.to_units_value(one)
+        yv = ustrip(one, y)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
@@ -2446,7 +2430,7 @@ def _le_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
 
     """
     try:
-        xv = x.to_units_value(one)
+        xv = ustrip(one, x)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
@@ -2477,7 +2461,7 @@ def _lgamma_p(x: AbstractQuantity) -> AbstractQuantity:
 
     """
     # TODO: are there any units that this can support?
-    return replace(x, value=lax.lgamma(x.to_units_value(one)))
+    return replace(x, value=lax.lgamma(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2485,7 +2469,7 @@ def _lgamma_p(x: AbstractQuantity) -> AbstractQuantity:
 
 @register(lax.log1p_p)
 def _log1p_p(x: AbstractQuantity) -> AbstractQuantity:
-    return replace(x, value=lax.log1p(x.to_units_value(one)))
+    return replace(x, value=lax.log1p(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2493,7 +2477,7 @@ def _log1p_p(x: AbstractQuantity) -> AbstractQuantity:
 
 @register(lax.log_p)
 def _log_p(x: AbstractQuantity) -> AbstractQuantity:
-    return replace(x, value=lax.log(x.to_units_value(one)))
+    return replace(x, value=lax.log(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2501,7 +2485,7 @@ def _log_p(x: AbstractQuantity) -> AbstractQuantity:
 
 @register(lax.logistic_p)
 def _logistic_p(x: AbstractQuantity) -> AbstractQuantity:
-    return replace(x, value=lax.logistic(x.to_units_value(one)))
+    return replace(x, value=lax.logistic(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2555,7 +2539,7 @@ def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
 
     """
     try:
-        yv = y.to_units_value(x.unit)
+        yv = ustrip(x.unit, y)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
@@ -2611,7 +2595,7 @@ def _lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
 
     """
     try:
-        yv = y.to_units_value(one)
+        yv = ustrip(one, y)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
@@ -2671,7 +2655,7 @@ def _lt_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
 
     """
     try:
-        xv = x.to_units_value(one)
+        xv = ustrip(one, x)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
 
@@ -2703,7 +2687,7 @@ def _max_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> AbstractQuantity:
     Quantity['length'](Array(2, dtype=int32, ...), unit='m')
 
     """
-    yv = y.to_units_value(x.unit)
+    yv = ustrip(x.unit, y)
     return replace(x, value=qlax.max(x.value, yv))
 
 
@@ -2727,7 +2711,7 @@ def _max_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     Quantity['dimensionless'](Array([2.], dtype=float32), unit='')
 
     """
-    yv = y.to_units_value(one)
+    yv = ustrip(one, y)
     return replace(y, value=lax.max(x, yv))
 
 
@@ -2751,7 +2735,7 @@ def _max_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     Quantity['dimensionless'](Array([2.], dtype=float32), unit='')
 
     """
-    xv = x.to_units_value(one)
+    xv = ustrip(one, x)
     return replace(x, value=lax.max(xv, y))
 
 
@@ -2760,17 +2744,17 @@ def _max_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 @register(lax.min_p)
 def _min_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
-    return replace(x, value=lax.min(x.value, y.to_units_value(x.unit)))
+    return replace(x, value=lax.min(x.value, ustrip(x.unit, y)))
 
 
 @register(lax.min_p)
 def _min_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
-    return replace(y, value=lax.min(x, y.to_units_value(one)))
+    return replace(y, value=lax.min(x, ustrip(one, y)))
 
 
 @register(lax.min_p)
 def _min_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
-    return replace(x, value=lax.min(x.to_units_value(one), y))
+    return replace(x, value=lax.min(ustrip(one, x), y))
 
 
 # ==============================================================================
@@ -2834,7 +2818,7 @@ def _ne_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
 
     """
     try:
-        yv = y.to_units_value(x.unit)
+        yv = ustrip(x.unit, y)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=True, dtype=bool)
 
@@ -2880,7 +2864,7 @@ def _ne_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
 
     """
     try:
-        yv = y.to_units_value(one)
+        yv = ustrip(one, y)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=True, dtype=bool)
 
@@ -2895,7 +2879,7 @@ def _ne_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
         return lax.ne(x.value, y)
 
     try:
-        xv = x.to_units_value(one)
+        xv = ustrip(one, x)
     except UnitConversionError:
         return jnp.full(_bshape((x, y)), fill_value=True, dtype=bool)
 
@@ -2922,7 +2906,7 @@ def _neg_p(x: AbstractQuantity) -> AbstractQuantity:
 def _pow_p_qq(
     x: AbstractQuantity, y: AbstractParametricQuantity["dimensionless"]
 ) -> AbstractQuantity:
-    y_: Array = y.to_units_value(one)
+    y_: Array = ustrip(one, y)
     y0 = y_[(0,) * y_.ndim]
     y_ = eqx.error_if(y_, any(y_ != y0), "power must be a scalar")
     return type_np(x)(value=lax.pow(x.value, y0), unit=x.unit**y0)
@@ -3046,7 +3030,7 @@ def _rem_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     Distance(Array(1, dtype=int32, ...), unit='m')
 
     """
-    return replace(x, value=lax.rem(x.value, y.to_units_value(x.unit)))
+    return replace(x, value=lax.rem(x.value, ustrip(x.unit, y)))
 
 
 @register(lax.rem_p)
@@ -3115,10 +3099,7 @@ def _scatter_add_p_qvq(
     return replace(
         operand,
         value=lax.scatter_add_p.bind(
-            operand.value,
-            scatter_indices,
-            updates.to_units_value(operand.units),
-            **kwargs,
+            operand.value, scatter_indices, ustrip(operand.units, updates), **kwargs
         ),
     )
 
@@ -3149,8 +3130,8 @@ def _scatter_add_p_vvq(
 @register(lax.select_n_p)
 def _select_n_p(which: AbstractQuantity, *cases: AbstractQuantity) -> AbstractQuantity:
     unit = cases[0].unit
-    cases_ = (case.to_units_value(unit) for case in cases)
-    return type_np(which)(lax.select_n(which.to_units_value(one), *cases_), unit=unit)
+    cases_ = (ustrip(unit, case) for case in cases)
+    return type_np(which)(lax.select_n(ustrip(one, which), *cases_), unit=unit)
 
 
 @register(lax.select_n_p)
@@ -3160,8 +3141,7 @@ def _select_n_p_vq(
     # encountered from jnp.hypot
     unit = case0.unit
     return type_np(which)(
-        lax.select_n(which.to_units_value(one), case0.to_units_value(unit), case1),
-        unit=unit,
+        lax.select_n(ustrip(one, which), ustrip(unit, case0), case1), unit=unit
     )
 
 
@@ -3187,9 +3167,7 @@ def _select_n_p_jqq(
 ) -> AbstractQuantity:
     # used by `jnp.hypot`
     unit = case0.unit
-    return replace(
-        case0, value=lax.select_n(which, case0.value, case1.to_units_value(unit))
-    )
+    return replace(case0, value=lax.select_n(which, case0.value, ustrip(unit, case1)))
 
 
 # ==============================================================================
@@ -3397,7 +3375,7 @@ def _sub_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     DistanceModulus(Array(-499., dtype=float32, ...), unit='mag')
 
     """
-    return replace(x, value=lax.sub(x.to_units_value(x.unit), y.to_units_value(x.unit)))
+    return replace(x, value=lax.sub(ustrip(x.unit, x), ustrip(x.unit, y)))
 
 
 @register(lax.sub_p)
@@ -3456,7 +3434,7 @@ def _sub_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     Quantity['dimensionless'](Array(-500., dtype=float32, ...), unit='')
 
     """
-    x = x.to_units(one)
+    x = uconvert(one, x)
     return replace(x, value=qlax.sub(x.value, y))
 
 

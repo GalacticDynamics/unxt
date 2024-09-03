@@ -15,6 +15,7 @@ from quaxed.numpy._dispatch import dispatcher as np_dispatcher
 
 from .base import AbstractQuantity
 from .core import Quantity
+from .functional import ustrip
 
 
 def chain_dispatchers(*dispatchers: Dispatcher) -> Callable[[Any], Function]:
@@ -66,8 +67,8 @@ def arange(
     return type_np(start)(
         jax_xp.arange(
             start.value,
-            stop=stop.to_units_value(unit) if stop is not None else None,
-            step=step.to_units_value(unit) if step is not None else None,
+            stop=ustrip(unit, stop) if stop is not None else None,
+            step=ustrip(unit, step) if step is not None else None,
             **kwargs,
         ),
         unit=unit,
@@ -159,7 +160,7 @@ def full_like(
     Quantity['length'](Array(10, dtype=int32, ...), unit='m')
 
     """
-    fill_val = fill_value.to_units_value(x.unit)
+    fill_val = ustrip(x.unit, fill_value)
     return type_np(x)(jax_xp.full_like(x.value, fill_val, **kwargs), unit=x.unit)
 
 
@@ -183,9 +184,7 @@ def linspace(start: Quantity, stop: Quantity, num: Any, /, **kwargs: Any) -> Qua
     """
     unit = start.unit
     return Quantity(
-        jax_xp.linspace(
-            start.to_units_value(unit), stop.to_units_value(unit), num, **kwargs
-        ),
+        jax_xp.linspace(ustrip(unit, start), ustrip(unit, stop), num, **kwargs),
         unit=unit,
     )
 
@@ -207,10 +206,7 @@ def linspace(start: Quantity, stop: Quantity, /, **kwargs: Any) -> Quantity:
     """
     unit = start.unit
     return Quantity(
-        jax_xp.linspace(
-            start.to_units_value(unit), stop.to_units_value(unit), **kwargs
-        ),
-        unit=unit,
+        jax_xp.linspace(ustrip(unit, start), ustrip(unit, stop), **kwargs), unit=unit
     )
 
 
