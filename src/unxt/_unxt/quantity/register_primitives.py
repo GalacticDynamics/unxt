@@ -28,6 +28,7 @@ from .base import AbstractQuantity, can_convert_unit
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
 from .distance import AbstractDistance
+from .functional import uconvert
 from unxt._unxt.units.core import units
 
 T = TypeVar("T")
@@ -255,7 +256,7 @@ def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     Quantity['dimensionless'](Array(501., dtype=float32, weak_type=True), unit='')
 
     """
-    y = y.to_units(one)
+    y = uconvert(one, y)
     return replace(y, value=lax.add(x, y.value))
 
 
@@ -3425,7 +3426,7 @@ def _sub_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     Quantity['dimensionless'](Array(500., dtype=float32, ...), unit='')
 
     """
-    y = y.to_units(one)
+    y = uconvert(one, y)
     return replace(y, value=qlax.sub(x, y.value))
 
 
