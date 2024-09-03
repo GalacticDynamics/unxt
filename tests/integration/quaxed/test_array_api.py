@@ -19,7 +19,7 @@ import quaxed.array_api as xp
 import quaxed.numpy as jnp
 from quaxed.array_api._data_type_functions import FInfo, IInfo
 
-from unxt import Quantity
+from unxt import Quantity, ustrip
 
 # =============================================================================
 # Constants
@@ -80,7 +80,7 @@ def test_arange_stop():
     start = Quantity(2, u.m)
     stop = Quantity(10, u.km)
     got = xp.arange(start, stop)
-    expected = Quantity(xp.arange(start.value, stop.to_units_value(start.unit)), u.m)
+    expected = Quantity(xp.arange(start.value, ustrip(start.unit, stop)), u.m)
 
     assert isinstance(got, Quantity)
     assert got.unit == expected.unit
@@ -94,12 +94,7 @@ def test_arange_step():
     step = Quantity(2, u.m)
     got = xp.arange(start, stop, step)
     expected = Quantity(
-        xp.arange(
-            start.value,
-            stop.to_units_value(start.unit),
-            step.to_units_value(start.unit),
-        ),
-        u.m,
+        xp.arange(start.value, ustrip(start.unit, stop), ustrip(start.unit, step)), u.m
     )
 
     assert isinstance(got, Quantity)

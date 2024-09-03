@@ -24,6 +24,7 @@ import quaxed.numpy as jnp
 import quaxed.operator as qoperator
 from quaxed.array_api._dispatch import dispatcher
 
+from .functional import ustrip
 from unxt._unxt.dimensions.core import AbstractDimensions
 from unxt._unxt.units.core import AbstractUnits, Unit, units
 
@@ -75,7 +76,7 @@ class AstropyQuantityCompatMixin:
         Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
 
         """
-        return self.to_units(u)  # redirect to the standard method
+        return uconvert(u, self)  # redirect to the standard method
 
     def to_value(self, u: Any, /) -> ArrayLike:
         """Return the value in the given units.
@@ -91,7 +92,7 @@ class AstropyQuantityCompatMixin:
         Array(100., dtype=float32, weak_type=True)
 
         """
-        return self.to_units_value(u)  # redirect to the standard method
+        return ustrip(u, self)  # redirect to the standard method
 
     # TODO: support conversion of elements to Unit
     def decompose(self, bases: Sequence[Unit], /) -> "AbstractQuantity":
@@ -502,7 +503,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
             raise UnitConversionError
 
         # TODO: figure out how to defer to quaxed (e.g. quaxed.operator.mod)
-        return replace(self, value=self.value % other.to_units_value(self.unit))
+        return replace(self, value=self.value % ustrip(self.unit, other))
 
     # ===============================================================
     # JAX API
@@ -558,7 +559,7 @@ def constructor(
     Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
 
     """
-    value = xp.asarray(value.to_units(unit), dtype=dtype)
+    value = xp.asarray(uconvert(unit, value), dtype=dtype)
     return cls(value.value, unit)
 
 
@@ -599,7 +600,7 @@ def constructor(
 ) -> AbstractQuantity:
     """Construct a `Quantity` from another `Quantity`, with no unit change."""
     unit = value.unit if unit is None else unit
-    value = xp.asarray(value.to_units(unit), dtype=dtype)
+    value = xp.asarray(uconvert(unit, value), dtype=dtype)
     return cls(value.value, unit)
 
 
@@ -657,7 +658,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
             mode=mode,
             fill_value=fill_value
             if fill_value is None
-            else fill_value.to_units_value(self.array.unit),
+            else ustrip(self.array.unit, fill_value),
         )
         return replace(self.array, value=value)
 
@@ -671,7 +672,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
     ) -> AbstractQuantity:
         # TODO: by quaxified super
         value = self.array.value.at[self.index].set(
-            values.to_units_value(self.array.unit),
+            ustrip(self.array.unit, values),
             indices_are_sorted=indices_are_sorted,
             unique_indices=unique_indices,
             mode=mode,
@@ -698,7 +699,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
     ) -> AbstractQuantity:
         # TODO: by quaxified super
         value = self.array.value.at[self.index].add(
-            values.to_units_value(self.array.unit),
+            ustrip(self.array.unit, values),
             indices_are_sorted=indices_are_sorted,
             unique_indices=unique_indices,
             mode=mode,
@@ -769,7 +770,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
     ) -> AbstractQuantity:
         # TODO: by quaxified super
         value = self.array.value.at[self.index].min(
-            values.to_units_value(self.array.unit),
+            ustrip(self.array.unit, values),
             indices_are_sorted=indices_are_sorted,
             unique_indices=unique_indices,
             mode=mode,
@@ -786,7 +787,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
     ) -> AbstractQuantity:
         # TODO: by quaxified super
         value = self.array.value.at[self.index].max(
-            values.to_units_value(self.array.unit),
+            ustrip(self.array.unit, values),
             indices_are_sorted=indices_are_sorted,
             unique_indices=unique_indices,
             mode=mode,

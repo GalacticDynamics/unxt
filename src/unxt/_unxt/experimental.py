@@ -20,6 +20,7 @@ from plum.parametric import type_unparametrized
 
 from .quantity.core import Quantity
 from .typing_ext import Unit
+from unxt._unxt.quantity.functional import ustrip
 
 P = ParamSpec("P")
 R = TypeVar("R", bound=Quantity)
@@ -43,7 +44,7 @@ def grad(
         # Get the value of the args. They are turned back into Quantity
         # inside the function we are taking the grad of.
         args_ = tuple(
-            (a if unit is None else a.to_units_value(unit))  # type: ignore[attr-defined]
+            (a if unit is None else ustrip(unit, a))
             for a, unit in zip(args, units, strict=True)
         )
         # Call the grad, returning a Quantity
@@ -86,7 +87,7 @@ def jacfwd(
         # Get the value of the args. They are turned back into Quantity
         # inside the function we are taking the Jacobian of.
         args_ = tuple(
-            (a if unit is None else a.to_units_value(unit))  # type: ignore[attr-defined]
+            (a if unit is None else ustrip(unit, a))
             for a, unit in zip(args, units, strict=True)
         )
         # Call the Jacobian, returning a Quantity
@@ -122,7 +123,7 @@ def hessian(fun: Callable[P, R], *, units: tuple[Unit, ...]) -> Callable[P, R]:
         # Get the value of the args. They are turned back into Quantity
         # inside the function we are taking the hessian of.
         args_ = tuple(
-            (a if unit is None else a.to_units_value(unit))  # type: ignore[attr-defined]
+            (a if unit is None else ustrip(unit, a))
             for a, unit in zip(args, units, strict=True)
         )
         # Call the hessian, returning a Quantity

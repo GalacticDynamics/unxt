@@ -16,7 +16,11 @@ from jaxtyping import Array
 from matplotlib.axes import Axes
 from zeroth import zeroth
 
-from unxt import AbstractQuantity, UncheckedQuantity  # type: ignore[attr-defined]
+from unxt import (  # type: ignore[attr-defined]
+    AbstractQuantity,
+    UncheckedQuantity,
+    ustrip,
+)
 
 
 @dataclass
@@ -38,7 +42,7 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
         """Convert *obj* using *unit* for the specified *axis*."""
         # Hot-path Quantity
         if isinstance(obj, AbstractQuantity):
-            return obj.to_units_value(unit)
+            return ustrip(unit, obj)
         # Need to recurse (singly) into iterables
         if isinstance(obj, Iterable):
             return [self._convert_value(v, unit, axis) for v in obj]
@@ -49,9 +53,9 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
     def _convert_value(obj: Any, unit: Any, axis: Axes) -> Array:
         """Handle converting using attached unit or falling back to axis units."""
         if isinstance(obj, AbstractQuantity):
-            return obj.to_units_value(unit)
+            return ustrip(unit, obj)
 
-        return UncheckedQuantity.constructor(obj, axis.get_units()).to_units_value(unit)
+        return ustrip(unit, UncheckedQuantity.constructor(obj, axis.get_units()))
 
     def axisinfo(self, unit: Any, _: Axes) -> matplotlib.units.AxisInfo:
         """Return axis information for this particular unit."""
