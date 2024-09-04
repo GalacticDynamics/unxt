@@ -6,8 +6,7 @@ __all__ = ["AbstractQuantity", "can_convert_unit"]
 from collections.abc import Callable, Mapping, Sequence
 from functools import partial
 from types import ModuleType
-from typing import Any, ClassVar, NoReturn, TypeAlias, TypeVar
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeVar
 
 import equinox as eqx
 import jax
@@ -25,7 +24,11 @@ import quaxed.operator as qoperator
 from dataclassish import fields, replace
 
 from .api import uconvert, ustrip
-from unxt._src.units.core import Unit, units
+from unxt._src.units.core import AbstractUnits, units
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
+
 
 FMT = TypeVar("FMT")
 ArrayLikeScalar: TypeAlias = np_bool | np_number | bool | int | float | complex
@@ -53,7 +56,7 @@ class AstropyQuantityCompatMixin:
     """Mixin for compatibility with `astropy.units.Quantity`."""
 
     value: ArrayLike
-    unit: Unit
+    unit: AbstractUnits
     to_units: Callable[[Any], "AbstractQuantity"]
     to_units_value: Callable[[Any], ArrayLike]
 
@@ -90,7 +93,7 @@ class AstropyQuantityCompatMixin:
         return ustrip(u, self)  # redirect to the standard method
 
     # TODO: support conversion of elements to Unit
-    def decompose(self, bases: Sequence[Unit], /) -> "AbstractQuantity":
+    def decompose(self, bases: Sequence[AbstractUnits], /) -> "AbstractQuantity":
         """Decompose the quantity into the given bases.
 
         Examples
@@ -161,7 +164,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
     """The value of the `AbstractQuantity`."""
 
-    unit: Unit = eqx.field(static=True, converter=units)
+    unit: AbstractUnits = eqx.field(static=True, converter=units)
     """The unit associated with this value."""
 
     # ---------------------------------------------------------------
@@ -303,17 +306,21 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     # ===============================================================
     # Quantity API
 
-    def to_units(self, u: Unit, /) -> "AbstractQuantity":
+    def to_units(self, u: Any, /) -> "AbstractQuantity":
         """Convert the quantity to the given units.
 
         Parameters
         ----------
-        u : `Unit`
+        u : Any
             The units to convert to.
 
         Returns
         -------
         AbstractQuantity
+
+        See Also
+        --------
+        unxt.uconvert : convert a quantity to a new unit.
 
         Examples
         --------
@@ -326,12 +333,12 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         """
         return uconvert(u, self)
 
-    def to_units_value(self, u: Unit, /) -> Array:
+    def to_units_value(self, u: Any, /) -> Array:
         """Return the value in the given units.
 
         Parameters
         ----------
-        u : `Unit`
+        u : Any
             The units to convert to.
 
         Returns
@@ -373,7 +380,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     def aval(self) -> jax.core.ShapedArray:
         return jax.core.get_aval(self.value)
 
-    def enable_materialise(self, _: bool = True) -> Self:  # noqa: FBT001, FBT002
+    def enable_materialise(self, _: bool = True) -> "Self":  # noqa: FBT001, FBT002
         return replace(self, value=self.value, unit=self.unit)
 
     # ===============================================================
@@ -510,7 +517,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     # ===============================================================
     # NumPy Compatibility
 
-    def __array__(self, **kwargs: Any) -> np.typing.NDArray:
+    def __array__(self, **kwargs: Any) -> np.typing.NDArray[Any]:
         """Return the array as a numpy array, stripping the units.
 
         Examples
@@ -811,14 +818,16 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
 # ===================================================================
 
 
-def can_convert_unit(from_unit: AbstractQuantity | Unit, to_unit: Unit, /) -> bool:
+def can_convert_unit(
+    from_unit: AbstractQuantity | AbstractUnits, to_unit: AbstractUnits | str, /
+) -> bool:
     """Check if a unit can be converted to another unit.
 
     Parameters
     ----------
     from_unit : :clas:`unxt.AbstractQuantity` | Unit
         The unit to convert from.
-    to_unit : Unit
+    to_unit : Unit | str
         The unit to convert to.
 
     Returns

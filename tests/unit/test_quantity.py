@@ -14,6 +14,7 @@ from hypothesis import example, given, strategies as st
 from hypothesis.extra.array_api import make_strategies_namespace
 from hypothesis.extra.numpy import array_shapes as np_array_shapes, arrays as np_arrays
 from jax.dtypes import canonicalize_dtype
+from jaxtyping import TypeCheckError
 from plum import convert, parametric
 
 import quaxed.numpy as jnp
@@ -424,7 +425,7 @@ def test_at():
     assert q2[1] == Quantity(2.0, "km")
     assert q[1] == Quantity(1.0, "km")  # original is unchanged
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises((RuntimeError, TypeCheckError)):
         q.at[1].mul(Quantity(2, "m"))
 
     # Divide
@@ -432,7 +433,7 @@ def test_at():
     assert q2[1] == Quantity(0.5, "km")
     assert q[1] == Quantity(1.0, "km")  # original is unchanged
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises((RuntimeError, TypeCheckError)):
         q.at[1].divide(Quantity(2, "m"))
 
     # Power
