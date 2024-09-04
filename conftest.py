@@ -1,7 +1,9 @@
 """Doctest configuration."""
 
+import os
 import platform
 from doctest import ELLIPSIS, NORMALIZE_WHITESPACE
+from typing import Any
 
 from sybil import Sybil
 from sybil.parsers.rest import DocTestParser, PythonCodeBlockParser, SkipParser
@@ -42,3 +44,7 @@ if not OptDeps.GALA.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_gala/*")
 if not OptDeps.MATPLOTLIB.installed or not OptDeps.ZEROTH.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_mpl/*")
+
+
+def pytest_generate_tests(metafunc: Any) -> None:
+    os.environ["UNXT_ENABLE_RUNTIME_TYPECHECKING"] = "beartype.beartype"

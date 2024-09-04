@@ -6,8 +6,7 @@ __all__ = ["AbstractQuantity", "can_convert_unit"]
 from collections.abc import Callable, Mapping, Sequence
 from functools import partial
 from types import ModuleType
-from typing import Any, ClassVar, NoReturn, TypeAlias, TypeVar
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeVar
 
 import equinox as eqx
 import jax
@@ -26,6 +25,10 @@ from dataclassish import fields, replace
 
 from .api import uconvert, ustrip
 from unxt._src.units.core import Unit, units
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
+
 
 FMT = TypeVar("FMT")
 ArrayLikeScalar: TypeAlias = np_bool | np_number | bool | int | float | complex
@@ -373,7 +376,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     def aval(self) -> jax.core.ShapedArray:
         return jax.core.get_aval(self.value)
 
-    def enable_materialise(self, _: bool = True) -> Self:  # noqa: FBT001, FBT002
+    def enable_materialise(self, _: bool = True) -> "Self":  # noqa: FBT001, FBT002
         return replace(self, value=self.value, unit=self.unit)
 
     # ===============================================================
@@ -510,7 +513,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     # ===============================================================
     # NumPy Compatibility
 
-    def __array__(self, **kwargs: Any) -> np.typing.NDArray:
+    def __array__(self, **kwargs: Any) -> np.typing.NDArray[Any]:
         """Return the array as a numpy array, stripping the units.
 
         Examples
