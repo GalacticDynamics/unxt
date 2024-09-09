@@ -2,9 +2,10 @@
 
 __all__: list[str] = []
 
-from dataclassish import replace
 from jaxtyping import Array
 from plum import conversion_method, dispatch
+
+from dataclassish import replace
 
 from .base import AbstractQuantity
 from .core import Quantity

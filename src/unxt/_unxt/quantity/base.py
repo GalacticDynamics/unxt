@@ -12,7 +12,6 @@ import equinox as eqx
 import jax
 import jax.core
 from astropy.units import CompositeUnit, UnitConversionError
-from dataclassish import fields, replace
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Shaped
 from numpy import bool_ as np_bool, dtype as DType, number as np_number  # noqa: N812
@@ -22,6 +21,7 @@ from quax import ArrayValue
 import quaxed.array_api as xp
 import quaxed.numpy as jnp
 import quaxed.operator as qoperator
+from dataclassish import fields, replace
 from quaxed.array_api._dispatch import dispatcher
 
 from .functional import uconvert, ustrip

@@ -1,11 +1,14 @@
 """Optional dependencies. Internal use only."""
 
-__all__ = ["HAS_ASTROPY", "HAS_GALA", "HAS_MATPLOTLIB"]
+__all__ = ["OptDeps"]
 
-from importlib.util import find_spec
+from optional_dependencies import OptionalDependencyEnum, auto
 
-HAS_ASTROPY: bool = find_spec("astropy") is not None
-HAS_GALA: bool = find_spec("gala") is not None
-HAS_MATPLOTLIB: bool = (find_spec("matplotlib") is not None) and (
-    find_spec("zeroth") is not None
-)
+
+class OptDeps(OptionalDependencyEnum):  # type: ignore[misc]
+    """Optional dependencies for ``unxt``."""
+
+    ASTROPY = auto()
+    GALA = auto()
+    MATPLOTLIB = auto()
+    ZEROTH = auto()

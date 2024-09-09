@@ -10,6 +10,7 @@ from typing import ClassVar, get_args, get_type_hints
 import astropy.units as u
 from astropy.units import PhysicalType as Dimension
 from astropy.units.physical import _physical_unit_mapping
+
 from is_annotated import isannotated
 
 from .utils import get_dimension_name
