@@ -3,16 +3,16 @@
 
 __all__: list[str] = []
 
-from . import optional_deps
+from .optional_deps import OptDeps
 
 # Register interoperability
-if optional_deps.HAS_ASTROPY:
+if OptDeps.ASTROPY.is_installed:
     from . import unxt_interop_astropy
 
-if optional_deps.HAS_GALA:
+if OptDeps.GALA.is_installed:
     from . import unxt_interop_gala
 
-if optional_deps.HAS_MATPLOTLIB:
+if OptDeps.MATPLOTLIB.is_installed and OptDeps.ZEROTH.is_installed:
     from . import unxt_interop_mpl as interop_mpl
 
     interop_mpl.setup_matplotlib_support_for_unxt(enable=True)
