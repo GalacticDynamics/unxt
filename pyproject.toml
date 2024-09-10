@@ -30,7 +30,7 @@
     "jax > 0.4",
     "jaxlib > 0.4",
     "jaxtyping",
-    "optional_dependencies >= 0.1",
+    "optional_dependencies >= 0.3",
     "quax>=0.0.3",
     "quaxed >= 0.5.2",
     "xmmutablemap",
