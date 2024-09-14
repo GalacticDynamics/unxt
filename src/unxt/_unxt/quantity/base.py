@@ -169,15 +169,6 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     """The unit associated with this value."""
 
     # ---------------------------------------------------------------
-    # Plum stuff
-
-    __faithful__: ClassVar[bool] = True
-    """Tells `plum` that this type can be cached more efficiently."""
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}({self.value!r}, unit={self.unit.to_string()!r})"
-
-    # ---------------------------------------------------------------
     # Constructors
 
     @classmethod
@@ -314,24 +305,6 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     # See below for additional constructors.
 
     # ===============================================================
-    # Quax
-
-    @property
-    def shape(self) -> tuple[int, ...]:
-        """Shape of the array."""
-        return self.value.shape
-
-    def materialise(self) -> NoReturn:
-        msg = "Refusing to materialise `Quantity`."
-        raise RuntimeError(msg)
-
-    def aval(self) -> jax.core.ShapedArray:
-        return jax.core.get_aval(self.value)
-
-    def enable_materialise(self, _: bool = True) -> Self:  # noqa: FBT001, FBT002
-        return replace(self, value=self.value, unit=self.unit)
-
-    # ===============================================================
     # Quantity API
 
     def to_units(self, u: Unit, /) -> "AbstractQuantity":
@@ -379,6 +352,33 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
 
         """
         return ustrip(u, self)
+
+    # ===============================================================
+    # Plum stuff
+
+    __faithful__: ClassVar[bool] = True
+    """Tells `plum` that this type can be cached more efficiently."""
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({self.value!r}, unit={self.unit.to_string()!r})"
+
+    # ===============================================================
+    # Quax
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        """Shape of the array."""
+        return self.value.shape
+
+    def materialise(self) -> NoReturn:
+        msg = "Refusing to materialise `Quantity`."
+        raise RuntimeError(msg)
+
+    def aval(self) -> jax.core.ShapedArray:
+        return jax.core.get_aval(self.value)
+
+    def enable_materialise(self, _: bool = True) -> Self:  # noqa: FBT001, FBT002
+        return replace(self, value=self.value, unit=self.unit)
 
     # ===============================================================
     # Array API
