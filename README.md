@@ -113,8 +113,6 @@ We welcome contributions!
 [actions-link]:             https://github.com/GalacticDynamics/unxt/actions
 [codecov-badge]:            https://codecov.io/gh/GalacticDynamics/unxt/graph/badge.svg
 [codecov-link]:             https://codecov.io/gh/GalacticDynamics/unxt
-[conda-badge]:              https://img.shields.io/conda/vn/conda-forge/unxt
-[conda-link]:               https://github.com/conda-forge/unxt-feedstock
 [pypi-link]:                https://pypi.org/project/unxt/
 [pypi-platforms]:           https://img.shields.io/pypi/pyversions/unxt
 [pypi-version]:             https://img.shields.io/pypi/v/unxt

@@ -103,7 +103,8 @@
   ]
   filterwarnings = [
     "error",
-    "ignore:ast\\.Str is deprecated and will be removed in Python 3\\.14:DeprecationWarning",
+    "ignore:ast\\.Str is deprecated and will be removed in Python 3\\.14:DeprecationWarning",  # from Sybil
+    "ignore:Attribute s is deprecated and will be removed in Python 3\\.14:DeprecationWarning",  # from Sybil
     # jax
     "ignore:jax\\.core\\.pp_eqn_rules is deprecated:DeprecationWarning",
   ]

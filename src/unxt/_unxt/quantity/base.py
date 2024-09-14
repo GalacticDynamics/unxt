@@ -11,6 +11,7 @@ from typing_extensions import Self
 import equinox as eqx
 import jax
 import jax.core
+import numpy as np
 from astropy.units import CompositeUnit, UnitConversionError
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Shaped
@@ -169,15 +170,6 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     """The unit associated with this value."""
 
     # ---------------------------------------------------------------
-    # Plum stuff
-
-    __faithful__: ClassVar[bool] = True
-    """Tells `plum` that this type can be cached more efficiently."""
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}({self.value!r}, unit={self.unit.to_string()!r})"
-
-    # ---------------------------------------------------------------
     # Constructors
 
     @classmethod
@@ -314,24 +306,6 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     # See below for additional constructors.
 
     # ===============================================================
-    # Quax
-
-    @property
-    def shape(self) -> tuple[int, ...]:
-        """Shape of the array."""
-        return self.value.shape
-
-    def materialise(self) -> NoReturn:
-        msg = "Refusing to materialise `Quantity`."
-        raise RuntimeError(msg)
-
-    def aval(self) -> jax.core.ShapedArray:
-        return jax.core.get_aval(self.value)
-
-    def enable_materialise(self, _: bool = True) -> Self:  # noqa: FBT001, FBT002
-        return replace(self, value=self.value, unit=self.unit)
-
-    # ===============================================================
     # Quantity API
 
     def to_units(self, u: Unit, /) -> "AbstractQuantity":
@@ -379,6 +353,33 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
 
         """
         return ustrip(u, self)
+
+    # ===============================================================
+    # Plum stuff
+
+    __faithful__: ClassVar[bool] = True
+    """Tells `plum` that this type can be cached more efficiently."""
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({self.value!r}, unit={self.unit.to_string()!r})"
+
+    # ===============================================================
+    # Quax
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        """Shape of the array."""
+        return self.value.shape
+
+    def materialise(self) -> NoReturn:
+        msg = "Refusing to materialise `Quantity`."
+        raise RuntimeError(msg)
+
+    def aval(self) -> jax.core.ShapedArray:
+        return jax.core.get_aval(self.value)
+
+    def enable_materialise(self, _: bool = True) -> Self:  # noqa: FBT001, FBT002
+        return replace(self, value=self.value, unit=self.unit)
 
     # ===============================================================
     # Array API
@@ -510,6 +511,24 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     @partial(property, doc=jax.Array.at.__doc__)
     def at(self) -> "_QuantityIndexUpdateHelper":
         return _QuantityIndexUpdateHelper(self)
+
+    # ===============================================================
+    # NumPy Compatibility
+
+    def __array__(self, **kwargs: Any) -> np.typing.NDArray:
+        """Return the array as a numpy array, stripping the units.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> import numpy as np
+
+        >>> q = Quantity(1.01, "m")
+        >>> np.array(q)
+        array(1.01, dtype=float32)
+
+        """
+        return np.asarray(ustrip(self.unit, self), **kwargs)
 
     # ===============================================================
     # Python stuff
