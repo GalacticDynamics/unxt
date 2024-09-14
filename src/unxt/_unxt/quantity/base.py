@@ -11,6 +11,7 @@ from typing_extensions import Self
 import equinox as eqx
 import jax
 import jax.core
+import numpy as np
 from astropy.units import CompositeUnit, UnitConversionError
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Shaped
@@ -510,6 +511,24 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     @partial(property, doc=jax.Array.at.__doc__)
     def at(self) -> "_QuantityIndexUpdateHelper":
         return _QuantityIndexUpdateHelper(self)
+
+    # ===============================================================
+    # NumPy Compatibility
+
+    def __array__(self, **kwargs: Any) -> np.typing.NDArray:
+        """Return the array as a numpy array, stripping the units.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> import numpy as np
+
+        >>> q = Quantity(1.01, "m")
+        >>> np.array(q)
+        array(1.01, dtype=float32)
+
+        """
+        return np.asarray(ustrip(self.unit, self), **kwargs)
 
     # ===============================================================
     # Python stuff
