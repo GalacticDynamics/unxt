@@ -16,6 +16,44 @@ from unxt._unxt.units.core import AbstractUnits, units
 from unxt._unxt.units.system.base import AbstractUnitSystem
 
 # ===================================================================
+# Get dimensions
+
+
+@dispatch  # type: ignore[misc]
+def dimensions_of(obj: AbstractQuantity, /) -> AbstractDimensions:
+    """Return the dimensions of a quantity.
+
+    Examples
+    --------
+    >>> from unxt import dimensions_of, Quantity
+    >>> q = Quantity(1, "m")
+    >>> dimensions_of(q)
+    PhysicalType('length')
+
+    """
+    return dimensions_of(obj.unit)
+
+
+# ===================================================================
+# Get units
+
+
+@dispatch  # type: ignore[misc]
+def units_of(obj: AbstractQuantity, /) -> AbstractUnits:
+    """Return the units of an object.
+
+    Examples
+    --------
+    >>> from unxt import units_of, Quantity
+    >>> q = Quantity(1, "m")
+    >>> units_of(q)
+    Unit("m")
+
+    """
+    return obj.unit
+
+
+# ===================================================================
 # Convert units
 
 
@@ -132,25 +170,6 @@ def ustrip(u: AbstractUnitSystem, x: AbstractQuantity, /) -> Array:
 
     """
     return ustrip(u[dimensions_of(x)], x)
-
-
-# ===================================================================
-# Get dimensions
-
-
-@dispatch  # type: ignore[misc]
-def dimensions_of(obj: AbstractQuantity, /) -> AbstractDimensions:
-    """Return the dimensions of a quantity.
-
-    Examples
-    --------
-    >>> from unxt import dimensions_of, Quantity
-    >>> q = Quantity(1, "m")
-    >>> dimensions_of(q)
-    PhysicalType('length')
-
-    """
-    return dimensions_of(obj.unit)
 
 
 #####################################################################
