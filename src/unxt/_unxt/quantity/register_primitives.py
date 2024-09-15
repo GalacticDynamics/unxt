@@ -1525,8 +1525,7 @@ def _dot_general_jq(
 ) -> AbstractQuantity:
     """Dot product of an array and a quantity.
 
-    >>> import jax.numpy as jnp
-    >>> import quaxed.array_api as xp
+    >>> import quaxed.numpy as jnp
     >>> from unxt import Quantity, UncheckedQuantity
 
     >>> theta = jnp.pi / 4  # 45 degrees
@@ -1535,16 +1534,17 @@ def _dot_general_jq(
     ...                   [0,              0,               1]])
 
     >>> q = UncheckedQuantity([1, 0, 0], "m")
-    >>> xp.linalg.matmul(Rz, q)
+    >>> jnp.linalg.matmul(Rz, q)
     UncheckedQuantity(Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
     >>> Rz @ q
     UncheckedQuantity(Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
 
     >>> q = Quantity([1, 0, 0], "m")
-    >>> xp.linalg.matmul(Rz, q)
+    >>> jnp.linalg.matmul(Rz, q)
     Quantity['length'](Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
     >>> Rz @ q
     Quantity['length'](Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
+
     """
     return type_np(rhs)(
         lax.dot_general_p.bind(lhs, rhs.value, **kwargs),
@@ -1562,12 +1562,12 @@ def _dot_general_qq(
     --------
     This is a dot product of two quantities.
 
-    >>> import quaxed.array_api as xp
+    >>> import quaxed.numpy as jnp
     >>> from unxt import UncheckedQuantity
 
     >>> q1 = UncheckedQuantity([1, 2, 3], "m")
     >>> q2 = UncheckedQuantity([4, 5, 6], "m")
-    >>> xp.vecdot(q1, q2)
+    >>> jnp.vecdot(q1, q2)
     UncheckedQuantity(Array(32, dtype=int32), unit='m2')
     >>> q1 @ q2
     UncheckedQuantity(Array(32, dtype=int32), unit='m2')
@@ -1576,7 +1576,7 @@ def _dot_general_qq(
 
     >>> q1 = Quantity([1, 2, 3], "m")
     >>> q2 = Quantity([4, 5, 6], "m")
-    >>> xp.vecdot(q1, q2)
+    >>> jnp.vecdot(q1, q2)
     Quantity['area'](Array(32, dtype=int32), unit='m2')
     >>> q1 @ q2
     Quantity['area'](Array(32, dtype=int32), unit='m2')
@@ -1585,23 +1585,23 @@ def _dot_general_qq(
 
     >>> q1 = Distance([1, 2, 3], "m")
     >>> q2 = Quantity([4, 5, 6], "m")
-    >>> xp.vecdot(q1, q2)
+    >>> jnp.vecdot(q1, q2)
     Quantity['area'](Array(32, dtype=int32), unit='m2')
     >>> q1 @ q2
     Quantity['area'](Array(32, dtype=int32), unit='m2')
 
     This rule is also used by `jnp.matmul` for quantities.
 
-    >>> Rz = xp.asarray([[0, -1,  0],
-    ...                  [1,  0,  0],
-    ...                  [0,  0,  1]])
+    >>> Rz = jnp.asarray([[0, -1,  0],
+    ...                   [1,  0,  0],
+    ...                   [0,  0,  1]])
     >>> q = Quantity([1, 0, 0], "m")
     >>> Rz @ q
     Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
 
     This uses `matmul` for quantities.
 
-    >>> xp.linalg.matmul(Rz, q)
+    >>> jnp.linalg.matmul(Rz, q)
     Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
 
     """
@@ -1622,28 +1622,28 @@ def _dot_general_dd(
     --------
     This is a dot product of two Distances.
 
-    >>> import quaxed.array_api as xp
+    >>> import quaxed.numpy as jnp
     >>> from unxt import Distance
 
     >>> q1 = Distance([1, 2, 3], "m")
     >>> q2 = Distance([4, 5, 6], "m")
-    >>> xp.vecdot(q1, q2)
+    >>> jnp.vecdot(q1, q2)
     Quantity['area'](Array(32, dtype=int32), unit='m2')
     >>> q1 @ q2
     Quantity['area'](Array(32, dtype=int32), unit='m2')
 
     This rule is also used by `jnp.matmul` for quantities.
 
-    >>> Rz = xp.asarray([[0, -1,  0],
-    ...                  [1,  0,  0],
-    ...                  [0,  0,  1]])
+    >>> Rz = jnp.asarray([[0, -1,  0],
+    ...                   [1,  0,  0],
+    ...                   [0,  0,  1]])
     >>> q = Quantity([1, 0, 0], "m")
     >>> Rz @ q
     Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
 
     This uses `matmul` for quantities.
 
-    >>> xp.linalg.matmul(Rz, q)
+    >>> jnp.linalg.matmul(Rz, q)
     Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
 
     """
@@ -3149,7 +3149,7 @@ def _select_n_p_vq(
 def _select_n_p_jjq(
     which: ArrayLike, case0: ArrayLike, case1: AbstractQuantity
 ) -> AbstractQuantity:
-    # Used by a `xp.linalg.trace`
+    # Used by a `jnp.linalg.trace`
     return replace(case1, value=lax.select_n(which, case0, case1.value))
 
 
