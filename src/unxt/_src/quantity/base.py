@@ -28,7 +28,7 @@ from unxt._src.units import unit as parse_unit
 from unxt._src.units.core import AbstractUnits
 
 if TYPE_CHECKING:
-    from typing_extensions import Self
+    from typing import Self
 
 
 FMT = TypeVar("FMT")

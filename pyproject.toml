@@ -3,7 +3,7 @@
   dynamic = ["version"]
   description = "Quantities in JAX"
   readme = "README.md"
-  requires-python = ">=3.10,<3.14"
+  requires-python = ">=3.11,<3.14"
   authors = [
     { name = "GalacticDynamics", email = "nstarman@users.noreply.github.com" },
     { name = "Nathaniel Starkman", email = "nstarman@users.noreply.github.com" },
@@ -17,7 +17,6 @@
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -27,7 +26,7 @@
   ]
   license.file = "LICENSE"
   dependencies = [
-    "astropy>=6.0",
+    "astropy>=7.0.0",
     "dataclassish>=0.3",
     "equinox>=0.11.8",
     "is-annotated>=1.0",
@@ -133,7 +132,7 @@
   disallow_untyped_defs    = false
   enable_error_code        = ["ignore-without-code", "redundant-expr", "truthy-bool"]
   files                    = ["src", "tests"]
-  python_version           = "3.10"
+  python_version           = "3.11"
   strict                   = true
   warn_return_any          = false
   warn_unreachable         = true
@@ -238,7 +237,7 @@
     "wrong-import-order",         # handled by ruff
     "wrong-import-position",
   ]
-  py-version = "3.10"
+  py-version = "3.11"
   reports.output-format = "colorized"
   similarities.ignore-imports = "yes"
 
