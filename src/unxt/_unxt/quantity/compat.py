@@ -291,7 +291,7 @@ def _quantity_to_distmod(q: AbstractQuantity, /) -> DistanceModulus:
     >>> from unxt import Quantity, DistanceModulus
     >>> q = Quantity(1, "mag")
     >>> q
-    Quantity['mag'](Array(1, dtype=int32, ...), unit='mag')
+    Quantity['dex'](Array(1, dtype=int32, ...), unit='mag')
 
     >>> convert(q, DistanceModulus)
     DistanceModulus(Array(1, dtype=int32, ...), unit='mag')
