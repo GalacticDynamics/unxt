@@ -36,9 +36,9 @@ T = TypeVar("T")
 Axes: TypeAlias = tuple[int, ...]
 
 
-def register(primitive: Primitive) -> Callable[[T], T]:
+def register(primitive: Primitive, **kwargs: Any) -> Callable[[T], T]:
     """:func`quax.register`, but makes mypy happy."""
-    return register_(primitive)
+    return register_(primitive, **kwargs)
 
 
 def _to_value_rad_or_one(q: AbstractQuantity) -> ArrayLike:
@@ -992,7 +992,7 @@ def _concatenate_p_aq(*operands: AbstractQuantity, dimension: Any) -> AbstractQu
 # ---------------------------
 
 
-@register(lax.concatenate_p)
+@register(lax.concatenate_p, precedence=1)
 def _concatenate_p_qnd(
     operand0: AbstractParametricQuantity["dimensionless"],
     *operands: AbstractParametricQuantity["dimensionless"] | ArrayLike,
