@@ -5,7 +5,8 @@ __all__ = ["AbstractQuantity", "can_convert_unit"]
 
 from collections.abc import Callable, Mapping, Sequence
 from functools import partial
-from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeVar
+from types import ModuleType
+from typing import Any, ClassVar, NoReturn, TypeAlias, TypeVar
 from typing_extensions import Self
 
 import equinox as eqx
@@ -16,21 +17,15 @@ from astropy.units import CompositeUnit, UnitConversionError
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Shaped
 from numpy import bool_ as np_bool, dtype as DType, number as np_number  # noqa: N812
-from plum import add_promotion_rule
+from plum import add_promotion_rule, dispatch
 from quax import ArrayValue
 
-import quaxed.array_api as xp
 import quaxed.numpy as jnp
 import quaxed.operator as qoperator
 from dataclassish import fields, replace
-from quaxed.array_api._dispatch import dispatcher
 
 from .functional import uconvert, ustrip
 from unxt._unxt.units.core import Unit, units
-
-if TYPE_CHECKING:
-    from array_api import ArrayAPINamespace
-
 
 FMT = TypeVar("FMT")
 ArrayLikeScalar: TypeAlias = np_bool | np_number | bool | int | float | complex
@@ -173,7 +168,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     # Constructors
 
     @classmethod
-    @dispatcher
+    @dispatch
     def constructor(
         cls: "type[AbstractQuantity]",
         value: ArrayLike | ArrayLikeSequence,
@@ -219,10 +214,10 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         """
         # Dispatch on both arguments.
         # Construct using the standard `__init__` method.
-        return cls(xp.asarray(value, dtype=dtype), unit)
+        return cls(jnp.asarray(value, dtype=dtype), unit)
 
     @classmethod  # type: ignore[no-redef]
-    @dispatcher
+    @dispatch
     def constructor(
         cls: "type[AbstractQuantity]",
         value: ArrayLike | ArrayLikeSequence,
@@ -247,7 +242,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         return cls.constructor(value, unit, dtype=dtype)
 
     @classmethod  # type: ignore[no-redef]
-    @dispatcher
+    @dispatch
     def constructor(
         cls: "type[AbstractQuantity]", *, value: Any, unit: Any, dtype: Any = None
     ) -> "AbstractQuantity":
@@ -267,7 +262,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         return cls.constructor(value, unit, dtype=dtype)
 
     @classmethod  # type: ignore[no-redef]
-    @dispatcher
+    @dispatch
     def constructor(
         cls: "type[AbstractQuantity]", mapping: Mapping[str, Any]
     ) -> "AbstractQuantity":
@@ -384,8 +379,8 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     # ===============================================================
     # Array API
 
-    def __array_namespace__(self, *, api_version: Any = None) -> "ArrayAPINamespace":
-        return xp
+    def __array_namespace__(self, *, api_version: Any = None) -> ModuleType:
+        return jnp
 
     def __getitem__(self, key: Any) -> "AbstractQuantity":
         return replace(self, value=self.value[key])
@@ -442,7 +437,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     @property
     def mT(self) -> "AbstractQuantity":  # noqa: N802
         """Transpose of the array."""
-        return replace(self, value=xp.matrix_transpose(self.value))
+        return replace(self, value=jnp.matrix_transpose(self.value))
 
     @property
     def ndim(self) -> int:
@@ -486,7 +481,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         __tracebackhide__ = True  # pylint: disable=unused-variable
         return replace(self, value=self.value.reshape(*args, order=order))
 
-    @dispatcher  # type: ignore[misc]
+    @dispatch  # type: ignore[misc]
     def __mod__(self: "AbstractQuantity", other: Any) -> "AbstractQuantity":
         """Take the modulus.
 
@@ -577,7 +572,7 @@ def constructor(
     Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
 
     """
-    value = xp.asarray(uconvert(unit, value), dtype=dtype)
+    value = jnp.asarray(uconvert(unit, value), dtype=dtype)
     return cls(value.value, unit)
 
 
@@ -603,7 +598,7 @@ def constructor(
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
-    value = xp.asarray(value, dtype=dtype)
+    value = jnp.asarray(value, dtype=dtype)
     return cls(value.value, value.unit)
 
 
@@ -618,7 +613,7 @@ def constructor(
 ) -> AbstractQuantity:
     """Construct a `Quantity` from another `Quantity`, with no unit change."""
     unit = value.unit if unit is None else unit
-    value = xp.asarray(uconvert(unit, value), dtype=dtype)
+    value = jnp.asarray(uconvert(unit, value), dtype=dtype)
     return cls(value.value, unit)
 
 

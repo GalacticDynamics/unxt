@@ -10,9 +10,7 @@ import jax
 import jax.core
 from astropy.units import PhysicalType as Dimensions, Unit
 from jaxtyping import Array, ArrayLike, Shaped
-from plum import parametric
-
-from quaxed.array_api._dispatch import dispatcher
+from plum import dispatch, parametric
 
 from .base import AbstractQuantity
 from unxt._unxt.dimensions.core import dimensions, dimensions_of
@@ -50,13 +48,13 @@ class AbstractParametricQuantity(AbstractQuantity):
     # Plum stuff
 
     @classmethod
-    @dispatcher
+    @dispatch
     def __init_type_parameter__(cls, dims: Dimensions, /) -> tuple[Dimensions]:
         """Check whether the type parameters are valid."""
         return (dims,)
 
     @classmethod  # type: ignore[no-redef]
-    @dispatcher
+    @dispatch
     def __init_type_parameter__(cls, dims: str, /) -> tuple[Dimensions]:
         """Check whether the type parameters are valid."""
         dims_: Dimensions
@@ -67,7 +65,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         return (dims_,)
 
     @classmethod  # type: ignore[no-redef]
-    @dispatcher
+    @dispatch
     def __init_type_parameter__(cls, unit: UnitTypes, /) -> tuple[Dimensions]:
         """Infer the type parameter from the arguments."""
         dims = dimensions_of(unit)
@@ -81,7 +79,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         return (dimensions_of(units(unit)),)
 
     @classmethod
-    @dispatcher  # type: ignore[misc]
+    @dispatch  # type: ignore[misc]
     def __le_type_parameter__(
         cls, left: tuple[Dimensions], right: tuple[Dimensions]
     ) -> bool:

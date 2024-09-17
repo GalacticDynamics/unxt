@@ -8,7 +8,7 @@ from astropy.coordinates import Angle as AstropyAngle, Distance as AstropyDistan
 from astropy.units import Quantity as AstropyQuantity
 from plum import conversion_method
 
-import quaxed.array_api as xp
+import quaxed.numpy as jnp
 
 from unxt import (  # type: ignore[attr-defined]
     AbstractQuantity,
@@ -43,7 +43,7 @@ def constructor(
     Quantity['length'](Array(1., dtype=float32), unit='m')
 
     """
-    return cls(xp.asarray(value.value, **kwargs), value.unit)
+    return cls(jnp.asarray(value.value, **kwargs), value.unit)
 
 
 @AbstractQuantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
@@ -63,7 +63,7 @@ def constructor(
     Quantity['length'](Array(100., dtype=float32), unit='cm')
 
     """
-    return cls(xp.asarray(value.to_value(unit), **kwargs), unit)
+    return cls(jnp.asarray(value.to_value(unit), **kwargs), unit)
 
 
 # -----------------
