@@ -13,9 +13,9 @@ from jaxtyping import Array, ArrayLike, Shaped
 from plum import dispatch, parametric
 
 from .base import AbstractQuantity
-from unxt._unxt.dimensions.core import dimensions, dimensions_of
-from unxt._unxt.typing_ext import Unit as UnitTypes
-from unxt._unxt.units.core import units
+from unxt._src.dimensions.core import dimensions, dimensions_of
+from unxt._src.typing_ext import Unit as UnitTypes
+from unxt._src.units.core import units
 
 
 @parametric

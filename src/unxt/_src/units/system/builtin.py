@@ -13,7 +13,7 @@ from astropy.units import dimensionless_unscaled
 
 from . import builtin_dimensions as ud  # noqa: TCH001
 from .base import AbstractUnitSystem
-from unxt._unxt.utils import SingletonMixin
+from unxt._src.utils import SingletonMixin
 
 Unit: TypeAlias = u.UnitBase
 

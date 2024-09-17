@@ -29,7 +29,7 @@ from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
 from .distance import AbstractDistance
 from .functional import uconvert, ustrip
-from unxt._unxt.units.core import units
+from unxt._src.units.core import units
 
 T = TypeVar("T")
 

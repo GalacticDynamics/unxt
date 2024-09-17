@@ -14,8 +14,8 @@ from astropy.units.physical import _physical_unit_mapping
 from is_annotated import isannotated
 
 from .utils import get_dimension_name
-from unxt._unxt.typing_ext import Unit as UnitT
-from unxt._unxt.units.core import units
+from unxt._src.typing_ext import Unit as UnitT
+from unxt._src.units.core import units
 
 Unit = u.UnitBase
 
