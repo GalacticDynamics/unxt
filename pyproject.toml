@@ -32,7 +32,7 @@
     "jaxtyping",
     "optional_dependencies >= 0.3",
     "quax>=0.0.3",
-    "quaxed >= 0.6.1",
+    "quaxed >= 0.6.2",
     "xmmutablemap",
     # Pinned for above dependencies
     "plum-dispatch >= 2.4.3",
