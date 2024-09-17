@@ -31,7 +31,7 @@
     "jaxlib > 0.4",
     "jaxtyping",
     "optional_dependencies >= 0.3",
-    "quax>=0.0.3",
+    "quax>=0.0.5",
     "quaxed >= 0.6.2",
     "xmmutablemap",
     # Pinned for above dependencies
@@ -103,8 +103,8 @@
   ]
   filterwarnings = [
     "error",
-    "ignore:ast\\.Str is deprecated and will be removed in Python 3\\.14:DeprecationWarning",  # from Sybil
-    "ignore:Attribute s is deprecated and will be removed in Python 3\\.14:DeprecationWarning",  # from Sybil
+    "ignore:Attribute s is deprecated and will be removed in Python 3\\.14:DeprecationWarning", # from Sybil
+    "ignore:ast\\.Str is deprecated and will be removed in Python 3\\.14:DeprecationWarning",   # from Sybil
     # jax
     "ignore:jax\\.core\\.pp_eqn_rules is deprecated:DeprecationWarning",
   ]
@@ -186,10 +186,16 @@
       "tests/**"     = ["ANN", "S101", "SLF001", "T20"]
 
     [tool.ruff.lint.isort]
-      combine-as-imports     = true
+      combine-as-imports = true
       extra-standard-library = ["typing_extensions"]
-      known-first-party      = ["dataclassish", "is_annotated", "optional_dependencies", "quaxed", "xmmutablemap"]
-      known-local-folder     = ["unxt"]
+      known-first-party = [
+        "dataclassish",
+        "is_annotated",
+        "optional_dependencies",
+        "quaxed",
+        "xmmutablemap",
+      ]
+      known-local-folder = ["unxt"]
 
 
 [tool.pylint]
