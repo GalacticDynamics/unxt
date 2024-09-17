@@ -6,9 +6,8 @@ from typing import Any
 import jax
 import jax.numpy as jax_xp
 from jaxtyping import ArrayLike
+from plum import dispatch
 from plum.parametric import type_unparametrized as type_np
-
-from quaxed.numpy._dispatch import dispatcher
 
 from .base import AbstractQuantity
 from .core import Quantity
@@ -17,7 +16,7 @@ from .functional import ustrip
 # -----------------------------------------------
 
 
-@dispatcher  # type: ignore[misc]
+@dispatch  # type: ignore[misc]
 def arange(
     start: AbstractQuantity,
     stop: AbstractQuantity | None = None,
@@ -63,7 +62,7 @@ def arange(
 # -----------------------------------------------
 
 
-@dispatcher  # type: ignore[misc]
+@dispatch  # type: ignore[misc]
 def empty_like(
     x: AbstractQuantity, /, *, device: Any = None, **kwargs: Any
 ) -> AbstractQuantity:
@@ -87,7 +86,7 @@ def empty_like(
 # -----------------------------------------------
 
 
-@dispatcher
+@dispatch
 def full_like(
     x: AbstractQuantity, /, *, fill_value: Any, **kwargs: Any
 ) -> AbstractQuantity:
@@ -108,7 +107,7 @@ def full_like(
     return full_like(x, fill_value, **kwargs)
 
 
-@dispatcher  # type: ignore[no-redef]
+@dispatch  # type: ignore[no-redef]
 def full_like(
     x: AbstractQuantity, fill_value: ArrayLike, /, **kwargs: Any
 ) -> AbstractQuantity:
@@ -128,7 +127,7 @@ def full_like(
     return type_np(x)(jax_xp.full_like(x.value, fill_value, **kwargs), unit=x.unit)
 
 
-@dispatcher  # type: ignore[no-redef]
+@dispatch  # type: ignore[no-redef]
 def full_like(
     x: AbstractQuantity, fill_value: AbstractQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
@@ -152,7 +151,7 @@ def full_like(
 # -----------------------------------------------
 
 
-@dispatcher
+@dispatch
 def linspace(start: Quantity, stop: Quantity, num: Any, /, **kwargs: Any) -> Quantity:
     """Return evenly spaced values within a given interval.
 
@@ -174,7 +173,7 @@ def linspace(start: Quantity, stop: Quantity, num: Any, /, **kwargs: Any) -> Qua
     )
 
 
-@dispatcher
+@dispatch
 def linspace(start: Quantity, stop: Quantity, /, **kwargs: Any) -> Quantity:
     """Return evenly spaced values within a given interval.
 
@@ -198,7 +197,7 @@ def linspace(start: Quantity, stop: Quantity, /, **kwargs: Any) -> Quantity:
 # -----------------------------------------------
 
 
-@dispatcher  # type: ignore[misc]
+@dispatch  # type: ignore[misc]
 def ones_like(
     x: AbstractQuantity, /, *, device: Any = None, **kwargs: Any
 ) -> AbstractQuantity:
@@ -222,7 +221,7 @@ def ones_like(
 # -----------------------------------------------
 
 
-@dispatcher  # type: ignore[misc]
+@dispatch  # type: ignore[misc]
 def zeros_like(
     x: AbstractQuantity, /, *, device: Any = None, **kwargs: Any
 ) -> AbstractQuantity:
