@@ -23,7 +23,7 @@ class UncheckedQuantity(AbstractQuantity):
 
         >>> from unxt import UncheckedQuantity
         >>> UncheckedQuantity["length"]
-        <class 'unxt._unxt.quantity.fast.UncheckedQuantity'>
+        <class 'unxt._src.quantity.fast.UncheckedQuantity'>
 
         """
         return cls

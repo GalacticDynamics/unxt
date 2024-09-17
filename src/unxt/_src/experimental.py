@@ -20,7 +20,7 @@ from plum.parametric import type_unparametrized
 
 from .quantity.core import Quantity
 from .typing_ext import Unit
-from unxt._unxt.quantity.functional import ustrip
+from unxt._src.quantity.functional import ustrip
 
 P = ParamSpec("P")
 R = TypeVar("R", bound=Quantity)

@@ -25,7 +25,7 @@ import quaxed.operator as qoperator
 from dataclassish import fields, replace
 
 from .functional import uconvert, ustrip
-from unxt._unxt.units.core import Unit, units
+from unxt._src.units.core import Unit, units
 
 FMT = TypeVar("FMT")
 ArrayLikeScalar: TypeAlias = np_bool | np_number | bool | int | float | complex

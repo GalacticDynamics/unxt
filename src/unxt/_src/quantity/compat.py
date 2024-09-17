@@ -11,9 +11,9 @@ from .base import AbstractQuantity
 from .core import Quantity
 from .distance import Distance, DistanceModulus, Parallax
 from .fast import UncheckedQuantity
-from unxt._unxt.dimensions.core import AbstractDimensions
-from unxt._unxt.units.core import AbstractUnits, units
-from unxt._unxt.units.system.base import AbstractUnitSystem
+from unxt._src.dimensions.core import AbstractDimensions
+from unxt._src.units.core import AbstractUnits, units
+from unxt._src.units.system.base import AbstractUnitSystem
 
 # ===================================================================
 # Get dimensions

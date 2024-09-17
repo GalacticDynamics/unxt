@@ -9,8 +9,8 @@ from astropy.units import PhysicalType as Dimension
 from plum import dispatch
 
 from . import builtin_dimensions as bdims
-from unxt._unxt.dimensions.core import dimensions_of
-from unxt._unxt.typing_ext import Unit
+from unxt._src.dimensions.core import dimensions_of
+from unxt._src.typing_ext import Unit
 
 # ------------------------------------
 
@@ -29,7 +29,7 @@ def get_dimension_name(pt: str, /) -> str:
 
     Examples
     --------
-    >>> from unxt._unxt.units.system.utils import get_dimension_name
+    >>> from unxt._src.units.system.utils import get_dimension_name
 
     >>> get_dimension_name("length")
     'length'
@@ -56,7 +56,7 @@ def get_dimension_name(pt: Dimension, /) -> str:
 
     Examples
     --------
-    >>> from unxt._unxt.units.system.utils import get_dimension_name
+    >>> from unxt._src.units.system.utils import get_dimension_name
     >>> import astropy.units as u
     >>> get_dimension_name(u.get_physical_type("length"))
     'length'
@@ -81,7 +81,7 @@ def get_dimension_name(pt: Unit, /) -> str:
 
     Examples
     --------
-    >>> from unxt._unxt.units.system.utils import get_dimension_name
+    >>> from unxt._src.units.system.utils import get_dimension_name
     >>> import astropy.units as u
     >>> get_dimension_name(u.km)
     'length'

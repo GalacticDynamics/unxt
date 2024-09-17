@@ -23,7 +23,7 @@ from unxt.unitsystems import (
 def clean_unitsystems_registry(monkeypatch):
     clean_registry = {}
     monkeypatch.setattr(
-        "unxt._unxt.units.system.base._UNITSYSTEMS_REGISTRY", clean_registry
+        "unxt._src.units.system.base._UNITSYSTEMS_REGISTRY", clean_registry
     )
     return clean_registry
 

@@ -4,13 +4,13 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
 from . import unitsystems
-from ._unxt import (
+from ._src import (
     experimental,  # noqa: F401
     quantity,
 )
-from ._unxt.dimensions.core import dimensions, dimensions_of
-from ._unxt.quantity import *
-from ._unxt.units.core import units, units_of
+from ._src.dimensions.core import dimensions, dimensions_of
+from ._src.quantity import *
+from ._src.units.core import units, units_of
 from ._version import version as __version__
 from .unitsystems import AbstractUnitSystem, unitsystem, unitsystem_of
 
