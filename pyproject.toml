@@ -32,7 +32,7 @@
     "jaxtyping",
     "optional_dependencies >= 0.3",
     "quax>=0.0.3",
-    "quaxed >= 0.5.3",
+    "quaxed >= 0.6.1",
     "xmmutablemap",
     # Pinned for above dependencies
     "plum-dispatch >= 2.4.3",
@@ -138,7 +138,6 @@
   [[tool.mypy.overrides]]
     ignore_missing_imports = true
     module = [
-      "array_api.*",
       "astropy.*",
       "equinox.*",
       "hypothesis.*",

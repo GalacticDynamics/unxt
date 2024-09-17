@@ -12,7 +12,6 @@ import equinox as eqx
 import jax.numpy as jnp
 from plum import add_promotion_rule, conversion_method
 
-import quaxed.array_api as xp
 import quaxed.numpy as jnp
 
 from .base import AbstractQuantity
@@ -142,7 +141,7 @@ class Distance(AbstractDistance):
         DistanceModulus(Array(0., dtype=float32), unit='mag')
 
         """
-        return DistanceModulus(5 * xp.log10(self / base_length).value, "mag")
+        return DistanceModulus(5 * jnp.log10(self / base_length).value, "mag")
 
 
 ##############################################################################
@@ -214,7 +213,7 @@ class Parallax(AbstractDistance):
         Distance(Array(1., dtype=float32, ...), unit='kpc')
 
         """
-        v = base_length / xp.tan(self)
+        v = base_length / jnp.tan(self)
         return Distance(v.value, v.unit)
 
     @property
@@ -334,8 +333,8 @@ def constructor(
     Distance(Array(1., dtype=float32, ...), unit='kpc')
 
     """
-    d = parallax_base_length / xp.tan(value)
-    return cls(xp.asarray(d.value, dtype=dtype), d.unit)
+    d = parallax_base_length / jnp.tan(value)
+    return cls(jnp.asarray(d.value, dtype=dtype), d.unit)
 
 
 @Distance.constructor._f.register  # type: ignore[no-redef]  # noqa: SLF001
@@ -360,7 +359,7 @@ def constructor(
 
     """
     d = 10 ** (ustrip("mag", value) / 5 + 1)
-    return cls(xp.asarray(d, dtype=dtype), "pc")
+    return cls(jnp.asarray(d, dtype=dtype), "pc")
 
 
 @Parallax.constructor._f.register  # type: ignore[no-redef]  # noqa: SLF001
@@ -381,5 +380,5 @@ def constructor(
     Parallax(Array(1000., dtype=float32, ...), unit='mas')
 
     """
-    p = xp.atan2(parallax_base_length, value)
-    return cls(xp.asarray(p.value, dtype=dtype), p.unit)
+    p = jnp.atan2(parallax_base_length, value)
+    return cls(jnp.asarray(p.value, dtype=dtype), p.unit)

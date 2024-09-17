@@ -4,8 +4,7 @@
 
 import astropy.units as u
 import jax
-import jax.experimental.array_api as jax_xp
-import jax.numpy as jnp
+import jax.numpy as jax_xp
 import numpy as np
 import pytest
 from hypothesis import example, given, strategies as st
@@ -14,7 +13,6 @@ from hypothesis.extra.numpy import array_shapes as np_array_shapes, arrays as np
 from jax.dtypes import canonicalize_dtype
 from plum import convert
 
-import quaxed.array_api
 import quaxed.numpy as jnp
 
 from unxt import Quantity, can_convert_unit
@@ -112,7 +110,7 @@ def test_unit(unit):
 
 def test_array_namespace():
     """Test the array namespace."""
-    assert Quantity(1, u.m).__array_namespace__() is quaxed.array_api
+    assert Quantity(1, u.m).__array_namespace__() is jnp
 
 
 def test_to_units():

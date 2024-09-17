@@ -1,38 +1,23 @@
+"""Register dispatches for `quaxed.numpy`."""
 # pylint: disable=import-error
 
-from collections.abc import Callable
 from typing import Any
 
 import jax
-import jax.core
-import jax.experimental.array_api as jax_xp
+import jax.numpy as jax_xp
 from jaxtyping import ArrayLike
-from plum import Dispatcher, Function
 from plum.parametric import type_unparametrized as type_np
 
-from quaxed.array_api._dispatch import dispatcher as xp_dispatcher
-from quaxed.numpy._dispatch import dispatcher as np_dispatcher
+from quaxed.numpy._dispatch import dispatcher
 
 from .base import AbstractQuantity
 from .core import Quantity
 from .functional import ustrip
 
-
-def chain_dispatchers(*dispatchers: Dispatcher) -> Callable[[Any], Function]:
-    """Apply many dispatchers to a function."""
-
-    def decorator(method: Any) -> Function:
-        for dispatcher in dispatchers:
-            f = dispatcher(method)
-        return f
-
-    return decorator
-
-
 # -----------------------------------------------
 
 
-@chain_dispatchers(np_dispatcher, xp_dispatcher)
+@dispatcher  # type: ignore[misc]
 def arange(
     start: AbstractQuantity,
     stop: AbstractQuantity | None = None,
@@ -50,16 +35,16 @@ def arange(
 
     Examples
     --------
-    >>> import quaxed.array_api as xp
+    >>> import quaxed.numpy as jnp
     >>> from unxt import Quantity
 
-    >>> xp.arange(Quantity(5, "m"))
+    >>> jnp.arange(Quantity(5, "m"))
     Quantity['length'](Array([0, 1, 2, 3, 4], dtype=int32), unit='m')
 
-    >>> xp.arange(Quantity(5, "m"), Quantity(10, "m"))
+    >>> jnp.arange(Quantity(5, "m"), Quantity(10, "m"))
     Quantity['length'](Array([5, 6, 7, 8, 9], dtype=int32), unit='m')
 
-    >>> xp.arange(Quantity(5, "m"), Quantity(10, "m"), Quantity(2, "m"))
+    >>> jnp.arange(Quantity(5, "m"), Quantity(10, "m"), Quantity(2, "m"))
     Quantity['length'](Array([5, 7, 9], dtype=int32), unit='m')
 
     """
@@ -78,7 +63,7 @@ def arange(
 # -----------------------------------------------
 
 
-@chain_dispatchers(np_dispatcher, xp_dispatcher)
+@dispatcher  # type: ignore[misc]
 def empty_like(
     x: AbstractQuantity, /, *, device: Any = None, **kwargs: Any
 ) -> AbstractQuantity:
@@ -88,10 +73,10 @@ def empty_like(
 
     Examples
     --------
-    >>> import quaxed.array_api as xp
+    >>> import quaxed.numpy as jnp
     >>> from unxt import Quantity
 
-    >>> xp.empty_like(Quantity(5, "m"))
+    >>> jnp.empty_like(Quantity(5, "m"))
     Quantity['length'](Array(0, dtype=int32, ...), unit='m')
 
     """
@@ -102,7 +87,7 @@ def empty_like(
 # -----------------------------------------------
 
 
-@chain_dispatchers(np_dispatcher, xp_dispatcher)
+@dispatcher
 def full_like(
     x: AbstractQuantity, /, *, fill_value: Any, **kwargs: Any
 ) -> AbstractQuantity:
@@ -112,10 +97,10 @@ def full_like(
 
     Examples
     --------
-    >>> import quaxed.array_api as xp
+    >>> import quaxed.numpy as jnp
     >>> from unxt import Quantity
 
-    >>> xp.full_like(Quantity(5, "m"), fill_value=Quantity(10, "m"))
+    >>> jnp.full_like(Quantity(5, "m"), fill_value=Quantity(10, "m"))
     Quantity['length'](Array(10, dtype=int32, ...), unit='m')
 
     """
@@ -123,7 +108,7 @@ def full_like(
     return full_like(x, fill_value, **kwargs)
 
 
-@chain_dispatchers(np_dispatcher, xp_dispatcher)  # type: ignore[no-redef]
+@dispatcher  # type: ignore[no-redef]
 def full_like(
     x: AbstractQuantity, fill_value: ArrayLike, /, **kwargs: Any
 ) -> AbstractQuantity:
@@ -133,17 +118,17 @@ def full_like(
 
     Examples
     --------
-    >>> import quaxed.array_api as xp
+    >>> import quaxed.numpy as jnp
     >>> from unxt import Quantity
 
-    >>> xp.full_like(Quantity(5, "m"), 100.0)
+    >>> jnp.full_like(Quantity(5, "m"), 100.0)
     Quantity['length'](Array(100, dtype=int32, ...), unit='m')
 
     """
     return type_np(x)(jax_xp.full_like(x.value, fill_value, **kwargs), unit=x.unit)
 
 
-@chain_dispatchers(np_dispatcher, xp_dispatcher)  # type: ignore[no-redef]
+@dispatcher  # type: ignore[no-redef]
 def full_like(
     x: AbstractQuantity, fill_value: AbstractQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
@@ -153,10 +138,10 @@ def full_like(
 
     Examples
     --------
-    >>> import quaxed.array_api as xp
+    >>> import quaxed.numpy as jnp
     >>> from unxt import Quantity
 
-    >>> xp.full_like(Quantity(5, "m"), Quantity(10, "m"))
+    >>> jnp.full_like(Quantity(5, "m"), Quantity(10, "m"))
     Quantity['length'](Array(10, dtype=int32, ...), unit='m')
 
     """
@@ -167,7 +152,7 @@ def full_like(
 # -----------------------------------------------
 
 
-@chain_dispatchers(np_dispatcher, xp_dispatcher)
+@dispatcher
 def linspace(start: Quantity, stop: Quantity, num: Any, /, **kwargs: Any) -> Quantity:
     """Return evenly spaced values within a given interval.
 
@@ -175,10 +160,10 @@ def linspace(start: Quantity, stop: Quantity, num: Any, /, **kwargs: Any) -> Qua
 
     Examples
     --------
-    >>> import quaxed.array_api as xp
+    >>> import quaxed.numpy as jnp
     >>> from unxt import Quantity
 
-    >>> xp.linspace(Quantity(0, "m"), Quantity(10, "m"), 5)
+    >>> jnp.linspace(Quantity(0, "m"), Quantity(10, "m"), 5)
     Quantity['length'](Array([ 0. ,  2.5,  5. ,  7.5, 10. ], dtype=float32), unit='m')
 
     """
@@ -189,7 +174,7 @@ def linspace(start: Quantity, stop: Quantity, num: Any, /, **kwargs: Any) -> Qua
     )
 
 
-@chain_dispatchers(np_dispatcher, xp_dispatcher)
+@dispatcher
 def linspace(start: Quantity, stop: Quantity, /, **kwargs: Any) -> Quantity:
     """Return evenly spaced values within a given interval.
 
@@ -197,10 +182,10 @@ def linspace(start: Quantity, stop: Quantity, /, **kwargs: Any) -> Quantity:
 
     Examples
     --------
-    >>> import quaxed.array_api as xp
+    >>> import quaxed.numpy as jnp
     >>> from unxt import Quantity
 
-    >>> xp.linspace(Quantity(0, "m"), Quantity(10, "m"), num=5)
+    >>> jnp.linspace(Quantity(0, "m"), Quantity(10, "m"), num=5)
     Quantity['length'](Array([ 0. ,  2.5,  5. ,  7.5, 10. ], dtype=float32), unit='m')
 
     """
@@ -213,7 +198,7 @@ def linspace(start: Quantity, stop: Quantity, /, **kwargs: Any) -> Quantity:
 # -----------------------------------------------
 
 
-@chain_dispatchers(np_dispatcher, xp_dispatcher)
+@dispatcher  # type: ignore[misc]
 def ones_like(
     x: AbstractQuantity, /, *, device: Any = None, **kwargs: Any
 ) -> AbstractQuantity:
@@ -223,10 +208,10 @@ def ones_like(
 
     Examples
     --------
-    >>> import quaxed.array_api as xp
+    >>> import quaxed.numpy as jnp
     >>> from unxt import Quantity
 
-    >>> xp.ones_like(Quantity(5, "m"))
+    >>> jnp.ones_like(Quantity(5, "m"))
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
@@ -237,7 +222,7 @@ def ones_like(
 # -----------------------------------------------
 
 
-@chain_dispatchers(np_dispatcher, xp_dispatcher)
+@dispatcher  # type: ignore[misc]
 def zeros_like(
     x: AbstractQuantity, /, *, device: Any = None, **kwargs: Any
 ) -> AbstractQuantity:
@@ -247,10 +232,10 @@ def zeros_like(
 
     Examples
     --------
-    >>> import quaxed.array_api as xp
+    >>> import quaxed.numpy as jnp
     >>> from unxt import Quantity
 
-    >>> xp.zeros_like(Quantity(5, "m"))
+    >>> jnp.zeros_like(Quantity(5, "m"))
     Quantity['length'](Array(0, dtype=int32, ...), unit='m')
 
     """
