@@ -3,7 +3,11 @@
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-__all__ = ["Unit", "units", "units_of"]
+__all__ = [
+    "units",
+    "units_of",
+    "Unit",  # legacy
+]
 
 from typing import Any, TypeAlias
 
