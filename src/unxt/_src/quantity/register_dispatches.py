@@ -82,6 +82,28 @@ def empty_like(
 # -----------------------------------------------
 
 
+@dispatch  # type: ignore[misc]
+def full(
+    shape: Any, fill_value: AbstractQuantity, /, **kwargs: Any
+) -> AbstractQuantity:
+    """Return a new array of given shape and type, filled with `fill_value`.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> from unxt import Quantity
+
+    >>> jnp.full((2, 2), Quantity(5, "m"))
+    Quantity['length'](Array([[5, 5], [5, 5]], dtype=int32), unit='m')
+
+    """
+    fill_val = ustrip(fill_value.unit, fill_value)
+    return Quantity(jax_xp.full(shape, fill_val, **kwargs), unit=fill_value.unit)
+
+
+# -----------------------------------------------
+
+
 @dispatch
 def full_like(
     x: AbstractQuantity, /, *, fill_value: Any, **kwargs: Any
