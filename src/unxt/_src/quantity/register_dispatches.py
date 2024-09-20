@@ -25,8 +25,6 @@ def arange(
 ) -> AbstractQuantity:
     """Return evenly spaced values within a given interval.
 
-    This method is registered in the `np` and `xp` dispatchers.
-
     Returns
     -------
     `unxt.AbstractQuantity`
@@ -68,8 +66,6 @@ def empty_like(
 ) -> AbstractQuantity:
     """Return a new array with the same shape and type as a given array.
 
-    This method is registered in the `np` and `xp` dispatchers.
-
     Examples
     --------
     >>> import quaxed.numpy as jnp
@@ -92,8 +88,6 @@ def full_like(
 ) -> AbstractQuantity:
     """Return a new array with the same shape and type as a given array.
 
-    This method is registered in the `np` and `xp` dispatchers.
-
     Examples
     --------
     >>> import quaxed.numpy as jnp
@@ -113,8 +107,6 @@ def full_like(
 ) -> AbstractQuantity:
     """Return a new array with the same shape and type as a given array.
 
-    This method is registered in the `np` and `xp` dispatchers.
-
     Examples
     --------
     >>> import quaxed.numpy as jnp
@@ -132,8 +124,6 @@ def full_like(
     x: AbstractQuantity, fill_value: AbstractQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
     """Return a new array with the same shape and type as a given array.
-
-    This method is registered in the `np` and `xp` dispatchers.
 
     Examples
     --------
@@ -155,8 +145,6 @@ def full_like(
 def linspace(start: Quantity, stop: Quantity, num: Any, /, **kwargs: Any) -> Quantity:
     """Return evenly spaced values within a given interval.
 
-    This method is registered in the `np` and `xp` dispatchers.
-
     Examples
     --------
     >>> import quaxed.numpy as jnp
@@ -176,8 +164,6 @@ def linspace(start: Quantity, stop: Quantity, num: Any, /, **kwargs: Any) -> Qua
 @dispatch
 def linspace(start: Quantity, stop: Quantity, /, **kwargs: Any) -> Quantity:
     """Return evenly spaced values within a given interval.
-
-    This method is registered in the `np` and `xp` dispatchers.
 
     Examples
     --------
@@ -203,8 +189,6 @@ def ones_like(
 ) -> AbstractQuantity:
     """Return a new array with the same shape and type as a given array.
 
-    This method is registered in the `np` and `xp` dispatchers.
-
     Examples
     --------
     >>> import quaxed.numpy as jnp
@@ -226,8 +210,6 @@ def zeros_like(
     x: AbstractQuantity, /, *, device: Any = None, **kwargs: Any
 ) -> AbstractQuantity:
     """Return a new array with the same shape and type as a given array.
-
-    This method is registered in the `np` and `xp` dispatchers.
 
     Examples
     --------
