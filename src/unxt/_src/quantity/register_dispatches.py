@@ -94,7 +94,7 @@ def full(
     >>> from unxt import Quantity
 
     >>> jnp.full((2, 2), Quantity(5, "m"))
-    Quantity['length'](Array([[5, 5], [5, 5]], dtype=int32), unit='m')
+    Quantity['length'](Array([[5, 5], [5, 5]], dtype=int32, ...), unit='m')
 
     """
     fill_val = ustrip(fill_value.unit, fill_value)
