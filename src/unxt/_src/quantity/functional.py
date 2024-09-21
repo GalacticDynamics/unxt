@@ -33,7 +33,7 @@ def uconvert(u: Any, x: Any, /) -> Any:
 
 @dispatch.abstract  # type: ignore[misc]
 def ustrip(u: Any, x: Any, /) -> Any:
-    """Strip the units from the quantity.
+    """Strip the units from the quantity, first converting if necessary.
 
     Examples
     --------
