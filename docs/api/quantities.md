@@ -1,3 +1,3 @@
 # unxt Quantity
 
-::: unxt._src.quantity
+::: unxt.quantity
