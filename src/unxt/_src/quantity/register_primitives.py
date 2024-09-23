@@ -687,13 +687,9 @@ def _atanh_p_q(
 
 
 @register(lax.broadcast_in_dim_p)
-def _broadcast_in_dim_p(
-    operand: AbstractQuantity, *, shape: Any, broadcast_dimensions: Any
-) -> AbstractQuantity:
+def _broadcast_in_dim_p(operand: AbstractQuantity, **kwargs: Any) -> AbstractQuantity:
     """Broadcast a quantity in a specific dimension."""
-    return replace(
-        operand, value=lax.broadcast_in_dim(operand.value, shape, broadcast_dimensions)
-    )
+    return replace(operand, value=lax.broadcast_in_dim(operand.value, **kwargs))
 
 
 # ==============================================================================
