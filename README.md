@@ -1,5 +1,7 @@
 <h1 align='center'> unxt </h1>
-<h2 align="center">Unitful Quantities in JAX</h2>
+<h3 align="center">Unitful Quantities in JAX</h3>
+
+<br>
 
 Unxt is unitful quantities and calculations in [JAX][jax], built on
 [Equinox][equinox] and [Quax][quax].
