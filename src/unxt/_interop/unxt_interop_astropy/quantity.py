@@ -10,7 +10,7 @@ from plum import conversion_method
 
 import quaxed.numpy as jnp
 
-from unxt import (  # type: ignore[attr-defined]
+from unxt import (
     AbstractQuantity,
     Distance,
     DistanceModulus,

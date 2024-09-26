@@ -3,15 +3,12 @@
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-from . import unitsystems
-from ._src import (
-    experimental,  # noqa: F401
-    quantity,
-)
+from . import quantity, unitsystems
+from ._src import experimental  # noqa: F401
 from ._src.dimensions.core import dimensions, dimensions_of
-from ._src.quantity import *
 from ._src.units.core import units, units_of
 from ._version import version as __version__
+from .quantity import *
 from .unitsystems import AbstractUnitSystem, unitsystem, unitsystem_of
 
 # isort: split
@@ -32,6 +29,3 @@ __all__ = [
     "unitsystem_of",  # get the unit system
 ]
 __all__ += quantity.__all__
-
-# Clean up namespace
-del quantity

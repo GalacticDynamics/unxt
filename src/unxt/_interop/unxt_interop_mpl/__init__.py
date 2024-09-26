@@ -16,7 +16,7 @@ from jaxtyping import Array
 from matplotlib.axes import Axes
 from zeroth import zeroth
 
-from unxt import (  # type: ignore[attr-defined]
+from unxt import (
     AbstractQuantity,
     UncheckedQuantity,
     ustrip,
