@@ -300,7 +300,7 @@ def uconvert(unit: AstropyUnit, x: AbstractQuantity, /) -> AbstractQuantity:
     >>> with u.add_enabled_equivalencies(u.temperature()):
     ...     y = x.to(u.deg_C)
     >>> y
-    Quantity['temperature'](Array([-272.15, -271.15, -270.15], dtype=float32, weak_type=True), unit='deg_C')
+    Quantity['temperature'](Array([-272.15, -271.15, -270.15], dtype=float32), unit='deg_C')
 
     """  # noqa: E501
     # Hot-path: if no unit conversion is necessary
