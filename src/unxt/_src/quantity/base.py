@@ -24,7 +24,7 @@ import quaxed.numpy as jnp
 import quaxed.operator as qoperator
 from dataclassish import fields, replace
 
-from .functional import uconvert, ustrip
+from .api import uconvert, ustrip
 from unxt._src.units.core import Unit, units
 
 FMT = TypeVar("FMT")

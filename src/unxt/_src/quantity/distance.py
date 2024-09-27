@@ -14,9 +14,9 @@ from plum import add_promotion_rule, conversion_method
 
 import quaxed.numpy as jnp
 
+from .api import ustrip
 from .base import AbstractQuantity
 from .core import Quantity
-from .functional import ustrip
 from unxt._src.dimensions.core import dimensions_of
 
 FMT = TypeVar("FMT")
