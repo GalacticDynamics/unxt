@@ -6,8 +6,6 @@ __all__: list[str] = []
 from jaxtyping import Array
 from plum import dispatch
 
-from dataclassish import replace
-
 from .base import AbstractQuantity
 from unxt._src.dimensions.core import dimensions_of
 from unxt._src.units.core import AbstractUnits, units
@@ -15,35 +13,6 @@ from unxt._src.units.system.base import AbstractUnitSystem
 
 # ===================================================================
 # Convert units
-
-
-@dispatch
-def uconvert(u: AbstractUnits, x: AbstractQuantity, /) -> AbstractQuantity:
-    """Convert the quantity to the specified units.
-
-    Examples
-    --------
-    >>> from unxt import Quantity, units
-
-    >>> x = Quantity(1000, "m")
-    >>> uconvert(units("km"), x)
-    Quantity['length'](Array(1., dtype=float32, ...), unit='km')
-
-    """
-    # Hot-path: if no unit conversion is necessary
-    if x.unit == u:
-        return x
-
-    # TODO: jaxpr units so we can understand them at trace time.
-    # Hot-path: if in tracing mode
-    # if isinstance(x.value, jax.core.Tracer) and not can_convert_unit(x.unit, u):
-    #     return x.value
-
-    # Astropy correction factor
-    # TODO: this only works with multiplicative unit conversions
-    factor = x.unit.to(u)
-
-    return replace(x, value=x.value * factor, unit=u)
 
 
 @dispatch
