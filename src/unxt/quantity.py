@@ -4,6 +4,7 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 # ruff:noqa: F403
 
+from ._src.quantity.api import uconvert, ustrip
 from ._src.quantity.base import AbstractQuantity, can_convert_unit
 from ._src.quantity.base_parametric import AbstractParametricQuantity
 from ._src.quantity.core import Quantity
@@ -14,11 +15,10 @@ from ._src.quantity.distance import (
     Parallax,
 )
 from ._src.quantity.fast import UncheckedQuantity
-from ._src.quantity.functional import uconvert, ustrip
 
 # isort: split
 # Register dispatches and conversions
-from ._src.quantity import compat, register_dispatches, register_primitives
+from ._src.quantity import compat, functional, register_dispatches, register_primitives
 
 __all__: list[str] = [
     # Base
@@ -42,4 +42,4 @@ __all__: list[str] = [
 
 
 # Clean up namespace
-del compat, register_dispatches, register_primitives
+del compat, functional, register_dispatches, register_primitives

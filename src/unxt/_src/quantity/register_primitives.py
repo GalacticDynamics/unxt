@@ -25,11 +25,11 @@ from quax import register as register_
 
 from quaxed import lax as qlax
 
+from .api import uconvert, ustrip
 from .base import AbstractQuantity, can_convert_unit
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
 from .distance import AbstractDistance
-from .functional import uconvert, ustrip
 from unxt._src.units.core import units
 
 T = TypeVar("T")
