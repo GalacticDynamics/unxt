@@ -223,6 +223,3 @@ build-backend = "hatchling.build"
   py-version = "3.10"
   reports.output-format = "colorized"
   similarities.ignore-imports = "yes"
-
-[tool.uv]
-dev-dependencies = ["unxt[dev]"]  # correct editable install
