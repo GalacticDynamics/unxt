@@ -11,7 +11,7 @@ import jax
 import jax.core
 from astropy.units import PhysicalType as Dimensions, Unit
 from jaxtyping import Array, ArrayLike, Shaped
-from plum import dispatch, parametric, type_unparametrized
+from plum import dispatch, parametric, type_nonparametric, type_unparametrized
 
 from dataclassish import field_items, fields
 
@@ -182,6 +182,8 @@ class AbstractParametricQuantity(AbstractQuantity):
         return partial(type_unparametrized(self), **kwargs), tuple(args)
 
     def __repr__(self) -> str:
+        # --- class name ---
+        base_cls_name = type_nonparametric(self).__name__
         # fmt: off
         if self._type_parameter == "unknown":
             try:  # Astropy v6-
@@ -194,5 +196,18 @@ class AbstractParametricQuantity(AbstractQuantity):
             )
         else:
             dim = self._type_parameter._name_string_as_ordered_set().split("'")[1]  # noqa: SLF001
-        return f"Quantity[{dim!r}]({self.value!r}, unit={self.unit.to_string()!r})"
+        cls_name = f"{base_cls_name}[{dim!r}]"
+
+        # --- args, kwargs ---
+
+        fs = dict(field_items(self))
+        del fs["value"]
+        del fs["unit"]
+
+        base_fields = f"{self.value!r}, unit={self.unit.to_string()!r}"
+        extra_fields = ", ".join(f"{k}={v}" for k, v in fs.items())
+        all_fields = base_fields + (", " + extra_fields if fs else "")
+
+        # ------
+        return f"{cls_name}({all_fields})"
         # fmt: on

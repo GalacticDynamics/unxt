@@ -223,3 +223,12 @@ build-backend = "hatchling.build"
   py-version = "3.10"
   reports.output-format = "colorized"
   similarities.ignore-imports = "yes"
+
+[tool.uv]
+dev-dependencies = [
+    "hypothesis>=6.112.2",
+    "ipykernel>=6.29.5",
+    "pytest-arraydiff>=0.6.1",
+    "pytest>=8.3.3",
+    "sybil>=8.0.0",
+]
