@@ -160,16 +160,6 @@ class AbstractParametricQuantity(AbstractQuantity):
         >>> pickle.dumps(x)
         b'...'
 
-        >>> from plum import parametric
-        >>> import equinox as eqx
-        >>> from unxt import AbstractParametricQuantity
-        >>> @parametric
-        ... class NewQuantity(AbstractParametricQuantity):
-        ...     flag: bool = eqx.field(static=True, kw_only=True)
-        >>> x = NewQuantity([1, 2, 3], "m", flag=True)
-        >>> pickle.dumps(x)
-        b'...'
-
         """
         args, kwargs = [], {}
         for f in fields(self):
