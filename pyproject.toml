@@ -1,11 +1,11 @@
-[build-system]
-  build-backend = "hatchling.build"
-  requires      = ["hatch-vcs", "hatchling"]
-
-
 [project]
+  name = "unxt"
+  dynamic = ["version"]
+  description = "Quantities in JAX"
+  readme = "README.md"
+  requires-python = ">=3.10"
   authors = [
-    { name = "Nathaniel Starkman", email = "nstarman@users.noreply.github.com" },
+      { name = "Nathaniel Starkman", email = "nstarman@users.noreply.github.com" },
   ]
   classifiers = [
     "Development Status :: 3 - Alpha",
@@ -22,27 +22,21 @@
     "Topic :: Scientific/Engineering",
     "Typing :: Typed",
   ]
-  dependencies = [
-    "astropy >= 6.0",
-    "dataclassish >= 0.3",
-    "equinox>0.11",
-    "is_annotated >= 1.0",
-    "jax > 0.4",
-    "jaxlib > 0.4",
-    "jaxtyping",
-    "optional_dependencies >= 0.3",
-    "quax>=0.0.5",
-    "quaxed >= 0.6.3",
-    "xmmutablemap",
-    # Pinned for above dependencies
-    "plum-dispatch >= 2.4.3",
-  ]
-  description = "Quantities in JAX"
-  dynamic = ["version"]
   license.file = "LICENSE"
-  name = "unxt"
-  readme = "README.md"
-  requires-python = ">=3.10"
+  dependencies = [
+    "astropy>=6.0",
+    "dataclassish>=0.3",
+    "equinox>0.11",
+    "is-annotated>=1.0",
+    "jax>0.4",
+    "jaxlib>0.4",
+    "jaxtyping>=0.2.34",
+    "optional-dependencies>=0.3.2",
+    "plum-dispatch>=2.4.3", # pinned for other dependencies
+    "quax>=0.0.5",
+    "quaxed>=0.6.4",
+    "xmmutablemap>=0.1",
+  ]
 
   [project.optional-dependencies]
     all = ["unxt[backend-astropy,interop-gala,interop-mpl]"]
@@ -79,6 +73,10 @@
     Changelog     = "https://github.com/GalacticDynamics/unxt/releases"
     Discussions   = "https://github.com/GalacticDynamics/unxt/discussions"
     Homepage      = "https://github.com/GalacticDynamics/unxt"
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
 
 [tool.hatch]
@@ -225,3 +223,6 @@
   py-version = "3.10"
   reports.output-format = "colorized"
   similarities.ignore-imports = "yes"
+
+[tool.uv]
+dev-dependencies = ["unxt[dev]"]  # correct editable install
