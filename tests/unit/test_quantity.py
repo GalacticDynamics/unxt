@@ -2,7 +2,10 @@
 
 """Test the Array API."""
 
+import pickle
+
 import astropy.units as u
+import equinox as eqx
 import jax
 import jax.numpy as jax_xp
 import numpy as np
@@ -11,11 +14,11 @@ from hypothesis import example, given, strategies as st
 from hypothesis.extra.array_api import make_strategies_namespace
 from hypothesis.extra.numpy import array_shapes as np_array_shapes, arrays as np_arrays
 from jax.dtypes import canonicalize_dtype
-from plum import convert
+from plum import convert, parametric
 
 import quaxed.numpy as jnp
 
-from unxt import Quantity, can_convert_unit
+from unxt import AbstractParametricQuantity, Quantity, can_convert_unit
 
 xps = make_strategies_namespace(jax_xp)
 
@@ -453,6 +456,21 @@ def test_at():
     q2 = q.at[1].max(Quantity(0.5, "km"))
     assert q2[1] == Quantity(1.0, "km")
     assert q[1] == Quantity(1.0, "km")  # original is unchanged
+
+
+# ---------------------------
+
+
+@parametric
+class NewQuantity(AbstractParametricQuantity):
+    """Quantity with a flag."""
+
+    flag: bool = eqx.field(static=True, kw_only=True)
+
+
+def test_parametric_pickle_dumps_with_kw_fields():
+    x = NewQuantity([1, 2, 3], "m", flag=True)
+    assert isinstance(pickle.dumps(x), bytes)
 
 
 # ===============================================================
