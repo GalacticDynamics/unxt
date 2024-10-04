@@ -3,6 +3,7 @@
 
 __all__ = ["AbstractParametricQuantity"]
 
+from functools import partial
 from typing import Any
 
 import equinox as eqx
@@ -10,7 +11,9 @@ import jax
 import jax.core
 from astropy.units import PhysicalType as Dimensions, Unit
 from jaxtyping import Array, ArrayLike, Shaped
-from plum import dispatch, parametric
+from plum import dispatch, parametric, type_unparametrized
+
+from dataclassish import field_items, fields
 
 from .base import AbstractQuantity
 from unxt._src.dimensions.core import dimensions, dimensions_of
@@ -74,7 +77,9 @@ class AbstractParametricQuantity(AbstractQuantity):
         return (Dimensions(unit, unit.to_string(fraction=False)),)
 
     @classmethod
-    def __infer_type_parameter__(cls, value: ArrayLike, unit: Any) -> tuple[Dimensions]:
+    def __infer_type_parameter__(
+        cls, value: ArrayLike, unit: Any, **kwargs: Any
+    ) -> tuple[Dimensions]:
         """Infer the type parameter from the arguments."""
         return (dimensions_of(units(unit)),)
 
@@ -90,6 +95,91 @@ class AbstractParametricQuantity(AbstractQuantity):
         (dim_left,) = left
         (dim_right,) = right
         return dim_left == dim_right
+
+    # ---------------------------------------------------------------
+    # misc
+
+    def __getnewargs_ex__(self) -> tuple[tuple[Any, ...], dict[str, Any]]:
+        """Return args, kwargs for ``__new__``.
+
+        In protocols 2+, this is used to determine the values (args,
+        and kwargs) passed to ``__new__``. We implement ``__getnewargs_ex__``
+        instead of ``__getnewargs__`` because the latter does not support
+        keyword-only arguments.
+
+        Examples
+        --------
+        >>> import copy as pycopy
+        >>> from unxt import Quantity
+        >>> x = Quantity([1, 2, 3], "m")
+        >>> pycopy.copy(x)
+        Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+
+        """
+        return (), field_items(self)
+
+    # TODO: see if pickling can be accomplished without reduce.
+    # https://docs.python.org/3.12/library/pickle.html
+    def __reduce__(
+        self,
+    ) -> tuple["partial[type[AbstractParametricQuantity]]", tuple[Any, ...]]:
+        r"""Return the reduced value: a constructor and arguments.
+
+        The ``__reduce__`` protocol has limited support for keyword-only
+        argument. The only built-in means to pass kwargs is to the
+        ``__setstate__`` method or through a callable with signature ``(obj,
+        state)``. Neither of these methods allow for the kwargs to be passed to
+        the constructor, only after the object is partially initialized. This
+        does not work well for JAX, Equinox, or particularly run-time
+        typechecking. To get around this, instead of the class type as the
+        customary first element of reduced value we will instead return a
+        `functools.partial`-wrapping of the class type with the kwargs bundled
+        into the partial object. This is allowed by the ``__reduce__`` protocol,
+        which says the first returned item must be any "callable object that
+        will be called to create the initial version of the object." In
+        conjunction with the standard args, the `functools.partial`-wrapped
+        class type will properly construct any parametric subclass.
+
+        Returns
+        -------
+        functools.partial[type]
+            The `plum.type_unparametrized` form of this class object, which is
+            the parametric class without the specialization to the specific
+            parameter. The specialized subtype cannot be pickled since it is
+            dynamically produced. The type is wrapped into a `functools.partial`
+            with the keyword-only arguments to the constructor.
+        tuple[Any, ...]
+            The arguments to this class. Note: the keyword-only arguments are
+            bundled with the type.
+
+        Examples
+        --------
+        >>> import pickle
+        >>> from unxt import Quantity
+        >>> x = Quantity([1, 2, 3], "m")
+        >>> pickle.dumps(x)
+        b'...'
+
+        >>> from plum import parametric
+        >>> import equinox as eqx
+        >>> from unxt import AbstractParametricQuantity
+        >>> @parametric
+        ... class NewQuantity(AbstractParametricQuantity):
+        ...     flag: bool = eqx.field(static=True, kw_only=True)
+        >>> x = NewQuantity([1, 2, 3], "m", flag=True)
+        >>> pickle.dumps(x)
+        b'...'
+
+        """
+        args, kwargs = [], {}
+        for f in fields(self):
+            v = getattr(self, f.name)
+            if f.kw_only:
+                kwargs[f.name] = v
+            else:
+                args.append(v)
+
+        return partial(type_unparametrized(self), **kwargs), tuple(args)
 
     def __repr__(self) -> str:
         # fmt: off

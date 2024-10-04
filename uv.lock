@@ -2107,7 +2107,7 @@ wheels = [
 
 [[package]]
 name = "unxt"
-version = "0.17.1.dev1+g1e0bac0.d20241004"
+version = "0.17.1.dev4+gdfee199"
 source = { editable = "." }
 dependencies = [
     { name = "astropy" },
@@ -2203,32 +2203,6 @@ test-mpl = [
     { name = "pytest-mpl" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "astropy" },
-    { name = "gala" },
-    { name = "griffe" },
-    { name = "hypothesis", extra = ["numpy"] },
-    { name = "jinja2" },
-    { name = "matplotlib" },
-    { name = "mkdocs" },
-    { name = "mkdocs-include-exclude-files" },
-    { name = "mkdocs-material" },
-    { name = "mkdocstrings", extra = ["python"] },
-    { name = "mknotebooks" },
-    { name = "nbconvert" },
-    { name = "pygments" },
-    { name = "pymdown-extensions" },
-    { name = "pytest" },
-    { name = "pytest-arraydiff" },
-    { name = "pytest-cov" },
-    { name = "pytest-github-actions-annotate-failures" },
-    { name = "pytest-mpl" },
-    { name = "pytkdocs-tweaks" },
-    { name = "sybil" },
-    { name = "zeroth" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "astropy", specifier = ">=6.0" },
@@ -2303,9 +2277,6 @@ requires-dist = [
     { name = "zeroth", marker = "extra == 'interop-mpl'" },
     { name = "zeroth", marker = "extra == 'test-all'" },
 ]
-
-[package.metadata.requires-dev]
-dev = [{ name = "unxt", extras = ["dev"] }]
 
 [[package]]
 name = "urllib3"
