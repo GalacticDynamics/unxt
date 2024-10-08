@@ -7,7 +7,7 @@ default_stages: [pre-commit, pre-push]
 
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.29.0
+    rev: v3.29.1
     hooks:
       - id: commitizen
       # - id: commitizen-branch
@@ -23,7 +23,7 @@ repos:
       - id: sp-repo-review
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: "v4.6.0"
+    rev: "v5.0.0"
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
@@ -44,14 +44,14 @@ repos:
       - id: rst-inline-touching-normal
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.29.2
+    rev: 0.29.3
     hooks:
       - id: check-dependabot
       - id: check-github-workflows
       - id: check-readthedocs
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.6.4"
+    rev: "v0.6.9"
     hooks:
       # Run the linter
       - id: ruff
@@ -62,7 +62,7 @@ repos:
         types_or: [python, pyi, jupyter]
 
   - repo: https://github.com/adamchainz/blacken-docs
-    rev: "1.18.0"
+    rev: "1.19.0"
     hooks:
       - id: blacken-docs
         additional_dependencies: [black==23.*]
@@ -89,7 +89,7 @@ repos:
       - id: codespell
 
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.19
+    rev: v0.20.2
     hooks:
       - id: validate-pyproject
 
