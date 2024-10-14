@@ -31,8 +31,8 @@ from unxt._interop.optional_deps import OptDeps
 # Constructor
 
 
-@AbstractQuantity.constructor._f.register  # noqa: SLF001
-def constructor(
+@AbstractQuantity.from_._f.register  # noqa: SLF001
+def from_(
     cls: type[AbstractQuantity], value: AstropyQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
     """Construct a `Quantity` from another `Quantity`.
@@ -44,15 +44,15 @@ def constructor(
     >>> import astropy.units as u
     >>> from unxt import Quantity
 
-    >>> Quantity.constructor(u.Quantity(1, "m"))
+    >>> Quantity.from_(u.Quantity(1, "m"))
     Quantity['length'](Array(1., dtype=float32), unit='m')
 
     """
     return cls(jnp.asarray(value.value, **kwargs), value.unit)
 
 
-@AbstractQuantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
-def constructor(
+@AbstractQuantity.from_._f.register  # type: ignore[no-redef] # noqa: SLF001
+def from_(
     cls: type[AbstractQuantity], value: AstropyQuantity, unit: Any, /, **kwargs: Any
 ) -> AbstractQuantity:
     """Construct a `Quantity` from another `Quantity`.
@@ -64,7 +64,7 @@ def constructor(
     >>> import astropy.units as u
     >>> from unxt import Quantity
 
-    >>> Quantity.constructor(u.Quantity(1, "m"), "cm")
+    >>> Quantity.from_(u.Quantity(1, "m"), "cm")
     Quantity['length'](Array(100., dtype=float32), unit='cm')
 
     """

@@ -31,8 +31,8 @@ def clean_unitsystems_registry(monkeypatch):
 # ===================================================================
 
 
-def test_unitsystem_constructor() -> None:
-    """Test the :class:`~unxt.UnitSystem` constructor."""
+def test_unitsystem_from_() -> None:
+    """Test the :class:`~unxt.UnitSystem` from_."""
     usys = unitsystem(5 * u.kpc, 50 * u.Myr, 1e5 * u.Msun, u.rad)
     assert np.isclose((8 * u.Myr).decompose(usys).value, 8 / 50)
 

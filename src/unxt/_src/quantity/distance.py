@@ -316,8 +316,8 @@ class DistanceModulus(AbstractDistance):
 # Additional constructors
 
 
-@Distance.constructor._f.register  # noqa: SLF001
-def constructor(
+@Distance.from_._f.register  # noqa: SLF001
+def from_(
     cls: type[Distance], value: Parallax | Quantity["angle"], /, *, dtype: Any = None
 ) -> Distance:
     """Construct a `Distance` from an angle through the parallax.
@@ -326,10 +326,10 @@ def constructor(
     --------
     >>> from unxt import Distance, Parallax, Quantity
 
-    >>> Distance.constructor(Parallax(1, "mas")).to("kpc")
+    >>> Distance.from_(Parallax(1, "mas")).to("kpc")
     Distance(Array(1., dtype=float32, ...), unit='kpc')
 
-    >>> Distance.constructor(Quantity(1, "mas")).to("kpc")
+    >>> Distance.from_(Quantity(1, "mas")).to("kpc")
     Distance(Array(1., dtype=float32, ...), unit='kpc')
 
     """
@@ -337,8 +337,8 @@ def constructor(
     return cls(jnp.asarray(d.value, dtype=dtype), d.unit)
 
 
-@Distance.constructor._f.register  # type: ignore[no-redef]  # noqa: SLF001
-def constructor(
+@Distance.from_._f.register  # type: ignore[no-redef]  # noqa: SLF001
+def from_(
     cls: type[Distance],
     value: DistanceModulus | Quantity["mag"],
     /,
@@ -351,10 +351,10 @@ def constructor(
     --------
     >>> from unxt import Distance, DistanceModulus, Quantity
 
-    >>> Distance.constructor(DistanceModulus(10, "mag")).to("pc")
+    >>> Distance.from_(DistanceModulus(10, "mag")).to("pc")
     Distance(Array(1000., dtype=float32, ...), unit='pc')
 
-    >>> Distance.constructor(Quantity(10, "mag")).to("pc")
+    >>> Distance.from_(Quantity(10, "mag")).to("pc")
     Distance(Array(1000., dtype=float32, ...), unit='pc')
 
     """
@@ -362,8 +362,8 @@ def constructor(
     return cls(jnp.asarray(d, dtype=dtype), "pc")
 
 
-@Parallax.constructor._f.register  # type: ignore[no-redef]  # noqa: SLF001
-def constructor(
+@Parallax.from_._f.register  # type: ignore[no-redef]  # noqa: SLF001
+def from_(
     cls: type[Parallax], value: Distance | Quantity["length"], /, *, dtype: Any = None
 ) -> Parallax:
     """Construct a `Parallax` from a distance.
@@ -373,10 +373,10 @@ def constructor(
     >>> import quaxed.numpy as jnp
     >>> from unxt import Parallax, Distance, Quantity
 
-    >>> jnp.round(Parallax.constructor(Distance(1, "pc")).to("mas"))
+    >>> jnp.round(Parallax.from_(Distance(1, "pc")).to("mas"))
     Parallax(Array(1000., dtype=float32, ...), unit='mas')
 
-    >>> jnp.round(Parallax.constructor(Quantity(1, "pc")).to("mas"), 2)
+    >>> jnp.round(Parallax.from_(Quantity(1, "pc")).to("mas"), 2)
     Parallax(Array(1000., dtype=float32, ...), unit='mas')
 
     """
