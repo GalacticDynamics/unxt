@@ -13,6 +13,7 @@ from plum import dispatch
 
 from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
 from .builtin import DimensionlessUnitSystem
+from .flags import StandardUnitSystemFlag
 from .realizations import NAMED_UNIT_SYSTEMS, dimensionless
 from .utils import get_dimension_name
 from unxt._src.dimensions.core import dimensions_of
@@ -158,6 +159,11 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
 
     """
     return NAMED_UNIT_SYSTEMS[name]
+
+
+@dispatch  # type: ignore[no-redef]
+def unitsystem(flag: type[StandardUnitSystemFlag], *units_: Any) -> AbstractUnitSystem:
+    return unitsystem(*units_)
 
 
 # ----
