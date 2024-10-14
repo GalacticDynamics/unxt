@@ -169,7 +169,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
 
     @classmethod
     @dispatch
-    def constructor(
+    def from_(
         cls: "type[AbstractQuantity]",
         value: ArrayLike | ArrayLikeSequence,
         unit: Any,
@@ -202,13 +202,13 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         >>> from unxt import Quantity
 
         >>> x = jnp.array([1.0, 2, 3])
-        >>> Quantity.constructor(x, "m")
+        >>> Quantity.from_(x, "m")
         Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
 
-        >>> Quantity.constructor([1.0, 2, 3], "m")
+        >>> Quantity.from_([1.0, 2, 3], "m")
         Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
 
-        >>> Quantity.constructor((1.0, 2, 3), "m")
+        >>> Quantity.from_((1.0, 2, 3), "m")
         Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
 
         """
@@ -218,7 +218,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
 
     @classmethod  # type: ignore[no-redef]
     @dispatch
-    def constructor(
+    def from_(
         cls: "type[AbstractQuantity]",
         value: ArrayLike | ArrayLikeSequence,
         /,
@@ -234,16 +234,16 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         any subclass of [`AbstractQuantity`][].
 
         >>> from unxt import Quantity
-        >>> Quantity.constructor([1.0, 2, 3], unit="m")
+        >>> Quantity.from_([1.0, 2, 3], unit="m")
         Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
 
         """
         # Dispatch on the `value` only. Dispatch to the full constructor.
-        return cls.constructor(value, unit, dtype=dtype)
+        return cls.from_(value, unit, dtype=dtype)
 
     @classmethod  # type: ignore[no-redef]
     @dispatch
-    def constructor(
+    def from_(
         cls: "type[AbstractQuantity]", *, value: Any, unit: Any, dtype: Any = None
     ) -> "AbstractQuantity":
         """Construct a `AbstractQuantity` from value and unit kwargs.
@@ -254,16 +254,16 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         any subclass of `AbstractQuantity`.
 
         >>> from unxt import Quantity
-        >>> Quantity.constructor(value=[1.0, 2, 3], unit="m")
+        >>> Quantity.from_(value=[1.0, 2, 3], unit="m")
         Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
 
         """
         # Dispatched on no argument. Dispatch to the full constructor.
-        return cls.constructor(value, unit, dtype=dtype)
+        return cls.from_(value, unit, dtype=dtype)
 
     @classmethod  # type: ignore[no-redef]
     @dispatch
-    def constructor(
+    def from_(
         cls: "type[AbstractQuantity]", mapping: Mapping[str, Any]
     ) -> "AbstractQuantity":
         """Construct a `Quantity` from a Mapping.
@@ -286,17 +286,17 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         >>> from unxt import Quantity
 
         >>> x = jnp.array([1.0, 2, 3])
-        >>> q = Quantity.constructor({"value": x, "unit": "m"})
+        >>> q = Quantity.from_({"value": x, "unit": "m"})
         >>> q
         Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
 
-        >>> Quantity.constructor({"value": q, "unit": "km"})
+        >>> Quantity.from_({"value": q, "unit": "km"})
         Quantity['length'](Array([0.001, 0.002, 0.003], dtype=float32), unit='km')
 
         """
         # Dispatch on both arguments.
         # Construct using the standard `__init__` method.
-        return cls.constructor(**mapping)
+        return cls.from_(**mapping)
 
     # See below for additional constructors.
 
@@ -550,8 +550,8 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
 # Register additional constructors
 
 
-@AbstractQuantity.constructor._f.register  # noqa: SLF001
-def constructor(
+@AbstractQuantity.from_._f.register  # noqa: SLF001
+def from_(
     cls: type[AbstractQuantity],
     value: AbstractQuantity,
     unit: Any,
@@ -568,7 +568,7 @@ def constructor(
     >>> from unxt import Quantity
 
     >>> q = Quantity(1, "m")
-    >>> Quantity.constructor(q, "cm")
+    >>> Quantity.from_(q, "cm")
     Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
 
     """
@@ -576,8 +576,8 @@ def constructor(
     return cls(value.value, unit)
 
 
-@AbstractQuantity.constructor._f.register  # type: ignore[no-redef]  # noqa: SLF001
-def constructor(
+@AbstractQuantity.from_._f.register  # type: ignore[no-redef]  # noqa: SLF001
+def from_(
     cls: type[AbstractQuantity],
     value: AbstractQuantity,
     unit: None,
@@ -594,7 +594,7 @@ def constructor(
     >>> from unxt import Quantity
 
     >>> q = Quantity(1, "m")
-    >>> Quantity.constructor(q, None)
+    >>> Quantity.from_(q, None)
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
@@ -602,8 +602,8 @@ def constructor(
     return cls(value.value, value.unit)
 
 
-@AbstractQuantity.constructor._f.register  # type: ignore[no-redef] # noqa: SLF001
-def constructor(
+@AbstractQuantity.from_._f.register  # type: ignore[no-redef] # noqa: SLF001
+def from_(
     cls: type[AbstractQuantity],
     value: AbstractQuantity,
     /,

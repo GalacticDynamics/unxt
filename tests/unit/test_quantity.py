@@ -478,9 +478,9 @@ def test_parametric_pickle_dumps_with_kw_fields():
 
 
 def test_from_astropy():
-    """Test the ``Quantity.constructor(AstropyQuantity)`` method."""
+    """Test the ``Quantity.from_(AstropyQuantity)`` method."""
     apyq = u.Quantity(1, u.m)
-    q = Quantity.constructor(apyq)
+    q = Quantity.from_(apyq)
     assert isinstance(q, Quantity)
     assert np.equal(q.value, apyq.value)
     assert q.unit == apyq.unit
