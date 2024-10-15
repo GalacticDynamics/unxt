@@ -13,7 +13,7 @@ from plum import dispatch
 
 from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
 from .builtin import DimensionlessUnitSystem
-from .flags import StandardUnitSystemFlag
+from .flags import AbstractUnitSystemFlag, StandardUnitSystemFlag
 from .realizations import NAMED_UNIT_SYSTEMS, dimensionless
 from .utils import get_dimension_name
 from unxt._src.dimensions.core import dimensions_of
@@ -189,6 +189,12 @@ def unitsystem(usys: AbstractUnitSystem, *units_: Any) -> AbstractUnitSystem:
         if unit.physical_type not in new_usys.base_dimensions
     ]
     return unitsystem(*current_units, *units_)
+
+
+@dispatch  # type: ignore[no-redef]
+def unitsystem(flag: type[AbstractUnitSystemFlag], *_: Any) -> AbstractUnitSystem:
+    msg = "Do not use the AbstractUnitSystemFlag directly, only use subclasses."
+    raise ValueError(msg)
 
 
 @dispatch  # type: ignore[no-redef]
