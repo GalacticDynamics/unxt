@@ -55,6 +55,11 @@ def test_compare() -> None:
     assert usys3 != usys1
 
 
+def test_regression_dimension_aliases_spaces() -> None:
+    usys = unitsystem(u.kpc, u.Myr, u.radian, u.Msun, u.mas / u.yr)
+    assert usys["angular speed"] == usys["angular velocity"]
+
+
 def test_pickle(tmpdir: Path) -> None:
     """Test pickling and unpickling a :class:`~unxt.UnitSystem`."""
     usys = unitsystem(u.kpc, u.Myr, u.radian, u.Msun)

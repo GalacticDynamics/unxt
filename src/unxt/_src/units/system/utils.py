@@ -47,7 +47,7 @@ def get_dimension_name(pt: str, /) -> str:
         msg = "Input contains non-letter characters"
         raise ValueError(msg)
 
-    return pt
+    return pt.replace(" ", "_")
 
 
 @dispatch  # type: ignore[no-redef]
