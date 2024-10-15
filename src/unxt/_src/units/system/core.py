@@ -181,7 +181,7 @@ def unitsystem(usys: AbstractUnitSystem, *units_: Any) -> AbstractUnitSystem:
     >>> new_usys = unitsystem(usys, u.pc)
     TimeMassAngleLengthUnitSystem(time=Unit("Myr"), mass=Unit("solMass"), angle=Unit("rad"), length=Unit("pc"))
 
-    """
+    """  # noqa: E501
     new_usys = unitsystem(*units_)
     current_units = [
         unit
