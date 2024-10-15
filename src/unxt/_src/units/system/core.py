@@ -162,6 +162,36 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
 
 
 @dispatch  # type: ignore[no-redef]
+def unitsystem(usys: AbstractUnitSystem, *units_: Any) -> AbstractUnitSystem:
+    """Create a unit system from an existing unit system and additional units.
+
+    Examples
+    --------
+    We can add a new unit definition to an existing unit system:
+
+    >>> import astropy.units as u
+    >>> from unxt.unitsystems import unitsystem
+    >>> usys = unitsystem("galactic")
+    unitsystem(kpc, Myr, solMass, rad)
+    >>> unitsystem(usys, u.km/u.s)
+    LengthTimeMassAngleSpeedUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"), angle=Unit("rad"), speed=Unit("km / s"))
+
+    We can also override the base unit of an existing unit system:
+
+    >>> new_usys = unitsystem(usys, u.pc)
+    TimeMassAngleLengthUnitSystem(time=Unit("Myr"), mass=Unit("solMass"), angle=Unit("rad"), length=Unit("pc"))
+
+    """
+    new_usys = unitsystem(*units_)
+    current_units = [
+        unit
+        for unit in usys.base_units
+        if unit.physical_type not in new_usys.base_dimensions
+    ]
+    return unitsystem(*current_units, *units_)
+
+
+@dispatch  # type: ignore[no-redef]
 def unitsystem(flag: type[StandardUnitSystemFlag], *units_: Any) -> AbstractUnitSystem:
     return unitsystem(*units_)
 
