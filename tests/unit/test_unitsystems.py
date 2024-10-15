@@ -175,3 +175,14 @@ def test_equivalent():
 
     usys3 = unitsystem(u.kpc, u.Myr, u.radian)
     assert not equivalent(usys1, usys3)
+
+
+def test_extend():
+    """Test adding additional units to a unit system."""
+    usys1 = unitsystem(u.kpc, u.Myr, u.radian, u.Msun, u.km / u.s)
+    usys2 = unitsystem(usys1, u.mas / u.yr)
+    assert usys2["angular speed"] == u.mas / u.yr
+
+    usys3 = unitsystem(usys1, u.mas / u.yr, u.pc)
+    assert usys3["angular speed"] == u.mas / u.yr
+    assert usys3["length"] == u.pc  # overridden
