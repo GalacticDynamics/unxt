@@ -12,4 +12,8 @@ class AbstractUnitSystemFlag:
 
 
 class StandardUnitSystemFlag(AbstractUnitSystemFlag):
-    """Unit system flag to indicate a standard unit system with no additional args."""
+    """Flag to indicate a standard unit system with no additional arguments."""
+
+
+class SimulationUnitSystemFlag(AbstractUnitSystemFlag):
+    """Flag to indicate a unit system with optional definition of G."""
