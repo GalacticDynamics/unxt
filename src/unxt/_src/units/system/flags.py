@@ -1,6 +1,6 @@
 class AbstractUnitSystemFlag:
-    pass
+    """Abstract class for unit system flags to provide dispatch control."""
 
 
 class StandardUnitSystemFlag(AbstractUnitSystemFlag):
-    pass
+    """Unit system flag to indicate a standard unit system with no additional args."""
