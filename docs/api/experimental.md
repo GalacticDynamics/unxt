@@ -1,3 +1,7 @@
-# unxt.experimental
+# Experimental
 
-::: unxt.experimental
+```{eval-rst}
+.. automodule:: unxt._src.experimental
+    :show-inheritance:
+
+```

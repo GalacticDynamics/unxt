@@ -45,17 +45,13 @@
     backend-astropy = ["astropy >= 6.0"]
     dev = ["unxt[all,docs,test-all]"]
     docs = [
-      "griffe < 1.0",                        # For Python structure signatures
-      "jinja2==3.1",
-      "mkdocs-material==9.5",                # Theme
-      "mkdocs==1.6.0",                       # Main documentation generator.
-      "mkdocs_include_exclude_files==0.0.1", # Tweak which files are included/excluded
-      "mkdocstrings[python] >= 0.18",        # Autogenerate documentation from docstrings.
-      "mknotebooks==0.8",                    # Turn Jupyter Lab notebooks into webpages.
-      "nbconvert==7.16",
-      "pygments==2.16.0",
-      "pymdown-extensions==10.2",            # Markdown extensions e.g. to handle LaTeX.
-      "pytkdocs_tweaks==0.0.8",              # Tweaks mkdocstrings to improve various aspects
+      "sphinx>=7.0",
+      "myst_parser>=0.13",
+      "sphinx_autodoc_typehints",
+      "sphinx_copybutton",
+      "sphinx_design",
+      "furo>=2023.08.17",
+      "tomli",
     ]
     interop-gala = ["gala"]
     interop-mpl = ["matplotlib", "zeroth"]

@@ -1,3 +1,7 @@
-# unxt.unitsystems
+# Unit Systems
 
-::: unxt.unitsystems
+```{eval-rst}
+.. automodule:: unxt.unitsystems
+    :show-inheritance:
+
+```
