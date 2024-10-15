@@ -35,7 +35,7 @@ def get_dimension_name(pt: str, /) -> str:
     'length'
 
     >>> get_dimension_name("not real")
-    'not real'
+    'not_real'
 
     >>> try: get_dimension_name("*62")
     ... except ValueError as e: print(e)
