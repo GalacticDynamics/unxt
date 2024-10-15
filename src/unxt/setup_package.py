@@ -1,4 +1,12 @@
-"""Copyright (c) 2023 unxt maintainers. All rights reserved."""
+"""Package setup information.
+
+Note that this module is NOT public API nor are any of its contents.
+Stability is NOT guaranteed.
+This module exposes package setup information for the `unxt` package.
+
+"""
+
+__all__: list[str] = []
 
 import os
 from typing import Final

@@ -1,3 +1,5 @@
+"""Distance quantities."""
+
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
 
