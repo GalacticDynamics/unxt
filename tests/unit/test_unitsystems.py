@@ -147,6 +147,9 @@ def test_unitsystem_already_registered():
             length: Annotated[u.Unit, u.get_physical_type("length")]
             time: Annotated[u.Unit, u.get_physical_type("time")]
 
+    # Clean up custom unit system from registry:
+    del _UNITSYSTEMS_REGISTRY[MyUnitSystem._base_dimensions]
+
 
 class TestDimensionlessUnitSystem:
     """Test `unxt.unitsystems.DimensionlessUnitSystem`."""
