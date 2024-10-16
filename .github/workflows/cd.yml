@@ -47,11 +47,14 @@ jobs:
           name: Packages
           path: dist
 
+      - name: Generate artifact attestation for sdist and wheel
+        uses: actions/attest-build-provenance@v1.4.1
+        with:
+          subject-path: "dist/*"
+
       - uses: pypa/gh-action-pypi-publish@release/v1
         if: github.event_name == 'release' && github.event.action == 'published'
         with:
-          # Remember to tell (test-)pypi about this repo before publishing
-          # Remove this line to publish to PyPI
           repository-url: https://test.pypi.org/legacy/
 
   publish:
@@ -68,5 +71,10 @@ jobs:
         with:
           name: Packages
           path: dist
+
+      - name: Generate artifact attestation for sdist and wheel
+        uses: actions/attest-build-provenance@v1.4.1
+        with:
+          subject-path: "dist/*"
 
       - uses: pypa/gh-action-pypi-publish@release/v1
