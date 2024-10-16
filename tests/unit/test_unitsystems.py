@@ -225,4 +225,7 @@ def test_simulation_usys():
 
     tmp_G = const_G.decompose([u.kpc, u.Myr, u.Msun])
     usys1 = unitsystem(SimulationUnitSystemFlag, u.kpc, u.Myr, u.rad)
-    assert np.isclose(usys1["mass"].to_value(u.Msun), 1 / tmp_G.value)
+    assert np.isclose((1 * usys1["mass"]).to_value(u.Msun), 1 / tmp_G.value)
+
+    usys2 = unitsystem(SimulationUnitSystemFlag, u.kpc, u.Msun, u.rad)
+    assert np.isclose((1 * usys2["time"]).to_value(u.Myr), 1 / np.sqrt(tmp_G.value))
