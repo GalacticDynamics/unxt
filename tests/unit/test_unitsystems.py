@@ -10,10 +10,12 @@ import numpy as np
 import pytest
 
 from unxt import unitsystems
-from unxt._src.units.system.flags import AbstractUnitSystemFlag, StandardUnitSystemFlag
+from unxt._src.units.system.base import _UNITSYSTEMS_REGISTRY
 from unxt.unitsystems import (
     AbstractUnitSystem,
+    AbstractUnitSystemFlag,
     DimensionlessUnitSystem,
+    StandardUnitSystemFlag,
     dimensionless,
     equivalent,
     unitsystem,
@@ -199,7 +201,7 @@ def test_extend():
 
 def test_abstract_usys_flag():
     """Test that the abstract unit system flag fails."""
-    with pytest.raises(ValueError, match="Do not use"):
+    with pytest.raises(TypeError, match="Do not use"):
         unitsystem(AbstractUnitSystemFlag, u.kpc)
 
 
