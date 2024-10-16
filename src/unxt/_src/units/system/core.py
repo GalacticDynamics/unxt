@@ -9,10 +9,9 @@ from typing import Annotated, Any
 
 import astropy.units as u
 import equinox as eqx
+import numpy as np
 from astropy.constants import G as const_G  # noqa: N811
 from plum import dispatch
-
-import quaxed.numpy as jnp
 
 from . import builtin_dimensions as ud
 from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
@@ -25,7 +24,6 @@ from .flags import (
 from .realizations import NAMED_UNIT_SYSTEMS, dimensionless
 from .utils import get_dimension_name
 from unxt._src.dimensions.core import dimensions_of
-from unxt._src.quantity.core import Quantity
 from unxt._src.units.core import units
 
 # ===================================================================
@@ -226,16 +224,15 @@ def unitsystem(flag: type[StandardUnitSystemFlag], *units_: Any) -> AbstractUnit
 def unitsystem(
     flag: type[SimulationUnitSystemFlag],
     *units_: Any,
-    G: Quantity | float | int = 1.0,  # noqa: N803
+    G: u.Quantity | float | int = 1.0,  # noqa: N803
 ) -> AbstractUnitSystem:
     tmp = unitsystem(*units_)
 
-    if not isinstance(G, Quantity):
-        G = Quantity.from_(G, "")
+    G = u.Quantity(G)
 
-    if G.unit.physical_type == ud.dimensionless:
-        G = G * Quantity.from_(const_G)
-    elif not G.unit.is_equivalent(const_G):
+    if G.unit.physical_type == u.get_physical_type("dimensionless"):
+        G = G * const_G
+    elif not G.unit.is_equivalent(const_G.unit):
         msg = (
             "Invalid value for G: must be dimensionless or have the correct dimensions "
             "(equivalent to length per mass times velocity^2)"
@@ -244,7 +241,7 @@ def unitsystem(
 
     added = ()
     if ud.length in tmp.base_dimensions and ud.mass in tmp.base_dimensions:
-        time = 1 / jnp.sqrt(G * tmp["mass"] / tmp["length"] ** 3)
+        time = 1 / np.sqrt(G * tmp["mass"] / tmp["length"] ** 3)
         added = (time,)
     elif ud.length in tmp.base_dimensions and ud.time in tmp.base_dimensions:
         mass = 1 / G * tmp["length"] ** 3 / tmp["time"] ** 2
@@ -254,7 +251,7 @@ def unitsystem(
         mass = tmp["velocity"] ** 2 / G * tmp["length"]
         added = (time, mass)
     elif ud.mass in tmp.base_dimensions and ud.time in tmp.base_dimensions:
-        length = jnp.cbrt(G * tmp["mass"] * tmp["time"] ** 2)
+        length = np.cbrt(G * tmp["mass"] * tmp["time"] ** 2)
         added = (length,)
     elif ud.mass in tmp.base_dimensions and ud.speed in tmp.base_dimensions:
         length = G * tmp["mass"] / tmp["velocity"] ** 2
