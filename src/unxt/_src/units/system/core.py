@@ -10,7 +10,7 @@ from typing import Annotated, Any
 import astropy.units as u
 import equinox as eqx
 import numpy as np
-from astropy.constants import G as const_G  # noqa: N811
+from astropy.constants import G as const_G  # noqa: N811, pylint: disable=E0611
 from plum import dispatch
 
 from . import builtin_dimensions as ud
