@@ -93,6 +93,7 @@ intersphinx_mapping = {
     "jaxtyping": ("https://docs.kidger.site/jaxtyping/", None),
     "astropy": ("https://docs.astropy.org/en/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
+    "quax": ("https://docs.kidger.site/quax/", None),
 }
 
 nitpick_ignore = [
