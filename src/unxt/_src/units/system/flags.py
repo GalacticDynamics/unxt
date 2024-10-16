@@ -4,6 +4,8 @@ __all__ = [
     "SimulationUnitSystemFlag",
 ]
 
+from typing import Any
+
 
 class AbstractUnitSystemFlag:
     """Abstract class for unit system flags to provide dispatch control."""
