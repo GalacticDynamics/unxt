@@ -1,6 +1,8 @@
-__all__ = ["AbstractUnitSystemFlag", "StandardUnitSystemFlag"]
-
-from typing import Any
+__all__ = [
+    "AbstractUnitSystemFlag",
+    "StandardUnitSystemFlag",
+    "SimulationUnitSystemFlag",
+]
 
 
 class AbstractUnitSystemFlag:
