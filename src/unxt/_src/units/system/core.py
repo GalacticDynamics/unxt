@@ -18,7 +18,7 @@ from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
 from .builtin import DimensionlessUnitSystem
 from .flags import (
     AbstractUnitSystemFlag,
-    SimulationUnitSystemFlag,
+    DynamicalSimulationUnitSystemFlag,
     StandardUnitSystemFlag,
 )
 from .realizations import NAMED_UNIT_SYSTEMS, dimensionless
@@ -222,7 +222,7 @@ def unitsystem(flag: type[StandardUnitSystemFlag], *units_: Any) -> AbstractUnit
 
 @dispatch  # type: ignore[no-redef]
 def unitsystem(
-    flag: type[SimulationUnitSystemFlag],
+    flag: type[DynamicalSimulationUnitSystemFlag],
     *units_: Any,
     G: u.Quantity | float | int = 1.0,  # noqa: N803
 ) -> AbstractUnitSystem:

@@ -15,7 +15,7 @@ from unxt.unitsystems import (
     AbstractUnitSystem,
     AbstractUnitSystemFlag,
     DimensionlessUnitSystem,
-    SimulationUnitSystemFlag,
+    DynamicalSimulationUnitSystemFlag,
     StandardUnitSystemFlag,
     dimensionless,
     equivalent,
@@ -224,8 +224,8 @@ def test_simulation_usys():
     from astropy.constants import G as const_G  # noqa: N811
 
     tmp_G = const_G.decompose([u.kpc, u.Myr, u.Msun])
-    usys1 = unitsystem(SimulationUnitSystemFlag, u.kpc, u.Myr, u.rad)
+    usys1 = unitsystem(DynamicalSimulationUnitSystemFlag, u.kpc, u.Myr, u.rad)
     assert np.isclose((1 * usys1["mass"]).to_value(u.Msun), 1 / tmp_G.value)
 
-    usys2 = unitsystem(SimulationUnitSystemFlag, u.kpc, u.Msun, u.rad)
+    usys2 = unitsystem(DynamicalSimulationUnitSystemFlag, u.kpc, u.Msun, u.rad)
     assert np.isclose((1 * usys2["time"]).to_value(u.Myr), 1 / np.sqrt(tmp_G.value))

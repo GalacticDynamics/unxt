@@ -1,7 +1,7 @@
 __all__ = [
     "AbstractUnitSystemFlag",
     "StandardUnitSystemFlag",
-    "SimulationUnitSystemFlag",
+    "DynamicalSimulationUnitSystemFlag",
 ]
 
 from typing import Any
@@ -19,5 +19,5 @@ class StandardUnitSystemFlag(AbstractUnitSystemFlag):
     """Flag to indicate a standard unit system with no additional arguments."""
 
 
-class SimulationUnitSystemFlag(AbstractUnitSystemFlag):
+class DynamicalSimulationUnitSystemFlag(AbstractUnitSystemFlag):
     """Flag to indicate a unit system with optional definition of G."""
