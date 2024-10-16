@@ -21,14 +21,14 @@ from ._src.quantity.fast import UncheckedQuantity
 from ._src.quantity import compat, functional, register_dispatches, register_primitives
 
 __all__: list[str] = [
+    # Core
+    "Quantity",
     # Base
     "AbstractQuantity",
     # Fast
     "UncheckedQuantity",
     # Base Parametric
     "AbstractParametricQuantity",
-    # Core
-    "Quantity",
     # Distance
     "AbstractDistance",
     "Distance",

@@ -60,6 +60,13 @@ extensions = [
     "sphinx_design",
 ]
 
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": True,
+    "inherited-members": True,
+    "show-inheritance": True,
+}
+
 exclude_patterns = [
     "_build",
     "**.ipynb_checkpoints",
@@ -85,6 +92,7 @@ intersphinx_mapping = {
     "jax": ("https://jax.readthedocs.io/en/latest/", None),
     "jaxtyping": ("https://docs.kidger.site/jaxtyping/", None),
     "astropy": ("https://docs.astropy.org/en/stable/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
 }
 
 nitpick_ignore = [
