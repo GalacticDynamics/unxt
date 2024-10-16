@@ -172,13 +172,13 @@ def unitsystem(usys: AbstractUnitSystem, *units_: Any) -> AbstractUnitSystem:
     >>> import astropy.units as u
     >>> from unxt.unitsystems import unitsystem
     >>> usys = unitsystem("galactic")
-    unitsystem(kpc, Myr, solMass, rad)
     >>> unitsystem(usys, u.km/u.s)
     LengthTimeMassAngleSpeedUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"), angle=Unit("rad"), speed=Unit("km / s"))
 
     We can also override the base unit of an existing unit system:
 
     >>> new_usys = unitsystem(usys, u.pc)
+    >>> new_usys
     TimeMassAngleLengthUnitSystem(time=Unit("Myr"), mass=Unit("solMass"), angle=Unit("rad"), length=Unit("pc"))
 
     """  # noqa: E501
