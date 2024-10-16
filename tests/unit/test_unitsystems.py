@@ -15,6 +15,7 @@ from unxt.unitsystems import (
     AbstractUnitSystem,
     AbstractUnitSystemFlag,
     DimensionlessUnitSystem,
+    SimulationUnitSystemFlag,
     StandardUnitSystemFlag,
     dimensionless,
     equivalent,
@@ -216,3 +217,12 @@ def test_standard_flag():
 
     with pytest.raises(ValueError, match="unit system flag classes"):
         StandardUnitSystemFlag()
+
+
+def test_simulation_usys():
+    """Test defining the simulation unit system with expected inputs."""
+    from astropy.constants import G as const_G  # noqa: N811
+
+    tmp_G = const_G.decompose([u.kpc, u.Myr, u.Msun])
+    usys1 = unitsystem(SimulationUnitSystemFlag, u.kpc, u.Myr, u.rad)
+    assert np.isclose(usys1["mass"].to_value(u.Msun), 1 / tmp_G.value)
