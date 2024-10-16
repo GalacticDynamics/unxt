@@ -10,6 +10,7 @@ import numpy as np
 import pytest
 
 from unxt import unitsystems
+from unxt._src.units.system.flags import AbstractUnitSystemFlag
 from unxt.unitsystems import (
     AbstractUnitSystem,
     DimensionlessUnitSystem,
@@ -191,3 +192,9 @@ def test_extend():
     usys3 = unitsystem(usys1, u.mas / u.yr, u.pc)
     assert usys3["angular speed"] == u.mas / u.yr
     assert usys3["length"] == u.pc  # overridden
+
+
+def test_abstract_usys_flag():
+    """Test that the abstract unit system flag fails."""
+    with pytest.raises(ValueError, match="Do not use"):
+        unitsystem(AbstractUnitSystemFlag, u.kpc)
