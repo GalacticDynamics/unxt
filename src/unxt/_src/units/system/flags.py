@@ -1,7 +1,12 @@
+__all__ = ["AbstractUnitSystemFlag", "StandardUnitSystemFlag"]
+
+from typing import Any
+
+
 class AbstractUnitSystemFlag:
     """Abstract class for unit system flags to provide dispatch control."""
 
-    def __new__(cls, *args: Any, **kwargs: Any) -> Never:
+    def __new__(cls, *_: Any, **__: Any) -> None:  # type: ignore[misc]
         msg = "unit system flag classes cannot be instantiated."
         raise ValueError(msg)
 
