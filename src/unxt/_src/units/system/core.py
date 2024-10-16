@@ -193,12 +193,22 @@ def unitsystem(usys: AbstractUnitSystem, *units_: Any) -> AbstractUnitSystem:
 
 @dispatch  # type: ignore[no-redef]
 def unitsystem(flag: type[AbstractUnitSystemFlag], *_: Any) -> AbstractUnitSystem:
+    """Raise an exception since the flag is abstract."""
     msg = "Do not use the AbstractUnitSystemFlag directly, only use subclasses."
     raise TypeError(msg)
 
 
 @dispatch  # type: ignore[no-redef]
 def unitsystem(flag: type[StandardUnitSystemFlag], *units_: Any) -> AbstractUnitSystem:
+    """Create a standard unit system using the inputted units.
+
+    Examples
+    --------
+    >>> from unxt import unitsystem
+    >>> unitsystem(unitsystems.StandardUnitSystemFlag, u.kpc, u.Myr, u.Msun)
+    LengthTimeMassUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"))
+
+    """
     return unitsystem(*units_)
 
 
