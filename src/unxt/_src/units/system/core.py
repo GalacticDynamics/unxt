@@ -13,6 +13,7 @@ from plum import dispatch
 
 from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
 from .builtin import DimensionlessUnitSystem
+from .flags import AbstractUnitSystemFlag, StandardUnitSystemFlag
 from .realizations import NAMED_UNIT_SYSTEMS, dimensionless
 from .utils import get_dimension_name
 from unxt._src.dimensions.core import dimensions_of
@@ -158,6 +159,58 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
 
     """
     return NAMED_UNIT_SYSTEMS[name]
+
+
+@dispatch  # type: ignore[no-redef]
+def unitsystem(usys: AbstractUnitSystem, *units_: Any) -> AbstractUnitSystem:
+    """Create a unit system from an existing unit system and additional units.
+
+    Examples
+    --------
+    We can add a new unit definition to an existing unit system:
+
+    >>> import astropy.units as u
+    >>> from unxt.unitsystems import unitsystem
+    >>> usys = unitsystem("galactic")
+    >>> unitsystem(usys, u.km/u.s)
+    LengthTimeMassAngleSpeedUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"), angle=Unit("rad"), speed=Unit("km / s"))
+
+    We can also override the base unit of an existing unit system:
+
+    >>> new_usys = unitsystem(usys, u.pc)
+    >>> new_usys
+    TimeMassAngleLengthUnitSystem(time=Unit("Myr"), mass=Unit("solMass"), angle=Unit("rad"), length=Unit("pc"))
+
+    """  # noqa: E501
+    new_usys = unitsystem(*units_)
+    current_units = [
+        unit
+        for unit in usys.base_units
+        if unit.physical_type not in new_usys.base_dimensions
+    ]
+    return unitsystem(*current_units, *units_)
+
+
+@dispatch  # type: ignore[no-redef]
+def unitsystem(flag: type[AbstractUnitSystemFlag], *_: Any) -> AbstractUnitSystem:
+    """Raise an exception since the flag is abstract."""
+    msg = "Do not use the AbstractUnitSystemFlag directly, only use subclasses."
+    raise TypeError(msg)
+
+
+@dispatch  # type: ignore[no-redef]
+def unitsystem(flag: type[StandardUnitSystemFlag], *units_: Any) -> AbstractUnitSystem:
+    """Create a standard unit system using the inputted units.
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> from unxt import unitsystem, unitsystems
+    >>> unitsystem(unitsystems.StandardUnitSystemFlag, u.kpc, u.Myr, u.Msun)
+    LengthTimeMassUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"))
+
+    """
+    return unitsystem(*units_)
 
 
 # ----

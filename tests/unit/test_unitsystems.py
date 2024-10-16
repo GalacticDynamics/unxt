@@ -10,9 +10,12 @@ import numpy as np
 import pytest
 
 from unxt import unitsystems
+from unxt._src.units.system.base import _UNITSYSTEMS_REGISTRY
 from unxt.unitsystems import (
     AbstractUnitSystem,
+    AbstractUnitSystemFlag,
     DimensionlessUnitSystem,
+    StandardUnitSystemFlag,
     dimensionless,
     equivalent,
     unitsystem,
@@ -146,6 +149,9 @@ def test_unitsystem_already_registered():
             length: Annotated[u.Unit, u.get_physical_type("length")]
             time: Annotated[u.Unit, u.get_physical_type("time")]
 
+    # Clean up custom unit system from registry:
+    del _UNITSYSTEMS_REGISTRY[MyUnitSystem._base_dimensions]
+
 
 class TestDimensionlessUnitSystem:
     """Test `unxt.unitsystems.DimensionlessUnitSystem`."""
@@ -180,3 +186,33 @@ def test_equivalent():
 
     usys3 = unitsystem(u.kpc, u.Myr, u.radian)
     assert not equivalent(usys1, usys3)
+
+
+def test_extend():
+    """Test adding additional units to a unit system."""
+    usys1 = unitsystem(u.kpc, u.Myr, u.radian, u.Msun, u.km / u.s)
+    usys2 = unitsystem(usys1, u.mas / u.yr)
+    assert usys2["angular speed"] == u.mas / u.yr
+
+    usys3 = unitsystem(usys1, u.mas / u.yr, u.pc)
+    assert usys3["angular speed"] == u.mas / u.yr
+    assert usys3["length"] == u.pc  # overridden
+
+
+def test_abstract_usys_flag():
+    """Test that the abstract unit system flag fails."""
+    with pytest.raises(TypeError, match="Do not use"):
+        unitsystem(AbstractUnitSystemFlag, u.kpc)
+
+    with pytest.raises(ValueError, match="unit system flag classes"):
+        AbstractUnitSystemFlag()
+
+
+def test_standard_flag():
+    """Test defining unit system with the standard flag."""
+    usys1 = unitsystem(StandardUnitSystemFlag, u.kpc, u.Myr)
+    usys2 = unitsystem(u.kpc, u.Myr)
+    assert usys1 == usys2
+
+    with pytest.raises(ValueError, match="unit system flag classes"):
+        StandardUnitSystemFlag()
