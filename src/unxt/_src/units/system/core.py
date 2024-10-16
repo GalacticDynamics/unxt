@@ -9,7 +9,7 @@ from typing import Annotated, Any
 
 import astropy.units as u
 import equinox as eqx
-from astropy.constants import G as const_G
+from astropy.constants import G as const_G  # noqa: N811
 from plum import dispatch
 
 import quaxed.numpy as jnp
@@ -231,10 +231,10 @@ def unitsystem(
     tmp = unitsystem(*units_)
 
     if not isinstance(G, Quantity):
-        G = Quantity.constructor(G, "")
+        G = Quantity.from_(G, "")
 
     if G.unit.physical_type == ud.dimensionless:
-        G = G * const_G
+        G = G * Quantity.from_(const_G)
     elif not G.unit.is_equivalent(const_G):
         msg = (
             "Invalid value for G: must be dimensionless or have the correct dimensions "
