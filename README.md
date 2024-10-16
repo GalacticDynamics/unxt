@@ -11,10 +11,8 @@ vectorization (`vmap`, etc).
 
 ## Installation
 
-[![PyPI platforms][pypi-platforms]][pypi-link]
 [![PyPI version][pypi-version]][pypi-link]
-
-<!-- [![Conda-Forge][conda-badge]][conda-link] -->
+[![PyPI platforms][pypi-platforms]][pypi-link]
 
 ```bash
 pip install unxt
