@@ -205,7 +205,7 @@ def unitsystem(flag: type[StandardUnitSystemFlag], *units_: Any) -> AbstractUnit
     Examples
     --------
     >>> import astropy.units as u
-    >>> from unxt import unitsystem
+    >>> from unxt import unitsystem, unitsystems
     >>> unitsystem(unitsystems.StandardUnitSystemFlag, u.kpc, u.Myr, u.Msun)
     LengthTimeMassUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"))
 
