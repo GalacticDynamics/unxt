@@ -204,9 +204,15 @@ def test_abstract_usys_flag():
     with pytest.raises(TypeError, match="Do not use"):
         unitsystem(AbstractUnitSystemFlag, u.kpc)
 
+    with pytest.raises(ValueError, match="unit system flag classes"):
+        AbstractUnitSystemFlag()
+
 
 def test_standard_flag():
     """Test defining unit system with the standard flag."""
     usys1 = unitsystem(StandardUnitSystemFlag, u.kpc, u.Myr)
     usys2 = unitsystem(u.kpc, u.Myr)
     assert usys1 == usys2
+
+    with pytest.raises(ValueError, match="unit system flag classes"):
+        StandardUnitSystemFlag()
