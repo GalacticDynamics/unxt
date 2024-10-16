@@ -194,7 +194,7 @@ def unitsystem(usys: AbstractUnitSystem, *units_: Any) -> AbstractUnitSystem:
 @dispatch  # type: ignore[no-redef]
 def unitsystem(flag: type[AbstractUnitSystemFlag], *_: Any) -> AbstractUnitSystem:
     msg = "Do not use the AbstractUnitSystemFlag directly, only use subclasses."
-    raise ValueError(msg)
+    raise TypeError(msg)
 
 
 @dispatch  # type: ignore[no-redef]
