@@ -17,9 +17,9 @@ from . import builtin_dimensions as ud
 from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
 from .builtin import DimensionlessUnitSystem
 from .flags import (
-    AbstractUnitSystemFlag,
-    DynamicalSimulationUnitSystemFlag,
-    StandardUnitSystemFlag,
+    AbstractUSysFlag,
+    DynamicalSimUSysFlag,
+    StandardUSysFlag,
 )
 from .realizations import NAMED_UNIT_SYSTEMS, dimensionless
 from .utils import get_dimension_name
@@ -199,21 +199,21 @@ def unitsystem(usys: AbstractUnitSystem, *units_: Any) -> AbstractUnitSystem:
 
 
 @dispatch  # type: ignore[no-redef]
-def unitsystem(flag: type[AbstractUnitSystemFlag], *_: Any) -> AbstractUnitSystem:
+def unitsystem(flag: type[AbstractUSysFlag], *_: Any) -> AbstractUnitSystem:
     """Raise an exception since the flag is abstract."""
-    msg = "Do not use the AbstractUnitSystemFlag directly, only use subclasses."
+    msg = "Do not use the AbstractUSysFlag directly, only use subclasses."
     raise TypeError(msg)
 
 
 @dispatch  # type: ignore[no-redef]
-def unitsystem(flag: type[StandardUnitSystemFlag], *units_: Any) -> AbstractUnitSystem:
+def unitsystem(flag: type[StandardUSysFlag], *units_: Any) -> AbstractUnitSystem:
     """Create a standard unit system using the inputted units.
 
     Examples
     --------
     >>> import astropy.units as u
     >>> from unxt import unitsystem, unitsystems
-    >>> unitsystem(unitsystems.StandardUnitSystemFlag, u.kpc, u.Myr, u.Msun)
+    >>> unitsystem(unitsystems.StandardUSysFlag, u.kpc, u.Myr, u.Msun)
     LengthTimeMassUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"))
 
     """
@@ -222,7 +222,7 @@ def unitsystem(flag: type[StandardUnitSystemFlag], *units_: Any) -> AbstractUnit
 
 @dispatch  # type: ignore[no-redef]
 def unitsystem(
-    flag: type[DynamicalSimulationUnitSystemFlag],
+    flag: type[DynamicalSimUSysFlag],
     *units_: Any,
     G: float | int = 1.0,  # noqa: N803
 ) -> AbstractUnitSystem:

@@ -14,10 +14,10 @@ from unxt import unitsystems
 from unxt._src.units.system.base import _UNITSYSTEMS_REGISTRY
 from unxt.unitsystems import (
     AbstractUnitSystem,
-    AbstractUnitSystemFlag,
+    AbstractUSysFlag,
     DimensionlessUnitSystem,
-    DynamicalSimulationUnitSystemFlag,
-    StandardUnitSystemFlag,
+    DynamicalSimUSysFlag,
+    StandardUSysFlag,
     dimensionless,
     equivalent,
     unitsystem,
@@ -204,20 +204,20 @@ def test_extend():
 def test_abstract_usys_flag():
     """Test that the abstract unit system flag fails."""
     with pytest.raises(TypeError, match="Do not use"):
-        unitsystem(AbstractUnitSystemFlag, u.kpc)
+        unitsystem(AbstractUSysFlag, u.kpc)
 
     with pytest.raises(ValueError, match="unit system flag classes"):
-        AbstractUnitSystemFlag()
+        AbstractUSysFlag()
 
 
 def test_standard_flag():
     """Test defining unit system with the standard flag."""
-    usys1 = unitsystem(StandardUnitSystemFlag, u.kpc, u.Myr)
+    usys1 = unitsystem(StandardUSysFlag, u.kpc, u.Myr)
     usys2 = unitsystem(u.kpc, u.Myr)
     assert usys1 == usys2
 
     with pytest.raises(ValueError, match="unit system flag classes"):
-        StandardUnitSystemFlag()
+        StandardUSysFlag()
 
 
 def test_simulation_usys():
@@ -225,10 +225,10 @@ def test_simulation_usys():
     from astropy.constants import G as const_G  # noqa: N811
 
     tmp_G = const_G.decompose([u.kpc, u.Myr, u.Msun])
-    usys1 = unitsystem(DynamicalSimulationUnitSystemFlag, u.kpc, u.Myr, u.rad)
+    usys1 = unitsystem(DynamicalSimUSysFlag, u.kpc, u.Myr, u.rad)
     assert np.isclose((1 * usys1["mass"]).to_value(u.Msun), 1 / tmp_G.value)
 
-    usys2 = unitsystem(DynamicalSimulationUnitSystemFlag, u.kpc, u.Msun, u.rad)
+    usys2 = unitsystem(DynamicalSimUSysFlag, u.kpc, u.Msun, u.rad)
     assert np.isclose((1 * usys2["time"]).to_value(u.Myr), 1 / np.sqrt(tmp_G.value))
 
     base_units = (u.kpc, u.Myr, u.Msun, u.km / u.s)
@@ -236,7 +236,7 @@ def test_simulation_usys():
         if u1 == u2:
             continue
 
-        usys = unitsystem(DynamicalSimulationUnitSystemFlag, u1, u2)
+        usys = unitsystem(DynamicalSimUSysFlag, u1, u2)
 
         # For now, just test retrieving all three base unit types:
         usys["length"]
