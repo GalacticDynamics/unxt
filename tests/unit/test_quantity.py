@@ -503,11 +503,17 @@ def test_is_unit_convertible():
     # Unit
     assert is_unit_convertible(u.km, u.kpc) is True
 
+    # unit is a str
+    assert is_unit_convertible("km", "m") is True
+
     # Bad unit
     assert is_unit_convertible(u.s, u.m) is False
 
     # Quantity
-    assert is_unit_convertible(Quantity(1, u.km), u.kpc) is True
+    assert is_unit_convertible(u.kpc, Quantity(1, u.km)) is True
+
+    # unit is a str
+    assert is_unit_convertible("km", Quantity(1, u.km)) is True
 
     # Bad quantity
-    assert is_unit_convertible(Quantity(1, u.s), u.m) is False
+    assert is_unit_convertible(u.m, Quantity(1, u.s)) is False
