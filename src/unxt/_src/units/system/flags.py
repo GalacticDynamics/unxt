@@ -1,9 +1,13 @@
-__all__ = ["AbstractUnitSystemFlag", "StandardUnitSystemFlag"]
+__all__ = [
+    "AbstractUSysFlag",
+    "StandardUSysFlag",
+    "DynamicalSimUSysFlag",
+]
 
 from typing import Any
 
 
-class AbstractUnitSystemFlag:
+class AbstractUSysFlag:
     """Abstract class for unit system flags to provide dispatch control."""
 
     def __new__(cls, *_: Any, **__: Any) -> None:  # type: ignore[misc]
@@ -11,5 +15,9 @@ class AbstractUnitSystemFlag:
         raise ValueError(msg)
 
 
-class StandardUnitSystemFlag(AbstractUnitSystemFlag):
-    """Unit system flag to indicate a standard unit system with no additional args."""
+class StandardUSysFlag(AbstractUSysFlag):
+    """Flag to indicate a standard unit system with no additional arguments."""
+
+
+class DynamicalSimUSysFlag(AbstractUSysFlag):
+    """Flag to indicate a unit system with optional definition of G."""

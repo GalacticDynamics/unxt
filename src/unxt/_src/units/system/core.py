@@ -9,11 +9,18 @@ from typing import Annotated, Any
 
 import astropy.units as u
 import equinox as eqx
+import numpy as np
+from astropy.constants import G as const_G  # noqa: N811, pylint: disable=E0611
 from plum import dispatch
 
+from . import builtin_dimensions as ud
 from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
 from .builtin import DimensionlessUnitSystem
-from .flags import AbstractUnitSystemFlag, StandardUnitSystemFlag
+from .flags import (
+    AbstractUSysFlag,
+    DynamicalSimUSysFlag,
+    StandardUSysFlag,
+)
 from .realizations import NAMED_UNIT_SYSTEMS, dimensionless
 from .utils import get_dimension_name
 from unxt._src.dimensions.core import dimensions_of
@@ -192,25 +199,62 @@ def unitsystem(usys: AbstractUnitSystem, *units_: Any) -> AbstractUnitSystem:
 
 
 @dispatch  # type: ignore[no-redef]
-def unitsystem(flag: type[AbstractUnitSystemFlag], *_: Any) -> AbstractUnitSystem:
+def unitsystem(flag: type[AbstractUSysFlag], *_: Any) -> AbstractUnitSystem:
     """Raise an exception since the flag is abstract."""
-    msg = "Do not use the AbstractUnitSystemFlag directly, only use subclasses."
+    msg = "Do not use the AbstractUSysFlag directly, only use subclasses."
     raise TypeError(msg)
 
 
 @dispatch  # type: ignore[no-redef]
-def unitsystem(flag: type[StandardUnitSystemFlag], *units_: Any) -> AbstractUnitSystem:
+def unitsystem(flag: type[StandardUSysFlag], *units_: Any) -> AbstractUnitSystem:
     """Create a standard unit system using the inputted units.
 
     Examples
     --------
     >>> import astropy.units as u
     >>> from unxt import unitsystem, unitsystems
-    >>> unitsystem(unitsystems.StandardUnitSystemFlag, u.kpc, u.Myr, u.Msun)
+    >>> unitsystem(unitsystems.StandardUSysFlag, u.kpc, u.Myr, u.Msun)
     LengthTimeMassUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"))
 
     """
     return unitsystem(*units_)
+
+
+@dispatch  # type: ignore[no-redef]
+def unitsystem(
+    flag: type[DynamicalSimUSysFlag],
+    *units_: Any,
+    G: float | int = 1.0,  # noqa: N803
+) -> AbstractUnitSystem:
+    tmp = unitsystem(*units_)
+
+    # Use G for computing the missing units below:
+    G = G * const_G
+
+    added = ()
+    if ud.length in tmp.base_dimensions and ud.mass in tmp.base_dimensions:
+        time = 1 / np.sqrt(G * tmp["mass"] / tmp["length"] ** 3)
+        added = (time,)
+    elif ud.length in tmp.base_dimensions and ud.time in tmp.base_dimensions:
+        mass = 1 / G * tmp["length"] ** 3 / tmp["time"] ** 2
+        added = (mass,)
+    elif ud.length in tmp.base_dimensions and ud.speed in tmp.base_dimensions:
+        time = tmp["length"] / tmp["velocity"]
+        mass = tmp["velocity"] ** 2 / G * tmp["length"]
+        added = (time, mass)
+    elif ud.mass in tmp.base_dimensions and ud.time in tmp.base_dimensions:
+        length = np.cbrt(G * tmp["mass"] * tmp["time"] ** 2)
+        added = (length,)
+    elif ud.mass in tmp.base_dimensions and ud.speed in tmp.base_dimensions:
+        length = G * tmp["mass"] / tmp["velocity"] ** 2
+        time = length / tmp["velocity"]
+        added = (length, time)
+    elif ud.time in tmp.base_dimensions and ud.speed in tmp.base_dimensions:
+        mass = 1 / G * tmp["velocity"] ** 3 * tmp["time"]
+        length = G * mass / tmp["velocity"] ** 2
+        added = (mass, length)
+
+    return unitsystem(*tmp, *added)
 
 
 # ----

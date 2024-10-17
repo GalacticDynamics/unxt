@@ -171,6 +171,7 @@ build-backend = "hatchling.build"
       "F821",    # undefined name '...'  <- jaxtyping
       "FIX002",  # Line contains TODO
       "ISC001",  # Conflicts with formatter
+      "N806",    # Variable in function should be lowercase
       "PD",      # Pandas
       "PLR09",   # Too many <...>
       "PLR2004", # Magic value used in comparison
