@@ -60,6 +60,9 @@ extensions = [
     "sphinx_design",
 ]
 
+autodoc_typehints_format = "short"
+python_use_unqualified_type_names = True
+
 autodoc_default_options = {
     "members": True,
     "undoc-members": True,

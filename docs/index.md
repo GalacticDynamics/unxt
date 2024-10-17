@@ -12,8 +12,8 @@ vectorization (`vmap`, etc).
 quickstart.md
 sharp_bits.md
 conventions.md
-api/index.md
 tutorials/index.md
+api/index.md
 ```
 
 ## Installation

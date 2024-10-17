@@ -229,5 +229,6 @@ dev-dependencies = [
     "ipykernel>=6.29.5",
     "pytest-arraydiff>=0.6.1",
     "pytest>=8.3.3",
+    "sphinx>=5.0",
     "sybil>=8.0.0",
 ]
