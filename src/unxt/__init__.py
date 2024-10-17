@@ -15,9 +15,7 @@ with install_import_hook("unxt", RUNTIME_TYPECHECKER):
     from .quantity import *
     from .unitsystems import AbstractUnitSystem, unitsystem, unitsystem_of
 
-from ._src import (
-    experimental,  # noqa: F401
-)
+from ._src import experimental  # noqa: F401
 
 # isort: split
 from . import _interop  # noqa: F401  # register interop

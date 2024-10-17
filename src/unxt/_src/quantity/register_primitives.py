@@ -26,7 +26,7 @@ from quax import register as register_
 from quaxed import lax as qlax
 
 from .api import uconvert, ustrip
-from .base import AbstractQuantity, can_convert_unit
+from .base import AbstractQuantity, is_unit_convertible
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
 from .distance import AbstractDistance
@@ -38,12 +38,12 @@ Axes: TypeAlias = tuple[int, ...]
 
 
 def register(primitive: Primitive, **kwargs: Any) -> Callable[[T], T]:
-    """:func`quax.register`, but makes mypy happy."""
+    """`quax.register`, but makes mypy happy."""
     return register_(primitive, **kwargs)
 
 
 def _to_value_rad_or_one(q: AbstractQuantity) -> ArrayLike:
-    return ustrip(radian if can_convert_unit(q.unit, radian) else one, q)
+    return ustrip(radian if is_unit_convertible(q.unit, radian) else one, q)
 
 
 def _bshape(arrs: tuple[Any, ...], /) -> tuple[int, ...]:

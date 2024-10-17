@@ -1,7 +1,7 @@
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
 
-__all__ = ["AbstractQuantity", "can_convert_unit"]
+__all__ = ["AbstractQuantity", "is_unit_convertible"]
 
 from collections.abc import Callable, Mapping, Sequence
 from functools import partial
@@ -24,7 +24,7 @@ import quaxed.operator as qoperator
 from dataclassish import fields, replace
 
 from .api import uconvert, ustrip
-from unxt._src.units.core import AbstractUnits, units
+from unxt._src.units.core import AbstractUnits, units, units_of
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -501,7 +501,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
 
         """
-        if not can_convert_unit(other.unit, self.unit):
+        if not is_unit_convertible(other.unit, self.unit):
             raise UnitConversionError
 
         # TODO: figure out how to defer to quaxed (e.g. quaxed.operator.mod)
@@ -818,17 +818,17 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
 # ===================================================================
 
 
-def can_convert_unit(
-    from_unit: AbstractQuantity | AbstractUnits, to_unit: AbstractUnits | str, /
-) -> bool:
+def is_unit_convertible(to_unit: Any, from_unit: Any, /) -> bool:
     """Check if a unit can be converted to another unit.
 
     Parameters
     ----------
-    from_unit : :clas:`unxt.AbstractQuantity` | Unit
-        The unit to convert from.
-    to_unit : Unit | str
-        The unit to convert to.
+    to_unit : Any
+        The unit to convert to. Converted to a unit object using `unxt.units`.
+    from_unit : Any
+        The unit to convert from. Converted to a unit object using
+        `unxt.units_of`, Note this means it also support `Quantity` objects and
+        many others.
 
     Returns
     -------
@@ -836,11 +836,10 @@ def can_convert_unit(
         Whether the conversion is possible.
 
     """
+    to_u = units(to_unit)
+    from_u = units_of(from_unit)
     try:
-        from_unit.to(to_unit)
+        from_u.to(to_u)
     except UnitConversionError:
         return False
     return True
-
-
-#####################################################################

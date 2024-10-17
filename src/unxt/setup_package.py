@@ -3,8 +3,10 @@
 import os
 from typing import Final
 
-RUNTIME_TYPECHECKER: Final[str | None] = os.environ.get(
-    "UNXT_ENABLE_RUNTIME_TYPECHECKING", None
+RUNTIME_TYPECHECKER: Final[str | None] = (
+    v
+    if (v := os.environ.get("UNXT_ENABLE_RUNTIME_TYPECHECKING", None)) != "None"
+    else None
 )
 """Runtime type checking variable "UNXT_ENABLE_RUNTIME_TYPECHECKING".
 
