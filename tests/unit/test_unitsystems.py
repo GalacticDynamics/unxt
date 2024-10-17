@@ -1,5 +1,6 @@
 """Test the `unxt.unitsystems` module."""
 
+import itertools
 import pickle
 from dataclasses import dataclass
 from pathlib import Path
@@ -229,3 +230,15 @@ def test_simulation_usys():
 
     usys2 = unitsystem(DynamicalSimulationUnitSystemFlag, u.kpc, u.Msun, u.rad)
     assert np.isclose((1 * usys2["time"]).to_value(u.Myr), 1 / np.sqrt(tmp_G.value))
+
+    base_units = (u.kpc, u.Myr, u.Msun, u.km / u.s)
+    for u1, u2 in itertools.product(base_units, base_units):
+        if u1 == u2:
+            continue
+
+        usys = unitsystem(DynamicalSimulationUnitSystemFlag, u1, u2)
+
+        # For now, just test retrieving all three base unit types:
+        usys["length"]
+        usys["mass"]
+        usys["time"]
