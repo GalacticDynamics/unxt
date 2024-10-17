@@ -224,20 +224,12 @@ def unitsystem(flag: type[StandardUnitSystemFlag], *units_: Any) -> AbstractUnit
 def unitsystem(
     flag: type[DynamicalSimulationUnitSystemFlag],
     *units_: Any,
-    G: u.Quantity | float | int = 1.0,  # noqa: N803
+    G: float | int = 1.0,  # noqa: N803
 ) -> AbstractUnitSystem:
     tmp = unitsystem(*units_)
 
-    G = u.Quantity(G)
-
-    if G.unit.physical_type == u.get_physical_type("dimensionless"):
-        G = G * const_G
-    elif not G.unit.is_equivalent(const_G.unit):
-        msg = (
-            "Invalid value for G: must be dimensionless or have the correct dimensions "
-            "(equivalent to length per mass times velocity^2)"
-        )
-        raise ValueError(msg)
+    # Use G for computing the missing units below:
+    G = G * const_G
 
     added = ()
     if ud.length in tmp.base_dimensions and ud.mass in tmp.base_dimensions:
