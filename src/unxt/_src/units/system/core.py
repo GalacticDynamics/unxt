@@ -247,11 +247,11 @@ def unitsystem(
         added = (length,)
     elif ud.mass in tmp.base_dimensions and ud.speed in tmp.base_dimensions:
         length = G * tmp["mass"] / tmp["velocity"] ** 2
-        time = tmp["length"] / tmp["velocity"]
+        time = length / tmp["velocity"]
         added = (length, time)
     elif ud.time in tmp.base_dimensions and ud.speed in tmp.base_dimensions:
         mass = 1 / G * tmp["velocity"] ** 3 * tmp["time"]
-        length = G * tmp["mass"] / tmp["velocity"] ** 2
+        length = G * mass / tmp["velocity"] ** 2
         added = (mass, length)
 
     return unitsystem(*tmp, *added)
