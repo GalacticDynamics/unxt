@@ -24,7 +24,7 @@ import quaxed.operator as qoperator
 from dataclassish import fields, replace
 
 from .api import uconvert, ustrip
-from unxt._src.units.core import AbstractUnits, units, units_of
+from unxt._src.units.core import AbstractUnits, units
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -818,6 +818,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
 # ===================================================================
 
 
+@dispatch
 def is_unit_convertible(to_unit: Any, from_unit: Any, /) -> bool:
     """Check if a unit can be converted to another unit.
 
@@ -827,7 +828,7 @@ def is_unit_convertible(to_unit: Any, from_unit: Any, /) -> bool:
         The unit to convert to. Converted to a unit object using `unxt.units`.
     from_unit : Any
         The unit to convert from. Converted to a unit object using
-        `unxt.units_of`, Note this means it also support `Quantity` objects and
+        `unxt.units`, Note this means it also support `Quantity` objects and
         many others.
 
     Returns
@@ -835,11 +836,39 @@ def is_unit_convertible(to_unit: Any, from_unit: Any, /) -> bool:
     bool
         Whether the conversion is possible.
 
+    Examples
+    --------
+    >>> from unxt import is_unit_convertible
+    >>> is_unit_convertible("cm", "m")
+    True
+
+    >>> is_unit_convertible("m", "Gyr")
+    False
+
     """
     to_u = units(to_unit)
-    from_u = units_of(from_unit)
+    from_u = units(from_unit)
     try:
         from_u.to(to_u)
     except UnitConversionError:
         return False
     return True
+
+
+@dispatch
+def is_unit_convertible(to_unit: Any, from_unit: AbstractQuantity, /) -> bool:
+    """Check if a Quantity can be converted to another unit.
+
+    Examples
+    --------
+    >>> from unxt import Quantity, is_unit_convertible
+    >>> q = Quantity(1, "m")
+
+    >>> is_unit_convertible("cm", q)
+    True
+
+    >>> is_unit_convertible("Gyr", q)
+    False
+
+    """
+    return is_unit_convertible(to_unit, from_unit.unit)
