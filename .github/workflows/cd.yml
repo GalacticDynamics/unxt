@@ -62,7 +62,9 @@ jobs:
   publish:
     name: Publish to PyPI
     needs: [test-publish]
-    environment: pypi
+    environment:
+      name: pypi
+      url: https://pypi.org/p/unxt
     permissions:
       id-token: write
       attestations: write
