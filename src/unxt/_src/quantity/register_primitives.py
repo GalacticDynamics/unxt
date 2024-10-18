@@ -29,7 +29,6 @@ from .api import uconvert, ustrip
 from .base import AbstractQuantity, is_unit_convertible
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
-from .distance import AbstractDistance
 from unxt._src.units.core import units
 
 T = TypeVar("T")
@@ -76,21 +75,6 @@ def _abs_p(x: AbstractQuantity) -> AbstractQuantity:
     UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
     >>> abs(q)
     UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
-
-    >>> from unxt import Distance
-    >>> d = Distance(-1, "m")
-    >>> jnp.abs(d)
-    Distance(Array(1, dtype=int32, ...), unit='m')
-
-    >>> from unxt import Parallax
-    >>> p = Parallax(-1, "mas", check_negative=False)
-    >>> jnp.abs(p)
-    Parallax(Array(1, dtype=int32, ...), unit='mas')
-
-    >>> from unxt import DistanceModulus
-    >>> dm = DistanceModulus(-1, "mag")
-    >>> jnp.abs(dm)
-    DistanceModulus(Array(1, dtype=int32, weak_type=True), unit='mag')
 
     """
     return replace(x, value=lax.abs(x.value))
@@ -173,24 +157,6 @@ def _add_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     Quantity['length'](Array(1.5, dtype=float32, ...), unit='km')
     >>> q1 + q2
     Quantity['length'](Array(1.5, dtype=float32, ...), unit='km')
-
-    >>> from unxt import Distance
-    >>> d1 = Distance(1.0, "km")
-    >>> d2 = Distance(500.0, "m")
-    >>> jnp.add(d1, d2)
-    Distance(Array(1.5, dtype=float32, ...), unit='km')
-
-    >>> from unxt import Parallax
-    >>> p1 = Parallax(1.0, "mas")
-    >>> p2 = Parallax(500.0, "uas")
-    >>> jnp.add(p1, p2)
-    Parallax(Array(1.5, dtype=float32, ...), unit='mas')
-
-    >>> from unxt import DistanceModulus
-    >>> dm1 = DistanceModulus(1.0, "mag")
-    >>> dm2 = DistanceModulus(500.0, "mag")
-    >>> jnp.add(dm1, dm2)
-    DistanceModulus(Array(501., dtype=float32, ...), unit='mag')
 
     """
     return replace(x, value=lax.add(x.value, ustrip(x.unit, y)))
@@ -716,23 +682,6 @@ def _cbrt_p(x: AbstractQuantity) -> AbstractQuantity:
 
     """
     return type_np(x)(lax.cbrt(x.value), unit=x.unit ** (1 / 3))
-
-
-# TODO: can this be done with promotion/conversion instead?
-@register(lax.cbrt_p)
-def _cbrt_p_d(x: AbstractDistance) -> Quantity:
-    """Cube root of a distance.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-    >>> from unxt import Distance
-    >>> d = Distance(8, "m")
-    >>> jnp.cbrt(d)
-    Quantity['m1/3'](Array(2., dtype=float32, ...), unit='m(1/3)')
-
-    """
-    return Quantity(lax.cbrt(x.value), unit=x.unit ** (1 / 3))
 
 
 # ==============================================================================
@@ -1578,15 +1527,6 @@ def _dot_general_qq(
     >>> q1 @ q2
     Quantity['area'](Array(32, dtype=int32), unit='m2')
 
-    >>> from unxt import Distance
-
-    >>> q1 = Distance([1, 2, 3], "m")
-    >>> q2 = Quantity([4, 5, 6], "m")
-    >>> jnp.vecdot(q1, q2)
-    Quantity['area'](Array(32, dtype=int32), unit='m2')
-    >>> q1 @ q2
-    Quantity['area'](Array(32, dtype=int32), unit='m2')
-
     This rule is also used by `jnp.matmul` for quantities.
 
     >>> Rz = jnp.asarray([[0, -1,  0],
@@ -1604,47 +1544,6 @@ def _dot_general_qq(
     """
     lhs, rhs = promote(lhs, rhs)
     return type_np(lhs)(
-        lax.dot_general_p.bind(lhs.value, rhs.value, **kwargs),
-        unit=lhs.unit * rhs.unit,
-    )
-
-
-@register(lax.dot_general_p)
-def _dot_general_dd(
-    lhs: AbstractDistance, rhs: AbstractDistance, /, **kwargs: Any
-) -> Quantity:
-    """Dot product of two Distances.
-
-    Examples
-    --------
-    This is a dot product of two Distances.
-
-    >>> import quaxed.numpy as jnp
-    >>> from unxt import Distance
-
-    >>> q1 = Distance([1, 2, 3], "m")
-    >>> q2 = Distance([4, 5, 6], "m")
-    >>> jnp.vecdot(q1, q2)
-    Quantity['area'](Array(32, dtype=int32), unit='m2')
-    >>> q1 @ q2
-    Quantity['area'](Array(32, dtype=int32), unit='m2')
-
-    This rule is also used by `jnp.matmul` for quantities.
-
-    >>> Rz = jnp.asarray([[0, -1,  0],
-    ...                   [1,  0,  0],
-    ...                   [0,  0,  1]])
-    >>> q = Quantity([1, 0, 0], "m")
-    >>> Rz @ q
-    Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
-
-    This uses `matmul` for quantities.
-
-    >>> jnp.linalg.matmul(Rz, q)
-    Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
-
-    """
-    return Quantity(
         lax.dot_general_p.bind(lhs.value, rhs.value, **kwargs),
         unit=lhs.unit * rhs.unit,
     )
@@ -2288,21 +2187,6 @@ def _integer_pow_p(x: AbstractQuantity, *, y: Any) -> AbstractQuantity:
     return type_np(x)(value=lax.integer_pow(x.value, y), unit=x.unit**y)
 
 
-@register(lax.integer_pow_p)
-def _integer_pow_p_d(x: AbstractDistance, *, y: Any) -> Quantity:
-    """Integer power of a Distance.
-
-    Examples
-    --------
-    >>> from unxt import Distance
-    >>> q = Distance(2, "m")
-    >>> q ** 3
-    Quantity['volume'](Array(8, dtype=int32, ...), unit='m3')
-
-    """
-    return Quantity(value=lax.integer_pow(x.value, y), unit=x.unit**y)
-
-
 # ==============================================================================
 
 
@@ -2921,24 +2805,6 @@ def _pow_p_vq(
     return replace(y, value=lax.pow(x, y.value))
 
 
-@register(lax.pow_p)
-def _pow_p_d(x: AbstractDistance, y: ArrayLike) -> Quantity:
-    """Power of a Distance by redispatching to Quantity.
-
-    Examples
-    --------
-    >>> import math
-    >>> from unxt import Distance
-
-    >>> q1 = Distance(10.0, "m")
-    >>> y = 3.0
-    >>> q1 ** y
-    Quantity['volume'](Array(1000., dtype=float32, ...), unit='m3')
-
-    """
-    return Quantity(x.value, x.unit) ** y  # TODO: better call to power
-
-
 # ==============================================================================
 
 
@@ -3019,12 +2885,6 @@ def _rem_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> q2 = Quantity(3, "m")
     >>> q1 % q2
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
-
-    >>> from unxt import Distance
-    >>> q1 = Distance(10, "m")
-    >>> q2 = Quantity(3, "m")
-    >>> q1 % q2
-    Distance(Array(1, dtype=int32, ...), unit='m')
 
     """
     return replace(x, value=lax.rem(x.value, ustrip(x.unit, y)))
@@ -3286,29 +3146,6 @@ def _sqrt_p_q(x: AbstractQuantity) -> AbstractQuantity:
     return type_np(x)(lax.sqrt(x.value), unit=x.unit ** (1 / 2))
 
 
-@register(lax.sqrt_p)
-def _sqrt_p_d(x: AbstractDistance) -> Quantity:
-    """Square root of a quantity.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-
-    >>> from unxt import Distance
-    >>> q = Distance(9, "m")
-    >>> jnp.sqrt(q)
-    Quantity['m0.5'](Array(3., dtype=float32, ...), unit='m(1/2)')
-
-    >>> from unxt import Parallax
-    >>> q = Parallax(9, "mas")
-    >>> jnp.sqrt(q)
-    Quantity['rad0.5'](Array(3., dtype=float32, ...), unit='mas(1/2)')
-
-    """
-    # Promote to something that supports sqrt units.
-    return Quantity(lax.sqrt(x.value), unit=x.unit ** (1 / 2))
-
-
 # ==============================================================================
 
 
@@ -3352,24 +3189,6 @@ def _sub_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     Quantity['length'](Array(0.5, dtype=float32, ...), unit='km')
     >>> q1 - q2
     Quantity['length'](Array(0.5, dtype=float32, ...), unit='km')
-
-    >>> from unxt import Distance
-    >>> d1 = Distance(1.0, "km")
-    >>> d2 = Distance(500.0, "m")
-    >>> jnp.subtract(d1, d2)
-    Distance(Array(0.5, dtype=float32, ...), unit='km')
-
-    >>> from unxt import Parallax
-    >>> p1 = Parallax(1.0, "mas")
-    >>> p2 = Parallax(500.0, "uas")
-    >>> jnp.subtract(p1, p2)
-    Parallax(Array(0.5, dtype=float32, ...), unit='mas')
-
-    >>> from unxt import DistanceModulus
-    >>> dm1 = DistanceModulus(1.0, "mag")
-    >>> dm2 = DistanceModulus(500.0, "mag")
-    >>> jnp.subtract(dm1, dm2)
-    DistanceModulus(Array(-499., dtype=float32, ...), unit='mag')
 
     """
     return replace(x, value=lax.sub(ustrip(x.unit, x), ustrip(x.unit, y)))
@@ -3441,12 +3260,6 @@ def _sub_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 @register(lax.tan_p)
 def _tan_p(x: AbstractQuantity) -> AbstractQuantity:
     return type_np(x)(lax.tan(_to_value_rad_or_one(x)), unit=one)
-
-
-# TODO: figure out a promotion alternative that works in general
-@register(lax.tan_p)
-def _tan_p_d(x: AbstractDistance) -> Quantity["dimensionless"]:
-    return Quantity(lax.tan(_to_value_rad_or_one(x)), unit=one)
 
 
 # ==============================================================================

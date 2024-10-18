@@ -8,12 +8,6 @@ from ._src.quantity.api import uconvert, ustrip
 from ._src.quantity.base import AbstractQuantity, is_unit_convertible
 from ._src.quantity.base_parametric import AbstractParametricQuantity
 from ._src.quantity.core import Quantity
-from ._src.quantity.distance import (
-    AbstractDistance,
-    Distance,
-    DistanceModulus,
-    Parallax,
-)
 from ._src.quantity.fast import UncheckedQuantity
 
 # isort: split
@@ -29,11 +23,6 @@ __all__: list[str] = [
     "AbstractParametricQuantity",
     # Core
     "Quantity",
-    # Distance
-    "AbstractDistance",
-    "Distance",
-    "Parallax",
-    "DistanceModulus",
     # Functional
     "uconvert",
     "ustrip",
