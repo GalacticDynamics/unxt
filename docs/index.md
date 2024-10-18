@@ -16,6 +16,8 @@ tutorials/index.md
 api/index.md
 ```
 
+---
+
 ## Installation
 
 [![PyPI version][pypi-version]][pypi-link]
@@ -40,6 +42,28 @@ uv add unxt
 :::
 
 ::::
+
+## Quickstart
+
+The starting point of `unxt` is the `Quantity` class. It combines a JAX array
+with unit information.
+
+```{code-block} python
+
+>>> import jax.numpy as jnp
+>>> from unxt import Quantity
+
+>>> x = Quantity(jnp.array([1, 2, 3]), "m")
+>>> x
+Quantity([1. 2. 3.], 'm')
+
+>>> x.value
+ArrayImpl([1. 2. 3.])
+
+>>> x.unit
+Unit('m')
+
+```
 
 ## Citation
 
