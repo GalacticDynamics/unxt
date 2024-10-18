@@ -14,7 +14,12 @@ __all__ = [
 import astropy.units as u
 
 from .base import AbstractUnitSystem
-from .builtin import DimensionlessUnitSystem, LTMAUnitSystem, SIUnitSystem
+from .builtin import (
+    CGSUnitSystem,
+    DimensionlessUnitSystem,
+    LTMAUnitSystem,
+    SIUnitSystem,
+)
 
 # Dimensionless. This is a singleton.
 dimensionless = DimensionlessUnitSystem()
@@ -43,10 +48,24 @@ si = SIUnitSystem(
     angle=u.radian,
 )
 
+# Centimeter, gram, second
+cgs = CGSUnitSystem(
+    length=u.centimeter,
+    time=u.second,
+    mass=u.gram,
+    angle=u.radian,
+    force=u.dyne,
+    energy=u.erg,
+    pressure=u.barye,
+    dynamic_viscosity=u.poise,
+    kinematic_viscosity=u.stokes,
+)
+
 
 NAMED_UNIT_SYSTEMS: dict[str, AbstractUnitSystem] = {
     "galactic": galactic,
     "solarsystem": solarsystem,
     "dimensionless": dimensionless,
     "si": si,
+    "cgs": cgs,
 }

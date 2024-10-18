@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["DimensionlessUnitSystem", "LTMAUnitSystem", "SIUnitSystem"]
+__all__ = ["DimensionlessUnitSystem", "LTMAUnitSystem", "SIUnitSystem", "CGSUnitSystem"]
 
 from dataclasses import dataclass
 from typing import Annotated, TypeAlias, final
@@ -73,5 +73,23 @@ class SIUnitSystem(AbstractUnitSystem):
     temperature: Annotated[Unit, ud.temperature]
     luminous_intensity: Annotated[Unit, ud.luminous_intensity]
     mass: Annotated[Unit, ud.mass]
+    # + angles
+    angle: Annotated[Unit, ud.angle]
+
+
+@final
+@dataclass(frozen=True, slots=True)
+class CGSUnitSystem(AbstractUnitSystem):
+    """SI unit system + angles."""
+
+    # Base CGS dimensions
+    length: Annotated[Unit, ud.length]
+    mass: Annotated[Unit, ud.mass]
+    time: Annotated[Unit, ud.time]
+    force: Annotated[Unit, ud.force]
+    energy: Annotated[Unit, ud.energy]
+    pressure: Annotated[Unit, ud.pressure]
+    dynamic_viscosity: Annotated[Unit, ud.dynamic_viscosity]
+    kinematic_viscosity: Annotated[Unit, ud.kinematic_viscosity]
     # + angles
     angle: Annotated[Unit, ud.angle]
