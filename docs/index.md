@@ -5,17 +5,6 @@ Unxt is unitful quantities and calculations in [JAX][jax].
 Yes, it supports auto-differentiation (`grad`, `jacobian`, `hessian`) and
 vectorization (`vmap`, etc).
 
-```{toctree}
-:maxdepth: 2
-:hidden:
-
-quickstart.md
-sharp_bits.md
-conventions.md
-tutorials/index.md
-api/index.md
-```
-
 ---
 
 ## Installation
@@ -63,6 +52,28 @@ ArrayImpl([1. 2. 3.])
 >>> x.unit
 Unit('m')
 
+```
+
+---
+
+```{toctree}
+:maxdepth: 1
+:hidden:
+
+getting_started.md
+sharp_bits.md
+conventions.md
+tutorials/index.md
+```
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+:caption: API
+
+api/quantity.md
+api/unitsystems.md
+api/experimental.md
 ```
 
 ## Citation
