@@ -36,6 +36,7 @@ jobs:
     needs: [dist]
     environment:
       name: testpypi
+      url: https://test.pypi.org/p/unxt
     permissions:
       id-token: write
       attestations: write
