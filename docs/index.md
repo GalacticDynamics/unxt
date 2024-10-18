@@ -63,6 +63,7 @@ Unit('m')
 getting_started.md
 sharp_bits.md
 conventions.md
+everything.md
 ```
 
 ```{toctree}
