@@ -63,7 +63,14 @@ Unit('m')
 getting_started.md
 sharp_bits.md
 conventions.md
-tutorials/index.md
+```
+
+```{toctree}
+:maxdepth: 1
+:hidden:
+:caption: Tutorials
+
+tutorials/coming_from_astropy.md
 ```
 
 ```{toctree}
