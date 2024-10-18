@@ -1,86 +1,87 @@
-# unxt
+# `unxt`
 
-Unxt is unitful quantities and calculations in [JAX][jax], built on
-[Equinox][equinox] and [Quax][quax].
+Unxt is unitful quantities and calculations in [JAX][jax].
 
 Yes, it supports auto-differentiation (`grad`, `jacobian`, `hessian`) and
 vectorization (`vmap`, etc).
 
+---
+
 ## Installation
 
-[![PyPI platforms][pypi-platforms]][pypi-link]
 [![PyPI version][pypi-version]][pypi-link]
+[![PyPI platforms][pypi-platforms]][pypi-link]
 
-<!-- [![Conda-Forge][conda-badge]][conda-link] -->
+::::{tab-set}
+
+:::{tab-item} pip
 
 ```bash
 pip install unxt
 ```
 
-## Getting started
+:::
 
-```python
-from unxt import Quantity
+:::{tab-item} uv
 
-x = Quantity(jnp.arange(1, 5, dtype=float), "kpc")
-print(x)
-# Quantity['length'](Array([1., 2., 3., 4.], dtype=float64), unit='kpc')
-
-# Addition / Subtraction
-print(x + x)
-# Quantity['length'](Array([2., 4., 6., 8.], dtype=float64), unit='kpc')
-
-# Multiplication / Division
-print(2 * x)
-# Quantity['length'](Array([2., 4., 6., 8.], dtype=float64), unit='kpc')
-
-y = Quantity(jnp.arange(4, 8, dtype=float), "Gyr")
-
-print(x / y)
-# Quantity['speed'](Array([0.25      , 0.4       , 0.5       , 0.57142857], dtype=float64), unit='kpc / Gyr')
-
-# Exponentiation
-print(x**2)
-# Quantity['area'](Array([0., 1., 4., 9.], dtype=float64), unit='kpc2')
-
-# Unit Checking on operations
-try:
-    x + y
-except Exception as e:
-    print(e)
-# 'Gyr' (time) and 'kpc' (length) are not convertible
+```bash
+uv add unxt
 ```
 
-`unxt` is built on [`quax`][quax], which enables custom array-ish objects in
-JAX. For convenience we use the [`quaxed`][quaxed] library, which is just a
-`quax.quaxify` wrapper around `jax` to avoid boilerplate code.
+:::
 
-```python
-from quaxed import grad, vmap
-import quaxed.numpy as jnp
+::::
 
-print(jnp.square(x))
-# Quantity['area'](Array([ 1.,  4.,  9., 16.], dtype=float64), unit='kpc2')
+## Quickstart
 
-print(qnp.power(x, 3))
-# Quantity['volume'](Array([ 1.,  8., 27., 64.], dtype=float64), unit='kpc3')
+The starting point of `unxt` is the `Quantity` class. It combines a JAX array
+with unit information.
 
-print(vmap(grad(lambda x: x**3))(x))
-# Quantity['area'](Array([ 3., 12., 27., 48.], dtype=float64), unit='kpc2')
+```{code-block} python
+
+>>> import jax.numpy as jnp
+>>> from unxt import Quantity
+
+>>> x = Quantity(jnp.array([1, 2, 3]), "m")
+>>> x
+Quantity([1. 2. 3.], 'm')
+
+>>> x.value
+ArrayImpl([1. 2. 3.])
+
+>>> x.unit
+Unit('m')
+
 ```
 
-Since `Quantity` is parametric, it can do runtime dimension checking!
+---
 
-```python
-LengthQuantity = Quantity["length"]
-print(LengthQuantity(2, "km"))
-# Quantity['length'](Array(2, dtype=int64, weak_type=True), unit='km')
+```{toctree}
+:maxdepth: 1
+:hidden:
 
-try:
-    LengthQuantity(2, "s")
-except ValueError as e:
-    print(e)
-# Physical type mismatch.
+getting_started.md
+sharp_bits.md
+conventions.md
+everything.md
+```
+
+```{toctree}
+:maxdepth: 1
+:hidden:
+:caption: Tutorials
+
+tutorials/coming_from_astropy.md
+```
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+:caption: API
+
+api/quantity.md
+api/unitsystems.md
+api/experimental.md
 ```
 
 ## Citation
@@ -91,14 +92,20 @@ If you found this library to be useful and want to support the development and
 maintenance of lower-level code libraries for the scientific community, please
 consider citing this work.
 
-## See also: other libraries in the Quax ecosystem
+## Ecosystem
 
-[Quax][quax]: the base library.
+### `unxt`'s Dependencies
 
-[coordinax][coordinax]: Vector representations (built on `unxt`).
+- [Equinox][equinox]: one-stop JAX library, for everything that isn't already in
+  core JAX.
+- [Quax][quax]: JAX + multiple dispatch + custom array-ish objects.
+- [Quaxed][quaxed]: pre-`quaxify`ed Jax.
 
-[galax][galax]: Galactic dynamics in Jax (built on `unxt` and
-[coordinax][coordinax]).
+### `unxt`'s Dependents
+
+- [coordinax][coordinax]: Coordinates in JAX (built on `unxt`).
+- [galax][galax]: Galactic dynamics in Jax (built on `unxt` and
+  [coordinax][coordinax]).
 
 <!-- LINKS -->
 
