@@ -69,7 +69,7 @@ class SIUnitSystem(AbstractUnitSystem):
     length: Annotated[Unit, ud.length]
     time: Annotated[Unit, ud.time]
     amount: Annotated[Unit, ud.amount]
-    electic_current: Annotated[Unit, ud.current]
+    electric_current: Annotated[Unit, ud.current]
     temperature: Annotated[Unit, ud.temperature]
     luminous_intensity: Annotated[Unit, ud.luminous_intensity]
     mass: Annotated[Unit, ud.mass]
