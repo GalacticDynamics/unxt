@@ -30,8 +30,8 @@
     "dataclassish>=0.3",
     "equinox>=0.11.5",
     "is-annotated>=1.0",
-    "jax>0.4",
-    "jaxlib>0.4",
+    "jax>0.4.32",
+    "jaxlib>0.4.32",
     "jaxtyping>=0.2.34",
     "optional-dependencies>=0.3.2",
     "plum-dispatch>=2.4.3", # pinned for other dependencies
