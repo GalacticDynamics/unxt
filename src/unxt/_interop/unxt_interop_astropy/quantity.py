@@ -309,7 +309,7 @@ def uconvert(unit: AstropyUnit, x: AbstractQuantity, /) -> AbstractQuantity:
 
     # TODO: jaxpr units so we can understand them at trace time.
     # Hot-path: if in tracing mode
-    # if isinstance(x.value, jax.core.Tracer) and not can_convert_unit(x.unit, u):
+    # if isinstance(x.value, jax.core.Tracer) and not is_unit_convertible(x.unit, u):
     #     return x.value
 
     return replace(x, value=_apy7_unit_to(x.unit, unit, x.value), unit=unit)

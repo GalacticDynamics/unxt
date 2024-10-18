@@ -1,7 +1,7 @@
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
 
-__all__ = ["AbstractQuantity", "can_convert_unit"]
+__all__ = ["AbstractQuantity", "is_unit_convertible"]
 
 from collections.abc import Callable, Mapping, Sequence
 from functools import partial
@@ -501,7 +501,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
 
         """
-        if not can_convert_unit(other.unit, self.unit):
+        if not is_unit_convertible(other.unit, self.unit):
             raise UnitConversionError
 
         # TODO: figure out how to defer to quaxed (e.g. quaxed.operator.mod)
@@ -818,29 +818,57 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
 # ===================================================================
 
 
-def can_convert_unit(
-    from_unit: AbstractQuantity | AbstractUnits, to_unit: AbstractUnits | str, /
-) -> bool:
+@dispatch
+def is_unit_convertible(to_unit: Any, from_unit: Any, /) -> bool:
     """Check if a unit can be converted to another unit.
 
     Parameters
     ----------
-    from_unit : :clas:`unxt.AbstractQuantity` | Unit
-        The unit to convert from.
-    to_unit : Unit | str
-        The unit to convert to.
+    to_unit : Any
+        The unit to convert to. Converted to a unit object using `unxt.units`.
+    from_unit : Any
+        The unit to convert from. Converted to a unit object using
+        `unxt.units`, Note this means it also support `Quantity` objects and
+        many others.
 
     Returns
     -------
     bool
         Whether the conversion is possible.
 
+    Examples
+    --------
+    >>> from unxt import is_unit_convertible
+    >>> is_unit_convertible("cm", "m")
+    True
+
+    >>> is_unit_convertible("m", "Gyr")
+    False
+
     """
+    to_u = units(to_unit)
+    from_u = units(from_unit)
     try:
-        from_unit.to(to_unit)
+        from_u.to(to_u)
     except UnitConversionError:
         return False
     return True
 
 
-#####################################################################
+@dispatch
+def is_unit_convertible(to_unit: Any, from_unit: AbstractQuantity, /) -> bool:
+    """Check if a Quantity can be converted to another unit.
+
+    Examples
+    --------
+    >>> from unxt import Quantity, is_unit_convertible
+    >>> q = Quantity(1, "m")
+
+    >>> is_unit_convertible("cm", q)
+    True
+
+    >>> is_unit_convertible("Gyr", q)
+    False
+
+    """
+    return is_unit_convertible(to_unit, from_unit.unit)

@@ -5,7 +5,7 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 # ruff:noqa: F403
 
 from ._src.quantity.api import uconvert, ustrip
-from ._src.quantity.base import AbstractQuantity, can_convert_unit
+from ._src.quantity.base import AbstractQuantity, is_unit_convertible
 from ._src.quantity.base_parametric import AbstractParametricQuantity
 from ._src.quantity.core import Quantity
 from ._src.quantity.distance import (
@@ -23,7 +23,6 @@ from ._src.quantity import compat, functional, register_dispatches, register_pri
 __all__: list[str] = [
     # Base
     "AbstractQuantity",
-    "can_convert_unit",
     # Fast
     "UncheckedQuantity",
     # Base Parametric
@@ -38,6 +37,7 @@ __all__: list[str] = [
     # Functional
     "uconvert",
     "ustrip",
+    "is_unit_convertible",
 ]
 
 

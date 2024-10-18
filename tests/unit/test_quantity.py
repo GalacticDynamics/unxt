@@ -19,7 +19,7 @@ from plum import convert, parametric
 
 import quaxed.numpy as jnp
 
-from unxt import AbstractParametricQuantity, Quantity, can_convert_unit
+from unxt import AbstractParametricQuantity, Quantity, is_unit_convertible
 
 xps = make_strategies_namespace(jax_xp)
 
@@ -498,16 +498,22 @@ def test_convert_to_astropy():
 ##############################################################################
 
 
-def test_can_convert_unit():
-    """Test :func:`unxt.can_convert_unit`."""
+def test_is_unit_convertible():
+    """Test `unxt.is_unit_convertible`."""
     # Unit
-    assert can_convert_unit(u.km, u.kpc) is True
+    assert is_unit_convertible(u.km, u.kpc) is True
+
+    # unit is a str
+    assert is_unit_convertible("km", "m") is True
 
     # Bad unit
-    assert can_convert_unit(u.s, u.m) is False
+    assert is_unit_convertible(u.s, u.m) is False
 
     # Quantity
-    assert can_convert_unit(Quantity(1, u.km), u.kpc) is True
+    assert is_unit_convertible(u.kpc, Quantity(1, u.km)) is True
+
+    # unit is a str
+    assert is_unit_convertible("km", Quantity(1, u.km)) is True
 
     # Bad quantity
-    assert can_convert_unit(Quantity(1, u.s), u.m) is False
+    assert is_unit_convertible(u.m, Quantity(1, u.s)) is False
