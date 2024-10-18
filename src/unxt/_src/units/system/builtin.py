@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["DimensionlessUnitSystem", "LTMAUnitSystem", "SIUnitSystem", "CGSUnitSystem"]
+__all__ = ["DimensionlessUnitSystem", "LTMAUnitSystem"]
 
 from dataclasses import dataclass
 from typing import Annotated, TypeAlias, final
@@ -63,7 +63,11 @@ class LTMAUnitSystem(AbstractUnitSystem):
 @final
 @dataclass(frozen=True, slots=True)
 class SIUnitSystem(AbstractUnitSystem):
-    """SI unit system + angles."""
+    """SI unit system + angles.
+
+    Note: this is not part of the public API! Use the `si` instance (realization) from
+    `unxt.unitsystems` instead.
+    """
 
     # Base SI dimensions
     length: Annotated[Unit, ud.length]
@@ -80,7 +84,11 @@ class SIUnitSystem(AbstractUnitSystem):
 @final
 @dataclass(frozen=True, slots=True)
 class CGSUnitSystem(AbstractUnitSystem):
-    """SI unit system + angles."""
+    """CGS unit system + angles.
+
+    Note: this is not part of the public API! Use the `cgs` instance (realization) from
+    `unxt.unitsystems` instead.
+    """
 
     # Base CGS dimensions
     length: Annotated[Unit, ud.length]
