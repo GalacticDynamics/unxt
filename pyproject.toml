@@ -38,6 +38,7 @@
     "quax>=0.0.5",
     "quaxed>=0.6.4",
     "xmmutablemap>=0.1",
+    "zeroth",  # (only needed for matplotlib)
   ]
 
   [project.optional-dependencies]
@@ -58,7 +59,7 @@
       "pytkdocs_tweaks==0.0.8",              # Tweaks mkdocstrings to improve various aspects
     ]
     interop-gala = ["gala"]
-    interop-mpl = ["matplotlib", "zeroth"]
+    interop-mpl = ["matplotlib"]
     test = [
       "hypothesis[numpy]",
       "pytest >=6",

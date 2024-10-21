@@ -34,7 +34,6 @@ class OptDeps(OptionalDependencyEnum):
     ASTROPY = auto()
     GALA = auto()
     MATPLOTLIB = auto()
-    ZEROTH = auto()
 
 
 collect_ignore_glob = []
@@ -42,7 +41,7 @@ if not OptDeps.ASTROPY.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_astropy/*")
 if not OptDeps.GALA.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_gala/*")
-if not OptDeps.MATPLOTLIB.installed or not OptDeps.ZEROTH.installed:
+if not OptDeps.MATPLOTLIB.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_mpl/*")
 
 
