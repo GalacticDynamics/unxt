@@ -1,5 +1,18 @@
 # 📜 Conventions
 
+## Naming Conventions
+
+`unxt` uses a few conventions to make the code more readable and to avoid
+verbosity. Many of these are also found in the [Glossary](glossary.md).
+
+- `Abstract...`: a class that is not meant to be instantiated directly, but
+  rather to be subclassed. Abstract classes are prefixed with 'Abstract'.
+  Concrete (or 'final') classes are not so prefixed. As a further rule, no
+  abstract class inherits from a concrete class and no concrete class inherits
+  from any other concrete class.
+- `USys`: a shorthand for "unit system", used in class names to avoid verbosity.
+- `Sim`: a shorthand for "simulation", used in class names to avoid verbosity.
+
 ## Functional vs Object-Oriented APIs
 
 As `JAX` is function-oriented, but Python is generally object-oriented, `unxt`
