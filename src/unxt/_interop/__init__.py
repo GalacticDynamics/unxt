@@ -12,7 +12,7 @@ if OptDeps.ASTROPY.installed:
 if OptDeps.GALA.installed:
     from . import unxt_interop_gala
 
-if OptDeps.MATPLOTLIB.installed and OptDeps.ZEROTH.installed:
+if OptDeps.MATPLOTLIB.installed:
     from . import unxt_interop_mpl as interop_mpl
 
     interop_mpl.setup_matplotlib_support_for_unxt(enable=True)
