@@ -46,6 +46,7 @@ if not OptDeps.ASTROPY.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_astropy/*")
 if not OptDeps.GALA.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_gala/*")
+    collect_ignore_glob.append("docs/interop/gala.md")
 if not OptDeps.MATPLOTLIB.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_mpl/*")
 

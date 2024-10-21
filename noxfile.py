@@ -37,9 +37,16 @@ def pylint(session: nox.Session) -> None:
 
 
 @nox.session
-def tests(session: nox.Session) -> None:
+def test(session: nox.Session) -> None:
     """Run the unit and regular tests."""
     session.install(".[test]")
+    session.run("pytest", *session.posargs)
+
+
+@nox.session
+def test_all(session: nox.Session) -> None:
+    """Run the tests with all optional dependencies."""
+    session.install(".[test-all]")
     session.run("pytest", *session.posargs)
 
 
