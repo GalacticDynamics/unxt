@@ -415,6 +415,25 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     __truediv__ = qoperator.truediv
     __rtruediv__ = _flip_binop(qoperator.truediv)
 
+    @dispatch  # type: ignore[misc]
+    def __mod__(self: "AbstractQuantity", other: Any) -> "AbstractQuantity":
+        """Take the modulus.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+
+        >>> q = Quantity(480, "deg")
+        >>> q % Quantity(360, "deg")
+        Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
+
+        """
+        if not is_unit_convertible(other.unit, self.unit):
+            raise UnitConversionError
+
+        # TODO: figure out how to defer to quaxed (e.g. quaxed.operator.mod)
+        return replace(self, value=self.value % ustrip(self.unit, other))
+
     @property
     def dtype(self) -> DType:
         """Data type of the array.
@@ -478,8 +497,26 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     def __neg__(self) -> "AbstractQuantity":
         return replace(self, value=-self.value)  # pylint: disable=E1130
 
-    # ---------------------------------
-    # Misc
+    # ===============================================================
+    # JAX API
+
+    @partial(property, doc=jax.Array.at.__doc__)
+    def at(self) -> "_QuantityIndexUpdateHelper":
+        return _QuantityIndexUpdateHelper(self)
+
+    def block_until_ready(self) -> "AbstractQuantity":
+        """Block until the array is ready.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity(1, "m")
+        >>> q.block_until_ready() is q
+        True
+
+        """
+        _ = self.value.block_until_ready()
+        return self
 
     def flatten(self) -> "AbstractQuantity":
         return replace(self, value=self.value.flatten())
@@ -487,32 +524,6 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     def reshape(self, *args: Any, order: str = "C") -> "AbstractQuantity":
         __tracebackhide__ = True  # pylint: disable=unused-variable
         return replace(self, value=self.value.reshape(*args, order=order))
-
-    @dispatch  # type: ignore[misc]
-    def __mod__(self: "AbstractQuantity", other: Any) -> "AbstractQuantity":
-        """Take the modulus.
-
-        Examples
-        --------
-        >>> from unxt import Quantity
-
-        >>> q = Quantity(480, "deg")
-        >>> q % Quantity(360, "deg")
-        Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
-
-        """
-        if not is_unit_convertible(other.unit, self.unit):
-            raise UnitConversionError
-
-        # TODO: figure out how to defer to quaxed (e.g. quaxed.operator.mod)
-        return replace(self, value=self.value % ustrip(self.unit, other))
-
-    # ===============================================================
-    # JAX API
-
-    @partial(property, doc=jax.Array.at.__doc__)
-    def at(self) -> "_QuantityIndexUpdateHelper":
-        return _QuantityIndexUpdateHelper(self)
 
     # ===============================================================
     # NumPy Compatibility
