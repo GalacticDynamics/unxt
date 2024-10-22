@@ -11,7 +11,6 @@ from typing import Any, TypeAlias, TypeVar
 import equinox as eqx
 import jax.tree as jt
 from astropy.units import (  # pylint: disable=no-name-in-module
-    UnitConversionError,
     dimensionless_unscaled as one,
     radian,
 )
@@ -1577,13 +1576,12 @@ def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     """
-    try:
-        yv = ustrip(x.unit, y)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-    # re-dispatch on the values
-    return qlax.eq(x.value, yv)
+    x = eqx.error_if(  # TODO: customize Exception type
+        x,
+        not is_unit_convertible(x.unit, y.unit),
+        f"Cannot compare Q(x, {x.unit}) == Q(y, {y.unit}).",
+    )
+    return qlax.eq(x.value, ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @register(lax.eq_p)
@@ -1607,17 +1605,16 @@ def _eq_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
 
     >>> q = Quantity(2.0, "m")
     >>> try: jnp.equal(x, q)
-    ... except Exception as e: print(e)
-    Array([False, False, False], dtype=bool)
+    ... except Exception as e: print("can't compare")
+    can't compare
 
     """
-    try:
-        yv = ustrip(one, y)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-    # re-dispatch on the values
-    return lax.eq(x, yv)
+    y = eqx.error_if(  # TODO: customize Exception type
+        y,
+        not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
+        f"Cannot compare x == Q(y, {y.unit}) (except for x=0).",
+    )
+    return qlax.eq(x, y.value)  # re-dispatch on the value
 
 
 @register(lax.eq_p)
@@ -1639,8 +1636,9 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     Array([False,  True, False], dtype=bool)
 
     >>> q = UncheckedQuantity([3., 2, 1], "m")
-    >>> jnp.equal(q, y)
-    Array([False, False, False], dtype=bool)
+    >>> try: jnp.equal(q, y)
+    ... except Exception as e: print("can't compare")
+    can't compare
 
     >>> from unxt import Quantity
     >>> q = Quantity(2.0, "")
@@ -1652,8 +1650,9 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     Array([False,  True, False], dtype=bool)
 
     >>> q = Quantity([3., 2, 1], "m")
-    >>> jnp.equal(q, y)
-    Array([False, False, False], dtype=bool)
+    >>> try: jnp.equal(q, y)
+    ... except Exception as e: print("can't compare")
+    can't compare
 
     Check against the special cases:
 
@@ -1664,31 +1663,13 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     Array([False, False, False], dtype=bool)
 
     """
-    is_special = jnp.isscalar(y) and (jnp.isinf(y) | (y == 0))
-
-    def special_case(_: Any, /) -> Array:
-        return lax.eq(x.value, y)
-
-    def regular_case(_: Any, /) -> Array:
-        try:
-            xv = ustrip(one, x)
-        except UnitConversionError:
-            return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-        return lax.eq(xv, y)
-
-    return lax.cond(is_special, special_case, regular_case, operand=None)
-
-
-@register(lax.eq_p)
-def _eq_p_aq0(x: AbstractQuantity, y: float | int) -> ArrayLike:
-    """Equality of a quantity and 0."""
-    y = eqx.error_if(
-        y,
-        y != 0,
-        "Only zero is allowed for comparison with non-dimensionless quantities.",
+    special_vals = jnp.logical_or(jnp.all(y == 0), jnp.all(jnp.isinf(y)))
+    x = eqx.error_if(  # TODO: customize Exception type
+        x,
+        not is_unit_convertible(one, x.unit) and jnp.logical_not(special_vals),
+        f"Cannot compare Q(x, {x.unit}) == y (except for y=0,infinity).",
     )
-    return lax.eq(x.value, y)
+    return qlax.eq(x.value, y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -1951,13 +1932,12 @@ def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     """
-    try:
-        yv = ustrip(x.unit, y)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-    # re-dispatch on the value
-    return qlax.ge(x.value, yv)
+    x = eqx.error_if(  # TODO: customize Exception type
+        x,
+        not is_unit_convertible(x.unit, y.unit),
+        f"Cannot compare Q(x, {x.unit}) >= Q(y, {y.unit}).",
+    )
+    return qlax.ge(x.value, ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @register(lax.ge_p)
@@ -1981,17 +1961,17 @@ def _ge_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     >>> q2 = Quantity(1., "m")
-    >>> jnp.greater_equal(x, q2)
-    Array(False, dtype=bool)
+    >>> try: jnp.greater_equal(x, q2)
+    ... except Exception as e: print("can't compare")
+    can't compare
 
     """
-    try:
-        yv = ustrip(one, y)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-    # re-dispatch on the value
-    return qlax.ge(x, yv)
+    y = eqx.error_if(  # TODO: customize Exception type
+        y,
+        not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
+        f"Cannot compare x >= Q(y, {y.unit}) (except for x=0).",
+    )
+    return qlax.ge(x, y.value)  # re-dispatch on the value
 
 
 @register(lax.ge_p)
@@ -2015,17 +1995,17 @@ def _ge_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     >>> q1 = Quantity(1., "m")
-    >>> jnp.greater_equal(q1, y)
-    Array(False, dtype=bool)
+    >>> try: jnp.greater_equal(q1, y)
+    ... except Exception as e: print("can't compare")
+    can't compare
 
     """
-    try:
-        xv = ustrip(one, x)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-    # re-dispatch on the value
-    return qlax.ge(xv, y)
+    x = eqx.error_if(  # TODO: customize Exception type
+        x,
+        not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
+        f"Cannot compare Q(x, {x.unit}) >= y (except for y=0).",
+    )
+    return qlax.ge(x.value, y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -2052,13 +2032,12 @@ def _gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     """
-    try:
-        yv = ustrip(x.unit, y)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-    # re-dispatch on the value
-    return qlax.gt(x.value, yv)
+    x = eqx.error_if(  # TODO: customize Exception type
+        x,
+        not is_unit_convertible(x.unit, y.unit),
+        f"Cannot compare Q(x, {x.unit}) > Q(y, {y.unit}).",
+    )
+    return qlax.gt(x.value, ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @register(lax.gt_p)
@@ -2082,22 +2061,22 @@ def _gt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     >>> q2 = Quantity(1., "m")
-    >>> jnp.greater_equal(x, q2)
-    Array(False, dtype=bool)
+    >>> try: jnp.greater_equal(x, q2)
+    ... except Exception as e: print("can't compare")
+    can't compare
 
     """
-    try:
-        yv = ustrip(one, y)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-    # re-dispatch on the value
-    return qlax.gt(x, yv)
+    y = eqx.error_if(  # TODO: customize Exception type
+        y,
+        not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
+        f"Cannot compare x > Q(y, {y.unit}) (except for x=0).",
+    )
+    return qlax.gt(x, y.value)  # re-dispatch on the value
 
 
 @register(lax.gt_p)
 def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
-    """Greater than or equal to of a quantity and an array.
+    """Greater than comparison between a quantity and an array.
 
     Examples
     --------
@@ -2116,17 +2095,17 @@ def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     Array(True, dtype=bool, ...)
 
     >>> q1 = Quantity(1., "m")
-    >>> jnp.greater_equal(q1, y)
-    Array(False, dtype=bool)
+    >>> try: jnp.greater_equal(q1, y)
+    ... except Exception as e: print("can't compare")
+    can't compare
 
     """
-    try:
-        xv = ustrip(one, x)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-    # re-dispatch on the value
-    return qlax.gt(xv, y)
+    x = eqx.error_if(  # TODO: customize Exception type
+        x,
+        not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
+        f"Cannot compare Q(x, {x.unit}) > y (except for y=0).",
+    )
+    return qlax.gt(x.value, y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -2242,13 +2221,12 @@ def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
     Array(False, dtype=bool, ...)
 
     """
-    try:
-        yv = ustrip(x.unit, y)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-    # re-dispatch on the values
-    return qlax.le(x.value, yv)
+    x = eqx.error_if(  # TODO: customize Exception type
+        x,
+        not is_unit_convertible(x.unit, y.unit),
+        f"Cannot compare Q(x, {x.unit}) <= Q(y, {y.unit}).",
+    )
+    return qlax.le(x.value, ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @register(lax.le_p)
@@ -2272,17 +2250,17 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     Array(False, dtype=bool, ...)
 
     >>> q2 = Quantity(1., "m")
-    >>> jnp.less_equal(x1, q2)
-    Array(False, dtype=bool)
+    >>> try: jnp.less_equal(x1, q2)
+    ... except Exception as e: print("can't compare")
+    can't compare
 
     """
-    try:
-        yv = ustrip(one, y)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-    # re-dispatch on the values
-    return qlax.le(x, yv)
+    y = eqx.error_if(  # TODO: customize Exception type
+        y,
+        not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
+        f"Cannot compare x <= Q(y, {y.unit}) (except for x=0).",
+    )
+    return qlax.le(x, y.value)  # re-dispatch on the value
 
 
 @register(lax.le_p)
@@ -2306,17 +2284,17 @@ def _le_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     Array(False, dtype=bool, ...)
 
     >>> q1 = Quantity(1., "m")
-    >>> jnp.less_equal(q1, y1)
-    Array(False, dtype=bool)
+    >>> try: jnp.less_equal(q1, y1)
+    ... except Exception as e: print("can't compare")
+    can't compare
 
     """
-    try:
-        xv = ustrip(one, x)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-    # re-dispatch on the values
-    return qlax.le(xv, y)
+    x = eqx.error_if(  # TODO: customize Exception type
+        x,
+        not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
+        f"Cannot compare Q(x, {x.unit}) <= y (except for y=0).",
+    )
+    return qlax.le(x.value, y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -2419,13 +2397,12 @@ def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
     Array([ True, False, False], dtype=bool)
 
     """
-    try:
-        yv = ustrip(x.unit, y)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-    # re-dispatch on the values
-    return qlax.lt(x.value, yv)
+    x = eqx.error_if(  # TODO: customize Exception type
+        x,
+        not is_unit_convertible(x.unit, y.unit),
+        f"Cannot compare Q(x, {x.unit}) < Q(y, {y.unit}).",
+    )
+    return qlax.lt(x.value, ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @register(lax.lt_p)
@@ -2471,17 +2448,17 @@ def _lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     Array([ True, False, False], dtype=bool)
 
     >>> y = Quantity(2., "m")
-    >>> jnp.less(x, y)
-    Array([False, False, False], dtype=bool)
+    >>> try: jnp.less(x, y)
+    ... except Exception as e: print("can't compare")
+    can't compare
 
     """
-    try:
-        yv = ustrip(one, y)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-    # re-dispatch on the values
-    return qlax.lt(x, yv)
+    y = eqx.error_if(  # TODO: customize Exception type
+        y,
+        not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
+        f"Cannot compare x < Q(y, {y.unit}) (except for x=0).",
+    )
+    return qlax.lt(x, y.value)  # re-dispatch on the value
 
 
 @register(lax.lt_p)
@@ -2531,17 +2508,17 @@ def _lt_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     Array([ True, False, False], dtype=bool)
 
     >>> x = Quantity([1, 2], "m")
-    >>> jnp.less(x, y)
-    Array([False, False], dtype=bool)
+    >>> try: jnp.less(x, y)
+    ... except Exception as e: print("can't compare")
+    can't compare
 
     """
-    try:
-        xv = ustrip(one, x)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=False, dtype=bool)
-
-    # re-dispatch on the values
-    return qlax.lt(xv, y)
+    x = eqx.error_if(  # TODO: customize Exception type
+        x,
+        not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
+        f"Cannot compare Q(x, {x.unit}) < y (except for y=0).",
+    )
+    return qlax.lt(x.value, y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -2698,13 +2675,12 @@ def _ne_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     Array(False, dtype=bool, ...)
 
     """
-    try:
-        yv = ustrip(x.unit, y)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=True, dtype=bool)
-
-    # re-dispatch on the value
-    return qlax.ne(x.value, yv)
+    x = eqx.error_if(  # TODO: customize Exception type
+        x,
+        not is_unit_convertible(x.unit, y.unit),
+        f"Cannot compare Q(x, {x.unit}) != Q(y, {y.unit}).",
+    )
+    return qlax.ne(x.value, ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @register(lax.ne_p)
@@ -2744,27 +2720,22 @@ def _ne_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     Array(False, dtype=bool, ...)
 
     """
-    try:
-        yv = ustrip(one, y)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=True, dtype=bool)
-
-    # re-dispatch on the value
-    return qlax.ne(x, yv)
+    y = eqx.error_if(  # TODO: customize Exception type
+        y,
+        not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
+        f"Cannot compare x != Q(y, {y.unit}) (except for x=0).",
+    )
+    return qlax.ne(x, y.value)  # re-dispatch on the value
 
 
 @register(lax.ne_p)
 def _ne_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
-    # special-case for scalar value=0, unit=one
-    if jnp.shape(y) == () and y == 0:  # TODO: proper jax
-        return lax.ne(x.value, y)
-
-    try:
-        xv = ustrip(one, x)
-    except UnitConversionError:
-        return jnp.full(_bshape((x, y)), fill_value=True, dtype=bool)
-
-    return lax.ne(xv, y)
+    x = eqx.error_if(  # TODO: customize Exception type
+        x,
+        not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
+        f"Cannot compare Q(x, {x.unit}) != y (except for y=0).",
+    )
+    return qlax.ne(x.value, y)  # re-dispatch on the value
 
 
 # @register(lax.ne_p)
