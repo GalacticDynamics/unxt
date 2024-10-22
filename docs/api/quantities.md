@@ -1,3 +1,0 @@
-# unxt Quantity
-
-::: unxt.quantity

@@ -1,3 +1,3 @@
-"""Unxt Quantity sub-package."""
+"""Quantities in JAX."""
 
 __all__: list[str] = []

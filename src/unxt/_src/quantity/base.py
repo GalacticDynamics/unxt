@@ -63,7 +63,7 @@ class AstropyQuantityCompatMixin:
     def to(self, u: Any, /) -> "AbstractQuantity":
         """Convert the quantity to the given units.
 
-        See `AbstractQuantity.to_units`.
+        See `unxt.AbstractQuantity.to_units`.
 
         Examples
         --------
@@ -79,7 +79,7 @@ class AstropyQuantityCompatMixin:
     def to_value(self, u: Any, /) -> ArrayLike:
         """Return the value in the given units.
 
-        See `AbstractQuantity.to_units_value`.
+        See `unxt.AbstractQuantity.to_units_value`.
 
         Examples
         --------
@@ -180,7 +180,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         *,
         dtype: Any = None,
     ) -> "AbstractQuantity":
-        """Construct a `Quantity` from an array-like value and a unit.
+        """Construct a `unxt.Quantity` from an array-like value and a unit.
 
         Parameters
         ----------
@@ -229,12 +229,12 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
         unit: Any,
         dtype: Any = None,
     ) -> "AbstractQuantity":
-        """Construct a [`AbstractQuantity`][] from an array-like value and a unit kwarg.
+        """Make a `unxt.AbstractQuantity` from an array-like value and a unit kwarg.
 
         Examples
         --------
-        For this example we'll use the [`Quantity`][] class. The same applies to
-        any subclass of [`AbstractQuantity`][].
+        For this example we'll use the `unxt.Quantity` class. The same applies
+        to any subclass of `unxt.AbstractQuantity`.
 
         >>> from unxt import Quantity
         >>> Quantity.from_([1.0, 2, 3], unit="m")
