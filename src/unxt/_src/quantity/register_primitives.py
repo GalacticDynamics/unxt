@@ -1,4 +1,4 @@
-"""Register Quantity support for jax primitives."""
+"""Register jax primitives support for Quantity."""
 # pylint: disable=import-error, too-many-lines
 
 __all__: list[str] = []
@@ -332,7 +332,7 @@ def _and_p_aq(x1: AbstractQuantity, x2: AbstractQuantity, /) -> ArrayLike:
 def _argmax_p(
     operand: AbstractQuantity, *, axes: Any, index_dtype: Any
 ) -> AbstractQuantity:
-    """Argmax of a quantity.
+    """Argmax of a Quantity.
 
     Examples
     --------
