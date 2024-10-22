@@ -504,6 +504,20 @@ class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[
     def at(self) -> "_QuantityIndexUpdateHelper":
         return _QuantityIndexUpdateHelper(self)
 
+    def block_until_ready(self) -> "AbstractQuantity":
+        """Block until the array is ready.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity(1, "m")
+        >>> q.block_until_ready() is q
+        True
+
+        """
+        _ = self.value.block_until_ready()
+        return self
+
     def flatten(self) -> "AbstractQuantity":
         return replace(self, value=self.value.flatten())
 
