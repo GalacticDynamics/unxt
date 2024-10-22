@@ -1,9 +1,9 @@
 # 🌌 Gala
 
-The [`gala`][gala-link] package provides tools for Galactic dynamics and
-astrometry. It is built on top of the [`astropy`][astropy-link] package and
-provides a [`gala.units.UnitSystem`][gala-UnitSystem] class that can be used to
-convert between different unit systems.
+The [`gala`][gala-link] package provides tools for Galactic dynamics. It is
+built on top of the [`astropy`][astropy-link] package and adds an additional
+units tool, the [`gala.units.UnitSystem`][gala-UnitSystem] class that can be
+used to convert between different unit systems.
 
 `unxt` supports `gala` unit systems as inputs, converting them to
 [`unxt.unitsystems.AbstractUnitSystem`][unxt-AbstractUnitSystem] objects. This
