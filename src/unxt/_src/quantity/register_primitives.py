@@ -11,6 +11,7 @@ from typing import Any, TypeAlias, TypeVar
 import equinox as eqx
 import jax.tree as jt
 from astropy.units import (  # pylint: disable=no-name-in-module
+    UnitConversionError,
     dimensionless_unscaled as one,
     radian,
 )
@@ -2675,11 +2676,9 @@ def _ne_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     Array(False, dtype=bool, ...)
 
     """
-    x = eqx.error_if(  # TODO: customize Exception type
-        x,
-        not is_unit_convertible(x.unit, y.unit),
-        f"Cannot compare Q(x, {x.unit}) != Q(y, {y.unit}).",
-    )
+    if not is_unit_convertible(x.unit, y.unit):
+        msg = f"Cannot compare Q(x, {x.unit}) != Q(y, {y.unit})."
+        raise UnitConversionError(msg)
     return qlax.ne(x.value, ustrip(x.unit, y))  # re-dispatch on the values
 
 
