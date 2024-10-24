@@ -28,18 +28,19 @@
   dependencies = [
     "astropy>=6.0",
     "dataclassish>=0.3",
-    "equinox>=0.11.5",
+    "equinox>=0.11.8",
     "is-annotated>=1.0",
     "jax>0.4.32",
     "jaxlib>0.4.32",
     "jaxtyping>=0.2.34",
     "optional-dependencies>=0.3.2",
-    "plum-dispatch>=2.4.3", # pinned for other dependencies
+    "plum-dispatch>=2.4.3",
     "quax>=0.0.5",
     "quaxed>=0.6.4",
     "xmmutablemap>=0.1",
-    "zeroth",  # (only needed for matplotlib)
+    "zeroth",
   ]
+  # NOTE: zeroth is only required for matplotlib
 
   [project.optional-dependencies]
     all = ["unxt[backend-astropy,interop-gala,interop-mpl]"]
