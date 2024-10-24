@@ -24,7 +24,7 @@ import quaxed.operator as qoperator
 from dataclassish import fields, replace
 
 from .api import uconvert, ustrip
-from .mixins import AstropyQuantityCompatMixin
+from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin
 from unxt._src.units.core import AbstractUnits, units
 
 if TYPE_CHECKING:
@@ -53,7 +53,7 @@ def bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
 ##############################################################################
 
 
-class AbstractQuantity(AstropyQuantityCompatMixin, ArrayValue):  # type: ignore[misc]
+class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue):  # type: ignore[misc]
     """Represents an array, with each axis bound to a name.
 
     Examples
