@@ -237,6 +237,10 @@ def test_gt():
     with pytest.raises(Exception):  # noqa: B017, PT011
         _ = q > Quantity(0, u.s)
 
+    # Test special case w/out units
+    assert Quantity(1, u.m) > 0
+    assert np.array_equal(Quantity([-1, 0, 1], u.m) > 0, [False, False, True])
+
 
 def test_ge():
     """Test the ``Quantity.__ge__`` method."""
@@ -256,6 +260,10 @@ def test_ge():
     # TODO: better equinox exception matching
     with pytest.raises(Exception):  # noqa: B017, PT011
         _ = q >= Quantity(0, u.s)
+
+    # Test special case w/out units
+    assert Quantity(1, u.m) >= 0
+    assert np.array_equal(Quantity([-1, 0, 1], u.m) >= 0, [False, True, True])
 
 
 def test_lt():
@@ -277,6 +285,10 @@ def test_lt():
     with pytest.raises(Exception):  # noqa: B017, PT011
         _ = q < Quantity(0, u.s)
 
+    # Test special case w/out units
+    assert Quantity(-1, u.m) < 0
+    assert np.array_equal(Quantity([-1, 0, 1], u.m) < 0, [True, False, False])
+
 
 def test_le():
     """Test the ``Quantity.__le__`` method."""
@@ -297,6 +309,10 @@ def test_le():
     with pytest.raises(Exception):  # noqa: B017, PT011
         _ = q <= Quantity(0, u.s)
 
+    # Test special case w/out units
+    assert Quantity(-1, u.m) <= 0
+    assert np.array_equal(Quantity([-1, 0, 1], u.m) <= 0, [True, True, False])
+
 
 def test_eq():
     """Test the ``Quantity.__eq__`` method."""
@@ -316,6 +332,10 @@ def test_eq():
     # TODO: better equinox exception matching
     with pytest.raises(Exception):  # noqa: B017, PT011
         _ = q == Quantity(0, u.s)
+
+    # Test special case w/out units
+    assert Quantity(0, u.m) == 0
+    assert np.array_equal(Quantity([-1, 0, 1], u.m) == 0, [False, True, False])
 
 
 def test_ne():
@@ -338,6 +358,10 @@ def test_ne():
         _ = q != Quantity(0, u.s)
     with pytest.raises(Exception):  # noqa: B017, PT011
         _ = q != Quantity(4, u.s)
+
+    # Test special case w/out units
+    assert Quantity(1, u.m) != 0
+    assert np.array_equal(Quantity([-1, 0, 1], u.m) != 0, [True, False, True])
 
 
 def test_neg():
