@@ -19,7 +19,7 @@ from plum import convert, parametric
 
 import quaxed.numpy as jnp
 
-from unxt import AbstractParametricQuantity, Quantity, is_unit_convertible
+from unxt import AbstractParametricQuantity, Quantity, is_unit_convertible, units
 
 xps = make_strategies_namespace(jax_xp)
 
@@ -65,11 +65,11 @@ floats_strategy = st.floats(
 @example(value=[[1.0]])  # list[list[int]]
 def test_properties(value):
     """Test the properties of Quantity."""
-    q = Quantity(value, u.m)
+    q = Quantity(value, "m")
     expected = jnp.asarray(value)
 
     # Test the value
-    assert jnp.array_equal(q.value, expected)
+    assert np.array_equal(q.value, expected)
 
     # Test the shape
     assert q.shape == expected.shape
@@ -82,22 +82,22 @@ def test_properties(value):
     assert q.aval() == jax.core.get_aval(expected)
 
     # Test enable_materialise
-    assert jnp.array_equal(q.enable_materialise().value, q.value)
+    assert np.array_equal(q.enable_materialise().value, q.value)
 
 
 def test_parametric():
     """Test the parametric strategy."""
     # Inferred
-    q = Quantity(1, u.m)
+    q = Quantity(1, "m")
     (dimensions,) = q._type_parameter
     assert dimensions == u.get_physical_type(u.m)
 
     # Explicit
-    q = Quantity["length"](1, u.m)
+    q = Quantity["length"](1, "m")
     (dimensions,) = q._type_parameter
     assert dimensions == u.get_physical_type(u.m)
 
-    q = Quantity["length"](jnp.ones((1, 2)), u.m)
+    q = Quantity["length"](jnp.ones((1, 2)), "m")
     (dimensions,) = q._type_parameter
     assert dimensions == u.get_physical_type(u.m)
 
@@ -114,19 +114,19 @@ def test_unit(unit):
 
 def test_array_namespace():
     """Test the array namespace."""
-    assert Quantity(1, u.m).__array_namespace__() is jnp
+    assert Quantity(1, "m").__array_namespace__() is jnp
 
 
 def test_to_units():
     """Test the ``Quantity.to_units`` method."""
-    q = Quantity(1, u.m)
-    assert jnp.equal(q.to_units(u.km), Quantity(0.001, u.km))
+    q = Quantity(1, "m")
+    assert jnp.equal(q.to_units("km"), Quantity(0.001, "km"))
 
 
 def test_to_units_value():
     """Test the ``Quantity.to_units_value`` method."""
-    q = Quantity(1, u.m)
-    assert q.to_units_value(u.km) == Quantity(0.001, u.km).value
+    q = Quantity(1, "m")
+    assert q.to_units_value("km") == Quantity(0.001, "km").value
 
 
 @pytest.mark.skip("TODO")
@@ -137,7 +137,7 @@ def test_getitem():
 
 def test_len():
     """Test the ``len(Quantity)`` method."""
-    q = Quantity([1, 2, 3], u.m)
+    q = Quantity([1, 2, 3], "m")
     assert len(q) == 3
 
 
@@ -222,155 +222,155 @@ def test_and():
 def test_gt():
     """Test the ``Quantity.__gt__`` method."""
     # Test with a scalar
-    q = Quantity(1, u.m)
-    assert q > Quantity(0, u.m)
-    assert not q > Quantity(1, u.m)
-    assert not q > Quantity(2, u.m)
+    q = Quantity(1, "m")
+    assert q > Quantity(0, "m")
+    assert not q > Quantity(1, "m")
+    assert not q > Quantity(2, "m")
 
     # Test with an array
-    q = Quantity([1, 2, 3], u.m)
-    assert jnp.array_equal(q > Quantity(0, u.m), jnp.array([True, True, True]))
-    assert jnp.array_equal(q > Quantity(1, u.m), jnp.array([False, True, True]))
+    q = Quantity([1, 2, 3], "m")
+    assert np.array_equal(q > Quantity(0, "m"), [True, True, True])
+    assert np.array_equal(q > Quantity(1, "m"), [False, True, True])
 
     # Test with incompatible units
-    assert jnp.array_equal(q > Quantity(0, u.s), jnp.array([False, False, False]))
+    assert np.array_equal(q > Quantity(0, "s"), [False, False, False])
 
 
 def test_ge():
     """Test the ``Quantity.__ge__`` method."""
     # Test with a scalar
-    q = Quantity(1, u.m)
-    assert q >= Quantity(0, u.m)
-    assert q >= Quantity(1, u.m)
-    assert not q >= Quantity(2, u.m)
+    q = Quantity(1, "m")
+    assert q >= Quantity(0, "m")
+    assert q >= Quantity(1, "m")
+    assert not q >= Quantity(2, "m")
 
     # Test with an array
-    q = Quantity([1, 2, 3], u.m)
-    assert jnp.array_equal(q >= Quantity(0, u.m), jnp.array([True, True, True]))
-    assert jnp.array_equal(q >= Quantity(1, u.m), jnp.array([True, True, True]))
-    assert jnp.array_equal(q >= Quantity(2, u.m), jnp.array([False, True, True]))
+    q = Quantity([1, 2, 3], "m")
+    assert np.array_equal(q >= Quantity(0, "m"), [True, True, True])
+    assert np.array_equal(q >= Quantity(1, "m"), [True, True, True])
+    assert np.array_equal(q >= Quantity(2, "m"), [False, True, True])
 
     # Test with incompatible units
-    assert jnp.array_equal(q >= Quantity(0, u.s), jnp.array([False, False, False]))
+    assert np.array_equal(q >= Quantity(0, "s"), [False, False, False])
 
 
 def test_lt():
     """Test the ``Quantity.__lt__`` method."""
     # Test with a scalar
-    q = Quantity(1, u.m)
-    assert not q < Quantity(0, u.m)
-    assert not q < Quantity(1, u.m)
-    assert q < Quantity(2, u.m)
+    q = Quantity(1, "m")
+    assert not q < Quantity(0, "m")
+    assert not q < Quantity(1, "m")
+    assert q < Quantity(2, "m")
 
     # Test with an array
-    q = Quantity([1, 2, 3], u.m)
-    assert jnp.array_equal(q < Quantity(0, u.m), jnp.array([False, False, False]))
-    assert jnp.array_equal(q < Quantity(1, u.m), jnp.array([False, False, False]))
-    assert jnp.array_equal(q < Quantity(2, u.m), jnp.array([True, False, False]))
+    q = Quantity([1, 2, 3], "m")
+    assert np.array_equal(q < Quantity(0, "m"), [False, False, False])
+    assert np.array_equal(q < Quantity(1, "m"), [False, False, False])
+    assert np.array_equal(q < Quantity(2, "m"), [True, False, False])
 
     # Test with incompatible units
-    assert jnp.array_equal(q < Quantity(0, u.s), jnp.array([False, False, False]))
+    assert np.array_equal(q < Quantity(0, "s"), [False, False, False])
 
 
 def test_le():
     """Test the ``Quantity.__le__`` method."""
     # Test with a scalar
-    q = Quantity(1, u.m)
-    assert not q <= Quantity(0, u.m)
-    assert q <= Quantity(1, u.m)
-    assert q <= Quantity(2, u.m)
+    q = Quantity(1, "m")
+    assert not q <= Quantity(0, "m")
+    assert q <= Quantity(1, "m")
+    assert q <= Quantity(2, "m")
 
     # Test with an array
-    q = Quantity([1, 2, 3], u.m)
-    assert jnp.array_equal(q <= Quantity(0, u.m), jnp.array([False, False, False]))
-    assert jnp.array_equal(q <= Quantity(1, u.m), jnp.array([True, False, False]))
-    assert jnp.array_equal(q <= Quantity(2, u.m), jnp.array([True, True, False]))
+    q = Quantity([1, 2, 3], "m")
+    assert np.array_equal(q <= Quantity(0, "m"), [False, False, False])
+    assert np.array_equal(q <= Quantity(1, "m"), [True, False, False])
+    assert np.array_equal(q <= Quantity(2, "m"), [True, True, False])
 
     # Test with incompatible units
-    assert jnp.array_equal(q <= Quantity(0, u.s), jnp.array([False, False, False]))
+    assert np.array_equal(q <= Quantity(0, "s"), [False, False, False])
 
 
 def test_eq():
     """Test the ``Quantity.__eq__`` method."""
     # Test with a scalar
-    q = Quantity(1, u.m)
-    assert not q == Quantity(0, u.m)  # noqa: SIM201
-    assert q == Quantity(1, u.m)
-    assert not q == Quantity(2, u.m)  # noqa: SIM201
+    q = Quantity(1, "m")
+    assert not q == Quantity(0, "m")  # noqa: SIM201
+    assert q == Quantity(1, "m")
+    assert not q == Quantity(2, "m")  # noqa: SIM201
 
     # Test with an array
-    q = Quantity([1, 2, 3], u.m)
-    assert jnp.array_equal(q == Quantity(0, u.m), jnp.array([False, False, False]))
-    assert jnp.array_equal(q == Quantity(1, u.m), jnp.array([True, False, False]))
-    assert jnp.array_equal(q == Quantity(2, u.m), jnp.array([False, True, False]))
+    q = Quantity([1, 2, 3], "m")
+    assert np.array_equal(q == Quantity(0, "m"), [False, False, False])
+    assert np.array_equal(q == Quantity(1, "m"), [True, False, False])
+    assert np.array_equal(q == Quantity(2, "m"), [False, True, False])
 
     # Test with incompatible units
-    assert jnp.array_equal(q == Quantity(0, u.s), jnp.array([False, False, False]))
+    assert np.array_equal(q == Quantity(0, "s"), [False, False, False])
 
 
 def test_ne():
     """Test the ``Quantity.__ne__`` method."""
     # Test with a scalar
-    q = Quantity(1, u.m)
-    assert q != Quantity(0, u.m)
-    assert q == Quantity(1, u.m)
-    assert q != Quantity(2, u.m)
+    q = Quantity(1, "m")
+    assert q != Quantity(0, "m")
+    assert q == Quantity(1, "m")
+    assert q != Quantity(2, "m")
 
     # Test with an array
-    q = Quantity([1, 2, 3], u.m)
-    assert jnp.array_equal(q != Quantity(0, u.m), jnp.array([True, True, True]))
-    assert jnp.array_equal(q != Quantity(1, u.m), jnp.array([False, True, True]))
-    assert jnp.array_equal(q != Quantity(2, u.m), jnp.array([True, False, True]))
+    q = Quantity([1, 2, 3], "m")
+    assert np.array_equal(q != Quantity(0, "m"), [True, True, True])
+    assert np.array_equal(q != Quantity(1, "m"), [False, True, True])
+    assert np.array_equal(q != Quantity(2, "m"), [True, False, True])
 
     # Test with incompatible units
-    assert jnp.array_equal(q != Quantity(0, u.s), jnp.array([True, True, True]))
-    assert jnp.array_equal(q != Quantity(4, u.s), jnp.array([True, True, True]))
+    assert np.array_equal(q != Quantity(0, "s"), [True, True, True])
+    assert np.array_equal(q != Quantity(4, "s"), [True, True, True])
 
 
 def test_neg():
     """Test the ``Quantity.__neg__`` method."""
     # Test with a scalar
-    q = Quantity(1, u.m)
-    assert -q == Quantity(-1, u.m)
+    q = Quantity(1, "m")
+    assert -q == Quantity(-1, "m")
 
     # Test with an array
-    q = Quantity([1, 2, 3], u.m)
-    assert jnp.array_equal(-q.value, jnp.array([-1, -2, -3]))
-    assert (-q).unit == u.m
+    q = Quantity([1, 2, 3], "m")
+    assert np.array_equal(-q.value, [-1, -2, -3])
+    assert (-q).unit == units("m")
 
 
 def test_flatten():
     """Test the ``Quantity.flatten`` method."""
     # Test with a scalar
-    q = Quantity(1, u.m)
-    assert q.flatten() == Quantity(1, u.m)
+    q = Quantity(1, "m")
+    assert q.flatten() == Quantity(1, "m")
 
     # Test with an array
     q = Quantity([[1, 2, 3], [4, 5, 6]], u.m)
-    assert jnp.array_equal(q.flatten().value, jnp.array([1, 2, 3, 4, 5, 6]))
+    assert np.array_equal(q.flatten().value, [1, 2, 3, 4, 5, 6])
     assert q.flatten().unit == u.m
 
 
 def test_reshape():
     """Test the ``Quantity.reshape`` method."""
     # Test with a scalar
-    q = Quantity(1, u.m)
-    assert q.reshape(1, 1) == Quantity(1, u.m)
+    q = Quantity(1, "m")
+    assert q.reshape(1, 1) == Quantity(1, "m")
 
     # Test with an array
-    q = Quantity([1, 2, 3, 4, 5, 6], u.m)
-    assert jnp.array_equal(q.reshape(2, 3).value, jnp.array([[1, 2, 3], [4, 5, 6]]))
+    q = Quantity([1, 2, 3, 4, 5, 6], "m")
+    assert np.array_equal(q.reshape(2, 3).value, [[1, 2, 3], [4, 5, 6]])
     assert q.reshape(2, 3).unit == u.m
 
 
 def test_hypot():
     """Test the ``jnp.hypot`` method."""
-    q1 = Quantity(3, u.m)
-    q2 = Quantity(4, u.m)
-    assert jnp.hypot(q1, q2) == Quantity(5, u.m)
+    q1 = Quantity(3, "m")
+    q2 = Quantity(4, "m")
+    assert jnp.hypot(q1, q2) == Quantity(5, "m")
 
-    q1 = Quantity([1, 2, 3], u.m)
-    q2 = Quantity([4, 5, 6], u.m)
+    q1 = Quantity([1, 2, 3], "m")
+    q2 = Quantity([4, 5, 6], "m")
     assert all(jnp.hypot(q1, q2) == Quantity([4.1231055, 5.3851647, 6.7082043], u.m))
 
 
@@ -400,7 +400,7 @@ def test_at():
     # Get
     # TODO: test fill_value
     assert q.at[1].get() == Quantity(1.0, "km")
-    assert jnp.array_equal(q.at[:3].get(), Quantity([0.0, 1, 2], "km"))
+    assert np.array_equal(q.at[:3].get(), Quantity([0.0, 1, 2], "km"))
 
     # Set
     q2 = q.at[1].set(Quantity(1.2, "km"))
@@ -408,8 +408,8 @@ def test_at():
     assert q[1] == Quantity(1.0, "km")  # original is unchanged
 
     q2 = q.at[:3].set(Quantity([1.2, 2.3, 3.4], "km"))
-    assert jnp.array_equal(q2[:3], Quantity([1.2, 2.3, 3.4], "km"))
-    assert jnp.array_equal(q[:3], Quantity([0.0, 1, 2], "km"))  # original is unchanged
+    assert np.array_equal(q2[:3], Quantity([1.2, 2.3, 3.4], "km"))
+    assert np.array_equal(q[:3], Quantity([0.0, 1, 2], "km"))  # original is unchanged
 
     # Apply
     with pytest.raises(NotImplementedError):
@@ -480,7 +480,7 @@ def test_parametric_pickle_dumps_with_kw_fields():
 
 def test_from_astropy():
     """Test the ``Quantity.from_(AstropyQuantity)`` method."""
-    apyq = u.Quantity(1, u.m)
+    apyq = u.Quantity(1, "m")
     q = Quantity.from_(apyq)
     assert isinstance(q, Quantity)
     assert np.equal(q.value, apyq.value)
@@ -489,10 +489,10 @@ def test_from_astropy():
 
 def test_convert_to_astropy():
     """Test the ``convert(Quantity, AstropyQuantity)`` method."""
-    q = Quantity(1, u.m)
+    q = Quantity(1, "m")
     apyq = convert(q, u.Quantity)
     assert isinstance(apyq, u.Quantity)
-    assert apyq == u.Quantity(1, u.m)
+    assert apyq == u.Quantity(1, "m")
 
 
 ##############################################################################
