@@ -43,6 +43,13 @@ def tests(session: nox.Session) -> None:
     session.run("pytest", *session.posargs)
 
 
+@nox.session
+def tests_all(session: nox.Session) -> None:
+    """Run the tests with all optional dependencies."""
+    session.install(".[test-all]")
+    session.run("pytest", *session.posargs)
+
+
 @nox.session(reuse_venv=True)
 def docs(session: nox.Session) -> None:
     """Build the docs. Pass "--serve" to serve. Pass "-b linkcheck" to check links."""
