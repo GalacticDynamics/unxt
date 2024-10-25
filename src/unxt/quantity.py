@@ -1,6 +1,15 @@
-"""unxt: Quantities in JAX.
+"""Quantities in JAX.
 
-Copyright (c) 2023 Galactic Dynamics. All rights reserved.
+This module provides a way to work with quantities in JAX.
+
+The main features are:
+
+- `unxt.quantity.Quantity`: A class representing a quantity with units.
+- `unxt.quantity.uconvert`: A function to convert a quantity to a different
+  unit.
+- `unxt.quantity.ustrip`: A function to strip the units from a quantity.
+
+
 """
 # ruff:noqa: F403
 
@@ -15,14 +24,14 @@ from ._src.quantity.fast import UncheckedQuantity
 from ._src.quantity import compat, functional, register_dispatches, register_primitives
 
 __all__: list[str] = [
+    # Core
+    "Quantity",
     # Base
     "AbstractQuantity",
     # Fast
     "UncheckedQuantity",
     # Base Parametric
     "AbstractParametricQuantity",
-    # Core
-    "Quantity",
     # Functional
     "uconvert",
     "ustrip",

@@ -37,13 +37,13 @@ def clean_unitsystems_registry(monkeypatch):
 
 
 def test_unitsystem_from_() -> None:
-    """Test the :class:`~unxt.UnitSystem` from_."""
+    """Test the `unxt.AbstractUnitSystem.from_`."""
     usys = unitsystem(5 * u.kpc, 50 * u.Myr, 1e5 * u.Msun, u.rad)
     assert np.isclose((8 * u.Myr).decompose(usys).value, 8 / 50)
 
 
 def test_compare() -> None:
-    """Test the :meth:`~unxt.UnitSystem.compare` method."""
+    """Test the `unxt.AbstractUnitSystem.compare` method."""
     usys1 = unitsystem(u.kpc, u.Myr, u.radian, u.Msun, u.mas / u.yr)
     usys1_clone = unitsystem(u.kpc, u.Myr, u.radian, u.Msun, u.mas / u.yr)
 
@@ -66,7 +66,7 @@ def test_regression_dimension_aliases_spaces() -> None:
 
 
 def test_pickle(tmpdir: Path) -> None:
-    """Test pickling and unpickling a :class:`~unxt.UnitSystem`."""
+    """Test pickling and unpickling a `unxt.AbstractUnitSystem`."""
     usys = unitsystem(u.kpc, u.Myr, u.radian, u.Msun)
 
     path = tmpdir / "test.pkl"

@@ -1,6 +1,23 @@
-"""unxt: Quantities in JAX.
+"""``unxt``: Quantities in JAX.
 
-Copyright (c) 2023 Galactic Dynamics. All rights reserved.
+``unxt`` is a library for working with physical quantities in JAX, supporting
+JAX's autodiff and JIT compilation, and easy integration with existing codes. If
+you're seeing this then you're in the main module of the ``unxt`` package, where
+we provide exports for the main functionality of the library. Sub-modules are
+available for more specialized functionality, such as unit systems and
+experimental features.
+
+Note that `unxt` uses multiple-dispatch to provide a flexible and extensible
+interface. In the docs you'll see the function signatures without type
+annotation and then subsections for specific function dispatches based on the
+type annotations. However dispatches registered from other modules may not be
+included in the rendered docs. To see all the dispatches execute ``<func or
+class>.methods`` in an interactive Python session. For more information on
+multiple-dispatch see the [`plum`](https://beartype.github.io/plum/intro.html)
+documentation.
+
+-----
+
 """
 
 from jaxtyping import install_import_hook
