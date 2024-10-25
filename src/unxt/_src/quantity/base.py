@@ -131,10 +131,6 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         dtype : Any, optional
             The data type of the array.
 
-        Returns
-        -------
-        AbstractQuantity
-
         Examples
         --------
         For this example we'll use the `Quantity` class. The same applies to
@@ -215,10 +211,6 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         mapping : Mapping[str, Any]
             Mapping of the fields of the `Quantity`, e.g. 'value' and 'unit'.
 
-        Returns
-        -------
-        AbstractQuantity
-
         Examples
         --------
         For this example we'll use the `Quantity` class. The same applies to
@@ -253,10 +245,6 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         u : Any
             The units to convert to.
 
-        Returns
-        -------
-        AbstractQuantity
-
         See Also
         --------
         unxt.uconvert : convert a quantity to a new unit.
@@ -279,10 +267,6 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         ----------
         u : Any
             The units to convert to.
-
-        Returns
-        -------
-        ArrayLike
 
         Examples
         --------
@@ -780,11 +764,6 @@ def is_unit_convertible(to_unit: Any, from_unit: Any, /) -> bool:
         The unit to convert from. Converted to a unit object using
         `unxt.units`, Note this means it also support `Quantity` objects and
         many others.
-
-    Returns
-    -------
-    bool
-        Whether the conversion is possible.
 
     Examples
     --------

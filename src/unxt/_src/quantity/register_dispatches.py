@@ -25,11 +25,6 @@ def arange(
 ) -> AbstractQuantity:
     """Return evenly spaced values within a given interval.
 
-    Returns
-    -------
-    `unxt.AbstractQuantity`
-        Of the same type as `start`.
-
     Examples
     --------
     >>> import quaxed.numpy as jnp
