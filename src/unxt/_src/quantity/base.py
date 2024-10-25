@@ -119,7 +119,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         *,
         dtype: Any = None,
     ) -> "AbstractQuantity":
-        """Construct a `Quantity` from an array-like value and a unit.
+        """Construct a `unxt.Quantity` from an array-like value and a unit.
 
         Parameters
         ----------
@@ -168,12 +168,12 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         unit: Any,
         dtype: Any = None,
     ) -> "AbstractQuantity":
-        """Construct a [`AbstractQuantity`][] from an array-like value and a unit kwarg.
+        """Make a `unxt.AbstractQuantity` from an array-like value and a unit kwarg.
 
         Examples
         --------
-        For this example we'll use the [`Quantity`][] class. The same applies to
-        any subclass of [`AbstractQuantity`][].
+        For this example we'll use the `unxt.Quantity` class. The same applies
+        to any subclass of `unxt.AbstractQuantity`.
 
         >>> from unxt import Quantity
         >>> Quantity.from_([1.0, 2, 3], unit="m")
