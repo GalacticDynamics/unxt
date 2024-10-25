@@ -27,8 +27,8 @@ def dimensions(obj: Any, /) -> AbstractDimensions:
 
         This function uses multiple dispatch. Dispatches made in other modules
         may not be included in the rendered docs. To see the full range of
-        options, execute ``unxt.dimensions.methods`` in an interactive Python
-        session.
+        options, execute ``unxt.dims.dimensions.methods`` in an interactive
+        Python session.
 
     """
 
@@ -40,7 +40,7 @@ def dimensions(obj: AbstractDimensions, /) -> AbstractDimensions:
     Examples
     --------
     >>> from astropy import units as u
-    >>> from unxt import dimensions
+    >>> from unxt.dims import dimensions
 
     >>> length = u.get_physical_type("length")
     >>> length
@@ -59,7 +59,7 @@ def dimensions(obj: str, /) -> AbstractDimensions:
 
     Examples
     --------
-    >>> from unxt import dimensions
+    >>> from unxt.dims import dimensions
     >>> dimensions("length")
     PhysicalType('length')
 
@@ -92,7 +92,7 @@ def dimensions_of(obj: AbstractDimensions, /) -> AbstractDimensions:
     Examples
     --------
     >>> from astropy import units as u
-    >>> from unxt import dimensions_of
+    >>> from unxt.dims import dimensions_of
 
     >>> dimensions_of(u.get_physical_type("length"))
     PhysicalType('length')

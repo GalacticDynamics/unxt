@@ -25,10 +25,10 @@ from jaxtyping import install_import_hook
 from .setup_package import RUNTIME_TYPECHECKER
 
 with install_import_hook("unxt", RUNTIME_TYPECHECKER):
-    from . import quantity, unitsystems
-    from ._src.dimensions.core import dimensions, dimensions_of
+    from . import dims, quantity, unitsystems
     from ._src.units.core import units, units_of
     from ._version import version as __version__
+    from .dims import dimensions, dimensions_of
     from .quantity import *
     from .unitsystems import AbstractUnitSystem, unitsystem, unitsystem_of
 
@@ -40,8 +40,9 @@ from . import _interop  # noqa: F401  # register interop
 __all__ = [
     "__version__",
     # dimensions
-    "dimensions",
-    "dimensions_of",
+    "dims",  # module
+    "dimensions",  # convenience constructor
+    "dimensions_of",  # get the dimensions
     # units
     "units",
     "units_of",
