@@ -20,7 +20,7 @@ __all__ = ["grad", "hessian", "jacfwd"]
 
 from collections.abc import Callable
 from functools import partial
-from typing import ParamSpec, TypeVar
+from typing import Any, ParamSpec, TypeVar
 
 import equinox as eqx
 import jax
@@ -30,10 +30,14 @@ from plum.parametric import type_unparametrized
 from .quantity.core import Quantity
 from .typing_ext import Unit
 from unxt._src.quantity.api import ustrip
-from unxt._src.units.core import units as parse_units
+from unxt._src.units.core import units as _units
 
 P = ParamSpec("P")
 R = TypeVar("R", bound=Quantity)
+
+
+def parse_units(obj: Any) -> Unit | None:
+    return obj if obj is None else _units(obj)
 
 
 def grad(
@@ -66,7 +70,7 @@ def grad(
     Quantity['area'](Array(12., dtype=float32, weak_type=True), unit='m2')
 
     """
-    units_ = tuple(map(parse_units, units))
+    units_: tuple[Unit | None, ...] = tuple(map(parse_units, units))
 
     # Gradient of function, stripping and adding units
     @partial(jax.grad, argnums=argnums)
@@ -130,7 +134,7 @@ def jacfwd(
         "only int argnums are currently supported",
     )
 
-    units_ = tuple(map(parse_units, units))
+    units_: tuple[Unit | None, ...] = tuple(map(parse_units, units))
 
     @partial(jax.jacfwd, argnums=argnums)
     def jacfun_mag(*args: P.args) -> R:
@@ -157,7 +161,9 @@ def jacfwd(
     return jacfun
 
 
-def hessian(fun: Callable[P, R], *, units: tuple[Unit | str, ...]) -> Callable[P, R]:
+def hessian(
+    fun: Callable[P, R], argnums: int = 0, *, units: tuple[Unit | str, ...]
+) -> Callable[P, R]:
     """Hessian.
 
     In general, if you can use `quax.quaxify(jax.hessian(func))` (or the
@@ -185,7 +191,7 @@ def hessian(fun: Callable[P, R], *, units: tuple[Unit | str, ...]) -> Callable[P
     Quantity['length'](Array(12., dtype=float32, weak_type=True), unit='m')
 
     """
-    units_ = tuple(map(parse_units, units))
+    units_: tuple[Unit, ...] = tuple(map(parse_units, units))
 
     @partial(jax.hessian)
     def hessfun_mag(*args: P.args) -> R:
@@ -207,6 +213,8 @@ def hessian(fun: Callable[P, R], *, units: tuple[Unit | str, ...]) -> Callable[P
         # Adjust the Quantity by the units of the derivative
         # TODO: check the unit correction
         # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
-        return type_unparametrized(value)(value.value, value.unit / units_[0] ** 2)
+        return type_unparametrized(value)(
+            value.value, value.unit / units_[argnums] ** 2
+        )
 
     return hessfun
