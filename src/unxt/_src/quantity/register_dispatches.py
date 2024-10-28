@@ -159,7 +159,9 @@ def full_like(
 
 
 @dispatch
-def linspace(start: Quantity, stop: Quantity, num: Any, /, **kwargs: Any) -> Quantity:
+def linspace(
+    start: AbstractQuantity, stop: AbstractQuantity, num: Any, /, **kwargs: Any
+) -> AbstractQuantity:
     """Return evenly spaced values within a given interval.
 
     Examples
@@ -172,14 +174,16 @@ def linspace(start: Quantity, stop: Quantity, num: Any, /, **kwargs: Any) -> Qua
 
     """
     unit = start.unit
-    return Quantity(
+    return type_np(start)(
         jax_xp.linspace(ustrip(unit, start), ustrip(unit, stop), num, **kwargs),
         unit=unit,
     )
 
 
 @dispatch
-def linspace(start: Quantity, stop: Quantity, /, **kwargs: Any) -> Quantity:
+def linspace(
+    start: AbstractQuantity, stop: AbstractQuantity, /, **kwargs: Any
+) -> AbstractQuantity:
     """Return evenly spaced values within a given interval.
 
     Examples
@@ -192,7 +196,7 @@ def linspace(start: Quantity, stop: Quantity, /, **kwargs: Any) -> Quantity:
 
     """
     unit = start.unit
-    return Quantity(
+    return type_np(start)(
         jax_xp.linspace(ustrip(unit, start), ustrip(unit, stop), **kwargs), unit=unit
     )
 
