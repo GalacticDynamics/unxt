@@ -313,6 +313,24 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         return replace(self, value=self.value[key])
 
     def __len__(self) -> int:
+        """Return the length of the array.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+
+        Length of an unsized array:
+
+        >>> try: len(Quantity(1, "m"))
+        ... except TypeError as e: print(e)
+        len() of unsized object
+
+        Length of a sized array:
+
+        >>> len(Quantity([1, 2, 3], "m"))
+        3
+
+        """
         return len(self.value)
 
     __abs__ = qoperator.abs
@@ -439,7 +457,30 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         return self
 
     def flatten(self) -> "AbstractQuantity":
+        """Return a flattened version of the array.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([[1, 2], [3, 4]], "m")
+        >>> q.flatten()
+        Quantity['length'](Array([1, 2, 3, 4], dtype=int32), unit='m')
+
+        """
         return replace(self, value=self.value.flatten())
+
+    def ravel(self) -> "AbstractQuantity":
+        """Return a flattened version of the array.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([[1, 2], [3, 4]], "m")
+        >>> q.ravel()
+        Quantity['length'](Array([1, 2, 3, 4], dtype=int32), unit='m')
+
+        """
+        return replace(self, value=self.value.ravel())
 
     def reshape(self, *args: Any, order: str = "C") -> "AbstractQuantity":
         __tracebackhide__ = True  # pylint: disable=unused-variable
