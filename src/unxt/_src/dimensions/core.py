@@ -21,7 +21,7 @@ AbstractDimensions: TypeAlias = u.PhysicalType
 
 @dispatch.abstract
 def dimensions(obj: Any, /) -> AbstractDimensions:
-    """Return the dimensions of the given units.
+    """Construct the dimensions.
 
     .. note::
 
@@ -35,7 +35,7 @@ def dimensions(obj: Any, /) -> AbstractDimensions:
 
 @dispatch
 def dimensions(obj: AbstractDimensions, /) -> AbstractDimensions:
-    """Return the dimensions of the given units.
+    """Construct dimensions from a dimensions object.
 
     Examples
     --------
@@ -83,6 +83,24 @@ def dimensions_of(obj: Any, /) -> AbstractDimensions:
         session.
 
     """
+
+
+@dispatch
+def dimensions_of(obj: Any, /) -> None:
+    """Most objects have no dimensions.
+
+    Examples
+    --------
+    >>> from unxt.dims import dimensions_of
+
+    >>> print(dimensions_of(1))
+    None
+
+    >>> print(dimensions_of("length"))
+    None
+
+    """
+    return None  # noqa: RET501
 
 
 @dispatch
