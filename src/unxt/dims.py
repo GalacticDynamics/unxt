@@ -1,4 +1,13 @@
-"""Dimensions."""
+"""Dimensions in JAX.
+
+This module provides a way to work with dimensions in JAX.
+
+The main features are:
+
+- `unxt.dims.dimensions`: A function to construct the dimensions of an object.
+- `unxt.dims.dimensions_of`: A function to get the dimensions of an object.
+
+"""
 
 __all__ = ["dimensions", "dimensions_of"]
 
