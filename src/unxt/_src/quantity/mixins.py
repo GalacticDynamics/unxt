@@ -1,16 +1,20 @@
 """Orthogonal Mixin classes for Quantity classes."""
 
 from collections.abc import Callable, Sequence
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 from astropy.units import CompositeUnit
-from jaxtyping import Array, ArrayLike
+from jax.typing import ArrayLike
+from jaxtyping import Array
 
 from dataclassish import replace
 
 from .api import uconvert, ustrip
 from unxt._src.units.core import AbstractUnits
+
+if TYPE_CHECKING:
+    from unxt import AbstractQuantity
 
 
 class AstropyQuantityCompatMixin:
@@ -24,7 +28,7 @@ class AstropyQuantityCompatMixin:
     def to(self, u: Any, /) -> "AbstractQuantity":
         """Convert the quantity to the given units.
 
-        See `AbstractQuantity.to_units`.
+        See `unxt.AbstractQuantity.to_units`.
 
         Examples
         --------
@@ -40,7 +44,7 @@ class AstropyQuantityCompatMixin:
     def to_value(self, u: Any, /) -> ArrayLike:
         """Return the value in the given units.
 
-        See `AbstractQuantity.to_units_value`.
+        See `unxt.AbstractQuantity.to_units_value`.
 
         Examples
         --------
@@ -96,10 +100,9 @@ class IPythonReprMixin:
     ) -> dict[str, str]:
         r"""Return a MIME bundle representation of the Quantity.
 
-        Parameters
-        ----------
-        include, exclude : Sequence[str] | None, optional
-            The set of keys to include / exclude in the MIME bundle. If not
+        :param include: The set of keys to include in the MIME bundle. If not
+            provided, all supported formats are included.
+        :param exclude: The set of keys to exclude in the MIME bundle. If not
             provided, all supported formats are included. 'include' has
             precedence over 'exclude'.
 

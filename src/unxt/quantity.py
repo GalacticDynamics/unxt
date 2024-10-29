@@ -9,7 +9,6 @@ The main features are:
   unit.
 - `unxt.quantity.ustrip`: A function to strip the units from a quantity.
 
-
 """
 # ruff:noqa: F403
 
