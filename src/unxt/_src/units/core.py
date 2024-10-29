@@ -68,7 +68,7 @@ def units_of(obj: Any, /) -> None:
     Examples
     --------
     >>> from unxt import units_of
-    >>> units_of(1)
+    >>> print(units_of(1))
     None
 
     """
