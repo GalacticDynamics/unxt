@@ -35,7 +35,7 @@ class AbstractUnitSystem:
     Examples
     --------
     If only base units are specified, any physical type specified as a key to
-    this object will be composed out of the base units::
+    this object will be composed out of the base units:
 
     >>> from unxt import unitsystem
     >>> import astropy.units as u
@@ -46,7 +46,7 @@ class AbstractUnitSystem:
     >>> usys["velocity"]
     Unit("m / s")
 
-    This unit system defines energy::
+    This unit system defines energy:
 
     >>> usys = unitsystem(u.m, u.s, u.kg, u.radian, u.erg)
     >>> usys["energy"]
@@ -54,7 +54,7 @@ class AbstractUnitSystem:
 
     This is useful for Galactic dynamics where lengths and times are usually
     given in terms of ``kpc`` and ``Myr``, but velocities are often specified in
-    ``km/s``::
+    ``km/s``:
 
     >>> usys = unitsystem(u.kpc, u.Myr, u.Msun, u.radian, u.km/u.s)
     >>> usys["velocity"]

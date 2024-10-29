@@ -75,10 +75,7 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
 def setup_matplotlib_support_for_unxt(*, enable: bool = True) -> None:
     """Set up matplotlib's unit support for `unxt`.
 
-    Parameters
-    ----------
-    enable : bool, optional keyword-only
-        Whether support should be enabled or disabled.
+    :param enable: Whether support should be enabled or disabled.
 
     """
     if enable:

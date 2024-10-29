@@ -121,15 +121,9 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
     ) -> "AbstractQuantity":
         """Construct a `unxt.Quantity` from an array-like value and a unit.
 
-        Parameters
-        ----------
-        value : ArrayLike | list[...] | tuple[...]
-            The array-like value.
-        unit : Any
-            The unit of the value.
-
-        dtype : Any, optional
-            The data type of the array.
+        :param value: The array-like value.
+        :param unit: The unit of the value.
+        :param dtype: The data type of the array (keyword-only).
 
         Examples
         --------
@@ -603,7 +597,6 @@ def from_(
 # Promotion rules
 
 add_promotion_rule(AbstractQuantity, AbstractQuantity, AbstractQuantity)
-
 
 # ===============================================================
 # Support for ``at``.
