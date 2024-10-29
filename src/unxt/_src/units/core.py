@@ -56,18 +56,23 @@ def units(obj: str, /) -> AbstractUnits:
 # Get units
 
 
-@dispatch
+@dispatch.abstract
 def units_of(obj: Any, /) -> AbstractUnits:
+    """Return the units of an object."""
+
+
+@dispatch
+def units_of(obj: Any, /) -> None:
     """Return the units of an object.
 
     Examples
     --------
     >>> from unxt import units_of
-    >>> units_of(1)
-    Unit(dimensionless)
+    >>> print(units_of(1))
+    None
 
     """
-    return u.dimensionless_unscaled
+    return None  # noqa: RET501
 
 
 @dispatch
