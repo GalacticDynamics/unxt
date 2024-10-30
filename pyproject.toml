@@ -194,7 +194,7 @@ test-all = [{include-group = "test"}, {include-group = "test-mpl"}]
       "__init__.py"  = ["F403"]
       "docs/conf.py" = ["A001", "INP001"]
       "noxfile.py"   = ["T20"]
-      "tests/**"     = ["ANN", "S101", "SLF001", "T20"]
+      "tests/**"     = ["ANN", "E731", "S101", "SLF001", "T20"]
 
     [tool.ruff.lint.isort]
       combine-as-imports = true

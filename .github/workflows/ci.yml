@@ -153,3 +153,36 @@ jobs:
         uses: codecov/codecov-action@v4.6.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  benchmark:
+    name: Run Benchmarks
+    runs-on: ubuntu-20.04
+    needs: [format]
+    if:
+      github.event_name == 'workflow_dispatch' || (github.event_name ==
+      'pull_request' && contains(github.event.pull_request.labels.*.name,
+      'run-benchmarks'))
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install the project
+        run: uv sync --group test
+
+      - name: Run benchmarks
+        uses: CodSpeedHQ/action@v3
+        with:
+          token: ${{ secrets.CODSPEED_TOKEN }}
+          run: uv run pytest tests/benchmark --codspeed
