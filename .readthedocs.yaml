@@ -8,14 +8,13 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.12"
+  commands:
+    - asdf plugin add uv
+    - asdf install uv latest
+    - asdf global uv latest
+    - uv sync --group docs --frozen
+    - NO_COLOR=1 uv run mkdocs build --strict --site-dir
+      $READTHEDOCS_OUTPUT/html
 
 mkdocs:
   configuration: mkdocs.yml
-
-# Optionally declare the Python requirements required to build your docs
-python:
-  install:
-    - method: pip
-      path: .
-      extra_requirements:
-        - docs

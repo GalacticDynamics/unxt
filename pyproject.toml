@@ -45,32 +45,8 @@
   [project.optional-dependencies]
     all = ["unxt[backend-astropy,interop-gala,interop-mpl]"]
     backend-astropy = ["astropy >= 6.0"]
-    dev = ["unxt[all,docs,test-all]"]
-    docs = [
-      "griffe < 1.0",                        # For Python structure signatures
-      "jinja2==3.1",
-      "mkdocs-material==9.5",                # Theme
-      "mkdocs==1.6.0",                       # Main documentation generator.
-      "mkdocs_include_exclude_files==0.0.1", # Tweak which files are included/excluded
-      "mkdocstrings[python] >= 0.18",        # Autogenerate documentation from docstrings.
-      "mknotebooks==0.8",                    # Turn Jupyter Lab notebooks into webpages.
-      "nbconvert==7.16",
-      "pygments==2.16.0",
-      "pymdown-extensions==10.2",            # Markdown extensions e.g. to handle LaTeX.
-      "pytkdocs_tweaks==0.0.8",              # Tweaks mkdocstrings to improve various aspects
-    ]
     interop-gala = ["gala"]
     interop-mpl = ["matplotlib"]
-    test = [
-      "hypothesis[numpy]",
-      "pytest >=6",
-      "pytest-arraydiff",
-      "pytest-cov >=3",
-      "pytest-github-actions-annotate-failures",
-      "sybil",
-    ]
-    test-all = ["unxt[all]", "unxt[test-mpl]", "unxt[test]"]
-    test-mpl = ["pytest-mpl"]
 
   [project.urls]
     "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"
@@ -81,6 +57,38 @@
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    {include-group = "docs"},
+    {include-group = "test-all"},
+]
+docs = [
+    "griffe<1.0",
+    "jinja2==3.1",
+    "mkdocs-material==9.5", # Theme
+    "mkdocs==1.6.0", # Main documentation generator.
+    "mkdocs_include_exclude_files==0.0.1", # Tweak which files are included/excluded
+    "mkdocstrings[python] >= 0.18", # Autogenerate documentation from docstrings.
+    "mknotebooks==0.8", # Turn Jupyter Lab notebooks into webpages.
+    "nbconvert==7.16",
+    "pygments==2.16.0",
+    "pymdown-extensions==10.2", # Markdown extensions e.g. to handle LaTeX.
+    "pytkdocs_tweaks==0.0.8", # Tweaks mkdocstrings to improve various aspects
+    "sphinx>=7.3.7",
+]
+test = [
+  "hypothesis[numpy]>=6.112.2",
+  "pytest>=8.3.3",
+  "pytest-arraydiff>=0.6.1",
+  "pytest-cov >=3",
+  "pytest-codspeed",
+  "pytest-github-actions-annotate-failures",
+  "sybil>=8.0.0",
+]
+test-mpl = ["pytest-mpl"]
+test-all = [{include-group = "test"}, {include-group = "test-mpl"}]
 
 
 [tool.hatch]
@@ -228,12 +236,3 @@ build-backend = "hatchling.build"
   py-version = "3.10"
   reports.output-format = "colorized"
   similarities.ignore-imports = "yes"
-
-[tool.uv]
-dev-dependencies = [
-    "hypothesis>=6.112.2",
-    "ipykernel>=6.29.5",
-    "pytest-arraydiff>=0.6.1",
-    "pytest>=8.3.3",
-    "sybil>=8.0.0",
-]

@@ -79,7 +79,7 @@ def grad(
             (a if unit is None else Quantity(a, unit))
             for a, unit in zip(args, units_, strict=True)
         )
-        return fun(*args_).value
+        return fun(*args_).value  # type: ignore[call-arg]
 
     def gradfun(*args: P.args, **kw: P.kwargs) -> R:
         # Get the value of the args. They are turned back into Quantity
@@ -89,7 +89,7 @@ def grad(
             for a, unit in zip(args, units_, strict=True)
         )
         # Call the grad, returning a Quantity
-        value = fun(*args)
+        value = fun(*args)  # type: ignore[call-arg]
         grad_value = gradfun_mag(*args_)
         # Adjust the Quantity by the units of the derivative
         # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
@@ -142,7 +142,7 @@ def jacfwd(
             (a if unit is None else Quantity(a, unit))
             for a, unit in zip(args, units_, strict=True)
         )
-        return fun(*args_)
+        return fun(*args_)  # type: ignore[call-arg]
 
     def jacfun(*args: P.args, **kw: P.kwargs) -> R:
         # Get the value of the args. They are turned back into Quantity
@@ -199,7 +199,7 @@ def hessian(
             (a if unit is None else Quantity(a, unit))
             for a, unit in zip(args, units_, strict=True)
         )
-        return fun(*args_)
+        return fun(*args_)  # type: ignore[call-arg]
 
     def hessfun(*args: P.args, **kw: P.kwargs) -> R:
         # Get the value of the args. They are turned back into Quantity
