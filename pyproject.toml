@@ -38,8 +38,8 @@
     "quax>=0.0.5",
     "quaxed>=0.6.4",
     "xmmutablemap>=0.1",
-    "zeroth",
-  ]
+    "zeroth>=1.0.0",
+]
   # NOTE: zeroth is only required for matplotlib
 
   [project.optional-dependencies]
