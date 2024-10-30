@@ -179,6 +179,8 @@ jobs:
 
       - name: Run benchmarks
         uses: CodSpeedHQ/action@v3
+        env:
+          NUMPY_DTYPE_CHECK: "disable"
         with:
           token: ${{ secrets.CODSPEED_TOKEN }}
           run: uv run pytest tests/benchmarks --codspeed -n auto
