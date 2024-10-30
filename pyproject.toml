@@ -38,15 +38,15 @@
     "quax>=0.0.5",
     "quaxed>=0.6.4",
     "xmmutablemap>=0.1",
-    "zeroth",
-  ]
+    "zeroth>=1.0.0",
+]
   # NOTE: zeroth is only required for matplotlib
 
   [project.optional-dependencies]
     all = ["unxt[backend-astropy,interop-gala,interop-mpl]"]
-    backend-astropy = ["astropy >= 6.0"]
-    interop-gala = ["gala"]
-    interop-mpl = ["matplotlib"]
+    backend-astropy = ["astropy>=6.0"]
+    interop-gala = ["gala>=1.8"]
+    interop-mpl = ["matplotlib>=3.4"]
 
   [project.urls]
     "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"

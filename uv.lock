@@ -2490,7 +2490,7 @@ wheels = [
 
 [[package]]
 name = "unxt"
-version = "0.20.3.dev9+g564f522.d20241030"
+version = "0.20.3.dev9+gea40ae1.d20241030"
 source = { editable = "." }
 dependencies = [
     { name = "astropy" },
@@ -2592,20 +2592,20 @@ requires-dist = [
     { name = "astropy", marker = "extra == 'backend-astropy'", specifier = ">=6.0" },
     { name = "dataclassish", specifier = ">=0.3" },
     { name = "equinox", specifier = ">=0.11.8" },
-    { name = "gala", marker = "extra == 'all'" },
-    { name = "gala", marker = "extra == 'interop-gala'" },
+    { name = "gala", marker = "extra == 'all'", specifier = ">=1.7" },
+    { name = "gala", marker = "extra == 'interop-gala'", specifier = ">=1.7" },
     { name = "is-annotated", specifier = ">=1.0" },
     { name = "jax", specifier = ">0.4.32" },
     { name = "jaxlib", specifier = ">0.4.32" },
     { name = "jaxtyping", specifier = ">=0.2.34" },
-    { name = "matplotlib", marker = "extra == 'all'" },
-    { name = "matplotlib", marker = "extra == 'interop-mpl'" },
+    { name = "matplotlib", marker = "extra == 'all'", specifier = ">=3.4" },
+    { name = "matplotlib", marker = "extra == 'interop-mpl'", specifier = ">=3.4" },
     { name = "optional-dependencies", specifier = ">=0.3.2" },
     { name = "plum-dispatch", specifier = ">=2.4.3" },
     { name = "quax", specifier = ">=0.0.5" },
     { name = "quaxed", specifier = ">=0.6.4" },
     { name = "xmmutablemap", specifier = ">=0.1" },
-    { name = "zeroth" },
+    { name = "zeroth", specifier = ">=1.0.0" },
 ]
 
 [package.metadata.requires-dev]

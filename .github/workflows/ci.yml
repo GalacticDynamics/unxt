@@ -27,6 +27,9 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: "Set up Python"
         uses: actions/setup-python@v5
@@ -60,6 +63,9 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Set up Python ${{ matrix.python-version }}
         run: uv python install ${{ matrix.python-version }}
@@ -71,6 +77,43 @@ jobs:
         run: >-
           uv run pytest src docs tests -ra --cov --cov-report=xml
           --cov-report=term --durations=20
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4.6.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  check_oldest:
+    name: Check Oldest Dependencies
+    runs-on: ${{ matrix.runs-on }}
+    needs: [format]
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10"]
+        runs-on: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install the project
+        run: uv sync --extra all --group test-all --resolution lowest-direct
+
+      - name: Test package
+        run: >-
+          uv run pytest src docs tests -ra --cov --cov-report=xml
+          --cov-report=term --durations=20 --mpl
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v4.6.0
