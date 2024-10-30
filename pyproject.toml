@@ -44,9 +44,9 @@
 
   [project.optional-dependencies]
     all = ["unxt[backend-astropy,interop-gala,interop-mpl]"]
-    backend-astropy = ["astropy >= 6.0"]
-    interop-gala = ["gala"]
-    interop-mpl = ["matplotlib"]
+    backend-astropy = ["astropy>=6.0"]
+    interop-gala = ["gala>=1.7"]
+    interop-mpl = ["matplotlib>=3.4"]
 
   [project.urls]
     "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"

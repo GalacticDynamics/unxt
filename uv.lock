@@ -2490,7 +2490,7 @@ wheels = [
 
 [[package]]
 name = "unxt"
-version = "0.20.3.dev9+g564f522.d20241030"
+version = "0.20.3.dev8+g88a9dfe.d20241030"
 source = { editable = "." }
 dependencies = [
     { name = "astropy" },
@@ -2500,6 +2500,7 @@ dependencies = [
     { name = "jax" },
     { name = "jaxlib" },
     { name = "jaxtyping" },
+    { name = "matplotlib" },
     { name = "optional-dependencies" },
     { name = "plum-dispatch" },
     { name = "quax" },
@@ -2600,6 +2601,7 @@ requires-dist = [
     { name = "jaxtyping", specifier = ">=0.2.34" },
     { name = "matplotlib", marker = "extra == 'all'" },
     { name = "matplotlib", marker = "extra == 'interop-mpl'" },
+    { name = "matplotlib", extras = ["interop-mpl"], specifier = ">=3.9.2" },
     { name = "optional-dependencies", specifier = ">=0.3.2" },
     { name = "plum-dispatch", specifier = ">=2.4.3" },
     { name = "quax", specifier = ">=0.0.5" },
