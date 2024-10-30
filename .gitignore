@@ -156,3 +156,4 @@ Thumbs.db
 # Common editor files
 *~
 *.swp
+/.codspeed

@@ -7,11 +7,27 @@ from pathlib import Path
 
 import nox
 
+nox.needs_version = ">=2024.3.2"
+nox.options.sessions = [
+    # Linting
+    "lint",
+    "pylint",
+    # Testing
+    "tests",
+    "tests_all",
+    "tests_benckmark",
+    # Documentation
+    "docs",
+    "build_api_docs",
+]
+nox.options.default_venv_backend = "uv"
+
+
 DIR = Path(__file__).parent.resolve()
 
-nox.needs_version = ">=2024.3.2"
-nox.options.sessions = ["lint", "pylint", "tests"]
-nox.options.default_venv_backend = "uv"
+
+# =============================================================================
+# Linting
 
 
 @nox.session
@@ -36,18 +52,33 @@ def pylint(session: nox.Session) -> None:
     session.run("pylint", "unxt", *session.posargs)
 
 
+# =============================================================================
+# Testing
+
+
 @nox.session
 def tests(session: nox.Session) -> None:
     """Run the unit and regular tests."""
-    session.install(".[test]")
+    session.run("uv", "sync", "--group", "test")
     session.run("pytest", *session.posargs)
 
 
 @nox.session
 def tests_all(session: nox.Session) -> None:
     """Run the tests with all optional dependencies."""
-    session.install(".[test-all]")
+    session.run("uv", "sync", "--group", "test-all")
     session.run("pytest", *session.posargs)
+
+
+@nox.session
+def tests_benckmark(session: nox.Session) -> None:
+    """Run the benchmarks."""
+    session.run("uv", "sync", "--group", "test")
+    session.run("pytest", "tests/benchmark", "--codspeed", *session.posargs)
+
+
+# =============================================================================
+# Documentation
 
 
 @nox.session(reuse_venv=True)
