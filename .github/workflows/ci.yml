@@ -158,6 +158,10 @@ jobs:
     name: Run Benchmarks
     runs-on: ubuntu-20.04
     needs: [format]
+    if:
+      github.event_name == 'workflow_dispatch' || (github.event_name ==
+      'pull_request' && contains(github.event.pull_request.labels.*.name,
+      'run-benchmarks'))
     steps:
       - uses: actions/checkout@v4
         with:
