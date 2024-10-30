@@ -86,7 +86,6 @@ test = [
   "pytest-codspeed",
   "pytest-github-actions-annotate-failures",
   "sybil>=8.0.0",
-  "pytest-xdist>=3.6.1",
 ]
 test-mpl = ["pytest-mpl"]
 test-all = [{include-group = "test"}, {include-group = "test-mpl"}]
