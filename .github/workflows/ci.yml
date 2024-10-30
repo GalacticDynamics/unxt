@@ -156,7 +156,7 @@ jobs:
 
   benchmark:
     name: Run Benchmarks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [format]
     steps:
       - uses: actions/checkout@v4
@@ -179,8 +179,6 @@ jobs:
 
       - name: Run benchmarks
         uses: CodSpeedHQ/action@v3
-        env:
-          NUMPY_DTYPE_CHECK: "disable"
         with:
           token: ${{ secrets.CODSPEED_TOKEN }}
           run: uv run pytest tests/benchmarks --codspeed -n auto
