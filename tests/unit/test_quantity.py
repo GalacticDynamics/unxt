@@ -233,7 +233,13 @@ def test_gt():
     assert np.array_equal(q > Quantity(1, "m"), [False, True, True])
 
     # Test with incompatible units
-    assert np.array_equal(q > Quantity(0, "s"), [False, False, False])
+    # TODO: better equinox exception matching
+    with pytest.raises(Exception):  # noqa: B017, PT011
+        _ = q > Quantity(0, u.s)
+
+    # Test special case w/out units
+    assert Quantity(1, u.m) > 0
+    assert np.array_equal(Quantity([-1, 0, 1], u.m) > 0, [False, False, True])
 
 
 def test_ge():
@@ -251,7 +257,13 @@ def test_ge():
     assert np.array_equal(q >= Quantity(2, "m"), [False, True, True])
 
     # Test with incompatible units
-    assert np.array_equal(q >= Quantity(0, "s"), [False, False, False])
+    # TODO: better equinox exception matching
+    with pytest.raises(Exception):  # noqa: B017, PT011
+        _ = q >= Quantity(0, u.s)
+
+    # Test special case w/out units
+    assert Quantity(1, u.m) >= 0
+    assert np.array_equal(Quantity([-1, 0, 1], u.m) >= 0, [False, True, True])
 
 
 def test_lt():
@@ -269,7 +281,13 @@ def test_lt():
     assert np.array_equal(q < Quantity(2, "m"), [True, False, False])
 
     # Test with incompatible units
-    assert np.array_equal(q < Quantity(0, "s"), [False, False, False])
+    # TODO: better equinox exception matching
+    with pytest.raises(Exception):  # noqa: B017, PT011
+        _ = q < Quantity(0, u.s)
+
+    # Test special case w/out units
+    assert Quantity(-1, u.m) < 0
+    assert np.array_equal(Quantity([-1, 0, 1], u.m) < 0, [True, False, False])
 
 
 def test_le():
@@ -287,7 +305,13 @@ def test_le():
     assert np.array_equal(q <= Quantity(2, "m"), [True, True, False])
 
     # Test with incompatible units
-    assert np.array_equal(q <= Quantity(0, "s"), [False, False, False])
+    # TODO: better equinox exception matching
+    with pytest.raises(Exception):  # noqa: B017, PT011
+        _ = q <= Quantity(0, u.s)
+
+    # Test special case w/out units
+    assert Quantity(-1, u.m) <= 0
+    assert np.array_equal(Quantity([-1, 0, 1], u.m) <= 0, [True, True, False])
 
 
 def test_eq():
@@ -305,7 +329,13 @@ def test_eq():
     assert np.array_equal(q == Quantity(2, "m"), [False, True, False])
 
     # Test with incompatible units
-    assert np.array_equal(q == Quantity(0, "s"), [False, False, False])
+    # TODO: better equinox exception matching
+    with pytest.raises(Exception):  # noqa: B017, PT011
+        _ = q == Quantity(0, u.s)
+
+    # Test special case w/out units
+    assert Quantity(0, u.m) == 0
+    assert np.array_equal(Quantity([-1, 0, 1], u.m) == 0, [False, True, False])
 
 
 def test_ne():
@@ -323,8 +353,15 @@ def test_ne():
     assert np.array_equal(q != Quantity(2, "m"), [True, False, True])
 
     # Test with incompatible units
-    assert np.array_equal(q != Quantity(0, "s"), [True, True, True])
-    assert np.array_equal(q != Quantity(4, "s"), [True, True, True])
+    # TODO: better equinox exception matching
+    with pytest.raises(Exception):  # noqa: B017, PT011
+        _ = q != Quantity(0, u.s)
+    with pytest.raises(Exception):  # noqa: B017, PT011
+        _ = q != Quantity(4, u.s)
+
+    # Test special case w/out units
+    assert Quantity(1, u.m) != 0
+    assert np.array_equal(Quantity([-1, 0, 1], u.m) != 0, [True, False, True])
 
 
 def test_neg():
