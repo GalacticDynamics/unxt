@@ -62,7 +62,7 @@ class LTMAUnitSystem(AbstractUnitSystem):
 
 @final
 @dataclass(frozen=True, slots=True)
-class SIUnitSystem(AbstractUnitSystem):
+class SIUnitSystem(SingletonMixin, AbstractUnitSystem):
     """SI unit system + angles.
 
     Note: this is not part of the public API! Use the `si` instance (realization) from
@@ -105,7 +105,7 @@ class SIUnitSystem(AbstractUnitSystem):
 
 @final
 @dataclass(frozen=True, slots=True)
-class CGSUnitSystem(AbstractUnitSystem):
+class CGSUnitSystem(SingletonMixin, AbstractUnitSystem):
     """CGS unit system + angles.
 
     Note: this is not part of the public API! Use the `cgs` instance (realization) from
