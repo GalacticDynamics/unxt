@@ -7,6 +7,7 @@ __all__ = [
     "dimensionless",
     "solarsystem",
     "si",
+    "cgs",
     # unit system alias
     "NAMED_UNIT_SYSTEMS",
 ]
