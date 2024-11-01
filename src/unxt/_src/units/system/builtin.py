@@ -67,18 +67,40 @@ class SIUnitSystem(AbstractUnitSystem):
 
     Note: this is not part of the public API! Use the `si` instance (realization) from
     `unxt.unitsystems` instead.
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> from unxt._src.units.system.builtin import SIUnitSystem
+    >>> usys = SIUnitSystem(
+    ...     length=u.meter,
+    ...     time=u.second,
+    ...     mass=u.kilogram,
+    ...     electric_current=u.ampere,
+    ...     temperature=u.Kelvin,
+    ...     amount=u.mole,
+    ...     luminous_intensity=u.candela,
+    ...     angle=u.radian,
+    ... )
+    >>> usys
+    unitsystem(m, kg, s, mol, A, K, cd, rad)
+
     """
 
     # Base SI dimensions
     length: Annotated[Unit, ud.length]
+    mass: Annotated[Unit, ud.mass]
     time: Annotated[Unit, ud.time]
     amount: Annotated[Unit, ud.amount]
     electric_current: Annotated[Unit, ud.current]
     temperature: Annotated[Unit, ud.temperature]
     luminous_intensity: Annotated[Unit, ud.luminous_intensity]
-    mass: Annotated[Unit, ud.mass]
     # + angles
     angle: Annotated[Unit, ud.angle]
+
+    def __repr__(self) -> str:
+        fs = ", ".join(map(str, self.base_units))
+        return f"unitsystem({fs})"
 
 
 @final
@@ -88,6 +110,25 @@ class CGSUnitSystem(AbstractUnitSystem):
 
     Note: this is not part of the public API! Use the `cgs` instance (realization) from
     `unxt.unitsystems` instead.
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> from unxt._src.units.system.builtin import CGSUnitSystem
+    >>> usys = CGSUnitSystem(
+    ...     length=u.centimeter,
+    ...     time=u.second,
+    ...     mass=u.gram,
+    ...     angle=u.radian,
+    ...     force=u.dyne,
+    ...     energy=u.erg,
+    ...     pressure=u.barye,
+    ...     dynamic_viscosity=u.poise,
+    ...     kinematic_viscosity=u.stokes,
+    ... )
+    >>> usys
+    unitsystem(cm, g, s, dyn, erg, Ba, P, St, rad)
+
     """
 
     # Base CGS dimensions
@@ -101,3 +142,7 @@ class CGSUnitSystem(AbstractUnitSystem):
     kinematic_viscosity: Annotated[Unit, ud.kinematic_viscosity]
     # + angles
     angle: Annotated[Unit, ud.angle]
+
+    def __repr__(self) -> str:
+        fs = ", ".join(map(str, self.base_units))
+        return f"unitsystem({fs})"
