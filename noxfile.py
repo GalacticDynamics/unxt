@@ -92,14 +92,16 @@ def docs(session: nox.Session) -> None:
         default="html",
         help="Build target (default: html)",
     )
+    parser.add_argument("--offline", action="store_true", help="run in offline mode")
     args, posargs = parser.parse_known_args(session.posargs)
 
     if args.builder != "html" and args.serve:
         session.error("Must not specify non-HTML builder with --serve")
 
     extra_installs = ["sphinx-autobuild"] if args.serve else []
+    offline_command = ["--offline"] if args.offline else []
 
-    session.install("-e.[docs]", *extra_installs)
+    session.install("-e .[docs]", *extra_installs, *offline_command)
     session.chdir("docs")
 
     if args.builder == "linkcheck":
