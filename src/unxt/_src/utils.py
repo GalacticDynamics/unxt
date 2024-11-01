@@ -5,7 +5,7 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 
 __all__: list[str] = []
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -31,7 +31,7 @@ class SingletonMixin:
 
     """
 
-    def __new__(cls, /) -> "Self":
+    def __new__(cls, /, *_: Any, **__: Any) -> "Self":
         # Check if instance already exists
         if cls in _singleton_insts:
             return cast("Self", _singleton_insts[cls])
