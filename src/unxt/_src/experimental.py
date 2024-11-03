@@ -1,17 +1,21 @@
 r"""Experimental features.
 
-unxt.experimental provides experimental features that are not yet ready for
-general use. These features may be removed or changed in the future without
-notice.
+.. warning::
+
+    These features may be removed or changed in the future without notice.
 
 On some occasions JAX's automatic differentiation functions do not work well
-with quantities. This is easily checked by enabling runtime type-checking (see
-the docs), which will raise an error if a quantity's units do not match the
-expected input / output units of a function. In these cases, you can use the
-functions in this module to provide the units to the automatic differentiation
-functions. Instead of directly propagating the units through the automatic
-differentiation functions, the units are stripped and re-applied, while also
-being provided within the function being AD'd.
+with quantities. This is checked by enabling runtime type-checking (see the
+docs), which will raise an error if a quantity's units do not match the expected
+input / output units of a function. In these cases, you can use the functions in
+this module to provide the units to the automatic differentiation functions.
+Instead of directly propagating the units through the automatic differentiation
+functions, the units are stripped and re-applied, while also being provided
+within the function being AD'd.
+
+To import this experimental module
+
+>>> from unxt import experimental
 
 """
 # pylint: disable=import-error
@@ -63,7 +67,7 @@ def grad(
     >>> from unxt import Quantity
 
     >>> def square_volume(x: Quantity["length"]) -> Quantity["volume"]:
-    ...     return x ** 3
+    ...     return x**3
 
     >>> grad_square_volume = unxt.experimental.grad(square_volume, units=("m",))
     >>> grad_square_volume(Quantity(2.0, "m"))
@@ -121,7 +125,7 @@ def jacfwd(
     >>> from unxt import Quantity
 
     >>> def square_volume(x: Quantity["length"]) -> Quantity["volume"]:
-    ...     return x ** 3
+    ...     return x**3
 
     >>> jacfwd_square_volume = unxt.experimental.jacfwd(square_volume, units=("m",))
     >>> jacfwd_square_volume(Quantity(2.0, "m"))
@@ -184,7 +188,7 @@ def hessian(
     >>> from unxt import Quantity
 
     >>> def square_volume(x: Quantity["length"]) -> Quantity["volume"]:
-    ...     return x ** 3
+    ...     return x**3
 
     >>> hessian_square_volume = unxt.experimental.hessian(square_volume, units=("m",))
     >>> hessian_square_volume(Quantity(2.0, "m"))

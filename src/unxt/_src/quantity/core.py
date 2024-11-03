@@ -70,8 +70,10 @@ class Quantity(AbstractParametricQuantity):
 
     This can be used for runtime checking of the input dimensions!
 
-    >>> try: Quantity["length"](1, "s")
-    ... except Exception as e: print(e)
+    >>> try:
+    ...     Quantity["length"](1, "s")
+    ... except Exception as e:
+    ...     print(e)
     Physical type mismatch.
 
     The dimensions can also be given as a `astropy.units.PhysicalType`:
@@ -89,14 +91,14 @@ class Quantity(AbstractParametricQuantity):
 
     Some tricky cases are when the physical type is unknown:
 
-    >>> unit = u.m ** 2 / (u.kg * u.s ** 2)
+    >>> unit = u.m**2 / (u.kg * u.s**2)
     >>> dimensions_of(unit)
     PhysicalType('unknown')
 
     The dimensions can be given as a string in all cases, but is necessary when
     the physical type is unknown:
 
-    >>> Quantity['m2 kg-1 s-2'](1.0, unit)
+    >>> Quantity["m2 kg-1 s-2"](1.0, unit)
     Quantity['m2 kg-1 s-2'](Array(1., dtype=float32, ...), unit='m2 / (kg s2)')
 
     """

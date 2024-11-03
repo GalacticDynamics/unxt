@@ -110,7 +110,7 @@ class IPythonReprMixin:
         --------
         >>> from unxt import Quantity
 
-        >>> q = Quantity([1., 2, 3, 4], "m")
+        >>> q = Quantity([1.0, 2, 3, 4], "m")
         >>> q._repr_mimebundle_()
         {'text/plain': "Quantity['length'](Array([1., 2., 3., 4.], dtype=float32), unit='m')",
          'text/html': '<span>[1., 2., 3., 4.]</span> * <span>Unit("m")</span>',
@@ -146,7 +146,7 @@ class IPythonReprMixin:
         --------
         >>> from unxt import Quantity
 
-        >>> q = Quantity([1., 2, 3, 4], "m")
+        >>> q = Quantity([1.0, 2, 3, 4], "m")
         >>> q._repr_html_()
         '<span>[1., 2., 3., 4.]</span> * <span>Unit("m")</span>'
 
@@ -163,7 +163,7 @@ class IPythonReprMixin:
         --------
         >>> from unxt import Quantity
 
-        >>> q = Quantity([1., 2, 3, 4], "m")
+        >>> q = Quantity([1.0, 2, 3, 4], "m")
         >>> q._repr_latex_()
         '$[1.,~2.,~3.,~4.] \\; \\mathrm{m}$'
 

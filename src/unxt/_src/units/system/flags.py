@@ -1,8 +1,4 @@
-__all__ = [
-    "AbstractUSysFlag",
-    "StandardUSysFlag",
-    "DynamicalSimUSysFlag",
-]
+__all__ = ["AbstractUSysFlag", "StandardUSysFlag", "DynamicalSimUSysFlag"]
 
 from typing import Any
 

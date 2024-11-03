@@ -208,6 +208,9 @@ test-all = [{include-group = "test"}, {include-group = "test-mpl"}]
       ]
       known-local-folder = ["unxt"]
 
+  [tool.ruff.format]
+    docstring-code-format=true
+
 
 [tool.pylint]
   ignore-paths = [".*/_compat.py", ".*/_version.py"]
