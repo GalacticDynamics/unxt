@@ -1549,6 +1549,27 @@ def _dot_general_qq(
     )
 
 
+@register(lax.dynamic_slice_p)
+def _dynamic_slice_q(
+    operand: AbstractQuantity, *indices: Array, **kwargs: Any
+) -> AbstractQuantity:
+    """Dynamic slice of a quantity.
+
+    Examples
+    --------
+    >>> from quaxed import lax
+    >>> from unxt import Quantity
+
+    >>> q = Quantity([1, 2, 3, 4, 5], "m")
+    >>> lax.dynamic_slice(q, (1,), (3,))
+    Quantity['length'](Array([2, 3, 4], dtype=int32), unit='m')
+
+    """
+    return replace(
+        operand, value=lax.dynamic_slice_p.bind(operand.value, *indices, **kwargs)
+    )
+
+
 # ==============================================================================
 
 
