@@ -1551,7 +1551,7 @@ def _dot_general_qq(
 
 @register(lax.dynamic_slice_p)
 def _dynamic_slice_q(
-    operand: AbstractQuantity, *indices: Array, **kwargs: Any
+    operand: AbstractQuantity, *indices: ArrayLike, **kwargs: Any
 ) -> AbstractQuantity:
     """Dynamic slice of a quantity.
 
