@@ -29,7 +29,7 @@ from .api import uconvert, ustrip
 from .base import AbstractQuantity, is_unit_convertible
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
-from unxt._src.units.core import units
+from unxt._src.units.core import units, units_of
 
 T = TypeVar("T")
 
@@ -2931,6 +2931,32 @@ def _round_p(x: AbstractQuantity, *, rounding_method: Any) -> AbstractQuantity:
 @register(lax.rsqrt_p)
 def _rsqrt_p(x: AbstractQuantity) -> AbstractQuantity:
     return type_np(x)(lax.rsqrt(x.value), unit=x.unit ** (-1 / 2))
+
+
+# ==============================================================================
+
+
+@register(lax.scan_p)
+def _scan_p(
+    arg0: AbstractQuantity, arg1: AbstractQuantity, /, *args: ArrayLike, **kwargs: Any
+) -> Array:
+    """Scan operator, e.g. for ``numpy.digitize``.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> from unxt import UncheckedQuantity as UQ
+
+    >>> x = UQ(jnp.arange(0, 10), "deg")
+    >>> x_bins = UQ(jnp.linspace(0, 10, 4), "deg")
+    >>> jnp.digitize(x, x_bins)
+    Array([1, 1, 1, 1, 2, 2, 2, 3, 3, 3], dtype=int32)
+
+    """
+    unit = units_of(arg0)
+    arg0_ = ustrip(unit, arg0)
+    arg1_ = ustrip(unit, arg1)
+    return lax.scan_p.bind(arg0_, arg1_, *args, **kwargs)
 
 
 # ==============================================================================
