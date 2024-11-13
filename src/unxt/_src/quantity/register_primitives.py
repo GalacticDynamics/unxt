@@ -3036,12 +3036,34 @@ def _select_n_p_jqj(
 
 
 @register(lax.select_n_p)
-def _select_n_p_jqq(
-    which: ArrayLike, case0: AbstractQuantity, case1: AbstractQuantity
-) -> AbstractQuantity:
-    # used by `jnp.hypot`
-    unit = case0.unit
-    return replace(case0, value=lax.select_n(which, case0.value, ustrip(unit, case1)))
+def _select_n_p_jqq(which: ArrayLike, *cases: AbstractQuantity) -> AbstractQuantity:
+    """Select from a list of quantities using a non-quantity selector.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> from unxt import Quantity as Q
+
+    We can use a non-quantity selector to select from a list of quantities.
+
+    >>> a = Q([1.0, 5.0, 9.0], "kpc")
+    >>> b = Q([2.0, 6.0, 10.0], "kpc")
+    >>> jnp.select(([a > Q(4, "kpc"), b < Q(8, "kpc")]), [a, b], default=Q(0, "kpc"))
+    Quantity[...](Array([2., 5., 9.], dtype=float32), unit='kpc')
+
+    This selection dispatch also happens when using ``jnp.hypot``.
+
+    >>> a = Q([3], "kpc")
+    >>> b = Q([4], "kpc")
+    >>> jnp.hypot(a, b)
+    Quantity[...](Array([5.], dtype=float32), unit='kpc')
+
+    """
+    unit = units_of(cases[0])
+    return replace(
+        cases[0],
+        value=lax.select_n(which, *(ustrip(unit, case) for case in cases)),
+    )
 
 
 # ==============================================================================
