@@ -9,7 +9,7 @@ from astropy.units import PhysicalType as Dimension
 from plum import dispatch
 
 from . import builtin_dimensions as bdims
-from unxt._src.dimensions.core import dimensions_of
+from unxt._src.dimensions.core import dimension_of
 from unxt._src.typing_ext import Unit
 
 # ------------------------------------
@@ -91,4 +91,4 @@ def get_dimension_name(pt: Unit, /) -> str:
     'length'
 
     """
-    return get_dimension_name(dimensions_of(pt))
+    return get_dimension_name(dimension_of(pt))

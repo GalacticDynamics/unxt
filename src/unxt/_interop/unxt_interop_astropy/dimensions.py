@@ -10,17 +10,17 @@ from unxt._src.dimensions.core import AbstractDimensions
 
 
 @dispatch  # type: ignore[misc]
-def dimensions_of(obj: u.Quantity, /) -> AbstractDimensions:
+def dimension_of(obj: u.Quantity, /) -> AbstractDimensions:
     """Return the dimensions of a quantity.
 
     Examples
     --------
-    >>> import astropy.units as u
-    >>> from unxt import dimensions_of
+    >>> import unxt as u
+    >>> import astropy.units as apyu
 
-    >>> q = u.Quantity(1, "m")
-    >>> dimensions_of(q)
+    >>> q = apyu.Quantity(1, "m")
+    >>> u.dimension_of(q)
     PhysicalType('length')
 
     """
-    return dimensions_of(obj.unit)
+    return dimension_of(obj.unit)

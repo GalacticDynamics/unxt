@@ -7,7 +7,7 @@ from jaxtyping import Array
 from plum import dispatch
 
 from .base import AbstractQuantity
-from unxt._src.dimensions.core import dimensions_of
+from unxt._src.dimensions.core import dimension_of
 from unxt._src.units.core import AbstractUnits, unit
 from unxt._src.units.system.base import AbstractUnitSystem
 
@@ -45,7 +45,7 @@ def uconvert(usys: AbstractUnitSystem, x: AbstractQuantity, /) -> AbstractQuanti
     Quantity['length'](Array(3.2407792, dtype=float32, ...), unit='kpc')
 
     """
-    return uconvert(usys[dimensions_of(x)], x)
+    return uconvert(usys[dimension_of(x)], x)
 
 
 # ===================================================================
@@ -98,4 +98,4 @@ def ustrip(u: AbstractUnitSystem, x: AbstractQuantity, /) -> Array:
     Array(3.2407792, dtype=float32, weak_type=True)
 
     """
-    return ustrip(u[dimensions_of(x)], x)
+    return ustrip(u[dimension_of(x)], x)

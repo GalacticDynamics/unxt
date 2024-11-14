@@ -17,7 +17,7 @@ from plum import dispatch, parametric, type_nonparametric, type_unparametrized
 from dataclassish import field_items, fields
 
 from .base import AbstractQuantity
-from unxt._src.dimensions.core import dimensions, dimensions_of
+from unxt._src.dimensions.core import dimension_of, dimensions
 from unxt._src.typing_ext import Unit as UnitTypes
 from unxt._src.units.core import unit as parse_unit
 
@@ -43,7 +43,7 @@ class AbstractParametricQuantity(AbstractQuantity):
     def __check_init__(self) -> None:
         """Check whether the arguments are valid."""
         expected_dimensions = self._type_parameter
-        got_dimensions = dimensions_of(self.unit)
+        got_dimensions = dimension_of(self.unit)
         if got_dimensions != expected_dimensions:
             msg = "Physical type mismatch."  # TODO: better error message
             raise ValueError(msg)
@@ -65,14 +65,14 @@ class AbstractParametricQuantity(AbstractQuantity):
         try:
             dims_ = dimensions(dims)
         except ValueError:
-            dims_ = dimensions_of(parse_unit(dims))
+            dims_ = dimension_of(parse_unit(dims))
         return (dims_,)
 
     @classmethod  # type: ignore[no-redef]
     @dispatch
     def __init_type_parameter__(cls, unit: UnitTypes, /) -> tuple[Dimensions]:
         """Infer the type parameter from the arguments."""
-        dims = dimensions_of(unit)
+        dims = dimension_of(unit)
         if dims != "unknown":
             return (dims,)
         return (Dimensions(unit, unit.to_string(fraction=False)),)
@@ -82,7 +82,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         cls, value: ArrayLike | Sequence[Any], unit: Any, **kwargs: Any
     ) -> tuple[Dimensions]:
         """Infer the type parameter from the arguments."""
-        return (dimensions_of(parse_unit(unit)),)
+        return (dimension_of(parse_unit(unit)),)
 
     @classmethod
     @dispatch  # type: ignore[misc]

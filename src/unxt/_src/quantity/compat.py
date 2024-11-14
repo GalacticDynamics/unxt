@@ -15,18 +15,18 @@ from unxt._src.units.core import AbstractUnits
 
 
 @dispatch  # type: ignore[misc]
-def dimensions_of(obj: AbstractQuantity, /) -> AbstractDimensions:
+def dimension_of(obj: AbstractQuantity, /) -> AbstractDimensions:
     """Return the dimensions of a quantity.
 
     Examples
     --------
-    >>> from unxt import dimensions_of, Quantity
+    >>> from unxt import dimension_of, Quantity
     >>> q = Quantity(1, "m")
-    >>> dimensions_of(q)
+    >>> dimension_of(q)
     PhysicalType('length')
 
     """
-    return dimensions_of(obj.unit)
+    return dimension_of(obj.unit)
 
 
 # ===================================================================

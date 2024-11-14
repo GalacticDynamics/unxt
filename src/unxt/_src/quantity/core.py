@@ -91,7 +91,7 @@ class Quantity(AbstractParametricQuantity):
     Some tricky cases are when the physical type is unknown:
 
     >>> unit = u.unit("m2 / (kg s2)")
-    >>> u.dimensions_of(unit)
+    >>> u.dimension_of(unit)
     PhysicalType('unknown')
 
     The dimensions can be given as a string in all cases, but is necessary when
