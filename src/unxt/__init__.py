@@ -27,6 +27,7 @@ __all__ = [
     "dimensions",  # convenience constructor
     "dimensions_of",  # get the dimensions
     # units
+    "units",  # module
     "unit",
     "unit_of",
     # units systems
@@ -47,7 +48,7 @@ from jaxtyping import install_import_hook
 from .setup_package import RUNTIME_TYPECHECKER
 
 with install_import_hook("unxt", RUNTIME_TYPECHECKER):
-    from . import dims, quantity, unitsystems
+    from . import dims, quantity, units, unitsystems
     from ._src.units.core import unit, unit_of
     from ._version import version as __version__
     from .dims import dimensions, dimensions_of
