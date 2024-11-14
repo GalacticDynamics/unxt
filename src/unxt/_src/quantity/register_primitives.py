@@ -29,7 +29,7 @@ from .api import uconvert, ustrip
 from .base import AbstractQuantity, is_unit_convertible
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
-from unxt._src.units.core import units, units_of
+from unxt._src.units.core import unit, unit_of
 
 T = TypeVar("T")
 
@@ -1424,8 +1424,8 @@ def _div_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
     """
     x, y = promote(x, y)
-    unit = units(x.unit / y.unit)
-    return type_np(x)(lax.div(x.value, y.value), unit=unit)
+    u = unit(x.unit / y.unit)
+    return type_np(x)(lax.div(x.value, y.value), unit=u)
 
 
 @register(lax.div_p)
@@ -2681,8 +2681,27 @@ def _min_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 @register(lax.mul_p)
 def _mul_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
-    unit = units(x.unit * y.unit)
-    return type_np(x)(lax.mul(x.value, y.value), unit=unit)
+    """Multiplication of two quantities.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+
+    >>> from unxt.quantity import UncheckedQuantity
+    >>> q1 = UncheckedQuantity(2, "m")
+    >>> q2 = UncheckedQuantity(3, "m")
+    >>> jnp.multiply(q1, q2)
+    UncheckedQuantity(Array(6, dtype=int32, ...), unit='m2')
+
+    >>> from unxt import Quantity
+    >>> q1 = Quantity(2, "m")
+    >>> q2 = Quantity(3, "m")
+    >>> jnp.multiply(q1, q2)
+    Quantity['area'](Array(6, dtype=int32, ...), unit='m2')
+
+    """
+    u = unit(x.unit * y.unit)
+    return type_np(x)(lax.mul(x.value, y.value), unit=u)
 
 
 @register(lax.mul_p)
@@ -2879,10 +2898,9 @@ def _reduce_or_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
 
 @register(lax.reduce_prod_p)
 def _reduce_prod_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
-    return type_np(operand)(
-        lax.reduce_prod_p.bind(operand.value, axes=axes),
-        unit=operand.unit ** prod(operand.shape[ax] for ax in axes),
-    )
+    value = lax.reduce_prod_p.bind(operand.value, axes=axes)
+    u = operand.unit ** prod(operand.shape[ax] for ax in axes)
+    return type_np(operand)(value, unit=u)
 
 
 # ==============================================================================
@@ -2991,9 +3009,9 @@ def _scan_p(
     Array([1, 1, 1, 1, 2, 2, 2, 3, 3, 3], dtype=int32)
 
     """
-    unit = units_of(arg0)
-    arg0_ = ustrip(unit, arg0)
-    arg1_ = ustrip(unit, arg1)
+    u = unit_of(arg0)
+    arg0_ = ustrip(u, arg0)
+    arg1_ = ustrip(u, arg1)
     return lax.scan_p.bind(arg0_, arg1_, *args, **kwargs)
 
 
@@ -3041,9 +3059,9 @@ def _scatter_add_p_vvq(
 
 @register(lax.select_n_p)
 def _select_n_p(which: AbstractQuantity, *cases: AbstractQuantity) -> AbstractQuantity:
-    unit = cases[0].unit
-    cases_ = (ustrip(unit, case) for case in cases)
-    return type_np(which)(lax.select_n(ustrip(one, which), *cases_), unit=unit)
+    u = cases[0].unit
+    cases_ = (ustrip(u, case) for case in cases)
+    return type_np(which)(lax.select_n(ustrip(one, which), *cases_), unit=u)
 
 
 @register(lax.select_n_p)
@@ -3051,9 +3069,9 @@ def _select_n_p_vq(
     which: AbstractQuantity, case0: AbstractQuantity, case1: ArrayLike
 ) -> AbstractQuantity:
     # encountered from jnp.hypot
-    unit = case0.unit
+    u = case0.unit
     return type_np(which)(
-        lax.select_n(ustrip(one, which), ustrip(unit, case0), case1), unit=unit
+        lax.select_n(ustrip(one, which), ustrip(u, case0), case1), unit=u
     )
 
 
@@ -3097,10 +3115,9 @@ def _select_n_p_jqq(which: ArrayLike, *cases: AbstractQuantity) -> AbstractQuant
     Quantity[...](Array([5.], dtype=float32), unit='kpc')
 
     """
-    unit = units_of(cases[0])
+    u = unit_of(cases[0])
     return replace(
-        cases[0],
-        value=lax.select_n(which, *(ustrip(unit, case) for case in cases)),
+        cases[0], value=lax.select_n(which, *(ustrip(u, case) for case in cases))
     )
 
 

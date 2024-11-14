@@ -7,8 +7,8 @@ from jaxtyping import Array
 from plum import dispatch
 
 from .base import AbstractQuantity
-from unxt._src.dimensions.core import dimensions_of
-from unxt._src.units.core import AbstractUnits, units
+from unxt._src.dimensions.core import dimension_of
+from unxt._src.units.core import AbstractUnits, unit
 from unxt._src.units.system.base import AbstractUnitSystem
 
 # ===================================================================
@@ -28,7 +28,7 @@ def uconvert(ustr: str, x: AbstractQuantity, /) -> AbstractQuantity:
     Quantity['length'](Array(1., dtype=float32, ...), unit='km')
 
     """
-    return uconvert(units(ustr), x)
+    return uconvert(unit(ustr), x)
 
 
 @dispatch
@@ -45,7 +45,7 @@ def uconvert(usys: AbstractUnitSystem, x: AbstractQuantity, /) -> AbstractQuanti
     Quantity['length'](Array(3.2407792, dtype=float32, ...), unit='kpc')
 
     """
-    return uconvert(usys[dimensions_of(x)], x)
+    return uconvert(usys[dimension_of(x)], x)
 
 
 # ===================================================================
@@ -58,10 +58,10 @@ def ustrip(u: AbstractUnits, x: AbstractQuantity, /) -> Array:
 
     Examples
     --------
-    >>> from unxt import Quantity, units
+    >>> import unxt as u
 
-    >>> q = Quantity(1000, "m")
-    >>> ustrip(units("km"), q)
+    >>> q = u.Quantity(1000, "m")
+    >>> u.ustrip(u.unit("km"), q)
     Array(1., dtype=float32, ...)
 
     """
@@ -74,14 +74,14 @@ def ustrip(u: str, x: AbstractQuantity, /) -> Array:
 
     Examples
     --------
-    >>> from unxt import Quantity
+    >>> import unxt as u
 
-    >>> q = Quantity(1000, "m")
-    >>> ustrip("km", q)
+    >>> q = u.Quantity(1000, "m")
+    >>> u.ustrip("km", q)
     Array(1., dtype=float32, ...)
 
     """
-    return uconvert(units(u), x).value
+    return uconvert(unit(u), x).value
 
 
 @dispatch
@@ -90,12 +90,12 @@ def ustrip(u: AbstractUnitSystem, x: AbstractQuantity, /) -> Array:
 
     Examples
     --------
-    >>> from unxt import Quantity
+    >>> import unxt as u
     >>> from unxt.unitsystems import galactic
 
-    >>> q = Quantity(1e17, "km")
-    >>> ustrip(galactic, q)
+    >>> q = u.Quantity(1e17, "km")
+    >>> u.ustrip(galactic, q)
     Array(3.2407792, dtype=float32, weak_type=True)
 
     """
-    return ustrip(u[dimensions_of(x)], x)
+    return ustrip(u[dimension_of(x)], x)

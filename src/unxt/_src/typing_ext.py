@@ -9,6 +9,6 @@ __all__: list[str] = []
 
 from typing import TypeAlias
 
-import astropy.units as u
+import astropy.units as apyu
 
-Unit: TypeAlias = u.Unit | u.UnitBase | u.CompositeUnit
+Unit: TypeAlias = apyu.Unit | apyu.UnitBase | apyu.CompositeUnit

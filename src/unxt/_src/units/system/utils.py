@@ -5,11 +5,10 @@ __all__: list[str] = []
 import re
 from typing import Any
 
-from astropy.units import PhysicalType as Dimension
 from plum import dispatch
 
 from . import builtin_dimensions as bdims
-from unxt._src.dimensions.core import dimensions_of
+from unxt._src.dimensions.core import AbstractDimension, dimension_of
 from unxt._src.typing_ext import Unit
 
 # ------------------------------------
@@ -53,18 +52,18 @@ def get_dimension_name(pt: str, /) -> str:
 
 
 @dispatch  # type: ignore[no-redef]
-def get_dimension_name(pt: Dimension, /) -> str:
+def get_dimension_name(pt: AbstractDimension, /) -> str:
     """Return the dimension name from a dimension.
 
     Examples
     --------
-    >>> from unxt import dimensions
+    >>> import unxt as u
     >>> from unxt._src.units.system.utils import get_dimension_name
 
-    >>> get_dimension_name(dimensions("length"))
+    >>> get_dimension_name(u.dimension("length"))
     'length'
 
-    >>> get_dimension_name(dimensions("speed"))
+    >>> get_dimension_name(u.dimension("speed"))
     'speed'
 
     """
@@ -84,11 +83,11 @@ def get_dimension_name(pt: Unit, /) -> str:
 
     Examples
     --------
-    >>> from unxt import units
+    >>> import unxt as u
     >>> from unxt._src.units.system.utils import get_dimension_name
 
-    >>> get_dimension_name(units("km"))
+    >>> get_dimension_name(u.unit("km"))
     'length'
 
     """
-    return get_dimension_name(dimensions_of(pt))
+    return get_dimension_name(dimension_of(pt))

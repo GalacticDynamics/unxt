@@ -16,13 +16,13 @@ def uconvert(u: Any, x: Any, /) -> Any:
 
     Examples
     --------
-    >>> from unxt import Quantity, uconvert, units
+    >>> import unxt as u
 
-    >>> q = Quantity(1, "km")
-    >>> uconvert(units("m"), q)
+    >>> q = u.Quantity(1, "km")
+    >>> u.uconvert(u.unit("m"), q)
     Quantity['length'](Array(1000., dtype=float32, ...), unit='m')
 
-    >>> uconvert("m", q)
+    >>> u.uconvert("m", q)
     Quantity['length'](Array(1000., dtype=float32, ...), unit='m')
 
     For further examples, see the other method dispatches.
@@ -40,13 +40,13 @@ def ustrip(u: Any, x: Any, /) -> Any:
 
     Examples
     --------
-    >>> from unxt import Quantity, uconvert, units
+    >>> import unxt as u
 
-    >>> q = Quantity(1, "km")
-    >>> ustrip(units("m"), q)
+    >>> q = u.Quantity(1, "km")
+    >>> ustrip(u.unit("m"), q)
     Array(1000., dtype=float32, ...)
 
-    >>> ustrip("m", q)
+    >>> u.ustrip("m", q)
     Array(1000., dtype=float32, ...)
 
     For further examples, see the other method dispatches.

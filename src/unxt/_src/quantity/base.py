@@ -25,7 +25,7 @@ from dataclassish import fields, replace
 
 from .api import uconvert, ustrip
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin
-from unxt._src.units.core import AbstractUnits, units
+from unxt._src.units.core import AbstractUnits, unit as parse_unit
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -94,8 +94,8 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
 
     The unit can also be given as a `astropy.units.Unit`:
 
-    >>> import astropy.units as u
-    >>> Quantity(1, u.m)
+    >>> import astropy.units as apyu
+    >>> Quantity(1, apyu.m)
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
@@ -103,7 +103,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
     value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
     """The value of the `AbstractQuantity`."""
 
-    unit: AbstractUnits = eqx.field(static=True, converter=units)
+    unit: AbstractUnits = eqx.field(static=True, converter=parse_unit)
     """The unit associated with this value."""
 
     # ---------------------------------------------------------------
@@ -234,11 +234,6 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
     def to_units(self, u: Any, /) -> "AbstractQuantity":
         """Convert the quantity to the given units.
 
-        Parameters
-        ----------
-        u : Any
-            The units to convert to.
-
         See Also
         --------
         unxt.uconvert : convert a quantity to a new unit.
@@ -256,11 +251,6 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
 
     def to_units_value(self, u: Any, /) -> Array:
         """Return the value in the given units.
-
-        Parameters
-        ----------
-        u : Any
-            The units to convert to.
 
         Examples
         --------
@@ -797,11 +787,10 @@ def is_unit_convertible(to_unit: Any, from_unit: Any, /) -> bool:
     Parameters
     ----------
     to_unit : Any
-        The unit to convert to. Converted to a unit object using `unxt.units`.
+        The unit to convert to. Converted to a unit object using `unxt.unit`.
     from_unit : Any
-        The unit to convert from. Converted to a unit object using
-        `unxt.units`, Note this means it also support `Quantity` objects and
-        many others.
+        The unit to convert from. Converted to a unit object using `unxt.unit`,
+        Note this means it also support `Quantity` objects and many others.
 
     Examples
     --------
@@ -813,8 +802,8 @@ def is_unit_convertible(to_unit: Any, from_unit: Any, /) -> bool:
     False
 
     """
-    to_u = units(to_unit)
-    from_u = units(from_unit)
+    to_u = parse_unit(to_unit)
+    from_u = parse_unit(from_unit)
     try:
         from_u.to(to_u)
     except UnitConversionError:

@@ -4,58 +4,58 @@ __all__: list[str] = []
 
 from typing import TypeAlias
 
-import astropy.units as u
+import astropy.units as apyu
 from plum import dispatch
 
-AstropyUnits: TypeAlias = u.UnitBase
+AstropyUnits: TypeAlias = apyu.UnitBase
 
 # ===================================================================
 # Register dispatches
 
 
 @dispatch
-def units(obj: u.UnitBase | u.Unit, /) -> AstropyUnits:
+def unit(obj: apyu.UnitBase | apyu.Unit, /) -> AstropyUnits:
     """Construct the units from an Astropy unit.
 
     Examples
     --------
-    >>> import astropy.units as u
-    >>> from unxt import units
-    >>> units(u.km)
+    >>> import astropy.units as apyu
+    >>> import unxt as u
+    >>> u.unit(apyu.km)
     Unit("km")
 
     """
-    return u.Unit(obj)
+    return apyu.Unit(obj)
 
 
 @dispatch
-def units(obj: u.Quantity, /) -> AstropyUnits:
+def unit(obj: apyu.Quantity, /) -> AstropyUnits:
     """Construct the units from an Astropy quantity.
 
     Examples
     --------
-    >>> import astropy.units as u
-    >>> from unxt import units
-    >>> units(u.Quantity(2, "km"))
+    >>> import astropy.units as apyu
+    >>> import unxt as u
+    >>> u.unit(apyu.Quantity(2, "km"))
     Unit("2 km")
 
     """
-    return u.Unit(obj)
+    return apyu.Unit(obj)
 
 
 # -------------------------------------------------------------------
 
 
 @dispatch
-def units_of(obj: u.UnitBase | u.Unit, /) -> AstropyUnits:
+def unit_of(obj: apyu.UnitBase | apyu.Unit, /) -> AstropyUnits:
     """Return the units of an object.
 
     Examples
     --------
-    >>> import astropy.units as u
-    >>> from unxt import units_of
+    >>> import astropy.units as apyu
+    >>> import unxt as u
 
-    >>> units_of(u.km)
+    >>> u.unit_of(apyu.km)
     Unit("km")
 
     """
@@ -63,16 +63,16 @@ def units_of(obj: u.UnitBase | u.Unit, /) -> AstropyUnits:
 
 
 @dispatch
-def units_of(obj: u.Quantity, /) -> AstropyUnits:
+def unit_of(obj: apyu.Quantity, /) -> AstropyUnits:
     """Return the units of an Astropy quantity.
 
     Examples
     --------
-    >>> import astropy.units as u
-    >>> from unxt import units_of
+    >>> import astropy.units as apyu
+    >>> import unxt as u
 
-    >>> units_of(u.Quantity(1, "km"))
+    >>> u.unit_of(apyu.Quantity(1, "km"))
     Unit("km")
 
     """
-    return units_of(obj.unit)
+    return unit_of(obj.unit)

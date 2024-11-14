@@ -3,16 +3,16 @@
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-__all__ = ["dimensions", "dimensions_of"]
+__all__ = ["dimension", "dimension_of"]
 
 from typing import Any, TypeAlias
 
-import astropy.units as u
+import astropy.units as apyu
 from astropy.units import Unit
 from plum import dispatch
 
-AbstractUnits: TypeAlias = u.UnitBase | Unit
-AbstractDimensions: TypeAlias = u.PhysicalType
+AbstractUnits: TypeAlias = apyu.UnitBase | Unit
+AbstractDimension: TypeAlias = apyu.PhysicalType
 
 
 # ===================================================================
@@ -20,33 +20,33 @@ AbstractDimensions: TypeAlias = u.PhysicalType
 
 
 @dispatch.abstract
-def dimensions(obj: Any, /) -> AbstractDimensions:
-    """Construct the dimensions.
+def dimension(obj: Any, /) -> AbstractDimension:
+    """Construct the dimension.
 
     .. note::
 
         This function uses multiple dispatch. Dispatches made in other modules
         may not be included in the rendered docs. To see the full range of
-        options, execute ``unxt.dims.dimensions.methods`` in an interactive
+        options, execute ``unxt.dims.dimension.methods`` in an interactive
         Python session.
 
     """
 
 
 @dispatch
-def dimensions(obj: AbstractDimensions, /) -> AbstractDimensions:
-    """Construct dimensions from a dimensions object.
+def dimension(obj: AbstractDimension, /) -> AbstractDimension:
+    """Construct dimension from a dimension object.
 
     Examples
     --------
-    >>> from astropy import units as u
-    >>> from unxt.dims import dimensions
+    >>> import unxt as u
+    >>> import astropy.units as apyu
 
-    >>> length = u.get_physical_type("length")
+    >>> length = apyu.get_physical_type("length")
     >>> length
     PhysicalType('length')
 
-    >>> dimensions(length) is length
+    >>> u.dimension(length) is length
     True
 
     """
@@ -54,49 +54,49 @@ def dimensions(obj: AbstractDimensions, /) -> AbstractDimensions:
 
 
 @dispatch
-def dimensions(obj: str, /) -> AbstractDimensions:
-    """Construct dimensions from a string.
+def dimension(obj: str, /) -> AbstractDimension:
+    """Construct dimension from a string.
 
     Examples
     --------
-    >>> from unxt.dims import dimensions
-    >>> dimensions("length")
+    >>> from unxt.dims import dimension
+    >>> dimension("length")
     PhysicalType('length')
 
     """
-    return u.get_physical_type(obj)
+    return apyu.get_physical_type(obj)
 
 
 # ===================================================================
-# Get the dimensions
+# Get the dimension
 
 
 @dispatch.abstract
-def dimensions_of(obj: Any, /) -> AbstractDimensions:
-    """Return the dimensions of the given units.
+def dimension_of(obj: Any, /) -> AbstractDimension:
+    """Return the dimension of the given units.
 
     .. note::
 
         This function uses multiple dispatch. Dispatches made in other modules
         may not be included in the rendered docs. To see the full range of
-        options, execute ``unxt.dimensions_of.methods`` in an interactive Python
+        options, execute ``unxt.dimension_of.methods`` in an interactive Python
         session.
 
     """
 
 
 @dispatch
-def dimensions_of(obj: Any, /) -> None:
-    """Most objects have no dimensions.
+def dimension_of(obj: Any, /) -> None:
+    """Most objects have no dimension.
 
     Examples
     --------
-    >>> from unxt.dims import dimensions_of
+    >>> from unxt.dims import dimension_of
 
-    >>> print(dimensions_of(1))
+    >>> print(dimension_of(1))
     None
 
-    >>> print(dimensions_of("length"))
+    >>> print(dimension_of("length"))
     None
 
     """
@@ -104,15 +104,14 @@ def dimensions_of(obj: Any, /) -> None:
 
 
 @dispatch
-def dimensions_of(obj: AbstractDimensions, /) -> AbstractDimensions:
-    """Return the dimensions of the given units.
+def dimension_of(obj: AbstractDimension, /) -> AbstractDimension:
+    """Return the dimension of the given units.
 
     Examples
     --------
-    >>> from astropy import units as u
-    >>> from unxt.dims import dimensions, dimensions_of
+    >>> from unxt.dims import dimension, dimension_of
 
-    >>> dimensions_of(dimensions("length"))
+    >>> dimension_of(dimension("length"))
     PhysicalType('length')
 
     """

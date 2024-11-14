@@ -4,7 +4,7 @@ __all__: list[str] = []
 
 from typing import Any, TypeAlias
 
-import astropy.units as u
+import astropy.units as apyu
 from astropy.coordinates import Angle as AstropyAngle, Distance as AstropyDistance
 from astropy.units import Quantity as AstropyQuantity
 from jaxtyping import Array
@@ -34,10 +34,10 @@ def from_(
 
     Examples
     --------
-    >>> import astropy.units as u
-    >>> from unxt import Quantity
+    >>> import unxt as u
+    >>> import astropy.units as apyu
 
-    >>> Quantity.from_(u.Quantity(1, "m"))
+    >>> u.Quantity.from_(apyu.Quantity(1, "m"))
     Quantity['length'](Array(1., dtype=float32), unit='m')
 
     """
@@ -54,10 +54,10 @@ def from_(
 
     Examples
     --------
-    >>> import astropy.units as u
-    >>> from unxt import Quantity
+    >>> import unxt as u
+    >>> import astropy.units as apyu
 
-    >>> Quantity.from_(u.Quantity(1, "m"), "cm")
+    >>> u.Quantity.from_(apyu.Quantity(1, "m"), "cm")
     Quantity['length'](Array(100., dtype=float32), unit='cm')
 
     """
@@ -76,11 +76,11 @@ def convert_unxt_quantity_to_astropy_quantity(
 
     Examples
     --------
+    >>> import unxt as u
     >>> from astropy.units import Quantity as AstropyQuantity
     >>> from plum import convert
-    >>> from unxt import Quantity
 
-    >>> convert(Quantity(1.0, "cm"), AstropyQuantity)
+    >>> convert(u.Quantity(1.0, "cm"), AstropyQuantity)
     <Quantity 1. cm>
 
     """
@@ -95,11 +95,11 @@ def convert_unxt_quantity_to_astropy_distance(
 
     Examples
     --------
-    >>> from astropy.coordinates import Distance
+    >>> import unxt as u
+    >>> from astropy.coordinates import Distance as AstropyDistance
     >>> from plum import convert
-    >>> from unxt import Quantity
 
-    >>> convert(Quantity(1.0, "cm"), Distance)
+    >>> convert(u.Quantity(1.0, "cm"), AstropyDistance)
     <Distance 1. cm>
 
     """
@@ -108,15 +108,15 @@ def convert_unxt_quantity_to_astropy_distance(
 
 @conversion_method(type_from=AbstractQuantity, type_to=AstropyAngle)  # type: ignore[misc]
 def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAngle:
-    """Convert a `unxt.AbstractQuantity` to a `astropy.coordinates.Angle`.
+    """Convert a `unxt.quantity.AbstractQuantity` to a `astropy.coordinates.Angle`.
 
     Examples
     --------
-    >>> from astropy.coordinates import Angle
+    >>> import unxt as u
+    >>> from astropy.coordinates import Angle as AstropyAngle
     >>> from plum import convert
-    >>> from unxt import Quantity
 
-    >>> convert(Quantity(1.0, "radian"), Angle)
+    >>> convert(u.Quantity(1.0, "radian"), AstropyAngle)
     <Angle 1. rad>
 
     """
@@ -170,7 +170,9 @@ def convert_astropy_quantity_to_unxt_uncheckedquantity(
 ###############################################################################
 
 
-AstropyUnit: TypeAlias = u.UnitBase | u.Unit | u.FunctionUnitBase | u.StructuredUnit
+AstropyUnit: TypeAlias = (
+    apyu.UnitBase | apyu.Unit | apyu.FunctionUnitBase | apyu.StructuredUnit
+)
 
 
 if Version("7.0") <= OptDeps.ASTROPY.version:
@@ -186,7 +188,7 @@ else:
         # First see if it is just a scaling.
         try:
             scale = self._to(other)
-        except u.UnitsError:
+        except apyu.UnitsError:
             pass
         else:
             return scale * value
@@ -196,7 +198,7 @@ else:
             return self._apply_equivalencies(
                 self, other, self._normalize_equivalencies([])
             )(value)
-        except u.UnitsError as exc:
+        except apyu.UnitsError as exc:
             # Last hope: maybe other knows how to do it?
             # We assume the equivalencies have the unit itself as first item.
             # TODO: maybe better for other to have a `_back_converter` method?
@@ -219,16 +221,16 @@ def uconvert(unit: AstropyUnit, x: AbstractQuantity, /) -> AbstractQuantity:
 
     Examples
     --------
-    >>> import astropy.units as u
-    >>> from unxt import Quantity, units
+    >>> import astropy.units as apyu
+    >>> import unxt as u
 
-    >>> x = Quantity(1000, "m")
-    >>> uconvert(units("km"), x)
+    >>> x = u.Quantity(1000, "m")
+    >>> u.uconvert(u.unit("km"), x)
     Quantity['length'](Array(1., dtype=float32, ...), unit='km')
 
-    >>> x = Quantity([1, 2, 3], "Kelvin")
-    >>> with u.add_enabled_equivalencies(u.temperature()):
-    ...     y = x.to(u.deg_C)
+    >>> x = u.Quantity([1, 2, 3], "Kelvin")
+    >>> with apyu.add_enabled_equivalencies(apyu.temperature()):
+    ...     y = x.to("deg_C")
     >>> y
     Quantity['temperature'](Array([-272.15, -271.15, -270.15], dtype=float32), unit='deg_C')
 

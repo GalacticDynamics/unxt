@@ -7,7 +7,7 @@ from plum import conversion_method, dispatch
 from .base import AbstractQuantity
 from .core import Quantity
 from .fast import UncheckedQuantity
-from unxt._src.dimensions.core import AbstractDimensions
+from unxt._src.dimensions.core import AbstractDimension
 from unxt._src.units.core import AbstractUnits
 
 # ===================================================================
@@ -15,18 +15,18 @@ from unxt._src.units.core import AbstractUnits
 
 
 @dispatch  # type: ignore[misc]
-def dimensions_of(obj: AbstractQuantity, /) -> AbstractDimensions:
-    """Return the dimensions of a quantity.
+def dimension_of(obj: AbstractQuantity, /) -> AbstractDimension:
+    """Return the dimension of a quantity.
 
     Examples
     --------
-    >>> from unxt import dimensions_of, Quantity
+    >>> from unxt import dimension_of, Quantity
     >>> q = Quantity(1, "m")
-    >>> dimensions_of(q)
+    >>> dimension_of(q)
     PhysicalType('length')
 
     """
-    return dimensions_of(obj.unit)
+    return dimension_of(obj.unit)
 
 
 # ===================================================================
@@ -34,14 +34,14 @@ def dimensions_of(obj: AbstractQuantity, /) -> AbstractDimensions:
 
 
 @dispatch  # type: ignore[misc]
-def units_of(obj: AbstractQuantity, /) -> AbstractUnits:
+def unit_of(obj: AbstractQuantity, /) -> AbstractUnits:
     """Return the units of an object.
 
     Examples
     --------
-    >>> from unxt import units_of, Quantity
+    >>> from unxt import unit_of, Quantity
     >>> q = Quantity(1, "m")
-    >>> units_of(q)
+    >>> unit_of(q)
     Unit("m")
 
     """
@@ -60,6 +60,7 @@ def _quantity_to_unchecked(q: AbstractQuantity, /) -> UncheckedQuantity:
     --------
     >>> from plum import convert
     >>> from unxt.quantity import Quantity, UncheckedQuantity
+
     >>> q = Quantity(1, "m")
     >>> q
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
@@ -84,6 +85,7 @@ def _quantity_to_checked(q: AbstractQuantity, /) -> Quantity:
     --------
     >>> from plum import convert
     >>> from unxt.quantity import Quantity, UncheckedQuantity
+
     >>> q = UncheckedQuantity(1, "m")
     >>> q
     UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
