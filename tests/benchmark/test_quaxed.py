@@ -54,10 +54,7 @@ def process_pytest_argvalues(
             processed_argvalues.append(process_fn(func, args))
 
     # Process the argvalues and return the parameterization, with IDs
-    return {
-        "argvalues": processed_argvalues,
-        "ids": ids,
-    }
+    return {"argvalues": processed_argvalues, "ids": ids}
 
 
 funcs_and_args: list[tuple[Callable[..., Any], Unpack[tuple[Args, ...]]]] = [
@@ -127,8 +124,7 @@ funcs_and_args: list[tuple[Callable[..., Any], Unpack[tuple[Args, ...]]]] = [
 
 
 @pytest.mark.parametrize(
-    ("func", "args"),
-    **process_pytest_argvalues(process_func, funcs_and_args),
+    ("func", "args"), **process_pytest_argvalues(process_func, funcs_and_args)
 )
 @pytest.mark.benchmark(group="quaxed", max_time=1.0, warmup=False)
 def test_jit_compile(func, args):
@@ -137,8 +133,7 @@ def test_jit_compile(func, args):
 
 
 @pytest.mark.parametrize(
-    ("func", "args"),
-    **process_pytest_argvalues(process_func, funcs_and_args),
+    ("func", "args"), **process_pytest_argvalues(process_func, funcs_and_args)
 )
 @pytest.mark.benchmark(
     group="quaxed",

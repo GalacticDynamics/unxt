@@ -315,8 +315,10 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
 
         Length of an unsized array:
 
-        >>> try: len(Quantity(1, "m"))
-        ... except TypeError as e: print(e)
+        >>> try:
+        ...     len(Quantity(1, "m"))
+        ... except TypeError as e:
+        ...     print(e)
         len() of unsized object
 
         Length of a sized array:
@@ -511,8 +513,10 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         --------
         >>> from unxt import Quantity
         >>> q1 = Quantity(1, "m")
-        >>> try: hash(q1)
-        ... except TypeError as e: print(e)
+        >>> try:
+        ...     hash(q1)
+        ... except TypeError as e:
+        ...     print(e)
         unhashable type: ...
 
         """

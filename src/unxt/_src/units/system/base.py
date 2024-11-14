@@ -56,7 +56,7 @@ class AbstractUnitSystem:
     given in terms of ``kpc`` and ``Myr``, but velocities are often specified in
     ``km/s``:
 
-    >>> usys = unitsystem(u.kpc, u.Myr, u.Msun, u.radian, u.km/u.s)
+    >>> usys = unitsystem(u.kpc, u.Myr, u.Msun, u.radian, u.km / u.s)
     >>> usys["velocity"]
     Unit("km / s")
 

@@ -177,12 +177,16 @@ def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> y = UncheckedQuantity(1.0, "km")
 
-    >>> try: jnp.add(x, y)
-    ... except Exception as e: print(e)
+    >>> try:
+    ...     jnp.add(x, y)
+    ... except Exception as e:
+    ...     print(e)
     'km' (length) and '' (dimensionless) are not convertible
 
-    >>> try: x + y
-    ... except Exception as e: print(e)
+    >>> try:
+    ...     x + y
+    ... except Exception as e:
+    ...     print(e)
     'km' (length) and '' (dimensionless) are not convertible
 
     >>> y = UncheckedQuantity(100.0, "")
@@ -202,8 +206,10 @@ def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     >>> from unxt import Quantity
     >>> x = jnp.asarray(500.0)
     >>> q2 = Quantity(1.0, "km")
-    >>> try: x + q2
-    ... except Exception as e: print(e)
+    >>> try:
+    ...     x + q2
+    ... except Exception as e:
+    ...     print(e)
     'km' (length) and '' (dimensionless) are not convertible
 
     >>> q2 = Quantity(100.0, "")
@@ -238,12 +244,16 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1.0, "km")
 
-    >>> try: jnp.add(q1, y)
-    ... except Exception as e: print(e)
+    >>> try:
+    ...     jnp.add(q1, y)
+    ... except Exception as e:
+    ...     print(e)
     'km' (length) and '' (dimensionless) are not convertible
 
-    >>> try: q1 + y
-    ... except Exception as e: print(e)
+    >>> try:
+    ...     q1 + y
+    ... except Exception as e:
+    ...     print(e)
     'km' (length) and '' (dimensionless) are not convertible
 
     >>> q1 = UncheckedQuantity(100.0, "")
@@ -263,12 +273,16 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     >>> from unxt import Quantity
     >>> q1 = Quantity(1.0, "km")
 
-    >>> try: jnp.add(q1, y)
-    ... except Exception as e: print(e)
+    >>> try:
+    ...     jnp.add(q1, y)
+    ... except Exception as e:
+    ...     print(e)
     'km' (length) and '' (dimensionless) are not convertible
 
-    >>> try: q1 + y
-    ... except Exception as e: print(e)
+    >>> try:
+    ...     q1 + y
+    ... except Exception as e:
+    ...     print(e)
     'km' (length) and '' (dimensionless) are not convertible
 
     >>> q1 = Quantity(100.0, "")
@@ -951,9 +965,13 @@ def _concatenate_p_qnd(
     >>> import quaxed.numpy as jnp
     >>> from unxt import Quantity
     >>> theta = Quantity(45, "deg")
-    >>> Rz = jnp.asarray([[jnp.cos(theta), -jnp.sin(theta), 0],
-    ...                  [jnp.sin(theta), jnp.cos(theta),  0],
-    ...                  [0,             0,              1]])
+    >>> Rz = jnp.asarray(
+    ...     [
+    ...         [jnp.cos(theta), -jnp.sin(theta), 0],
+    ...         [jnp.sin(theta), jnp.cos(theta), 0],
+    ...         [0, 0, 1],
+    ...     ]
+    ... )
     >>> Rz
     Quantity[...](Array([[ 0.70710677, -0.70710677,  0.        ],
                          [ 0.70710677,  0.70710677,  0.        ],
@@ -986,9 +1004,13 @@ def _concatenate_p_vqnd(
     >>> import quaxed.numpy as jnp
     >>> from unxt import Quantity
     >>> theta = Quantity(45, "deg")
-    >>> Rx = jnp.asarray([[1.0, 0.0,           0.0           ],
-    ...                  [0.0, jnp.cos(theta), -jnp.sin(theta)],
-    ...                  [0.0, jnp.sin(theta), jnp.cos(theta) ]])
+    >>> Rx = jnp.asarray(
+    ...     [
+    ...         [1.0, 0.0, 0.0],
+    ...         [0.0, jnp.cos(theta), -jnp.sin(theta)],
+    ...         [0.0, jnp.sin(theta), jnp.cos(theta)],
+    ...     ]
+    ... )
     >>> Rx
     Quantity[...](Array([[ 1.        ,  0.        ,  0.        ],
                          [ 0.        ,  0.70710677, -0.70710677],
@@ -1208,8 +1230,7 @@ def _cumlogsumexp_p(
     """
     # TODO: double check units make sense here.
     return replace(
-        operand,
-        value=lax.cumlogsumexp(operand.value, axis=axis, reverse=reverse),
+        operand, value=lax.cumlogsumexp(operand.value, axis=axis, reverse=reverse)
     )
 
 
@@ -1475,9 +1496,13 @@ def _dot_general_jq(
     >>> from unxt import Quantity, UncheckedQuantity
 
     >>> theta = jnp.pi / 4  # 45 degrees
-    >>> Rz = jnp.asarray([[jnp.cos(theta), -jnp.sin(theta), 0],
-    ...                   [jnp.sin(theta), jnp.cos(theta),  0],
-    ...                   [0,              0,               1]])
+    >>> Rz = jnp.asarray(
+    ...     [
+    ...         [jnp.cos(theta), -jnp.sin(theta), 0],
+    ...         [jnp.sin(theta), jnp.cos(theta), 0],
+    ...         [0, 0, 1],
+    ...     ]
+    ... )
 
     >>> q = UncheckedQuantity([1, 0, 0], "m")
     >>> jnp.linalg.matmul(Rz, q)
@@ -1492,10 +1517,7 @@ def _dot_general_jq(
     Quantity['length'](Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
 
     """
-    return type_np(rhs)(
-        lax.dot_general_p.bind(lhs, rhs.value, **kwargs),
-        unit=rhs.unit,
-    )
+    return type_np(rhs)(lax.dot_general_p.bind(lhs, rhs.value, **kwargs), unit=rhs.unit)
 
 
 @register(lax.dot_general_p)
@@ -1529,9 +1551,7 @@ def _dot_general_qq(
 
     This rule is also used by `jnp.matmul` for quantities.
 
-    >>> Rz = jnp.asarray([[0, -1,  0],
-    ...                   [1,  0,  0],
-    ...                   [0,  0,  1]])
+    >>> Rz = jnp.asarray([[0, -1, 0], [1, 0, 0], [0, 0, 1]])
     >>> q = Quantity([1, 0, 0], "m")
     >>> Rz @ q
     Quantity['length'](Array([0, 1, 0], dtype=int32), unit='m')
@@ -1544,8 +1564,7 @@ def _dot_general_qq(
     """
     lhs, rhs = promote(lhs, rhs)
     return type_np(lhs)(
-        lax.dot_general_p.bind(lhs.value, rhs.value, **kwargs),
-        unit=lhs.unit * rhs.unit,
+        lax.dot_general_p.bind(lhs.value, rhs.value, **kwargs), unit=lhs.unit * rhs.unit
     )
 
 
@@ -1626,8 +1645,10 @@ def _eq_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     Array([False,  True, False], dtype=bool)
 
     >>> q = Quantity(2.0, "m")
-    >>> try: jnp.equal(x, q)
-    ... except Exception as e: print("can't compare")
+    >>> try:
+    ...     jnp.equal(x, q)
+    ... except Exception as e:
+    ...     print("can't compare")
     can't compare
 
     """
@@ -1653,13 +1674,15 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     >>> jnp.equal(q, y)
     Array([False,  True, False], dtype=bool)
 
-    >>> q = UncheckedQuantity([3., 2, 1], "")
+    >>> q = UncheckedQuantity([3.0, 2, 1], "")
     >>> jnp.equal(q, y)
     Array([False,  True, False], dtype=bool)
 
-    >>> q = UncheckedQuantity([3., 2, 1], "m")
-    >>> try: jnp.equal(q, y)
-    ... except Exception as e: print("can't compare")
+    >>> q = UncheckedQuantity([3.0, 2, 1], "m")
+    >>> try:
+    ...     jnp.equal(q, y)
+    ... except Exception as e:
+    ...     print("can't compare")
     can't compare
 
     >>> from unxt import Quantity
@@ -1667,13 +1690,15 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     >>> jnp.equal(q, y)
     Array([False,  True, False], dtype=bool)
 
-    >>> q = Quantity([3., 2, 1], "")
+    >>> q = Quantity([3.0, 2, 1], "")
     >>> jnp.equal(q, y)
     Array([False,  True, False], dtype=bool)
 
-    >>> q = Quantity([3., 2, 1], "m")
-    >>> try: jnp.equal(q, y)
-    ... except Exception as e: print("can't compare")
+    >>> q = Quantity([3.0, 2, 1], "m")
+    >>> try:
+    ...     jnp.equal(q, y)
+    ... except Exception as e:
+    ...     print("can't compare")
     can't compare
 
     Check against the special cases:
@@ -1881,10 +1906,7 @@ def _fft_p(x: AbstractQuantity, *, fft_type: Any, fft_lengths: Any) -> AbstractQ
 
     """
     # TODO: what units can this support?
-    return replace(
-        x,
-        value=lax.fft(ustrip(one, x), fft_type, fft_lengths),
-    )
+    return replace(x, value=lax.fft(ustrip(one, x), fft_type, fft_lengths))
 
 
 # ==============================================================================
@@ -1938,16 +1960,16 @@ def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     >>> import quaxed.numpy as jnp
 
     >>> from unxt import UncheckedQuantity
-    >>> q1 = UncheckedQuantity(1_001., "m")
-    >>> q2 = UncheckedQuantity(1., "km")
+    >>> q1 = UncheckedQuantity(1_001.0, "m")
+    >>> q2 = UncheckedQuantity(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
     Array(True, dtype=bool, ...)
     >>> q1 >= q2
     Array(True, dtype=bool, ...)
 
     >>> from unxt import Quantity
-    >>> q1 = Quantity(1_001., "m")
-    >>> q2 = Quantity(1., "km")
+    >>> q1 = Quantity(1_001.0, "m")
+    >>> q2 = Quantity(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
     Array(True, dtype=bool, ...)
     >>> q1 >= q2
@@ -1973,18 +1995,20 @@ def _ge_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     >>> x = jnp.asarray(1_001.0)
 
     >>> from unxt import UncheckedQuantity
-    >>> q2 = UncheckedQuantity(1., "")
+    >>> q2 = UncheckedQuantity(1.0, "")
     >>> jnp.greater_equal(x, q2)
     Array(True, dtype=bool, ...)
 
     >>> from unxt import Quantity
-    >>> q2 = Quantity(1., "")
+    >>> q2 = Quantity(1.0, "")
     >>> jnp.greater_equal(x, q2)
     Array(True, dtype=bool, ...)
 
-    >>> q2 = Quantity(1., "m")
-    >>> try: jnp.greater_equal(x, q2)
-    ... except Exception as e: print("can't compare")
+    >>> q2 = Quantity(1.0, "m")
+    >>> try:
+    ...     jnp.greater_equal(x, q2)
+    ... except Exception as e:
+    ...     print("can't compare")
     can't compare
 
     """
@@ -2007,18 +2031,20 @@ def _ge_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     >>> y = jnp.asarray(0.9)
 
     >>> from unxt import UncheckedQuantity
-    >>> q1 = UncheckedQuantity(1., "")
+    >>> q1 = UncheckedQuantity(1.0, "")
     >>> jnp.greater_equal(q1, y)
     Array(True, dtype=bool, ...)
 
     >>> from unxt import Quantity
-    >>> q1 = Quantity(1., "")
+    >>> q1 = Quantity(1.0, "")
     >>> jnp.greater_equal(q1, y)
     Array(True, dtype=bool, ...)
 
-    >>> q1 = Quantity(1., "m")
-    >>> try: jnp.greater_equal(q1, y)
-    ... except Exception as e: print("can't compare")
+    >>> q1 = Quantity(1.0, "m")
+    >>> try:
+    ...     jnp.greater_equal(q1, y)
+    ... except Exception as e:
+    ...     print("can't compare")
     can't compare
 
     """
@@ -2042,14 +2068,14 @@ def _gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     >>> import quaxed.numpy as jnp
 
     >>> from unxt import UncheckedQuantity
-    >>> q1 = UncheckedQuantity(1_001., "m")
-    >>> q2 = UncheckedQuantity(1., "km")
+    >>> q1 = UncheckedQuantity(1_001.0, "m")
+    >>> q2 = UncheckedQuantity(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
     Array(True, dtype=bool, ...)
 
     >>> from unxt import Quantity
-    >>> q1 = Quantity(1_001., "m")
-    >>> q2 = Quantity(1., "km")
+    >>> q1 = Quantity(1_001.0, "m")
+    >>> q2 = Quantity(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
     Array(True, dtype=bool, ...)
 
@@ -2073,18 +2099,20 @@ def _gt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     >>> x = jnp.asarray(1_001.0)
 
     >>> from unxt import UncheckedQuantity
-    >>> q2 = UncheckedQuantity(1., "")
+    >>> q2 = UncheckedQuantity(1.0, "")
     >>> jnp.greater_equal(x, q2)
     Array(True, dtype=bool, ...)
 
     >>> from unxt import Quantity
-    >>> q2 = Quantity(1., "")
+    >>> q2 = Quantity(1.0, "")
     >>> jnp.greater_equal(x, q2)
     Array(True, dtype=bool, ...)
 
-    >>> q2 = Quantity(1., "m")
-    >>> try: jnp.greater_equal(x, q2)
-    ... except Exception as e: print("can't compare")
+    >>> q2 = Quantity(1.0, "m")
+    >>> try:
+    ...     jnp.greater_equal(x, q2)
+    ... except Exception as e:
+    ...     print("can't compare")
     can't compare
 
     """
@@ -2107,18 +2135,20 @@ def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> y = jnp.asarray(0.9)
 
     >>> from unxt import UncheckedQuantity
-    >>> q1 = UncheckedQuantity(1., "")
+    >>> q1 = UncheckedQuantity(1.0, "")
     >>> jnp.greater_equal(q1, y)
     Array(True, dtype=bool, ...)
 
     >>> from unxt import Quantity
-    >>> q1 = Quantity(1., "")
+    >>> q1 = Quantity(1.0, "")
     >>> jnp.greater_equal(q1, y)
     Array(True, dtype=bool, ...)
 
-    >>> q1 = Quantity(1., "m")
-    >>> try: jnp.greater_equal(q1, y)
-    ... except Exception as e: print("can't compare")
+    >>> q1 = Quantity(1.0, "m")
+    >>> try:
+    ...     jnp.greater_equal(q1, y)
+    ... except Exception as e:
+    ...     print("can't compare")
     can't compare
 
     """
@@ -2176,12 +2206,12 @@ def _integer_pow_p(x: AbstractQuantity, *, y: Any) -> AbstractQuantity:
     --------
     >>> from unxt import UncheckedQuantity
     >>> q = UncheckedQuantity(2, "m")
-    >>> q ** 3
+    >>> q**3
     UncheckedQuantity(Array(8, dtype=int32, ...), unit='m3')
 
     >>> from unxt import Quantity
     >>> q = Quantity(2, "m")
-    >>> q ** 3
+    >>> q**3
     Quantity['volume'](Array(8, dtype=int32, ...), unit='m3')
 
     """
@@ -2203,7 +2233,7 @@ def _is_finite_p(x: AbstractQuantity) -> ArrayLike:
     >>> q = UncheckedQuantity(1, "m")
     >>> jnp.isfinite(q)
     array(True)
-    >>> q = UncheckedQuantity(float('inf'), "m")
+    >>> q = UncheckedQuantity(float("inf"), "m")
     >>> jnp.isfinite(q)
     Array(False, dtype=bool, ...)
 
@@ -2211,7 +2241,7 @@ def _is_finite_p(x: AbstractQuantity) -> ArrayLike:
     >>> q = Quantity(1, "m")
     >>> jnp.isfinite(q)
     array(True)
-    >>> q = Quantity(float('inf'), "m")
+    >>> q = Quantity(float("inf"), "m")
     >>> jnp.isfinite(q)
     Array(False, dtype=bool, ...)
 
@@ -2231,14 +2261,14 @@ def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
     >>> import quaxed.numpy as jnp
 
     >>> from unxt import UncheckedQuantity
-    >>> q1 = UncheckedQuantity(1_001., "m")
-    >>> q2 = UncheckedQuantity(1., "km")
+    >>> q1 = UncheckedQuantity(1_001.0, "m")
+    >>> q2 = UncheckedQuantity(1.0, "km")
     >>> jnp.less_equal(q1, q2)
     Array(False, dtype=bool, ...)
 
     >>> from unxt import Quantity
-    >>> q1 = Quantity(1_001., "m")
-    >>> q2 = Quantity(1., "km")
+    >>> q1 = Quantity(1_001.0, "m")
+    >>> q2 = Quantity(1.0, "km")
     >>> jnp.less_equal(q1, q2)
     Array(False, dtype=bool, ...)
 
@@ -2262,18 +2292,20 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     >>> x1 = jnp.asarray(1.001)
 
     >>> from unxt import UncheckedQuantity
-    >>> q2 = UncheckedQuantity(1., "")
+    >>> q2 = UncheckedQuantity(1.0, "")
     >>> jnp.less_equal(x1, q2)
     Array(False, dtype=bool, ...)
 
     >>> from unxt import Quantity
-    >>> q2 = Quantity(1., "")
+    >>> q2 = Quantity(1.0, "")
     >>> jnp.less_equal(x1, q2)
     Array(False, dtype=bool, ...)
 
-    >>> q2 = Quantity(1., "m")
-    >>> try: jnp.less_equal(x1, q2)
-    ... except Exception as e: print("can't compare")
+    >>> q2 = Quantity(1.0, "m")
+    >>> try:
+    ...     jnp.less_equal(x1, q2)
+    ... except Exception as e:
+    ...     print("can't compare")
     can't compare
 
     """
@@ -2296,18 +2328,20 @@ def _le_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     >>> y1 = jnp.asarray(0.9)
 
     >>> from unxt import UncheckedQuantity
-    >>> q1 = UncheckedQuantity(1., "")
+    >>> q1 = UncheckedQuantity(1.0, "")
     >>> jnp.less_equal(q1, y1)
     Array(False, dtype=bool, ...)
 
     >>> from unxt import Quantity
-    >>> q1 = Quantity(1., "")
+    >>> q1 = Quantity(1.0, "")
     >>> jnp.less_equal(q1, y1)
     Array(False, dtype=bool, ...)
 
-    >>> q1 = Quantity(1., "m")
-    >>> try: jnp.less_equal(q1, y1)
-    ... except Exception as e: print("can't compare")
+    >>> q1 = Quantity(1.0, "m")
+    >>> try:
+    ...     jnp.less_equal(q1, y1)
+    ... except Exception as e:
+    ...     print("can't compare")
     can't compare
 
     """
@@ -2384,15 +2418,15 @@ def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
 
     >>> from unxt import UncheckedQuantity
 
-    >>> x = UncheckedQuantity(1., "km")
-    >>> y = UncheckedQuantity(2000., "m")
+    >>> x = UncheckedQuantity(1.0, "km")
+    >>> y = UncheckedQuantity(2000.0, "m")
     >>> x < y
     Array(True, dtype=bool, ...)
 
     >>> jnp.less(x, y)
     Array(True, dtype=bool, ...)
 
-    >>> x = UncheckedQuantity([1., 2, 3], "km")
+    >>> x = UncheckedQuantity([1.0, 2, 3], "km")
     >>> x < y
     Array([ True, False, False], dtype=bool)
 
@@ -2403,15 +2437,15 @@ def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
 
     >>> from unxt import Quantity
 
-    >>> x = Quantity(1., "km")
-    >>> y = Quantity(2000., "m")
+    >>> x = Quantity(1.0, "km")
+    >>> y = Quantity(2000.0, "m")
     >>> x < y
     Array(True, dtype=bool, ...)
 
     >>> jnp.less(x, y)
     Array(True, dtype=bool, ...)
 
-    >>> x = Quantity([1., 2, 3], "km")
+    >>> x = Quantity([1.0, 2, 3], "km")
     >>> x < y
     Array([ True, False, False], dtype=bool)
 
@@ -2439,8 +2473,8 @@ def _lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
 
     >>> from unxt import UncheckedQuantity
 
-    >>> x = jnp.asarray([1.])
-    >>> y = UncheckedQuantity(2., "")
+    >>> x = jnp.asarray([1.0])
+    >>> y = UncheckedQuantity(2.0, "")
 
     Note that `JAX` does support passing the comparison to
     a different class.
@@ -2453,7 +2487,7 @@ def _lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     >>> jnp.less(x, y)
     Array([ True], dtype=bool)
 
-    >>> x = jnp.asarray([1., 2, 3])
+    >>> x = jnp.asarray([1.0, 2, 3])
     >>> jnp.less(x, y)
     Array([ True, False, False], dtype=bool)
 
@@ -2461,17 +2495,19 @@ def _lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
 
     >>> from unxt import Quantity
 
-    >>> y = Quantity(2., "")
+    >>> y = Quantity(2.0, "")
     >>> jnp.less(x, y)
     Array([ True, False, False], dtype=bool)
 
-    >>> x = jnp.asarray([1., 2, 3])
+    >>> x = jnp.asarray([1.0, 2, 3])
     >>> jnp.less(x, y)
     Array([ True, False, False], dtype=bool)
 
-    >>> y = Quantity(2., "m")
-    >>> try: jnp.less(x, y)
-    ... except Exception as e: print("can't compare")
+    >>> y = Quantity(2.0, "m")
+    >>> try:
+    ...     jnp.less(x, y)
+    ... except Exception as e:
+    ...     print("can't compare")
     can't compare
 
     """
@@ -2530,8 +2566,10 @@ def _lt_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     Array([ True, False, False], dtype=bool)
 
     >>> x = Quantity([1, 2], "m")
-    >>> try: jnp.less(x, y)
-    ... except Exception as e: print("can't compare")
+    >>> try:
+    ...     jnp.less(x, y)
+    ... except Exception as e:
+    ...     print("can't compare")
     can't compare
 
     """
@@ -2580,7 +2618,7 @@ def _max_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     >>> import quaxed.numpy as jnp
 
     >>> from unxt import UncheckedQuantity
-    >>> x = jnp.array([1.])
+    >>> x = jnp.array([1.0])
     >>> q2 = UncheckedQuantity(2, "")
     >>> jnp.maximum(x, q2)
     UncheckedQuantity(Array([2.], dtype=float32), unit='')
@@ -2605,7 +2643,7 @@ def _max_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
     >>> from unxt import UncheckedQuantity
     >>> q1 = UncheckedQuantity(2, "")
-    >>> y = jnp.array([1.])
+    >>> y = jnp.array([1.0])
     >>> jnp.maximum(q1, y)
     UncheckedQuantity(Array([2.], dtype=float32), unit='')
 
