@@ -39,7 +39,7 @@
     "quaxed>=0.6.4",
     "xmmutablemap>=0.1",
     "zeroth>=1.0.0",
-]
+  ]
   # NOTE: zeroth is only required for matplotlib
 
   [project.optional-dependencies]
@@ -93,13 +93,7 @@ test-all = [{include-group = "test"}, {include-group = "test-mpl"}]
 
 [tool.hatch]
   build.hooks.vcs.version-file     = "src/unxt/_version.py"
-  metadata.allow-direct-references = true
   version.source                   = "vcs"
-
-
-  [tool.hatch.env.default]
-    features     = ["test"]
-    scripts.test = "pytest {args}"
 
 
 [tool.pytest.ini_options]
@@ -127,6 +121,7 @@ test-all = [{include-group = "test"}, {include-group = "test-mpl"}]
 [tool.coverage]
   report.exclude_also = ['\.\.\.', 'if typing.TYPE_CHECKING:']
   run.source          = ["unxt"]
+  run.branch          = true
 
 [tool.mypy]
   disallow_incomplete_defs = false

@@ -35,6 +35,7 @@ class DimensionlessUnitSystem(SingletonMixin, AbstractUnitSystem):
 
     """
 
+    #: The dimensionless unit.
     dimensionless: Annotated[Unit, ud.dimensionless] = dimensionless_unscaled
 
     def __repr__(self) -> str:
@@ -50,9 +51,16 @@ class DimensionlessUnitSystem(SingletonMixin, AbstractUnitSystem):
 class LTMAUnitSystem(AbstractUnitSystem):
     """Length, time, mass, angle unit system."""
 
+    #: Units for the length dimension.
     length: Annotated[Unit, ud.length]
+
+    #: Units for the time dimension.
     time: Annotated[Unit, ud.time]
+
+    #: Units for the mass dimension.
     mass: Annotated[Unit, ud.mass]
+
+    #: Units for the angle 'dimension'.
     angle: Annotated[Unit, ud.angle]
 
     def __repr__(self) -> str:
@@ -88,14 +96,29 @@ class SIUnitSystem(SingletonMixin, AbstractUnitSystem):
     """
 
     # Base SI dimensions
+    #: Units for the length dimension.
     length: Annotated[Unit, ud.length]
+
+    #: Units for the mass dimension.
     mass: Annotated[Unit, ud.mass]
+
+    #: Units for the time dimension.
     time: Annotated[Unit, ud.time]
+
+    #: Units for the amount of substance dimension.
     amount: Annotated[Unit, ud.amount]
+
+    #: Units for the electric current dimension.
     electric_current: Annotated[Unit, ud.current]
+
+    #: Units for the temperature dimension.
     temperature: Annotated[Unit, ud.temperature]
+
+    #: Units for the luminous intensity dimension.
     luminous_intensity: Annotated[Unit, ud.luminous_intensity]
+
     # + angles
+    #: Units for the angle 'dimension'.
     angle: Annotated[Unit, ud.angle]
 
     def __repr__(self) -> str:
@@ -132,15 +155,32 @@ class CGSUnitSystem(SingletonMixin, AbstractUnitSystem):
     """
 
     # Base CGS dimensions
+    #: Units for the length dimension.
     length: Annotated[Unit, ud.length]
+
+    #: Units for the mass dimension.
     mass: Annotated[Unit, ud.mass]
+
+    #: Units for the time dimension.
     time: Annotated[Unit, ud.time]
+
+    #: Units for the force dimension.
     force: Annotated[Unit, ud.force]
+
+    #: Units for the energy dimension.
     energy: Annotated[Unit, ud.energy]
+
+    #: Units for the pressure dimension.
     pressure: Annotated[Unit, ud.pressure]
+
+    #: Units for the dynamic viscosity dimension.
     dynamic_viscosity: Annotated[Unit, ud.dynamic_viscosity]
+
+    #: Units for the kinematic viscosity dimension.
     kinematic_viscosity: Annotated[Unit, ud.kinematic_viscosity]
+
     # + angles
+    #: Units for the angle 'dimension'.
     angle: Annotated[Unit, ud.angle]
 
     def __repr__(self) -> str:
