@@ -94,7 +94,8 @@ def docs(session: nox.Session) -> None:
     extra_installs = ["sphinx-autobuild"] if args.serve else []
     offline_command = ["--offline"] if args.offline else []
 
-    session.install("-e .[docs]", *extra_installs, *offline_command)
+    session.install(".[docs]")
+    session.install("-e .", *extra_installs, *offline_command)
     session.chdir("docs")
 
     if args.builder == "linkcheck":
