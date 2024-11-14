@@ -37,7 +37,7 @@ solarsystem = LTMAUnitSystem(
     length=units("au"), time=units("yr"), mass=units("Msun"), angle=units("radian")
 )
 
-# International System of Units default
+#: International System of Units
 si = SIUnitSystem(
     length=units("meter"),
     time=units("second"),
@@ -49,7 +49,7 @@ si = SIUnitSystem(
     angle=units("radian"),
 )
 
-# Centimeter, gram, second
+#: Centimeter, gram, second unit system
 cgs = CGSUnitSystem(
     length=units("centimeter"),
     time=units("second"),
@@ -63,6 +63,7 @@ cgs = CGSUnitSystem(
 )
 
 
+#: Named unit systems
 NAMED_UNIT_SYSTEMS: dict[str, AbstractUnitSystem] = {
     "galactic": galactic,
     "solarsystem": solarsystem,
