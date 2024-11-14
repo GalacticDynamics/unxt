@@ -19,7 +19,7 @@ from dataclassish import field_items, fields
 from .base import AbstractQuantity
 from unxt._src.dimensions.core import dimensions, dimensions_of
 from unxt._src.typing_ext import Unit as UnitTypes
-from unxt._src.units.core import units
+from unxt._src.units.core import unit as parse_unit
 
 
 @parametric
@@ -33,7 +33,7 @@ class AbstractParametricQuantity(AbstractQuantity):
     value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
     """The value of the `AbstractQuantity`."""
 
-    unit: Unit = eqx.field(static=True, converter=units)
+    unit: Unit = eqx.field(static=True, converter=parse_unit)
     """The unit associated with this value."""
 
     def __post_init__(self) -> None:
@@ -65,7 +65,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         try:
             dims_ = dimensions(dims)
         except ValueError:
-            dims_ = dimensions_of(units(dims))
+            dims_ = dimensions_of(parse_unit(dims))
         return (dims_,)
 
     @classmethod  # type: ignore[no-redef]
@@ -82,7 +82,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         cls, value: ArrayLike | Sequence[Any], unit: Any, **kwargs: Any
     ) -> tuple[Dimensions]:
         """Infer the type parameter from the arguments."""
-        return (dimensions_of(units(unit)),)
+        return (dimensions_of(parse_unit(unit)),)
 
     @classmethod
     @dispatch  # type: ignore[misc]

@@ -20,7 +20,7 @@ from .flags import AbstractUSysFlag, DynamicalSimUSysFlag, StandardUSysFlag
 from .realizations import NAMED_UNIT_SYSTEMS, dimensionless
 from .utils import get_dimension_name
 from unxt._src.dimensions.core import dimensions_of
-from unxt._src.units.core import units
+from unxt._src.units.core import unit
 
 # ===================================================================
 # `unitsystem` function
@@ -45,24 +45,24 @@ def unitsystem(usys: AbstractUnitSystem, /) -> AbstractUnitSystem:
 
 
 @dispatch  # type: ignore[no-redef]
-def unitsystem(units_: Sequence[Any], /) -> AbstractUnitSystem:
+def unitsystem(seq: Sequence[Any], /) -> AbstractUnitSystem:
     """Convert a UnitSystem or tuple of arguments to a UnitSystem.
 
     Examples
     --------
-    >>> from unxt.unitsystems import unitsystem
+    >>> import unxt as u
 
-    >>> unitsystem(())
+    >>> u.unitsystem(())
     DimensionlessUnitSystem()
 
-    >>> unitsystem(("kpc", "Myr", "Msun", "radian"))
+    >>> u.unitsystem(("kpc", "Myr", "Msun", "radian"))
     unitsystem(kpc, Myr, solMass, rad)
 
-    >>> unitsystem(["kpc", "Myr", "Msun", "radian"])
+    >>> u.unitsystem(["kpc", "Myr", "Msun", "radian"])
     unitsystem(kpc, Myr, solMass, rad)
 
     """
-    return unitsystem(*units_) if len(units_) > 0 else dimensionless
+    return unitsystem(*seq) if len(seq) > 0 else dimensionless
 
 
 @dispatch  # type: ignore[no-redef]
@@ -80,7 +80,7 @@ def unitsystem(_: None, /) -> DimensionlessUnitSystem:
 
 
 @dispatch  # type: ignore[no-redef]
-def unitsystem(*units_: Any) -> AbstractUnitSystem:
+def unitsystem(*args: Any) -> AbstractUnitSystem:
     """Convert a set of arguments to a UnitSystem.
 
     Examples
@@ -92,10 +92,10 @@ def unitsystem(*units_: Any) -> AbstractUnitSystem:
 
     """
     # Convert everything to a unit
-    units_ = tuple(map(units, units_))
+    args = tuple(map(unit, args))
 
     # Check that the units all have different dimensions
-    dimensions = tuple(map(dimensions_of, units_))
+    dimensions = tuple(map(dimensions_of, args))
     dimensions = eqx.error_if(
         dimensions,
         len(set(dimensions)) < len(dimensions),
@@ -104,11 +104,11 @@ def unitsystem(*units_: Any) -> AbstractUnitSystem:
 
     # Return if the unit system is already registered
     if dimensions in UNITSYSTEMS_REGISTRY:
-        return UNITSYSTEMS_REGISTRY[dimensions](*units_)
+        return UNITSYSTEMS_REGISTRY[dimensions](*args)
 
     # Otherwise, create a new unit system
     # dimension names of all the units
-    du = {get_dimension_name(x).replace(" ", "_"): dimensions_of(x) for x in units_}
+    du = {get_dimension_name(x).replace(" ", "_"): dimensions_of(x) for x in args}
     # name: physical types
     cls_name = "".join(k.title().replace("_", "") for k in du) + "UnitSystem"
     # fields: name, unit
@@ -138,7 +138,7 @@ def unitsystem(*units_: Any) -> AbstractUnitSystem:
     )
 
     # Make the dataclass instance
-    return unitsystem_cls(*units_)
+    return unitsystem_cls(*args)
 
 
 @dispatch  # type: ignore[no-redef]
@@ -162,7 +162,7 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
 
 
 @dispatch  # type: ignore[no-redef]
-def unitsystem(usys: AbstractUnitSystem, *units_: Any) -> AbstractUnitSystem:
+def unitsystem(usys: AbstractUnitSystem, *args: Any) -> AbstractUnitSystem:
     """Create a unit system from an existing unit system and additional units.
 
     Examples
@@ -183,17 +183,15 @@ def unitsystem(usys: AbstractUnitSystem, *units_: Any) -> AbstractUnitSystem:
     """  # noqa: E501
     # TODO: not need this hack for single-string inputs
     # TODO: process new units without making a whole unit system
-    if len(units_) == 1 and isinstance(units_[0], str):
-        new_usys = unitsystem(units(units_[0]))
+    if len(args) == 1 and isinstance(args[0], str):
+        new_usys = unitsystem(unit(args[0]))
     else:
-        new_usys = unitsystem(*units_)
+        new_usys = unitsystem(*args)
 
     current_units = [
-        unit
-        for unit in usys.base_units
-        if unit.physical_type not in new_usys.base_dimensions
+        u for u in usys.base_units if u.physical_type not in new_usys.base_dimensions
     ]
-    return unitsystem(*current_units, *units_)
+    return unitsystem(*current_units, *args)
 
 
 @dispatch  # type: ignore[no-redef]
@@ -204,7 +202,7 @@ def unitsystem(flag: type[AbstractUSysFlag], *_: Any) -> AbstractUnitSystem:
 
 
 @dispatch  # type: ignore[no-redef]
-def unitsystem(flag: type[StandardUSysFlag], *units_: Any) -> AbstractUnitSystem:
+def unitsystem(flag: type[StandardUSysFlag], *args: Any) -> AbstractUnitSystem:
     """Create a standard unit system using the inputted units.
 
     Examples
@@ -214,13 +212,13 @@ def unitsystem(flag: type[StandardUSysFlag], *units_: Any) -> AbstractUnitSystem
     LengthTimeMassUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"))
 
     """
-    return unitsystem(*units_)
+    return unitsystem(*args)
 
 
 @dispatch  # type: ignore[no-redef]
 def unitsystem(
     flag: type[DynamicalSimUSysFlag],
-    *units_: Any,
+    *args: Any,
     G: float | int = 1.0,  # noqa: N803
 ) -> AbstractUnitSystem:
     """Make a dynamical unit system.
@@ -233,7 +231,7 @@ def unitsystem(
     LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("kg"), time=Unit("122404 s"))
 
     """
-    tmp = unitsystem(*units_)
+    tmp = unitsystem(*args)
 
     # Use G for computing the missing units below:
     G = G * const_G

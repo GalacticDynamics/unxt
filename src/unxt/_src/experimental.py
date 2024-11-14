@@ -34,14 +34,14 @@ from plum.parametric import type_unparametrized
 from .quantity.core import Quantity
 from .typing_ext import Unit
 from unxt._src.quantity.api import ustrip
-from unxt._src.units.core import units as _units
+from unxt._src.units.core import unit
 
 P = ParamSpec("P")
 R = TypeVar("R", bound=Quantity)
 
 
-def parse_units(obj: Any) -> Unit | None:
-    return obj if obj is None else _units(obj)
+def unit_or_none(obj: Any) -> Unit | None:
+    return obj if obj is None else unit(obj)
 
 
 def grad(
@@ -74,14 +74,14 @@ def grad(
     Quantity['area'](Array(12., dtype=float32, weak_type=True), unit='m2')
 
     """
-    units_: tuple[Unit | None, ...] = tuple(map(parse_units, units))
+    theunits: tuple[Unit | None, ...] = tuple(map(unit_or_none, units))
 
     # Gradient of function, stripping and adding units
     @partial(jax.grad, argnums=argnums)
     def gradfun_mag(*args: P.args) -> ArrayLike:
         args_ = (
             (a if unit is None else Quantity(a, unit))
-            for a, unit in zip(args, units_, strict=True)
+            for a, unit in zip(args, theunits, strict=True)
         )
         return fun(*args_).value  # type: ignore[call-arg]
 
@@ -90,14 +90,14 @@ def grad(
         # inside the function we are taking the grad of.
         args_ = tuple(
             (a if unit is None else ustrip(unit, a))
-            for a, unit in zip(args, units_, strict=True)
+            for a, unit in zip(args, theunits, strict=True)
         )
         # Call the grad, returning a Quantity
         value = fun(*args)  # type: ignore[call-arg]
         grad_value = gradfun_mag(*args_)
         # Adjust the Quantity by the units of the derivative
         # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
-        return type_unparametrized(value)(grad_value, value.unit / units_[argnums])
+        return type_unparametrized(value)(grad_value, value.unit / theunits[argnums])
 
     return gradfun
 
@@ -138,13 +138,13 @@ def jacfwd(
         "only int argnums are currently supported",
     )
 
-    units_: tuple[Unit | None, ...] = tuple(map(parse_units, units))
+    theunits: tuple[Unit | None, ...] = tuple(map(unit_or_none, units))
 
     @partial(jax.jacfwd, argnums=argnums)
     def jacfun_mag(*args: P.args) -> R:
         args_ = (
             (a if unit is None else Quantity(a, unit))
-            for a, unit in zip(args, units_, strict=True)
+            for a, unit in zip(args, theunits, strict=True)
         )
         return fun(*args_)  # type: ignore[call-arg]
 
@@ -153,14 +153,14 @@ def jacfwd(
         # inside the function we are taking the Jacobian of.
         args_ = tuple(
             (a if unit is None else ustrip(unit, a))
-            for a, unit in zip(args, units_, strict=True)
+            for a, unit in zip(args, theunits, strict=True)
         )
         # Call the Jacobian, returning a Quantity
         value = jacfun_mag(*args_)
         # Adjust the Quantity by the units of the derivative
         # TODO: check the unit correction
         # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
-        return type_unparametrized(value)(value.value, value.unit / units_[argnums])
+        return type_unparametrized(value)(value.value, value.unit / theunits[argnums])
 
     return jacfun
 
@@ -195,13 +195,13 @@ def hessian(
     Quantity['length'](Array(12., dtype=float32, weak_type=True), unit='m')
 
     """
-    units_: tuple[Unit, ...] = tuple(map(parse_units, units))
+    theunits: tuple[Unit, ...] = tuple(map(unit_or_none, units))
 
     @partial(jax.hessian)
     def hessfun_mag(*args: P.args) -> R:
         args_ = (
             (a if unit is None else Quantity(a, unit))
-            for a, unit in zip(args, units_, strict=True)
+            for a, unit in zip(args, theunits, strict=True)
         )
         return fun(*args_)  # type: ignore[call-arg]
 
@@ -218,7 +218,7 @@ def hessian(
         # TODO: check the unit correction
         # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
         return type_unparametrized(value)(
-            value.value, value.unit / units_[argnums] ** 2
+            value.value, value.unit / theunits[argnums] ** 2
         )
 
     return hessfun

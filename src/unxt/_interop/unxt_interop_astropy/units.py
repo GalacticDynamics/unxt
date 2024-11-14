@@ -14,14 +14,14 @@ AstropyUnits: TypeAlias = u.UnitBase
 
 
 @dispatch
-def units(obj: u.UnitBase | u.Unit, /) -> AstropyUnits:
+def unit(obj: u.UnitBase | u.Unit, /) -> AstropyUnits:
     """Construct the units from an Astropy unit.
 
     Examples
     --------
-    >>> import astropy.units as u
-    >>> from unxt import units
-    >>> units(u.km)
+    >>> import astropy.units as apyu
+    >>> import unxt as u
+    >>> u.unit(apyu.km)
     Unit("km")
 
     """
@@ -29,14 +29,14 @@ def units(obj: u.UnitBase | u.Unit, /) -> AstropyUnits:
 
 
 @dispatch
-def units(obj: u.Quantity, /) -> AstropyUnits:
+def unit(obj: u.Quantity, /) -> AstropyUnits:
     """Construct the units from an Astropy quantity.
 
     Examples
     --------
-    >>> import astropy.units as u
-    >>> from unxt import units
-    >>> units(u.Quantity(2, "km"))
+    >>> import astropy.units as apyu
+    >>> import unxt as u
+    >>> u.unit(apyu.Quantity(2, "km"))
     Unit("2 km")
 
     """
@@ -52,10 +52,10 @@ def unit_of(obj: u.UnitBase | u.Unit, /) -> AstropyUnits:
 
     Examples
     --------
-    >>> import astropy.units as u
-    >>> from unxt import unit_of
+    >>> import astropy.units as apyu
+    >>> import unxt as u
 
-    >>> unit_of(u.km)
+    >>> u.unit_of(apyu.km)
     Unit("km")
 
     """
@@ -68,10 +68,10 @@ def unit_of(obj: u.Quantity, /) -> AstropyUnits:
 
     Examples
     --------
-    >>> import astropy.units as u
-    >>> from unxt import unit_of
+    >>> import astropy.units as apyu
+    >>> import unxt as u
 
-    >>> unit_of(u.Quantity(1, "km"))
+    >>> u.unit_of(apyu.Quantity(1, "km"))
     Unit("km")
 
     """

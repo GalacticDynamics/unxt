@@ -10,7 +10,7 @@ import astropy.units as u
 import numpy as np
 import pytest
 
-from unxt import dimensions, units, unitsystems
+from unxt import dimensions, unit, unitsystems
 from unxt._src.units.system.base import _UNITSYSTEMS_REGISTRY
 from unxt.unitsystems import (
     AbstractUnitSystem,
@@ -192,11 +192,11 @@ def test_extend():
     """Test adding additional units to a unit system."""
     usys1 = unitsystem("kpc", "Myr", "radian", "Msun", "km / s")
     usys2 = unitsystem(usys1, "mas / yr")
-    assert usys2["angular speed"] == units("mas / yr")
+    assert usys2["angular speed"] == unit("mas / yr")
 
     usys3 = unitsystem(usys1, "mas / yr", "pc")
-    assert usys3["angular speed"] == units("mas / yr")
-    assert usys3["length"] == units("pc")  # overridden
+    assert usys3["angular speed"] == unit("mas / yr")
+    assert usys3["length"] == unit("pc")  # overridden
 
 
 def test_abstract_usys_flag():

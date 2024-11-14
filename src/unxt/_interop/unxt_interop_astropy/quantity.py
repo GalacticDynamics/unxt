@@ -219,16 +219,16 @@ def uconvert(unit: AstropyUnit, x: AbstractQuantity, /) -> AbstractQuantity:
 
     Examples
     --------
-    >>> import astropy.units as u
-    >>> from unxt import Quantity, units
+    >>> import astropy.units as apyu
+    >>> import unxt as u
 
-    >>> x = Quantity(1000, "m")
-    >>> uconvert(units("km"), x)
+    >>> x = u.Quantity(1000, "m")
+    >>> u.uconvert(u.unit("km"), x)
     Quantity['length'](Array(1., dtype=float32, ...), unit='km')
 
-    >>> x = Quantity([1, 2, 3], "Kelvin")
-    >>> with u.add_enabled_equivalencies(u.temperature()):
-    ...     y = x.to(u.deg_C)
+    >>> x = u.Quantity([1, 2, 3], "Kelvin")
+    >>> with apyu.add_enabled_equivalencies(apyu.temperature()):
+    ...     y = x.to("deg_C")
     >>> y
     Quantity['temperature'](Array([-272.15, -271.15, -270.15], dtype=float32), unit='deg_C')
 

@@ -16,7 +16,7 @@ from is_annotated import isannotated
 from .utils import get_dimension_name
 from unxt._src.dimensions.core import dimensions
 from unxt._src.typing_ext import Unit as UnitT
-from unxt._src.units.core import units
+from unxt._src.units.core import unit
 
 Unit = u.UnitBase
 
@@ -138,19 +138,19 @@ class AbstractUnitSystem:
         if key in self.base_dimensions:
             return getattr(self, get_dimension_name(key))
 
-        unit = None
+        out = None
         for k, v in _physical_unit_mapping.items():
             if v == key:
-                unit = units(" ".join([f"{x}**{y}" for x, y in k]))
+                out = unit(" ".join([f"{x}**{y}" for x, y in k]))
                 break
         # IDK if it's possible to get here
         else:
             msg = f"Physical type {key!r} doesn't exist in unit registry."  # pragma: no cover  # noqa: E501
             raise ValueError(msg)  # pragma: no cover
 
-        unit = unit.decompose(self.base_units)
-        unit._scale = 1.0  # noqa: SLF001
-        return unit
+        out = out.decompose(self.base_units)
+        out._scale = 1.0  # noqa: SLF001
+        return out
 
     def __len__(self) -> int:
         """Return the number of base units in the system.

@@ -4,7 +4,7 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
 __all__ = [
-    "units",
+    "unit",
     "unit_of",
     "Unit",  # legacy
 ]
@@ -22,15 +22,15 @@ AbstractUnits: TypeAlias = u.UnitBase | Unit
 
 
 @dispatch
-def units(obj: AbstractUnits, /) -> AbstractUnits:
+def unit(obj: AbstractUnits, /) -> AbstractUnits:
     """Construct the units from a units object.
 
     Examples
     --------
-    >>> from unxt import units
-    >>> m = units("m")
+    >>> import unxt as u
+    >>> m = u.unit("m")
 
-    >>> units(m) is m
+    >>> u.unit(m) is m
     True
 
     """
@@ -38,13 +38,13 @@ def units(obj: AbstractUnits, /) -> AbstractUnits:
 
 
 @dispatch  # type: ignore[no-redef]
-def units(obj: str, /) -> AbstractUnits:
+def unit(obj: str, /) -> AbstractUnits:
     """Construct units from a string.
 
     Examples
     --------
-    >>> from unxt import units
-    >>> m = units("m")
+    >>> import unxt as u
+    >>> m = u.unit("m")
     >>> m
     Unit("m")
 
@@ -67,8 +67,8 @@ def unit_of(obj: Any, /) -> None:
 
     Examples
     --------
-    >>> from unxt import unit_of
-    >>> print(unit_of(1))
+    >>> import unxt as u
+    >>> print(u.unit_of(1))
     None
 
     """
@@ -81,10 +81,10 @@ def unit_of(obj: AbstractUnits, /) -> AbstractUnits:
 
     Examples
     --------
-    >>> from unxt import units, unit_of
-    >>> m = units("m")
+    >>> import unxt as u
+    >>> m = u.unit("m")
 
-    >>> unit_of(m)
+    >>> u.unit_of(m)
     Unit("m")
 
     """
@@ -101,9 +101,8 @@ def dimensions_of(obj: AbstractUnits, /) -> u.PhysicalType:
 
     Examples
     --------
-    >>> from unxt import units
-    >>> from unxt.dims import dimensions_of
-    >>> dimensions_of(units("km"))
+    >>> import unxt as u
+    >>> u.dimensions_of(u.unit("km"))
     PhysicalType('length')
 
     """

@@ -78,17 +78,17 @@ class SIUnitSystem(SingletonMixin, AbstractUnitSystem):
 
     Examples
     --------
-    >>> from unxt import units
+    >>> import unxt as u
     >>> from unxt._src.units.system.builtin import SIUnitSystem
     >>> usys = SIUnitSystem(
-    ...     length=units("meter"),
-    ...     time=units("second"),
-    ...     mass=units("kilogram"),
-    ...     electric_current=units("ampere"),
-    ...     temperature=units("Kelvin"),
-    ...     amount=units("mole"),
-    ...     luminous_intensity=units("candela"),
-    ...     angle=units("radian"),
+    ...     length=u.unit("meter"),
+    ...     time=u.unit("second"),
+    ...     mass=u.unit("kilogram"),
+    ...     electric_current=u.unit("ampere"),
+    ...     temperature=u.unit("Kelvin"),
+    ...     amount=u.unit("mole"),
+    ...     luminous_intensity=u.unit("candela"),
+    ...     angle=u.unit("radian"),
     ... )
     >>> usys
     unitsystem(m, kg, s, mol, A, K, cd, rad)
@@ -136,18 +136,18 @@ class CGSUnitSystem(SingletonMixin, AbstractUnitSystem):
 
     Examples
     --------
-    >>> from unxt import units
+    >>> import unxt as u
     >>> from unxt._src.units.system.builtin import CGSUnitSystem
     >>> usys = CGSUnitSystem(
-    ...     length=units("centimeter"),
-    ...     time=units("second"),
-    ...     mass=units("gram"),
-    ...     angle=units("radian"),
-    ...     force=units("dyne"),
-    ...     energy=units("erg"),
-    ...     pressure=units("barye"),
-    ...     dynamic_viscosity=units("poise"),
-    ...     kinematic_viscosity=units("stokes"),
+    ...     length=u.unit("centimeter"),
+    ...     time=u.unit("second"),
+    ...     mass=u.unit("gram"),
+    ...     angle=u.unit("radian"),
+    ...     force=u.unit("dyne"),
+    ...     energy=u.unit("erg"),
+    ...     pressure=u.unit("barye"),
+    ...     dynamic_viscosity=u.unit("poise"),
+    ...     kinematic_viscosity=u.unit("stokes"),
     ... )
     >>> usys
     unitsystem(cm, g, s, dyn, erg, Ba, P, St, rad)

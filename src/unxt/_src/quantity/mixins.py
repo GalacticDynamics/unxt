@@ -11,7 +11,7 @@ from jaxtyping import Array
 from dataclassish import replace
 
 from .api import uconvert, ustrip
-from unxt._src.units.core import AbstractUnits, units
+from unxt._src.units.core import AbstractUnits, unit as parse_unit
 
 if TYPE_CHECKING:
     from unxt.quantity import AbstractQuantity
@@ -70,7 +70,7 @@ class AstropyQuantityCompatMixin:
         Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
 
         """
-        bases_ = [units(b) for b in bases]
+        bases_ = [parse_unit(b) for b in bases]
         du = self.unit.decompose(bases_)  # decomposed units
         base_units = CompositeUnit(scale=1, bases=du.bases, powers=du.powers)
         return replace(self, value=self.value * du.scale, unit=base_units)

@@ -84,10 +84,10 @@ def get_dimension_name(pt: Unit, /) -> str:
 
     Examples
     --------
-    >>> from unxt import units
+    >>> import unxt as u
     >>> from unxt._src.units.system.utils import get_dimension_name
 
-    >>> get_dimension_name(units("km"))
+    >>> get_dimension_name(u.unit("km"))
     'length'
 
     """
