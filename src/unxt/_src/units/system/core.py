@@ -7,10 +7,10 @@ from collections.abc import Sequence
 from dataclasses import field, make_dataclass
 from typing import Annotated, Any
 
-import astropy.units as u
 import equinox as eqx
 import numpy as np
 from astropy.constants import G as const_G  # noqa: N811, pylint: disable=E0611
+from astropy.units import UnitBase as AstropyUnitBase
 from plum import dispatch
 
 from . import builtin_dimensions as ud
@@ -115,7 +115,7 @@ def unitsystem(*args: Any) -> AbstractUnitSystem:
     fields = [
         (
             k,
-            Annotated[u.UnitBase, v],
+            Annotated[AstropyUnitBase, v],
             field(init=True, repr=True, hash=True, compare=True),  # pylint: disable=invalid-field-call
         )
         for k, v in du.items()
@@ -189,7 +189,7 @@ def unitsystem(usys: AbstractUnitSystem, *args: Any) -> AbstractUnitSystem:
         new_usys = unitsystem(*args)
 
     current_units = [
-        u for u in usys.base_units if u.physical_type not in new_usys.base_dimensions
+        u for u in usys.base_units if dimension_of(u) not in new_usys.base_dimensions
     ]
     return unitsystem(*current_units, *args)
 

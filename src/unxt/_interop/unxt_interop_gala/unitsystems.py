@@ -18,12 +18,13 @@ def unitsystem(value: GalaUnitSystem, /) -> AbstractUnitSystem:
 
     Examples
     --------
-    >>> from gala.units import UnitSystem
-    >>> import astropy.units as u
-    >>> usys = UnitSystem(u.km, u.s, u.Msun, u.radian)
+    >>> import unxt as u
+    >>> import gala.units as gu
+    >>> import astropy.units as apyu
 
-    >>> from unxt import unitsystem
-    >>> unitsystem(usys)
+    >>> usys = gu.UnitSystem(apyu.km, apyu.s, apyu.Msun, apyu.radian)
+
+    >>> u.unitsystem(usys)
     unitsystem(km, s, solMass, rad)
 
     """
@@ -37,12 +38,12 @@ def unitsystem(_: GalaDimensionlessUnitSystem, /) -> DimensionlessUnitSystem:
 
     Examples
     --------
+    >>> import unxt as u
     >>> from gala.units import DimensionlessUnitSystem
-    >>> import astropy.units as u
+
     >>> usys = DimensionlessUnitSystem()
 
-    >>> from unxt import unitsystem
-    >>> unitsystem(usys)
+    >>> u.unitsystem(usys)
     DimensionlessUnitSystem()
 
     """  # noqa: E501

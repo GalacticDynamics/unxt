@@ -3,14 +3,14 @@
 __all__: list[str] = []
 
 
-import astropy.units as u
+import astropy.units as apyu
 from plum import dispatch
 
-from unxt._src.dimensions.core import AbstractDimensions
+from unxt._src.dimensions.core import AbstractDimension
 
 
 @dispatch  # type: ignore[misc]
-def dimension_of(obj: u.Quantity, /) -> AbstractDimensions:
+def dimension_of(obj: apyu.Quantity, /) -> AbstractDimension:
     """Return the dimension of a quantity.
 
     Examples

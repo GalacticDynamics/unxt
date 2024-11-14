@@ -7,7 +7,7 @@ from plum import conversion_method, dispatch
 from .base import AbstractQuantity
 from .core import Quantity
 from .fast import UncheckedQuantity
-from unxt._src.dimensions.core import AbstractDimensions
+from unxt._src.dimensions.core import AbstractDimension
 from unxt._src.units.core import AbstractUnits
 
 # ===================================================================
@@ -15,7 +15,7 @@ from unxt._src.units.core import AbstractUnits
 
 
 @dispatch  # type: ignore[misc]
-def dimension_of(obj: AbstractQuantity, /) -> AbstractDimensions:
+def dimension_of(obj: AbstractQuantity, /) -> AbstractDimension:
     """Return the dimension of a quantity.
 
     Examples
@@ -60,6 +60,7 @@ def _quantity_to_unchecked(q: AbstractQuantity, /) -> UncheckedQuantity:
     --------
     >>> from plum import convert
     >>> from unxt.quantity import Quantity, UncheckedQuantity
+
     >>> q = Quantity(1, "m")
     >>> q
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
@@ -84,6 +85,7 @@ def _quantity_to_checked(q: AbstractQuantity, /) -> Quantity:
     --------
     >>> from plum import convert
     >>> from unxt.quantity import Quantity, UncheckedQuantity
+
     >>> q = UncheckedQuantity(1, "m")
     >>> q
     UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')

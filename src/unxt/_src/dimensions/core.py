@@ -7,12 +7,12 @@ __all__ = ["dimension", "dimension_of"]
 
 from typing import Any, TypeAlias
 
-import astropy.units as u
+import astropy.units as apyu
 from astropy.units import Unit
 from plum import dispatch
 
-AbstractUnits: TypeAlias = u.UnitBase | Unit
-AbstractDimensions: TypeAlias = u.PhysicalType
+AbstractUnits: TypeAlias = apyu.UnitBase | Unit
+AbstractDimension: TypeAlias = apyu.PhysicalType
 
 
 # ===================================================================
@@ -20,7 +20,7 @@ AbstractDimensions: TypeAlias = u.PhysicalType
 
 
 @dispatch.abstract
-def dimension(obj: Any, /) -> AbstractDimensions:
+def dimension(obj: Any, /) -> AbstractDimension:
     """Construct the dimension.
 
     .. note::
@@ -34,7 +34,7 @@ def dimension(obj: Any, /) -> AbstractDimensions:
 
 
 @dispatch
-def dimension(obj: AbstractDimensions, /) -> AbstractDimensions:
+def dimension(obj: AbstractDimension, /) -> AbstractDimension:
     """Construct dimension from a dimension object.
 
     Examples
@@ -54,7 +54,7 @@ def dimension(obj: AbstractDimensions, /) -> AbstractDimensions:
 
 
 @dispatch
-def dimension(obj: str, /) -> AbstractDimensions:
+def dimension(obj: str, /) -> AbstractDimension:
     """Construct dimension from a string.
 
     Examples
@@ -64,7 +64,7 @@ def dimension(obj: str, /) -> AbstractDimensions:
     PhysicalType('length')
 
     """
-    return u.get_physical_type(obj)
+    return apyu.get_physical_type(obj)
 
 
 # ===================================================================
@@ -72,7 +72,7 @@ def dimension(obj: str, /) -> AbstractDimensions:
 
 
 @dispatch.abstract
-def dimension_of(obj: Any, /) -> AbstractDimensions:
+def dimension_of(obj: Any, /) -> AbstractDimension:
     """Return the dimension of the given units.
 
     .. note::
@@ -104,12 +104,11 @@ def dimension_of(obj: Any, /) -> None:
 
 
 @dispatch
-def dimension_of(obj: AbstractDimensions, /) -> AbstractDimensions:
+def dimension_of(obj: AbstractDimension, /) -> AbstractDimension:
     """Return the dimension of the given units.
 
     Examples
     --------
-    >>> from astropy import units as u
     >>> from unxt.dims import dimension, dimension_of
 
     >>> dimension_of(dimension("length"))

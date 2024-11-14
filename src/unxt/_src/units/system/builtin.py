@@ -8,14 +8,13 @@ from dataclasses import dataclass
 from typing import Annotated, TypeAlias, final
 from typing_extensions import override
 
-import astropy.units as u
-from astropy.units import dimensionless_unscaled
+from astropy.units import UnitBase as AstropyUnitBase, dimensionless_unscaled
 
 from . import builtin_dimensions as ud  # noqa: TCH001
 from .base import AbstractUnitSystem
 from unxt._src.utils import SingletonMixin
 
-Unit: TypeAlias = u.UnitBase
+Unit: TypeAlias = AstropyUnitBase
 
 
 @final

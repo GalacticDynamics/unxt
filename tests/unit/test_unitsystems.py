@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated
 
-import astropy.units as u
+import astropy.units as apyu
 import numpy as np
 import pytest
 
@@ -38,8 +38,8 @@ def clean_unitsystems_registry(monkeypatch):
 
 def test_unitsystem_from_() -> None:
     """Test the `unxt.AbstractUnitSystem.from_`."""
-    usys = unitsystem(5 * u.kpc, 50 * u.Myr, 1e5 * u.Msun, "rad")
-    assert np.isclose((8 * u.Myr).decompose(usys).value, 8 / 50)
+    usys = unitsystem(5 * apyu.kpc, 50 * apyu.Myr, 1e5 * apyu.Msun, "rad")
+    assert np.isclose((8 * apyu.Myr).decompose(usys).value, 8 / 50)
 
 
 def test_compare() -> None:
@@ -107,7 +107,7 @@ def test_non_unit_fields():
 
     @dataclass(frozen=True, slots=True)
     class SomeNoneUnitFields(AbstractUnitSystem):
-        a: Annotated[u.Unit, dimension("length")]
+        a: Annotated[apyu.Unit, dimension("length")]
         b: int
 
     assert SomeNoneUnitFields._base_field_names == ("a",)
@@ -123,7 +123,7 @@ def test_wrong_annotation():
 
         @dataclass(frozen=True, slots=True)
         class BadAnnotations(AbstractUnitSystem):
-            a: Annotated[u.Unit, "no dimension annotation"]
+            a: Annotated[apyu.Unit, "no dimension annotation"]
 
     # Too many dimension annotations
     match = "Field 'a' must be an Annotated with only one dimension"
@@ -131,23 +131,23 @@ def test_wrong_annotation():
 
         @dataclass(frozen=True, slots=True)
         class BadAnnotations(AbstractUnitSystem):
-            a: Annotated[u.Unit, dimension("length"), dimension("time")]
+            a: Annotated[apyu.Unit, dimension("length"), dimension("time")]
 
 
 def test_unitsystem_already_registered():
     """Test that a unit system can only be registered once."""
 
     class MyUnitSystem(AbstractUnitSystem):
-        length: Annotated[u.Unit, dimension("length")]
-        time: Annotated[u.Unit, dimension("time")]
+        length: Annotated[apyu.Unit, dimension("length")]
+        time: Annotated[apyu.Unit, dimension("time")]
 
     assert MyUnitSystem._base_dimensions in unitsystems.UNITSYSTEMS_REGISTRY
 
     with pytest.raises(ValueError, match="already exists"):
 
         class MyUnitSystem(AbstractUnitSystem):
-            length: Annotated[u.Unit, dimension("length")]
-            time: Annotated[u.Unit, dimension("time")]
+            length: Annotated[apyu.Unit, dimension("length")]
+            time: Annotated[apyu.Unit, dimension("time")]
 
     # Clean up custom unit system from registry:
     del _UNITSYSTEMS_REGISTRY[MyUnitSystem._base_dimensions]
@@ -158,15 +158,15 @@ class TestDimensionlessUnitSystem:
 
     def test_getitem(self) -> None:
         """Test :meth:`unxt.unitsystems.DimensionlessUnitSystem.__getitem__`."""
-        assert dimensionless["dimensionless"] == u.one
+        assert dimensionless["dimensionless"] == apyu.one
 
-        with pytest.raises(u.UnitConversionError):
+        with pytest.raises(apyu.UnitConversionError):
             dimensionless["length"]
 
     def test_decompose(self) -> None:
         """Test that dimensionless unitsystem can be decomposed."""
         with pytest.raises(ValueError, match="can not be decomposed into"):
-            (15 * u.kpc).decompose(dimensionless)
+            (15 * apyu.kpc).decompose(dimensionless)
 
     def test_str(self) -> None:
         """Test that the string representation is correct."""
@@ -222,7 +222,7 @@ def test_simulation_usys():
     """Test defining the simulation unit system with expected inputs."""
     from astropy.constants import G as const_G  # noqa: N811
 
-    tmp_G = const_G.decompose([u.kpc, u.Myr, u.Msun])
+    tmp_G = const_G.decompose([apyu.kpc, apyu.Myr, apyu.Msun])
     usys1 = unitsystem(DynamicalSimUSysFlag, "kpc", "Myr", "rad")
     assert np.isclose((1 * usys1["mass"]).to_value("Msun"), 1 / tmp_G.value)
 

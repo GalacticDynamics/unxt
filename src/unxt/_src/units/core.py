@@ -11,11 +11,13 @@ __all__ = [
 
 from typing import Any, TypeAlias
 
-import astropy.units as u
+import astropy.units as apyu
 from astropy.units import Unit
 from plum import dispatch
 
-AbstractUnits: TypeAlias = u.UnitBase | Unit
+from unxt._src.dimensions.core import AbstractDimension
+
+AbstractUnits: TypeAlias = apyu.UnitBase | apyu.Unit
 
 # ===================================================================
 # Construct units
@@ -49,7 +51,7 @@ def unit(obj: str, /) -> AbstractUnits:
     Unit("m")
 
     """
-    return u.Unit(obj)
+    return apyu.Unit(obj)
 
 
 # ===================================================================
@@ -96,7 +98,7 @@ def unit_of(obj: AbstractUnits, /) -> AbstractUnits:
 
 
 @dispatch  # type: ignore[misc]
-def dimension_of(obj: AbstractUnits, /) -> u.PhysicalType:
+def dimension_of(obj: AbstractUnits, /) -> AbstractDimension:
     """Return the dimensions of the given units.
 
     Examples

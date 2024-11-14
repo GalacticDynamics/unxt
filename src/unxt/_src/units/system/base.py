@@ -7,20 +7,21 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import ClassVar, get_args, get_type_hints
 
-import astropy.units as u
-from astropy.units import PhysicalType as Dimension
+from astropy.units import PhysicalType, UnitBase as AstropyUnitBase
 from astropy.units.physical import _physical_unit_mapping
 
 from is_annotated import isannotated
 
 from .utils import get_dimension_name
-from unxt._src.dimensions.core import dimension
+from unxt._src.dimensions.core import AbstractDimension, dimension
 from unxt._src.typing_ext import Unit as UnitT
 from unxt._src.units.core import unit
 
-Unit = u.UnitBase
+Unit = AstropyUnitBase
 
-_UNITSYSTEMS_REGISTRY: dict[tuple[Dimension, ...], type["AbstractUnitSystem"]] = {}
+_UNITSYSTEMS_REGISTRY: dict[
+    tuple[AbstractDimension, ...], type["AbstractUnitSystem"]
+] = {}
 UNITSYSTEMS_REGISTRY = MappingProxyType(_UNITSYSTEMS_REGISTRY)
 
 
@@ -81,7 +82,7 @@ class AbstractUnitSystem:
     # Class-level
 
     _base_field_names: ClassVar[tuple[str, ...]]
-    _base_dimensions: ClassVar[tuple[Dimension, ...]]
+    _base_dimensions: ClassVar[tuple[AbstractDimension, ...]]
 
     def __init_subclass__(cls) -> None:
         # Register class with a tuple of it's dimensions.
@@ -106,7 +107,7 @@ class AbstractUnitSystem:
     # Instance-level
 
     @property  # TODO: classproperty
-    def base_dimensions(self) -> tuple[Dimension, ...]:
+    def base_dimensions(self) -> tuple[AbstractDimension, ...]:
         """Dimensions required for the unit system."""
         return self._base_dimensions
 
@@ -115,7 +116,7 @@ class AbstractUnitSystem:
         """List of core units."""
         return tuple(getattr(self, k) for k in self._base_field_names)
 
-    def __getitem__(self, key: Dimension | str) -> UnitT:
+    def __getitem__(self, key: AbstractDimension | str) -> UnitT:
         """Get the unit for a given physical type.
 
         Examples
@@ -203,7 +204,7 @@ class AbstractUnitSystem:
 
 def parse_field_names_and_dimensions(
     cls: type,
-) -> tuple[tuple[str, ...], tuple[Dimension, ...]]:
+) -> tuple[tuple[str, ...], tuple[AbstractDimension, ...]]:
     # Register class with a tuple of it's dimensions.
     # This requires processing the type hints, not the dataclass fields
     # since those are made after the original class is defined.
@@ -223,8 +224,8 @@ def parse_field_names_and_dimensions(
         if not issubclass(origin, Unit):
             continue
 
-        # Need for one of the arguments to be a PhysicalType
-        f_dim = [x for x in f_args if isinstance(x, Dimension)]
+        # Need for one of the arguments to be a Dimension
+        f_dim = [x for x in f_args if isinstance(x, PhysicalType)]
         if not f_dim:
             msg = f"Field {name!r} must be an Annotated with a dimension."
             raise TypeError(msg)

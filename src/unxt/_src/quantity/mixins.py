@@ -62,7 +62,6 @@ class AstropyQuantityCompatMixin:
 
         Examples
         --------
-        >>> import astropy.units as u
         >>> from unxt import Quantity
 
         >>> q = Quantity(1, "m")

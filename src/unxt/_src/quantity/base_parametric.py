@@ -10,14 +10,14 @@ from typing import Any
 import equinox as eqx
 import jax
 import jax.core
-from astropy.units import PhysicalType as Dimensions, Unit
+from astropy.units import PhysicalType, Unit
 from jaxtyping import Array, ArrayLike, Shaped
 from plum import dispatch, parametric, type_nonparametric, type_unparametrized
 
 from dataclassish import field_items, fields
 
 from .base import AbstractQuantity
-from unxt._src.dimensions.core import dimension, dimension_of
+from unxt._src.dimensions.core import AbstractDimension, dimension, dimension_of
 from unxt._src.typing_ext import Unit as UnitTypes
 from unxt._src.units.core import unit as parse_unit
 
@@ -38,7 +38,7 @@ class AbstractParametricQuantity(AbstractQuantity):
 
     def __post_init__(self) -> None:
         """Check whether the arguments are valid."""
-        self._type_parameter: Dimensions
+        self._type_parameter: AbstractDimension
 
     def __check_init__(self) -> None:
         """Check whether the arguments are valid."""
@@ -53,15 +53,17 @@ class AbstractParametricQuantity(AbstractQuantity):
 
     @classmethod
     @dispatch
-    def __init_type_parameter__(cls, dims: Dimensions, /) -> tuple[Dimensions]:
+    def __init_type_parameter__(
+        cls, dims: AbstractDimension, /
+    ) -> tuple[AbstractDimension]:
         """Check whether the type parameters are valid."""
         return (dims,)
 
     @classmethod  # type: ignore[no-redef]
     @dispatch
-    def __init_type_parameter__(cls, dims: str, /) -> tuple[Dimensions]:
+    def __init_type_parameter__(cls, dims: str, /) -> tuple[AbstractDimension]:
         """Check whether the type parameters are valid."""
-        dims_: Dimensions
+        dims_: AbstractDimension
         try:
             dims_ = dimension(dims)
         except ValueError:
@@ -70,24 +72,24 @@ class AbstractParametricQuantity(AbstractQuantity):
 
     @classmethod  # type: ignore[no-redef]
     @dispatch
-    def __init_type_parameter__(cls, unit: UnitTypes, /) -> tuple[Dimensions]:
+    def __init_type_parameter__(cls, unit: UnitTypes, /) -> tuple[AbstractDimension]:
         """Infer the type parameter from the arguments."""
         dims = dimension_of(unit)
         if dims != "unknown":
             return (dims,)
-        return (Dimensions(unit, unit.to_string(fraction=False)),)
+        return (PhysicalType(unit, unit.to_string(fraction=False)),)
 
     @classmethod
     def __infer_type_parameter__(
         cls, value: ArrayLike | Sequence[Any], unit: Any, **kwargs: Any
-    ) -> tuple[Dimensions]:
+    ) -> tuple[AbstractDimension]:
         """Infer the type parameter from the arguments."""
         return (dimension_of(parse_unit(unit)),)
 
     @classmethod
     @dispatch  # type: ignore[misc]
     def __le_type_parameter__(
-        cls, left: tuple[Dimensions], right: tuple[Dimensions]
+        cls, left: tuple[AbstractDimension], right: tuple[AbstractDimension]
     ) -> bool:
         """Define an order on type parameters.
 

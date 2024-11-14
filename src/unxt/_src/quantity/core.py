@@ -109,10 +109,10 @@ def mod(self: Quantity["dimensionless"], other: ArrayLike) -> Quantity["dimensio
 
     Examples
     --------
-    >>> from unxt import Quantity
+    >>> import unxt as u
 
-    >>> q = Quantity(480, "deg")
-    >>> q % Quantity(360, "deg")
+    >>> q = u.Quantity(480, "deg")
+    >>> q % u.Quantity(360, "deg")
     Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
 
     """

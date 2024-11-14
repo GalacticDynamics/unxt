@@ -90,11 +90,11 @@ def ustrip(u: AbstractUnitSystem, x: AbstractQuantity, /) -> Array:
 
     Examples
     --------
-    >>> from unxt import Quantity
+    >>> import unxt as u
     >>> from unxt.unitsystems import galactic
 
-    >>> q = Quantity(1e17, "km")
-    >>> ustrip(galactic, q)
+    >>> q = u.Quantity(1e17, "km")
+    >>> u.ustrip(galactic, q)
     Array(3.2407792, dtype=float32, weak_type=True)
 
     """

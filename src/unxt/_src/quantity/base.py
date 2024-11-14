@@ -94,8 +94,8 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
 
     The unit can also be given as a `astropy.units.Unit`:
 
-    >>> import astropy.units as u
-    >>> Quantity(1, u.m)
+    >>> import astropy.units as apyu
+    >>> Quantity(1, apyu.m)
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
