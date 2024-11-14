@@ -32,7 +32,7 @@ from unxt._src.units.core import units
 
 @dispatch
 def unitsystem(usys: AbstractUnitSystem, /) -> AbstractUnitSystem:
-    """Convert a UnitSystem or tuple of arguments to a UnitSystem.
+    """Convert a UnitSystem to a UnitSystem.
 
     Examples
     --------
@@ -179,17 +179,23 @@ def unitsystem(usys: AbstractUnitSystem, *units_: Any) -> AbstractUnitSystem:
     >>> import astropy.units as u
     >>> from unxt.unitsystems import unitsystem
     >>> usys = unitsystem("galactic")
-    >>> unitsystem(usys, u.km/u.s)
+    >>> unitsystem(usys, "km/s")
     LengthTimeMassAngleSpeedUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"), angle=Unit("rad"), speed=Unit("km / s"))
 
     We can also override the base unit of an existing unit system:
 
-    >>> new_usys = unitsystem(usys, u.pc)
+    >>> new_usys = unitsystem(usys, "pc")
     >>> new_usys
     TimeMassAngleLengthUnitSystem(time=Unit("Myr"), mass=Unit("solMass"), angle=Unit("rad"), length=Unit("pc"))
 
     """  # noqa: E501
-    new_usys = unitsystem(*units_)
+    # TODO: not need this hack for single-string inputs
+    # TODO: process new units without making a whole unit system
+    if len(units_) == 1 and isinstance(units_[0], str):
+        new_usys = unitsystem(units(units_[0]))
+    else:
+        new_usys = unitsystem(*units_)
+
     current_units = [
         unit
         for unit in usys.base_units
@@ -226,6 +232,16 @@ def unitsystem(
     *units_: Any,
     G: float | int = 1.0,  # noqa: N803
 ) -> AbstractUnitSystem:
+    """Make a dynamical unit system.
+
+    Examples
+    --------
+    >>> from unxt.unitsystems import unitsystem, DynamicalSimUSysFlag
+
+    >>> unitsystem(DynamicalSimUSysFlag, "m", "kg")
+    LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("kg"), time=Unit("122404 s"))
+
+    """
     tmp = unitsystem(*units_)
 
     # Use G for computing the missing units below:

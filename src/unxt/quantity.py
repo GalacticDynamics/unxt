@@ -4,10 +4,10 @@ This module provides a way to work with quantities in JAX.
 
 The main features are:
 
-- `unxt.quantity.Quantity`: A class representing a quantity with units.
-- `unxt.quantity.uconvert`: A function to convert a quantity to a different
+- ``unxt.quantity.Quantity``: A class representing a quantity with units.
+- ``unxt.quantity.uconvert``: A function to convert a quantity to a different
   unit.
-- `unxt.quantity.ustrip`: A function to strip the units from a quantity.
+- ``unxt.quantity.ustrip``: A function to strip the units from a quantity.
 
 """
 # ruff:noqa: F403
