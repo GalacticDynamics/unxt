@@ -20,23 +20,6 @@ documentation.
 
 """
 
-from jaxtyping import install_import_hook
-
-from .setup_package import RUNTIME_TYPECHECKER
-
-with install_import_hook("unxt", RUNTIME_TYPECHECKER):
-    from . import dims, quantity, unitsystems
-    from ._src.units.core import units, units_of
-    from ._version import version as __version__
-    from .dims import dimensions, dimensions_of
-    from .quantity import *
-    from .unitsystems import AbstractUnitSystem, unitsystem, unitsystem_of
-
-from ._src import experimental  # noqa: F401
-
-# isort: split
-from . import _interop  # noqa: F401  # register interop
-
 __all__ = [
     "__version__",
     # dimensions
@@ -51,8 +34,30 @@ __all__ = [
     "AbstractUnitSystem",  # base class
     "unitsystem",  # convenience constructor
     "unitsystem_of",  # get the unit system
+    # quantities
+    "quantity",  # module
+    "Quantity",  # main class
+    "uconvert",  # convert units
+    "ustrip",  # strip units
+    "is_unit_convertible",  # check if units can be converted
 ]
-__all__ += quantity.__all__
+
+from jaxtyping import install_import_hook
+
+from .setup_package import RUNTIME_TYPECHECKER
+
+with install_import_hook("unxt", RUNTIME_TYPECHECKER):
+    from . import dims, quantity, unitsystems
+    from ._src.units.core import units, units_of
+    from ._version import version as __version__
+    from .dims import dimensions, dimensions_of
+    from .quantity import Quantity, is_unit_convertible, uconvert, ustrip
+    from .unitsystems import AbstractUnitSystem, unitsystem, unitsystem_of
+
+from ._src import experimental  # noqa: F401
+
+# isort: split
+from . import _interop  # noqa: F401  # register interop
 
 # Clean up the namespace
 del install_import_hook

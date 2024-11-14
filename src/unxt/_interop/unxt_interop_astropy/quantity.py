@@ -14,8 +14,8 @@ from plum import conversion_method, dispatch
 import quaxed.numpy as jnp
 from dataclassish import replace
 
-from unxt import AbstractQuantity, Quantity, UncheckedQuantity
 from unxt._interop.optional_deps import OptDeps
+from unxt.quantity import AbstractQuantity, Quantity, UncheckedQuantity
 
 # ============================================================================
 # AbstractQuantity
@@ -158,7 +158,7 @@ def convert_astropy_quantity_to_unxt_uncheckedquantity(
     --------
     >>> from astropy.units import Quantity as AstropyQuantity
     >>> from plum import convert
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
 
     >>> convert(AstropyQuantity(1.0, "cm"), UncheckedQuantity)
     UncheckedQuantity(Array(1., dtype=float32), unit='cm')

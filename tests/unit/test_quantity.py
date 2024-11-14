@@ -19,13 +19,8 @@ from plum import convert, parametric
 
 import quaxed.numpy as jnp
 
-from unxt import (
-    AbstractParametricQuantity,
-    Quantity,
-    dimensions,
-    is_unit_convertible,
-    units,
-)
+from unxt import Quantity, dimensions, is_unit_convertible, units
+from unxt.quantity import AbstractParametricQuantity
 
 xps = make_strategies_namespace(jax_xp)
 

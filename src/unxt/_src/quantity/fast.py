@@ -21,7 +21,7 @@ class UncheckedQuantity(AbstractQuantity):
 
         This method is called when the class is subscripted, e.g.:
 
-        >>> from unxt import UncheckedQuantity
+        >>> from unxt.quantity import UncheckedQuantity
         >>> UncheckedQuantity["length"]
         <class 'unxt._src.quantity.fast.UncheckedQuantity'>
 
