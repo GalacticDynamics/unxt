@@ -59,7 +59,7 @@ def _quantity_to_unchecked(q: AbstractQuantity, /) -> UncheckedQuantity:
     Examples
     --------
     >>> from plum import convert
-    >>> from unxt import Quantity, UncheckedQuantity
+    >>> from unxt.quantity import Quantity, UncheckedQuantity
     >>> q = Quantity(1, "m")
     >>> q
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
@@ -83,7 +83,7 @@ def _quantity_to_checked(q: AbstractQuantity, /) -> Quantity:
     Examples
     --------
     >>> from plum import convert
-    >>> from unxt import Quantity, UncheckedQuantity
+    >>> from unxt.quantity import Quantity, UncheckedQuantity
     >>> q = UncheckedQuantity(1, "m")
     >>> q
     UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')

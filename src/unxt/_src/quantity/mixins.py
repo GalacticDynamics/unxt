@@ -14,7 +14,7 @@ from .api import uconvert, ustrip
 from unxt._src.units.core import AbstractUnits, units
 
 if TYPE_CHECKING:
-    from unxt import AbstractQuantity
+    from unxt.quantity import AbstractQuantity
 
 
 class AstropyQuantityCompatMixin:

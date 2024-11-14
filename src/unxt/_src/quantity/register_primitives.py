@@ -69,7 +69,7 @@ def _abs_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> abs(q)
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(-1, "m")
     >>> jnp.abs(q)
     UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
@@ -90,7 +90,7 @@ def _acos_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as xp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(-1, "")
     >>> jnp.acos(q)
     UncheckedQuantity(Array(3.1415927, dtype=float32, ...), unit='rad')
@@ -115,7 +115,7 @@ def _acosh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as xp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(2.0, "")
     >>> jnp.acosh(q)
     UncheckedQuantity(Array(1.316958, dtype=float32, ...), unit='rad')
@@ -141,7 +141,7 @@ def _add_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
 
     >>> q1 = UncheckedQuantity(1.0, "km")
     >>> q2 = UncheckedQuantity(500.0, "m")
@@ -174,7 +174,7 @@ def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
 
     `unxt.UncheckedQuantity`:
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> y = UncheckedQuantity(1.0, "km")
 
     >>> try:
@@ -241,7 +241,7 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
     `unxt.UncheckedQuantity`:
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1.0, "km")
 
     >>> try:
@@ -323,7 +323,7 @@ def _and_p_aq(x1: AbstractQuantity, x2: AbstractQuantity, /) -> ArrayLike:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> x1 = UncheckedQuantity(1, "")
     >>> x2 = UncheckedQuantity(2, "")
     >>> jnp.bitwise_and(x1, x2)
@@ -356,7 +356,7 @@ def _argmax_p(
     >>> jnp.argmax(x)
     Quantity['length'](Array(2, dtype=int32), unit='m')
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> x = UncheckedQuantity([1, 2, 3], "m")
     >>> jnp.argmax(x)
     UncheckedQuantity(Array(2, dtype=int32), unit='m')
@@ -382,7 +382,7 @@ def _argmin_p(
     >>> jnp.argmin(x)
     Quantity['length'](Array(0, dtype=int32), unit='m')
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> x = UncheckedQuantity([1, 2, 3], "m")
     >>> jnp.argmin(x)
     UncheckedQuantity(Array(0, dtype=int32), unit='m')
@@ -401,7 +401,7 @@ def _asin_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "")
     >>> jnp.asin(q)
     UncheckedQuantity(Array(1.5707964, dtype=float32, ...), unit='rad')
@@ -438,7 +438,7 @@ def _asinh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(2, "")
     >>> jnp.asinh(q)
     UncheckedQuantity(Array(1.4436355, dtype=float32, ...), unit='rad')
@@ -475,7 +475,7 @@ def _atan2_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1, "m")
     >>> q2 = UncheckedQuantity(3, "m")
     >>> jnp.atan2(q1, q2)
@@ -518,7 +518,7 @@ def _atan2_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> x1 = jnp.asarray(1.0)
     >>> q2 = UncheckedQuantity(3.0, "")
     >>> jnp.atan2(x1, q2)
@@ -559,7 +559,7 @@ def _atan2_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1.0, "")
     >>> x2 = jnp.asarray(3.0)
     >>> jnp.atan2(q1, x2)
@@ -600,7 +600,7 @@ def _atan_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "")
     >>> jnp.atan(q)
     UncheckedQuantity(Array(0.7853982, dtype=float32, ...), unit='rad')
@@ -637,7 +637,7 @@ def _atanh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(2, "")
     >>> jnp.atanh(q)
     UncheckedQuantity(Array(nan, dtype=float32, ...), unit='rad')
@@ -684,7 +684,7 @@ def _cbrt_p(x: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(8, "m3")
     >>> jnp.cbrt(q)
     UncheckedQuantity(Array(2., dtype=float32, ...), unit='m')
@@ -708,7 +708,7 @@ def _ceil_p(x: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(1.5, "m")
     >>> jnp.ceil(q)
     UncheckedQuantity(Array(2., dtype=float32, ...), unit='m')
@@ -736,7 +736,7 @@ def _clamp_p(
     >>> import quaxed.numpy as jnp
     >>> import quaxed.lax as lax
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> min = UncheckedQuantity(0, "m")
     >>> max = UncheckedQuantity(2, "m")
     >>> q = UncheckedQuantity([-1, 1, 3], "m")
@@ -770,7 +770,7 @@ def _clamp_p_vaqaq(
     >>> import quaxed.numpy as jnp
     >>> import quaxed.lax as lax
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> min = jnp.asarray(0)
     >>> max = UncheckedQuantity(2, "")
     >>> q = UncheckedQuantity([-1, 1, 3], "")
@@ -802,7 +802,7 @@ def _clamp_p_aqvaq(
     >>> import quaxed.numpy as jnp
     >>> import quaxed.lax as lax
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> min = UncheckedQuantity(0, "")
     >>> max = UncheckedQuantity(2, "")
     >>> x = jnp.asarray([-1, 1, 3])
@@ -851,7 +851,7 @@ def _clamp_p_aqaqv(
     >>> import quaxed.numpy as jnp
     >>> import quaxed.lax as lax
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> min = UncheckedQuantity(0, "")
     >>> max = jnp.asarray(2)
     >>> q = UncheckedQuantity([-1, 1, 3], "")
@@ -896,7 +896,7 @@ def _complex_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> from quaxed import lax
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> x = UncheckedQuantity(1.0, "m")
     >>> y = UncheckedQuantity(2.0, "m")
     >>> lax.complex(x, y)
@@ -926,7 +926,7 @@ def _concatenate_p_aq(*operands: AbstractQuantity, dimension: Any) -> AbstractQu
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity([1.0], "km")
     >>> q2 = UncheckedQuantity([2_000.0], "m")
     >>> jnp.concat([q1, q2])
@@ -1058,7 +1058,7 @@ def _conj_p(x: AbstractQuantity, *, input_dtype: Any) -> AbstractQuantity:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(1 + 2j, "m")
     >>> jnp.conj(q)
     UncheckedQuantity(Array(1.-2.j, dtype=complex64, ...), unit='m')
@@ -1099,7 +1099,7 @@ def _copy_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> import quaxed.numpy as jnp
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "m")
     >>> jnp.copy(q)
     UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
@@ -1123,7 +1123,7 @@ def _cos_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "rad")
     >>> jnp.cos(q)
     UncheckedQuantity(Array(0.5403023, dtype=float32, ...), unit='')
@@ -1168,7 +1168,7 @@ def _cosh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "rad")
     >>> jnp.cosh(q)
     UncheckedQuantity(Array(1.5430806, dtype=float32, ...), unit='')
@@ -1216,7 +1216,7 @@ def _cumlogsumexp_p(
     --------
     >>> from quaxed import lax
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity([-1.0, -2, -3], "")
     >>> lax.cumlogsumexp(q)
     UncheckedQuantity(Array([-1. , -0.6867383 , -0.59239405], dtype=float32), unit='')
@@ -1247,7 +1247,7 @@ def _cummax_p(
     --------
     >>> from quaxed import lax
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity([1, 2, 1], "m")
     >>> lax.cummax(q)
     UncheckedQuantity(Array([1, 2, 2], dtype=int32), unit='m')
@@ -1274,7 +1274,7 @@ def _cummin_p(
     --------
     >>> from quaxed import lax
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity([2, 1, 3], "m")
     >>> lax.cummin(q)
     UncheckedQuantity(Array([2, 1, 1], dtype=int32), unit='m')
@@ -1301,7 +1301,7 @@ def _cumprod_p(
     --------
     >>> from quaxed import lax
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity([1, 2, 3], "")
     >>> lax.cumprod(q)
     UncheckedQuantity(Array([1, 2, 6], dtype=int32), unit='')
@@ -1330,7 +1330,7 @@ def _cumsum_p(
     --------
     >>> from quaxed import lax
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity([1, 2, 3], "m")
     >>> lax.cumsum(q)
     UncheckedQuantity(Array([1, 3, 6], dtype=int32), unit='m')
@@ -1355,7 +1355,7 @@ def _device_put_p(x: AbstractQuantity, **kwargs: Any) -> AbstractQuantity:
     --------
     >>> from quaxed import device_put
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "m")
     >>> device_put(q)
     UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
@@ -1380,7 +1380,7 @@ def _digamma_p(x: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> from quaxed import lax
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(1.0, "")
     >>> lax.digamma(q)
     UncheckedQuantity(Array(-0.5772154, dtype=float32, ...), unit='')
@@ -1406,7 +1406,7 @@ def _div_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1, "m")
     >>> q2 = UncheckedQuantity(2, "s")
     >>> jnp.divide(q1, q2)
@@ -1437,7 +1437,7 @@ def _div_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     >>> import quaxed.numpy as jnp
     >>> x = jnp.asarray([1.0, 2, 3])
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(2.0, "m")
     >>> jnp.divide(x, q)
     UncheckedQuantity(Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
@@ -1465,7 +1465,7 @@ def _div_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     >>> import quaxed.numpy as jnp
     >>> y = jnp.asarray([1.0, 2, 3])
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(6.0, "m")
     >>> jnp.divide(q, y)
     UncheckedQuantity(Array([6., 3., 2.], dtype=float32), unit='m')
@@ -1493,7 +1493,7 @@ def _dot_general_jq(
     """Dot product of an array and a quantity.
 
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity, UncheckedQuantity
+    >>> from unxt.quantity import Quantity, UncheckedQuantity
 
     >>> theta = jnp.pi / 4  # 45 degrees
     >>> Rz = jnp.asarray(
@@ -1531,7 +1531,7 @@ def _dot_general_qq(
     This is a dot product of two quantities.
 
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
 
     >>> q1 = UncheckedQuantity([1, 2, 3], "m")
     >>> q2 = UncheckedQuantity([4, 5, 6], "m")
@@ -1600,7 +1600,7 @@ def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1, "m")
     >>> q2 = UncheckedQuantity(1, "m")
     >>> jnp.equal(q1, q2)
@@ -1634,7 +1634,7 @@ def _eq_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     >>> import quaxed.numpy as jnp
     >>> x = jnp.asarray([1.0, 2, 3])
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(2.0, "")
     >>> jnp.equal(x, q)
     Array([False,  True, False], dtype=bool)
@@ -1669,7 +1669,7 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     >>> import quaxed.numpy as jnp
     >>> y = jnp.asarray([1.0, 2, 3])
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(2.0, "")
     >>> jnp.equal(q, y)
     Array([False,  True, False], dtype=bool)
@@ -1730,7 +1730,7 @@ def _erf_inv_p(x: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> from quaxed import lax
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(0.5, "")
     >>> lax.erf_inv(q)
     UncheckedQuantity(Array(0.47693628, dtype=float32, ...), unit='')
@@ -1757,7 +1757,7 @@ def _erf_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> from quaxed import lax
     >>> from quax import quaxify
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(0.5, "")
     >>> lax.erf(q)
     UncheckedQuantity(Array(0.5204999, dtype=float32, ...), unit='')
@@ -1783,7 +1783,7 @@ def _erfc_p(x: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> from quaxed import lax
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(0.5, "")
     >>> lax.erfc(q)
     UncheckedQuantity(Array(0.47950017, dtype=float32, ...), unit='')
@@ -1809,7 +1809,7 @@ def _exp2_p(x: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(3, "")
     >>> jnp.exp2(q)
     UncheckedQuantity(Array(8., dtype=float32, ...), unit='')
@@ -1834,7 +1834,7 @@ def _exp_p(x: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "")
     >>> jnp.exp(q)
     UncheckedQuantity(Array(2.7182817, dtype=float32, ...), unit='')
@@ -1867,7 +1867,7 @@ def _expm1_p(x: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(0, "")
     >>> jnp.expm1(q)
     UncheckedQuantity(Array(0., dtype=float32, ...), unit='')
@@ -1892,7 +1892,7 @@ def _fft_p(x: AbstractQuantity, *, fft_type: Any, fft_lengths: Any) -> AbstractQ
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity([1, 2, 3], "")
     >>> jnp.fft.fft(q)
     UncheckedQuantity(Array([ 6. +0.j       , -1.5+0.8660254j, -1.5-0.8660254j],
@@ -1920,7 +1920,7 @@ def _floor_p(x: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(1.5, "")
     >>> jnp.floor(q)
     UncheckedQuantity(Array(1., dtype=float32, ...), unit='')
@@ -1959,7 +1959,7 @@ def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1_001.0, "m")
     >>> q2 = UncheckedQuantity(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
@@ -1994,7 +1994,7 @@ def _ge_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
 
     >>> x = jnp.asarray(1_001.0)
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q2 = UncheckedQuantity(1.0, "")
     >>> jnp.greater_equal(x, q2)
     Array(True, dtype=bool, ...)
@@ -2030,7 +2030,7 @@ def _ge_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
 
     >>> y = jnp.asarray(0.9)
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1.0, "")
     >>> jnp.greater_equal(q1, y)
     Array(True, dtype=bool, ...)
@@ -2067,7 +2067,7 @@ def _gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1_001.0, "m")
     >>> q2 = UncheckedQuantity(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
@@ -2098,7 +2098,7 @@ def _gt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
 
     >>> x = jnp.asarray(1_001.0)
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q2 = UncheckedQuantity(1.0, "")
     >>> jnp.greater_equal(x, q2)
     Array(True, dtype=bool, ...)
@@ -2134,7 +2134,7 @@ def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
 
     >>> y = jnp.asarray(0.9)
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1.0, "")
     >>> jnp.greater_equal(q1, y)
     Array(True, dtype=bool, ...)
@@ -2171,7 +2171,7 @@ def _igamma_p(a: AbstractQuantity, x: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> from quaxed import lax
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> a = UncheckedQuantity(1.0, "")
     >>> x = UncheckedQuantity(1.0, "")
     >>> lax.igamma(a, x)
@@ -2204,7 +2204,7 @@ def _integer_pow_p(x: AbstractQuantity, *, y: Any) -> AbstractQuantity:
 
     Examples
     --------
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(2, "m")
     >>> q**3
     UncheckedQuantity(Array(8, dtype=int32, ...), unit='m3')
@@ -2229,7 +2229,7 @@ def _is_finite_p(x: AbstractQuantity) -> ArrayLike:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(1, "m")
     >>> jnp.isfinite(q)
     array(True)
@@ -2260,7 +2260,7 @@ def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1_001.0, "m")
     >>> q2 = UncheckedQuantity(1.0, "km")
     >>> jnp.less_equal(q1, q2)
@@ -2291,7 +2291,7 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
 
     >>> x1 = jnp.asarray(1.001)
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q2 = UncheckedQuantity(1.0, "")
     >>> jnp.less_equal(x1, q2)
     Array(False, dtype=bool, ...)
@@ -2327,7 +2327,7 @@ def _le_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
 
     >>> y1 = jnp.asarray(0.9)
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1.0, "")
     >>> jnp.less_equal(q1, y1)
     Array(False, dtype=bool, ...)
@@ -2364,7 +2364,7 @@ def _lgamma_p(x: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> import quaxed.scipy as jsp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(3, "")
     >>> jsp.special.gammaln(q)
     UncheckedQuantity(Array(0.6931474, dtype=float32, ...), unit='')
@@ -2416,7 +2416,7 @@ def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
 
     `UncheckedQuantity`:
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
 
     >>> x = UncheckedQuantity(1.0, "km")
     >>> y = UncheckedQuantity(2000.0, "m")
@@ -2471,7 +2471,7 @@ def _lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
 
     `UncheckedQuantity`:
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
 
     >>> x = jnp.asarray([1.0])
     >>> y = UncheckedQuantity(2.0, "")
@@ -2529,7 +2529,7 @@ def _lt_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
 
     `UncheckedQuantity`:
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
 
     >>> x = UncheckedQuantity(1, "")
     >>> y = 2
@@ -2592,7 +2592,7 @@ def _max_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> AbstractQuantity:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1, "m")
     >>> q2 = UncheckedQuantity(2, "m")
     >>> jnp.maximum(q1, q2)
@@ -2617,7 +2617,7 @@ def _max_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> x = jnp.array([1.0])
     >>> q2 = UncheckedQuantity(2, "")
     >>> jnp.maximum(x, q2)
@@ -2641,7 +2641,7 @@ def _max_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity(2, "")
     >>> y = jnp.array([1.0])
     >>> jnp.maximum(q1, y)
@@ -2706,7 +2706,7 @@ def _ne_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q1 = UncheckedQuantity(1, "m")
     >>> q2 = UncheckedQuantity(2, "m")
     >>> jnp.not_equal(q1, q2)
@@ -2749,7 +2749,7 @@ def _ne_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> x = 1
     >>> q2 = UncheckedQuantity(2, "")
     >>> jnp.not_equal(x, q2)
@@ -2902,7 +2902,7 @@ def _rem_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
     Examples
     --------
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
 
     >>> q1 = UncheckedQuantity(10, "m")
     >>> q2 = UncheckedQuantity(3, "m")
@@ -2983,7 +2983,7 @@ def _scan_p(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity as UQ
+    >>> from unxt.quantity import UncheckedQuantity as UQ
 
     >>> x = UQ(jnp.arange(0, 10), "deg")
     >>> x_bins = UQ(jnp.linspace(0, 10, 4), "deg")
@@ -3115,7 +3115,7 @@ def _sign_p(x: AbstractQuantity) -> ArrayLike:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(10, "m")
     >>> jnp.sign(q)
     Array(1, dtype=int32, ...)
@@ -3208,7 +3208,7 @@ def _sqrt_p_q(x: AbstractQuantity) -> AbstractQuantity:
     --------
     >>> import quaxed.numpy as jnp
 
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
     >>> q = UncheckedQuantity(9, "m")
     >>> jnp.sqrt(q)
     UncheckedQuantity(Array(3., dtype=float32, ...), unit='m(1/2)')
@@ -3250,7 +3250,7 @@ def _sub_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
 
     >>> q1 = UncheckedQuantity(1.0, "km")
     >>> q2 = UncheckedQuantity(500.0, "m")
@@ -3278,7 +3278,7 @@ def _sub_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
 
     >>> x = 1_000
     >>> q = UncheckedQuantity(500.0, "")
@@ -3308,7 +3308,7 @@ def _sub_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import UncheckedQuantity
+    >>> from unxt.quantity import UncheckedQuantity
 
     >>> q = UncheckedQuantity(500.0, "")
     >>> y = 1_000
