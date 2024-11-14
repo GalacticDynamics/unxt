@@ -22,7 +22,7 @@ class Quantity(AbstractParametricQuantity):
 
     Examples
     --------
-    >>> from unxt import Quantity, dimensions_of
+    >>> from unxt import Quantity
 
     From an integer:
 
@@ -56,10 +56,10 @@ class Quantity(AbstractParametricQuantity):
     >>> Quantity(jnp.array([1, 2, 3]), "m")
     Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
-    The unit can also be given as a `astropy.units.Unit`:
+    The unit can also be given as a units object:
 
-    >>> import astropy.units as u
-    >>> Quantity(1, u.m)
+    >>> from unxt import units
+    >>> Quantity(1, units("m"))
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     In the previous examples, the dimensions parameter was inferred from the
@@ -76,9 +76,10 @@ class Quantity(AbstractParametricQuantity):
     ...     print(e)
     Physical type mismatch.
 
-    The dimensions can also be given as a `astropy.units.PhysicalType`:
+    The dimensions can also be given as a dimensions object:
 
-    >>> dimensions = dimensions_of(u.km)
+    >>> from unxt import dimensions
+    >>> dimensions = dimensions("length")
     >>> dimensions
     PhysicalType('length')
     >>> Quantity[dimensions](1.0, "m")
@@ -86,12 +87,13 @@ class Quantity(AbstractParametricQuantity):
 
     Or as a unit:
 
-    >>> Quantity[u.m](1.0, "m")
+    >>> Quantity[units("m")](1.0, "m")
     Quantity['length'](Array(1., dtype=float32, ...), unit='m')
 
     Some tricky cases are when the physical type is unknown:
 
-    >>> unit = u.m**2 / (u.kg * u.s**2)
+    >>> from unxt import dimensions_of
+    >>> unit = units("m2 / (kg s2)")
     >>> dimensions_of(unit)
     PhysicalType('unknown')
 

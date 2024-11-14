@@ -14,6 +14,7 @@ from astropy.units.physical import _physical_unit_mapping
 from is_annotated import isannotated
 
 from .utils import get_dimension_name
+from unxt._src.dimensions.core import dimensions
 from unxt._src.typing_ext import Unit as UnitT
 from unxt._src.units.core import units
 
@@ -38,8 +39,7 @@ class AbstractUnitSystem:
     this object will be composed out of the base units:
 
     >>> from unxt import unitsystem
-    >>> import astropy.units as u
-    >>> usys = unitsystem(u.m, u.s, u.kg, u.radian)
+    >>> usys = unitsystem("m", "s", "kg", "radian")
     >>> usys
     unitsystem(m, s, kg, rad)
 
@@ -48,7 +48,7 @@ class AbstractUnitSystem:
 
     This unit system defines energy:
 
-    >>> usys = unitsystem(u.m, u.s, u.kg, u.radian, u.erg)
+    >>> usys = unitsystem("m", "s", "kg", "radian", "erg")
     >>> usys["energy"]
     Unit("erg")
 
@@ -56,7 +56,7 @@ class AbstractUnitSystem:
     given in terms of ``kpc`` and ``Myr``, but velocities are often specified in
     ``km/s``:
 
-    >>> usys = unitsystem(u.kpc, u.Myr, u.Msun, u.radian, u.km / u.s)
+    >>> usys = unitsystem("kpc", "Myr", "Msun", "radian", "km / s")
     >>> usys["velocity"]
     Unit("km / s")
 
@@ -87,20 +87,20 @@ class AbstractUnitSystem:
         # Register class with a tuple of it's dimensions.
         # This requires processing the type hints, not the dataclass fields
         # since those are made after the original class is defined.
-        field_names, dimensions = parse_field_names_and_dimensions(cls)
+        field_names, dims = parse_field_names_and_dimensions(cls)
 
         # Check the unitsystem is not already registered
         # If `make_dataclass(slots=True)` then the class is made twice, the
         # second time adding the `__slots__` attribute
-        if dimensions in _UNITSYSTEMS_REGISTRY and "__slots__" not in cls.__dict__:
-            msg = f"Unit system with dimensions {dimensions} already exists."
+        if dims in _UNITSYSTEMS_REGISTRY and "__slots__" not in cls.__dict__:
+            msg = f"Unit system with dimensions {dims} already exists."
             raise ValueError(msg)
 
         # Add attributes to the class
         cls._base_field_names = tuple(field_names)
-        cls._base_dimensions = dimensions
+        cls._base_dimensions = dims
 
-        _UNITSYSTEMS_REGISTRY[dimensions] = cls
+        _UNITSYSTEMS_REGISTRY[dims] = cls
 
     # ===============================================================
     # Instance-level
@@ -121,8 +121,7 @@ class AbstractUnitSystem:
         Examples
         --------
         >>> from unxt import unitsystem
-        >>> import astropy.units as u
-        >>> usys = unitsystem(u.m, u.s, u.kg, u.radian)
+        >>> usys = unitsystem("m", "s", "kg", "radian")
 
         Something in the base dimensions:
 
@@ -135,7 +134,7 @@ class AbstractUnitSystem:
         Unit("m / s")
 
         """
-        key = u.get_physical_type(key)
+        key = dimensions(key)
         if key in self.base_dimensions:
             return getattr(self, get_dimension_name(key))
 
@@ -159,8 +158,7 @@ class AbstractUnitSystem:
         Examples
         --------
         >>> from unxt import unitsystem
-        >>> import astropy.units as u
-        >>> usys = unitsystem(u.m, u.s, u.kg, u.radian)
+        >>> usys = unitsystem("m", "s", "kg", "radian")
         >>> len(usys)
         4
 
@@ -178,8 +176,7 @@ class AbstractUnitSystem:
         Examples
         --------
         >>> from unxt import unitsystem
-        >>> import astropy.units as u
-        >>> usys = unitsystem(u.m, u.s, u.kg, u.radian)
+        >>> usys = unitsystem("m", "s", "kg", "radian")
         >>> list(iter(usys))
         [Unit("m"), Unit("s"), Unit("kg"), Unit("rad")]
 
@@ -192,8 +189,7 @@ class AbstractUnitSystem:
         Examples
         --------
         >>> from unxt import unitsystem
-        >>> import astropy.units as u
-        >>> usys = unitsystem(u.m, u.s, u.kg, u.radian)
+        >>> usys = unitsystem("m", "s", "kg", "radian")
         >>> str(usys)
         'LTMAUnitSystem(length, time, mass, angle)'
 
@@ -214,7 +210,7 @@ def parse_field_names_and_dimensions(
     type_hints = get_type_hints(cls, include_extras=True)
 
     field_names = []
-    dimensions = []
+    dims = []
     for name, type_hint in type_hints.items():
         # Check it's Annotated
         if not isannotated(type_hint):
@@ -228,22 +224,22 @@ def parse_field_names_and_dimensions(
             continue
 
         # Need for one of the arguments to be a PhysicalType
-        f_dims = [x for x in f_args if isinstance(x, Dimension)]
-        if not f_dims:
+        f_dim = [x for x in f_args if isinstance(x, Dimension)]
+        if not f_dim:
             msg = f"Field {name!r} must be an Annotated with a dimension."
             raise TypeError(msg)
-        if len(f_dims) > 1:
+        if len(f_dim) > 1:
             msg = (
                 f"Field {name!r} must be an Annotated with only one dimension; "
-                f"got {f_dims}"
+                f"got {f_dim}"
             )
             raise TypeError(msg)
 
         field_names.append(get_dimension_name(name))
-        dimensions.append(f_dims[0])
+        dims.append(f_dim[0])
 
-    if len(set(dimensions)) < len(dimensions):
+    if len(set(dims)) < len(dims):
         msg = "Some dimensions are repeated."
         raise ValueError(msg)
 
-    return tuple(field_names), tuple(dimensions)
+    return tuple(field_names), tuple(dims)

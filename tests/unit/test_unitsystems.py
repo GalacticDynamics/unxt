@@ -10,7 +10,7 @@ import astropy.units as u
 import numpy as np
 import pytest
 
-from unxt import unitsystems
+from unxt import dimensions, units, unitsystems
 from unxt._src.units.system.base import _UNITSYSTEMS_REGISTRY
 from unxt.unitsystems import (
     AbstractUnitSystem,
@@ -38,17 +38,17 @@ def clean_unitsystems_registry(monkeypatch):
 
 def test_unitsystem_from_() -> None:
     """Test the `unxt.AbstractUnitSystem.from_`."""
-    usys = unitsystem(5 * u.kpc, 50 * u.Myr, 1e5 * u.Msun, u.rad)
+    usys = unitsystem(5 * u.kpc, 50 * u.Myr, 1e5 * u.Msun, "rad")
     assert np.isclose((8 * u.Myr).decompose(usys).value, 8 / 50)
 
 
 def test_compare() -> None:
     """Test the `unxt.AbstractUnitSystem.compare` method."""
-    usys1 = unitsystem(u.kpc, u.Myr, u.radian, u.Msun, u.mas / u.yr)
-    usys1_clone = unitsystem(u.kpc, u.Myr, u.radian, u.Msun, u.mas / u.yr)
+    usys1 = unitsystem("kpc", "Myr", "radian", "Msun", "mas / yr")
+    usys1_clone = unitsystem("kpc", "Myr", "radian", "Msun", "mas / yr")
 
-    usys2 = unitsystem(u.kpc, u.Myr, u.radian, u.Msun, u.kiloarcsecond / u.yr)
-    usys3 = unitsystem(u.kpc, u.Myr, u.radian, u.kg, u.mas / u.yr)
+    usys2 = unitsystem("kpc", "Myr", "radian", "Msun", "kiloarcsecond / yr")
+    usys3 = unitsystem("kpc", "Myr", "radian", "kg", "mas / yr")
 
     assert usys1 == usys1_clone
     assert usys1_clone == usys1
@@ -61,13 +61,13 @@ def test_compare() -> None:
 
 
 def test_regression_dimension_aliases_spaces() -> None:
-    usys = unitsystem(u.kpc, u.Myr, u.radian, u.Msun, u.mas / u.yr)
+    usys = unitsystem("kpc", "Myr", "radian", "Msun", "mas / yr")
     assert usys["angular speed"] == usys["angular velocity"]
 
 
 def test_pickle(tmpdir: Path) -> None:
     """Test pickling and unpickling a `unxt.AbstractUnitSystem`."""
-    usys = unitsystem(u.kpc, u.Myr, u.radian, u.Msun)
+    usys = unitsystem("kpc", "Myr", "radian", "Msun")
 
     path = tmpdir / "test.pkl"
     with path.open(mode="wb") as f:
@@ -107,7 +107,7 @@ def test_non_unit_fields():
 
     @dataclass(frozen=True, slots=True)
     class SomeNoneUnitFields(AbstractUnitSystem):
-        a: Annotated[u.Unit, u.get_physical_type("length")]
+        a: Annotated[u.Unit, dimensions("length")]
         b: int
 
     assert SomeNoneUnitFields._base_field_names == ("a",)
@@ -131,25 +131,23 @@ def test_wrong_annotation():
 
         @dataclass(frozen=True, slots=True)
         class BadAnnotations(AbstractUnitSystem):
-            a: Annotated[
-                u.Unit, u.get_physical_type("length"), u.get_physical_type("time")
-            ]
+            a: Annotated[u.Unit, dimensions("length"), dimensions("time")]
 
 
 def test_unitsystem_already_registered():
     """Test that a unit system can only be registered once."""
 
     class MyUnitSystem(AbstractUnitSystem):
-        length: Annotated[u.Unit, u.get_physical_type("length")]
-        time: Annotated[u.Unit, u.get_physical_type("time")]
+        length: Annotated[u.Unit, dimensions("length")]
+        time: Annotated[u.Unit, dimensions("time")]
 
     assert MyUnitSystem._base_dimensions in unitsystems.UNITSYSTEMS_REGISTRY
 
     with pytest.raises(ValueError, match="already exists"):
 
         class MyUnitSystem(AbstractUnitSystem):
-            length: Annotated[u.Unit, u.get_physical_type("length")]
-            time: Annotated[u.Unit, u.get_physical_type("time")]
+            length: Annotated[u.Unit, dimensions("length")]
+            time: Annotated[u.Unit, dimensions("time")]
 
     # Clean up custom unit system from registry:
     del _UNITSYSTEMS_REGISTRY[MyUnitSystem._base_dimensions]
@@ -182,29 +180,29 @@ def test_dimensionless_singleton():
 
 def test_equivalent():
     """Test that equivalent unit systems are equal."""
-    usys1 = unitsystem(u.kpc, u.Myr, u.radian, u.Msun, u.mas / u.yr)
-    usys2 = unitsystem(u.km, u.yr, u.deg, u.kg, u.deg / u.s)
+    usys1 = unitsystem("kpc", "Myr", "radian", "Msun", "mas / yr")
+    usys2 = unitsystem("km", "yr", "deg", "kg", "deg / s")
     assert equivalent(usys1, usys2)
 
-    usys3 = unitsystem(u.kpc, u.Myr, u.radian)
+    usys3 = unitsystem("kpc", "Myr", "radian")
     assert not equivalent(usys1, usys3)
 
 
 def test_extend():
     """Test adding additional units to a unit system."""
-    usys1 = unitsystem(u.kpc, u.Myr, u.radian, u.Msun, u.km / u.s)
-    usys2 = unitsystem(usys1, u.mas / u.yr)
-    assert usys2["angular speed"] == u.mas / u.yr
+    usys1 = unitsystem("kpc", "Myr", "radian", "Msun", "km / s")
+    usys2 = unitsystem(usys1, "mas / yr")
+    assert usys2["angular speed"] == units("mas / yr")
 
-    usys3 = unitsystem(usys1, u.mas / u.yr, u.pc)
-    assert usys3["angular speed"] == u.mas / u.yr
-    assert usys3["length"] == u.pc  # overridden
+    usys3 = unitsystem(usys1, "mas / yr", "pc")
+    assert usys3["angular speed"] == units("mas / yr")
+    assert usys3["length"] == units("pc")  # overridden
 
 
 def test_abstract_usys_flag():
     """Test that the abstract unit system flag fails."""
     with pytest.raises(TypeError, match="Do not use"):
-        unitsystem(AbstractUSysFlag, u.kpc)
+        unitsystem(AbstractUSysFlag, "kpc")
 
     with pytest.raises(ValueError, match="unit system flag classes"):
         AbstractUSysFlag()
@@ -212,8 +210,8 @@ def test_abstract_usys_flag():
 
 def test_standard_flag():
     """Test defining unit system with the standard flag."""
-    usys1 = unitsystem(StandardUSysFlag, u.kpc, u.Myr)
-    usys2 = unitsystem(u.kpc, u.Myr)
+    usys1 = unitsystem(StandardUSysFlag, "kpc", "Myr")
+    usys2 = unitsystem("kpc", "Myr")
     assert usys1 == usys2
 
     with pytest.raises(ValueError, match="unit system flag classes"):
@@ -225,13 +223,13 @@ def test_simulation_usys():
     from astropy.constants import G as const_G  # noqa: N811
 
     tmp_G = const_G.decompose([u.kpc, u.Myr, u.Msun])
-    usys1 = unitsystem(DynamicalSimUSysFlag, u.kpc, u.Myr, u.rad)
-    assert np.isclose((1 * usys1["mass"]).to_value(u.Msun), 1 / tmp_G.value)
+    usys1 = unitsystem(DynamicalSimUSysFlag, "kpc", "Myr", "rad")
+    assert np.isclose((1 * usys1["mass"]).to_value("Msun"), 1 / tmp_G.value)
 
-    usys2 = unitsystem(DynamicalSimUSysFlag, u.kpc, u.Msun, u.rad)
-    assert np.isclose((1 * usys2["time"]).to_value(u.Myr), 1 / np.sqrt(tmp_G.value))
+    usys2 = unitsystem(DynamicalSimUSysFlag, "kpc", "Msun", "rad")
+    assert np.isclose((1 * usys2["time"]).to_value("Myr"), 1 / np.sqrt(tmp_G.value))
 
-    base_units = (u.kpc, u.Myr, u.Msun, u.km / u.s)
+    base_units = ("kpc", "Myr", "Msun", "km / s")
     for u1, u2 in itertools.product(base_units, base_units):
         if u1 == u2:
             continue
