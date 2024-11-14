@@ -110,9 +110,9 @@ def dimensions_of(obj: AbstractDimensions, /) -> AbstractDimensions:
     Examples
     --------
     >>> from astropy import units as u
-    >>> from unxt.dims import dimensions_of
+    >>> from unxt.dims import dimensions, dimensions_of
 
-    >>> dimensions_of(u.get_physical_type("length"))
+    >>> dimensions_of(dimensions("length"))
     PhysicalType('length')
 
     """

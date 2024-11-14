@@ -36,9 +36,8 @@ def unitsystem(usys: AbstractUnitSystem, /) -> AbstractUnitSystem:
 
     Examples
     --------
-    >>> import astropy.units as u
     >>> from unxt.unitsystems import unitsystem
-    >>> usys = unitsystem(u.kpc, u.Myr, u.Msun, u.radian)
+    >>> usys = unitsystem("kpc", "Myr", "Msun", "radian")
     >>> usys
     unitsystem(kpc, Myr, solMass, rad)
 
@@ -55,16 +54,15 @@ def unitsystem(units_: Sequence[Any], /) -> AbstractUnitSystem:
 
     Examples
     --------
-    >>> import astropy.units as u
     >>> from unxt.unitsystems import unitsystem
 
     >>> unitsystem(())
     DimensionlessUnitSystem()
 
-    >>> unitsystem((u.kpc, u.Myr, u.Msun, u.radian))
+    >>> unitsystem(("kpc", "Myr", "Msun", "radian"))
     unitsystem(kpc, Myr, solMass, rad)
 
-    >>> unitsystem([u.kpc, u.Myr, u.Msun, u.radian])
+    >>> unitsystem(["kpc", "Myr", "Msun", "radian"])
     unitsystem(kpc, Myr, solMass, rad)
 
     """
@@ -91,10 +89,9 @@ def unitsystem(*units_: Any) -> AbstractUnitSystem:
 
     Examples
     --------
-    >>> import astropy.units as u
     >>> from unxt.unitsystems import unitsystem
 
-    >>> unitsystem(u.kpc, u.Myr, u.Msun, u.radian)
+    >>> unitsystem("kpc", "Myr", "Msun", "radian")
     unitsystem(kpc, Myr, solMass, rad)
 
     """
@@ -176,7 +173,6 @@ def unitsystem(usys: AbstractUnitSystem, *units_: Any) -> AbstractUnitSystem:
     --------
     We can add a new unit definition to an existing unit system:
 
-    >>> import astropy.units as u
     >>> from unxt.unitsystems import unitsystem
     >>> usys = unitsystem("galactic")
     >>> unitsystem(usys, "km/s")
@@ -217,9 +213,8 @@ def unitsystem(flag: type[StandardUSysFlag], *units_: Any) -> AbstractUnitSystem
 
     Examples
     --------
-    >>> import astropy.units as u
     >>> from unxt import unitsystem, unitsystems
-    >>> unitsystem(unitsystems.StandardUSysFlag, u.kpc, u.Myr, u.Msun)
+    >>> unitsystem(unitsystems.StandardUSysFlag, "kpc", "Myr", "Msun")
     LengthTimeMassUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"))
 
     """

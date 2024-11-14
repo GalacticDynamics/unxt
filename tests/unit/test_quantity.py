@@ -19,7 +19,13 @@ from plum import convert, parametric
 
 import quaxed.numpy as jnp
 
-from unxt import AbstractParametricQuantity, Quantity, is_unit_convertible, units
+from unxt import (
+    AbstractParametricQuantity,
+    Quantity,
+    dimensions,
+    is_unit_convertible,
+    units,
+)
 
 xps = make_strategies_namespace(jax_xp)
 
@@ -89,21 +95,21 @@ def test_parametric():
     """Test the parametric strategy."""
     # Inferred
     q = Quantity(1, "m")
-    (dimensions,) = q._type_parameter
-    assert dimensions == u.get_physical_type(u.m)
+    (dims,) = q._type_parameter
+    assert dims == dimensions("length")
 
     # Explicit
     q = Quantity["length"](1, "m")
-    (dimensions,) = q._type_parameter
-    assert dimensions == u.get_physical_type(u.m)
+    (dims,) = q._type_parameter
+    assert dims == dimensions("length")
 
     q = Quantity["length"](jnp.ones((1, 2)), "m")
-    (dimensions,) = q._type_parameter
-    assert dimensions == u.get_physical_type(u.m)
+    (dims,) = q._type_parameter
+    assert dims == dimensions("length")
 
     # type-checks
     with pytest.raises(ValueError, match="Physical type mismatch."):
-        Quantity["time"](1, u.m)
+        Quantity["time"](1, "m")
 
 
 @pytest.mark.parametrize("unit", [u.m, "meter"])
@@ -235,11 +241,11 @@ def test_gt():
     # Test with incompatible units
     # TODO: better equinox exception matching
     with pytest.raises(Exception):  # noqa: B017, PT011
-        _ = q > Quantity(0, u.s)
+        _ = q > Quantity(0, "s")
 
     # Test special case w/out units
-    assert Quantity(1, u.m) > 0
-    assert np.array_equal(Quantity([-1, 0, 1], u.m) > 0, [False, False, True])
+    assert Quantity(1, "m") > 0
+    assert np.array_equal(Quantity([-1, 0, 1], "m") > 0, [False, False, True])
 
 
 def test_ge():
@@ -259,11 +265,11 @@ def test_ge():
     # Test with incompatible units
     # TODO: better equinox exception matching
     with pytest.raises(Exception):  # noqa: B017, PT011
-        _ = q >= Quantity(0, u.s)
+        _ = q >= Quantity(0, "s")
 
     # Test special case w/out units
-    assert Quantity(1, u.m) >= 0
-    assert np.array_equal(Quantity([-1, 0, 1], u.m) >= 0, [False, True, True])
+    assert Quantity(1, "m") >= 0
+    assert np.array_equal(Quantity([-1, 0, 1], "m") >= 0, [False, True, True])
 
 
 def test_lt():
@@ -283,11 +289,11 @@ def test_lt():
     # Test with incompatible units
     # TODO: better equinox exception matching
     with pytest.raises(Exception):  # noqa: B017, PT011
-        _ = q < Quantity(0, u.s)
+        _ = q < Quantity(0, "s")
 
     # Test special case w/out units
-    assert Quantity(-1, u.m) < 0
-    assert np.array_equal(Quantity([-1, 0, 1], u.m) < 0, [True, False, False])
+    assert Quantity(-1, "m") < 0
+    assert np.array_equal(Quantity([-1, 0, 1], "m") < 0, [True, False, False])
 
 
 def test_le():
@@ -307,11 +313,11 @@ def test_le():
     # Test with incompatible units
     # TODO: better equinox exception matching
     with pytest.raises(Exception):  # noqa: B017, PT011
-        _ = q <= Quantity(0, u.s)
+        _ = q <= Quantity(0, "s")
 
     # Test special case w/out units
-    assert Quantity(-1, u.m) <= 0
-    assert np.array_equal(Quantity([-1, 0, 1], u.m) <= 0, [True, True, False])
+    assert Quantity(-1, "m") <= 0
+    assert np.array_equal(Quantity([-1, 0, 1], "m") <= 0, [True, True, False])
 
 
 def test_eq():
@@ -331,11 +337,11 @@ def test_eq():
     # Test with incompatible units
     # TODO: better equinox exception matching
     with pytest.raises(Exception):  # noqa: B017, PT011
-        _ = q == Quantity(0, u.s)
+        _ = q == Quantity(0, "s")
 
     # Test special case w/out units
-    assert Quantity(0, u.m) == 0
-    assert np.array_equal(Quantity([-1, 0, 1], u.m) == 0, [False, True, False])
+    assert Quantity(0, "m") == 0
+    assert np.array_equal(Quantity([-1, 0, 1], "m") == 0, [False, True, False])
 
 
 def test_ne():
@@ -355,13 +361,13 @@ def test_ne():
     # Test with incompatible units
     # TODO: better equinox exception matching
     with pytest.raises(Exception):  # noqa: B017, PT011
-        _ = q != Quantity(0, u.s)
+        _ = q != Quantity(0, "s")
     with pytest.raises(Exception):  # noqa: B017, PT011
-        _ = q != Quantity(4, u.s)
+        _ = q != Quantity(4, "s")
 
     # Test special case w/out units
-    assert Quantity(1, u.m) != 0
-    assert np.array_equal(Quantity([-1, 0, 1], u.m) != 0, [True, False, True])
+    assert Quantity(1, "m") != 0
+    assert np.array_equal(Quantity([-1, 0, 1], "m") != 0, [True, False, True])
 
 
 def test_neg():
@@ -383,9 +389,9 @@ def test_flatten():
     assert q.flatten() == Quantity(1, "m")
 
     # Test with an array
-    q = Quantity([[1, 2, 3], [4, 5, 6]], u.m)
+    q = Quantity([[1, 2, 3], [4, 5, 6]], "m")
     assert np.array_equal(q.flatten().value, [1, 2, 3, 4, 5, 6])
-    assert q.flatten().unit == u.m
+    assert q.flatten().unit == units("m")
 
 
 def test_reshape():
@@ -397,7 +403,7 @@ def test_reshape():
     # Test with an array
     q = Quantity([1, 2, 3, 4, 5, 6], "m")
     assert np.array_equal(q.reshape(2, 3).value, [[1, 2, 3], [4, 5, 6]])
-    assert q.reshape(2, 3).unit == u.m
+    assert q.reshape(2, 3).unit == units("m")
 
 
 def test_hypot():
@@ -408,7 +414,7 @@ def test_hypot():
 
     q1 = Quantity([1, 2, 3], "m")
     q2 = Quantity([4, 5, 6], "m")
-    assert all(jnp.hypot(q1, q2) == Quantity([4.1231055, 5.3851647, 6.7082043], u.m))
+    assert all(jnp.hypot(q1, q2) == Quantity([4.1231055, 5.3851647, 6.7082043], "m"))
 
 
 def test_mod():
@@ -547,10 +553,10 @@ def test_is_unit_convertible():
     assert is_unit_convertible(u.s, u.m) is False
 
     # Quantity
-    assert is_unit_convertible(u.kpc, Quantity(1, u.km)) is True
+    assert is_unit_convertible(u.kpc, Quantity(1, "km")) is True
 
     # unit is a str
-    assert is_unit_convertible("km", Quantity(1, u.km)) is True
+    assert is_unit_convertible("km", Quantity(1, "km")) is True
 
     # Bad quantity
-    assert is_unit_convertible(u.m, Quantity(1, u.s)) is False
+    assert is_unit_convertible(u.m, Quantity(1, "s")) is False

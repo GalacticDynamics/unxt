@@ -70,17 +70,17 @@ class SIUnitSystem(SingletonMixin, AbstractUnitSystem):
 
     Examples
     --------
-    >>> import astropy.units as u
+    >>> from unxt import units
     >>> from unxt._src.units.system.builtin import SIUnitSystem
     >>> usys = SIUnitSystem(
-    ...     length=u.meter,
-    ...     time=u.second,
-    ...     mass=u.kilogram,
-    ...     electric_current=u.ampere,
-    ...     temperature=u.Kelvin,
-    ...     amount=u.mole,
-    ...     luminous_intensity=u.candela,
-    ...     angle=u.radian,
+    ...     length=units("meter"),
+    ...     time=units("second"),
+    ...     mass=units("kilogram"),
+    ...     electric_current=units("ampere"),
+    ...     temperature=units("Kelvin"),
+    ...     amount=units("mole"),
+    ...     luminous_intensity=units("candela"),
+    ...     angle=units("radian"),
     ... )
     >>> usys
     unitsystem(m, kg, s, mol, A, K, cd, rad)
@@ -113,18 +113,18 @@ class CGSUnitSystem(SingletonMixin, AbstractUnitSystem):
 
     Examples
     --------
-    >>> import astropy.units as u
+    >>> from unxt import units
     >>> from unxt._src.units.system.builtin import CGSUnitSystem
     >>> usys = CGSUnitSystem(
-    ...     length=u.centimeter,
-    ...     time=u.second,
-    ...     mass=u.gram,
-    ...     angle=u.radian,
-    ...     force=u.dyne,
-    ...     energy=u.erg,
-    ...     pressure=u.barye,
-    ...     dynamic_viscosity=u.poise,
-    ...     kinematic_viscosity=u.stokes,
+    ...     length=units("centimeter"),
+    ...     time=units("second"),
+    ...     mass=units("gram"),
+    ...     angle=units("radian"),
+    ...     force=units("dyne"),
+    ...     energy=units("erg"),
+    ...     pressure=units("barye"),
+    ...     dynamic_viscosity=units("poise"),
+    ...     kinematic_viscosity=units("stokes"),
     ... )
     >>> usys
     unitsystem(cm, g, s, dyn, erg, Ba, P, St, rad)

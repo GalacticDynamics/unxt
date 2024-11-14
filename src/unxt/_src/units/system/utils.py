@@ -58,12 +58,13 @@ def get_dimension_name(pt: Dimension, /) -> str:
 
     Examples
     --------
+    >>> from unxt import dimensions
     >>> from unxt._src.units.system.utils import get_dimension_name
-    >>> import astropy.units as u
-    >>> get_dimension_name(u.get_physical_type("length"))
+
+    >>> get_dimension_name(dimensions("length"))
     'length'
 
-    >>> get_dimension_name(u.get_physical_type("speed"))
+    >>> get_dimension_name(dimensions("speed"))
     'speed'
 
     """
@@ -83,9 +84,10 @@ def get_dimension_name(pt: Unit, /) -> str:
 
     Examples
     --------
+    >>> from unxt import units
     >>> from unxt._src.units.system.utils import get_dimension_name
-    >>> import astropy.units as u
-    >>> get_dimension_name(u.km)
+
+    >>> get_dimension_name(units("km"))
     'length'
 
     """

@@ -101,8 +101,9 @@ def dimensions_of(obj: AbstractUnits, /) -> u.PhysicalType:
 
     Examples
     --------
+    >>> from unxt import units
     >>> from unxt.dims import dimensions_of
-    >>> dimensions_of(u.km)
+    >>> dimensions_of(units("km"))
     PhysicalType('length')
 
     """

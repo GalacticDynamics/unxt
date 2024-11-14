@@ -12,8 +12,6 @@ __all__ = [
     "NAMED_UNIT_SYSTEMS",
 ]
 
-import astropy.units as u
-
 from .base import AbstractUnitSystem
 from .builtin import (
     CGSUnitSystem,
@@ -21,45 +19,47 @@ from .builtin import (
     LTMAUnitSystem,
     SIUnitSystem,
 )
+from unxt._src.units.core import units
 
 # Dimensionless. This is a singleton.
 dimensionless = DimensionlessUnitSystem()
 
 # Galactic unit system
 galactic = LTMAUnitSystem(
-    length=u.kpc,
-    time=u.Myr,
-    mass=u.Msun,
-    angle=u.radian,
-    # preferred_units={speed: u.km / u.s},
+    length=units("kpc"),
+    time=units("Myr"),
+    mass=units("Msun"),
+    angle=units("radian"),
 )
 
 # Solar system units
-solarsystem = LTMAUnitSystem(length=u.au, time=u.yr, mass=u.Msun, angle=u.radian)
+solarsystem = LTMAUnitSystem(
+    length=units("au"), time=units("yr"), mass=units("Msun"), angle=units("radian")
+)
 
 # International System of Units default
 si = SIUnitSystem(
-    length=u.meter,
-    time=u.second,
-    mass=u.kilogram,
-    electric_current=u.ampere,
-    temperature=u.Kelvin,
-    amount=u.mole,
-    luminous_intensity=u.candela,
-    angle=u.radian,
+    length=units("meter"),
+    time=units("second"),
+    mass=units("kilogram"),
+    electric_current=units("ampere"),
+    temperature=units("Kelvin"),
+    amount=units("mole"),
+    luminous_intensity=units("candela"),
+    angle=units("radian"),
 )
 
 # Centimeter, gram, second
 cgs = CGSUnitSystem(
-    length=u.centimeter,
-    time=u.second,
-    mass=u.gram,
-    angle=u.radian,
-    force=u.dyne,
-    energy=u.erg,
-    pressure=u.barye,
-    dynamic_viscosity=u.poise,
-    kinematic_viscosity=u.stokes,
+    length=units("centimeter"),
+    time=units("second"),
+    mass=units("gram"),
+    angle=units("radian"),
+    force=units("dyne"),
+    energy=units("erg"),
+    pressure=units("barye"),
+    dynamic_viscosity=units("poise"),
+    kinematic_viscosity=units("stokes"),
 )
 
 

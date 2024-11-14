@@ -17,7 +17,7 @@ from numpy import finfo as FInfo  # noqa: N812
 
 import quaxed.numpy as jnp
 
-from unxt import Quantity, ustrip
+from unxt import Quantity, units, ustrip
 
 # =============================================================================
 # Constants
@@ -621,7 +621,7 @@ def test_divide():
     x = Quantity(jnp.asarray([1, 2, 3], dtype=float), "m")
     y = Quantity(jnp.asarray([4, 5, 6], dtype=float), "km")
     got = jnp.divide(x, y)
-    expected = Quantity(jnp.divide(x.value, y.value), u.m / u.km)
+    expected = Quantity(jnp.divide(x.value, y.value), "m / km")
 
     assert isinstance(got, Quantity)
     assert got.unit.is_equivalent(expected.unit)
@@ -677,7 +677,7 @@ def test_floor_divide():
     x = Quantity(jnp.asarray([1, 2, 3], dtype=float), "m")
     y = Quantity(jnp.asarray([4, 5, 6], dtype=float), "m")
     got = jnp.floor_divide(x, y)
-    expected = Quantity(jnp.floor_divide(x.value, y.value), u.m / u.m)
+    expected = Quantity(jnp.floor_divide(x.value, y.value), "m / m")
 
     assert isinstance(got, Quantity)
     assert got.unit.is_equivalent(expected.unit)
@@ -1411,7 +1411,7 @@ def test_sort():
     got = jnp.sort(q)
 
     assert isinstance(got, Quantity)
-    assert got.unit == u.m
+    assert got.unit == units("m")
     assert jnp.array_equal(got.value, jnp.sort(q.value))
 
 
