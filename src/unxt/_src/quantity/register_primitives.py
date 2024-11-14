@@ -29,7 +29,7 @@ from .api import uconvert, ustrip
 from .base import AbstractQuantity, is_unit_convertible
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
-from unxt._src.units.core import units, units_of
+from unxt._src.units.core import unit_of, units
 
 T = TypeVar("T")
 
@@ -2991,7 +2991,7 @@ def _scan_p(
     Array([1, 1, 1, 1, 2, 2, 2, 3, 3, 3], dtype=int32)
 
     """
-    unit = units_of(arg0)
+    unit = unit_of(arg0)
     arg0_ = ustrip(unit, arg0)
     arg1_ = ustrip(unit, arg1)
     return lax.scan_p.bind(arg0_, arg1_, *args, **kwargs)
@@ -3097,7 +3097,7 @@ def _select_n_p_jqq(which: ArrayLike, *cases: AbstractQuantity) -> AbstractQuant
     Quantity[...](Array([5.], dtype=float32), unit='kpc')
 
     """
-    unit = units_of(cases[0])
+    unit = unit_of(cases[0])
     return replace(
         cases[0],
         value=lax.select_n(which, *(ustrip(unit, case) for case in cases)),

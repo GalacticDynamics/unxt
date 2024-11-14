@@ -47,15 +47,15 @@ def units(obj: u.Quantity, /) -> AstropyUnits:
 
 
 @dispatch
-def units_of(obj: u.UnitBase | u.Unit, /) -> AstropyUnits:
+def unit_of(obj: u.UnitBase | u.Unit, /) -> AstropyUnits:
     """Return the units of an object.
 
     Examples
     --------
     >>> import astropy.units as u
-    >>> from unxt import units_of
+    >>> from unxt import unit_of
 
-    >>> units_of(u.km)
+    >>> unit_of(u.km)
     Unit("km")
 
     """
@@ -63,16 +63,16 @@ def units_of(obj: u.UnitBase | u.Unit, /) -> AstropyUnits:
 
 
 @dispatch
-def units_of(obj: u.Quantity, /) -> AstropyUnits:
+def unit_of(obj: u.Quantity, /) -> AstropyUnits:
     """Return the units of an Astropy quantity.
 
     Examples
     --------
     >>> import astropy.units as u
-    >>> from unxt import units_of
+    >>> from unxt import unit_of
 
-    >>> units_of(u.Quantity(1, "km"))
+    >>> unit_of(u.Quantity(1, "km"))
     Unit("km")
 
     """
-    return units_of(obj.unit)
+    return unit_of(obj.unit)

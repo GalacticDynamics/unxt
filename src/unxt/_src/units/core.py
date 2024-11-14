@@ -5,7 +5,7 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 
 __all__ = [
     "units",
-    "units_of",
+    "unit_of",
     "Unit",  # legacy
 ]
 
@@ -57,18 +57,18 @@ def units(obj: str, /) -> AbstractUnits:
 
 
 @dispatch.abstract
-def units_of(obj: Any, /) -> AbstractUnits:
+def unit_of(obj: Any, /) -> AbstractUnits:
     """Return the units of an object."""
 
 
 @dispatch
-def units_of(obj: Any, /) -> None:
+def unit_of(obj: Any, /) -> None:
     """Return the units of an object.
 
     Examples
     --------
-    >>> from unxt import units_of
-    >>> print(units_of(1))
+    >>> from unxt import unit_of
+    >>> print(unit_of(1))
     None
 
     """
@@ -76,15 +76,15 @@ def units_of(obj: Any, /) -> None:
 
 
 @dispatch
-def units_of(obj: AbstractUnits, /) -> AbstractUnits:
+def unit_of(obj: AbstractUnits, /) -> AbstractUnits:
     """Return the units of an unit.
 
     Examples
     --------
-    >>> from unxt import units, units_of
+    >>> from unxt import units, unit_of
     >>> m = units("m")
 
-    >>> units_of(m)
+    >>> unit_of(m)
     Unit("m")
 
     """

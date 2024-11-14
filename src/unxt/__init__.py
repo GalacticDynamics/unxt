@@ -28,7 +28,7 @@ __all__ = [
     "dimensions_of",  # get the dimensions
     # units
     "units",
-    "units_of",
+    "unit_of",
     # units systems
     "unitsystems",  # module
     "AbstractUnitSystem",  # base class
@@ -48,7 +48,7 @@ from .setup_package import RUNTIME_TYPECHECKER
 
 with install_import_hook("unxt", RUNTIME_TYPECHECKER):
     from . import dims, quantity, unitsystems
-    from ._src.units.core import units, units_of
+    from ._src.units.core import unit_of, units
     from ._version import version as __version__
     from .dims import dimensions, dimensions_of
     from .quantity import Quantity, is_unit_convertible, uconvert, ustrip

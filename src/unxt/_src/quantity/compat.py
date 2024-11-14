@@ -34,14 +34,14 @@ def dimensions_of(obj: AbstractQuantity, /) -> AbstractDimensions:
 
 
 @dispatch  # type: ignore[misc]
-def units_of(obj: AbstractQuantity, /) -> AbstractUnits:
+def unit_of(obj: AbstractQuantity, /) -> AbstractUnits:
     """Return the units of an object.
 
     Examples
     --------
-    >>> from unxt import units_of, Quantity
+    >>> from unxt import unit_of, Quantity
     >>> q = Quantity(1, "m")
-    >>> units_of(q)
+    >>> unit_of(q)
     Unit("m")
 
     """
