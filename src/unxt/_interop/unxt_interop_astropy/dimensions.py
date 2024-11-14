@@ -11,7 +11,7 @@ from unxt._src.dimensions.core import AbstractDimensions
 
 @dispatch  # type: ignore[misc]
 def dimension_of(obj: u.Quantity, /) -> AbstractDimensions:
-    """Return the dimensions of a quantity.
+    """Return the dimension of a quantity.
 
     Examples
     --------

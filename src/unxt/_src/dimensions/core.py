@@ -3,7 +3,7 @@
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-__all__ = ["dimensions", "dimension_of"]
+__all__ = ["dimension", "dimension_of"]
 
 from typing import Any, TypeAlias
 
@@ -20,33 +20,33 @@ AbstractDimensions: TypeAlias = u.PhysicalType
 
 
 @dispatch.abstract
-def dimensions(obj: Any, /) -> AbstractDimensions:
-    """Construct the dimensions.
+def dimension(obj: Any, /) -> AbstractDimensions:
+    """Construct the dimension.
 
     .. note::
 
         This function uses multiple dispatch. Dispatches made in other modules
         may not be included in the rendered docs. To see the full range of
-        options, execute ``unxt.dims.dimensions.methods`` in an interactive
+        options, execute ``unxt.dims.dimension.methods`` in an interactive
         Python session.
 
     """
 
 
 @dispatch
-def dimensions(obj: AbstractDimensions, /) -> AbstractDimensions:
-    """Construct dimensions from a dimensions object.
+def dimension(obj: AbstractDimensions, /) -> AbstractDimensions:
+    """Construct dimension from a dimension object.
 
     Examples
     --------
-    >>> from astropy import units as u
-    >>> from unxt.dims import dimensions
+    >>> import unxt as u
+    >>> import astropy.units as apyu
 
-    >>> length = u.get_physical_type("length")
+    >>> length = apyu.get_physical_type("length")
     >>> length
     PhysicalType('length')
 
-    >>> dimensions(length) is length
+    >>> u.dimension(length) is length
     True
 
     """
@@ -54,13 +54,13 @@ def dimensions(obj: AbstractDimensions, /) -> AbstractDimensions:
 
 
 @dispatch
-def dimensions(obj: str, /) -> AbstractDimensions:
-    """Construct dimensions from a string.
+def dimension(obj: str, /) -> AbstractDimensions:
+    """Construct dimension from a string.
 
     Examples
     --------
-    >>> from unxt.dims import dimensions
-    >>> dimensions("length")
+    >>> from unxt.dims import dimension
+    >>> dimension("length")
     PhysicalType('length')
 
     """
@@ -68,12 +68,12 @@ def dimensions(obj: str, /) -> AbstractDimensions:
 
 
 # ===================================================================
-# Get the dimensions
+# Get the dimension
 
 
 @dispatch.abstract
 def dimension_of(obj: Any, /) -> AbstractDimensions:
-    """Return the dimensions of the given units.
+    """Return the dimension of the given units.
 
     .. note::
 
@@ -87,7 +87,7 @@ def dimension_of(obj: Any, /) -> AbstractDimensions:
 
 @dispatch
 def dimension_of(obj: Any, /) -> None:
-    """Most objects have no dimensions.
+    """Most objects have no dimension.
 
     Examples
     --------
@@ -105,14 +105,14 @@ def dimension_of(obj: Any, /) -> None:
 
 @dispatch
 def dimension_of(obj: AbstractDimensions, /) -> AbstractDimensions:
-    """Return the dimensions of the given units.
+    """Return the dimension of the given units.
 
     Examples
     --------
     >>> from astropy import units as u
-    >>> from unxt.dims import dimensions, dimension_of
+    >>> from unxt.dims import dimension, dimension_of
 
-    >>> dimension_of(dimensions("length"))
+    >>> dimension_of(dimension("length"))
     PhysicalType('length')
 
     """

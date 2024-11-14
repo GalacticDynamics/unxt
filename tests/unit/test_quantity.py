@@ -91,16 +91,16 @@ def test_parametric():
     # Inferred
     q = u.Quantity(1, "m")
     (dims,) = q._type_parameter
-    assert dims == u.dimensions("length")
+    assert dims == u.dimension("length")
 
     # Explicit
     q = u.Quantity["length"](1, "m")
     (dims,) = q._type_parameter
-    assert dims == u.dimensions("length")
+    assert dims == u.dimension("length")
 
     q = u.Quantity["length"](jnp.ones((1, 2)), "m")
     (dims,) = q._type_parameter
-    assert dims == u.dimensions("length")
+    assert dims == u.dimension("length")
 
     # type-checks
     with pytest.raises(ValueError, match="Physical type mismatch."):

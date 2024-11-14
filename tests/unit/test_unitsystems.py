@@ -10,7 +10,7 @@ import astropy.units as u
 import numpy as np
 import pytest
 
-from unxt import dimensions, unit, unitsystems
+from unxt import dimension, unit, unitsystems
 from unxt._src.units.system.base import _UNITSYSTEMS_REGISTRY
 from unxt.unitsystems import (
     AbstractUnitSystem,
@@ -107,7 +107,7 @@ def test_non_unit_fields():
 
     @dataclass(frozen=True, slots=True)
     class SomeNoneUnitFields(AbstractUnitSystem):
-        a: Annotated[u.Unit, dimensions("length")]
+        a: Annotated[u.Unit, dimension("length")]
         b: int
 
     assert SomeNoneUnitFields._base_field_names == ("a",)
@@ -131,23 +131,23 @@ def test_wrong_annotation():
 
         @dataclass(frozen=True, slots=True)
         class BadAnnotations(AbstractUnitSystem):
-            a: Annotated[u.Unit, dimensions("length"), dimensions("time")]
+            a: Annotated[u.Unit, dimension("length"), dimension("time")]
 
 
 def test_unitsystem_already_registered():
     """Test that a unit system can only be registered once."""
 
     class MyUnitSystem(AbstractUnitSystem):
-        length: Annotated[u.Unit, dimensions("length")]
-        time: Annotated[u.Unit, dimensions("time")]
+        length: Annotated[u.Unit, dimension("length")]
+        time: Annotated[u.Unit, dimension("time")]
 
     assert MyUnitSystem._base_dimensions in unitsystems.UNITSYSTEMS_REGISTRY
 
     with pytest.raises(ValueError, match="already exists"):
 
         class MyUnitSystem(AbstractUnitSystem):
-            length: Annotated[u.Unit, dimensions("length")]
-            time: Annotated[u.Unit, dimensions("time")]
+            length: Annotated[u.Unit, dimension("length")]
+            time: Annotated[u.Unit, dimension("time")]
 
     # Clean up custom unit system from registry:
     del _UNITSYSTEMS_REGISTRY[MyUnitSystem._base_dimensions]

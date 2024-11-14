@@ -58,13 +58,13 @@ def get_dimension_name(pt: Dimension, /) -> str:
 
     Examples
     --------
-    >>> from unxt import dimensions
+    >>> import unxt as u
     >>> from unxt._src.units.system.utils import get_dimension_name
 
-    >>> get_dimension_name(dimensions("length"))
+    >>> get_dimension_name(u.dimension("length"))
     'length'
 
-    >>> get_dimension_name(dimensions("speed"))
+    >>> get_dimension_name(u.dimension("speed"))
     'speed'
 
     """

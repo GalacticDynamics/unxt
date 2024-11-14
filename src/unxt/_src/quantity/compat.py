@@ -16,7 +16,7 @@ from unxt._src.units.core import AbstractUnits
 
 @dispatch  # type: ignore[misc]
 def dimension_of(obj: AbstractQuantity, /) -> AbstractDimensions:
-    """Return the dimensions of a quantity.
+    """Return the dimension of a quantity.
 
     Examples
     --------

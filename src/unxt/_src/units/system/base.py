@@ -14,7 +14,7 @@ from astropy.units.physical import _physical_unit_mapping
 from is_annotated import isannotated
 
 from .utils import get_dimension_name
-from unxt._src.dimensions.core import dimensions
+from unxt._src.dimensions.core import dimension
 from unxt._src.typing_ext import Unit as UnitT
 from unxt._src.units.core import unit
 
@@ -134,7 +134,7 @@ class AbstractUnitSystem:
         Unit("m / s")
 
         """
-        key = dimensions(key)
+        key = dimension(key)
         if key in self.base_dimensions:
             return getattr(self, get_dimension_name(key))
 

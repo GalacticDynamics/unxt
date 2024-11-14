@@ -61,13 +61,13 @@ class Quantity(AbstractParametricQuantity):
     >>> u.Quantity(1, u.unit("m"))
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
-    In the previous examples, the dimensions parameter was inferred from the
+    In the previous examples, the dimension parameter was inferred from the
     values. It can also be given explicitly:
 
     >>> u.Quantity["length"](1, "m")
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
-    This can be used for runtime checking of the input dimensions!
+    This can be used for runtime checking of the input dimension!
 
     >>> try:
     ...     u.Quantity["length"](1, "s")
@@ -75,9 +75,9 @@ class Quantity(AbstractParametricQuantity):
     ...     print(e)
     Physical type mismatch.
 
-    The dimensions can also be given as a dimensions object:
+    The dimension can also be given as a dimension object:
 
-    >>> dims = u.dimensions("length")
+    >>> dims = u.dimension("length")
     >>> dims
     PhysicalType('length')
     >>> u.Quantity[dims](1.0, "m")
@@ -94,7 +94,7 @@ class Quantity(AbstractParametricQuantity):
     >>> u.dimension_of(unit)
     PhysicalType('unknown')
 
-    The dimensions can be given as a string in all cases, but is necessary when
+    The dimension can be given as a string in all cases, but is necessary when
     the physical type is unknown:
 
     >>> u.Quantity["m2 kg-1 s-2"](1.0, unit)

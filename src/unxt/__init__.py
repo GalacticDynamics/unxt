@@ -24,7 +24,7 @@ __all__ = [
     "__version__",
     # dimensions
     "dims",  # module
-    "dimensions",  # convenience constructor
+    "dimension",  # convenience constructor
     "dimension_of",  # get the dimensions
     # units
     "units",  # module
@@ -51,7 +51,7 @@ with install_import_hook("unxt", RUNTIME_TYPECHECKER):
     from . import dims, quantity, units, unitsystems
     from ._src.units.core import unit, unit_of
     from ._version import version as __version__
-    from .dims import dimension_of, dimensions
+    from .dims import dimension, dimension_of
     from .quantity import Quantity, is_unit_convertible, uconvert, ustrip
     from .unitsystems import AbstractUnitSystem, unitsystem, unitsystem_of
 

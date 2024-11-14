@@ -95,16 +95,16 @@ def unitsystem(*args: Any) -> AbstractUnitSystem:
     args = tuple(map(unit, args))
 
     # Check that the units all have different dimensions
-    dimensions = tuple(map(dimension_of, args))
-    dimensions = eqx.error_if(
-        dimensions,
-        len(set(dimensions)) < len(dimensions),
+    dims = tuple(map(dimension_of, args))
+    dims = eqx.error_if(
+        dims,
+        len(set(dims)) < len(dims),
         "some dimensions are repeated",
     )
 
     # Return if the unit system is already registered
-    if dimensions in UNITSYSTEMS_REGISTRY:
-        return UNITSYSTEMS_REGISTRY[dimensions](*args)
+    if dims in UNITSYSTEMS_REGISTRY:
+        return UNITSYSTEMS_REGISTRY[dims](*args)
 
     # Otherwise, create a new unit system
     # dimension names of all the units
