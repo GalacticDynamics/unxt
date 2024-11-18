@@ -63,6 +63,7 @@ dev = [
     "ipykernel>=6.29.5",
     {include-group = "docs"},
     {include-group = "test-all"},
+    {include-group = "nox"},
 ]
 docs = [
     "griffe<1.0",
@@ -77,6 +78,9 @@ docs = [
     "pymdown-extensions==10.2", # Markdown extensions e.g. to handle LaTeX.
     "pytkdocs_tweaks==0.0.8", # Tweaks mkdocstrings to improve various aspects
     "sphinx>=7.3.7",
+]
+nox = [
+    "nox>=2024.10.9",
 ]
 test = [
   "hypothesis[numpy]>=6.112.2",
