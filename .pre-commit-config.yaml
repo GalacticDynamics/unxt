@@ -85,6 +85,7 @@ repos:
     rev: "v2.3.0"
     hooks:
       - id: codespell
+        exclude: paper/paper.bib
 
   # - repo: https://github.com/abravalheri/validate-pyproject
   #   rev: v0.23
