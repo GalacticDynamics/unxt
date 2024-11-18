@@ -51,12 +51,14 @@ Quantity['length'](Array(5., dtype=float32), unit='m')
 There are many more options available with `Quantity.from_`. For a complete list
 of options run `Quantity.from_.methods` in an IDE.
 
-```
+<!-- skip: next -->
+
+```{code-block} python
 >>> u.Quantity.from_.methods
 List of 9 method(s):
-    [0] from_(cls: type, value: typing.Union[ArrayLike, list[numpy.bool | numpy.number | bool | int | float |
-    complex], tuple[numpy.bool | numpy.number | bool | int | float | complex, ...]], unit: typing.Any, *,
-    dtype) -> unxt._src.quantity.base.AbstractQuantity
+    [0] from_(cls: type, value: typing.Union[ArrayLike, ...], unit: typing.Any, *,
+    dtype) -> unxt...quantity...AbstractQuantity
+        <function AbstractQuantity.from_ at ...>
     ...
 ```
 
