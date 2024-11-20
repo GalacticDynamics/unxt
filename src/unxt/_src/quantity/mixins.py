@@ -22,13 +22,13 @@ class AstropyQuantityCompatMixin:
 
     value: ArrayLike
     unit: AbstractUnits
-    to_units: Callable[[Any], "AbstractQuantity"]
-    to_units_value: Callable[[Any], ArrayLike]
+    uconvert: Callable[[Any], "AbstractQuantity"]
+    ustrip: Callable[[Any], ArrayLike]
 
     def to(self, u: Any, /) -> "AbstractQuantity":
         """Convert the quantity to the given units.
 
-        See `unxt.AbstractQuantity.to_units`.
+        See `unxt.AbstractQuantity.uconvert`.
 
         Examples
         --------
@@ -44,7 +44,7 @@ class AstropyQuantityCompatMixin:
     def to_value(self, u: Any, /) -> ArrayLike:
         """Return the value in the given units.
 
-        See `unxt.AbstractQuantity.to_units_value`.
+        See `unxt.AbstractQuantity.ustrip`.
 
         Examples
         --------
