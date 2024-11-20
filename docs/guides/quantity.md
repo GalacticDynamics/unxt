@@ -68,11 +68,11 @@ List of 9 method(s):
 ## Converting to Different Units
 
 `Quantity` objects can be converted to different units and values in those
-units. If you prefer an object-oriented approach, use the `to_units` method.
+units. If you prefer an object-oriented approach, use the `uconvert` method.
 
 ```{code-block} python
 >>> q = u.Quantity(5, "m")
->>> q.to_units("cm")
+>>> q.uconvert("cm")
 Quantity['length'](Array(500., dtype=float32, ...), unit='cm')
 ```
 
@@ -101,10 +101,10 @@ To convert to the value in the new units, use the `ustrip` function.
 Array(500., dtype=float32, ...)
 ```
 
-Alternatively the `to_units_value` method can be used.
+Alternatively the `ustrip` method can be used.
 
 ```{code-block} python
->>> q.to_units_value("cm")
+>>> q.ustrip("cm")
 Array(500., dtype=float32, ...)
 ```
 

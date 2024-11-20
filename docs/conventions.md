@@ -35,7 +35,7 @@ First we'll show the object-oriented API:
 
 ```{code-block} python
 
->>> q.to_units('cm')
+>>> q.uconvert('cm')
 Quantity['length'](Array(100., dtype=float32, weak_type=True), unit='cm')
 ```
 

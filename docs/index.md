@@ -123,7 +123,7 @@ using the explicit syntax
 
 ```{code-block} python
 
->>> x.to_units("cm")
+>>> x.uconvert("cm")
 Quantity['length'](Array([100., 200., 300.], dtype=float32, weak_type=True), unit='cm')
 
 ```
