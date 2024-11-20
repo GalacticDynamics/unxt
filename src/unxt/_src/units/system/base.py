@@ -104,7 +104,7 @@ class AbstractUnitSystem:
         _UNITSYSTEMS_REGISTRY[dims] = cls
 
     # ===============================================================
-    # Instance-level
+    # USys API
 
     @property  # TODO: classproperty
     def base_dimensions(self) -> tuple[AbstractDimension, ...]:
@@ -115,6 +115,9 @@ class AbstractUnitSystem:
     def base_units(self) -> tuple[UnitT, ...]:
         """List of core units."""
         return tuple(getattr(self, k) for k in self._base_field_names)
+
+    # ===============================================================
+    # Python stuff
 
     def __getitem__(self, key: AbstractDimension | str) -> UnitT:
         """Get the unit for a given physical type.
@@ -197,6 +200,12 @@ class AbstractUnitSystem:
         """
         fs = ", ".join(map(str, self._base_field_names))
         return f"{type(self).__name__}({fs})"
+
+    # ===============================================================
+    # Plum stuff
+
+    #: This tells `plum` that this type can be efficiently cached.
+    __faithful__: ClassVar[bool] = True
 
 
 # ---------------------------------------------------------------
