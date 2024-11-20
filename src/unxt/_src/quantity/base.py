@@ -231,7 +231,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
     # ===============================================================
     # Quantity API
 
-    def to_units(self, u: Any, /) -> "AbstractQuantity":
+    def uconvert(self, u: Any, /) -> "AbstractQuantity":
         """Convert the quantity to the given units.
 
         See Also
@@ -243,13 +243,13 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         >>> from unxt import Quantity
 
         >>> q = Quantity(1, "m")
-        >>> q.to_units("cm")
+        >>> q.uconvert("cm")
         Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
 
         """
         return uconvert(u, self)
 
-    def to_units_value(self, u: Any, /) -> Array:
+    def ustrip(self, u: Any, /) -> Array:
         """Return the value in the given units.
 
         Examples
@@ -257,7 +257,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         >>> from unxt import Quantity
 
         >>> q = Quantity(1, "m")
-        >>> q.to_units_value("cm")
+        >>> q.ustrip("cm")
         Array(100., dtype=float32, weak_type=True)
 
         """
@@ -266,8 +266,8 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
     # ===============================================================
     # Plum stuff
 
+    #: This tells `plum` that this type can be efficiently cached.
     __faithful__: ClassVar[bool] = True
-    """Tells `plum` that this type can be cached more efficiently."""
 
     # ===============================================================
     # Quax
@@ -291,9 +291,22 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
     # Array API
 
     def __array_namespace__(self, *, api_version: Any = None) -> ModuleType:
-        return jnp
+        """Return the namespace for the array API.
+
+        Here we return the `quaxed.numpy` module, which is a drop-in replacement
+        for `jax.numpy`, but allows for array-ish objects to be used in place of
+        `jax` arrays. See `quax` for more information.
+
+        """
+        return jnp  # quaxed.numpy
 
     def __getitem__(self, key: Any) -> "AbstractQuantity":
+        """Get an item from the array.
+
+        This is a simple wrapper around the `__getitem__` method of the array,
+        calling `replace` to only update the value.
+
+        """
         return replace(self, value=self.value[key])
 
     def __len__(self) -> int:

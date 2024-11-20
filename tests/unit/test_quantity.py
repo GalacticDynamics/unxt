@@ -118,16 +118,16 @@ def test_array_namespace():
     assert u.Quantity(1, "m").__array_namespace__() is jnp
 
 
-def test_to_units():
-    """Test the ``u.Quantity.to_units`` method."""
+def test_uconvert():
+    """Test the ``u.Quantity.uconvert`` method."""
     q = u.Quantity(1, "m")
-    assert jnp.equal(q.to_units("km"), u.Quantity(0.001, "km"))
+    assert jnp.equal(q.uconvert("km"), u.Quantity(0.001, "km"))
 
 
-def test_to_units_value():
-    """Test the ``u.Quantity.to_units_value`` method."""
+def test_ustrip():
+    """Test the ``u.Quantity.ustrip`` method."""
     q = u.Quantity(1, "m")
-    assert q.to_units_value("km") == u.Quantity(0.001, "km").value
+    assert q.ustrip("km") == u.Quantity(0.001, "km").value
 
 
 @pytest.mark.skip("TODO")
