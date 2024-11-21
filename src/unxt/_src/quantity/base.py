@@ -568,8 +568,8 @@ class AbstractQuantity(
         >>> try:
         ...     q[0] = 2
         ... except Exception as e:
-        ...     print(e)
-        '<class 'jaxlib...ArrayImpl'>' object does not support item assignment...
+        ...     print("jax arrays do not support in-place item assignment")
+        jax arrays do not support in-place item assignment
 
         """
         self.value[key] = value
