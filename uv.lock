@@ -2536,7 +2536,7 @@ wheels = [
 
 [[package]]
 name = "unxt"
-version = "0.22.1.dev3+ga9b5d77.d20241118"
+version = "0.22.2.dev1+g5c92af6.d20241121"
 source = { editable = "." }
 dependencies = [
     { name = "astropy" },
@@ -2582,6 +2582,7 @@ dev = [
     { name = "mkdocstrings", extra = ["python"] },
     { name = "mknotebooks" },
     { name = "nbconvert" },
+    { name = "nox" },
     { name = "pygments" },
     { name = "pymdown-extensions" },
     { name = "pytest" },
@@ -2669,6 +2670,7 @@ dev = [
     { name = "mkdocstrings", extras = ["python"], specifier = ">=0.18" },
     { name = "mknotebooks", specifier = "==0.8" },
     { name = "nbconvert", specifier = "==7.16" },
+    { name = "nox", specifier = ">=2024.10.9" },
     { name = "pygments", specifier = "==2.16.0" },
     { name = "pymdown-extensions", specifier = "==10.2" },
     { name = "pytest", specifier = ">=8.3.3" },
