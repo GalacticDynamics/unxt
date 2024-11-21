@@ -645,6 +645,10 @@ class AbstractQuantity(
         """
         return self.value.argmin(*args, **kwargs)
 
+    def astype(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
+        """Copy the array and cast to a specified dtype."""
+        return replace(self, value=self.value.astype(*args, **kwargs))
+
     @partial(property, doc=jax.Array.at.__doc__)
     def at(self) -> "_QuantityIndexUpdateHelper":
         return _QuantityIndexUpdateHelper(self)
@@ -662,6 +666,19 @@ class AbstractQuantity(
         """
         _ = self.value.block_until_ready()
         return self
+
+    def devices(self) -> set[jax.Device]:
+        """Return the devices where the array is located.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity(1, "m")
+        >>> q.devices()
+        {CpuDevice(id=0)}
+
+        """
+        return self.value.devices()
 
     def flatten(self) -> "AbstractQuantity":
         """Return a flattened version of the array.
@@ -729,6 +746,24 @@ class AbstractQuantity(
         """
         __tracebackhide__ = True  # pylint: disable=unused-variable
         return replace(self, value=self.value.reshape(*args, order=order))
+
+    @property
+    def sharding(self) -> Any:
+        """Return the sharding configuration of the array."""
+        return self.value.sharding
+
+    def squeeze(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
+        """Return the array with all single-dimensional entries removed.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([[[1], [2], [3]]], "m")
+        >>> q.squeeze()
+        Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+
+        """
+        return replace(self, value=self.value.squeeze(*args, **kwargs))
 
     # ===============================================================
     # Python stuff
