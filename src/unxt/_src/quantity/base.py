@@ -715,6 +715,19 @@ class AbstractQuantity(
         """
         return replace(self, value=self.value.max(*args, **kwargs))
 
+    def mean(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
+        """Return the mean value.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([1, 2, 3], "m")
+        >>> q.mean()
+        Quantity['length'](Array(2., dtype=float32), unit='m')
+
+        """
+        return replace(self, value=self.value.mean(*args, **kwargs))
+
     def min(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
         """Return the minimum value.
 
@@ -755,6 +768,19 @@ class AbstractQuantity(
         """
         __tracebackhide__ = True  # pylint: disable=unused-variable
         return replace(self, value=self.value.reshape(*args, order=order))
+
+    def round(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
+        """Round the array to the given number of decimals.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([1.1, 2.2, 3.3], "m")
+        >>> q.round(0)
+        Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+
+        """
+        return replace(self, value=self.value.round(*args, **kwargs))
 
     @property
     def sharding(self) -> Any:
