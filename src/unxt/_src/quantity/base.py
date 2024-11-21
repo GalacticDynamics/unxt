@@ -619,6 +619,32 @@ class AbstractQuantity(
         """
         return len(self.value)
 
+    def argmax(self, *args: Any, **kwargs: Any) -> Array:
+        """Return the indices of the maximum value.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([1, 2, 3], "m")
+        >>> q.argmax()
+        Array(2, dtype=int32)
+
+        """
+        return self.value.argmax(*args, **kwargs)
+
+    def argmin(self, *args: Any, **kwargs: Any) -> Array:
+        """Return the indices of the minimum value.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([1, 2, 3], "m")
+        >>> q.argmin()
+        Array(0, dtype=int32)
+
+        """
+        return self.value.argmin(*args, **kwargs)
+
     @partial(property, doc=jax.Array.at.__doc__)
     def at(self) -> "_QuantityIndexUpdateHelper":
         return _QuantityIndexUpdateHelper(self)
