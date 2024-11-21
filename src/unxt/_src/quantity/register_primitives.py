@@ -25,8 +25,8 @@ from quax import register as register_
 
 from quaxed import lax as qlax
 
-from .api import uconvert, ustrip
-from .base import AbstractQuantity, is_unit_convertible
+from .api import is_unit_convertible, uconvert, ustrip
+from .base import AbstractQuantity
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
 from unxt._src.units.core import unit, unit_of

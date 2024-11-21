@@ -53,3 +53,12 @@ def ustrip(u: Any, x: Any, /) -> Any:
 
     """
     raise NotImplementedError  # pragma: no cover
+
+
+# ===================================================================
+
+
+@dispatch.abstract  # type: ignore[misc]
+def is_unit_convertible(to_unit: Any, from_: Any, /) -> bool:
+    """Check if the units are convertible."""
+    return False

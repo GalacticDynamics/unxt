@@ -12,8 +12,8 @@ The main features are:
 """
 # ruff:noqa: F403
 
-from ._src.quantity.api import uconvert, ustrip
-from ._src.quantity.base import AbstractQuantity, is_unit_convertible
+from ._src.quantity.api import is_unit_convertible, uconvert, ustrip
+from ._src.quantity.base import AbstractQuantity
 from ._src.quantity.base_parametric import AbstractParametricQuantity
 from ._src.quantity.core import Quantity
 from ._src.quantity.fast import UncheckedQuantity
