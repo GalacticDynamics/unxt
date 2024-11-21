@@ -3,6 +3,9 @@
 __all__: list[str] = []
 
 
+from typing import Any
+
+from astropy.units import UnitConversionError
 from jaxtyping import Array
 from plum import dispatch
 
@@ -99,3 +102,56 @@ def ustrip(u: AbstractUnitSystem, x: AbstractQuantity, /) -> Array:
 
     """
     return ustrip(u[dimension_of(x)], x)
+
+
+# ============================================================================
+
+
+@dispatch
+def is_unit_convertible(to_unit: Any, from_: Any, /) -> bool:
+    """Check if a unit can be converted to another unit.
+
+    Parameters
+    ----------
+    to_unit : Any
+        The unit to convert to. Converted to a unit object using `unxt.unit`.
+    from_ : Any
+        The unit to convert from. Converted to a unit object using `unxt.unit`,
+        Note this means it also support `Quantity` objects and many others.
+
+    Examples
+    --------
+    >>> from unxt import is_unit_convertible
+    >>> is_unit_convertible("cm", "m")
+    True
+
+    >>> is_unit_convertible("m", "Gyr")
+    False
+
+    """
+    to_u = unit(to_unit)
+    from_u = unit(from_)
+    try:
+        from_u.to(to_u)
+    except UnitConversionError:
+        return False
+    return True
+
+
+@dispatch
+def is_unit_convertible(to_unit: Any, from_: AbstractQuantity, /) -> bool:
+    """Check if a Quantity can be converted to another unit.
+
+    Examples
+    --------
+    >>> from unxt import Quantity, is_unit_convertible
+    >>> q = Quantity(1, "m")
+
+    >>> is_unit_convertible("cm", q)
+    True
+
+    >>> is_unit_convertible("Gyr", q)
+    False
+
+    """
+    return is_unit_convertible(to_unit, from_.unit)

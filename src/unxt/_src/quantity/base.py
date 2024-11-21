@@ -1,7 +1,7 @@
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
 
-__all__ = ["AbstractQuantity", "is_unit_convertible"]
+__all__ = ["AbstractQuantity"]
 
 from collections.abc import Callable, Mapping
 from functools import partial
@@ -22,7 +22,7 @@ import quaxed.numpy as jnp
 import quaxed.operator as qoperator
 from dataclassish import fields, replace
 
-from .api import uconvert, ustrip
+from .api import is_unit_convertible, uconvert, ustrip
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
 from unxt._src.units.core import AbstractUnits, unit as parse_unit
 
@@ -690,6 +690,17 @@ class AbstractQuantity(
         return replace(self, value=self.value.ravel())
 
     def reshape(self, *args: Any, order: str = "C") -> "AbstractQuantity":
+        """Return a reshaped version of the array.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity([1, 2, 3, 4], "m")
+        >>> q.reshape(2, 2)
+        Quantity['length'](Array([[1, 2],
+                                  [3, 4]], dtype=int32), unit='m')
+
+        """
         __tracebackhide__ = True  # pylint: disable=unused-variable
         return replace(self, value=self.value.reshape(*args, order=order))
 
@@ -978,56 +989,3 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
             mode=mode,
         )
         return replace(self.array, value=value)
-
-
-# ===================================================================
-
-
-@dispatch
-def is_unit_convertible(to_unit: Any, from_unit: Any, /) -> bool:
-    """Check if a unit can be converted to another unit.
-
-    Parameters
-    ----------
-    to_unit : Any
-        The unit to convert to. Converted to a unit object using `unxt.unit`.
-    from_unit : Any
-        The unit to convert from. Converted to a unit object using `unxt.unit`,
-        Note this means it also support `Quantity` objects and many others.
-
-    Examples
-    --------
-    >>> from unxt import is_unit_convertible
-    >>> is_unit_convertible("cm", "m")
-    True
-
-    >>> is_unit_convertible("m", "Gyr")
-    False
-
-    """
-    to_u = parse_unit(to_unit)
-    from_u = parse_unit(from_unit)
-    try:
-        from_u.to(to_u)
-    except UnitConversionError:
-        return False
-    return True
-
-
-@dispatch
-def is_unit_convertible(to_unit: Any, from_unit: AbstractQuantity, /) -> bool:
-    """Check if a Quantity can be converted to another unit.
-
-    Examples
-    --------
-    >>> from unxt import Quantity, is_unit_convertible
-    >>> q = Quantity(1, "m")
-
-    >>> is_unit_convertible("cm", q)
-    True
-
-    >>> is_unit_convertible("Gyr", q)
-    False
-
-    """
-    return is_unit_convertible(to_unit, from_unit.unit)
