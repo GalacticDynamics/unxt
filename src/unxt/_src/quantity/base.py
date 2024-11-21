@@ -676,6 +676,32 @@ class AbstractQuantity(
         """
         return replace(self, value=self.value.flatten())
 
+    def max(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
+        """Return the maximum value.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([1, 2, 3], "m")
+        >>> q.max()
+        Quantity['length'](Array(3, dtype=int32), unit='m')
+
+        """
+        return replace(self, value=self.value.max(*args, **kwargs))
+
+    def min(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
+        """Return the minimum value.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([1, 2, 3], "m")
+        >>> q.min()
+        Quantity['length'](Array(1, dtype=int32), unit='m')
+
+        """
+        return replace(self, value=self.value.min(*args, **kwargs))
+
     def ravel(self) -> "AbstractQuantity":
         """Return a flattened version of the array.
 
