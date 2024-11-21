@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeVar
 import equinox as eqx
 import jax
 import jax.core
-import numpy as np
 from astropy.units import UnitConversionError
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Shaped
@@ -24,7 +23,7 @@ import quaxed.operator as qoperator
 from dataclassish import fields, replace
 
 from .api import uconvert, ustrip
-from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin
+from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
 from unxt._src.units.core import AbstractUnits, unit as parse_unit
 
 if TYPE_CHECKING:
@@ -53,7 +52,12 @@ def bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
 ##############################################################################
 
 
-class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue):  # type: ignore[misc]
+class AbstractQuantity(
+    AstropyQuantityCompatMixin,
+    NumPyCompatMixin,
+    IPythonReprMixin,
+    ArrayValue,  # type: ignore[misc]
+):
     """Represents an array, with each axis bound to a name.
 
     Examples
@@ -264,13 +268,7 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         return ustrip(u, self)
 
     # ===============================================================
-    # Plum stuff
-
-    #: This tells `plum` that this type can be efficiently cached.
-    __faithful__: ClassVar[bool] = True
-
-    # ===============================================================
-    # Quax
+    # Quax API
 
     @property
     def shape(self) -> tuple[int, ...]:
@@ -288,6 +286,12 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         return replace(self, value=self.value, unit=self.unit)
 
     # ===============================================================
+    # Plum API
+
+    #: This tells `plum` that this type can be efficiently cached.
+    __faithful__: ClassVar[bool] = True
+
+    # ===============================================================
     # Array API
 
     def __array_namespace__(self, *, api_version: Any = None) -> ModuleType:
@@ -300,76 +304,8 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         """
         return jnp  # quaxed.numpy
 
-    def __getitem__(self, key: Any) -> "AbstractQuantity":
-        """Get an item from the array.
-
-        This is a simple wrapper around the `__getitem__` method of the array,
-        calling `replace` to only update the value.
-
-        """
-        return replace(self, value=self.value[key])
-
-    def __len__(self) -> int:
-        """Return the length of the array.
-
-        Examples
-        --------
-        >>> from unxt import Quantity
-
-        Length of an unsized array:
-
-        >>> try:
-        ...     len(Quantity(1, "m"))
-        ... except TypeError as e:
-        ...     print(e)
-        len() of unsized object
-
-        Length of a sized array:
-
-        >>> len(Quantity([1, 2, 3], "m"))
-        3
-
-        """
-        return len(self.value)
-
-    __abs__ = qoperator.abs
-
-    __add__ = qoperator.add
-    __radd__ = _flip_binop(qoperator.add)
-
-    __sub__ = qoperator.sub
-    __rsub__ = _flip_binop(qoperator.sub)
-
-    __mul__ = qoperator.mul
-    __rmul__ = _flip_binop(qoperator.mul)
-
-    __matmul__ = qoperator.matmul
-    __rmatmul__ = _flip_binop(qoperator.matmul)
-
-    __pow__ = qoperator.pow
-    __rpow__ = _flip_binop(qoperator.pow)
-
-    __truediv__ = qoperator.truediv
-    __rtruediv__ = _flip_binop(qoperator.truediv)
-
-    @dispatch  # type: ignore[misc]
-    def __mod__(self: "AbstractQuantity", other: Any) -> "AbstractQuantity":
-        """Take the modulus.
-
-        Examples
-        --------
-        >>> from unxt import Quantity
-
-        >>> q = Quantity(480, "deg")
-        >>> q % Quantity(360, "deg")
-        Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
-
-        """
-        if not is_unit_convertible(other.unit, self.unit):
-            raise UnitConversionError
-
-        # TODO: figure out how to defer to quaxed (e.g. quaxed.operator.mod)
-        return replace(self, value=self.value % ustrip(self.unit, other))
+    # ---------------------------------------------------------------
+    # attributes
 
     @property
     def dtype(self) -> DType:
@@ -417,12 +353,110 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         """Transpose of the array."""
         return replace(self, value=self.value.T)
 
-    def to_device(self, device: None | jax.Device = None) -> "AbstractQuantity":
-        """Move the array to a new device."""
-        return replace(self, value=self.value.to_device(device))
+    # ---------------------------------------------------------------
+    # arithmetic operators
 
-    # ---------------------------------
-    # Boolean operations
+    def __pos__(self) -> "AbstractQuantity":
+        """Return the value of the array.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity(1, "m")
+        >>> +q
+        Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+
+        """
+        return replace(self, value=+self.value)  # pylint: disable=E1130
+
+    def __neg__(self) -> "AbstractQuantity":
+        """Negate the value of the array.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity(1, "m")
+        >>> -q
+        Quantity['length'](Array(-1, dtype=int32, ...), unit='m')
+
+        """
+        return replace(self, value=-self.value)  # pylint: disable=E1130
+
+    __add__ = qoperator.add
+    __radd__ = _flip_binop(qoperator.add)
+
+    __sub__ = qoperator.sub
+    __rsub__ = _flip_binop(qoperator.sub)
+
+    __mul__ = qoperator.mul
+    __rmul__ = _flip_binop(qoperator.mul)
+
+    __truediv__ = qoperator.truediv
+    __rtruediv__ = _flip_binop(qoperator.truediv)
+
+    __floordiv__ = qoperator.floordiv
+    __rfloordiv__ = _flip_binop(qoperator.floordiv)
+
+    @dispatch  # type: ignore[misc]
+    def __mod__(self: "AbstractQuantity", other: Any) -> "AbstractQuantity":
+        """Take the modulus.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+
+        >>> q = Quantity(480, "deg")
+        >>> q % Quantity(360, "deg")
+        Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
+
+        """
+        if not is_unit_convertible(other.unit, self.unit):
+            raise UnitConversionError
+
+        # TODO: figure out how to defer to quaxed (e.g. quaxed.operator.mod)
+        return replace(self, value=self.value % ustrip(self.unit, other))
+
+    def __rmod__(self, other: Any) -> Any:
+        """Take the modulus.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+
+        >>> q = Quantity(480, "deg")
+        >>> q.__rmod__(Quantity(360, "deg"))
+        Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
+
+        """
+        return self % other
+
+    __pow__ = qoperator.pow
+    __rpow__ = _flip_binop(qoperator.pow)
+
+    # ---------------------------------------------------------------
+    # array operators
+
+    __matmul__ = qoperator.matmul
+    __rmatmul__ = _flip_binop(qoperator.matmul)
+
+    # ---------------------------------------------------------------
+    # bitwise operators
+    # TODO: handle edge cases, e.g. boolean Quantity, not in Astropy
+
+    # __invert__ = qoperator.invert
+    # __and__ = qoperator.and_
+    # __rand__ = _flip_binop(qoperator.and_)
+    # __or__ = qoperator.or_
+    # __ror__ = _flip_binop(qoperator.or_)
+    # __xor__ = qoperator.xor
+    # __rxor__ = _flip_binop(qoperator.xor)
+    # __lshift__ = qoperator.lshift
+    # __rlshift__ = _flip_binop(qoperator.lshift)
+    # __rshift__ = qoperator.rshift
+    # __rrshift__ = _flip_binop(qoperator.rshift)
+
+    # ---------------------------------------------------------------
+    # comparison operators
 
     __lt__ = bool_op(jnp.less)
     __le__ = bool_op(jnp.less_equal)
@@ -431,11 +465,159 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
     __gt__ = bool_op(jnp.greater)
     __ne__ = bool_op(jnp.not_equal)
 
-    def __neg__(self) -> "AbstractQuantity":
-        return replace(self, value=-self.value)  # pylint: disable=E1130
+    # ---------------------------------------------------------------
+    # methods
+
+    __abs__ = qoperator.abs
+
+    def __bool__(self) -> bool:
+        """Convert a zero-dimensional array to a Python bool object.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity([0, 1], "m")
+
+        >>> bool(q[0])
+        False
+
+        >>> bool(q[1])
+        True
+
+        """
+        return bool(self.value)
+
+    def __complex__(self) -> complex:
+        """Convert the array to a Python complex object.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity(1, "")
+        >>> complex(q)
+        (1+0j)
+
+        """
+        return complex(ustrip("", self))
+
+    def __dlpack__(self, *args: Any, **kwargs: Any) -> Any:
+        """Export the array for consumption as a DLPack capsule."""
+        raise NotImplementedError
+
+    def __dlpack_device__(self, *args: Any, **kwargs: Any) -> Any:
+        """Return device type and device ID in DLPack format."""
+        raise NotImplementedError
+
+    def __float__(self) -> float:
+        """Convert the array to a Python float object.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity(1, "")
+        >>> float(q)
+        1.0
+
+        """
+        return float(ustrip("", self))
+
+    def __getitem__(self, key: Any) -> "AbstractQuantity":
+        """Get an item from the array.
+
+        This is a simple wrapper around the `__getitem__` method of the array,
+        calling `replace` to only update the value.
+
+        """
+        return replace(self, value=self.value[key])
+
+    def __index__(self) -> int:
+        """Convert a zero-dimensional integer array to a Python int object.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity(1, "")
+        >>> q.__index__()
+        1
+
+        """
+        return ustrip("", self).__index__()
+
+    def __int__(self) -> int:
+        """Convert a zero-dimensional array to a Python int object.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity(1, "")
+        >>> int(q)
+        1
+
+        """
+        return int(ustrip("", self))
+
+    def __setitem__(self, key: Any, value: Any) -> None:
+        """Set an item in the array.
+
+        This is a simple wrapper around the `__setitem__` method of the array.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity([1, 2, 3], "m")
+        >>> try:
+        ...     q[0] = 2
+        ... except Exception as e:
+        ...     print(e)
+        '<class 'jaxlib...ArrayImpl'>' object does not support item assignment...
+
+        """
+        self.value[key] = value
+
+    def to_device(self, device: None | jax.Device = None) -> "AbstractQuantity":
+        """Move the array to a new device."""
+        return replace(self, value=self.value.to_device(device))
 
     # ===============================================================
     # JAX API
+
+    def __iter__(self) -> Any:
+        """Iterate over the Quantity's value.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([1, 2, 3], "m")
+        >>> [x for x in q]
+        [Quantity['length'](Array(1, dtype=int32), unit='m'),
+         Quantity['length'](Array(2, dtype=int32), unit='m'),
+         Quantity['length'](Array(3, dtype=int32), unit='m')]
+
+        """
+        yield from (self[i] for i in range(len(self.value)))
+
+    def __len__(self) -> int:
+        """Return the length of the array.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+
+        Length of an unsized array:
+
+        >>> try:
+        ...     len(Quantity(1, "m"))
+        ... except TypeError as e:
+        ...     print(e)
+        len() of unsized object
+
+        Length of a sized array:
+
+        >>> len(Quantity([1, 2, 3], "m"))
+        3
+
+        """
+        return len(self.value)
 
     @partial(property, doc=jax.Array.at.__doc__)
     def at(self) -> "_QuantityIndexUpdateHelper":
@@ -484,39 +666,6 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
     def reshape(self, *args: Any, order: str = "C") -> "AbstractQuantity":
         __tracebackhide__ = True  # pylint: disable=unused-variable
         return replace(self, value=self.value.reshape(*args, order=order))
-
-    def __iter__(self) -> Any:
-        """Iterate over the Quantity's value.
-
-        Examples
-        --------
-        >>> from unxt import Quantity
-        >>> q = Quantity([1, 2, 3], "m")
-        >>> [x for x in q]
-        [Quantity['length'](Array(1, dtype=int32), unit='m'),
-         Quantity['length'](Array(2, dtype=int32), unit='m'),
-         Quantity['length'](Array(3, dtype=int32), unit='m')]
-
-        """
-        yield from (self[i] for i in range(len(self.value)))
-
-    # ===============================================================
-    # NumPy Compatibility
-
-    def __array__(self, **kwargs: Any) -> np.typing.NDArray[Any]:
-        """Return the array as a numpy array, stripping the units.
-
-        Examples
-        --------
-        >>> from unxt import Quantity
-        >>> import numpy as np
-
-        >>> q = Quantity(1.01, "m")
-        >>> np.array(q)
-        array(1.01, dtype=float32)
-
-        """
-        return np.asarray(ustrip(self.unit, self), **kwargs)
 
     # ===============================================================
     # Python stuff

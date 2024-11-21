@@ -175,3 +175,27 @@ class IPythonReprMixin:
     # TODO: implement:
     # - _repr_markdown_
     # - _repr_json_
+
+
+#####################################################################
+
+
+class NumPyCompatMixin:
+    """Mixin for compatibility with numpy arrays."""
+
+    unit: AbstractUnits
+
+    def __array__(self, **kwargs: Any) -> np.typing.NDArray[Any]:
+        """Return the array as a numpy array, stripping the units.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> import numpy as np
+
+        >>> q = Quantity(1.01, "m")
+        >>> np.array(q)
+        array(1.01, dtype=float32)
+
+        """
+        return np.asarray(ustrip(self.unit, self), **kwargs)
