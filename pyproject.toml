@@ -239,3 +239,6 @@ test-all = [{include-group = "test"}, {include-group = "test-mpl"}]
   py-version = "3.10"
   reports.output-format = "colorized"
   similarities.ignore-imports = "yes"
+
+  [tool.pylint."FORMAT"]
+  max-module-lines = 2000
