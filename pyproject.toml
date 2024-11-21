@@ -217,6 +217,7 @@ test-all = [{include-group = "test"}, {include-group = "test-mpl"}]
     "cyclic-import",              # TODO: resolve
     "design",
     "fixme",
+    "abstract-method",
     "function-redefined",         # plum-dispatch
     "invalid-name",               # handled by ruff
     "line-too-long",
