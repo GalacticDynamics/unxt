@@ -568,14 +568,23 @@ class AbstractQuantity(
         >>> try:
         ...     q[0] = 2
         ... except Exception as e:
-        ...     print(e)
-        '<class 'jaxlib...ArrayImpl'>' object does not support item assignment...
+        ...     print("jax arrays do not support in-place item assignment")
+        jax arrays do not support in-place item assignment
 
         """
         self.value[key] = value
 
     def to_device(self, device: None | jax.Device = None) -> "AbstractQuantity":
-        """Move the array to a new device."""
+        """Move the array to a new device.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity(1, "m")
+        >>> q.to_device(None)
+        Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
+
+        """
         return replace(self, value=self.value.to_device(device))
 
     # ===============================================================
@@ -645,6 +654,10 @@ class AbstractQuantity(
         """
         return self.value.argmin(*args, **kwargs)
 
+    def astype(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
+        """Copy the array and cast to a specified dtype."""
+        return replace(self, value=self.value.astype(*args, **kwargs))
+
     @partial(property, doc=jax.Array.at.__doc__)
     def at(self) -> "_QuantityIndexUpdateHelper":
         return _QuantityIndexUpdateHelper(self)
@@ -663,6 +676,19 @@ class AbstractQuantity(
         _ = self.value.block_until_ready()
         return self
 
+    def devices(self) -> set[jax.Device]:
+        """Return the devices where the array is located.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity(1, "m")
+        >>> q.devices()
+        {CpuDevice(id=0)}
+
+        """
+        return self.value.devices()
+
     def flatten(self) -> "AbstractQuantity":
         """Return a flattened version of the array.
 
@@ -675,6 +701,45 @@ class AbstractQuantity(
 
         """
         return replace(self, value=self.value.flatten())
+
+    def max(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
+        """Return the maximum value.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([1, 2, 3], "m")
+        >>> q.max()
+        Quantity['length'](Array(3, dtype=int32), unit='m')
+
+        """
+        return replace(self, value=self.value.max(*args, **kwargs))
+
+    def mean(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
+        """Return the mean value.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([1, 2, 3], "m")
+        >>> q.mean()
+        Quantity['length'](Array(2., dtype=float32), unit='m')
+
+        """
+        return replace(self, value=self.value.mean(*args, **kwargs))
+
+    def min(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
+        """Return the minimum value.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([1, 2, 3], "m")
+        >>> q.min()
+        Quantity['length'](Array(1, dtype=int32), unit='m')
+
+        """
+        return replace(self, value=self.value.min(*args, **kwargs))
 
     def ravel(self) -> "AbstractQuantity":
         """Return a flattened version of the array.
@@ -703,6 +768,37 @@ class AbstractQuantity(
         """
         __tracebackhide__ = True  # pylint: disable=unused-variable
         return replace(self, value=self.value.reshape(*args, order=order))
+
+    def round(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
+        """Round the array to the given number of decimals.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([1.1, 2.2, 3.3], "m")
+        >>> q.round(0)
+        Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+
+        """
+        return replace(self, value=self.value.round(*args, **kwargs))
+
+    @property
+    def sharding(self) -> Any:
+        """Return the sharding configuration of the array."""
+        return self.value.sharding
+
+    def squeeze(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
+        """Return the array with all single-dimensional entries removed.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([[[1], [2], [3]]], "m")
+        >>> q.squeeze()
+        Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+
+        """
+        return replace(self, value=self.value.squeeze(*args, **kwargs))
 
     # ===============================================================
     # Python stuff
