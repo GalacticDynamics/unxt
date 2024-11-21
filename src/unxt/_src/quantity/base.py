@@ -485,6 +485,21 @@ class AbstractQuantity(AstropyQuantityCompatMixin, IPythonReprMixin, ArrayValue)
         __tracebackhide__ = True  # pylint: disable=unused-variable
         return replace(self, value=self.value.reshape(*args, order=order))
 
+    def __iter__(self) -> Any:
+        """Iterate over the Quantity's value.
+
+        Examples
+        --------
+        >>> from unxt import Quantity
+        >>> q = Quantity([1, 2, 3], "m")
+        >>> [x for x in q]
+        [Quantity['length'](Array(1, dtype=int32), unit='m'),
+         Quantity['length'](Array(2, dtype=int32), unit='m'),
+         Quantity['length'](Array(3, dtype=int32), unit='m')]
+
+        """
+        yield from (self[i] for i in range(len(self.value)))
+
     # ===============================================================
     # NumPy Compatibility
 
