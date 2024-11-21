@@ -575,7 +575,16 @@ class AbstractQuantity(
         self.value[key] = value
 
     def to_device(self, device: None | jax.Device = None) -> "AbstractQuantity":
-        """Move the array to a new device."""
+        """Move the array to a new device.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity(1, "m")
+        >>> q.to_device(None)
+        Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
+
+        """
         return replace(self, value=self.value.to_device(device))
 
     # ===============================================================
