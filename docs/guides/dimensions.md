@@ -12,7 +12,7 @@ length, time, or mass. `unxt` has a sub-module for working with dimensions:
 The function `dimension` is for creating a dimension, while `dimension_of` is
 for getting the dimension of an object.
 
-First let's create a some dimensions:
+First let's create a dimension:
 
 ```{code-block} python
 >>> from unxt.dims import dimension
@@ -26,7 +26,7 @@ PhysicalType('length')
 
 ```
 
-Now let's get the dimensions from objects:
+Now let's get the dimension from various objects:
 
 ```{code-block} python
 >>> from unxt.dims import dimension_of

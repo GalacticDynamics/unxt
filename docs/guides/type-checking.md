@@ -11,8 +11,8 @@
 
 ## TL;DR
 
-You can tell functions about the dtype, shape, and dimensions of a Quantity. The
-dtype and shape information can be checked statically, and all three can be
+You can tell functions about the dtype, shape, and dimensions of a `Quantity`.
+The dtype and shape information can be checked statically, and all three can be
 checked at runtime.
 
 In the following example we will define a function that operates on two

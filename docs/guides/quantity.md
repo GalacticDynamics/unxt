@@ -17,7 +17,7 @@ the value to a `jax.Array` (if it is not already one) and convert the unit to a
 `Unit` object.
 
 The value and unit of a `Quantity` object can be accessed using the `value` and
-`unit` attributes.
+`unit` attributes, respectively:
 
 ```{code-block} python
 >>> q = u.Quantity([1, 2, 3, 5], "m")

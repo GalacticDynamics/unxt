@@ -13,7 +13,7 @@ Unit(s)
 
 Unit System
   A unit system is a collection of units that are defined and used together for consistency and standardization.
-  Examples include the International System of Units (SI), the Imperial system, and natural unit systems such as Planck units or atomic units. Each system specifies base units (like meters, kilograms) and derived units (like joules or newtons), allowing for the expression of Qunatities in terms of these units.
+  Examples include the International System of Units (SI), the Imperial system, and natural unit systems such as Planck units or atomic units. Each system specifies base units (like meters, kilograms) and derived units (like joules or newtons), allowing for the expression of Quantities in terms of these units.
 
 USys
   A shorthand for "unit system", used in class names for concision.

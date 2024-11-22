@@ -48,13 +48,13 @@ Unxt is unitful quantities and calculations in [JAX][jax].
 Unxt supports JAX's compelling features:
 
 - JIT compilation (`jit`)
-- vectorization (`vmap`, etc).
+- vectorization (`vmap`, etc.)
 - auto-differentiation (`grad`, `jacobian`, `hessian`)
 - GPU/TPU acceleration
 
 And best of all, `unxt` doesn't force you to use special unit-compatible
 re-exports of JAX libraries. You can use `unxt` with existing JAX code, and with
-one simple [decorator](#jax-functions) it will work with `unxt.Quantity`.
+one simple [decorator](#jax-functions), JAX will work with `unxt.Quantity`.
 
 ---
 
@@ -86,32 +86,72 @@ uv add unxt
 ## Quickstart
 
 The starting point of `unxt` is the `Quantity` class. It combines a JAX array
-with unit information.
+with unit information. We currently use [astropy.units][apyunits] for unit
+handling.
 
-### Construction
+### Creating and Working with Quantity objects
+
+Create a `Quantity` by passing a JAX array-compatible object and a unit:
 
 ```{code-block} python
 
->>> import jax.numpy as jnp
+>>> import astropy.units as u
 >>> from unxt import Quantity
 
->>> x = Quantity(jnp.array([1, 2, 3]), "m")
+>>> x = Quantity([1.0, 2.0, 3.0], u.m)
 >>> x
-Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
 ```
 
-The constituent value and unit are accessible as attributes.
+As a shorthand, we also support specifying units as strings (that are parsed by
+[astropy.units][apyunits]):
+
+```{code-block} python
+
+>>> y = Quantity([4.0, 5.0, 6.0], "m")
+>>> y
+Quantity['length'](Array([4., 5., 6.], dtype=float32), unit='m')
+```
+
+The constituent value and unit are accessible as attributes:
 
 ```{code-block} python
 >>> x.value
-Array([1, 2, 3], dtype=int32)
+Array([1., 2., 3.], dtype=float32)
 
 >>> x.unit
 Unit("m")
 
 ```
 
-### Conversion
+`Quantity` objects obey the rules of unitful arithmetic. For example, adding,
+multiplying, or dividing two quantities produces a new `Quantity` with the
+correct units:
+
+```{code-block} python
+
+>>> x + y
+Quantity['length'](Array([5., 7., 9.], dtype=float32), unit='m')
+
+>>> x * y
+Quantity['area'](Array([ 4., 10., 18.], dtype=float32), unit='m2')
+
+>>> x / y
+Quantity['dimensionless'](Array([0.25, 0.4 , 0.5 ], dtype=float32), unit='')
+
+```
+
+Arithmetic will raise an error if the units are incompatible:
+
+```{code-block} python
+
+>>> z = Quantity(5.0, u.second)
+>>> x + z
+...
+UnitConversionError: 's' (time) and 'm' (length) are not convertible
+```
+
+### Converting Units
 
 Quantities can be converted to different units:
 
@@ -156,27 +196,9 @@ Quantity['length'](Array([100., 200., 300.], dtype=float32, weak_type=True), uni
 
 ::::
 
-### Math
-
-Quantities can be combined in calculations:
-
-```{code-block} python
-
->>> y = Quantity([4, 5, 6], "m")
->>> x + y
-Quantity['length'](Array([5, 7, 9], dtype=int32), unit='m')
-
->>> x * y
-Quantity['area'](Array([ 4, 10, 18], dtype=int32), unit='m2')
-
->>> x / y
-Quantity['dimensionless'](Array([0.25, 0.4 , 0.5 ], dtype=float32), unit='')
-
-```
-
 ### JAX functions
 
-JAX function normally only support pure JAX arrays.
+JAX functions normally only support pure JAX arrays.
 
 ```{code-block} python
 
@@ -188,9 +210,10 @@ not a pure JAX array
 
 We use `quax` to enable Quantity support across most of the JAX ecosystem! See
 the [quax docs](https://docs.kidger.site/quax/) for implementation details. The
-short version is that you can use `Quantity` in JAX functions so long they pass
-through a [`quax.quaxify`](https://docs.kidger.site/quax/api/quax/#quax.quaxify)
-call. Here are a few examples:
+short explanation is that you can use `Quantity` in JAX functions so long they
+pass through a
+[`quax.quaxify`](https://docs.kidger.site/quax/api/quax/#quax.quaxify) call.
+Here are a few examples:
 
 ::::{tab-set}
 
@@ -241,7 +264,7 @@ Quantity['area'](Array([ 5, 14, 27], dtype=int32), unit='m2')
 
 ### JIT
 
-`unxt.Quantity` works through `jax.jit`.
+`unxt.Quantity` works through `jax.jit`:
 
 ```{code-block} python
 
@@ -371,6 +394,7 @@ consider citing this work.
 
 <!-- LINKS -->
 
+[apyunits]: https://docs.astropy.org/en/stable/units/index.html
 [coordinax]: https://github.com/GalacticDynamics/coordinax
 [equinox]: https://docs.kidger.site/equinox/
 [galax]: https://github.com/GalacticDynamics/galax
