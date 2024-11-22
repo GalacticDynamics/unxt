@@ -146,9 +146,10 @@ Arithmetic will raise an error if the units are incompatible:
 ```{code-block} python
 
 >>> z = Quantity(5.0, u.second)
->>> x + z
+>>> try: x + z
+... except Exception as e: print(e)
 ...
-UnitConversionError: 's' (time) and 'm' (length) are not convertible
+'s' (time) and 'm' (length) are not convertible
 ```
 
 ### Converting Units
@@ -164,7 +165,7 @@ using the explicit syntax
 ```{code-block} python
 
 >>> x.uconvert("cm")
-Quantity['length'](Array([100., 200., 300.], dtype=float32, weak_type=True), unit='cm')
+Quantity['length'](Array([100., 200., 300.], dtype=float32), unit='cm')
 
 ```
 
@@ -173,7 +174,7 @@ or Astropy's API
 ```{code-block} python
 
 >>> x.to("cm")
-Quantity['length'](Array([100., 200., 300.], dtype=float32, weak_type=True), unit='cm')
+Quantity['length'](Array([100., 200., 300.], dtype=float32), unit='cm')
 
 ```
 
@@ -188,7 +189,7 @@ or a function-oriented approach
 >>> from unxt import uconvert
 
 >>> uconvert("cm", x)
-Quantity['length'](Array([100., 200., 300.], dtype=float32, weak_type=True), unit='cm')
+Quantity['length'](Array([100., 200., 300.], dtype=float32), unit='cm')
 
 ```
 
@@ -201,6 +202,8 @@ Quantity['length'](Array([100., 200., 300.], dtype=float32, weak_type=True), uni
 JAX functions normally only support pure JAX arrays.
 
 ```{code-block} python
+
+>>> import jax.numpy as jnp
 
 >>> try: jnp.square(x)
 ... except TypeError: print("not a pure JAX array")
@@ -234,7 +237,7 @@ top function. With `unxt` you can use normal JAX!
 ...     return jnp.square(x) + jnp.multiply(x, y)  # normal JAX
 
 >>> func(x, y)
-Quantity['area'](Array([ 5, 14, 27], dtype=int32), unit='m2')
+Quantity['area'](Array([ 5., 14., 27.], dtype=float32), unit='m2')
 
 ```
 
@@ -250,7 +253,7 @@ It's a drop-in replacement for much of JAX.
 >>> import quaxed.numpy as jnp  # pre-quaxified JAX
 
 >>> jnp.square(x) + jnp.multiply(x, y)
-Quantity['area'](Array([ 5, 14, 27], dtype=int32), unit='m2')
+Quantity['area'](Array([ 5., 14., 27.], dtype=float32), unit='m2')
 
 ```
 
@@ -272,7 +275,7 @@ Quantity['area'](Array([ 5, 14, 27], dtype=int32), unit='m2')
 
 >>> jitted_func = jit(func)
 >>> jitted_func(x, y)
-Quantity['area'](Array([ 5, 14, 27], dtype=int32), unit='m2')
+Quantity['area'](Array([ 5., 14., 27.], dtype=float32), unit='m2')
 
 ```
 
