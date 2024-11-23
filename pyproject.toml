@@ -36,10 +36,10 @@
     "optional-dependencies>=0.3.2",
     "plum-dispatch>=2.4.3",
     "quax>=0.0.5",
-    "quaxed>=0.6.4",
+    "quaxed>=0.6.5",
     "xmmutablemap>=0.1",
     "zeroth>=1.0.0",
-  ]
+]
   # NOTE: zeroth is only required for matplotlib
 
   [project.optional-dependencies]
