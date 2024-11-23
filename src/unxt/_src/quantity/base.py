@@ -280,7 +280,7 @@ class AbstractQuantity(
         return self.value.shape
 
     def materialise(self) -> NoReturn:
-        msg = "Refusing to materialise `Quantity`."
+        msg = f"Refusing to materialise `{type(self).__name__}`."
         raise RuntimeError(msg)
 
     def aval(self) -> jax.core.ShapedArray:
@@ -339,22 +339,60 @@ class AbstractQuantity(
 
     @property
     def mT(self) -> "AbstractQuantity":  # noqa: N802
-        """Transpose of the array."""
+        """Matrix transpose of the array.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity([[0, 1], [1, 2]], "m")
+        >>> q.mT
+        Quantity['length'](Array([[0, 1],
+                                  [1, 2]], dtype=int32), unit='m')
+
+        """
         return replace(self, value=jnp.matrix_transpose(self.value))
 
     @property
     def ndim(self) -> int:
-        """Number of dimensions."""
+        """Number of dimensions.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity([[1]], "m")
+        >>> q.ndim
+        2
+
+        """
         return self.value.ndim
 
     @property
     def size(self) -> int:
-        """Total number of elements."""
+        """Total number of elements.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity([1, 2, 3], "m")
+        >>> q.size
+        3
+
+        """
         return self.value.size
 
     @property
     def T(self) -> "AbstractQuantity":  # noqa: N802
-        """Transpose of the array."""
+        """Transpose of the array.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity([[0, 1], [1, 2]], "m")
+        >>> q.T
+        Quantity['length'](Array([[0, 1],
+                                  [1, 2]], dtype=int32), unit='m')
+
+        """
         return replace(self, value=self.value.T)
 
     # ---------------------------------------------------------------
