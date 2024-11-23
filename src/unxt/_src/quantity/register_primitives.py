@@ -2699,18 +2699,89 @@ def _mul_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> jnp.multiply(q1, q2)
     Quantity['area'](Array(6, dtype=int32, ...), unit='m2')
 
+    >>> q1 = UncheckedQuantity(2, "m")
+    >>> q2 = Quantity(3, "m")
+    >>> jnp.multiply(q1, q2)
+    UncheckedQuantity(Array(6, dtype=int32, ...), unit='m2')
+
     """
+    # Promote to a common type
+    x, y = promote(x, y)
+    # Multiply the units
     u = unit(x.unit * y.unit)
+    # Multiply the values
     return type_np(x)(lax.mul(x.value, y.value), unit=u)
 
 
 @register(lax.mul_p)
 def _mul_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
+    """Multiplication of an array-like and a quantity.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+
+    >>> from unxt.quantity import UncheckedQuantity
+    >>> q = UncheckedQuantity(2, "m")
+
+    >>> 2.0 * q
+    UncheckedQuantity(Array(4., dtype=float32, ...), unit='m')
+
+    >>> jnp.asarray(2) * q
+    UncheckedQuantity(Array(4, dtype=int32, ...), unit='m')
+
+    >>> jnp.asarray([2, 3]) * q
+    UncheckedQuantity(Array([4, 6], dtype=int32), unit='m')
+
+    >>> from unxt import Quantity
+    >>> q = Quantity(2, "m")
+
+    >>> 2.0 * q
+    Quantity['length'](Array(4., dtype=float32, ...), unit='m')
+
+    >>> jnp.asarray(2) * q
+    Quantity['length'](Array(4, dtype=int32, ...), unit='m')
+
+    >>> jnp.asarray([2, 3]) * q
+    Quantity['length'](Array([4, 6], dtype=int32), unit='m')
+
+    """
     return replace(y, value=lax.mul(x, y.value))
 
 
 @register(lax.mul_p)
 def _mul_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
+    """Multiplication of a quantity and an array-like.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+
+    >>> from unxt.quantity import UncheckedQuantity
+    >>> q = UncheckedQuantity(2, "m")
+
+    >>> q * 2.0
+    UncheckedQuantity(Array(4., dtype=float32, ...), unit='m')
+
+    >>> q * jnp.asarray(2)
+    UncheckedQuantity(Array(4, dtype=int32, ...), unit='m')
+
+    >>> q * jnp.asarray([2, 3])
+    UncheckedQuantity(Array([4, 6], dtype=int32), unit='m')
+
+    >>> from unxt import Quantity
+    >>> q = Quantity(2, "m")
+
+    >>> q * 2.0
+    Quantity['length'](Array(4., dtype=float32, ...), unit='m')
+
+    >>> q * jnp.asarray(2)
+    Quantity['length'](Array(4, dtype=int32, weak_type=True), unit='m')
+
+    >>> q * jnp.asarray([2, 3])
+    Quantity['length'](Array([4, 6], dtype=int32), unit='m')
+
+    """
     return replace(x, value=lax.mul(x.value, y))
 
 
