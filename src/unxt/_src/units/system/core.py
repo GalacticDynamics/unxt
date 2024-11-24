@@ -19,7 +19,7 @@ from .builtin import DimensionlessUnitSystem
 from .flags import AbstractUSysFlag, DynamicalSimUSysFlag, StandardUSysFlag
 from .realizations import NAMED_UNIT_SYSTEMS, dimensionless
 from .utils import get_dimension_name
-from unxt._src.dimensions.core import dimension_of
+from unxt._src.dimensions import dimension_of
 from unxt._src.units.core import unit
 
 # ===================================================================

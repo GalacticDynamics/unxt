@@ -1,6 +1,9 @@
 """Dimensions module.
 
-Copyright (c) 2023 Galactic Dynamics. All rights reserved.
+This is the private implementation of the dimensions module.
+
 """
 
-__all__: list[str] = []
+__all__ = ["dimension", "dimension_of", "AbstractDimension"]
+
+from .core import AbstractDimension, dimension, dimension_of
