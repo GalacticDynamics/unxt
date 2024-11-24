@@ -7,7 +7,7 @@ default_stages: [pre-commit, pre-push]
 
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.30.0
+    rev: v3.30.1
     hooks:
       - id: commitizen
       # - id: commitizen-branch
@@ -51,7 +51,7 @@ repos:
       - id: check-readthedocs
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.7.2"
+    rev: "v0.7.3"
     hooks:
       # Run the linter
       - id: ruff
@@ -73,7 +73,6 @@ repos:
       - id: prettier
         types_or: [yaml, markdown, html, css, scss, javascript, json]
         args: [--prose-wrap=always]
-        exclude: docs/api/quantities.md
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: "v1.13.0"
@@ -89,7 +88,7 @@ repos:
       - id: codespell
 
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.22
+    rev: v0.23
     hooks:
       - id: validate-pyproject
 

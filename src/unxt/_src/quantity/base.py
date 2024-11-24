@@ -240,7 +240,7 @@ class AbstractQuantity(
 
         See Also
         --------
-        unxt.uconvert : convert a quantity to a new unit.
+        `unxt.uconvert` : convert a quantity to a new unit.
 
         Examples
         --------
@@ -255,6 +255,10 @@ class AbstractQuantity(
 
     def ustrip(self, u: Any, /) -> Array:
         """Return the value in the given units.
+
+        See Also
+        --------
+        `unxt.ustrip` : strip the units from a quantity.
 
         Examples
         --------
