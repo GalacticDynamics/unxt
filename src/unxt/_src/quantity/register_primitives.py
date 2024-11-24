@@ -29,7 +29,7 @@ from .api import is_unit_convertible, uconvert, ustrip
 from .base import AbstractQuantity
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
-from unxt._src.units.core import unit, unit_of
+from unxt._src.units import unit, unit_of
 
 T = TypeVar("T")
 

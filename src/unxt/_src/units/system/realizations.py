@@ -19,7 +19,7 @@ from .builtin import (
     LTMAUnitSystem,
     SIUnitSystem,
 )
-from unxt._src.units.core import unit
+from unxt._src.units import unit
 
 # Dimensionless. This is a singleton.
 dimensionless = DimensionlessUnitSystem()

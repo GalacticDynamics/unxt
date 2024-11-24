@@ -49,10 +49,10 @@ from .setup_package import RUNTIME_TYPECHECKER
 
 with install_import_hook("unxt", RUNTIME_TYPECHECKER):
     from . import dims, quantity, units, unitsystems
-    from ._src.units.core import unit, unit_of
     from ._version import version as __version__
     from .dims import dimension, dimension_of
     from .quantity import Quantity, is_unit_convertible, uconvert, ustrip
+    from .units import unit, unit_of
     from .unitsystems import AbstractUnitSystem, unitsystem, unitsystem_of
 
 from ._src import experimental  # noqa: F401

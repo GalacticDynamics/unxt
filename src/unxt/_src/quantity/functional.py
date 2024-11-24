@@ -11,7 +11,8 @@ from plum import dispatch
 
 from .base import AbstractQuantity
 from unxt._src.dimensions import dimension_of
-from unxt._src.units.core import AbstractUnits, unit
+from unxt._src.units import unit
+from unxt._src.units.core import AbstractUnits
 from unxt._src.units.system.base import AbstractUnitSystem
 
 # ===================================================================
