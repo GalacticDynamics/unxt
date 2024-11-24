@@ -15,7 +15,7 @@ import astropy.units as apyu
 from astropy.units import Unit
 from plum import dispatch
 
-from unxt._src.dimensions.core import AbstractDimension
+from unxt._src.dimensions import AbstractDimension
 
 AbstractUnits: TypeAlias = apyu.UnitBase | apyu.Unit
 

@@ -2,7 +2,7 @@
 
 __all__: list[str] = []
 
-from unxt._src.dimensions.core import dimension
+from unxt._src.dimensions import dimension
 
 dimensionless = dimension("dimensionless")
 length = dimension("length")

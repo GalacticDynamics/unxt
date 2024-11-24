@@ -8,7 +8,7 @@ from typing import Any
 from plum import dispatch
 
 from . import builtin_dimensions as bdims
-from unxt._src.dimensions.core import AbstractDimension, dimension_of
+from unxt._src.dimensions import AbstractDimension, dimension_of
 from unxt._src.typing_ext import Unit
 
 # ------------------------------------
