@@ -9,12 +9,13 @@ from astropy.coordinates import Angle as AstropyAngle, Distance as AstropyDistan
 from astropy.units import Quantity as AstropyQuantity
 from jaxtyping import Array
 from packaging.version import Version
-from plum import conversion_method, dispatch
+from plum import conversion_method, dispatch, type_unparametrized as type_up
 
 import quaxed.numpy as jnp
-from dataclassish import replace
+from dataclassish import field_items, replace
 
 from unxt._interop.optional_deps import OptDeps
+from unxt.dims import dimension_of
 from unxt.quantity import AbstractQuantity, Quantity, UncheckedQuantity
 
 # ============================================================================
@@ -230,18 +231,34 @@ def uconvert(unit: AstropyUnit, x: AbstractQuantity, /) -> AbstractQuantity:
 
     >>> x = u.Quantity([1, 2, 3], "Kelvin")
     >>> with apyu.add_enabled_equivalencies(apyu.temperature()):
-    ...     y = x.to("deg_C")
+    ...     y = x.uconvert("deg_C")
     >>> y
     Quantity['temperature'](Array([-272.15, -271.15, -270.15], dtype=float32), unit='deg_C')
+
+    >>> x = Quantity([1, 2, 3], "radian")
+    >>> with apyu.add_enabled_equivalencies(apyu.dimensionless_angles()):
+    ...     y = x.uconvert("")
+    >>> y
+    Quantity['dimensionless'](Array([1., 2., 3.], dtype=float32), unit='')
 
     """  # noqa: E501
     # Hot-path: if no unit conversion is necessary
     if x.unit == unit:
         return x
 
-    # TODO: jaxpr units so we can understand them at trace time.
-    # Hot-path: if in tracing mode
-    # if isinstance(x.value, jax.core.Tracer) and not is_unit_convertible(x.unit, u):
-    #     return x.value
+    # Compute the value. Used in all subsequent branches.
+    value = _apy7_unit_to(x.unit, unit, x.value)
 
-    return replace(x, value=_apy7_unit_to(x.unit, unit, x.value), unit=unit)
+    # If the dimensions are the same, we can just replace the value and unit.
+    if dimension_of(x.unit) == dimension_of(unit):
+        return replace(x, value=value, unit=unit)
+
+    # If the dimensions are different, we need to create a new quantity since
+    # the dimensions can be part of the type. This won't work if the Quantity
+    # type itself needs to be changed, e.g. `coordinax.Angle` ->
+    # `unxt.Quantity`. These cases are handled separately, in other dispatches.
+    fs = dict(field_items(x))
+    fs["value"] = value
+    fs["unit"] = unit
+
+    return type_up(x)(**fs)
