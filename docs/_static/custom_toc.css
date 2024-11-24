@@ -1,0 +1,12 @@
+/* Ensure the .toc-h3 elements are hidden by default */
+
+.toc-h3 {
+  display: none;
+}
+
+/* Make the .toc-h3 elements visible when their parent or they themselves are hovered */
+.toc-h2:hover .toc-h3,
+.toc-h2:focus-within .toc-h3,
+.toc-h3:hover {
+  display: block;
+}

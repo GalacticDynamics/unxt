@@ -49,12 +49,12 @@ def grad(
 ) -> Callable[P, R]:
     """Gradient of a function with units.
 
-    In general, if you can use `quax.quaxify(jax.grad(func))` (or the syntactic
-    sugar `quax.grad(func)`), that's the better option! The difference from
-    those functions is how this units are supported. `quaxify` will directly
-    propagate the units through the automatic differentiation functions. But
-    sometimes that doesn't work and we need to strip the units and re-apply
-    them. This function does that, using the ``units`` kwarg.
+    In general, if you can use ``quax.quaxify(jax.grad(func))`` (or the
+    syntactic sugar ``quaxed.grad(func)``), that's the better option! The
+    difference from those functions is how this units are supported. ``quaxify``
+    will directly propagate the units through the automatic differentiation
+    functions. But sometimes that doesn't work and we need to strip the units
+    and re-apply them. This function does that, using the "units" kwarg.
 
     See Also
     --------
@@ -66,11 +66,11 @@ def grad(
     >>> import unxt
     >>> from unxt import Quantity
 
-    >>> def square_volume(x: Quantity["length"]) -> Quantity["volume"]:
+    >>> def cube_volume(x: Quantity["length"]) -> Quantity["volume"]:
     ...     return x**3
 
-    >>> grad_square_volume = unxt.experimental.grad(square_volume, units=("m",))
-    >>> grad_square_volume(Quantity(2.0, "m"))
+    >>> grad_cube_volume = unxt.experimental.grad(cube_volume, units=("m",))
+    >>> grad_cube_volume(Quantity(2.0, "m"))
     Quantity['area'](Array(12., dtype=float32, weak_type=True), unit='m2')
 
     """
@@ -124,11 +124,11 @@ def jacfwd(
     >>> import unxt
     >>> from unxt import Quantity
 
-    >>> def square_volume(x: Quantity["length"]) -> Quantity["volume"]:
+    >>> def cubbe_volume(x: Quantity["length"]) -> Quantity["volume"]:
     ...     return x**3
 
-    >>> jacfwd_square_volume = unxt.experimental.jacfwd(square_volume, units=("m",))
-    >>> jacfwd_square_volume(Quantity(2.0, "m"))
+    >>> jacfwd_cubbe_volume = unxt.experimental.jacfwd(cubbe_volume, units=("m",))
+    >>> jacfwd_cubbe_volume(Quantity(2.0, "m"))
     Quantity['area'](Array(12., dtype=float32, weak_type=True), unit='m2')
 
     """
@@ -187,11 +187,11 @@ def hessian(
     >>> import unxt
     >>> from unxt import Quantity
 
-    >>> def square_volume(x: Quantity["length"]) -> Quantity["volume"]:
+    >>> def cubbe_volume(x: Quantity["length"]) -> Quantity["volume"]:
     ...     return x**3
 
-    >>> hessian_square_volume = unxt.experimental.hessian(square_volume, units=("m",))
-    >>> hessian_square_volume(Quantity(2.0, "m"))
+    >>> hessian_cubbe_volume = unxt.experimental.hessian(cubbe_volume, units=("m",))
+    >>> hessian_cubbe_volume(Quantity(2.0, "m"))
     Quantity['length'](Array(12., dtype=float32, weak_type=True), unit='m')
 
     """

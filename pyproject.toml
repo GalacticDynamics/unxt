@@ -5,9 +5,9 @@
   readme = "README.md"
   requires-python = ">=3.10"
   authors = [
-      { name = "GalacticDynamics", email = "nstarman@users.noreply.github.com" },
-      { name = "Nathaniel Starkman", email = "nstarman@users.noreply.github.com" },
-      { name = "Adrian Price-Whelan", email = "adrianmpw@gmail.com" }
+    { name = "GalacticDynamics", email = "nstarman@users.noreply.github.com" },
+    { name = "Nathaniel Starkman", email = "nstarman@users.noreply.github.com" },
+    { name = "Adrian Price-Whelan", email = "adrianmpw@gmail.com" },
   ]
   classifiers = [
     "Development Status :: 3 - Alpha",
@@ -34,7 +34,7 @@
     "jaxlib>0.4.32",
     "jaxtyping>=0.2.34",
     "optional-dependencies>=0.3.2",
-    "plum-dispatch>=2.4.3",
+    "plum-dispatch>=2.5.3",
     "quax>=0.0.5",
     "quaxed>=0.6.7",
     "xmmutablemap>=0.1",
@@ -43,10 +43,10 @@
   # NOTE: zeroth is only required for matplotlib
 
   [project.optional-dependencies]
-    all = ["unxt[backend-astropy,interop-gala,interop-mpl]"]
+    all             = ["unxt[backend-astropy,interop-gala,interop-mpl]"]
     backend-astropy = ["astropy>=6.0"]
-    interop-gala = ["gala>=1.8"]
-    interop-mpl = ["matplotlib>=3.4"]
+    interop-gala    = ["gala>=1.8"]
+    interop-mpl     = ["matplotlib>=3.4"]
 
   [project.urls]
     "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"
@@ -55,49 +55,48 @@
     Homepage      = "https://github.com/GalacticDynamics/unxt"
 
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
-build-backend = "hatchling.build"
+  requires      = ["hatch-vcs", "hatchling"]
+  build-backend = "hatchling.build"
 
 [dependency-groups]
-dev = [
+  dev = [
     "ipykernel>=6.29.5",
-    {include-group = "docs"},
-    {include-group = "test-all"},
-    {include-group = "nox"},
-]
-docs = [
-    "griffe<1.0",
-    "jinja2==3.1",
-    "mkdocs-material==9.5", # Theme
-    "mkdocs==1.6.0", # Main documentation generator.
-    "mkdocs_include_exclude_files==0.0.1", # Tweak which files are included/excluded
-    "mkdocstrings[python] >= 0.18", # Autogenerate documentation from docstrings.
-    "mknotebooks==0.8", # Turn Jupyter Lab notebooks into webpages.
-    "nbconvert==7.16",
-    "pygments==2.16.0",
-    "pymdown-extensions==10.2", # Markdown extensions e.g. to handle LaTeX.
-    "pytkdocs_tweaks==0.0.8", # Tweaks mkdocstrings to improve various aspects
-    "sphinx>=7.3.7",
-]
-nox = [
-    "nox>=2024.10.9",
-]
-test = [
-  "hypothesis[numpy]>=6.112.2",
-  "pytest>=8.3.3",
-  "pytest-arraydiff>=0.6.1",
-  "pytest-cov >=3",
-  "pytest-codspeed",
-  "pytest-github-actions-annotate-failures",
-  "sybil>=8.0.0",
-]
-test-mpl = ["pytest-mpl"]
-test-all = [{include-group = "test"}, {include-group = "test-mpl"}]
+    { include-group = "docs" },
+    { include-group = "nox" },
+    { include-group = "test-all" },
+  ]
+  docs = [
+    "myst-nb>=1.1.2",
+    "myst_parser>=0.13",
+    "pytz>=2024.2",               # for copyright date
+    "sphinx-book-theme==1.1.3",
+    "sphinx-prompt>=1.8.0",
+    "sphinx-tippy",
+    "sphinx>=7.0",
+    "sphinx_autodoc_typehints",
+    "sphinx_copybutton",
+    "sphinx_design",
+    "sphinx_togglebutton",
+    "sphinxext-opengraph>=0.9.1",
+    "sphinxext-rediraffe>=0.2.7",
+  ]
+  nox = ["nox>=2024.10.9"]
+  test = [
+    "hypothesis[numpy]>=6.112.2",
+    "pytest-arraydiff>=0.6.1",
+    "pytest-codspeed",
+    "pytest-cov >=3",
+    "pytest-github-actions-annotate-failures",
+    "pytest>=8.3.3",
+    "sybil>=8.0.0",
+  ]
+  test-mpl = ["pytest-mpl"]
+  test-all = [{ include-group = "test" }, { include-group = "test-mpl" }]
 
 
 [tool.hatch]
-  build.hooks.vcs.version-file     = "src/unxt/_version.py"
-  version.source                   = "vcs"
+  build.hooks.vcs.version-file = "src/unxt/_version.py"
+  version.source               = "vcs"
 
 
 [tool.pytest.ini_options]
@@ -119,6 +118,7 @@ test-all = [{include-group = "test"}, {include-group = "test-mpl"}]
   log_cli_level = "INFO"
   minversion = "6.0"
   testpaths = ["docs", "src/", "tests/"]
+  norecursedirs = ["docs/_build"]
   xfail_strict = true
 
 
@@ -207,8 +207,8 @@ test-all = [{include-group = "test"}, {include-group = "test-mpl"}]
       ]
       known-local-folder = ["unxt"]
 
-  [tool.ruff.format]
-    docstring-code-format=true
+[tool.ruff.format]
+  docstring-code-format = true
 
 
 [tool.pylint]
