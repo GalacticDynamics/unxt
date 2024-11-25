@@ -15,24 +15,55 @@ decomposing units on quantities. There are many more features and tools for
 working with unit systems in `unxt`.
 
 """
+# pylint: disable=duplicate-code
 
-from ._src.units.system import base, builtin, compare, core, flags, realizations, utils
-from ._src.units.system.base import *  # noqa: F403
-from ._src.units.system.builtin import *  # noqa: F403
-from ._src.units.system.compare import *  # noqa: F403
-from ._src.units.system.core import *  # noqa: F403
-from ._src.units.system.flags import *  # noqa: F403
-from ._src.units.system.realizations import *  # noqa: F403
-from ._src.units.system.utils import *  # noqa: F403
+__all__ = [
+    "unitsystem",
+    "unitsystem_of",
+    # classes
+    "AbstractUnitSystem",
+    "UNITSYSTEMS_REGISTRY",
+    "DimensionlessUnitSystem",
+    "LTMAUnitSystem",
+    # unit system instance
+    "galactic",
+    "dimensionless",
+    "solarsystem",
+    "si",
+    "cgs",
+    # unit system alias
+    "NAMED_UNIT_SYSTEMS",
+    # unit system flags
+    "AbstractUSysFlag",
+    "StandardUSysFlag",
+    "DynamicalSimUSysFlag",
+    # functions
+    "equivalent",
+]
 
-__all__: list[str] = []
-__all__ += base.__all__
-__all__ += core.__all__
-__all__ += builtin.__all__
-__all__ += realizations.__all__
-__all__ += compare.__all__
-__all__ += utils.__all__
-__all__ += flags.__all__
+from jaxtyping import install_import_hook
 
-# Clean up namespace
-del base, builtin, compare, core, utils, realizations, flags
+from .setup_package import RUNTIME_TYPECHECKER
+
+with install_import_hook("unxt.unitsystems", RUNTIME_TYPECHECKER):
+    from ._src.units.system import (
+        NAMED_UNIT_SYSTEMS,
+        UNITSYSTEMS_REGISTRY,
+        AbstractUnitSystem,
+        AbstractUSysFlag,
+        DimensionlessUnitSystem,
+        DynamicalSimUSysFlag,
+        LTMAUnitSystem,
+        StandardUSysFlag,
+        cgs,
+        dimensionless,
+        equivalent,
+        galactic,
+        si,
+        solarsystem,
+        unitsystem,
+        unitsystem_of,
+    )
+
+# Clean up the namespace
+del install_import_hook, RUNTIME_TYPECHECKER
