@@ -13,7 +13,7 @@ from jaxtyping import install_import_hook
 
 from .setup_package import RUNTIME_TYPECHECKER
 
-with install_import_hook("unxt", RUNTIME_TYPECHECKER):
+with install_import_hook("unxt.dims", RUNTIME_TYPECHECKER):
     from ._src.dimensions import dimension, dimension_of
 
 # Clean up the namespace
