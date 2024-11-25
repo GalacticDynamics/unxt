@@ -31,10 +31,9 @@ import jax
 from jaxtyping import ArrayLike
 from plum.parametric import type_unparametrized
 
-from .quantity.core import Quantity
+from .quantity import Quantity, ustrip
 from .typing_ext import Unit
-from unxt._src.quantity.api import ustrip
-from unxt._src.units import unit
+from .units import unit
 
 P = ParamSpec("P")
 R = TypeVar("R", bound=Quantity)
