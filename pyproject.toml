@@ -231,6 +231,7 @@
     "too-many-function-args",     # plum-dispatch
     "unexpected-keyword-arg",     # plum-dispatch
     "unused-argument",            # handled by ruff
+    "unused-import",              # handled by ruff
     "unused-wildcard-import",     # handled by ruff
     "wildcard-import",            # handled by ruff
     "wrong-import-order",         # handled by ruff
