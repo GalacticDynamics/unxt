@@ -188,6 +188,8 @@ class NumPyCompatMixin:
 
     unit: AbstractUnits
 
+    __array_namespace__: Callable[[], Any]
+
     def __array__(self, **kwargs: Any) -> np.typing.NDArray[Any]:
         """Return the array as a numpy array, stripping the units.
 
@@ -202,3 +204,31 @@ class NumPyCompatMixin:
 
         """
         return np.asarray(ustrip(self.unit, self), **kwargs)
+
+    # TODO: why doesn't `__array_namespace__` supersede this?
+    def __array_function__(
+        self,
+        func: Callable[..., Any],
+        types: Any,
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
+    ) -> Any:
+        """Dispatch to the corresponding jax.numpy function.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import unxt as u
+
+        >>> q = u.Quantity([1.0, 2, 3, 4], "m")
+        >>> np.sum(q)
+        Quantity['length'](Array(10., dtype=float32), unit='m')
+
+        >>> np.stack([q, q])
+        Quantity['length'](Array([[1., 2., 3., 4.],
+                                  [1., 2., 3., 4.]], dtype=float32), unit='m')
+
+        """
+        xp = self.__array_namespace__()
+        xfunc = getattr(xp, func.__name__)
+        return xfunc(*args, **kwargs)
