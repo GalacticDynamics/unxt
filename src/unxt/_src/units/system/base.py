@@ -15,7 +15,7 @@ from is_annotated import isannotated
 from .utils import get_dimension_name
 from unxt._src.dimensions import AbstractDimension, dimension
 from unxt._src.typing_ext import Unit as UnitT
-from unxt._src.units.core import unit
+from unxt._src.units import unit
 
 Unit = AstropyUnitBase
 

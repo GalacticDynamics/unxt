@@ -13,8 +13,8 @@ from jaxtyping import install_import_hook
 
 from .setup_package import RUNTIME_TYPECHECKER
 
-with install_import_hook("unxt", RUNTIME_TYPECHECKER):
-    from ._src.units.core import unit, unit_of
+with install_import_hook("unxt.units", RUNTIME_TYPECHECKER):
+    from ._src.units import unit, unit_of
 
 # Clean up the namespace
 del install_import_hook, RUNTIME_TYPECHECKER
