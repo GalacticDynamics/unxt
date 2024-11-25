@@ -1,6 +1,8 @@
 """Register dispatches for `quaxed.numpy`."""
 # pylint: disable=import-error
 
+__all__: list[str] = []
+
 from typing import Any
 
 import jax
