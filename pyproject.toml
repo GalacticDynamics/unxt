@@ -3,7 +3,7 @@
   dynamic = ["version"]
   description = "Quantities in JAX"
   readme = "README.md"
-  requires-python = ">=3.10"
+  requires-python = ">=3.10,<3.13"
   authors = [
     { name = "GalacticDynamics", email = "nstarman@users.noreply.github.com" },
     { name = "Nathaniel Starkman", email = "nstarman@users.noreply.github.com" },
