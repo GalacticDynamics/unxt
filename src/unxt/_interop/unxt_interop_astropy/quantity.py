@@ -25,7 +25,7 @@ from unxt.quantity import AbstractQuantity, Quantity, UncheckedQuantity
 # Constructor
 
 
-@AbstractQuantity.from_._f.register  # noqa: SLF001
+@AbstractQuantity.from_.dispatch
 def from_(
     cls: type[AbstractQuantity], value: AstropyQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
@@ -45,7 +45,7 @@ def from_(
     return cls(jnp.asarray(value.value, **kwargs), value.unit)
 
 
-@AbstractQuantity.from_._f.register  # type: ignore[no-redef] # noqa: SLF001
+@AbstractQuantity.from_.dispatch  # type: ignore[no-redef]
 def from_(
     cls: type[AbstractQuantity], value: AstropyQuantity, unit: Any, /, **kwargs: Any
 ) -> AbstractQuantity:

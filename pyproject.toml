@@ -3,7 +3,7 @@
   dynamic = ["version"]
   description = "Quantities in JAX"
   readme = "README.md"
-  requires-python = ">=3.10,<3.13"
+  requires-python = ">=3.10,<3.14"
   authors = [
     { name = "GalacticDynamics", email = "nstarman@users.noreply.github.com" },
     { name = "Nathaniel Starkman", email = "nstarman@users.noreply.github.com" },
@@ -20,6 +20,7 @@
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python",
     "Topic :: Scientific/Engineering",
     "Typing :: Typed",
@@ -34,7 +35,7 @@
     "jaxlib>0.4.32",
     "jaxtyping>=0.2.34",
     "optional-dependencies>=0.3.2",
-    "plum-dispatch>=2.5.3",
+    "plum-dispatch>=2.5.4",
     "quax>=0.0.5",
     "quaxed>=0.6.7",
     "xmmutablemap>=0.1",

@@ -873,7 +873,7 @@ class AbstractQuantity(
 # Register additional constructors
 
 
-@AbstractQuantity.from_._f.register  # noqa: SLF001
+@AbstractQuantity.from_.dispatch
 def from_(
     cls: type[AbstractQuantity],
     value: AbstractQuantity,
@@ -899,7 +899,7 @@ def from_(
     return cls(value.value, unit)
 
 
-@AbstractQuantity.from_._f.register  # type: ignore[no-redef]  # noqa: SLF001
+@AbstractQuantity.from_.dispatch  # type: ignore[no-redef]
 def from_(
     cls: type[AbstractQuantity],
     value: AbstractQuantity,
@@ -925,7 +925,7 @@ def from_(
     return cls(value.value, value.unit)
 
 
-@AbstractQuantity.from_._f.register  # type: ignore[no-redef] # noqa: SLF001
+@AbstractQuantity.from_.dispatch  # type: ignore[no-redef]
 def from_(
     cls: type[AbstractQuantity],
     value: AbstractQuantity,
