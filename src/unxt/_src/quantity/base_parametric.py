@@ -113,8 +113,9 @@ class AbstractParametricQuantity(AbstractQuantity):
         Examples
         --------
         >>> import copy as pycopy
-        >>> from unxt import Quantity
-        >>> x = Quantity([1, 2, 3], "m")
+        >>> import unxt as u
+
+        >>> x = u.Quantity([1, 2, 3], "m")
         >>> pycopy.copy(x)
         Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
@@ -158,8 +159,9 @@ class AbstractParametricQuantity(AbstractQuantity):
         Examples
         --------
         >>> import pickle
-        >>> from unxt import Quantity
-        >>> x = Quantity([1, 2, 3], "m")
+        >>> import unxt as u
+
+        >>> x = u.Quantity([1, 2, 3], "m")
         >>> pickle.dumps(x)
         b'...'
 

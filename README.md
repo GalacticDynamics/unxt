@@ -25,9 +25,9 @@ pip install unxt
 ### Quick example
 
 ```python
-from unxt import Quantity
+import unxt as u
 
-x = Quantity(jnp.arange(1, 5, dtype=float), "kpc")
+x = u.Quantity(jnp.arange(1, 5, dtype=float), "kpc")
 print(x)
 # Quantity['length'](Array([1., 2., 3., 4.], dtype=float64), unit='kpc')
 
@@ -39,7 +39,7 @@ print(x + x)
 print(2 * x)
 # Quantity['length'](Array([2., 4., 6., 8.], dtype=float64), unit='kpc')
 
-y = Quantity(jnp.arange(4, 8, dtype=float), "Gyr")
+y = u.Quantity(jnp.arange(4, 8, dtype=float), "Gyr")
 
 print(x / y)
 # Quantity['speed'](Array([0.25      , 0.4       , 0.5       , 0.57142857], dtype=float64), unit='kpc / Gyr')
@@ -78,7 +78,7 @@ print(vmap(grad(lambda x: x**3))(x))
 Since `Quantity` is parametric, it can do runtime dimension checking!
 
 ```python
-LengthQuantity = Quantity["length"]
+LengthQuantity = u.Quantity["length"]
 print(LengthQuantity(2, "km"))
 # Quantity['length'](Array(2, dtype=int64, weak_type=True), unit='km')
 

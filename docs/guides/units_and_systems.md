@@ -6,7 +6,13 @@ seconds for time or Joules for energy.
 `unxt` has two primary functions for working with units: `unit` and `unit_of`.
 
 ```{code-block} python
->>> from unxt import unit, unit_of
+>>> import unxt as u
+
+>>> u.unit
+<multiple-dispatch function unit (with 3 registered and 0 pending method(s))>
+
+>>> u.unit_of
+<multiple-dispatch function unit_of (with 0 registered and 5 pending method(s))>
 ```
 
 The function `unit` is for creating a unit, while `unit_of` is for getting the
@@ -15,13 +21,11 @@ unit of an object.
 First let's create some units:
 
 ```{code-block} python
->>> from unxt import unit
-
->>> m = unit('m')  # from a str
+>>> m = u.unit('m')  # from a str
 >>> m
 Unit("m")
 
->>> unit(m)  # from a unit object
+>>> u.unit(m)  # from a unit object
 Unit("m")
 
 ```
@@ -29,17 +33,14 @@ Unit("m")
 Now let's get the units from objects:
 
 ```{code-block} python
->>> from unxt import unit_of
->>> from unxt import Quantity
-
->>> print(unit_of("m"))  # str have no units
+>>> print(u.unit_of("m"))  # str have no units
 None
 
->>> unit_of(m)  # from a unit object
+>>> u.unit_of(m)  # from a unit object
 Unit("m")
 
->>> q = Quantity(5, 'm')  # from a Quantity
->>> unit_of(q)
+>>> q = u.Quantity(5, 'm')  # from a Quantity
+>>> u.unit_of(q)
 Unit("m")
 
 ```

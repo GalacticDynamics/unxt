@@ -24,9 +24,9 @@ As an example, consider the following code snippets:
 
 ```{code-block} python
 
->>> from unxt import Quantity
+>>> import unxt as u
 
->>> q = Quantity(1, 'm')
+>>> q = u.Quantity(1, 'm')
 >>> q
 Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
 ```
@@ -43,8 +43,7 @@ And now the function-oriented API:
 
 ```{code-block} python
 
->>> from unxt import uconvert
->>> uconvert("cm", q)
+>>> u.uconvert("cm", q)
 Quantity['length'](Array(100., dtype=float32, weak_type=True), unit='cm')
 ```
 
@@ -59,8 +58,7 @@ function with the unit as the first argument and the quantity as the second:
 
 ```{code-block} python
 
->>> from unxt import uconvert
->>> uconvert("cm", q)  # convert[to_unit](quantity)
+>>> u.uconvert("cm", q)  # convert[to_unit](quantity)
 Quantity['length'](Array(100., dtype=float32, weak_type=True), unit='cm')
 ```
 
@@ -83,14 +81,14 @@ For example, `unxt` provides a `Quantity.from_` method that can convert an
 
 ```{code-block} python
 
->>> import astropy.units as u
->>> from unxt import Quantity
+>>> import astropy.units as apyu
+>>> import unxt as u
 
->>> aq = u.Quantity(1, 'm')  # Astropy Quantity
+>>> aq = apyu.Quantity(1, 'm')  # Astropy Quantity
 >>> aq
 <Quantity 1. m>
 
->>> xq = Quantity.from_(aq)  # unxt Quantity
+>>> xq = u.Quantity.from_(aq)  # unxt Quantity
 >>> xq
 Quantity['length'](Array(1., dtype=float32), unit='m')
 

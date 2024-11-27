@@ -62,14 +62,13 @@ def grad(
     Examples
     --------
     >>> import jax.numpy as jnp
-    >>> import unxt
-    >>> from unxt import Quantity
+    >>> import unxt as u
 
-    >>> def cube_volume(x: Quantity["length"]) -> Quantity["volume"]:
+    >>> def cube_volume(x: u.Quantity["length"]) -> u.Quantity["volume"]:
     ...     return x**3
 
-    >>> grad_cube_volume = unxt.experimental.grad(cube_volume, units=("m",))
-    >>> grad_cube_volume(Quantity(2.0, "m"))
+    >>> grad_cube_volume = u.experimental.grad(cube_volume, units=("m",))
+    >>> grad_cube_volume(u.Quantity(2.0, "m"))
     Quantity['area'](Array(12., dtype=float32, weak_type=True), unit='m2')
 
     """
@@ -120,14 +119,13 @@ def jacfwd(
     Examples
     --------
     >>> import jax.numpy as jnp
-    >>> import unxt
-    >>> from unxt import Quantity
+    >>> import unxt as u
 
-    >>> def cubbe_volume(x: Quantity["length"]) -> Quantity["volume"]:
+    >>> def cubbe_volume(x: u.Quantity["length"]) -> u.Quantity["volume"]:
     ...     return x**3
 
-    >>> jacfwd_cubbe_volume = unxt.experimental.jacfwd(cubbe_volume, units=("m",))
-    >>> jacfwd_cubbe_volume(Quantity(2.0, "m"))
+    >>> jacfwd_cubbe_volume = u.experimental.jacfwd(cubbe_volume, units=("m",))
+    >>> jacfwd_cubbe_volume(u.Quantity(2.0, "m"))
     Quantity['area'](Array(12., dtype=float32, weak_type=True), unit='m2')
 
     """
@@ -183,14 +181,13 @@ def hessian(
     Examples
     --------
     >>> import jax.numpy as jnp
-    >>> import unxt
-    >>> from unxt import Quantity
+    >>> import unxt as u
 
-    >>> def cubbe_volume(x: Quantity["length"]) -> Quantity["volume"]:
+    >>> def cubbe_volume(x: u.Quantity["length"]) -> u.Quantity["volume"]:
     ...     return x**3
 
-    >>> hessian_cubbe_volume = unxt.experimental.hessian(cubbe_volume, units=("m",))
-    >>> hessian_cubbe_volume(Quantity(2.0, "m"))
+    >>> hessian_cubbe_volume = u.experimental.hessian(cubbe_volume, units=("m",))
+    >>> hessian_cubbe_volume(u.Quantity(2.0, "m"))
     Quantity['length'](Array(12., dtype=float32, weak_type=True), unit='m')
 
     """
