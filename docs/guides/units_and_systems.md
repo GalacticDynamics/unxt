@@ -9,10 +9,10 @@ seconds for time or Joules for energy.
 >>> import unxt as u
 
 >>> u.unit
-<multiple-dispatch function unit (with 3 registered and 0 pending method(s))>
+<multiple-dispatch function unit (...)>
 
 >>> u.unit_of
-<multiple-dispatch function unit_of (with 0 registered and 5 pending method(s))>
+<multiple-dispatch function unit_of (...)>
 ```
 
 The function `unit` is for creating a unit, while `unit_of` is for getting the
