@@ -12,10 +12,21 @@ length, time, or mass. `unxt` has a sub-module for working with dimensions:
 The function `dimension` is for creating a dimension, while `dimension_of` is
 for getting the dimension of an object.
 
+Note that both functions are also available in the `unxt` namespace.
+
+```{code-block} python
+>>> import unxt as u
+>>> u.dimension is dimension
+True
+
+>>> u.dimension_of is dimension_of
+True
+```
+
 First let's create a dimension:
 
 ```{code-block} python
->>> from unxt.dims import dimension
+>>> from unxt.dims import dimension  # also in `unxt` namespace
 
 >>> dim = dimension('length')  # from a str
 >>> dim
@@ -29,8 +40,7 @@ PhysicalType('length')
 Now let's get the dimension from various objects:
 
 ```{code-block} python
->>> from unxt.dims import dimension_of
->>> from unxt import Quantity
+>>> from unxt.dims import dimension_of  # also in `unxt` namespace
 
 >>> print(dimension_of("length"))  # str have no dimensions
 None
@@ -38,7 +48,7 @@ None
 >>> dimension_of(dim)  # from a dimension object
 PhysicalType('length')
 
->>> q = Quantity(5, 'm')  # from a Quantity
+>>> q = u.Quantity(5, 'm')  # from a Quantity
 >>> dimension_of(q)
 PhysicalType('length')
 

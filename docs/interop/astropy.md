@@ -13,20 +13,20 @@ has deep support for Astropy objects.
 
 ```{code-block} python
 
->>> import astropy.units as u
->>> from unxt import dimension, dimension_of
+>>> import unxt as u
+>>> import astropy.units as apyu
 
->>> dim = u.get_physical_type("length")  # Astropy
+>>> dim = apyu.get_physical_type("length")  # Astropy
 >>> dim
 PhysicalType('length')
 
->>> dimension("length")  # unxt
+>>> u.dimension("length")  # unxt
 PhysicalType('length')
 
->>> dimension(dim)  # unxt <-> Astropy
+>>> u.dimension(dim)  # unxt <-> Astropy
 PhysicalType('length')
 
->>> dimension_of(dim)  # unxt <-> Astropy
+>>> u.dimension_of(dim)  # unxt <-> Astropy
 PhysicalType('length')
 
 ```
@@ -35,20 +35,20 @@ PhysicalType('length')
 
 ```{code-block} python
 
->>> import astropy.units as u
->>> import unxt as ux
+>>> import unxt as u
+>>> import astropy.units as apyu
 
->>> meter = u.Unit("m")  # Astropy
+>>> meter = apyu.Unit("m")  # Astropy
 >>> meter
 Unit("m")
 
->>> ux.unit("m")  # unxt
+>>> u.unit("m")  # unxt
 Unit("m")
 
->>> ux.unit(meter)  # unxt <-> Astropy
+>>> u.unit(meter)  # unxt <-> Astropy
 Unit("m")
 
->>> ux.unit_of(meter)  # unxt <-> Astropy
+>>> u.unit_of(meter)  # unxt <-> Astropy
 Unit("m")
 
 ```
@@ -63,14 +63,14 @@ Quantity][unxt-Quantity] is straightforward -- use `unxt.Quantity.from_`:
 
 ```{code-block} python
 
->>> import astropy.units as u
->>> from unxt import Quantity
+>>> import unxt as u
+>>> import astropy.units as apyu
 
->>> aq = u.Quantity(1, 'm')  # Astropy Quantity
+>>> aq = apyu.Quantity(1, 'm')  # Astropy Quantity
 >>> aq
 <Quantity 1. m>
 
->>> xq = Quantity.from_(aq)  # unxt Quantity
+>>> xq = u.Quantity.from_(aq)  # unxt Quantity
 >>> xq
 Quantity['length'](Array(1., dtype=float32), unit='m')
 ```
@@ -81,10 +81,10 @@ Alternatively, the multiple-dispatch library on which `unxt` is built enables
 ```{code-block} python
 >>> from plum import convert
 
->>> convert(aq, Quantity)
+>>> convert(aq, u.Quantity)
 Quantity['length'](Array(1., dtype=float32), unit='m')
 
->>> convert(xq, u.Quantity)
+>>> convert(xq, apyu.Quantity)
 <Quantity 1. m>
 
 ```

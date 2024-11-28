@@ -26,14 +26,34 @@ pip install unxt[interop-mpl]
 
 Once installed, you can plot `Quantity` objects directly with `matplotlib`:
 
+::::{tab-set}
+
+:::{tab-item} jax.numpy
+
 ```{code-block} python
 
 import matplotlib.pyplot as plt
 import jax.numpy as jnp
-from unxt import Quantity
+import unxt as u
 
-x = Quantity(jnp.linspace(0, 2 * jnp.pi, 100), "rad")
-y = Quantity(jnp.sin(x.value), "")
+x = u.Quantity(jnp.linspace(0, 360, 100), "deg")
+y = u.Quantity(jnp.sin(x.ustrip("rad")), "")
 
 plt.plot(x, y)
 ```
+
+:::
+
+:::{tab-item} quaxed.numpy
+
+```{code-block} python
+
+import quaxed.numpy as jnp
+
+x = u.Quantity(jnp.linspace(0, 360, 100), "deg")
+y = jnp.sin(x)
+
+plt.plot(x, y)
+```
+
+:::

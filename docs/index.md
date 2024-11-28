@@ -95,20 +95,20 @@ Create a `Quantity` by passing a JAX array-compatible object and a unit:
 
 ```{code-block} python
 
->>> import astropy.units as u
->>> from unxt import Quantity
+>>> import astropy.units as apyu
+>>> import unxt as u
 
->>> x = Quantity([1.0, 2.0, 3.0], u.m)
+>>> x = u.Quantity([1.0, 2.0, 3.0], apyu.m)
 >>> x
 Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
 ```
 
-As a shorthand, we also support specifying units as strings (that are parsed by
-[astropy.units][apyunits]):
+As a shorthand, we also support specifying units as strings (parsed by
+`unxt.unit`, using Astropy as the backend):
 
 ```{code-block} python
 
->>> y = Quantity([4.0, 5.0, 6.0], "m")
+>>> y = u.Quantity([4.0, 5.0, 6.0], "m")
 >>> y
 Quantity['length'](Array([4., 5., 6.], dtype=float32), unit='m')
 ```
@@ -145,7 +145,7 @@ Arithmetic will raise an error if the units are incompatible:
 
 ```{code-block} python
 
->>> z = Quantity(5.0, u.second)
+>>> z = u.Quantity(5.0, "second")
 >>> try: x + z
 ... except Exception as e: print(e)
 ...
@@ -186,9 +186,7 @@ or a function-oriented approach
 
 ```{code-block} python
 
->>> from unxt import uconvert
-
->>> uconvert("cm", x)
+>>> u.uconvert("cm", x)
 Quantity['length'](Array([100., 200., 300.], dtype=float32), unit='cm')
 
 ```
@@ -285,11 +283,11 @@ JAX Auto-Differentiation (AD) is supported:
 
 ```{code-block} python
 
->>> def f(x: Quantity["length"], t: Quantity["time"]) -> Quantity["diffusivity"]:
+>>> def f(x: u.Quantity["length"], t: u.Quantity["time"]) -> u.Quantity["diffusivity"]:
 ...    return jnp.square(x) / t
 
->>> x = Quantity(1.0, "m")
->>> y = Quantity(4.0, "s")
+>>> x = u.Quantity(1.0, "m")
+>>> y = u.Quantity(4.0, "s")
 
 ```
 

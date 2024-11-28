@@ -23,12 +23,12 @@ length and a time and returns a velocity.
 
 from jaxtyping import Float
 
-from unxt import Quantity
+import unxt as u
 
 def function(
-    x: Float[Quantity["length"], "N"],
-    t: Float[Quantity["time"], "N"],
-) -> Float[Quantity["speed"], "N"]:
+    x: Float[u.Quantity["length"], "N"],
+    t: Float[u.Quantity["time"], "N"],
+) -> Float[u.Quantity["speed"], "N"]:
     return x / t
 
 ```
@@ -105,17 +105,17 @@ Here's an example:
 >>> from jaxtyping import Shaped, jaxtyped
 >>> from beartype import beartype as typechecker  # or use any supported typechecker
 
->>> from unxt import Quantity
+>>> import unxt as u
 
 >>> @jaxtyped(typechecker=typechecker)
 ... def velocity(
-...     x: Shaped[Quantity["length"], "N"],
-...     t: Shaped[Quantity["time"], "N"],
-... ) -> Shaped[Quantity["speed"], "N"]:
+...     x: Shaped[u.Quantity["length"], "N"],
+...     t: Shaped[u.Quantity["time"], "N"],
+... ) -> Shaped[u.Quantity["speed"], "N"]:
 ...     return x / t
 
->>> x = Quantity([2.], "m")
->>> t = Quantity([1.], "s")
+>>> x = u.Quantity([2.], "m")
+>>> t = u.Quantity([1.], "s")
 
 >>> velocity(x, t)
 Quantity['speed'](Array([2.], dtype=float32), unit='m / s')
@@ -142,21 +142,21 @@ dimensions in a way that can be checked by runtime type checkers.
 Now for some examples.
 
 ```{code-block} python
->>> from unxt import Quantity
+>>> import unxt as u
 ```
 
 When a `Quantity` is constructed it is parametrized by the unit's dimension.
 This can be specified explicitly
 
 ```{code-block}
->>> Quantity["length"](1, "m")
+>>> u.Quantity["length"](1, "m")
 Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 ```
 
 or inferred.
 
 ```{code-block}
->>> Quantity(1, "m")
+>>> u.Quantity(1, "m")
 Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 ```
 
@@ -165,7 +165,7 @@ length-parametrized Quantity is (correctly) refusing dimensions of time.
 
 ```{code-block} python
 >>> try:
-...     Quantity["length"](1, "s")
+...     u.Quantity["length"](1, "s")
 ... except Exception as e:
 ...     print(e)
 Physical type mismatch.
@@ -177,7 +177,7 @@ The act of filling a `Quantity`'s parameters and its construction may be
 separated
 
 ```{code-block} python
->>> LengthQuantity = Quantity["length"]
+>>> LengthQuantity = u.Quantity["length"]
 >>> LengthQuantity
 <class 'unxt...Quantity[PhysicalType('length')]'>
 ```
