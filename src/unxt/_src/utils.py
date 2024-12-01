@@ -8,7 +8,7 @@ __all__: list[str] = []
 from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
-    from typing_extensions import Self
+    from typing import Self
 
 
 _singleton_insts: dict[type, object] = {}

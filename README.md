@@ -11,7 +11,8 @@
     <a href="https://github.com/GalacticDynamics/unxt/actions"> <img alt="CI status" src="https://github.com/GalacticDynamics/unxt/workflows/CI/badge.svg" /> </a>
     <a href="https://unxt.readthedocs.io/en/"> <img alt="ReadTheDocs" src="https://readthedocs.org/projects/unxt/badge/?version=latest" /> </a>
     <a href="https://codecov.io/gh/GalacticDynamics/unxt"> <img alt="codecov" src="https://codecov.io/gh/GalacticDynamics/unxt/graph/badge.svg" /> </a>
-    <a href="https://docs.astral.sh/ruff/"> <img alt="ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/format.json" /> </a>
+    <a href="https://scientific-python.org/specs/spec-0000/"> <img alt="ruff" src="https://img.shields.io/badge/SPEC-0-green?labelColor=%23004811&color=%235CA038" /> </a>
+    <a href="https://docs.astral.sh/ruff/"> <img alt="ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json" /> </a>
     <a href="https://pre-commit.com"> <img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit" /> </a>
 </p>
 
@@ -148,7 +149,9 @@ except ValueError as e:
 JAX. For convenience we use the [`quaxed`][quaxed] library, which is just a
 `quax.quaxify` wrapper around `jax` to avoid boilerplate code.
 
-> [!NOTE] Using `quaxed` is optional. You can directly use `quaxify`, and even
+> [!NOTE]
+>
+> Using [`quaxed`][quaxed] is optional. You can directly use `quaxify`, and even
 > apply it to the top-level function instead of individual functions.
 
 ```python
@@ -180,6 +183,7 @@ consider citing this work.
 [![Actions Status][actions-badge]][actions-link]
 [![Documentation Status][rtd-badge]][rtd-link]
 [![codecov][codecov-badge]][codecov-link]
+[![SPEC 0 — Minimum Supported Dependencies][spec0-badge]][spec0-link]
 [![pre-commit][pre-commit-badge]][pre-commit-link]
 [![ruff][ruff-badge]][ruff-link]
 
@@ -204,6 +208,8 @@ We welcome contributions!
 [rtd-link]:                 https://unxt.readthedocs.io/en/
 [ruff-badge]:               https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json
 [ruff-link]:                https://docs.astral.sh/ruff/
+[spec0-badge]:              https://img.shields.io/badge/SPEC-0-green?labelColor=%23004811&color=%235CA038
+[spec0-link]:               https://scientific-python.org/specs/spec-0000/
 [zenodo-badge]:             https://zenodo.org/badge/734877295.svg
 [zenodo-link]:              https://zenodo.org/doi/10.5281/zenodo.10850455
 
