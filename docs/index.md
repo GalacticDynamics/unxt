@@ -50,7 +50,7 @@ Unxt supports JAX's compelling features:
 - JIT compilation (`jit`)
 - vectorization (`vmap`, etc.)
 - auto-differentiation (`grad`, `jacobian`, `hessian`)
-- GPU/TPU acceleration
+- GPU/TPU/multi-host acceleration
 
 And best of all, `unxt` doesn't force you to use special unit-compatible
 re-exports of JAX libraries. You can use `unxt` with existing JAX code, and with
@@ -77,6 +77,25 @@ pip install unxt
 
 ```bash
 uv add unxt
+```
+
+:::
+
+:::{tab-item} source, via pip
+
+```bash
+pip install git+https://https://github.com/GalacticDynamics/unxt.git
+```
+
+:::
+
+:::{tab-item} building from source
+
+```bash
+cd /path/to/parent
+git clone https://https://github.com/GalacticDynamics/unxt.git
+cd unxt
+pip install -e .  # editable mode
 ```
 
 :::
