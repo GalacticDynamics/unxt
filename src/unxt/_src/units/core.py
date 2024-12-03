@@ -4,9 +4,9 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
 __all__ = [
+    "Unit",  # legacy
     "unit",
     "unit_of",
-    "Unit",  # legacy
 ]
 
 from typing import Any, TypeAlias

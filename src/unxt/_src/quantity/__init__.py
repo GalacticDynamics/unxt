@@ -1,13 +1,13 @@
 """Quantities in JAX."""
 
 __all__ = [
+    "AbstractParametricQuantity",
+    "AbstractQuantity",
+    "Quantity",
+    "UncheckedQuantity",
+    "is_unit_convertible",
     "uconvert",
     "ustrip",
-    "is_unit_convertible",
-    "AbstractQuantity",
-    "UncheckedQuantity",
-    "AbstractParametricQuantity",
-    "Quantity",
 ]
 
 from .api import is_unit_convertible, uconvert, ustrip

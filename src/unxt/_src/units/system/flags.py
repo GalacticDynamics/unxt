@@ -1,6 +1,6 @@
 """Flags for unit system definitions."""
 
-__all__ = ["AbstractUSysFlag", "StandardUSysFlag", "DynamicalSimUSysFlag"]
+__all__ = ["AbstractUSysFlag", "DynamicalSimUSysFlag", "StandardUSysFlag"]
 
 from typing import Any
 
