@@ -116,7 +116,7 @@
     "ignore:jax\\.core\\.pp_eqn_rules is deprecated:DeprecationWarning",
   ]
   log_cli_level = "INFO"
-  minversion = "6.0"
+  minversion = "8.3"
   testpaths = ["docs", "src/", "tests/"]
   norecursedirs = ["docs/_build"]
   xfail_strict = true
@@ -164,8 +164,6 @@
     extend-select = ["ALL"]
     ignore = [
       "A002",    # Argument is shadowing a Python builtin
-      "ANN101",  # Missing type annotation for `self` in method
-      "ANN102",  # Missing type annotation for `cls` in method
       "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed
       "ARG001",  # Unused function argument  # TODO: resolve
       "COM812",  # <- for ruff.format
@@ -185,6 +183,7 @@
       "PLR09",   # Too many <...>
       "PLR2004", # Magic value used in comparison
       "PYI041",  # Use `complex` instead of `int | complex` <- plum is more strict
+      "RUF022",  # `__all__` is not sorted
       "TD002",   # Missing author in TODO
       "TD003",   # Missing issue link on the line following this TODO
     ]

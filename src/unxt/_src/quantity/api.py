@@ -1,6 +1,6 @@
 """Functional approach to Quantities."""
 
-__all__ = ["uconvert", "ustrip", "is_unit_convertible"]
+__all__ = ["is_unit_convertible", "uconvert", "ustrip"]
 
 from typing import Any
 
