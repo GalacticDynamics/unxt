@@ -1,7 +1,7 @@
 ci:
   autoupdate_schedule: "monthly"
-  autoupdate_commit_msg: "chore: update pre-commit hooks"
-  autofix_commit_msg: "style: pre-commit fixes"
+  autoupdate_commit_msg: "👷: update pre-commit hooks"
+  autofix_commit_msg: "🎨: pre-commit fixes"
 
 default_stages: [pre-commit, pre-push]
 
@@ -10,8 +10,9 @@ repos:
     rev: v4.0.0
     hooks:
       - id: commitizen
-      # - id: commitizen-branch
-      #   stages: [push]
+        args:
+          - "--"
+          - "--config-file=.czrc"
 
   - repo: meta
     hooks:
