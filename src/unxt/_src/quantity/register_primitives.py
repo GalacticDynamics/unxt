@@ -3447,6 +3447,20 @@ def _scatter_add_p_vvq(
 
 @register(lax.select_n_p)
 def _select_n_p(which: AbstractQuantity, *cases: AbstractQuantity) -> AbstractQuantity:
+    """Select from a list of quantities using a quantity selector.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> a = u.Quantity([1.0, 5.0, 9.0], "km")
+    >>> b = u.Quantity([2.0, 4.0, 10.0], "km")
+    >>> which = u.Quantity(a > b, "")
+    >>> jnp.where(which, a, b)
+    Quantity['length'](Array([ 2.,  5., 10.], dtype=float32), unit='km')
+
+    """
     u = cases[0].unit
     cases_ = (ustrip(u, case) for case in cases)
     return type_np(which)(lax.select_n(ustrip(one, which), *cases_), unit=u)
@@ -3456,6 +3470,7 @@ def _select_n_p(which: AbstractQuantity, *cases: AbstractQuantity) -> AbstractQu
 def _select_n_p_vq(
     which: AbstractQuantity, case0: AbstractQuantity, case1: ArrayLike
 ) -> AbstractQuantity:
+    """Select from a quantity and array using a quantity selector."""
     # encountered from jnp.hypot
     u = case0.unit
     return type_np(which)(
@@ -3467,6 +3482,7 @@ def _select_n_p_vq(
 def _select_n_p_jjq(
     which: ArrayLike, case0: ArrayLike, case1: AbstractQuantity
 ) -> AbstractQuantity:
+    """Select from an array and quantity using a quantity selector."""
     # Used by a `jnp.linalg.trace`
     return replace(case1, value=lax.select_n(which, case0, case1.value))
 
@@ -3475,7 +3491,24 @@ def _select_n_p_jjq(
 def _select_n_p_jqj(
     which: ArrayLike, case0: AbstractQuantity, case1: ArrayLike
 ) -> AbstractQuantity:
-    # Used by a `triu`
+    """Select from a quantity and array using a non-quantity selector.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> x = u.Quantity([1.0, 5.0, 9.0], "km")
+    >>> y = u.Quantity([2.0, 4.0, 10.0], "km")
+
+    >>> jnp.hypot(x, y)
+    Quantity[...](Array([ 2.236068 ,  6.4031243, 13.453625 ], dtype=float32), unit='km')
+
+    >>> jnp.triu(u.Quantity([[1, 2], [3, 4]], "km"))
+    Quantity['length'](Array([[1, 2],
+                              [0, 4]], dtype=int32), unit='km')
+
+    """
     return replace(case0, value=lax.select_n(which, case0.value, case1))
 
 
