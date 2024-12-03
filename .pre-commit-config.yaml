@@ -10,9 +10,7 @@ repos:
     rev: v4.0.0
     hooks:
       - id: commitizen
-        args:
-          - "--"
-          - "--config-file=.czrc"
+        additional_dependencies: [cz-conventional-gitmoji]
 
   - repo: meta
     hooks:

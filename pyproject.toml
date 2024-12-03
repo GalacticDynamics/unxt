@@ -61,6 +61,7 @@
 [dependency-groups]
   dev = [
     "ipykernel>=6.29.5",
+    "cz-conventional-gitmoji>=0.6.1",
     { include-group = "docs" },
     { include-group = "nox" },
     { include-group = "test-all" },
@@ -97,6 +98,10 @@
 [tool.hatch]
   build.hooks.vcs.version-file = "src/unxt/_version.py"
   version.source               = "vcs"
+
+
+[tool.commitizen]
+name = "cz_gitmoji"
 
 
 [tool.pytest.ini_options]
