@@ -27,7 +27,7 @@
   license.file = "LICENSE"
   dependencies = [
     "astropy>=7.0.0",
-    "dataclassish>=0.3",
+    "dataclassish>=0.5",
     "equinox>=0.11.8",
     "is-annotated>=1.0",
     "jax>0.4.32",
@@ -84,11 +84,11 @@
   nox = ["nox>=2024.10.9"]
   test = [
     "hypothesis[numpy]>=6.112.2",
+    "pytest>=8.3.3",
     "pytest-arraydiff>=0.6.1",
     "pytest-codspeed",
     "pytest-cov >=3",
     "pytest-github-actions-annotate-failures",
-    "pytest>=8.3.3",
     "sybil>=8.0.0",
   ]
   test-mpl = ["pytest-mpl"]
@@ -101,7 +101,7 @@
 
 
 [tool.commitizen]
-name = "cz_gitmoji"
+  name = "cz_gitmoji"
 
 
 [tool.pytest.ini_options]
