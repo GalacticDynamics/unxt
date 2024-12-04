@@ -459,15 +459,14 @@ wheels = [
 
 [[package]]
 name = "dataclassish"
-version = "0.3.1"
+version = "0.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "plum-dispatch" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/88/df/be7db25c9703f7831acb49de69fcbf2f6e39492e27e26609507da8727bc4/dataclassish-0.3.1.tar.gz", hash = "sha256:8740823800e06d5ed6b838e955033411f618c2aca75315c5d09d18f94b74a97f", size = 15880 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3e/f5/8013dd25702bc1f5a8656788891523534ab1d2eae83249b13bc34aeaa36d/dataclassish-0.3.1-py3-none-any.whl", hash = "sha256:b6457368d1624550131934a5b991b3c388fcd70b34fc23d725ea6add69dc05de", size = 11458 },
+    { url = "https://files.pythonhosted.org/packages/fa/fe/f5aa55fe288fc564bfe1f8ec6c22d6d82596170849b12b8fd83c81d6e20e/dataclassish-0.5.0-py3-none-any.whl", hash = "sha256:2ea3e9d667c54e0395a552ff0e343dea16cdd220aef485b5fd0b6c8e4fb4b0b7", size = 20440 },
 ]
 
 [[package]]
@@ -2252,7 +2251,7 @@ wheels = [
 
 [[package]]
 name = "unxt"
-version = "1.0.1.dev1+g3beebb6.d20241203"
+version = "1.0.1.dev2+g801f623.d20241204"
 source = { editable = "." }
 dependencies = [
     { name = "astropy" },
@@ -2359,7 +2358,7 @@ requires-dist = [
     { name = "astropy", specifier = ">=7.0.0" },
     { name = "astropy", marker = "extra == 'all'", specifier = ">=6.0" },
     { name = "astropy", marker = "extra == 'backend-astropy'", specifier = ">=6.0" },
-    { name = "dataclassish", specifier = ">=0.3" },
+    { name = "dataclassish", specifier = ">=0.5" },
     { name = "equinox", specifier = ">=0.11.8" },
     { name = "gala", marker = "extra == 'all'", specifier = ">=1.8" },
     { name = "gala", marker = "extra == 'interop-gala'", specifier = ">=1.8" },
