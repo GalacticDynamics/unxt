@@ -179,15 +179,10 @@ class AbstractParametricQuantity(AbstractQuantity):
     def __repr__(self) -> str:
         # --- class name ---
         base_cls_name = type_nonparametric(self).__name__
-        # fmt: off
         if self._type_parameter == "unknown":
-            try:  # Astropy v6-
-                ptid = self._type_parameter._physical_type_id  # noqa: SLF001
-            except AttributeError:  # Astropy v7+
-                ptid = self._type_parameter._unit._physical_type_id  # noqa: SLF001
+            ptid = self._type_parameter._unit._physical_type_id  # noqa: SLF001
             dim = " ".join(
-                f"{unit}{power}" if power != 1 else unit
-                for unit, power in ptid
+                f"{unit}{power}" if power != 1 else unit for unit, power in ptid
             )
         else:
             dim = self._type_parameter._name_string_as_ordered_set().split("'")[1]  # noqa: SLF001
@@ -205,4 +200,3 @@ class AbstractParametricQuantity(AbstractQuantity):
 
         # ------
         return f"{cls_name}({all_fields})"
-        # fmt: on
