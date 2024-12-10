@@ -8,7 +8,7 @@
     <a href="https://pypi.org/project/unxt/"> <img alt="unxt license" src="https://img.shields.io/github/license/GalacticDynamics/unxt" /> </a>
 </p>
 <p align="center">
-    <a href="https://github.com/GalacticDynamics/unxt/actions"> <img alt="CI status" src="https://github.com/GalacticDynamics/unxt/workflows/CI/badge.svg" /> </a>
+    <a href="https://github.com/GalacticDynamics/unxt/actions"> <img alt="CI status" src="https://github.com/GalacticDynamics/unxt/workflows/CI/badge.svg?branch=main" /> </a>
     <a href="https://unxt.readthedocs.io/en/"> <img alt="ReadTheDocs" src="https://readthedocs.org/projects/unxt/badge/?version=latest" /> </a>
     <a href="https://codecov.io/gh/GalacticDynamics/unxt"> <img alt="codecov" src="https://codecov.io/gh/GalacticDynamics/unxt/graph/badge.svg" /> </a>
     <a href="https://scientific-python.org/specs/spec-0000/"> <img alt="ruff" src="https://img.shields.io/badge/SPEC-0-green?labelColor=%23004811&color=%235CA038" /> </a>
@@ -195,7 +195,7 @@ We welcome contributions!
 [quax]: https://github.com/patrick-kidger/quax
 [quaxed]: https://github.com/GalacticDynamics/quaxed
 
-[actions-badge]:            https://github.com/GalacticDynamics/unxt/workflows/CI/badge.svg
+[actions-badge]:            https://github.com/GalacticDynamics/unxt/workflows/CI/badge.svg?branch=main
 [actions-link]:             https://github.com/GalacticDynamics/unxt/actions
 [codecov-badge]:            https://codecov.io/gh/GalacticDynamics/unxt/graph/badge.svg
 [codecov-link]:             https://codecov.io/gh/GalacticDynamics/unxt
