@@ -1,13 +1,10 @@
 """Functional approach to Quantities."""
 
-__all__ = ["is_unit_convertible", "uconvert", "ustrip"]
+__all__ = ["uconvert", "ustrip", "is_unit_convertible"]
 
 from typing import Any
 
 from plum import dispatch
-
-# ===================================================================
-# Convert units
 
 
 @dispatch.abstract  # type: ignore[misc]
@@ -31,9 +28,6 @@ def uconvert(u: Any, x: Any, /) -> Any:
     raise NotImplementedError  # pragma: no cover
 
 
-# ===================================================================
-
-
 @dispatch.abstract  # type: ignore[misc]
 def ustrip(u: Any, x: Any, /) -> Any:
     """Strip the units from the quantity, first converting if necessary.
@@ -53,9 +47,6 @@ def ustrip(u: Any, x: Any, /) -> Any:
 
     """
     raise NotImplementedError  # pragma: no cover
-
-
-# ===================================================================
 
 
 @dispatch.abstract  # type: ignore[misc]
