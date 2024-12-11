@@ -10,7 +10,7 @@ from typing_extensions import override
 
 from astropy.units import UnitBase as AstropyUnitBase, dimensionless_unscaled
 
-from . import builtin_dimensions as ud  # noqa: TCH001
+from . import builtin_dimensions as ud
 from .base import AbstractUnitSystem
 from unxt._src.utils import SingletonMixin
 
