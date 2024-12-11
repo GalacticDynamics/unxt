@@ -6,6 +6,9 @@ resolution-markers = [
     "python_full_version >= '3.13'",
 ]
 
+[manifest]
+constraints = [{ name = "jax", specifier = "<0.4.36" }]
+
 [[package]]
 name = "accessible-pygments"
 version = "0.0.5"
@@ -2252,7 +2255,7 @@ wheels = [
 
 [[package]]
 name = "unxt"
-version = "1.0.1.dev1+g3beebb6.d20241203"
+version = "1.0.1.dev2+g801f623.d20241211"
 source = { editable = "." }
 dependencies = [
     { name = "astropy" },

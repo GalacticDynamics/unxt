@@ -247,3 +247,9 @@ name = "cz_gitmoji"
 
   [tool.pylint."FORMAT"]
   max-module-lines = 2000
+
+
+[tool.uv]
+constraint-dependencies = [
+  "jax<0.4.36", # TODO: remove when https://github.com/patrick-kidger/quax/pull/37 is merged
+]
