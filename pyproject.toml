@@ -36,7 +36,7 @@
     "optional-dependencies>=0.3.2",
     "plum-dispatch>=2.5.4",
     "quax>=0.0.5",
-    "quaxed>=0.6.7",
+    "quaxed>=0.7.0",
     "xmmutablemap>=0.1",
     "zeroth>=1.0.0",
 ]

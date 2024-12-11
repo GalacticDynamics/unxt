@@ -13,8 +13,7 @@ import jax
 import jax.core
 from astropy.units import UnitConversionError
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
-from jaxtyping import Array, ArrayLike, Shaped
-from numpy import bool_ as np_bool, dtype as DType, number as np_number  # noqa: N812
+from jaxtyping import Array, ArrayLike, ScalarLike, Shaped
 from plum import add_promotion_rule, dispatch
 from quax import ArrayValue
 
@@ -32,8 +31,7 @@ if TYPE_CHECKING:
 
 
 FMT = TypeVar("FMT")
-ArrayLikeScalar: TypeAlias = np_bool | np_number | bool | int | float | complex
-ArrayLikeSequence: TypeAlias = list[ArrayLikeScalar] | tuple[ArrayLikeScalar, ...]
+ArrayLikeSequence: TypeAlias = list[ScalarLike] | tuple[ScalarLike, ...]
 
 
 def _flip_binop(binop: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
@@ -313,7 +311,7 @@ class AbstractQuantity(
     # attributes
 
     @property
-    def dtype(self) -> DType:
+    def dtype(self) -> jax.numpy.dtype:
         """Data type of the array.
 
         Examples

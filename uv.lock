@@ -1720,7 +1720,7 @@ wheels = [
 
 [[package]]
 name = "quaxed"
-version = "0.6.7"
+version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jax" },
@@ -1729,9 +1729,9 @@ dependencies = [
     { name = "plum-dispatch" },
     { name = "quax" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d3/ec/f943d565bf253007b8dd1e03f46e492fdde8540d2a00705257e48e9bfa71/quaxed-0.6.7.tar.gz", hash = "sha256:196f3d3a4d6d056c58cce3d78408c84ec1023a219489b5dc9d2920bddc3e9af7", size = 133466 }
+sdist = { url = "https://files.pythonhosted.org/packages/2f/42/e49f9026cb99c9946a34be3849ec49cd3ee6c97729d0ea0e684038eddaf6/quaxed-0.7.0.tar.gz", hash = "sha256:dbd540ab9413ffe3a69cf4a1c9331106c8b8cdd3265e697da2208f98978c5a81", size = 121190 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f3/88/1d1668b6545b83a408d48cf20545e173f2c3aee97f9bf88a08651440516b/quaxed-0.6.7-py3-none-any.whl", hash = "sha256:09fdb5446c4894bdc2b437d3b0458c0f8b746d366ac2e18ce76f6f1dd91efa15", size = 36067 },
+    { url = "https://files.pythonhosted.org/packages/71/e3/3be4eabd6cc5d67ee9c8861a135c56e8b24f04701b061efd2107e1da9bc9/quaxed-0.7.0-py3-none-any.whl", hash = "sha256:2ce589bc63b7697e1e872fca36fa865c41ac61c457b4cdd5a83d4116dc1c3f56", size = 36527 },
 ]
 
 [[package]]
@@ -2255,7 +2255,7 @@ wheels = [
 
 [[package]]
 name = "unxt"
-version = "1.0.1.dev5+gc3e33a1.d20241211"
+version = "1.0.1.dev8+g75bc18f.d20241211"
 source = { editable = "." }
 dependencies = [
     { name = "astropy" },
@@ -2375,7 +2375,7 @@ requires-dist = [
     { name = "optional-dependencies", specifier = ">=0.3.2" },
     { name = "plum-dispatch", specifier = ">=2.5.4" },
     { name = "quax", specifier = ">=0.0.5" },
-    { name = "quaxed", specifier = ">=0.6.7" },
+    { name = "quaxed", specifier = ">=0.7.0" },
     { name = "xmmutablemap", specifier = ">=0.1" },
     { name = "zeroth", specifier = ">=1.0.0" },
 ]
