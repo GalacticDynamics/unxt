@@ -17,7 +17,7 @@ from unxt._src.units import unit as parse_unit
 from unxt._src.units.core import AbstractUnits
 
 if TYPE_CHECKING:
-    from unxt.quantity import AbstractQuantity
+    import unxt.quantity
 
 
 class AstropyQuantityCompatMixin:
@@ -25,13 +25,13 @@ class AstropyQuantityCompatMixin:
 
     value: ArrayLike
     unit: AbstractUnits
-    uconvert: Callable[[Any], "AbstractQuantity"]
+    uconvert: Callable[[Any], "unxt.quantity.AbstractQuantity"]
     ustrip: Callable[[Any], ArrayLike]
 
-    def to(self, u: Any, /) -> "AbstractQuantity":
+    def to(self, u: Any, /) -> "unxt.quantity.AbstractQuantity":
         """Convert the quantity to the given units.
 
-        See `unxt.AbstractQuantity.uconvert`.
+        See `unxt.quantity.AbstractQuantity.uconvert`.
 
         Examples
         --------
@@ -60,7 +60,9 @@ class AstropyQuantityCompatMixin:
         """
         return ustrip(u, self)  # redirect to the standard method
 
-    def decompose(self, bases: Sequence[AbstractUnits], /) -> "AbstractQuantity":
+    def decompose(
+        self, bases: Sequence[AbstractUnits], /
+    ) -> "unxt.quantity.AbstractQuantity":
         """Decompose the quantity into the given bases.
 
         Examples
