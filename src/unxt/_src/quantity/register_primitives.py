@@ -62,7 +62,7 @@ def _abs_p(x: AbstractQuantity) -> AbstractQuantity:
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(-1, "m")
     >>> jnp.abs(q)
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
@@ -77,7 +77,7 @@ def _abs_p(x: AbstractQuantity) -> AbstractQuantity:
     UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
 
     """
-    return replace(x, value=lax.abs(x.value))
+    return replace(x, value=lax.abs(ustrip(x)))
 
 
 # ==============================================================================
@@ -95,7 +95,7 @@ def _acos_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     >>> jnp.acos(q)
     UncheckedQuantity(Array(3.1415927, dtype=float32, ...), unit='rad')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(-1, "")
     >>> jnp.acos(q)
     Quantity['angle'](Array(3.1415927, dtype=float32, ...), unit='rad')
@@ -120,7 +120,7 @@ def _acosh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     >>> jnp.acosh(q)
     UncheckedQuantity(Array(1.316958, dtype=float32, ...), unit='rad')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(2.0, "")
     >>> jnp.acosh(q)
     Quantity['angle'](Array(1.316958, dtype=float32, ...), unit='rad')
@@ -150,7 +150,7 @@ def _add_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> q1 + q2
     UncheckedQuantity(Array(1.5, dtype=float32, ...), unit='km')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(1.0, "km")
     >>> q2 = Quantity(500.0, "m")
     >>> jnp.add(q1, q2)
@@ -159,7 +159,7 @@ def _add_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     Quantity['length'](Array(1.5, dtype=float32, ...), unit='km')
 
     """
-    return replace(x, value=lax.add(x.value, ustrip(x.unit, y)))
+    return replace(x, value=lax.add(ustrip(x), ustrip(x.unit, y)))
 
 
 @register(lax.add_p)
@@ -203,7 +203,7 @@ def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
 
     `unxt.Quantity`:
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> x = jnp.asarray(500.0)
     >>> q2 = Quantity(1.0, "km")
     >>> try:
@@ -226,7 +226,7 @@ def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
 
     """
     y = uconvert(one, y)
-    return replace(y, value=lax.add(x, y.value))
+    return replace(y, value=lax.add(x, ustrip(y)))
 
 
 @register(lax.add_p)
@@ -270,7 +270,7 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
     `unxt.Quantity`:
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(1.0, "km")
 
     >>> try:
@@ -299,7 +299,7 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
     """
     x = uconvert(one, x)
-    return replace(x, value=lax.add(x.value, y))
+    return replace(x, value=lax.add(ustrip(x), y))
 
 
 # ==============================================================================
@@ -309,8 +309,26 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 def _add_any_p(
     x: AbstractParametricQuantity, y: AbstractParametricQuantity
 ) -> AbstractParametricQuantity:
-    """Add two quantities using the ``jax._src.ad_util.add_any_p``."""
-    return replace(x, value=add_any_p.bind(x.value, y.value))
+    """Add two quantities using the ``jax._src.ad_util.add_any_p``.
+
+    Examples
+    --------
+    >>> import jax
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> q1 = u.Quantity(1.0, "km")
+    >>> q2 = u.Quantity(500.0, "m")
+
+    >>> @jax.jit
+    ... def f(x, y):
+    ...     return x + y
+
+    >>> f(q1, q2)
+    Quantity['length'](Array(1.5, dtype=float32, ...), unit='km')
+
+    """
+    return replace(x, value=add_any_p.bind(ustrip(x), ustrip(y)))
 
 
 # ==============================================================================
@@ -329,7 +347,7 @@ def _and_p_aq(x1: AbstractQuantity, x2: AbstractQuantity, /) -> ArrayLike:
     >>> jnp.bitwise_and(x1, x2)
     Array(0, dtype=int32, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> x1 = Quantity(1, "")
     >>> x2 = Quantity(2, "")
     >>> jnp.bitwise_and(x1, x2)
@@ -351,7 +369,7 @@ def _argmax_p(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> x = Quantity([1, 2, 3], "m")
     >>> jnp.argmax(x)
     Quantity['length'](Array(2, dtype=int32), unit='m')
@@ -362,7 +380,7 @@ def _argmax_p(
     UncheckedQuantity(Array(2, dtype=int32), unit='m')
 
     """
-    return replace(operand, value=lax.argmax(operand.value, axes[0], index_dtype))
+    return replace(operand, value=lax.argmax(ustrip(operand), axes[0], index_dtype))
 
 
 # ==============================================================================
@@ -377,7 +395,7 @@ def _argmin_p(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> x = Quantity([1, 2, 3], "m")
     >>> jnp.argmin(x)
     Quantity['length'](Array(0, dtype=int32), unit='m')
@@ -388,7 +406,7 @@ def _argmin_p(
     UncheckedQuantity(Array(0, dtype=int32), unit='m')
 
     """
-    return replace(operand, value=lax.argmin(operand.value, axes[0], index_dtype))
+    return replace(operand, value=lax.argmin(ustrip(operand), axes[0], index_dtype))
 
 
 # ==============================================================================
@@ -419,7 +437,7 @@ def _asin_p_q(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(1, "")
     >>> jnp.asin(q)
     Quantity['angle'](Array(1.5707964, dtype=float32, ...), unit='rad')
@@ -456,7 +474,7 @@ def _asinh_p_q(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(2, "")
     >>> jnp.asinh(q)
     Quantity['angle'](Array(1.4436355, dtype=float32, ...), unit='rad')
@@ -484,7 +502,7 @@ def _atan2_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     """
     x, y = promote(x, y)  # e.g. Distance -> Quantity
     y_ = ustrip(x.unit, y)
-    return type_np(x)(lax.atan2(x.value, y_), unit=radian)
+    return type_np(x)(lax.atan2(ustrip(x), y_), unit=radian)
 
 
 @register(lax.atan2_p)
@@ -496,7 +514,7 @@ def _atan2_p_qq(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(1, "m")
     >>> q2 = Quantity(3, "m")
     >>> jnp.atan2(q1, q2)
@@ -505,7 +523,7 @@ def _atan2_p_qq(
     """
     x, y = promote(x, y)  # e.g. Distance -> Quantity
     y_ = ustrip(x.unit, y)
-    return type_np(x)(lax.atan2(x.value, y_), unit=radian)
+    return type_np(x)(lax.atan2(ustrip(x), y_), unit=radian)
 
 
 # ---------------------------
@@ -538,7 +556,7 @@ def _atan2_p_vq(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> x1 = jnp.asarray(1.0)
     >>> q2 = Quantity(3.0, "")
     >>> jnp.atan2(x1, q2)
@@ -579,7 +597,7 @@ def _atan2_p_qv(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(1.0, "")
     >>> x2 = jnp.asarray(3.0)
     >>> jnp.atan2(q1, x2)
@@ -618,7 +636,7 @@ def _atan_p_q(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(1, "")
     >>> jnp.atan(q)
     Quantity['angle'](Array(0.7853982, dtype=float32, ...), unit='rad')
@@ -655,7 +673,7 @@ def _atanh_p_q(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(2, "")
     >>> jnp.atanh(q)
     Quantity['angle'](Array(nan, dtype=float32, ...), unit='rad')
@@ -670,7 +688,7 @@ def _atanh_p_q(
 @register(lax.broadcast_in_dim_p)
 def _broadcast_in_dim_p(operand: AbstractQuantity, **kwargs: Any) -> AbstractQuantity:
     """Broadcast a quantity in a specific dimension."""
-    return replace(operand, value=lax.broadcast_in_dim(operand.value, **kwargs))
+    return replace(operand, value=lax.broadcast_in_dim(ustrip(operand), **kwargs))
 
 
 # ==============================================================================
@@ -689,13 +707,13 @@ def _cbrt_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> jnp.cbrt(q)
     UncheckedQuantity(Array(2., dtype=float32, ...), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(8, "m3")
     >>> jnp.cbrt(q)
     Quantity['length'](Array(2., dtype=float32, ...), unit='m')
 
     """
-    return type_np(x)(lax.cbrt(x.value), unit=x.unit ** (1 / 3))
+    return type_np(x)(lax.cbrt(ustrip(x)), unit=x.unit ** (1 / 3))
 
 
 # ==============================================================================
@@ -713,13 +731,13 @@ def _ceil_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> jnp.ceil(q)
     UncheckedQuantity(Array(2., dtype=float32, ...), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(1.5, "m")
     >>> jnp.ceil(q)
     Quantity['length'](Array(2., dtype=float32, ...), unit='m')
 
     """
-    return replace(x, value=lax.ceil(x.value))
+    return replace(x, value=lax.ceil(ustrip(x)))
 
 
 # ==============================================================================
@@ -743,7 +761,7 @@ def _clamp_p(
     >>> lax.clamp(min, q, max)
     UncheckedQuantity(Array([0, 1, 2], dtype=int32), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> min = Quantity(0, "m")
     >>> max = Quantity(2, "m")
     >>> q = Quantity([-1, 1, 3], "m")
@@ -752,7 +770,7 @@ def _clamp_p(
 
     """
     return replace(
-        x, value=lax.clamp(ustrip(x.unit, min), x.value, ustrip(x.unit, max))
+        x, value=lax.clamp(ustrip(x.unit, min), ustrip(x), ustrip(x.unit, max))
     )
 
 
@@ -777,7 +795,7 @@ def _clamp_p_vaqaq(
     >>> lax.clamp(min, q, max)
     UncheckedQuantity(Array([0, 1, 2], dtype=int32), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> min = jnp.asarray(0)
     >>> max = Quantity(2, "")
     >>> q = Quantity([-1, 1, 3], "")
@@ -826,7 +844,7 @@ def _clamp_p_qvq(
     >>> import quaxed.numpy as jnp
     >>> import quaxed.lax as lax
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> min = Quantity(0, "")
     >>> max = Quantity(2, "")
     >>> x = jnp.asarray([-1, 1, 3])
@@ -875,7 +893,7 @@ def _clamp_p_qqv(
     >>> import quaxed.numpy as jnp
     >>> import quaxed.lax as lax
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> min = Quantity(0, "")
     >>> max = jnp.asarray(2)
     >>> q = Quantity([-1, 1, 3], "")
@@ -902,7 +920,7 @@ def _complex_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> lax.complex(x, y)
     UncheckedQuantity(Array(1.+2.j, dtype=complex64, ...), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> x = Quantity(1.0, "m")
     >>> y = Quantity(2.0, "m")
     >>> lax.complex(x, y)
@@ -911,7 +929,7 @@ def _complex_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     """
     x, y = promote(x, y)  # e.g. Distance -> Quantity
     y_ = ustrip(x.unit, y)
-    return replace(x, value=lax.complex(x.value, y_))
+    return replace(x, value=lax.complex(ustrip(x), y_))
 
 
 # ==============================================================================
@@ -932,7 +950,7 @@ def _concatenate_p_aq(*operands: AbstractQuantity, dimension: Any) -> AbstractQu
     >>> jnp.concat([q1, q2])
     UncheckedQuantity(Array([1., 2.], dtype=float32), unit='km')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity([1.0], "km")
     >>> q2 = Quantity([2_000.0], "m")
     >>> jnp.concat([q1, q2])
@@ -963,7 +981,7 @@ def _concatenate_p_qnd(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> theta = Quantity(45, "deg")
     >>> Rz = jnp.asarray(
     ...     [
@@ -1002,7 +1020,7 @@ def _concatenate_p_vqnd(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> theta = Quantity(45, "deg")
     >>> Rx = jnp.asarray(
     ...     [
@@ -1042,9 +1060,17 @@ def _cond_p_q(index: AbstractQuantity, consts: AbstractQuantity) -> AbstractQuan
 def _cond_p_vq(
     index: ArrayLike, consts: AbstractQuantity, *, branches: Any
 ) -> AbstractQuantity:
+    """Conditional on a value and a quantity.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> from unxt import Quantity
+
+    """
     # print(branches)
     # raise AttributeError
-    return lax.cond_p.bind(index, consts.value, branches=branches)
+    return lax.cond_p.bind(index, ustrip(consts), branches=branches)
 
 
 # ==============================================================================
@@ -1063,14 +1089,14 @@ def _conj_p(x: AbstractQuantity, *, input_dtype: Any) -> AbstractQuantity:
     >>> jnp.conj(q)
     UncheckedQuantity(Array(1.-2.j, dtype=complex64, ...), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(1 + 2j, "m")
     >>> jnp.conj(q)
     Quantity['length'](Array(1.-2.j, dtype=complex64, ...), unit='m')
 
     """
     del input_dtype  # TODO: use this?
-    return replace(x, value=lax.conj(x.value))
+    return replace(x, value=lax.conj(ustrip(x)))
 
 
 # ==============================================================================
@@ -1083,7 +1109,7 @@ def _convert_element_type_p(
     """Convert the element type of a quantity."""
     # TODO: examples
     return replace(
-        operand, value=lax.convert_element_type_p.bind(operand.value, **kwargs)
+        operand, value=lax.convert_element_type_p.bind(ustrip(operand), **kwargs)
     )
 
 
@@ -1104,13 +1130,13 @@ def _copy_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> jnp.copy(q)
     UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(1, "m")
     >>> jnp.copy(q)
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
-    return replace(x, value=lax.copy_p.bind(x.value))
+    return replace(x, value=lax.copy_p.bind(ustrip(x)))
 
 
 # ==============================================================================
@@ -1145,7 +1171,7 @@ def _cos_p_q(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(1, "rad")
     >>> jnp.cos(q)
     Quantity['dimensionless'](Array(0.5403023, dtype=float32, ...), unit='')
@@ -1190,7 +1216,7 @@ def _cosh_p_q(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(1, "rad")
     >>> jnp.cosh(q)
     Quantity['dimensionless'](Array(1.5430806, dtype=float32, ...), unit='')
@@ -1221,7 +1247,7 @@ def _cumlogsumexp_p(
     >>> lax.cumlogsumexp(q)
     UncheckedQuantity(Array([-1. , -0.6867383 , -0.59239405], dtype=float32), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity([-1.0, -2, -3], "")
     >>> lax.cumlogsumexp(q)
     Quantity['dimensionless'](Array([-1. , -0.6867383 , -0.59239405], dtype=float32),
@@ -1230,7 +1256,7 @@ def _cumlogsumexp_p(
     """
     # TODO: double check units make sense here.
     return replace(
-        operand, value=lax.cumlogsumexp(operand.value, axis=axis, reverse=reverse)
+        operand, value=lax.cumlogsumexp(ustrip(operand), axis=axis, reverse=reverse)
     )
 
 
@@ -1252,13 +1278,15 @@ def _cummax_p(
     >>> lax.cummax(q)
     UncheckedQuantity(Array([1, 2, 2], dtype=int32), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity([1, 2, 1], "m")
     >>> lax.cummax(q)
     Quantity['length'](Array([1, 2, 2], dtype=int32), unit='m')
 
     """
-    return replace(operand, value=lax.cummax(operand.value, axis=axis, reverse=reverse))
+    return replace(
+        operand, value=lax.cummax(ustrip(operand), axis=axis, reverse=reverse)
+    )
 
 
 # ==============================================================================
@@ -1279,13 +1307,15 @@ def _cummin_p(
     >>> lax.cummin(q)
     UncheckedQuantity(Array([2, 1, 1], dtype=int32), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity([2, 1, 3], "m")
     >>> lax.cummin(q)
     Quantity['length'](Array([2, 1, 1], dtype=int32), unit='m')
 
     """
-    return replace(operand, value=lax.cummin(operand.value, axis=axis, reverse=reverse))
+    return replace(
+        operand, value=lax.cummin(ustrip(operand), axis=axis, reverse=reverse)
+    )
 
 
 # ==============================================================================
@@ -1306,7 +1336,7 @@ def _cumprod_p(
     >>> lax.cumprod(q)
     UncheckedQuantity(Array([1, 2, 6], dtype=int32), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity([1, 2, 3], "")
     >>> lax.cumprod(q)
     Quantity['dimensionless'](Array([1, 2, 6], dtype=int32), unit='')
@@ -1335,13 +1365,15 @@ def _cumsum_p(
     >>> lax.cumsum(q)
     UncheckedQuantity(Array([1, 3, 6], dtype=int32), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity([1, 2, 3], "m")
     >>> lax.cumsum(q)
     Quantity['length'](Array([1, 3, 6], dtype=int32), unit='m')
 
     """
-    return replace(operand, value=lax.cumsum(operand.value, axis=axis, reverse=reverse))
+    return replace(
+        operand, value=lax.cumsum(ustrip(operand), axis=axis, reverse=reverse)
+    )
 
 
 # ==============================================================================
@@ -1360,7 +1392,7 @@ def _device_put_p(x: AbstractQuantity, **kwargs: Any) -> AbstractQuantity:
     >>> device_put(q)
     UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(1, "m")
     >>> device_put(q)
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
@@ -1385,7 +1417,7 @@ def _digamma_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> lax.digamma(q)
     UncheckedQuantity(Array(-0.5772154, dtype=float32, ...), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(1.0, "")
     >>> lax.digamma(q)
     Quantity['dimensionless'](Array(-0.5772154, dtype=float32, ...), unit='')
@@ -1414,7 +1446,7 @@ def _div_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> q1 / q2
     UncheckedQuantity(Array(0.5, dtype=float32, ...), unit='m / s')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(1, "m")
     >>> q2 = Quantity(2, "s")
     >>> jnp.divide(q1, q2)
@@ -1425,7 +1457,7 @@ def _div_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     """
     x, y = promote(x, y)
     u = unit(x.unit / y.unit)
-    return type_np(x)(lax.div(x.value, y.value), unit=u)
+    return type_np(x)(lax.div(ustrip(x), ustrip(y)), unit=u)
 
 
 @register(lax.div_p)
@@ -1444,7 +1476,7 @@ def _div_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     >>> x / q
     UncheckedQuantity(Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(2.0, "m")
     >>> jnp.divide(x, q)
     Quantity['wavenumber'](Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
@@ -1453,7 +1485,7 @@ def _div_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
 
     """
     units_ = (1 / y.unit).unit  # TODO: better construction of the unit
-    return type_np(y)(lax.div(x, y.value), unit=units_)
+    return type_np(y)(lax.div(x, ustrip(y)), unit=units_)
 
 
 @register(lax.div_p)
@@ -1472,7 +1504,7 @@ def _div_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     >>> q / y
     UncheckedQuantity(Array([6., 3., 2.], dtype=float32), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(6.0, "m")
     >>> jnp.divide(q, y)
     Quantity['length'](Array([6., 3., 2.], dtype=float32), unit='m')
@@ -1480,7 +1512,7 @@ def _div_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     Quantity['length'](Array([6., 3., 2.], dtype=float32), unit='m')
 
     """
-    return replace(x, value=qlax.div(x.value, y))
+    return replace(x, value=qlax.div(ustrip(x), y))
 
 
 # ==============================================================================
@@ -1517,7 +1549,9 @@ def _dot_general_jq(
     Quantity['length'](Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
 
     """
-    return type_np(rhs)(lax.dot_general_p.bind(lhs, rhs.value, **kwargs), unit=rhs.unit)
+    return type_np(rhs)(
+        lax.dot_general_p.bind(lhs, ustrip(rhs), **kwargs), unit=rhs.unit
+    )
 
 
 @register(lax.dot_general_p)
@@ -1564,7 +1598,8 @@ def _dot_general_qq(
     """
     lhs, rhs = promote(lhs, rhs)
     return type_np(lhs)(
-        lax.dot_general_p.bind(lhs.value, rhs.value, **kwargs), unit=lhs.unit * rhs.unit
+        lax.dot_general_p.bind(ustrip(lhs), ustrip(rhs), **kwargs),
+        unit=lhs.unit * rhs.unit,
     )
 
 
@@ -1585,7 +1620,7 @@ def _dynamic_slice_q(
 
     """
     return replace(
-        operand, value=lax.dynamic_slice_p.bind(operand.value, *indices, **kwargs)
+        operand, value=lax.dynamic_slice_p.bind(ustrip(operand), *indices, **kwargs)
     )
 
 
@@ -1608,7 +1643,7 @@ def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     >>> q1 == q2
     Array(True, dtype=bool, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(1, "m")
     >>> q2 = Quantity(1, "m")
     >>> jnp.equal(q1, q2)
@@ -1622,7 +1657,7 @@ def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) == Q(y, {y.unit}).",
     )
-    return qlax.eq(x.value, ustrip(x.unit, y))  # re-dispatch on the values
+    return qlax.eq(ustrip(x), ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @register(lax.eq_p)
@@ -1639,7 +1674,7 @@ def _eq_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     >>> jnp.equal(x, q)
     Array([False,  True, False], dtype=bool)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(2.0, "")
     >>> jnp.equal(x, q)
     Array([False,  True, False], dtype=bool)
@@ -1657,7 +1692,7 @@ def _eq_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x == Q(y, {y.unit}) (except for x=0).",
     )
-    return qlax.eq(x, y.value)  # re-dispatch on the value
+    return qlax.eq(x, ustrip(y))  # re-dispatch on the value
 
 
 @register(lax.eq_p)
@@ -1685,7 +1720,7 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     ...     print("can't compare")
     can't compare
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(2.0, "")
     >>> jnp.equal(q, y)
     Array([False,  True, False], dtype=bool)
@@ -1716,7 +1751,7 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(special_vals),
         f"Cannot compare Q(x, {x.unit}) == y (except for y=0,infinity).",
     )
-    return qlax.eq(x.value, y)  # re-dispatch on the value
+    return qlax.eq(ustrip(x), y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -1735,7 +1770,7 @@ def _erf_inv_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> lax.erf_inv(q)
     UncheckedQuantity(Array(0.47693628, dtype=float32, ...), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(0.5, "")
     >>> lax.erf_inv(q)
     Quantity['dimensionless'](Array(0.47693628, dtype=float32, ...), unit='')
@@ -1762,7 +1797,7 @@ def _erf_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> lax.erf(q)
     UncheckedQuantity(Array(0.5204999, dtype=float32, ...), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(0.5, "")
     >>> lax.erf(q)
     Quantity['dimensionless'](Array(0.5204999, dtype=float32, ...), unit='')
@@ -1788,7 +1823,7 @@ def _erfc_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> lax.erfc(q)
     UncheckedQuantity(Array(0.47950017, dtype=float32, ...), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(0.5, "")
     >>> lax.erfc(q)
     Quantity['dimensionless'](Array(0.47950017, dtype=float32, ...), unit='')
@@ -1814,7 +1849,7 @@ def _exp2_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> jnp.exp2(q)
     UncheckedQuantity(Array(8., dtype=float32, ...), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(3, "")
     >>> jnp.exp2(q)
     Quantity['dimensionless'](Array(8., dtype=float32, ...), unit='')
@@ -1839,7 +1874,7 @@ def _exp_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> jnp.exp(q)
     UncheckedQuantity(Array(2.7182817, dtype=float32, ...), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(1, "")
     >>> jnp.exp(q)
     Quantity['dimensionless'](Array(2.7182817, dtype=float32, ...), unit='')
@@ -1872,7 +1907,7 @@ def _expm1_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> jnp.expm1(q)
     UncheckedQuantity(Array(0., dtype=float32, ...), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(0, "")
     >>> jnp.expm1(q)
     Quantity['dimensionless'](Array(0., dtype=float32, ...), unit='')
@@ -1898,7 +1933,7 @@ def _fft_p(x: AbstractQuantity, *, fft_type: Any, fft_lengths: Any) -> AbstractQ
     UncheckedQuantity(Array([ 6. +0.j       , -1.5+0.8660254j, -1.5-0.8660254j],
                        dtype=complex64), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity([1, 2, 3], "")
     >>> jnp.fft.fft(q)
     Quantity['dimensionless'](Array([ 6. +0.j       , -1.5+0.8660254j, -1.5-0.8660254j],
@@ -1925,13 +1960,13 @@ def _floor_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> jnp.floor(q)
     UncheckedQuantity(Array(1., dtype=float32, ...), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(1.5, "")
     >>> jnp.floor(q)
     Quantity['dimensionless'](Array(1., dtype=float32, ...), unit='')
 
     """
-    return replace(x, value=lax.floor(x.value))
+    return replace(x, value=lax.floor(ustrip(x)))
 
 
 # ==============================================================================
@@ -1944,7 +1979,7 @@ def _gather_p(
 ) -> AbstractQuantity:
     # TODO: examples
     return replace(
-        operand, value=lax.gather_p.bind(operand.value, start_indices, **kwargs)
+        operand, value=lax.gather_p.bind(ustrip(operand), start_indices, **kwargs)
     )
 
 
@@ -1967,7 +2002,7 @@ def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     >>> q1 >= q2
     Array(True, dtype=bool, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(1_001.0, "m")
     >>> q2 = Quantity(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
@@ -1981,7 +2016,7 @@ def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) >= Q(y, {y.unit}).",
     )
-    return qlax.ge(x.value, ustrip(x.unit, y))  # re-dispatch on the values
+    return qlax.ge(ustrip(x), ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @register(lax.ge_p)
@@ -1999,7 +2034,7 @@ def _ge_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     >>> jnp.greater_equal(x, q2)
     Array(True, dtype=bool, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q2 = Quantity(1.0, "")
     >>> jnp.greater_equal(x, q2)
     Array(True, dtype=bool, ...)
@@ -2017,7 +2052,7 @@ def _ge_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x >= Q(y, {y.unit}) (except for x=0).",
     )
-    return qlax.ge(x, y.value)  # re-dispatch on the value
+    return qlax.ge(x, ustrip(y))  # re-dispatch on the value
 
 
 @register(lax.ge_p)
@@ -2035,7 +2070,7 @@ def _ge_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     >>> jnp.greater_equal(q1, y)
     Array(True, dtype=bool, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(1.0, "")
     >>> jnp.greater_equal(q1, y)
     Array(True, dtype=bool, ...)
@@ -2053,7 +2088,7 @@ def _ge_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) >= y (except for y=0).",
     )
-    return qlax.ge(x.value, y)  # re-dispatch on the value
+    return qlax.ge(ustrip(x), y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -2073,7 +2108,7 @@ def _gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     >>> jnp.greater_equal(q1, q2)
     Array(True, dtype=bool, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(1_001.0, "m")
     >>> q2 = Quantity(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
@@ -2085,7 +2120,7 @@ def _gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) > Q(y, {y.unit}).",
     )
-    return qlax.gt(x.value, ustrip(x.unit, y))  # re-dispatch on the values
+    return qlax.gt(ustrip(x), ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @register(lax.gt_p)
@@ -2103,7 +2138,7 @@ def _gt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     >>> jnp.greater_equal(x, q2)
     Array(True, dtype=bool, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q2 = Quantity(1.0, "")
     >>> jnp.greater_equal(x, q2)
     Array(True, dtype=bool, ...)
@@ -2121,7 +2156,7 @@ def _gt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x > Q(y, {y.unit}) (except for x=0).",
     )
-    return qlax.gt(x, y.value)  # re-dispatch on the value
+    return qlax.gt(x, ustrip(y))  # re-dispatch on the value
 
 
 @register(lax.gt_p)
@@ -2139,7 +2174,7 @@ def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> jnp.greater_equal(q1, y)
     Array(True, dtype=bool, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(1.0, "")
     >>> jnp.greater_equal(q1, y)
     Array(True, dtype=bool, ...)
@@ -2157,7 +2192,7 @@ def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) > y (except for y=0).",
     )
-    return qlax.gt(x.value, y)  # re-dispatch on the value
+    return qlax.gt(ustrip(x), y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -2177,7 +2212,7 @@ def _igamma_p(a: AbstractQuantity, x: AbstractQuantity) -> AbstractQuantity:
     >>> lax.igamma(a, x)
     UncheckedQuantity(Array(0.6321202, dtype=float32, ...), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> a = Quantity(1.0, "")
     >>> x = Quantity(1.0, "")
     >>> lax.igamma(a, x)
@@ -2192,7 +2227,7 @@ def _igamma_p(a: AbstractQuantity, x: AbstractQuantity) -> AbstractQuantity:
 
 @register(lax.imag_p)
 def _imag_p(x: AbstractQuantity) -> AbstractQuantity:
-    return replace(x, value=lax.imag(x.value))
+    return replace(x, value=lax.imag(ustrip(x)))
 
 
 # ==============================================================================
@@ -2209,13 +2244,13 @@ def _integer_pow_p(x: AbstractQuantity, *, y: Any) -> AbstractQuantity:
     >>> q**3
     UncheckedQuantity(Array(8, dtype=int32, ...), unit='m3')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(2, "m")
     >>> q**3
     Quantity['volume'](Array(8, dtype=int32, ...), unit='m3')
 
     """
-    return type_np(x)(value=lax.integer_pow(x.value, y), unit=x.unit**y)
+    return type_np(x)(value=lax.integer_pow(ustrip(x), y), unit=x.unit**y)
 
 
 # ==============================================================================
@@ -2237,7 +2272,7 @@ def _is_finite_p(x: AbstractQuantity) -> ArrayLike:
     >>> jnp.isfinite(q)
     Array(False, dtype=bool, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(1, "m")
     >>> jnp.isfinite(q)
     array(True)
@@ -2246,7 +2281,7 @@ def _is_finite_p(x: AbstractQuantity) -> ArrayLike:
     Array(False, dtype=bool, ...)
 
     """
-    return lax.is_finite(x.value)
+    return lax.is_finite(ustrip(x))
 
 
 # ==============================================================================
@@ -2266,7 +2301,7 @@ def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
     >>> jnp.less_equal(q1, q2)
     Array(False, dtype=bool, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(1_001.0, "m")
     >>> q2 = Quantity(1.0, "km")
     >>> jnp.less_equal(q1, q2)
@@ -2278,7 +2313,7 @@ def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) <= Q(y, {y.unit}).",
     )
-    return qlax.le(x.value, ustrip(x.unit, y))  # re-dispatch on the values
+    return qlax.le(ustrip(x), ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @register(lax.le_p)
@@ -2296,7 +2331,7 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     >>> jnp.less_equal(x1, q2)
     Array(False, dtype=bool, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q2 = Quantity(1.0, "")
     >>> jnp.less_equal(x1, q2)
     Array(False, dtype=bool, ...)
@@ -2314,7 +2349,7 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x <= Q(y, {y.unit}) (except for x=0).",
     )
-    return qlax.le(x, y.value)  # re-dispatch on the value
+    return qlax.le(x, ustrip(y))  # re-dispatch on the value
 
 
 @register(lax.le_p)
@@ -2332,7 +2367,7 @@ def _le_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     >>> jnp.less_equal(q1, y1)
     Array(False, dtype=bool, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(1.0, "")
     >>> jnp.less_equal(q1, y1)
     Array(False, dtype=bool, ...)
@@ -2350,7 +2385,7 @@ def _le_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) <= y (except for y=0).",
     )
-    return qlax.le(x.value, y)  # re-dispatch on the value
+    return qlax.le(ustrip(x), y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -2369,7 +2404,7 @@ def _lgamma_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> jsp.special.gammaln(q)
     UncheckedQuantity(Array(0.6931474, dtype=float32, ...), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(3, "")
     >>> jsp.special.gammaln(q)
     Quantity['dimensionless'](Array(0.6931474, dtype=float32, ...), unit='')
@@ -2506,7 +2541,7 @@ def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) < Q(y, {y.unit}).",
     )
-    return qlax.lt(x.value, ustrip(x.unit, y))  # re-dispatch on the values
+    return qlax.lt(ustrip(x), ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @register(lax.lt_p)
@@ -2564,7 +2599,7 @@ def _lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x < Q(y, {y.unit}) (except for x=0).",
     )
-    return qlax.lt(x, y.value)  # re-dispatch on the value
+    return qlax.lt(x, ustrip(y))  # re-dispatch on the value
 
 
 @register(lax.lt_p)
@@ -2626,7 +2661,7 @@ def _lt_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) < y (except for y=0).",
     )
-    return qlax.lt(x.value, y)  # re-dispatch on the value
+    return qlax.lt(ustrip(x), y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -2646,7 +2681,7 @@ def _max_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> AbstractQuantity:
     >>> jnp.maximum(q1, q2)
     UncheckedQuantity(Array(2, dtype=int32, ...), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(1, "m")
     >>> q2 = Quantity(2, "m")
     >>> jnp.maximum(q1, q2)
@@ -2654,7 +2689,7 @@ def _max_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> AbstractQuantity:
 
     """
     yv = ustrip(x.unit, y)
-    return replace(x, value=qlax.max(x.value, yv))
+    return replace(x, value=qlax.max(ustrip(x), yv))
 
 
 @register(lax.max_p)
@@ -2671,7 +2706,7 @@ def _max_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     >>> jnp.maximum(x, q2)
     UncheckedQuantity(Array([2.], dtype=float32), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q2 = Quantity(2, "")
     >>> jnp.maximum(x, q2)
     Quantity['dimensionless'](Array([2.], dtype=float32), unit='')
@@ -2695,7 +2730,7 @@ def _max_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     >>> jnp.maximum(q1, y)
     UncheckedQuantity(Array([2.], dtype=float32), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(2, "")
     >>> jnp.maximum(q1, y)
     Quantity['dimensionless'](Array([2.], dtype=float32), unit='')
@@ -2734,7 +2769,7 @@ def _min_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     Quantity['length'](Array([1, 1, 3], dtype=int32), unit='m')
 
     """
-    return replace(x, value=lax.min(x.value, ustrip(x.unit, y)))
+    return replace(x, value=lax.min(ustrip(x), ustrip(x.unit, y)))
 
 
 @register(lax.min_p)
@@ -2799,7 +2834,7 @@ def _mul_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> jnp.multiply(q1, q2)
     UncheckedQuantity(Array(6, dtype=int32, ...), unit='m2')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(2, "m")
     >>> q2 = Quantity(3, "m")
     >>> jnp.multiply(q1, q2)
@@ -2816,7 +2851,7 @@ def _mul_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     # Multiply the units
     u = unit(x.unit * y.unit)
     # Multiply the values
-    return type_np(x)(lax.mul(x.value, y.value), unit=u)
+    return type_np(x)(lax.mul(ustrip(x), ustrip(y)), unit=u)
 
 
 @register(lax.mul_p)
@@ -2839,7 +2874,7 @@ def _mul_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     >>> jnp.asarray([2, 3]) * q
     UncheckedQuantity(Array([4, 6], dtype=int32), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(2, "m")
 
     >>> 2.0 * q
@@ -2852,7 +2887,7 @@ def _mul_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     Quantity['length'](Array([4, 6], dtype=int32), unit='m')
 
     """
-    return replace(y, value=lax.mul(x, y.value))
+    return replace(y, value=lax.mul(x, ustrip(y)))
 
 
 @register(lax.mul_p)
@@ -2875,7 +2910,7 @@ def _mul_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     >>> q * jnp.asarray([2, 3])
     UncheckedQuantity(Array([4, 6], dtype=int32), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(2, "m")
 
     >>> q * 2.0
@@ -2888,7 +2923,7 @@ def _mul_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     Quantity['length'](Array([4, 6], dtype=int32), unit='m')
 
     """
-    return replace(x, value=lax.mul(x.value, y))
+    return replace(x, value=lax.mul(ustrip(x), y))
 
 
 # ==============================================================================
@@ -2916,7 +2951,7 @@ def _ne_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     >>> q1 != q2
     Array(False, dtype=bool, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(1, "m")
     >>> q2 = Quantity(2, "m")
     >>> jnp.not_equal(q1, q2)
@@ -2934,7 +2969,7 @@ def _ne_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     if not is_unit_convertible(x.unit, y.unit):
         msg = f"Cannot compare Q(x, {x.unit}) != Q(y, {y.unit})."
         raise UnitConversionError(msg)
-    return qlax.ne(x.value, ustrip(x.unit, y))  # re-dispatch on the values
+    return qlax.ne(ustrip(x), ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @register(lax.ne_p)
@@ -2959,7 +2994,7 @@ def _ne_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     >>> x != q2
     Array(False, dtype=bool, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> x = Quantity(1, "")
     >>> q2 = Quantity(2, "")
     >>> jnp.not_equal(x, q2)
@@ -2979,7 +3014,7 @@ def _ne_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x != Q(y, {y.unit}) (except for x=0).",
     )
-    return qlax.ne(x, y.value)  # re-dispatch on the value
+    return qlax.ne(x, ustrip(y))  # re-dispatch on the value
 
 
 @register(lax.ne_p)
@@ -3004,7 +3039,7 @@ def _ne_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     >>> q1 != x
     Array(False, dtype=bool, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> x = Quantity(1, "")
     >>> q1 = Quantity(2, "")
     >>> jnp.not_equal(q1, x)
@@ -3024,7 +3059,7 @@ def _ne_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) != y (except for y=0).",
     )
-    return qlax.ne(x.value, y)  # re-dispatch on the value
+    return qlax.ne(ustrip(x), y)  # re-dispatch on the value
 
 
 # @register(lax.ne_p)
@@ -3047,13 +3082,13 @@ def _neg_p(x: AbstractQuantity) -> AbstractQuantity:
     >>> -q
     UncheckedQuantity(Array(-1, dtype=int32, ...), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(1, "m")
     >>> -q
     Quantity['length'](Array(-1, dtype=int32, weak_type=True), unit='m')
 
     """
-    return replace(x, value=lax.neg(x.value))
+    return replace(x, value=lax.neg(ustrip(x)))
 
 
 # ==============================================================================
@@ -3087,7 +3122,7 @@ def _pow_p_qq(
     yv = ustrip(one, y)
     y0 = yv[(0,) * yv.ndim]
     yv = eqx.error_if(yv, jnp.any(yv != y0), "power must be a scalar")
-    return type_np(x)(value=lax.pow(x.value, y0), unit=x.unit**y0)
+    return type_np(x)(value=lax.pow(ustrip(x), y0), unit=x.unit**y0)
 
 
 @register(lax.pow_p)
@@ -3113,7 +3148,7 @@ def _pow_p_qf(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     Quantity['volume'](Array(8., dtype=float32, weak_type=True), unit='m3')
 
     """
-    return type_np(x)(value=lax.pow(x.value, y), unit=x.unit**y)
+    return type_np(x)(value=lax.pow(ustrip(x), y), unit=x.unit**y)
 
 
 @register(lax.pow_p)
@@ -3133,7 +3168,7 @@ def _pow_p_vq(
     Quantity['dimensionless'](Array([8.], dtype=float32), unit='')
 
     """
-    return replace(y, value=lax.pow(x, y.value))
+    return replace(y, value=lax.pow(x, ustrip(y)))
 
 
 # ==============================================================================
@@ -3161,7 +3196,7 @@ def _real_p(x: AbstractQuantity) -> AbstractQuantity:
     Quantity['length'](Array(1., dtype=float32, weak_type=True), unit='m')
 
     """
-    return replace(x, value=lax.real(x.value))
+    return replace(x, value=lax.real(ustrip(x)))
 
 
 # ==============================================================================
@@ -3169,7 +3204,7 @@ def _real_p(x: AbstractQuantity) -> AbstractQuantity:
 
 @register(lax.reduce_and_p)
 def _reduce_and_p(operand: AbstractQuantity, *, axes: Sequence[int]) -> Any:
-    return lax.reduce_and_p.bind(operand.value, axes=tuple(axes))
+    return lax.reduce_and_p.bind(ustrip(operand), axes=tuple(axes))
 
 
 # ==============================================================================
@@ -3177,7 +3212,7 @@ def _reduce_and_p(operand: AbstractQuantity, *, axes: Sequence[int]) -> Any:
 
 @register(lax.reduce_max_p)
 def _reduce_max_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
-    return replace(operand, value=lax.reduce_max_p.bind(operand.value, axes=axes))
+    return replace(operand, value=lax.reduce_max_p.bind(ustrip(operand), axes=axes))
 
 
 # ==============================================================================
@@ -3185,7 +3220,7 @@ def _reduce_max_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
 
 @register(lax.reduce_min_p)
 def _reduce_min_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
-    return replace(operand, value=lax.reduce_min_p.bind(operand.value, axes=axes))
+    return replace(operand, value=lax.reduce_min_p.bind(ustrip(operand), axes=axes))
 
 
 # ==============================================================================
@@ -3193,7 +3228,7 @@ def _reduce_min_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
 
 @register(lax.reduce_or_p)
 def _reduce_or_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
-    return type_np(operand)(lax.reduce_or_p.bind(operand.value, axes=axes), unit=one)
+    return type_np(operand)(lax.reduce_or_p.bind(ustrip(operand), axes=axes), unit=one)
 
 
 # ==============================================================================
@@ -3201,7 +3236,7 @@ def _reduce_or_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
 
 @register(lax.reduce_prod_p)
 def _reduce_prod_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
-    value = lax.reduce_prod_p.bind(operand.value, axes=axes)
+    value = lax.reduce_prod_p.bind(ustrip(operand), axes=axes)
     u = operand.unit ** prod(operand.shape[ax] for ax in axes)
     return type_np(operand)(value, unit=u)
 
@@ -3211,7 +3246,7 @@ def _reduce_prod_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity
 
 @register(lax.reduce_sum_p)
 def _reduce_sum_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
-    return replace(operand, value=lax.reduce_sum_p.bind(operand.value, axes=axes))
+    return replace(operand, value=lax.reduce_sum_p.bind(ustrip(operand), axes=axes))
 
 
 # ==============================================================================
@@ -3230,14 +3265,14 @@ def _rem_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> q1 % q2
     UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(10, "m")
     >>> q2 = Quantity(3, "m")
     >>> q1 % q2
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
-    return replace(x, value=lax.rem(x.value, ustrip(x.unit, y)))
+    return replace(x, value=lax.rem(ustrip(x), ustrip(x.unit, y)))
 
 
 @register(lax.rem_p)
@@ -3255,7 +3290,7 @@ def _rem_p_uqv(x: Quantity["dimensionless"], y: ArrayLike) -> Quantity["dimensio
     Quantity['dimensionless'](Array(1, dtype=int32, ...), unit='')
 
     """
-    return replace(x, value=lax.rem(x.value, y))
+    return replace(x, value=lax.rem(ustrip(x), y))
 
 
 # ==============================================================================
@@ -3285,7 +3320,7 @@ def _reshape_p(
                               [4, 5]], dtype=int32), unit='m')
 
     """
-    return replace(operand, value=lax.reshape(operand.value, new_sizes, dimensions))
+    return replace(operand, value=lax.reshape(ustrip(operand), new_sizes, dimensions))
 
 
 # ==============================================================================
@@ -3309,7 +3344,7 @@ def _rev_p(operand: AbstractQuantity, *, dimensions: Any) -> AbstractQuantity:
     Quantity['length'](Array([3, 2, 1, 0], dtype=int32), unit='m')
 
     """
-    return replace(operand, value=lax.rev(operand.value, dimensions))
+    return replace(operand, value=lax.rev(ustrip(operand), dimensions))
 
 
 # ==============================================================================
@@ -3333,7 +3368,7 @@ def _round_p(x: AbstractQuantity, *, rounding_method: Any) -> AbstractQuantity:
     Quantity['length'](Array(1.23, dtype=float32, ...), unit='m')
 
     """
-    return replace(x, value=lax.round(x.value, rounding_method))
+    return replace(x, value=lax.round(ustrip(x), rounding_method))
 
 
 # ==============================================================================
@@ -3357,7 +3392,7 @@ def _rsqrt_p(x: AbstractQuantity) -> AbstractQuantity:
     Quantity['m-0.5'](Array(2., dtype=float32, ...), unit='1 / m(1/2)')
 
     """
-    return type_np(x)(lax.rsqrt(x.value), unit=x.unit ** (-1 / 2))
+    return type_np(x)(lax.rsqrt(ustrip(x)), unit=x.unit ** (-1 / 2))
 
 
 # ==============================================================================
@@ -3416,7 +3451,7 @@ def _scatter_add_p_qvq(
     return replace(
         operand,
         value=lax.scatter_add_p.bind(
-            operand.value, scatter_indices, ustrip(operand.unit, updates), **kwargs
+            ustrip(operand), scatter_indices, ustrip(operand.unit, updates), **kwargs
         ),
     )
 
@@ -3438,7 +3473,9 @@ def _scatter_add_p_vvq(
     """
     return replace(
         updates,
-        value=lax.scatter_add_p.bind(operand, scatter_indices, updates.value, **kwargs),
+        value=lax.scatter_add_p.bind(
+            operand, scatter_indices, ustrip(updates), **kwargs
+        ),
     )
 
 
@@ -3484,7 +3521,7 @@ def _select_n_p_jjq(
 ) -> AbstractQuantity:
     """Select from an array and quantity using a quantity selector."""
     # Used by a `jnp.linalg.trace`
-    return replace(case1, value=lax.select_n(which, case0, case1.value))
+    return replace(case1, value=lax.select_n(which, case0, ustrip(case1)))
 
 
 @register(lax.select_n_p)
@@ -3509,7 +3546,7 @@ def _select_n_p_jqj(
                               [0, 4]], dtype=int32), unit='km')
 
     """
-    return replace(case0, value=lax.select_n(which, case0.value, case1))
+    return replace(case0, value=lax.select_n(which, ustrip(case0), case1))
 
 
 @register(lax.select_n_p)
@@ -3558,13 +3595,13 @@ def _sign_p(x: AbstractQuantity) -> ArrayLike:
     >>> jnp.sign(q)
     Array(1, dtype=int32, ...)
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(10, "m")
     >>> jnp.sign(q)
     Array(1, dtype=int32, ...)
 
     """
-    return lax.sign(x.value)
+    return lax.sign(ustrip(x))
 
 
 # ==============================================================================
@@ -3641,7 +3678,7 @@ def _slice_p(
     return replace(
         operand,
         value=lax.slice_p.bind(
-            operand.value,
+            ustrip(operand),
             start_indices=start_indices,
             limit_indices=limit_indices,
             strides=strides,
@@ -3663,7 +3700,7 @@ def _sort_p_two_operands(
     num_keys: int,
 ) -> tuple[AbstractQuantity, ArrayLike]:
     out0, out1 = lax.sort_p.bind(
-        operand0.value,
+        ustrip(operand0),
         operand1,
         dimension=dimension,
         is_stable=is_stable,
@@ -3678,7 +3715,7 @@ def _sort_p_one_operand(
     operand: AbstractQuantity, *, dimension: int, is_stable: bool, num_keys: int
 ) -> tuple[AbstractQuantity]:
     (out,) = lax.sort_p.bind(
-        operand.value, dimension=dimension, is_stable=is_stable, num_keys=num_keys
+        ustrip(operand), dimension=dimension, is_stable=is_stable, num_keys=num_keys
     )
     return (type_np(operand)(out, unit=operand.unit),)
 
@@ -3699,14 +3736,14 @@ def _sqrt_p_q(x: AbstractQuantity) -> AbstractQuantity:
     >>> jnp.sqrt(q)
     UncheckedQuantity(Array(3., dtype=float32, ...), unit='m(1/2)')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(9, "m")
     >>> jnp.sqrt(q)
     Quantity['m0.5'](Array(3., dtype=float32, ...), unit='m(1/2)')
 
     """
     # Apply sqrt to the value and adjust the unit
-    return type_np(x)(lax.sqrt(x.value), unit=x.unit ** (1 / 2))
+    return type_np(x)(lax.sqrt(ustrip(x)), unit=x.unit ** (1 / 2))
 
 
 # ==============================================================================
@@ -3730,7 +3767,7 @@ def _squeeze_p(x: AbstractQuantity, *, dimensions: Any) -> AbstractQuantity:
     Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
 
     """
-    return type_np(x)(lax.squeeze(x.value, dimensions), unit=x.unit)
+    return type_np(x)(lax.squeeze(ustrip(x), dimensions), unit=x.unit)
 
 
 # ==============================================================================
@@ -3750,7 +3787,7 @@ def _stop_gradient_p(x: AbstractQuantity) -> AbstractQuantity:
     UncheckedQuantity(Array(1., dtype=float32, ...), unit='m')
 
     """
-    return replace(x, value=lax.stop_gradient(x.value))
+    return replace(x, value=lax.stop_gradient(ustrip(x)))
 
 
 # ==============================================================================
@@ -3773,7 +3810,7 @@ def _sub_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> q1 - q2
     UncheckedQuantity(Array(0.5, dtype=float32, ...), unit='km')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q1 = Quantity(1.0, "km")
     >>> q2 = Quantity(500.0, "m")
     >>> jnp.subtract(q1, q2)
@@ -3802,7 +3839,7 @@ def _sub_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     >>> x - q
     UncheckedQuantity(Array(500., dtype=float32, ...), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(500.0, "")
     >>> jnp.subtract(x, q)
     Quantity['dimensionless'](Array(500., dtype=float32, ...), unit='')
@@ -3812,7 +3849,7 @@ def _sub_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
 
     """
     y = uconvert(one, y)
-    return replace(y, value=qlax.sub(x, y.value))
+    return replace(y, value=qlax.sub(x, ustrip(y)))
 
 
 @register(lax.sub_p)
@@ -3832,7 +3869,7 @@ def _sub_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     >>> q - y
     UncheckedQuantity(Array(-500., dtype=float32, ...), unit='')
 
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
     >>> q = Quantity(500.0, "")
     >>> jnp.subtract(q, y)
     Quantity['dimensionless'](Array(-500., dtype=float32, ...), unit='')
@@ -3842,7 +3879,7 @@ def _sub_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
     """
     x = uconvert(one, x)
-    return replace(x, value=qlax.sub(x.value, y))
+    return replace(x, value=qlax.sub(ustrip(x), y))
 
 
 # ==============================================================================
@@ -3937,5 +3974,5 @@ def _transpose_p(operand: AbstractQuantity, *, permutation: Any) -> AbstractQuan
 
     """
     return replace(
-        operand, value=lax.transpose_p.bind(operand.value, permutation=permutation)
+        operand, value=lax.transpose_p.bind(ustrip(operand), permutation=permutation)
     )

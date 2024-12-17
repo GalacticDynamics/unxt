@@ -18,6 +18,7 @@ from unxt.quantity import AbstractQuantity, Quantity, UncheckedQuantity
 # ============================================================================
 # AbstractQuantity
 
+
 # -----------------
 # Constructor
 
@@ -174,7 +175,7 @@ AstropyUnit: TypeAlias = (
 
 
 @dispatch  # type: ignore[misc]
-def uconvert(unit: AstropyUnit, x: AbstractQuantity, /) -> AbstractQuantity:
+def uconvert(u: AstropyUnit, x: AbstractQuantity, /) -> AbstractQuantity:
     """Convert the quantity to the specified units.
 
     Examples
@@ -200,15 +201,15 @@ def uconvert(unit: AstropyUnit, x: AbstractQuantity, /) -> AbstractQuantity:
 
     """  # noqa: E501
     # Hot-path: if no unit conversion is necessary
-    if x.unit == unit:
+    if x.unit == u:
         return x
 
     # Compute the value. Used in all subsequent branches.
-    value = x.unit.to(unit, x.value)
+    value = x.unit.to(u, ustrip(x))
 
     # If the dimensions are the same, we can just replace the value and unit.
-    if dimension_of(x.unit) == dimension_of(unit):
-        return replace(x, value=value, unit=unit)
+    if dimension_of(x.unit) == dimension_of(u):
+        return replace(x, value=value, unit=u)
 
     # If the dimensions are different, we need to create a new quantity since
     # the dimensions can be part of the type. This won't work if the Quantity
@@ -216,6 +217,6 @@ def uconvert(unit: AstropyUnit, x: AbstractQuantity, /) -> AbstractQuantity:
     # `unxt.Quantity`. These cases are handled separately, in other dispatches.
     fs = dict(field_items(x))
     fs["value"] = value
-    fs["unit"] = unit
+    fs["unit"] = u
 
     return type_up(x)(**fs)
