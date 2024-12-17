@@ -142,7 +142,7 @@ class AbstractUnitSystem:
         if key in self.base_dimensions:
             return getattr(self, get_dimension_name(key))
 
-        out = None
+        out: UnitT
         for k, v in _physical_unit_mapping.items():
             if v == key:
                 out = unit(" ".join([f"{x}**{y}" for x, y in k]))
