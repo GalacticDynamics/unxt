@@ -238,6 +238,7 @@ UNXT_ENABLE_RUNTIME_TYPECHECKING = "beartype.beartype"
     "missing-function-docstring", # TODO: resolve
     "missing-kwoa",               # plum-dispatch
     "missing-module-docstring",
+    "no-value-for-parameter",     # plum-dispatch
     "not-callable",               # handled by mypy
     "property-with-parameters",   # handled by ruff
     "protected-access",           # handled by ruff
