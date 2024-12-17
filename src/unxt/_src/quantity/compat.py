@@ -8,7 +8,7 @@ from .base import AbstractQuantity
 from .core import Quantity
 from .fast import UncheckedQuantity
 from unxt._src.dimensions import AbstractDimension
-from unxt._src.units.core import AbstractUnits
+from unxt._src.units.api import AbstractUnits
 
 # ===================================================================
 # Get dimensions

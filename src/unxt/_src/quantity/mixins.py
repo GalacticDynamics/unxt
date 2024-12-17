@@ -14,7 +14,7 @@ from dataclassish import replace
 
 from .api import uconvert, ustrip
 from unxt._src.units import unit as parse_unit
-from unxt._src.units.core import AbstractUnits
+from unxt._src.units.api import AbstractUnits
 
 if TYPE_CHECKING:
     import unxt.quantity

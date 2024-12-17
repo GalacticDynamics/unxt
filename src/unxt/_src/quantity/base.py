@@ -24,7 +24,7 @@ from dataclassish import fields, replace
 from .api import is_unit_convertible, uconvert, ustrip
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
 from unxt._src.units import unit as parse_unit
-from unxt._src.units.core import AbstractUnits
+from unxt._src.units.api import AbstractUnits
 
 if TYPE_CHECKING:
     from typing import Self
