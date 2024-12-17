@@ -9,10 +9,11 @@ from astropy.units import UnitConversionError
 from jaxtyping import Array
 from plum import dispatch
 
+from .api import ustrip
 from .base import AbstractQuantity
 from unxt._src.dimensions import dimension_of
 from unxt._src.units import unit
-from unxt._src.units.core import AbstractUnits
+from unxt._src.units.api import AbstractUnits
 from unxt._src.units.system import AbstractUnitSystem
 
 # ===================================================================
@@ -57,6 +58,25 @@ def uconvert(usys: AbstractUnitSystem, x: AbstractQuantity, /) -> AbstractQuanti
 
 
 @dispatch
+def ustrip(x: AbstractQuantity, /) -> Array:
+    """Strip the units from the quantity.
+
+    Examples
+    --------
+    >>> import unxt as u
+
+    >>> q = u.Quantity(1000, "m")
+    >>> u.ustrip(q)
+    Array(1000, dtype=int32, weak_type=True)
+
+    >>> u.ustrip(q) is q.value
+    True
+
+    """
+    return x.value
+
+
+@dispatch
 def ustrip(u: AbstractUnits, x: AbstractQuantity, /) -> Array:
     """Strip the units from the quantity.
 
@@ -69,7 +89,7 @@ def ustrip(u: AbstractUnits, x: AbstractQuantity, /) -> Array:
     Array(1., dtype=float32, ...)
 
     """
-    return uconvert(u, x).value
+    return ustrip(uconvert(u, x))
 
 
 @dispatch
@@ -85,7 +105,7 @@ def ustrip(u: str, x: AbstractQuantity, /) -> Array:
     Array(1., dtype=float32, ...)
 
     """
-    return uconvert(unit(u), x).value
+    return ustrip(unit(u), x)
 
 
 @dispatch
