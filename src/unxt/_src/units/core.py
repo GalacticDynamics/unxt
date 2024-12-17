@@ -9,15 +9,14 @@ __all__ = [
     "unit_of",
 ]
 
-from typing import Any, TypeAlias
+from typing import Any
 
 import astropy.units as apyu
 from astropy.units import Unit
 from plum import dispatch
 
+from .api import AbstractUnits
 from unxt._src.dimensions import AbstractDimension
-
-AbstractUnits: TypeAlias = apyu.UnitBase | apyu.Unit
 
 # ===================================================================
 # Construct units
