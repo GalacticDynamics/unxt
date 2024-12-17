@@ -3366,7 +3366,7 @@ def _rsqrt_p(x: AbstractQuantity) -> AbstractQuantity:
 @register(lax.scan_p)
 def _scan_p(
     arg0: AbstractQuantity, arg1: AbstractQuantity, /, *args: ArrayLike, **kwargs: Any
-) -> Array:
+) -> list[Array]:
     """Scan operator, e.g. for ``numpy.digitize``.
 
     Examples

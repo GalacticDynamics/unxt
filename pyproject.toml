@@ -88,6 +88,7 @@
     "pytest-arraydiff>=0.6.1",
     "pytest-codspeed",
     "pytest-cov >=3",
+    "pytest-env",
     "pytest-github-actions-annotate-failures",
     "sybil>=8.0.0",
   ]
@@ -125,6 +126,10 @@
   testpaths = ["docs", "src/", "tests/"]
   norecursedirs = ["docs/_build"]
   xfail_strict = true
+
+
+[tool.pytest_env]
+UNXT_ENABLE_RUNTIME_TYPECHECKING = "beartype.beartype"
 
 
 [tool.coverage]

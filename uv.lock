@@ -1551,6 +1551,18 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-env"
+version = "1.1.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1f/31/27f28431a16b83cab7a636dce59cf397517807d247caa38ee67d65e71ef8/pytest_env-1.1.5.tar.gz", hash = "sha256:91209840aa0e43385073ac464a554ad2947cc2fd663a9debf88d03b01e0cc1cf", size = 8911 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/de/b8/87cfb16045c9d4092cfcf526135d73b88101aac83bc1adcf82dfb5fd3833/pytest_env-1.1.5-py3-none-any.whl", hash = "sha256:ce90cf8772878515c24b31cd97c7fa1f4481cd68d588419fd45f10ecaee6bc30", size = 6141 },
+]
+
+[[package]]
 name = "pytest-github-actions-annotate-failures"
 version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2255,7 +2267,7 @@ wheels = [
 
 [[package]]
 name = "unxt"
-version = "1.0.1.dev8+g75bc18f.d20241211"
+version = "1.0.1.dev12+gb867ef8.d20241217"
 source = { editable = "." }
 dependencies = [
     { name = "astropy" },
@@ -2301,6 +2313,7 @@ dev = [
     { name = "pytest-arraydiff" },
     { name = "pytest-codspeed" },
     { name = "pytest-cov" },
+    { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
     { name = "pytest-mpl" },
     { name = "pytz" },
@@ -2340,6 +2353,7 @@ test = [
     { name = "pytest-arraydiff" },
     { name = "pytest-codspeed" },
     { name = "pytest-cov" },
+    { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
     { name = "sybil" },
 ]
@@ -2349,6 +2363,7 @@ test-all = [
     { name = "pytest-arraydiff" },
     { name = "pytest-codspeed" },
     { name = "pytest-cov" },
+    { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
     { name = "pytest-mpl" },
     { name = "sybil" },
@@ -2392,6 +2407,7 @@ dev = [
     { name = "pytest-arraydiff", specifier = ">=0.6.1" },
     { name = "pytest-codspeed" },
     { name = "pytest-cov", specifier = ">=3" },
+    { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
     { name = "pytest-mpl" },
     { name = "pytz", specifier = ">=2024.2" },
@@ -2429,6 +2445,7 @@ test = [
     { name = "pytest-arraydiff", specifier = ">=0.6.1" },
     { name = "pytest-codspeed" },
     { name = "pytest-cov", specifier = ">=3" },
+    { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
     { name = "sybil", specifier = ">=8.0.0" },
 ]
@@ -2438,6 +2455,7 @@ test-all = [
     { name = "pytest-arraydiff", specifier = ">=0.6.1" },
     { name = "pytest-codspeed" },
     { name = "pytest-cov", specifier = ">=3" },
+    { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
     { name = "pytest-mpl" },
     { name = "sybil", specifier = ">=8.0.0" },
