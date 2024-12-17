@@ -61,7 +61,7 @@ class AstropyQuantityCompatMixin:
         return ustrip(u, self)  # redirect to the standard method
 
     def decompose(
-        self, bases: Sequence[AbstractUnits], /
+        self, bases: Sequence[AbstractUnits | str], /
     ) -> "unxt.quantity.AbstractQuantity":
         """Decompose the quantity into the given bases.
 
