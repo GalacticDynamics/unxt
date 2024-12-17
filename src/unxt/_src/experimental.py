@@ -33,7 +33,7 @@ from plum.parametric import type_unparametrized
 
 from .quantity import Quantity, ustrip
 from .typing_ext import Unit
-from .units import unit
+from .units import unit, unit_of
 
 P = ParamSpec("P")
 R = TypeVar("R", bound=Quantity)
@@ -95,7 +95,9 @@ def grad(
         grad_value = gradfun_mag(*args_)
         # Adjust the Quantity by the units of the derivative
         # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
-        return type_unparametrized(value)(grad_value, value.unit / theunits[argnums])
+        return type_unparametrized(value)(
+            grad_value, unit_of(value) / theunits[argnums]
+        )
 
     return gradfun
 
@@ -157,7 +159,9 @@ def jacfwd(
         # Adjust the Quantity by the units of the derivative
         # TODO: check the unit correction
         # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
-        return type_unparametrized(value)(ustrip(value), value.unit / theunits[argnums])
+        return type_unparametrized(value)(
+            ustrip(value), unit_of(value) / theunits[argnums]
+        )
 
     return jacfun
 
@@ -214,7 +218,7 @@ def hessian(
         # TODO: check the unit correction
         # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
         return type_unparametrized(value)(
-            ustrip(value), value.unit / theunits[argnums] ** 2
+            ustrip(value), unit_of(value) / theunits[argnums] ** 2
         )
 
     return hessfun

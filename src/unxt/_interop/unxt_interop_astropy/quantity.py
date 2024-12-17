@@ -13,7 +13,8 @@ import quaxed.numpy as jnp
 from dataclassish import field_items, replace
 
 from unxt.dims import dimension_of
-from unxt.quantity import AbstractQuantity, Quantity, UncheckedQuantity
+from unxt.quantity import AbstractQuantity, Quantity, UncheckedQuantity, ustrip
+from unxt.units import unit, unit_of
 
 # ============================================================================
 # AbstractQuantity
@@ -40,12 +41,14 @@ def from_(
     Quantity['length'](Array(1., dtype=float32), unit='m')
 
     """
-    return cls(jnp.asarray(value.value, **kwargs), value.unit)
+    u = unit_of(value)
+    value = jnp.asarray(ustrip(u, value), **kwargs)
+    return cls(value, u)
 
 
 @AbstractQuantity.from_.dispatch  # type: ignore[no-redef]
 def from_(
-    cls: type[AbstractQuantity], value: AstropyQuantity, unit: Any, /, **kwargs: Any
+    cls: type[AbstractQuantity], value: AstropyQuantity, u: Any, /, **kwargs: Any
 ) -> AbstractQuantity:
     """Construct a `Quantity` from another `Quantity`.
 
@@ -60,7 +63,9 @@ def from_(
     Quantity['length'](Array(100., dtype=float32), unit='cm')
 
     """
-    return cls(jnp.asarray(value.to_value(unit), **kwargs), unit)
+    u = unit(u)
+    value = jnp.asarray(ustrip(u, value), **kwargs)
+    return cls(value, u)
 
 
 # -----------------
@@ -83,7 +88,8 @@ def convert_unxt_quantity_to_astropy_quantity(
     <Quantity 1. cm>
 
     """
-    return AstropyQuantity(q.value, q.unit)
+    u = unit_of(q)
+    return AstropyQuantity(ustrip(u, q), u)
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=AstropyDistance)  # type: ignore[misc]
@@ -102,7 +108,8 @@ def convert_unxt_quantity_to_astropy_distance(
     <Distance 1. cm>
 
     """
-    return AstropyDistance(q.value, q.unit)
+    u = unit_of(q)
+    return AstropyDistance(ustrip(u, q), u)
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=AstropyAngle)  # type: ignore[misc]
@@ -119,7 +126,8 @@ def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAng
     <Angle 1. rad>
 
     """
-    return AstropyAngle(q.value, q.unit)
+    u = unit_of(q)
+    return AstropyAngle(ustrip(u, q), u)
 
 
 # ============================================================================
@@ -140,7 +148,8 @@ def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity
     Quantity['length'](Array(1., dtype=float32), unit='cm')
 
     """
-    return Quantity(q.value, q.unit)
+    u = unit_of(q)
+    return Quantity(ustrip(u, q), u)
 
 
 # ============================================================================
@@ -163,7 +172,8 @@ def convert_astropy_quantity_to_unxt_uncheckedquantity(
     UncheckedQuantity(Array(1., dtype=float32), unit='cm')
 
     """
-    return UncheckedQuantity(q.value, q.unit)
+    u = unit_of(q)
+    return UncheckedQuantity(ustrip(u, q), u)
 
 
 ###############################################################################
@@ -220,3 +230,20 @@ def uconvert(u: AstropyUnit, x: AbstractQuantity, /) -> AbstractQuantity:
     fs["unit"] = u
 
     return type_up(x)(**fs)
+
+
+@dispatch  # type: ignore[misc]
+def ustrip(u: Any, x: AstropyQuantity) -> Any:
+    """Strip the units from the quantity.
+
+    Examples
+    --------
+    >>> import astropy.units as apyu
+    >>> import unxt as u
+
+    >>> x = apyu.Quantity(1000, "m")
+    >>> u.ustrip(u.unit("m"), x)
+    np.float64(1000.0)
+
+    """
+    return x.to_value(u)

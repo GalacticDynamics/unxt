@@ -4,6 +4,7 @@ __all__: list[str] = []
 
 from plum import conversion_method, dispatch
 
+from .api import ustrip
 from .base import AbstractQuantity
 from .core import Quantity
 from .fast import UncheckedQuantity
@@ -62,8 +63,8 @@ def _quantity_to_unchecked(q: AbstractQuantity, /) -> UncheckedQuantity:
     >>> from unxt.quantity import Quantity, UncheckedQuantity
 
     >>> q = Quantity(1, "m")
-    >>> q
-    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+    >>> convert(q, UncheckedQuantity)
+    UncheckedQuantity(Array(1, dtype=int32, weak_type=True), unit='m')
 
     The self-conversion doesn't copy the object:
 
@@ -74,7 +75,8 @@ def _quantity_to_unchecked(q: AbstractQuantity, /) -> UncheckedQuantity:
     """
     if isinstance(q, UncheckedQuantity):
         return q
-    return UncheckedQuantity(q.value, q.unit)
+    unit = unit_of(q)
+    return UncheckedQuantity(ustrip(unit, q), unit)
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=Quantity)  # type: ignore[misc]
@@ -102,4 +104,5 @@ def _quantity_to_checked(q: AbstractQuantity, /) -> Quantity:
     """
     if isinstance(q, Quantity):
         return q
-    return Quantity(q.value, q.unit)
+    u = unit_of(q)
+    return Quantity(ustrip(u, q), u)

@@ -23,7 +23,7 @@ from dataclassish import fields, replace
 
 from .api import is_unit_convertible, uconvert, ustrip
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
-from unxt._src.units import unit as parse_unit
+from unxt._src.units import unit as parse_unit, unit_of
 from unxt._src.units.api import AbstractUnits
 
 if TYPE_CHECKING:
@@ -894,7 +894,7 @@ def from_(
 
     """
     value = jnp.asarray(uconvert(unit, value), dtype=dtype)
-    return cls(value.value, unit)
+    return cls(ustrip(unit, value), unit)
 
 
 @AbstractQuantity.from_.dispatch  # type: ignore[no-redef]
@@ -920,7 +920,8 @@ def from_(
 
     """
     value = jnp.asarray(value, dtype=dtype)
-    return cls(value.value, value.unit)
+    unit = unit_of(value)
+    return cls(ustrip(unit, value), unit)
 
 
 @AbstractQuantity.from_.dispatch  # type: ignore[no-redef]
@@ -935,7 +936,7 @@ def from_(
     """Construct a `Quantity` from another `Quantity`, with no unit change."""
     unit = value.unit if unit is None else unit
     value = jnp.asarray(uconvert(unit, value), dtype=dtype)
-    return cls(value.value, unit)
+    return cls(ustrip(unit, value), unit)
 
 
 # -----------------------------------------------
