@@ -5,11 +5,10 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 
 __all__: list[str] = []
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Protocol, cast, runtime_checkable
 
 from jax import dtypes
-from jaxtyping import ArrayLike
-from quax import quaxify
+from jax.numpy import dtype as DType  # noqa: N812
 
 import quaxed.lax as qlax
 
@@ -47,8 +46,14 @@ class SingletonMixin:
         return self
 
 
-@quaxify  # type: ignore[misc]
-def promote_dtypes(*arrays: ArrayLike) -> tuple[ArrayLike, ...]:
+@runtime_checkable
+class HasDType(Protocol):
+    """Protocol for objects that have a dtype attribute."""
+
+    dtype: DType
+
+
+def promote_dtypes(*arrays: HasDType) -> tuple[HasDType, ...]:
     """Promotes all input arrays to a common dtype.
 
     Examples
@@ -71,4 +76,17 @@ def promote_dtypes(*arrays: ArrayLike) -> tuple[ArrayLike, ...]:
 
     """
     common_dtype = dtypes.result_type(*arrays)
+    # TODO: check if this copies.
     return tuple(qlax.convert_element_type(arr, common_dtype) for arr in arrays)
+
+
+def promote_dtypes_if_needed(
+    original_dtypes: tuple[DType, ...], /, *args: HasDType
+) -> tuple[HasDType, ...]:
+    # Compare equality of all `original_dtypes` and all `args` dtypes.
+    all_orig_dtypes_eq = all(dt == original_dtypes[0] for dt in original_dtypes)
+    all_new_dtypes_eq = all(arg.dtype == args[0].dtype for arg in args)
+    if all_orig_dtypes_eq and not all_new_dtypes_eq:
+        return promote_dtypes(*args)
+
+    return args

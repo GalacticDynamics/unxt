@@ -30,7 +30,7 @@ from .base import AbstractQuantity
 from .base_parametric import AbstractParametricQuantity
 from .core import Quantity
 from unxt._src.units import unit, unit_of
-from unxt._src.utils import promote_dtypes
+from unxt._src.utils import promote_dtypes_if_needed
 
 T = TypeVar("T")
 
@@ -160,7 +160,12 @@ def _add_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     Quantity['length'](Array(1.5, dtype=float32, ...), unit='km')
 
     """
-    return replace(x, value=qlax.add(ustrip(x), ustrip(x.unit, y)))
+    # Strip the units to compare the values.
+    xv = ustrip(x)
+    yv = ustrip(x.unit, y)  # this can change the dtype
+    xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
+
+    return replace(x, value=qlax.add(xv, yv))
 
 
 @register(lax.add_p)
@@ -2125,7 +2130,10 @@ def _gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) > Q(y, {y.unit}).",
     )
-    return qlax.gt(ustrip(x), ustrip(x.unit, y))  # re-dispatch on the values
+    xv = ustrip(x)
+    yv = ustrip(x.unit, y)
+    xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
+    return qlax.gt(xv, yv)  # re-dispatch on the values
 
 
 @register(lax.gt_p)
@@ -2550,11 +2558,7 @@ def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
     # Strip the units to compare the values.
     xv = ustrip(x)
     yv = ustrip(x.unit, y)  # this can change the dtype
-    # `lax.lt` requires that the dtypes are the same. Since `ustrip` can change
-    # the dtype, we need to special-case the situation where the dtypes started
-    # off the same, but `ustrip` changed them.
-    if x.dtype == y.dtype and xv.dtype != yv.dtype:
-        xv, yv = promote_dtypes(xv, yv)
+    xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
 
     return qlax.lt(xv, yv)  # re-dispatch on the values
 
@@ -3589,9 +3593,10 @@ def _select_n_p_jqq(which: ArrayLike, *cases: AbstractQuantity) -> AbstractQuant
 
     """
     u = unit_of(cases[0])
-    return replace(
-        cases[0], value=qlax.select_n(which, *(ustrip(u, case) for case in cases))
-    )
+    dtypes = tuple(case.dtype for case in cases)
+    casesv = promote_dtypes_if_needed(dtypes, *(ustrip(u, case) for case in cases))
+
+    return replace(cases[0], value=qlax.select_n(which, *casesv))
 
 
 # ==============================================================================
@@ -3834,7 +3839,12 @@ def _sub_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     Quantity['length'](Array(0.5, dtype=float32, ...), unit='km')
 
     """
-    return replace(x, value=qlax.sub(ustrip(x.unit, x), ustrip(x.unit, y)))
+    # Get the values, promoting if needed
+    xv = ustrip(x)
+    yv = ustrip(x.unit, y)
+    xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
+    # Return the subtracted values, and the unit of the first operand
+    return replace(x, value=qlax.sub(xv, yv))
 
 
 @register(lax.sub_p)
