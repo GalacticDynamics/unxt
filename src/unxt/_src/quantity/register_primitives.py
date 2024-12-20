@@ -1989,7 +1989,7 @@ def _gather_p(
 ) -> AbstractQuantity:
     # TODO: examples
     return replace(
-        operand, value=qlax.gather_p.bind(ustrip(operand), start_indices, **kwargs)
+        operand, value=lax.gather_p.bind(ustrip(operand), start_indices, **kwargs)
     )
 
 
