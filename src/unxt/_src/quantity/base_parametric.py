@@ -8,8 +8,6 @@ from functools import partial
 from typing import Any
 
 import equinox as eqx
-import jax
-import jax.core
 from astropy.units import PhysicalType, Unit
 from jaxtyping import Array, ArrayLike, Shaped
 from plum import dispatch, parametric, type_nonparametric, type_unparametrized
@@ -30,10 +28,10 @@ class AbstractParametricQuantity(AbstractQuantity):
 
     """
 
-    value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
+    value: eqx.AbstractVar[Shaped[Array, "*shape"]]
     """The value of the `AbstractQuantity`."""
 
-    unit: Unit = eqx.field(static=True, converter=parse_unit)
+    unit: eqx.AbstractVar[Unit]
     """The unit associated with this value."""
 
     def __post_init__(self) -> None:

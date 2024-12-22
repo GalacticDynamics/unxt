@@ -14,7 +14,7 @@ from hypothesis import example, given, strategies as st
 from hypothesis.extra.array_api import make_strategies_namespace
 from hypothesis.extra.numpy import array_shapes as np_array_shapes, arrays as np_arrays
 from jax.dtypes import canonicalize_dtype
-from jaxtyping import TypeCheckError
+from jaxtyping import Array, TypeCheckError
 from plum import convert, parametric
 
 import quaxed.numpy as jnp
@@ -504,6 +504,8 @@ def test_at():
 class NewQuantity(AbstractParametricQuantity):
     """Quantity with a flag."""
 
+    value: Array = eqx.field(converter=jnp.asarray)
+    unit: str = eqx.field(converter=u.unit)
     flag: bool = eqx.field(static=True, kw_only=True)
 
 
