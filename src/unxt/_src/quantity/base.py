@@ -113,123 +113,15 @@ class AbstractQuantity(
     # Constructors
 
     @classmethod
-    @dispatch
+    @dispatch.abstract  # type: ignore[misc]
     def from_(
         cls: "type[AbstractQuantity]",
-        value: ArrayLike | ArrayLikeSequence,
-        unit: Any,
-        /,
-        *,
-        dtype: Any = None,
+        *args: Any,
+        **kwargs: Any,
     ) -> "AbstractQuantity":
-        """Construct a `unxt.Quantity` from an array-like value and a unit.
+        raise NotImplementedError  # pragma: no cover
 
-        :param value: The array-like value.
-        :param unit: The unit of the value.
-        :param dtype: The data type of the array (keyword-only).
-
-        Examples
-        --------
-        For this example we'll use the `Quantity` class. The same applies to
-        any subclass of `AbstractQuantity`.
-
-        >>> import jax.numpy as jnp
-        >>> import unxt as u
-
-        >>> x = jnp.array([1.0, 2, 3])
-        >>> u.Quantity.from_(x, "m")
-        Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
-
-        >>> u.Quantity.from_([1.0, 2, 3], "m")
-        Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
-
-        >>> u.Quantity.from_((1.0, 2, 3), "m")
-        Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
-
-        """
-        # Dispatch on both arguments.
-        # Construct using the standard `__init__` method.
-        return cls(jnp.asarray(value, dtype=dtype), unit)
-
-    @classmethod  # type: ignore[no-redef]
-    @dispatch
-    def from_(
-        cls: "type[AbstractQuantity]",
-        value: ArrayLike | ArrayLikeSequence,
-        /,
-        *,
-        unit: Any,
-        dtype: Any = None,
-    ) -> "AbstractQuantity":
-        """Make a `unxt.AbstractQuantity` from an array-like value and a unit kwarg.
-
-        Examples
-        --------
-        For this example we'll use the `unxt.Quantity` class. The same applies
-        to any subclass of `unxt.AbstractQuantity`.
-
-        >>> import unxt as u
-        >>> u.Quantity.from_([1.0, 2, 3], unit="m")
-        Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
-
-        """
-        # Dispatch on the `value` only. Dispatch to the full constructor.
-        return cls.from_(value, unit, dtype=dtype)
-
-    @classmethod  # type: ignore[no-redef]
-    @dispatch
-    def from_(
-        cls: "type[AbstractQuantity]", *, value: Any, unit: Any, dtype: Any = None
-    ) -> "AbstractQuantity":
-        """Construct a `AbstractQuantity` from value and unit kwargs.
-
-        Examples
-        --------
-        For this example we'll use the `Quantity` class. The same applies to
-        any subclass of `AbstractQuantity`.
-
-        >>> import unxt as u
-        >>> u.Quantity.from_(value=[1.0, 2, 3], unit="m")
-        Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
-
-        """
-        # Dispatched on no argument. Dispatch to the full constructor.
-        return cls.from_(value, unit, dtype=dtype)
-
-    @classmethod  # type: ignore[no-redef]
-    @dispatch
-    def from_(
-        cls: "type[AbstractQuantity]", mapping: Mapping[str, Any]
-    ) -> "AbstractQuantity":
-        """Construct a `Quantity` from a Mapping.
-
-        Parameters
-        ----------
-        mapping : Mapping[str, Any]
-            Mapping of the fields of the `Quantity`, e.g. 'value' and 'unit'.
-
-        Examples
-        --------
-        For this example we'll use the `Quantity` class. The same applies to
-        any subclass of `AbstractQuantity`.
-
-        >>> import jax.numpy as jnp
-        >>> import unxt as u
-
-        >>> x = jnp.array([1.0, 2, 3])
-        >>> q = u.Quantity.from_({"value": x, "unit": "m"})
-        >>> q
-        Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
-
-        >>> u.Quantity.from_({"value": q, "unit": "km"})
-        Quantity['length'](Array([0.001, 0.002, 0.003], dtype=float32), unit='km')
-
-        """
-        # Dispatch on both arguments.
-        # Construct using the standard `__init__` method.
-        return cls.from_(**mapping)
-
-    # See below for additional constructors.
+    # See below for additional constructors
 
     # ===============================================================
     # Quantity API
@@ -890,6 +782,116 @@ class AbstractQuantity(
 
 # -----------------------------------------------
 # Register additional constructors
+
+
+@AbstractQuantity.from_.dispatch
+def from_(
+    cls: type[AbstractQuantity],
+    value: ArrayLike | ArrayLikeSequence,
+    unit: Any,
+    /,
+    *,
+    dtype: Any = None,
+) -> AbstractQuantity:
+    """Construct a `unxt.Quantity` from an array-like value and a unit.
+
+    :param value: The array-like value.
+    :param unit: The unit of the value.
+    :param dtype: The data type of the array (keyword-only).
+
+    Examples
+    --------
+    For this example we'll use the `Quantity` class. The same applies to
+    any subclass of `AbstractQuantity`.
+
+    >>> import jax.numpy as jnp
+    >>> import unxt as u
+
+    >>> x = jnp.array([1.0, 2, 3])
+    >>> u.Quantity.from_(x, "m")
+    Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+
+    >>> u.Quantity.from_([1.0, 2, 3], "m")
+    Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+
+    >>> u.Quantity.from_((1.0, 2, 3), "m")
+    Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+
+    """
+    # Dispatch on both arguments.
+    # Construct using the standard `__init__` method.
+    return cls(jnp.asarray(value, dtype=dtype), unit)
+
+
+@AbstractQuantity.from_.dispatch
+def from_(
+    cls: type[AbstractQuantity],
+    value: ArrayLike | ArrayLikeSequence,
+    /,
+    *,
+    unit: Any,
+    dtype: Any = None,
+) -> AbstractQuantity:
+    """Make a `unxt.AbstractQuantity` from an array-like value and a unit kwarg.
+
+    Examples
+    --------
+    For this example we'll use the `unxt.Quantity` class. The same applies
+    to any subclass of `unxt.AbstractQuantity`.
+
+    >>> import unxt as u
+    >>> u.Quantity.from_([1.0, 2, 3], unit="m")
+    Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+
+    """
+    # Dispatch on the `value` only. Dispatch to the full constructor.
+    return cls.from_(value, unit, dtype=dtype)
+
+
+@AbstractQuantity.from_.dispatch
+def from_(
+    cls: type[AbstractQuantity], *, value: Any, unit: Any, dtype: Any = None
+) -> AbstractQuantity:
+    """Construct a `AbstractQuantity` from value and unit kwargs.
+
+    Examples
+    --------
+    For this example we'll use the `Quantity` class. The same applies to
+    any subclass of `AbstractQuantity`.
+
+    >>> import unxt as u
+    >>> u.Quantity.from_(value=[1.0, 2, 3], unit="m")
+    Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+
+    """
+    # Dispatched on no argument. Dispatch to the full constructor.
+    return cls.from_(value, unit, dtype=dtype)
+
+
+@AbstractQuantity.from_.dispatch
+def from_(cls: type[AbstractQuantity], mapping: Mapping[str, Any]) -> AbstractQuantity:
+    """Construct a `Quantity` from a Mapping.
+
+    Examples
+    --------
+    For this example we'll use the `Quantity` class. The same applies to
+    any subclass of `AbstractQuantity`.
+
+    >>> import jax.numpy as jnp
+    >>> import unxt as u
+
+    >>> x = jnp.array([1.0, 2, 3])
+    >>> q = u.Quantity.from_({"value": x, "unit": "m"})
+    >>> q
+    Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+
+    >>> u.Quantity.from_({"value": q, "unit": "km"})
+    Quantity['length'](Array([0.001, 0.002, 0.003], dtype=float32), unit='km')
+
+    """
+    # Dispatch on both arguments.
+    # Construct using the standard `__init__` method.
+    return cls.from_(**mapping)
 
 
 @AbstractQuantity.from_.dispatch
