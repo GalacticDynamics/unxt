@@ -6,11 +6,15 @@ __all__ = ["Quantity"]
 from dataclasses import replace
 from typing import final
 
-from jaxtyping import ArrayLike
+import equinox as eqx
+import jax
+from jaxtyping import Array, ArrayLike, Shaped
 from plum import parametric
 
 from .base import AbstractQuantity
 from .base_parametric import AbstractParametricQuantity
+from unxt._src.units import unit as parse_unit
+from unxt._src.units.api import AbstractUnits
 
 
 @final
@@ -101,6 +105,12 @@ class Quantity(AbstractParametricQuantity):
     Quantity['m2 kg-1 s-2'](Array(1., dtype=float32, ...), unit='m2 / (kg s2)')
 
     """
+
+    value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
+    """The value of the `AbstractQuantity`."""
+
+    unit: AbstractUnits = eqx.field(static=True, converter=parse_unit)
+    """The unit associated with this value."""
 
 
 @AbstractQuantity.__mod__.dispatch  # type: ignore[misc]

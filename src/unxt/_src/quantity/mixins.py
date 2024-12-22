@@ -5,6 +5,7 @@ __all__: list[str] = []
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, cast
 
+import equinox as eqx
 import numpy as np
 from astropy.units import CompositeUnit
 from jax.typing import ArrayLike
@@ -23,8 +24,8 @@ if TYPE_CHECKING:
 class AstropyQuantityCompatMixin:
     """Mixin for compatibility with `astropy.units.Quantity`."""
 
-    value: ArrayLike
-    unit: AbstractUnits
+    value: eqx.AbstractVar[ArrayLike]
+    unit: eqx.AbstractVar[AbstractUnits]
     uconvert: Callable[[Any], "unxt.quantity.AbstractQuantity"]
     ustrip: Callable[[Any], ArrayLike]
 
