@@ -23,7 +23,7 @@ from dataclassish import fields, replace
 
 from .api import is_unit_convertible, uconvert, ustrip
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
-from unxt._src.units import unit as parse_unit, unit_of
+from unxt._src.units import unit_of
 from unxt._src.units.api import AbstractUnits
 
 if TYPE_CHECKING:
@@ -103,10 +103,10 @@ class AbstractQuantity(
 
     """
 
-    value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
+    value: eqx.AbstractVar[Shaped[Array, "*shape"]]
     """The value of the `AbstractQuantity`."""
 
-    unit: AbstractUnits = eqx.field(static=True, converter=parse_unit)
+    unit: eqx.AbstractVar[AbstractUnits]
     """The unit associated with this value."""
 
     # ---------------------------------------------------------------
