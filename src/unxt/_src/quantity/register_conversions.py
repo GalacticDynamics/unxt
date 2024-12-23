@@ -2,55 +2,13 @@
 
 __all__: list[str] = []
 
-from plum import conversion_method, dispatch
+from plum import conversion_method
 
 from .api import ustrip
 from .base import AbstractQuantity
-from .core import Quantity
-from .fast import UncheckedQuantity
-from unxt._src.dimensions import AbstractDimension
-from unxt._src.units.api import AbstractUnits
-
-# ===================================================================
-# Get dimensions
-
-
-@dispatch  # type: ignore[misc]
-def dimension_of(obj: AbstractQuantity, /) -> AbstractDimension:
-    """Return the dimension of a quantity.
-
-    Examples
-    --------
-    >>> from unxt import dimension_of, Quantity
-    >>> q = Quantity(1, "m")
-    >>> dimension_of(q)
-    PhysicalType('length')
-
-    """
-    return dimension_of(obj.unit)
-
-
-# ===================================================================
-# Get units
-
-
-@dispatch  # type: ignore[misc]
-def unit_of(obj: AbstractQuantity, /) -> AbstractUnits:
-    """Return the units of an object.
-
-    Examples
-    --------
-    >>> from unxt import unit_of, Quantity
-    >>> q = Quantity(1, "m")
-    >>> unit_of(q)
-    Unit("m")
-
-    """
-    return obj.unit
-
-
-#####################################################################
-# Conversion
+from .quantity import Quantity
+from .unchecked import UncheckedQuantity
+from unxt._src.units.api import unit_of
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=UncheckedQuantity)  # type: ignore[misc]

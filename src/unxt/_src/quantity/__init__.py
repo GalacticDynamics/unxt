@@ -13,5 +13,5 @@ __all__ = [
 from .api import is_unit_convertible, uconvert, ustrip
 from .base import AbstractQuantity
 from .base_parametric import AbstractParametricQuantity
-from .core import Quantity
-from .fast import UncheckedQuantity
+from .quantity import Quantity
+from .unchecked import UncheckedQuantity

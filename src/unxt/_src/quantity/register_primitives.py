@@ -28,7 +28,7 @@ from quaxed import lax as qlax
 from .api import is_unit_convertible, uconvert, ustrip
 from .base import AbstractQuantity
 from .base_parametric import AbstractParametricQuantity
-from .core import Quantity
+from .quantity import Quantity
 from unxt._src.units import unit, unit_of
 from unxt._src.utils import promote_dtypes_if_needed
 

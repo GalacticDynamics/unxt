@@ -15,12 +15,17 @@ The main features are:
 from ._src.quantity.api import is_unit_convertible, uconvert, ustrip
 from ._src.quantity.base import AbstractQuantity
 from ._src.quantity.base_parametric import AbstractParametricQuantity
-from ._src.quantity.core import Quantity
-from ._src.quantity.fast import UncheckedQuantity
+from ._src.quantity.quantity import Quantity
+from ._src.quantity.unchecked import UncheckedQuantity
 
 # isort: split
 # Register dispatches and conversions
-from ._src.quantity import compat, functional, register_dispatches, register_primitives
+from ._src.quantity import (
+    register_api,
+    register_conversions,
+    register_dispatches,
+    register_primitives,
+)
 
 __all__: list[str] = [
     # Core
@@ -39,4 +44,4 @@ __all__: list[str] = [
 
 
 # Clean up namespace
-del compat, functional, register_dispatches, register_primitives
+del register_conversions, register_api, register_dispatches, register_primitives
