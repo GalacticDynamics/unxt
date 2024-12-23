@@ -13,7 +13,7 @@ from plum.parametric import type_unparametrized as type_np
 
 from .api import ustrip
 from .base import AbstractQuantity
-from .core import Quantity
+from .quantity import Quantity
 
 # -----------------------------------------------
 

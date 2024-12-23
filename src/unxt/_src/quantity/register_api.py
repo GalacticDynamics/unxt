@@ -11,10 +11,48 @@ from plum import dispatch
 
 from .api import ustrip
 from .base import AbstractQuantity
-from unxt._src.dimensions import dimension_of
+from unxt._src.dimensions import AbstractDimension, dimension_of
 from unxt._src.units import unit
 from unxt._src.units.api import AbstractUnits
 from unxt._src.units.system import AbstractUnitSystem
+
+# ===================================================================
+# Get dimensions
+
+
+@dispatch  # type: ignore[misc]
+def dimension_of(obj: AbstractQuantity, /) -> AbstractDimension:
+    """Return the dimension of a quantity.
+
+    Examples
+    --------
+    >>> from unxt import dimension_of, Quantity
+    >>> q = Quantity(1, "m")
+    >>> dimension_of(q)
+    PhysicalType('length')
+
+    """
+    return dimension_of(obj.unit)
+
+
+# ===================================================================
+# Get units
+
+
+@dispatch  # type: ignore[misc]
+def unit_of(obj: AbstractQuantity, /) -> AbstractUnits:
+    """Return the units of an object.
+
+    Examples
+    --------
+    >>> from unxt import unit_of, Quantity
+    >>> q = Quantity(1, "m")
+    >>> unit_of(q)
+    Unit("m")
+
+    """
+    return obj.unit
+
 
 # ===================================================================
 # Convert units
