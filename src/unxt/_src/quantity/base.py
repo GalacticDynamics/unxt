@@ -1,12 +1,12 @@
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
 
-__all__ = ["AbstractQuantity"]
+__all__ = ["AbstractQuantity", "is_any_quantity"]
 
 from collections.abc import Callable, Mapping
 from functools import partial
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeGuard, TypeVar
 
 import equinox as eqx
 import jax
@@ -1150,3 +1150,18 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
             mode=mode,
         )
         return replace(self.array, value=value)
+
+
+def is_any_quantity(obj: Any, /) -> TypeGuard[AbstractQuantity]:
+    """Check if an object is an instance of `unxt.quantity.AbstractQuantity`.
+
+    Examples
+    --------
+    >>> import unxt as u
+
+    >>> q = u.Quantity(1, "m")
+    >>> is_any_quantity(q)
+    True
+
+    """
+    return isinstance(obj, AbstractQuantity)
