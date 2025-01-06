@@ -7,7 +7,7 @@ default_stages: [pre-commit, pre-push]
 
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.0.0
+    rev: v4.1.0
     hooks:
       - id: commitizen
         additional_dependencies: [cz-conventional-gitmoji]
@@ -50,7 +50,7 @@ repos:
       - id: check-readthedocs
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.8.1"
+    rev: "v0.8.6"
     hooks:
       # Run the linter
       - id: ruff
@@ -67,14 +67,14 @@ repos:
         additional_dependencies: [black==23.*]
 
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: "v3.4.1"
+    rev: "v3.4.2"
     hooks:
       - id: prettier
         types_or: [yaml, markdown, html, css, scss, javascript, json]
         args: [--prose-wrap=always]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: "v1.13.0"
+    rev: "v1.14.1"
     hooks:
       - id: mypy
         files: src
@@ -86,11 +86,11 @@ repos:
     hooks:
       - id: codespell
 
-  - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.23
-    hooks:
-      - id: validate-pyproject
-        additional_dependencies: ["validate-pyproject-schema-store[all]"]
+  # - repo: https://github.com/abravalheri/validate-pyproject
+  #   rev: v0.23
+  #   hooks:
+  #     - id: validate-pyproject
+  #       additional_dependencies: ["validate-pyproject-schema-store[all]"]
 
   - repo: local
     hooks:

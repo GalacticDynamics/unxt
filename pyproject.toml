@@ -43,6 +43,14 @@
   # NOTE: zeroth is only required for matplotlib
 
   [project.optional-dependencies]
+    # jax extras
+    cpu             = ["jax[cpu]"]
+    cuda            = ["jax[cuda]"]
+    cuda12          = ["jax[cuda12]"]
+    cuda12_local    = ["jax[cuda12_local]"]
+    rocm            = ["jax[rocm]"]
+    k8s             = ["jax[k8s]"]
+    # extra extras
     all             = ["unxt[backend-astropy,interop-gala,interop-mpl]"]
     backend-astropy = ["astropy>=6.0"]
     interop-gala    = ["gala>=1.8"]
@@ -261,6 +269,15 @@ UNXT_ENABLE_RUNTIME_TYPECHECKING = "beartype.beartype"
 
 
 [tool.uv]
+# Require that `unxt[<jax-extras>]` requirements are resolved in different forks
+# so that they cannot conflict with one another.
+conflicts = [
+    [
+        { extra = "cpu" },
+        { extra = "cuda" }, { extra = "cuda12" }, { extra = "cuda12_local" },
+        { extra = "rocm" }, { extra = "k8s" }
+    ]
+]
 constraint-dependencies = [
   "jax<0.4.36", # TODO: remove when https://github.com/patrick-kidger/quax/pull/37 is merged
 ]
