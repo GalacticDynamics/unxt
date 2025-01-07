@@ -38,7 +38,7 @@ def unit(obj: AbstractUnits, /) -> AbstractUnits:
     return obj
 
 
-@dispatch  # type: ignore[no-redef]
+@dispatch
 def unit(obj: str, /) -> AbstractUnits:
     """Construct units from a string.
 
@@ -96,7 +96,7 @@ def unit_of(obj: AbstractUnits, /) -> AbstractUnits:
 # Get dimensions
 
 
-@dispatch  # type: ignore[misc]
+@dispatch
 def dimension_of(obj: AbstractUnits, /) -> AbstractDimension:
     """Return the dimensions of the given units.
 

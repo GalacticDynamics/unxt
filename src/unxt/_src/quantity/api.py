@@ -7,7 +7,7 @@ from typing import Any
 from plum import dispatch
 
 
-@dispatch.abstract  # type: ignore[misc]
+@dispatch.abstract
 def uconvert(u: Any, x: Any, /) -> Any:
     """Convert the quantity to the specified units.
 
@@ -28,7 +28,7 @@ def uconvert(u: Any, x: Any, /) -> Any:
     raise NotImplementedError  # pragma: no cover
 
 
-@dispatch.abstract  # type: ignore[misc]
+@dispatch.abstract
 def ustrip(*args: Any) -> Any:
     """Strip the units from the quantity, first converting if necessary.
 
@@ -49,7 +49,7 @@ def ustrip(*args: Any) -> Any:
     raise NotImplementedError  # pragma: no cover
 
 
-@dispatch.abstract  # type: ignore[misc]
+@dispatch.abstract
 def is_unit_convertible(to_unit: Any, from_: Any, /) -> bool:
     """Check if the units are convertible."""
     return False

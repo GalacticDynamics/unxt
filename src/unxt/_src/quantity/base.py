@@ -113,7 +113,7 @@ class AbstractQuantity(
     # Constructors
 
     @classmethod
-    @dispatch.abstract  # type: ignore[misc]
+    @dispatch.abstract
     def from_(
         cls: "type[AbstractQuantity]",
         *args: Any,
@@ -330,7 +330,7 @@ class AbstractQuantity(
     __floordiv__ = qoperator.floordiv
     __rfloordiv__ = _flip_binop(qoperator.floordiv)
 
-    @dispatch  # type: ignore[misc]
+    @dispatch
     def __mod__(self: "AbstractQuantity", other: Any) -> "AbstractQuantity":
         """Take the modulus.
 
@@ -920,7 +920,7 @@ def from_(
     return cls(ustrip(unit, value), unit)
 
 
-@AbstractQuantity.from_.dispatch  # type: ignore[no-redef]
+@AbstractQuantity.from_.dispatch
 def from_(
     cls: type[AbstractQuantity],
     value: AbstractQuantity,
@@ -947,7 +947,7 @@ def from_(
     return cls(ustrip(unit, value), unit)
 
 
-@AbstractQuantity.from_.dispatch  # type: ignore[no-redef]
+@AbstractQuantity.from_.dispatch
 def from_(
     cls: type[AbstractQuantity],
     value: AbstractQuantity,
@@ -965,7 +965,7 @@ def from_(
 # -----------------------------------------------
 # Promotion rules
 
-add_promotion_rule(AbstractQuantity, AbstractQuantity, AbstractQuantity)
+add_promotion_rule(AbstractQuantity, AbstractQuantity, AbstractQuantity)  # type: ignore[no-untyped-call]
 
 # ===============================================================
 # Support for ``at``.

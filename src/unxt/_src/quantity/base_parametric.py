@@ -3,7 +3,7 @@
 
 __all__ = ["AbstractParametricQuantity"]
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from functools import partial
 from typing import Any
 
@@ -57,7 +57,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         """Check whether the type parameters are valid."""
         return (dims,)
 
-    @classmethod  # type: ignore[no-redef]
+    @classmethod
     @dispatch
     def __init_type_parameter__(cls, dims: str, /) -> tuple[AbstractDimension]:
         """Check whether the type parameters are valid."""
@@ -68,7 +68,7 @@ class AbstractParametricQuantity(AbstractQuantity):
             dims_ = dimension_of(parse_unit(dims))
         return (dims_,)
 
-    @classmethod  # type: ignore[no-redef]
+    @classmethod
     @dispatch
     def __init_type_parameter__(cls, unit: UnitTypes, /) -> tuple[AbstractDimension]:
         """Infer the type parameter from the arguments."""
@@ -85,7 +85,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         return (dimension_of(parse_unit(unit)),)
 
     @classmethod
-    @dispatch  # type: ignore[misc]
+    @dispatch
     def __le_type_parameter__(
         cls, left: tuple[AbstractDimension], right: tuple[AbstractDimension]
     ) -> bool:
@@ -124,7 +124,7 @@ class AbstractParametricQuantity(AbstractQuantity):
     # https://docs.python.org/3.12/library/pickle.html
     def __reduce__(
         self,
-    ) -> tuple[partial["type[AbstractParametricQuantity]"], tuple[Any, ...]]:
+    ) -> tuple[Callable[..., "AbstractParametricQuantity"], tuple[Any, ...]]:
         r"""Return the reduced value: a constructor and arguments.
 
         The ``__reduce__`` protocol has limited support for keyword-only

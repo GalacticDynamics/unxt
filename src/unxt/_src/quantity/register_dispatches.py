@@ -18,7 +18,7 @@ from .quantity import Quantity
 # -----------------------------------------------
 
 
-@dispatch  # type: ignore[misc]
+@dispatch
 def arange(
     start: AbstractQuantity,
     stop: AbstractQuantity | None = None,
@@ -57,7 +57,7 @@ def arange(
 # -----------------------------------------------
 
 
-@dispatch  # type: ignore[misc]
+@dispatch
 def empty_like(
     x: AbstractQuantity, /, *, device: Any = None, **kwargs: Any
 ) -> AbstractQuantity:
@@ -79,7 +79,7 @@ def empty_like(
 # -----------------------------------------------
 
 
-@dispatch  # type: ignore[misc]
+@dispatch
 def full(
     shape: Any, fill_value: AbstractQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
@@ -120,7 +120,7 @@ def full_like(
     return full_like(x, fill_value, **kwargs)
 
 
-@dispatch  # type: ignore[no-redef]
+@dispatch
 def full_like(
     x: AbstractQuantity, fill_value: ArrayLike, /, **kwargs: Any
 ) -> AbstractQuantity:
@@ -138,7 +138,7 @@ def full_like(
     return type_np(x)(jax_xp.full_like(x.value, fill_value, **kwargs), unit=x.unit)
 
 
-@dispatch  # type: ignore[no-redef]
+@dispatch
 def full_like(
     x: AbstractQuantity, fill_value: AbstractQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
@@ -206,7 +206,7 @@ def linspace(
 # -----------------------------------------------
 
 
-@dispatch  # type: ignore[misc]
+@dispatch
 def ones_like(
     x: AbstractQuantity, /, *, device: Any = None, **kwargs: Any
 ) -> AbstractQuantity:
@@ -228,7 +228,7 @@ def ones_like(
 # -----------------------------------------------
 
 
-@dispatch  # type: ignore[misc]
+@dispatch
 def zeros_like(
     x: AbstractQuantity, /, *, device: Any = None, **kwargs: Any
 ) -> AbstractQuantity:

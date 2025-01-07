@@ -46,7 +46,7 @@ def from_(
     return cls(value, u)
 
 
-@AbstractQuantity.from_.dispatch  # type: ignore[no-redef]
+@AbstractQuantity.from_.dispatch
 def from_(
     cls: type[AbstractQuantity], value: AstropyQuantity, u: Any, /, **kwargs: Any
 ) -> AbstractQuantity:
@@ -72,7 +72,7 @@ def from_(
 # Conversion Methods
 
 
-@conversion_method(type_from=AbstractQuantity, type_to=AstropyQuantity)  # type: ignore[misc]
+@conversion_method(type_from=AbstractQuantity, type_to=AstropyQuantity)  # type: ignore[arg-type]
 def convert_unxt_quantity_to_astropy_quantity(
     q: AbstractQuantity, /
 ) -> AstropyQuantity:
@@ -92,7 +92,7 @@ def convert_unxt_quantity_to_astropy_quantity(
     return AstropyQuantity(ustrip(u, q), u)
 
 
-@conversion_method(type_from=AbstractQuantity, type_to=AstropyDistance)  # type: ignore[misc]
+@conversion_method(type_from=AbstractQuantity, type_to=AstropyDistance)  # type: ignore[arg-type]
 def convert_unxt_quantity_to_astropy_distance(
     q: AbstractQuantity, /
 ) -> AstropyDistance:
@@ -112,7 +112,7 @@ def convert_unxt_quantity_to_astropy_distance(
     return AstropyDistance(ustrip(u, q), u)
 
 
-@conversion_method(type_from=AbstractQuantity, type_to=AstropyAngle)  # type: ignore[misc]
+@conversion_method(type_from=AbstractQuantity, type_to=AstropyAngle)  # type: ignore[arg-type]
 def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAngle:
     """Convert a `unxt.quantity.AbstractQuantity` to a `astropy.coordinates.Angle`.
 
@@ -134,7 +134,7 @@ def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAng
 # Quantity
 
 
-@conversion_method(type_from=AstropyQuantity, type_to=Quantity)  # type: ignore[misc]
+@conversion_method(type_from=AstropyQuantity, type_to=Quantity)  # type: ignore[arg-type]
 def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity:
     """Convert a `astropy.units.Quantity` to a `unxt.Quantity`.
 
@@ -156,7 +156,7 @@ def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity
 # UncheckedQuantity
 
 
-@conversion_method(type_from=AstropyQuantity, type_to=UncheckedQuantity)  # type: ignore[misc]
+@conversion_method(type_from=AstropyQuantity, type_to=UncheckedQuantity)  # type: ignore[arg-type]
 def convert_astropy_quantity_to_unxt_uncheckedquantity(
     q: AstropyQuantity, /
 ) -> UncheckedQuantity:
@@ -184,7 +184,7 @@ AstropyUnit: TypeAlias = (
 )
 
 
-@dispatch  # type: ignore[misc]
+@dispatch
 def uconvert(u: AstropyUnit, x: AbstractQuantity, /) -> AbstractQuantity:
     """Convert the quantity to the specified units.
 
@@ -232,7 +232,7 @@ def uconvert(u: AstropyUnit, x: AbstractQuantity, /) -> AbstractQuantity:
     return type_up(x)(**fs)
 
 
-@dispatch  # type: ignore[misc]
+@dispatch
 def ustrip(u: Any, x: AstropyQuantity) -> Any:
     """Strip the units from the quantity.
 

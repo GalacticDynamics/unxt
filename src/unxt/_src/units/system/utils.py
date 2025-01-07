@@ -20,7 +20,7 @@ def get_dimension_name(pt: Any, /) -> str:
     raise NotImplementedError  # pragma: no cover
 
 
-@dispatch  # type: ignore[no-redef]
+@dispatch
 def get_dimension_name(pt: str, /) -> str:
     """Return the dimension name.
 
@@ -51,7 +51,7 @@ def get_dimension_name(pt: str, /) -> str:
     return pt.replace(" ", "_")
 
 
-@dispatch  # type: ignore[no-redef]
+@dispatch
 def get_dimension_name(pt: AbstractDimension, /) -> str:
     """Return the dimension name from a dimension.
 
@@ -77,7 +77,7 @@ def get_dimension_name(pt: AbstractDimension, /) -> str:
     return out
 
 
-@dispatch  # type: ignore[no-redef]
+@dispatch
 def get_dimension_name(pt: Unit, /) -> str:
     """Return the dimension name from a unit.
 
