@@ -3,13 +3,13 @@
 
 __all__ = ["AbstractParametricQuantity"]
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from functools import partial
 from typing import Any
 
 import equinox as eqx
 from astropy.units import PhysicalType, Unit
-from jaxtyping import Array, ArrayLike, Shaped
+from jaxtyping import Array, Shaped
 from plum import dispatch, parametric, type_nonparametric, type_unparametrized
 
 from dataclassish import field_items, fields
@@ -79,7 +79,7 @@ class AbstractParametricQuantity(AbstractQuantity):
 
     @classmethod
     def __infer_type_parameter__(
-        cls, value: ArrayLike | Sequence[Any], unit: Any, **kwargs: Any
+        cls, value: Any, unit: Any, **kwargs: Any
     ) -> tuple[AbstractDimension]:
         """Infer the type parameter from the arguments."""
         return (dimension_of(parse_unit(unit)),)

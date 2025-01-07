@@ -7,13 +7,13 @@ from dataclasses import replace
 from typing import final
 
 import equinox as eqx
-import jax
 from jaxtyping import Array, ArrayLike, Shaped
 from plum import parametric
 
 from .base import AbstractQuantity
 from .base_parametric import AbstractParametricQuantity
-from unxt._src.units import AstropyUnits
+from .value import value_converter
+from unxt._src.units import AstropyUnits, unit as parse_unit
 from unxt.units import unit as parse_unit
 
 
@@ -106,7 +106,7 @@ class Quantity(AbstractParametricQuantity):
 
     """
 
-    value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
+    value: Shaped[Array, "*shape"] = eqx.field(converter=value_converter)
     """The value of the `AbstractQuantity`."""
 
     unit: AstropyUnits = eqx.field(static=True, converter=parse_unit)
