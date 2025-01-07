@@ -1,10 +1,18 @@
 version = 1
 requires-python = ">=3.11, <3.14"
 resolution-markers = [
-    "python_full_version < '3.12'",
-    "python_full_version == '3.12.*'",
     "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
+    "python_full_version < '3.12'",
 ]
+conflicts = [[
+    { package = "unxt", extra = "cpu" },
+    { package = "unxt", extra = "cuda" },
+    { package = "unxt", extra = "cuda12" },
+    { package = "unxt", extra = "cuda12-local" },
+    { package = "unxt", extra = "rocm" },
+    { package = "unxt", extra = "k8s" },
+]]
 
 [manifest]
 constraints = [{ name = "jax", specifier = "<0.4.36" }]
@@ -145,6 +153,15 @@ wheels = [
 ]
 
 [[package]]
+name = "cachetools"
+version = "5.5.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c3/38/a0f315319737ecf45b4319a8cd1f3a908e29d9277b46942263292115eee7/cachetools-5.5.0.tar.gz", hash = "sha256:2cc24fb4cbe39633fb7badd9db9ca6295d766d9c2995f245725a46715d050f2a", size = 27661 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a4/07/14f8ad37f2d12a5ce41206c21820d8cb6561b728e51fad4530dff0552a67/cachetools-5.5.0-py3-none-any.whl", hash = "sha256:02134e8439cdc2ffb62023ce1debca2944c3f289d66bb17ead3ab3dede74b292", size = 9524 },
+]
+
+[[package]]
 name = "certifi"
 version = "2024.8.30"
 source = { registry = "https://pypi.org/simple" }
@@ -242,7 +259,7 @@ name = "click"
 version = "8.1.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "platform_system == 'Windows'" },
+    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/96/d3/f04c7bfcf5c1862a2a5b845c6b2b360488cf47af55dfa79c98f6a6bf98b5/click-8.1.7.tar.gz", hash = "sha256:ca9853ad459e787e2192211578cc907e7594e294c7ccc834310722b41b9ca6de", size = 336121 }
 wheels = [
@@ -263,7 +280,7 @@ name = "colorlog"
 version = "6.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d3/7a/359f4d5df2353f26172b3cc39ea32daa39af8de522205f512f458923e677/colorlog-6.9.0.tar.gz", hash = "sha256:bfba54a1b93b94f54e1f4fe48395725a3d92fd2a4af702f6bd70946bdc0c6ac2", size = 16624 }
 wheels = [
@@ -402,7 +419,7 @@ wheels = [
 
 [package.optional-dependencies]
 toml = [
-    { name = "tomli", marker = "python_full_version <= '3.11'" },
+    { name = "tomli", marker = "python_full_version <= '3.11' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
 ]
 
 [[package]]
@@ -527,6 +544,15 @@ wheels = [
 ]
 
 [[package]]
+name = "durationpy"
+version = "0.9"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/31/e9/f49c4e7fccb77fa5c43c2480e09a857a78b41e7331a75e128ed5df45c56b/durationpy-0.9.tar.gz", hash = "sha256:fd3feb0a69a0057d582ef643c355c40d2fa1c942191f914d12203b1a01ac722a", size = 3186 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4c/a3/ac312faeceffd2d8f86bc6dcb5c401188ba5a01bc88e69bed97578a0dfcd/durationpy-0.9-py3-none-any.whl", hash = "sha256:e65359a7af5cedad07fb77a2dd3f390f8eb0b74cb845589fa6c057086834dd38", size = 3461 },
+]
+
+[[package]]
 name = "equinox"
 version = "0.11.8"
 source = { registry = "https://pypi.org/simple" }
@@ -617,6 +643,20 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/74/11/9688ed69d044062ac93446ddc5a66cf65f41b59638ed1eae40b2bea42e11/gala-1.9.1-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:a3e9cd73ff8e666d155cf4b2eeeb388ca0c4bf32d1e8997a28d0dd16ee952b37", size = 8490079 },
     { url = "https://files.pythonhosted.org/packages/3e/c9/fbab3ed923eb96c2bf1946a2524b2e8bb3417cb394d976af1b9f9790ac6e/gala-1.9.1-cp312-cp312-macosx_14_0_x86_64.whl", hash = "sha256:431cfd657505e9af97bcba297e088c8104eb10c84cfb3251c9c479f879184030", size = 4930193 },
     { url = "https://files.pythonhosted.org/packages/b6/d4/9fbf757e4fbdc4154417c13cb2a2653bd6199cdcdc7201a15640adfd5c71/gala-1.9.1-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:05dbfe94dedef0c069a9bbc867072c337a6e7d4e455cd3abf912d6e6adfe27fa", size = 14870909 },
+]
+
+[[package]]
+name = "google-auth"
+version = "2.37.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cachetools" },
+    { name = "pyasn1-modules" },
+    { name = "rsa" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/46/af/b25763b9d35dfc2c6f9c3ec34d8d3f1ba760af3a7b7e8d5c5f0579522c45/google_auth-2.37.0.tar.gz", hash = "sha256:0054623abf1f9c83492c63d3f47e77f0a544caa3d40b2d98e099a611c2dd5d00", size = 268878 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8d/8d/4d5d5f9f500499f7bd4c93903b43e8d6976f3fc6f064637ded1a85d09b07/google_auth-2.37.0-py2.py3-none-any.whl", hash = "sha256:42664f18290a6be591be5329a96fe30184be1a1badb7292a7f686a9659de9ca0", size = 209829 },
 ]
 
 [[package]]
@@ -723,7 +763,7 @@ name = "ipykernel"
 version = "6.29.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "appnope", marker = "platform_system == 'Darwin'" },
+    { name = "appnope", marker = "sys_platform == 'darwin' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
     { name = "comm" },
     { name = "debugpy" },
     { name = "ipython" },
@@ -747,11 +787,11 @@ name = "ipython"
 version = "8.18.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
     { name = "decorator" },
     { name = "jedi" },
     { name = "matplotlib-inline" },
-    { name = "pexpect", marker = "sys_platform != 'win32'" },
+    { name = "pexpect", marker = "sys_platform != 'win32' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
     { name = "prompt-toolkit" },
     { name = "pygments" },
     { name = "stack-data" },
@@ -788,6 +828,62 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/19/6a/cacfcdf77841a4562e555ef35e0dbc5f8ca79c9f1010aaa4cf3973e79c69/jax-0.4.34.tar.gz", hash = "sha256:44196854f40c5f9cea3142824b9f1051f85afc3fcf7593ec5479fc8db01c58db", size = 1848472 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/06/f3/c499d358dd7f267a63d7d38ef54aadad82e28d2c28bafff15360c3091946/jax-0.4.34-py3-none-any.whl", hash = "sha256:b957ca1fc91f7343f91a186af9f19c7f342c946f95a8c11c7f1e5cdfe2e58d9e", size = 2144294 },
+]
+
+[package.optional-dependencies]
+cuda = [
+    { name = "jax-cuda12-plugin", extra = ["with-cuda"] },
+    { name = "jaxlib" },
+]
+cuda12 = [
+    { name = "jax-cuda12-plugin", extra = ["with-cuda"] },
+    { name = "jaxlib" },
+]
+cuda12-local = [
+    { name = "jax-cuda12-plugin" },
+    { name = "jaxlib" },
+]
+k8s = [
+    { name = "kubernetes" },
+]
+
+[[package]]
+name = "jax-cuda12-pjrt"
+version = "0.4.34"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a2/85/87273c8afc5ce34d338dec6f6e78d058b6354b5df700f8a81e66626bd3cc/jax_cuda12_pjrt-0.4.34-py3-none-manylinux2014_aarch64.whl", hash = "sha256:6247459827550e7d11480f5707d7d2843cbf57bcda5d833565493456075cd143", size = 83805052 },
+    { url = "https://files.pythonhosted.org/packages/2c/96/6c7162d57d13bf14cd2e70780c583bf5056e7cbc21a07ade6397ac80b3d4/jax_cuda12_pjrt-0.4.34-py3-none-manylinux2014_x86_64.whl", hash = "sha256:0c7cc98f962cc7fc8e0a5ea6331b42a0cee516f202f1c3019f6aa5cd9530cca0", size = 100255215 },
+]
+
+[[package]]
+name = "jax-cuda12-plugin"
+version = "0.4.34"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "jax-cuda12-pjrt" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/40/a3/1b769021cf16449ed29c578fca7e6df66e360a6201500c72f1850f191114/jax_cuda12_plugin-0.4.34-cp311-cp311-manylinux2014_aarch64.whl", hash = "sha256:fb72bda44ae9f8a1e5ee9c5f82e2d273abe019874b0110b5c2d8395f1fe966b4", size = 14882398 },
+    { url = "https://files.pythonhosted.org/packages/cf/97/70fb994f05cfa22ab3cef4d0fc2d28d00641c80d3cd0ed87e0ba8be528ea/jax_cuda12_plugin-0.4.34-cp311-cp311-manylinux2014_x86_64.whl", hash = "sha256:e23721d1654b311b47cd6b35768520284bd036f8c7e6b11600143258b4a0409a", size = 14889197 },
+    { url = "https://files.pythonhosted.org/packages/28/97/eaa34384998e4047be9205764397db03e6c18475406c9ca8719d05f75f8f/jax_cuda12_plugin-0.4.34-cp312-cp312-manylinux2014_aarch64.whl", hash = "sha256:dadb507949b70ba148567219bf0e7752eb63baec551f7ec860f8fcbb4ee48c48", size = 14878731 },
+    { url = "https://files.pythonhosted.org/packages/5f/c6/8e03437668475b801cb844205b4f79d2de495e5a5192983056c0d2459a00/jax_cuda12_plugin-0.4.34-cp312-cp312-manylinux2014_x86_64.whl", hash = "sha256:db988b7ba5063483a936ddbf162f04d1b4412e0d64340f11788c7bbc877e8a43", size = 14885420 },
+    { url = "https://files.pythonhosted.org/packages/14/47/5cbeb73e01dd0072b6fa0537ae1e38c96e451d56fba53c2f6cac612c422d/jax_cuda12_plugin-0.4.34-cp313-cp313-manylinux2014_aarch64.whl", hash = "sha256:15fa8ff678fad34df424e01f1a9151abc966700670d3b22f52b87a2740028602", size = 14879097 },
+    { url = "https://files.pythonhosted.org/packages/22/8d/5c414e8da586c8664ae4e8adc35cc9c79499166ee11e1ba5b8ccef41f6a1/jax_cuda12_plugin-0.4.34-cp313-cp313-manylinux2014_x86_64.whl", hash = "sha256:d035ea72bd9b8a65a6ea621bca1affdd33127fa3a52e7bded7692670d360adab", size = 14885422 },
+]
+
+[package.optional-dependencies]
+with-cuda = [
+    { name = "nvidia-cublas-cu12" },
+    { name = "nvidia-cuda-cupti-cu12" },
+    { name = "nvidia-cuda-nvcc-cu12" },
+    { name = "nvidia-cuda-runtime-cu12" },
+    { name = "nvidia-cudnn-cu12" },
+    { name = "nvidia-cufft-cu12" },
+    { name = "nvidia-cusolver-cu12" },
+    { name = "nvidia-cusparse-cu12" },
+    { name = "nvidia-nccl-cu12" },
+    { name = "nvidia-nvjitlink-cu12" },
 ]
 
 [[package]]
@@ -921,7 +1017,7 @@ version = "5.7.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "platformdirs" },
-    { name = "pywin32", marker = "platform_python_implementation != 'PyPy' and sys_platform == 'win32'" },
+    { name = "pywin32", marker = "(platform_python_implementation != 'PyPy' and sys_platform == 'win32') or (platform_python_implementation == 'PyPy' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (platform_python_implementation == 'PyPy' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (platform_python_implementation == 'PyPy' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (platform_python_implementation == 'PyPy' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (platform_python_implementation == 'PyPy' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (platform_python_implementation == 'PyPy' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (platform_python_implementation == 'PyPy' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (platform_python_implementation == 'PyPy' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (platform_python_implementation == 'PyPy' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (platform_python_implementation == 'PyPy' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (platform_python_implementation == 'PyPy' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (platform_python_implementation == 'PyPy' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (platform_python_implementation == 'PyPy' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (platform_python_implementation == 'PyPy' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (platform_python_implementation == 'PyPy' and extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (sys_platform != 'win32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (sys_platform != 'win32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (sys_platform != 'win32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (sys_platform != 'win32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (sys_platform != 'win32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (sys_platform != 'win32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (sys_platform != 'win32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (sys_platform != 'win32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (sys_platform != 'win32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (sys_platform != 'win32' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (sys_platform != 'win32' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (sys_platform != 'win32' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (sys_platform != 'win32' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (sys_platform != 'win32' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (sys_platform != 'win32' and extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
     { name = "traitlets" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/00/11/b56381fa6c3f4cc5d2cf54a7dbf98ad9aa0b339ef7a601d6053538b079a7/jupyter_core-5.7.2.tar.gz", hash = "sha256:aa5f8d32bbf6b431ac830496da7392035d6f61b4f54872f15c4bd2a9c3f536d9", size = 87629 }
@@ -983,6 +1079,28 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/a8/b2/15f7f556df0a6e5b3772a1e076a9d9f6c538ce5f05bd590eca8106508e06/kiwisolver-1.4.7-cp313-cp313-win32.whl", hash = "sha256:f4c9aee212bc89d4e13f58be11a56cc8036cabad119259d12ace14b34476fd07", size = 46364 },
     { url = "https://files.pythonhosted.org/packages/0b/db/32e897e43a330eee8e4770bfd2737a9584b23e33587a0812b8e20aac38f7/kiwisolver-1.4.7-cp313-cp313-win_amd64.whl", hash = "sha256:8a3ec5aa8e38fc4c8af308917ce12c536f1c88452ce554027e55b22cbbfbff76", size = 55887 },
     { url = "https://files.pythonhosted.org/packages/c8/a4/df2bdca5270ca85fd25253049eb6708d4127be2ed0e5c2650217450b59e9/kiwisolver-1.4.7-cp313-cp313-win_arm64.whl", hash = "sha256:76c8094ac20ec259471ac53e774623eb62e6e1f56cd8690c67ce6ce4fcb05650", size = 48530 },
+]
+
+[[package]]
+name = "kubernetes"
+version = "31.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "certifi" },
+    { name = "durationpy" },
+    { name = "google-auth" },
+    { name = "oauthlib" },
+    { name = "python-dateutil" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "requests-oauthlib" },
+    { name = "six" },
+    { name = "urllib3" },
+    { name = "websocket-client" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7e/bd/ffcd3104155b467347cd9b3a64eb24182e459579845196b3a200569c8912/kubernetes-31.0.0.tar.gz", hash = "sha256:28945de906c8c259c1ebe62703b56a03b714049372196f854105afe4e6d014c0", size = 916096 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fb/a8/17f5e28cecdbd6d48127c22abdb794740803491f422a11905c4569d8e139/kubernetes-31.0.0-py2.py3-none-any.whl", hash = "sha256:bf141e2d380c8520eada8b351f4e319ffee9636328c137aa432bc486ca1200e1", size = 1857013 },
 ]
 
 [[package]]
@@ -1262,6 +1380,138 @@ wheels = [
 ]
 
 [[package]]
+name = "nvidia-cublas-cu12"
+version = "12.6.4.1"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/af/eb/ff4b8c503fa1f1796679dce648854d58751982426e4e4b37d6fce49d259c/nvidia_cublas_cu12-12.6.4.1-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:08ed2686e9875d01b58e3cb379c6896df8e76c75e0d4a7f7dace3d7b6d9ef8eb", size = 393138322 },
+    { url = "https://files.pythonhosted.org/packages/97/0d/f1f0cadbf69d5b9ef2e4f744c9466cb0a850741d08350736dfdb4aa89569/nvidia_cublas_cu12-12.6.4.1-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:235f728d6e2a409eddf1df58d5b0921cf80cfa9e72b9f2775ccb7b4a87984668", size = 390794615 },
+    { url = "https://files.pythonhosted.org/packages/84/f7/985e9bdbe3e0ac9298fcc8cfa51a392862a46a0ffaccbbd56939b62a9c83/nvidia_cublas_cu12-12.6.4.1-py3-none-win_amd64.whl", hash = "sha256:9e4fa264f4d8a4eb0cdbd34beadc029f453b3bafae02401e999cf3d5a5af75f8", size = 434535301 },
+]
+
+[[package]]
+name = "nvidia-cuda-cupti-cu12"
+version = "12.6.80"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e6/8b/2f6230cb715646c3a9425636e513227ce5c93c4d65823a734f4bb86d43c3/nvidia_cuda_cupti_cu12-12.6.80-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:166ee35a3ff1587f2490364f90eeeb8da06cd867bd5b701bf7f9a02b78bc63fc", size = 8236764 },
+    { url = "https://files.pythonhosted.org/packages/25/0f/acb326ac8fd26e13c799e0b4f3b2751543e1834f04d62e729485872198d4/nvidia_cuda_cupti_cu12-12.6.80-py3-none-manylinux2014_aarch64.whl", hash = "sha256:358b4a1d35370353d52e12f0a7d1769fc01ff74a191689d3870b2123156184c4", size = 8236756 },
+    { url = "https://files.pythonhosted.org/packages/49/60/7b6497946d74bcf1de852a21824d63baad12cd417db4195fc1bfe59db953/nvidia_cuda_cupti_cu12-12.6.80-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:6768bad6cab4f19e8292125e5f1ac8aa7d1718704012a0e3272a6f61c4bce132", size = 8917980 },
+    { url = "https://files.pythonhosted.org/packages/a5/24/120ee57b218d9952c379d1e026c4479c9ece9997a4fb46303611ee48f038/nvidia_cuda_cupti_cu12-12.6.80-py3-none-manylinux2014_x86_64.whl", hash = "sha256:a3eff6cdfcc6a4c35db968a06fcadb061cbc7d6dde548609a941ff8701b98b73", size = 8917972 },
+    { url = "https://files.pythonhosted.org/packages/1c/81/7796f096afaf726796b1b648f3bc80cafc61fe7f77f44a483c89e6c5ef34/nvidia_cuda_cupti_cu12-12.6.80-py3-none-win_amd64.whl", hash = "sha256:bbe6ae76e83ce5251b56e8c8e61a964f757175682bbad058b170b136266ab00a", size = 5724175 },
+]
+
+[[package]]
+name = "nvidia-cuda-nvcc-cu12"
+version = "12.6.85"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/25/1f/faf9b791027ebd6354be68700da3c3d8a3b3db3bdcf2f8070f2e6871a7f1/nvidia_cuda_nvcc_cu12-12.6.85-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:d75d9d74599f4d7c0865df19ed21b739e6cb77a6497a3f73d6f61e8038a765e4", size = 21172353 },
+    { url = "https://files.pythonhosted.org/packages/6e/06/caa50c5b6731fd39f061efe5cbd9cb7a84fa6bdcb8c58aa83b503a64dbe0/nvidia_cuda_nvcc_cu12-12.6.85-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:5d2edd5531b13e3daac8ffee9fc2b70a147e6088b2af2565924773d63d36d294", size = 19254682 },
+    { url = "https://files.pythonhosted.org/packages/59/bc/5f6745117f21a2e3b19d4acbb9acca57f9b599aad6ee229c6712cb0c4d84/nvidia_cuda_nvcc_cu12-12.6.85-py3-none-win_amd64.whl", hash = "sha256:aa04742337973dcb5bcccabb590edc8834c60ebfaf971847888d24ffef6c46b5", size = 16812838 },
+]
+
+[[package]]
+name = "nvidia-cuda-runtime-cu12"
+version = "12.6.77"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8f/ea/590b2ac00d772a8abd1c387a92b46486d2679ca6622fd25c18ff76265663/nvidia_cuda_runtime_cu12-12.6.77-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:6116fad3e049e04791c0256a9778c16237837c08b27ed8c8401e2e45de8d60cd", size = 908052 },
+    { url = "https://files.pythonhosted.org/packages/b7/3d/159023799677126e20c8fd580cca09eeb28d5c5a624adc7f793b9aa8bbfa/nvidia_cuda_runtime_cu12-12.6.77-py3-none-manylinux2014_aarch64.whl", hash = "sha256:d461264ecb429c84c8879a7153499ddc7b19b5f8d84c204307491989a365588e", size = 908040 },
+    { url = "https://files.pythonhosted.org/packages/e1/23/e717c5ac26d26cf39a27fbc076240fad2e3b817e5889d671b67f4f9f49c5/nvidia_cuda_runtime_cu12-12.6.77-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:ba3b56a4f896141e25e19ab287cd71e52a6a0f4b29d0d31609f60e3b4d5219b7", size = 897690 },
+    { url = "https://files.pythonhosted.org/packages/f0/62/65c05e161eeddbafeca24dc461f47de550d9fa8a7e04eb213e32b55cfd99/nvidia_cuda_runtime_cu12-12.6.77-py3-none-manylinux2014_x86_64.whl", hash = "sha256:a84d15d5e1da416dd4774cb42edf5e954a3e60cc945698dc1d5be02321c44dc8", size = 897678 },
+    { url = "https://files.pythonhosted.org/packages/fa/76/4c80fa138333cc975743fd0687a745fccb30d167f906f13c1c7f9a85e5ea/nvidia_cuda_runtime_cu12-12.6.77-py3-none-win_amd64.whl", hash = "sha256:86c58044c824bf3c173c49a2dbc7a6c8b53cb4e4dca50068be0bf64e9dab3f7f", size = 891773 },
+]
+
+[[package]]
+name = "nvidia-cudnn-cu12"
+version = "9.6.0.74"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "nvidia-cublas-cu12" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ed/c4/a0347667e497af18829f5c1155b81ecf9c67795fb993e0b33fcd743bd459/nvidia_cudnn_cu12-9.6.0.74-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:7ce9c6a738b151f9e4d0a8716bdd73181a6bf28cc841d6525915c6980837667e", size = 507650831 },
+    { url = "https://files.pythonhosted.org/packages/67/4c/0f18ddce75f2c17cf028d16e067c07f11c421c981b8c2a45c99bc6169af6/nvidia_cudnn_cu12-9.6.0.74-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:cb700ea574ba8ffdbf9381fed2cdfa0b1847852c3811fb5f0d998d8d47a1cf1a", size = 508134668 },
+    { url = "https://files.pythonhosted.org/packages/07/1d/3c7055e1d189f55ed25183f50e1d82f477024289f925df22ac89c0f4d387/nvidia_cudnn_cu12-9.6.0.74-py3-none-win_amd64.whl", hash = "sha256:6a6466301b5ab1f0d8e62b14cdd02a714158f32f70ee99892218bec661e76595", size = 502799547 },
+]
+
+[[package]]
+name = "nvidia-cufft-cu12"
+version = "11.3.0.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "nvidia-nvjitlink-cu12" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1f/37/c50d2b2f2c07e146776389e3080f4faf70bcc4fa6e19d65bb54ca174ebc3/nvidia_cufft_cu12-11.3.0.4-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:d16079550df460376455cba121db6564089176d9bac9e4f360493ca4741b22a6", size = 200164144 },
+    { url = "https://files.pythonhosted.org/packages/ce/f5/188566814b7339e893f8d210d3a5332352b1409815908dad6a363dcceac1/nvidia_cufft_cu12-11.3.0.4-py3-none-manylinux2014_aarch64.whl", hash = "sha256:8510990de9f96c803a051822618d42bf6cb8f069ff3f48d93a8486efdacb48fb", size = 200164135 },
+    { url = "https://files.pythonhosted.org/packages/8f/16/73727675941ab8e6ffd86ca3a4b7b47065edcca7a997920b831f8147c99d/nvidia_cufft_cu12-11.3.0.4-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:ccba62eb9cef5559abd5e0d54ceed2d9934030f51163df018532142a8ec533e5", size = 200221632 },
+    { url = "https://files.pythonhosted.org/packages/60/de/99ec247a07ea40c969d904fc14f3a356b3e2a704121675b75c366b694ee1/nvidia_cufft_cu12-11.3.0.4-py3-none-manylinux2014_x86_64.whl", hash = "sha256:768160ac89f6f7b459bee747e8d175dbf53619cfe74b2a5636264163138013ca", size = 200221622 },
+    { url = "https://files.pythonhosted.org/packages/b4/38/36fd800cec8f6e89b7c1576edaaf8076e69ec631644cdbc1b5f2e2b5a9df/nvidia_cufft_cu12-11.3.0.4-py3-none-win_amd64.whl", hash = "sha256:6048ebddfb90d09d2707efb1fd78d4e3a77cb3ae4dc60e19aab6be0ece2ae464", size = 199356881 },
+]
+
+[[package]]
+name = "nvidia-cusolver-cu12"
+version = "11.7.1.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "nvidia-cublas-cu12" },
+    { name = "nvidia-cusparse-cu12" },
+    { name = "nvidia-nvjitlink-cu12" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/93/17/dbe1aa865e4fdc7b6d4d0dd308fdd5aaab60f939abfc0ea1954eac4fb113/nvidia_cusolver_cu12-11.7.1.2-py3-none-manylinux2014_aarch64.whl", hash = "sha256:0ce237ef60acde1efc457335a2ddadfd7610b892d94efee7b776c64bb1cac9e0", size = 157833628 },
+    { url = "https://files.pythonhosted.org/packages/f0/6e/c2cf12c9ff8b872e92b4a5740701e51ff17689c4d726fca91875b07f655d/nvidia_cusolver_cu12-11.7.1.2-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:e9e49843a7707e42022babb9bcfa33c29857a93b88020c4e4434656a655b698c", size = 158229790 },
+    { url = "https://files.pythonhosted.org/packages/9f/81/baba53585da791d043c10084cf9553e074548408e04ae884cfe9193bd484/nvidia_cusolver_cu12-11.7.1.2-py3-none-manylinux2014_x86_64.whl", hash = "sha256:6cf28f17f64107a0c4d7802be5ff5537b2130bfc112f25d5a30df227058ca0e6", size = 158229780 },
+    { url = "https://files.pythonhosted.org/packages/7c/5f/07d0ba3b7f19be5a5ec32a8679fc9384cfd9fc6c869825e93be9f28d6690/nvidia_cusolver_cu12-11.7.1.2-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:dbbe4fc38ec1289c7e5230e16248365e375c3673c9c8bac5796e2e20db07f56e", size = 157833630 },
+    { url = "https://files.pythonhosted.org/packages/d4/53/fff50a0808df7113d77e3bbc7c2b7eaed6f57d5eb80fbe93ead2aea1e09a/nvidia_cusolver_cu12-11.7.1.2-py3-none-win_amd64.whl", hash = "sha256:6813f9d8073f555444a8705f3ab0296d3e1cb37a16d694c5fc8b862a0d8706d7", size = 149287877 },
+]
+
+[[package]]
+name = "nvidia-cusparse-cu12"
+version = "12.5.4.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "nvidia-nvjitlink-cu12" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/eb/eb/6681efd0aa7df96b4f8067b3ce7246833dd36830bb4cec8896182773db7d/nvidia_cusparse_cu12-12.5.4.2-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:d25b62fb18751758fe3c93a4a08eff08effedfe4edf1c6bb5afd0890fe88f887", size = 216451147 },
+    { url = "https://files.pythonhosted.org/packages/d3/56/3af21e43014eb40134dea004e8d0f1ef19d9596a39e4d497d5a7de01669f/nvidia_cusparse_cu12-12.5.4.2-py3-none-manylinux2014_aarch64.whl", hash = "sha256:7aa32fa5470cf754f72d1116c7cbc300b4e638d3ae5304cfa4a638a5b87161b1", size = 216451135 },
+    { url = "https://files.pythonhosted.org/packages/06/1e/b8b7c2f4099a37b96af5c9bb158632ea9e5d9d27d7391d7eb8fc45236674/nvidia_cusparse_cu12-12.5.4.2-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:7556d9eca156e18184b94947ade0fba5bb47d69cec46bf8660fd2c71a4b48b73", size = 216561367 },
+    { url = "https://files.pythonhosted.org/packages/43/ac/64c4316ba163e8217a99680c7605f779accffc6a4bcd0c778c12948d3707/nvidia_cusparse_cu12-12.5.4.2-py3-none-manylinux2014_x86_64.whl", hash = "sha256:23749a6571191a215cb74d1cdbff4a86e7b19f1200c071b3fcf844a5bea23a2f", size = 216561357 },
+    { url = "https://files.pythonhosted.org/packages/45/ef/876ad8e4260e1128e6d4aac803d9d51baf3791ebdb4a9b8d9b8db032b4b0/nvidia_cusparse_cu12-12.5.4.2-py3-none-win_amd64.whl", hash = "sha256:4acb8c08855a26d737398cba8fb6f8f5045d93f82612b4cfd84645a2332ccf20", size = 213712630 },
+]
+
+[[package]]
+name = "nvidia-nccl-cu12"
+version = "2.24.3"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/de/90/6a3ff7d864c134a6515822626f35ae08c64aabe7026de7c146a4c34653b4/nvidia_nccl_cu12-2.24.3-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:ac876961433514a2943ba238f390fa28616fd8252906127e28e9714eda355d09", size = 204288254 },
+    { url = "https://files.pythonhosted.org/packages/fe/9b/f2e37edaf53d722b79697eb4402bcd5354d45da90e2eb667b3e4be0c642b/nvidia_nccl_cu12-2.24.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:e5c5167351e8936b96ddad8ac6f687199e22d09db07cf08af9457a123b34cac0", size = 201266889 },
+]
+
+[[package]]
+name = "nvidia-nvjitlink-cu12"
+version = "12.6.85"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9d/d7/c5383e47c7e9bf1c99d5bd2a8c935af2b6d705ad831a7ec5c97db4d82f4f/nvidia_nvjitlink_cu12-12.6.85-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl", hash = "sha256:eedc36df9e88b682efe4309aa16b5b4e78c2407eac59e8c10a6a47535164369a", size = 19744971 },
+    { url = "https://files.pythonhosted.org/packages/31/db/dc71113d441f208cdfe7ae10d4983884e13f464a6252450693365e166dcf/nvidia_nvjitlink_cu12-12.6.85-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:cf4eaa7d4b6b543ffd69d6abfb11efdeb2db48270d94dfd3a452c24150829e41", size = 19270338 },
+    { url = "https://files.pythonhosted.org/packages/89/76/93c1467b1387387440a4d25102d86b7794535449b689f8e2dc22c1c8ff7f/nvidia_nvjitlink_cu12-12.6.85-py3-none-win_amd64.whl", hash = "sha256:e61120e52ed675747825cdd16febc6a0730537451d867ee58bee3853b1b13d1c", size = 161908572 },
+]
+
+[[package]]
+name = "oauthlib"
+version = "3.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6d/fa/fbf4001037904031639e6bfbfc02badfc7e12f137a8afa254df6c4c8a670/oauthlib-3.2.2.tar.gz", hash = "sha256:9859c40929662bec5d64f34d01c99e093149682a3f38915dc0655d5a633dd918", size = 177352 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7e/80/cab10959dc1faead58dc8384a781dfbf93cb4d33d50988f7a69f1b7c9bbe/oauthlib-3.2.2-py3-none-any.whl", hash = "sha256:8139f29aac13e25d502680e9e19963e83f16838d48a0d71c287fe40e7067fbca", size = 151688 },
+]
+
+[[package]]
 name = "opt-einsum"
 version = "3.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1373,16 +1623,16 @@ wheels = [
 
 [[package]]
 name = "plum-dispatch"
-version = "2.5.4"
+version = "2.5.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beartype" },
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8c/a6/d6b9db4d70d4ba7857800089ea65dd5e81dbf1a482db04eee89dbb8f9c3b/plum_dispatch-2.5.4.tar.gz", hash = "sha256:db09f143ccf8f8c2ca4440349e895fe4655f2ad42102988693bea1e6991ead35", size = 35237 }
+sdist = { url = "https://files.pythonhosted.org/packages/2d/38/183b965280e0d2c94e62fa96b8aadb72c8b2b4e858b18cd818c590c72332/plum_dispatch-2.5.5.tar.gz", hash = "sha256:96c995002cfb389f255ee228daf370d96e9377afd3486b30fdfcb706732699cb", size = 35387 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a2/03/69d3df4a87d14c0afc62a5492234d95a51a5abcc10bddbbebe0d08693d0e/plum_dispatch-2.5.4-py3-none-any.whl", hash = "sha256:8c05b120dd93a42f51adb0fb5e3e5f9b46129cd4d576872ad2ceb692ce1f6759", size = 42412 },
+    { url = "https://files.pythonhosted.org/packages/a5/7c/6e2fda096569a9c596459f27821168c473218059861cbdaa4dc4ef36bbda/plum_dispatch-2.5.5-py3-none-any.whl", hash = "sha256:38d5600c31382aa92a229c3397e086699ff2e3d8f8bf8d4786529883661cf998", size = 42521 },
 ]
 
 [[package]]
@@ -1428,6 +1678,27 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/cd/05/0a34433a064256a578f1783a10da6df098ceaa4a57bbeaa96a6c0352786b/pure_eval-0.2.3.tar.gz", hash = "sha256:5f4e983f40564c576c7c8635ae88db5956bb2229d7e9237d03b3c0b0190eaf42", size = 19752 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8e/37/efad0257dc6e593a18957422533ff0f87ede7c9c6ea010a2177d738fb82f/pure_eval-0.2.3-py3-none-any.whl", hash = "sha256:1db8e35b67b3d218d818ae653e27f06c3aa420901fa7b081ca98cbedc874e0d0", size = 11842 },
+]
+
+[[package]]
+name = "pyasn1"
+version = "0.6.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ba/e9/01f1a64245b89f039897cb0130016d79f77d52669aae6ee7b159a6c4c018/pyasn1-0.6.1.tar.gz", hash = "sha256:6f580d2bdd84365380830acf45550f2511469f673cb4a5ae3857a3170128b034", size = 145322 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c8/f1/d6a797abb14f6283c0ddff96bbdd46937f64122b8c925cab503dd37f8214/pyasn1-0.6.1-py3-none-any.whl", hash = "sha256:0d632f46f2ba09143da3a8afe9e33fb6f92fa2320ab7e886e2d0f7672af84629", size = 83135 },
+]
+
+[[package]]
+name = "pyasn1-modules"
+version = "0.4.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyasn1" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1d/67/6afbf0d507f73c32d21084a79946bfcfca5fbc62a72057e9c23797a737c9/pyasn1_modules-0.4.1.tar.gz", hash = "sha256:c28e2dbf9c06ad61c71a075c7e0f9fd0f1b0bb2d2ad4377f240d33ac2ab60a7c", size = 310028 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/77/89/bc88a6711935ba795a679ea6ebee07e128050d6382eaa35a0a47c8032bdc/pyasn1_modules-0.4.1-py3-none-any.whl", hash = "sha256:49bfa96b45a292b711e986f222502c1c9a5e1f4e568fc30e2574a6c7d07838fd", size = 181537 },
 ]
 
 [[package]]
@@ -1498,7 +1769,7 @@ name = "pytest"
 version = "8.3.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
     { name = "iniconfig" },
     { name = "packaging" },
     { name = "pluggy" },
@@ -1530,7 +1801,7 @@ dependencies = [
     { name = "filelock" },
     { name = "pytest" },
     { name = "rich" },
-    { name = "setuptools", marker = "python_full_version >= '3.12'" },
+    { name = "setuptools", marker = "python_full_version >= '3.12' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/ba/78/40e613268cce75b11cd35ea9fdc280fb648e2233fc4187c76112377b1869/pytest_codspeed-3.0.0.tar.gz", hash = "sha256:c5b80100ea32dd44079bb2db298288763eb8fe859eafa1650a8711bd2c32fd06", size = 12540 }
 wheels = [
@@ -1664,7 +1935,7 @@ name = "pyzmq"
 version = "26.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cffi", marker = "implementation_name == 'pypy'" },
+    { name = "cffi", marker = "implementation_name == 'pypy' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/fd/05/bed626b9f7bb2322cdbbf7b4bd8f54b1b617b0d2ab2d3547d6e39428a48e/pyzmq-26.2.0.tar.gz", hash = "sha256:070672c258581c8e4f640b5159297580a9974b026043bd4ab0470be9ed324f1f", size = 271975 }
 wheels = [
@@ -1787,6 +2058,19 @@ wheels = [
 ]
 
 [[package]]
+name = "requests-oauthlib"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "oauthlib" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/42/f2/05f29bc3913aea15eb670be136045bf5c5bbf4b99ecb839da9b422bb2c85/requests-oauthlib-2.0.0.tar.gz", hash = "sha256:b3dffaebd884d8cd778494369603a9e7b58d29111bf6b41bdc2dcd87203af4e9", size = 55650 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3b/5d/63d4ae3b9daea098d5d6f5da83984853c1bbacd5dc826764b249fe119d24/requests_oauthlib-2.0.0-py2.py3-none-any.whl", hash = "sha256:7dd8a5c40426b779b0868c404bdef9768deccf22749cde15852df527e6269b36", size = 24179 },
+]
+
+[[package]]
 name = "rich"
 version = "13.9.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1844,6 +2128,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/a1/ed/c074d248409b4432b1ccb2056974175fa0af2d1bc1f9c21121f80a358fa3/rpds_py-0.20.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:5a35df9f5548fd79cb2f52d27182108c3e6641a4feb0f39067911bf2adaa3e57", size = 528380 },
     { url = "https://files.pythonhosted.org/packages/d5/bd/04caf938895d2d78201e89c0c8a94dfd9990c34a19ff52fb01d0912343e3/rpds_py-0.20.0-cp313-none-win32.whl", hash = "sha256:fd2d84f40633bc475ef2d5490b9c19543fbf18596dcb1b291e3a12ea5d722f7a", size = 200540 },
     { url = "https://files.pythonhosted.org/packages/95/cc/109eb8b9863680411ae703664abacaa035820c7755acc9686d5dd02cdd2e/rpds_py-0.20.0-cp313-none-win_amd64.whl", hash = "sha256:9bc2d153989e3216b0559251b0c260cfd168ec78b1fac33dd485750a228db5a2", size = 214111 },
+]
+
+[[package]]
+name = "rsa"
+version = "4.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyasn1" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/aa/65/7d973b89c4d2351d7fb232c2e452547ddfa243e93131e7cfa766da627b52/rsa-4.9.tar.gz", hash = "sha256:e38464a49c6c85d7f1351b0126661487a7e0a14a50f1675ec50eb34d4f20ef21", size = 29711 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/49/97/fa78e3d2f65c02c8e1268b9aba606569fe97f6c8f7c2d74394553347c145/rsa-4.9-py3-none-any.whl", hash = "sha256:90260d9058e514786967344d0ef75fa8727eed8a7d2e43ce9f4bcf1b536174f7", size = 34315 },
 ]
 
 [[package]]
@@ -1933,7 +2229,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "alabaster" },
     { name = "babel" },
-    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
     { name = "docutils" },
     { name = "imagesize" },
     { name = "jinja2" },
@@ -2129,7 +2425,7 @@ name = "sqlalchemy"
 version = "2.0.36"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "greenlet", marker = "(python_full_version < '3.13' and platform_machine == 'AMD64') or (python_full_version < '3.13' and platform_machine == 'WIN32') or (python_full_version < '3.13' and platform_machine == 'aarch64') or (python_full_version < '3.13' and platform_machine == 'amd64') or (python_full_version < '3.13' and platform_machine == 'ppc64le') or (python_full_version < '3.13' and platform_machine == 'win32') or (python_full_version < '3.13' and platform_machine == 'x86_64')" },
+    { name = "greenlet", marker = "(python_full_version < '3.13' and platform_machine == 'AMD64') or (python_full_version < '3.13' and platform_machine == 'WIN32') or (python_full_version < '3.13' and platform_machine == 'aarch64') or (python_full_version < '3.13' and platform_machine == 'amd64') or (python_full_version < '3.13' and platform_machine == 'ppc64le') or (python_full_version < '3.13' and platform_machine == 'win32') or (python_full_version < '3.13' and platform_machine == 'x86_64') or (platform_machine != 'AMD64' and platform_machine != 'WIN32' and platform_machine != 'aarch64' and platform_machine != 'amd64' and platform_machine != 'ppc64le' and platform_machine != 'win32' and platform_machine != 'x86_64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (platform_machine != 'AMD64' and platform_machine != 'WIN32' and platform_machine != 'aarch64' and platform_machine != 'amd64' and platform_machine != 'ppc64le' and platform_machine != 'win32' and platform_machine != 'x86_64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (platform_machine != 'AMD64' and platform_machine != 'WIN32' and platform_machine != 'aarch64' and platform_machine != 'amd64' and platform_machine != 'ppc64le' and platform_machine != 'win32' and platform_machine != 'x86_64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine != 'AMD64' and platform_machine != 'WIN32' and platform_machine != 'aarch64' and platform_machine != 'amd64' and platform_machine != 'ppc64le' and platform_machine != 'win32' and platform_machine != 'x86_64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (platform_machine != 'AMD64' and platform_machine != 'WIN32' and platform_machine != 'aarch64' and platform_machine != 'amd64' and platform_machine != 'ppc64le' and platform_machine != 'win32' and platform_machine != 'x86_64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (platform_machine != 'AMD64' and platform_machine != 'WIN32' and platform_machine != 'aarch64' and platform_machine != 'amd64' and platform_machine != 'ppc64le' and platform_machine != 'win32' and platform_machine != 'x86_64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (platform_machine != 'AMD64' and platform_machine != 'WIN32' and platform_machine != 'aarch64' and platform_machine != 'amd64' and platform_machine != 'ppc64le' and platform_machine != 'win32' and platform_machine != 'x86_64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine != 'AMD64' and platform_machine != 'WIN32' and platform_machine != 'aarch64' and platform_machine != 'amd64' and platform_machine != 'ppc64le' and platform_machine != 'win32' and platform_machine != 'x86_64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (platform_machine != 'AMD64' and platform_machine != 'WIN32' and platform_machine != 'aarch64' and platform_machine != 'amd64' and platform_machine != 'ppc64le' and platform_machine != 'win32' and platform_machine != 'x86_64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (platform_machine != 'AMD64' and platform_machine != 'WIN32' and platform_machine != 'aarch64' and platform_machine != 'amd64' and platform_machine != 'ppc64le' and platform_machine != 'win32' and platform_machine != 'x86_64' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine != 'AMD64' and platform_machine != 'WIN32' and platform_machine != 'aarch64' and platform_machine != 'amd64' and platform_machine != 'ppc64le' and platform_machine != 'win32' and platform_machine != 'x86_64' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (platform_machine != 'AMD64' and platform_machine != 'WIN32' and platform_machine != 'aarch64' and platform_machine != 'amd64' and platform_machine != 'ppc64le' and platform_machine != 'win32' and platform_machine != 'x86_64' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (platform_machine != 'AMD64' and platform_machine != 'WIN32' and platform_machine != 'aarch64' and platform_machine != 'amd64' and platform_machine != 'ppc64le' and platform_machine != 'win32' and platform_machine != 'x86_64' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (platform_machine != 'AMD64' and platform_machine != 'WIN32' and platform_machine != 'aarch64' and platform_machine != 'amd64' and platform_machine != 'ppc64le' and platform_machine != 'win32' and platform_machine != 'x86_64' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (platform_machine != 'AMD64' and platform_machine != 'WIN32' and platform_machine != 'aarch64' and platform_machine != 'amd64' and platform_machine != 'ppc64le' and platform_machine != 'win32' and platform_machine != 'x86_64' and extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'AMD64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (platform_machine == 'AMD64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (platform_machine == 'AMD64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'AMD64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'AMD64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'AMD64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (platform_machine == 'AMD64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'AMD64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'AMD64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'AMD64' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'AMD64' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'AMD64' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'AMD64' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'AMD64' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'AMD64' and extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'WIN32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (platform_machine == 'WIN32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (platform_machine == 'WIN32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'WIN32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'WIN32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'WIN32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (platform_machine == 'WIN32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'WIN32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'WIN32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'WIN32' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'WIN32' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'WIN32' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'WIN32' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'WIN32' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'WIN32' and extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'aarch64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (platform_machine == 'aarch64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (platform_machine == 'aarch64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'aarch64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'aarch64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'aarch64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (platform_machine == 'aarch64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'aarch64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'aarch64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'aarch64' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'aarch64' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'aarch64' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'aarch64' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'aarch64' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'aarch64' and extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'amd64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (platform_machine == 'amd64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (platform_machine == 'amd64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'amd64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'amd64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'amd64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (platform_machine == 'amd64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'amd64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'amd64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'amd64' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'amd64' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'amd64' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'amd64' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'amd64' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'amd64' and extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'ppc64le' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (platform_machine == 'ppc64le' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (platform_machine == 'ppc64le' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'ppc64le' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'ppc64le' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'ppc64le' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (platform_machine == 'ppc64le' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'ppc64le' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'ppc64le' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'ppc64le' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'ppc64le' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'ppc64le' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'ppc64le' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'ppc64le' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'ppc64le' and extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'win32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (platform_machine == 'win32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (platform_machine == 'win32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'win32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'win32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'win32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (platform_machine == 'win32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'win32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'win32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'win32' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'win32' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'win32' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'win32' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'win32' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'win32' and extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'x86_64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (platform_machine == 'x86_64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (platform_machine == 'x86_64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'x86_64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'x86_64' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'x86_64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (platform_machine == 'x86_64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'x86_64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'x86_64' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'x86_64' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (platform_machine == 'x86_64' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'x86_64' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'x86_64' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (platform_machine == 'x86_64' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (platform_machine == 'x86_64' and extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
     { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/65/9cbc9c4c3287bed2499e05033e207473504dc4df999ce49385fb1f8b058a/sqlalchemy-2.0.36.tar.gz", hash = "sha256:7f2767680b6d2398aea7082e45a774b2b0767b5c8d8ffb9c8b683088ea9b29c5", size = 9574485 }
@@ -2267,7 +2563,7 @@ wheels = [
 
 [[package]]
 name = "unxt"
-version = "1.0.1.dev14+gcad0bc9.d20241217"
+version = "1.0.1.dev22+g3d04550.d20250107"
 source = { editable = "." }
 dependencies = [
     { name = "astropy" },
@@ -2294,11 +2590,29 @@ all = [
 backend-astropy = [
     { name = "astropy" },
 ]
+cpu = [
+    { name = "jax" },
+]
+cuda = [
+    { name = "jax", extra = ["cuda"] },
+]
+cuda12 = [
+    { name = "jax", extra = ["cuda12"] },
+]
+cuda12-local = [
+    { name = "jax", extra = ["cuda12-local"] },
+]
 interop-gala = [
     { name = "gala" },
 ]
 interop-mpl = [
     { name = "matplotlib" },
+]
+k8s = [
+    { name = "jax", extra = ["k8s"] },
+]
+rocm = [
+    { name = "jax" },
 ]
 
 [package.dev-dependencies]
@@ -2383,12 +2697,18 @@ requires-dist = [
     { name = "gala", marker = "extra == 'interop-gala'", specifier = ">=1.8" },
     { name = "is-annotated", specifier = ">=1.0" },
     { name = "jax", specifier = ">0.4.32" },
+    { name = "jax", extras = ["cpu"], marker = "extra == 'cpu'" },
+    { name = "jax", extras = ["cuda"], marker = "extra == 'cuda'" },
+    { name = "jax", extras = ["cuda12"], marker = "extra == 'cuda12'" },
+    { name = "jax", extras = ["cuda12-local"], marker = "extra == 'cuda12-local'" },
+    { name = "jax", extras = ["k8s"], marker = "extra == 'k8s'" },
+    { name = "jax", extras = ["rocm"], marker = "extra == 'rocm'" },
     { name = "jaxlib", specifier = ">0.4.32" },
     { name = "jaxtyping", specifier = ">=0.2.34" },
     { name = "matplotlib", marker = "extra == 'all'", specifier = ">=3.4" },
     { name = "matplotlib", marker = "extra == 'interop-mpl'", specifier = ">=3.4" },
     { name = "optional-dependencies", specifier = ">=0.3.2" },
-    { name = "plum-dispatch", specifier = ">=2.5.4" },
+    { name = "plum-dispatch", specifier = ">=2.5.5" },
     { name = "quax", specifier = ">=0.0.5" },
     { name = "quaxed", specifier = ">=0.7.1" },
     { name = "xmmutablemap", specifier = ">=0.1" },
@@ -2492,6 +2812,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/6c/63/53559446a878410fc5a5974feb13d31d78d752eb18aeba59c7fef1af7598/wcwidth-0.2.13.tar.gz", hash = "sha256:72ea0c06399eb286d978fdedb6923a9eb47e1c486ce63e9b4e64fc18303972b5", size = 101301 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fd/84/fd2ba7aafacbad3c4201d395674fc6348826569da3c0937e75505ead3528/wcwidth-0.2.13-py2.py3-none-any.whl", hash = "sha256:3da69048e4540d84af32131829ff948f1e022c1c6bdb8d6102117aac784f6859", size = 34166 },
+]
+
+[[package]]
+name = "websocket-client"
+version = "1.8.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e6/30/fba0d96b4b5fbf5948ed3f4681f7da2f9f64512e1d303f94b4cc174c24a5/websocket_client-1.8.0.tar.gz", hash = "sha256:3239df9f44da632f96012472805d40a23281a991027ce11d2f45a6f24ac4c3da", size = 54648 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5a/84/44687a29792a70e111c5c477230a72c4b957d88d16141199bf9acb7537a3/websocket_client-1.8.0-py3-none-any.whl", hash = "sha256:17b44cc997f5c498e809b22cdf2d9c7a9e71c02c8cc2b6c56e7c2d1239bfa526", size = 58826 },
 ]
 
 [[package]]
