@@ -11,7 +11,7 @@ from .unchecked import UncheckedQuantity
 from unxt._src.units.api import unit_of
 
 
-@conversion_method(type_from=AbstractQuantity, type_to=UncheckedQuantity)  # type: ignore[misc]
+@conversion_method(type_from=AbstractQuantity, type_to=UncheckedQuantity)  # type: ignore[arg-type]
 def _quantity_to_unchecked(q: AbstractQuantity, /) -> UncheckedQuantity:
     """Convert any quantity to an unchecked quantity.
 
@@ -37,7 +37,7 @@ def _quantity_to_unchecked(q: AbstractQuantity, /) -> UncheckedQuantity:
     return UncheckedQuantity(ustrip(unit, q), unit)
 
 
-@conversion_method(type_from=AbstractQuantity, type_to=Quantity)  # type: ignore[misc]
+@conversion_method(type_from=AbstractQuantity, type_to=Quantity)  # type: ignore[arg-type]
 def _quantity_to_checked(q: AbstractQuantity, /) -> Quantity:
     """Convert any quantity to a checked quantity.
 

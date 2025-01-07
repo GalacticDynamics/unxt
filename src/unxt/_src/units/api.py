@@ -13,11 +13,11 @@ from plum import dispatch
 AbstractUnits: TypeAlias = apyu.UnitBase | apyu.Unit
 
 
-@dispatch.abstract  # type: ignore[misc]
+@dispatch.abstract
 def unit(obj: Any, /) -> AbstractUnits:
     """Construct the units from a units object."""
 
 
-@dispatch.abstract  # type: ignore[misc]
+@dispatch.abstract
 def unit_of(obj: Any, /) -> AbstractUnits:
     """Return the units of an object."""

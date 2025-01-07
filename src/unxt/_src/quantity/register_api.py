@@ -20,7 +20,7 @@ from unxt._src.units.system import AbstractUnitSystem
 # Get dimensions
 
 
-@dispatch  # type: ignore[misc]
+@dispatch
 def dimension_of(obj: AbstractQuantity, /) -> AbstractDimension:
     """Return the dimension of a quantity.
 
@@ -39,7 +39,7 @@ def dimension_of(obj: AbstractQuantity, /) -> AbstractDimension:
 # Get units
 
 
-@dispatch  # type: ignore[misc]
+@dispatch
 def unit_of(obj: AbstractQuantity, /) -> AbstractUnits:
     """Return the units of an object.
 
