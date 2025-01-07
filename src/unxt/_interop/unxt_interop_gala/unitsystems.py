@@ -35,7 +35,7 @@ def unitsystem(value: GalaUnitSystem, /) -> AbstractUnitSystem:
     return unitsystem(*value._core_units)  # noqa: SLF001
 
 
-@dispatch  # type: ignore[no-redef]
+@dispatch
 def unitsystem(_: GalaDimensionlessUnitSystem, /) -> DimensionlessUnitSystem:
     """Return a `gala.units.DimensionlessUnitSystem` as a `unxt.DimensionlessUnitSystem`.
 
@@ -57,7 +57,7 @@ def unitsystem(_: GalaDimensionlessUnitSystem, /) -> DimensionlessUnitSystem:
 # Convert
 
 
-@conversion_method(type_from=GalaUnitSystem, type_to=AbstractUnitSystem)  # type: ignore[misc]
+@conversion_method(type_from=GalaUnitSystem, type_to=AbstractUnitSystem)  # type: ignore[arg-type]
 def convert_gala_unitsystem_to_unxt_unitsystem(
     usys: GalaUnitSystem, /
 ) -> AbstractUnitSystem:
@@ -80,7 +80,7 @@ def convert_gala_unitsystem_to_unxt_unitsystem(
     return unitsystem(usys)
 
 
-@conversion_method(type_from=AbstractUnitSystem, type_to=GalaUnitSystem)  # type: ignore[misc]
+@conversion_method(type_from=AbstractUnitSystem, type_to=GalaUnitSystem)  # type: ignore[arg-type]
 def convert_unxt_unitsystem_to_gala_unitsystem(
     usys: AbstractUnitSystem, /
 ) -> GalaUnitSystem:
