@@ -9,7 +9,7 @@ from plum import dispatch
 from unxt._src.dimensions import AbstractDimension
 
 
-@dispatch  # type: ignore[misc]
+@dispatch
 def dimension_of(obj: apyu.Quantity, /) -> AbstractDimension:
     """Return the dimension of a quantity.
 

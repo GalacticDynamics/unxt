@@ -113,7 +113,7 @@ class Quantity(AbstractParametricQuantity):
     """The unit associated with this value."""
 
 
-@AbstractQuantity.__mod__.dispatch  # type: ignore[misc]
+@AbstractQuantity.__mod__.dispatch  # type: ignore[misc, attr-defined]
 def mod(self: Quantity["dimensionless"], other: ArrayLike) -> Quantity["dimensionless"]:
     """Take the mod.
 

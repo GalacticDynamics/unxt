@@ -44,7 +44,7 @@ def unitsystem(usys: AbstractUnitSystem, /) -> AbstractUnitSystem:
     return usys
 
 
-@dispatch  # type: ignore[no-redef]
+@dispatch
 def unitsystem(seq: Sequence[Any], /) -> AbstractUnitSystem:
     """Convert a UnitSystem or tuple of arguments to a UnitSystem.
 
@@ -65,7 +65,7 @@ def unitsystem(seq: Sequence[Any], /) -> AbstractUnitSystem:
     return unitsystem(*seq) if len(seq) > 0 else dimensionless
 
 
-@dispatch  # type: ignore[no-redef]
+@dispatch
 def unitsystem(_: None, /) -> DimensionlessUnitSystem:
     """Dimensionless unit system from None.
 
@@ -79,7 +79,7 @@ def unitsystem(_: None, /) -> DimensionlessUnitSystem:
     return dimensionless
 
 
-@dispatch  # type: ignore[no-redef]
+@dispatch
 def unitsystem(*args: Any) -> AbstractUnitSystem:
     """Convert a set of arguments to a UnitSystem.
 
@@ -141,7 +141,7 @@ def unitsystem(*args: Any) -> AbstractUnitSystem:
     return unitsystem_cls(*args)
 
 
-@dispatch  # type: ignore[no-redef]
+@dispatch
 def unitsystem(name: str, /) -> AbstractUnitSystem:
     """Return unit system from name.
 
@@ -161,7 +161,7 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
     return NAMED_UNIT_SYSTEMS[name]
 
 
-@dispatch  # type: ignore[no-redef]
+@dispatch
 def unitsystem(usys: AbstractUnitSystem, *args: Any) -> AbstractUnitSystem:
     """Create a unit system from an existing unit system and additional units.
 
@@ -194,14 +194,14 @@ def unitsystem(usys: AbstractUnitSystem, *args: Any) -> AbstractUnitSystem:
     return unitsystem(*current_units, *args)
 
 
-@dispatch  # type: ignore[no-redef]
+@dispatch
 def unitsystem(flag: type[AbstractUSysFlag], *_: Any) -> AbstractUnitSystem:
     """Raise an exception since the flag is abstract."""
     msg = "Do not use the AbstractUSysFlag directly, only use subclasses."
     raise TypeError(msg)
 
 
-@dispatch  # type: ignore[no-redef]
+@dispatch
 def unitsystem(flag: type[StandardUSysFlag], *args: Any) -> AbstractUnitSystem:
     """Create a standard unit system using the inputted units.
 
@@ -215,7 +215,7 @@ def unitsystem(flag: type[StandardUSysFlag], *args: Any) -> AbstractUnitSystem:
     return unitsystem(*args)
 
 
-@dispatch  # type: ignore[no-redef]
+@dispatch
 def unitsystem(
     flag: type[DynamicalSimUSysFlag],
     *args: Any,
