@@ -9,13 +9,13 @@ LENGTH = u.dimension("length")
 
 
 @pytest.fixture
-def func_dimension_of_length():
-    return lambda x: u.dimension_of(x) == LENGTH
+def func_dimension_is_length():
+    return lambda x: u.dimension(x) == LENGTH
 
 
 @pytest.fixture
-def func_dimension_is_length():
-    return lambda x: u.dimension(x) == LENGTH
+def func_dimension_of_length():
+    return lambda x: u.dimension_of(x) == LENGTH
 
 
 #####################################################################
@@ -31,7 +31,7 @@ def func_dimension_is_length():
 )
 @pytest.mark.benchmark(group="dimensions", warmup=False)
 def test_dimension(args):
-    """Test the speed of jitting."""
+    """Test calling `unxt.dimension`."""
     _ = u.dimension(*args)
 
 
@@ -63,7 +63,7 @@ def test_dimension_execute(func_dimension_is_length, args):
 )
 @pytest.mark.benchmark(group="dimensions", warmup=False)
 def test_dimension_of(args):
-    """Test the speed of jitting."""
+    """Test calling `unxt.dimension_of`."""
     _ = u.dimension_of(*args)
 
 
