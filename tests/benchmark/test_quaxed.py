@@ -10,11 +10,11 @@ from jax._src.stages import Compiled
 
 import quaxed.numpy as jnp
 
-from unxt import Quantity, dimension_of
+import unxt as u
 
-x_nodim = Quantity(jnp.linspace(0, 1, 1000), "")
-x_length = Quantity(jnp.linspace(0, 1, 1000), "m")
-x_angle = Quantity(jnp.linspace(0, 1, 1000), "rad")
+x_nodim = u.Quantity(jnp.linspace(0, 1, 1000), "")
+x_length = u.Quantity(jnp.linspace(0, 1, 1000), "m")
+x_angle = u.Quantity(jnp.linspace(0, 1, 1000), "rad")
 
 
 Args: TypeAlias = tuple[Any, ...]
@@ -44,7 +44,7 @@ def process_pytest_argvalues(
 ) -> ParameterizationKWArgs:
     """Process the argvalues."""
     # Get the ID for each parameterization
-    get_dims = lambda args: tuple(str(dimension_of(a)) for a in args)
+    get_dims = lambda args: tuple(str(u.dimension_of(a)) for a in args)
     ids: list[str] = []
     processed_argvalues: list[tuple[Compiled, Args]] = []
 
