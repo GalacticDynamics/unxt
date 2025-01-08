@@ -1,4 +1,4 @@
-"""Benchmark tests for quaxified jax."""
+"""Benchmark tests for quaxed functions on quantities."""
 
 from collections.abc import Callable
 from typing import Any, TypeAlias, TypedDict
@@ -12,23 +12,17 @@ import quaxed.numpy as jnp
 
 import unxt as u
 
-x_nodim = u.Quantity(jnp.linspace(0, 1, 1000), "")
-x_length = u.Quantity(jnp.linspace(0, 1, 1000), "m")
-x_angle = u.Quantity(jnp.linspace(0, 1, 1000), "rad")
-
-
 Args: TypeAlias = tuple[Any, ...]
+
+x = jnp.linspace(0, 1, 1000)
+x_nodim = u.Quantity(x, "")
+x_length = u.Quantity(x, "m")
+x_angle = u.Quantity(x, "rad")
 
 
 def process_func(func: Callable[..., Any], args: Args) -> tuple[Compiled, Args]:
     """JIT and compile the function."""
     return jax.jit(func), args
-
-
-# def process_execute_func(func, args):
-#     """JIT and compile the function."""
-#     compiled_eager_func = jax.jit(func).lower(*args).compile()
-#     return compiled_eager_func, args
 
 
 class ParameterizationKWArgs(TypedDict):
@@ -57,6 +51,7 @@ def process_pytest_argvalues(
     return {"argvalues": processed_argvalues, "ids": ids}
 
 
+# TODO: also benchmark UncheckedQuantity
 funcs_and_args: list[tuple[Callable[..., Any], Unpack[tuple[Args, ...]]]] = [
     (jnp.abs, (x_nodim,), (x_length,)),
     (jnp.acos, (x_nodim,)),
