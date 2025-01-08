@@ -567,6 +567,15 @@ wheels = [
 ]
 
 [[package]]
+name = "execnet"
+version = "2.1.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/bb/ff/b4c0dc78fbe20c3e59c0c7334de0c27eb4001a2b2017999af398bf730817/execnet-2.1.1.tar.gz", hash = "sha256:5189b52c6121c24feae288166ab41b32549c7e2348652736540b9e6e7d4e72e3", size = 166524 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/43/09/2aea36ff60d16dd8879bdb2f5b3ee0ba8d08cbbdcdfe870e695ce3784385/execnet-2.1.1-py3-none-any.whl", hash = "sha256:26dee51f1b80cebd6d0ca8e74dd8745419761d3bef34163928cbebbdc4749fdc", size = 40612 },
+]
+
+[[package]]
 name = "executing"
 version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1681,6 +1690,15 @@ wheels = [
 ]
 
 [[package]]
+name = "py-cpuinfo"
+version = "9.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/37/a8/d832f7293ebb21690860d2e01d8115e5ff6f2ae8bbdc953f0eb0fa4bd2c7/py-cpuinfo-9.0.0.tar.gz", hash = "sha256:3cdbbf3fac90dc6f118bfd64384f309edeadd902d7c8fb17f02ffa1fc3f49690", size = 104716 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e0/a9/023730ba63db1e494a271cb018dcd361bd2c917ba7004c3e49d5daf795a2/py_cpuinfo-9.0.0-py3-none-any.whl", hash = "sha256:859625bc251f64e21f077d099d4162689c762b5d6a4c3c97553d56241c9674d5", size = 22335 },
+]
+
+[[package]]
 name = "pyasn1"
 version = "0.6.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1793,19 +1811,36 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-benchmark"
+version = "5.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "py-cpuinfo" },
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/39/d0/a8bd08d641b393db3be3819b03e2d9bb8760ca8479080a26a5f6e540e99c/pytest-benchmark-5.1.0.tar.gz", hash = "sha256:9ea661cdc292e8231f7cd4c10b0319e56a2118e2c09d9f50e1b3d150d2aca105", size = 337810 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9e/d6/b41653199ea09d5969d4e385df9bbfd9a100f28ca7e824ce7c0a016e3053/pytest_benchmark-5.1.0-py3-none-any.whl", hash = "sha256:922de2dfa3033c227c96da942d1878191afa135a29485fb942e85dff1c592c89", size = 44259 },
+]
+
+[[package]]
 name = "pytest-codspeed"
-version = "3.0.0"
+version = "3.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cffi" },
-    { name = "filelock" },
     { name = "pytest" },
     { name = "rich" },
-    { name = "setuptools", marker = "python_full_version >= '3.12' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ba/78/40e613268cce75b11cd35ea9fdc280fb648e2233fc4187c76112377b1869/pytest_codspeed-3.0.0.tar.gz", hash = "sha256:c5b80100ea32dd44079bb2db298288763eb8fe859eafa1650a8711bd2c32fd06", size = 12540 }
+sdist = { url = "https://files.pythonhosted.org/packages/6a/5f/d03f78b4ba6df28ab78fe49b70319f9d5c2d6c15c966c18038b3a534b729/pytest_codspeed-3.1.1.tar.gz", hash = "sha256:bed35cc6a381786af70ccbcec35a1bbc4c1246da7d63151aba799ae2bb655fe4", size = 18214 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a6/79/fa067436033410ac16e5d14b61b1a5f355688930ca8c6a8c61a52b2cbe0a/pytest_codspeed-3.0.0-py3-none-any.whl", hash = "sha256:ab1b8cb9da72e0d394718333d1abc7bea38524e09fd4854bc70a91abbcdcb20e", size = 15640 },
+    { url = "https://files.pythonhosted.org/packages/ff/26/bcfe1613fbbaf1d21ca8d2ed4fd2e1f38b8dde3b96fdf5782d97ce66976d/pytest_codspeed-3.1.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:4d988c795c0f69f9713fa291b99ccaaf74686dbaa3ad5fc47a60a3c46e041953", size = 26014 },
+    { url = "https://files.pythonhosted.org/packages/b0/70/c861427beabb7103a1eac435b8b755e62261936585d21e1124e80010fb38/pytest_codspeed-3.1.1-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:f9cb7b25ddab46ecc1dcef3ae8c3443e08bc72c6200bcc5f7a7d589e550744b6", size = 24647 },
+    { url = "https://files.pythonhosted.org/packages/3b/5d/cdfec392635c681bca9b1321930089fcf26fdbdd6279479890ddf6523f43/pytest_codspeed-3.1.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:8f5709d2078e33e70f9f87156c7ff3a3ed30874ce0a51019ebc0996826f2af4f", size = 26383 },
+    { url = "https://files.pythonhosted.org/packages/08/e0/2104c26c008e376c3973c48be08c6f23cd869831fb374ed5614dd8183ee0/pytest_codspeed-3.1.1-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:0cbc9ea51856a3600668fd58e4e01cb158855712df484eb96dfe32d06e24be52", size = 25141 },
+    { url = "https://files.pythonhosted.org/packages/9a/9a/f63000ef81880b871d1a498612103c27b7c32fb93db9e37838f406b38c08/pytest_codspeed-3.1.1-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:54c6fb0d60d86be814696e847d032f93044978b9f3042934296f95681f4996f3", size = 26382 },
+    { url = "https://files.pythonhosted.org/packages/af/86/fbf3315eff4d666fe7c957ef34e7406e49ceb819b3e8607cc561c3e0c3d4/pytest_codspeed-3.1.1-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:6b5e98eb63af069d91bd9e6c3a35d2db47f1023e1b5e00eb8270e3153f3470d9", size = 25132 },
+    { url = "https://files.pythonhosted.org/packages/f7/7b/4c016c23c7437f1e552392dd27c64c714692bd8adb534151fbf1dcf3481b/pytest_codspeed-3.1.1-py3-none-any.whl", hash = "sha256:4736340678464f525dde539e42049e526758931cc688c9aa69a4b7e3da613aa0", size = 14209 },
 ]
 
 [[package]]
@@ -1859,6 +1894,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a9/81/636f9ea4ec0182abc0ab96e5abeab39fc1d9ce8fecf19e2943d685de519f/pytest-mpl-0.17.0.tar.gz", hash = "sha256:fbef05d7e664b4b33452fb698ac188e522791f327de34e7ea37dbdfe9d52cac6", size = 885613 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f3/32/3b5d6973cc8bdc320736ee608377e2756b1042ed162ca2d2ee5555f2d117/pytest_mpl-0.17.0-py3-none-any.whl", hash = "sha256:2ee7cf902ef071e45ae14fe190b3d8a9839c2fd8933e0514bf58df310d8ed66b", size = 27555 },
+]
+
+[[package]]
+name = "pytest-xdist"
+version = "3.6.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "execnet" },
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/41/c4/3c310a19bc1f1e9ef50075582652673ef2bfc8cd62afef9585683821902f/pytest_xdist-3.6.1.tar.gz", hash = "sha256:ead156a4db231eec769737f57668ef58a2084a34b2e55c4a8fa20d861107300d", size = 84060 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6d/82/1d96bf03ee4c0fdc3c0cbe61470070e659ca78dc0086fb88b66c185e2449/pytest_xdist-3.6.1-py3-none-any.whl", hash = "sha256:9ed4adfb68a016610848639bb7e02c9352d5d9f03d04809919e2dafc3be4cca7", size = 46108 },
 ]
 
 [[package]]
@@ -2563,7 +2611,7 @@ wheels = [
 
 [[package]]
 name = "unxt"
-version = "1.0.1.dev24+g8ce714e.d20250108"
+version = "1.0.1.dev26+g456e106.d20250108"
 source = { editable = "." }
 dependencies = [
     { name = "astropy" },
@@ -2625,6 +2673,7 @@ dev = [
     { name = "nox" },
     { name = "pytest" },
     { name = "pytest-arraydiff" },
+    { name = "pytest-benchmark" },
     { name = "pytest-codspeed" },
     { name = "pytest-cov" },
     { name = "pytest-env" },
@@ -2661,10 +2710,14 @@ docs = [
 nox = [
     { name = "nox" },
 ]
+pytest-benchmark-parallel = [
+    { name = "pytest-xdist" },
+]
 test = [
     { name = "hypothesis", extra = ["numpy"] },
     { name = "pytest" },
     { name = "pytest-arraydiff" },
+    { name = "pytest-benchmark" },
     { name = "pytest-codspeed" },
     { name = "pytest-cov" },
     { name = "pytest-env" },
@@ -2675,6 +2728,7 @@ test-all = [
     { name = "hypothesis", extra = ["numpy"] },
     { name = "pytest" },
     { name = "pytest-arraydiff" },
+    { name = "pytest-benchmark" },
     { name = "pytest-codspeed" },
     { name = "pytest-cov" },
     { name = "pytest-env" },
@@ -2725,10 +2779,11 @@ dev = [
     { name = "nox", specifier = ">=2024.10.9" },
     { name = "pytest", specifier = ">=8.3.3" },
     { name = "pytest-arraydiff", specifier = ">=0.6.1" },
-    { name = "pytest-codspeed" },
+    { name = "pytest-benchmark", specifier = ">=5.1" },
+    { name = "pytest-codspeed", specifier = ">=3.1" },
     { name = "pytest-cov", specifier = ">=3" },
-    { name = "pytest-env" },
-    { name = "pytest-github-actions-annotate-failures" },
+    { name = "pytest-env", specifier = ">=1.1.5" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.2.0" },
     { name = "pytest-mpl" },
     { name = "pytz", specifier = ">=2024.2" },
     { name = "sphinx", specifier = ">=7.0" },
@@ -2759,24 +2814,27 @@ docs = [
     { name = "sphinxext-rediraffe", specifier = ">=0.2.7" },
 ]
 nox = [{ name = "nox", specifier = ">=2024.10.9" }]
+pytest-benchmark-parallel = [{ name = "pytest-xdist", specifier = ">=3.6.1" }]
 test = [
     { name = "hypothesis", extras = ["numpy"], specifier = ">=6.112.2" },
     { name = "pytest", specifier = ">=8.3.3" },
     { name = "pytest-arraydiff", specifier = ">=0.6.1" },
-    { name = "pytest-codspeed" },
+    { name = "pytest-benchmark", specifier = ">=5.1" },
+    { name = "pytest-codspeed", specifier = ">=3.1" },
     { name = "pytest-cov", specifier = ">=3" },
-    { name = "pytest-env" },
-    { name = "pytest-github-actions-annotate-failures" },
+    { name = "pytest-env", specifier = ">=1.1.5" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.2.0" },
     { name = "sybil", specifier = ">=8.0.0" },
 ]
 test-all = [
     { name = "hypothesis", extras = ["numpy"], specifier = ">=6.112.2" },
     { name = "pytest", specifier = ">=8.3.3" },
     { name = "pytest-arraydiff", specifier = ">=0.6.1" },
-    { name = "pytest-codspeed" },
+    { name = "pytest-benchmark", specifier = ">=5.1" },
+    { name = "pytest-codspeed", specifier = ">=3.1" },
     { name = "pytest-cov", specifier = ">=3" },
-    { name = "pytest-env" },
-    { name = "pytest-github-actions-annotate-failures" },
+    { name = "pytest-env", specifier = ">=1.1.5" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.2.0" },
     { name = "pytest-mpl" },
     { name = "sybil", specifier = ">=8.0.0" },
 ]

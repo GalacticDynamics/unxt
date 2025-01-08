@@ -94,11 +94,15 @@
     "hypothesis[numpy]>=6.112.2",
     "pytest>=8.3.3",
     "pytest-arraydiff>=0.6.1",
-    "pytest-codspeed",
-    "pytest-cov >=3",
-    "pytest-env",
-    "pytest-github-actions-annotate-failures",
+    "pytest-benchmark>=5.1",
+    "pytest-codspeed>=3.1",
+    "pytest-cov>=3",
+    "pytest-env>=1.1.5",
+    "pytest-github-actions-annotate-failures>=0.2.0",
     "sybil>=8.0.0",
+]
+  pytest-benchmark-parallel = [
+    "pytest-xdist>=3.6.1",
   ]
   test-mpl = ["pytest-mpl"]
   test-all = [{ include-group = "test" }, { include-group = "test-mpl" }]
