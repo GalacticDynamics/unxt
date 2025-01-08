@@ -1766,11 +1766,11 @@ wheels = [
 
 [[package]]
 name = "pygments"
-version = "2.16.0"
+version = "2.19.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/11/a0/7e8158246de1f7062a9a01963503d83dc64a6d1d6b2e3aa2e46e92b94314/Pygments-2.16.0.tar.gz", hash = "sha256:4f6df32f21dca07a54a0a130bda9a25d2241e9e0a206841d061c85a60cc96145", size = 4873265 }
+sdist = { url = "https://files.pythonhosted.org/packages/7c/2d/c3338d48ea6cc0feb8446d8e6937e1408088a72a39937982cc6111d17f84/pygments-2.19.1.tar.gz", hash = "sha256:61c16d2a8576dc0649d9f39e089b5f02bcd27fba10d8fb4dcc28173f7a45151f", size = 4968581 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ec/9a/40aa8248006cbe35b8bffc83cfca0ffdf68306d4354bca334a25b4b275a0/Pygments-2.16.0-py3-none-any.whl", hash = "sha256:90e046f72a58b65edd7e6bd99926ffa1b9d19e23db166905046bea0069c0894d", size = 1164744 },
+    { url = "https://files.pythonhosted.org/packages/8a/0b/9fcc47d19c48b59121088dd6da2488a49d5f72dacf8262e2790a1d2c7d15/pygments-2.19.1-py3-none-any.whl", hash = "sha256:9ea1544ad55cecf4b8242fab6dd35a93bbce657034b0611ee383099054ab6d8c", size = 1225293 },
 ]
 
 [[package]]
@@ -2272,7 +2272,7 @@ wheels = [
 
 [[package]]
 name = "sphinx"
-version = "7.3.7"
+version = "8.1.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "alabaster" },
@@ -2292,21 +2292,21 @@ dependencies = [
     { name = "sphinxcontrib-qthelp" },
     { name = "sphinxcontrib-serializinghtml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b7/0a/b88033900b1582f5ed8f880263363daef968d1cd064175e32abfd9714410/sphinx-7.3.7.tar.gz", hash = "sha256:a4a7db75ed37531c05002d56ed6948d4c42f473a36f46e1382b0bd76ca9627bc", size = 7094808 }
+sdist = { url = "https://files.pythonhosted.org/packages/6f/6d/be0b61178fe2cdcb67e2a92fc9ebb488e3c51c4f74a36a7824c0adf23425/sphinx-8.1.3.tar.gz", hash = "sha256:43c1911eecb0d3e161ad78611bc905d1ad0e523e4ddc202a58a821773dc4c927", size = 8184611 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b4/fa/130c32ed94cf270e3d0b9ded16fb7b2c8fea86fa7263c29a696a30c1dde7/sphinx-7.3.7-py3-none-any.whl", hash = "sha256:413f75440be4cacf328f580b4274ada4565fb2187d696a84970c23f77b64d8c3", size = 3335650 },
+    { url = "https://files.pythonhosted.org/packages/26/60/1ddff83a56d33aaf6f10ec8ce84b4c007d9368b21008876fceda7e7381ef/sphinx-8.1.3-py3-none-any.whl", hash = "sha256:09719015511837b76bf6e03e42eb7595ac8c2e41eeb9c29c5b755c6b677992a2", size = 3487125 },
 ]
 
 [[package]]
 name = "sphinx-autodoc-typehints"
-version = "2.3.0"
+version = "3.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "sphinx" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/74/cd/03e7b917230dc057922130a79ba0240df1693bfd76727ea33fae84b39138/sphinx_autodoc_typehints-2.3.0.tar.gz", hash = "sha256:535c78ed2d6a1bad393ba9f3dfa2602cf424e2631ee207263e07874c38fde084", size = 40709 }
+sdist = { url = "https://files.pythonhosted.org/packages/2f/37/725d06f80cbe85b8538021df4515b7408af231cbe8b201a3bb2cf773a83d/sphinx_autodoc_typehints-3.0.0.tar.gz", hash = "sha256:d5cdab471efb10fcff4ffe81a2ef713398bc891af9d942a4b763f5ed1d9bf550", size = 35943 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a0/f3/e0a4ce49da4b6f4e4ce84b3c39a0677831884cb9d8a87ccbf1e9e56e53ac/sphinx_autodoc_typehints-2.3.0-py3-none-any.whl", hash = "sha256:3098e2c6d0ba99eacd013eb06861acc9b51c6e595be86ab05c08ee5506ac0c67", size = 19836 },
+    { url = "https://files.pythonhosted.org/packages/f2/36/110d38a8b481b915d77461ca68764ebacf7aeba84be7cbe2dc965a65ae80/sphinx_autodoc_typehints-3.0.0-py3-none-any.whl", hash = "sha256:b82bf83e23ae3d5dc25881004a6d6614be6291ff8ff165b2d1e18799f0f6bd74", size = 20041 },
 ]
 
 [[package]]
@@ -2348,16 +2348,19 @@ wheels = [
 
 [[package]]
 name = "sphinx-prompt"
-version = "1.8.0"
+version = "1.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "certifi" },
     { name = "docutils" },
+    { name = "idna" },
     { name = "pygments" },
     { name = "sphinx" },
+    { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e7/fb/7a07b8df1ca2418147a6b13e3f6b445071f2565198b45efa631d0d6ef0cd/sphinx_prompt-1.8.0.tar.gz", hash = "sha256:47482f86fcec29662fdfd23e7c04ef03582714195d01f5d565403320084372ed", size = 5121 }
+sdist = { url = "https://files.pythonhosted.org/packages/34/fe/ac4e24f35b5148b31ac717ae7dcc7a2f7ec56eb729e22c7252ed8ad2d9a5/sphinx_prompt-1.9.0.tar.gz", hash = "sha256:471b3c6d466dce780a9b167d9541865fd4e9a80ed46e31b06a52a0529ae995a1", size = 5340 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/39/49/f890a2668b7cbf375f5528b549c8d36dd2e801b0fbb7b2b5ef65663ecb6c/sphinx_prompt-1.8.0-py3-none-any.whl", hash = "sha256:369ecc633f0711886f9b3a078c83264245be1adf46abeeb9b88b5519e4b51007", size = 7298 },
+    { url = "https://files.pythonhosted.org/packages/76/98/e90ca466e0ede452d3e5a8d92b8fb68db6de269856e019ed9cab69440522/sphinx_prompt-1.9.0-py3-none-any.whl", hash = "sha256:fd731446c03f043d1ff6df9f22414495b23067c67011cc21658ea8d36b3575fc", size = 7311 },
 ]
 
 [[package]]
@@ -2611,7 +2614,7 @@ wheels = [
 
 [[package]]
 name = "unxt"
-version = "1.0.1.dev26+g456e106.d20250108"
+version = "1.0.1.dev25+g89da29b.d20250108"
 source = { editable = "." }
 dependencies = [
     { name = "astropy" },
@@ -2759,8 +2762,8 @@ requires-dist = [
     { name = "jax", extras = ["rocm"], marker = "extra == 'rocm'" },
     { name = "jaxlib", specifier = ">0.4.32" },
     { name = "jaxtyping", specifier = ">=0.2.34" },
-    { name = "matplotlib", marker = "extra == 'all'", specifier = ">=3.4" },
-    { name = "matplotlib", marker = "extra == 'interop-mpl'", specifier = ">=3.4" },
+    { name = "matplotlib", marker = "extra == 'all'", specifier = ">=3.5" },
+    { name = "matplotlib", marker = "extra == 'interop-mpl'", specifier = ">=3.5" },
     { name = "optional-dependencies", specifier = ">=0.3.2" },
     { name = "plum-dispatch", specifier = ">=2.5.5" },
     { name = "quax", specifier = ">=0.0.5" },
@@ -2784,16 +2787,16 @@ dev = [
     { name = "pytest-cov", specifier = ">=3" },
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.2.0" },
-    { name = "pytest-mpl" },
+    { name = "pytest-mpl", specifier = ">=0.17.0" },
     { name = "pytz", specifier = ">=2024.2" },
     { name = "sphinx", specifier = ">=7.0" },
-    { name = "sphinx-autodoc-typehints" },
+    { name = "sphinx-autodoc-typehints", specifier = ">=3.0.0" },
     { name = "sphinx-book-theme", specifier = "==1.1.3" },
-    { name = "sphinx-copybutton" },
-    { name = "sphinx-design" },
+    { name = "sphinx-copybutton", specifier = ">=0.5.2" },
+    { name = "sphinx-design", specifier = ">=0.6.1" },
     { name = "sphinx-prompt", specifier = ">=1.8.0" },
-    { name = "sphinx-tippy" },
-    { name = "sphinx-togglebutton" },
+    { name = "sphinx-tippy", specifier = ">=0.4.3" },
+    { name = "sphinx-togglebutton", specifier = ">=0.3.2" },
     { name = "sphinxext-opengraph", specifier = ">=0.9.1" },
     { name = "sphinxext-rediraffe", specifier = ">=0.2.7" },
     { name = "sybil", specifier = ">=8.0.0" },
@@ -2803,13 +2806,13 @@ docs = [
     { name = "myst-parser", specifier = ">=0.13" },
     { name = "pytz", specifier = ">=2024.2" },
     { name = "sphinx", specifier = ">=7.0" },
-    { name = "sphinx-autodoc-typehints" },
+    { name = "sphinx-autodoc-typehints", specifier = ">=3.0.0" },
     { name = "sphinx-book-theme", specifier = "==1.1.3" },
-    { name = "sphinx-copybutton" },
-    { name = "sphinx-design" },
+    { name = "sphinx-copybutton", specifier = ">=0.5.2" },
+    { name = "sphinx-design", specifier = ">=0.6.1" },
     { name = "sphinx-prompt", specifier = ">=1.8.0" },
-    { name = "sphinx-tippy" },
-    { name = "sphinx-togglebutton" },
+    { name = "sphinx-tippy", specifier = ">=0.4.3" },
+    { name = "sphinx-togglebutton", specifier = ">=0.3.2" },
     { name = "sphinxext-opengraph", specifier = ">=0.9.1" },
     { name = "sphinxext-rediraffe", specifier = ">=0.2.7" },
 ]
@@ -2835,10 +2838,10 @@ test-all = [
     { name = "pytest-cov", specifier = ">=3" },
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.2.0" },
-    { name = "pytest-mpl" },
+    { name = "pytest-mpl", specifier = ">=0.17.0" },
     { name = "sybil", specifier = ">=8.0.0" },
 ]
-test-mpl = [{ name = "pytest-mpl" }]
+test-mpl = [{ name = "pytest-mpl", specifier = ">=0.17.0" }]
 
 [[package]]
 name = "urllib3"
