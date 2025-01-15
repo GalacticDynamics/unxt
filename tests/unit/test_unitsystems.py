@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 
 from unxt import dimension, unit, unitsystems
-from unxt._src.units.system.base import _UNITSYSTEMS_REGISTRY
+from unxt._src.unitsystems.base import _UNITSYSTEMS_REGISTRY
 from unxt.unitsystems import (
     AbstractUnitSystem,
     AbstractUSysFlag,
@@ -28,7 +28,7 @@ from unxt.unitsystems import (
 def clean_unitsystems_registry(monkeypatch):
     clean_registry = {}
     monkeypatch.setattr(
-        "unxt._src.units.system.base._UNITSYSTEMS_REGISTRY", clean_registry
+        "unxt._src.unitsystems.base._UNITSYSTEMS_REGISTRY", clean_registry
     )
     return clean_registry
 

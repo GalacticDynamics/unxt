@@ -28,7 +28,7 @@ def get_dimension_name(pt: str, /) -> str:
 
     Examples
     --------
-    >>> from unxt._src.units.system.utils import get_dimension_name
+    >>> from unxt._src.unitsystems.utils import get_dimension_name
 
     >>> get_dimension_name("length")
     'length'
@@ -58,7 +58,7 @@ def get_dimension_name(pt: AbstractDimension, /) -> str:
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt._src.units.system.utils import get_dimension_name
+    >>> from unxt._src.unitsystems.utils import get_dimension_name
 
     >>> get_dimension_name(u.dimension("length"))
     'length'
@@ -84,7 +84,7 @@ def get_dimension_name(pt: Unit, /) -> str:
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt._src.units.system.utils import get_dimension_name
+    >>> from unxt._src.unitsystems.utils import get_dimension_name
 
     >>> get_dimension_name(u.unit("km"))
     'length'

@@ -78,7 +78,7 @@ class SIUnitSystem(SingletonMixin, AbstractUnitSystem):
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt._src.units.system.builtin import SIUnitSystem
+    >>> from unxt._src.unitsystems.builtin import SIUnitSystem
     >>> usys = SIUnitSystem(
     ...     length=u.unit("meter"),
     ...     time=u.unit("second"),
@@ -136,7 +136,7 @@ class CGSUnitSystem(SingletonMixin, AbstractUnitSystem):
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt._src.units.system.builtin import CGSUnitSystem
+    >>> from unxt._src.unitsystems.builtin import CGSUnitSystem
     >>> usys = CGSUnitSystem(
     ...     length=u.unit("centimeter"),
     ...     time=u.unit("second"),
