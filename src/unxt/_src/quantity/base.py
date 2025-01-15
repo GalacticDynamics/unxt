@@ -965,7 +965,8 @@ def from_(
 # -----------------------------------------------
 # Promotion rules
 
-add_promotion_rule(AbstractQuantity, AbstractQuantity, AbstractQuantity)  # type: ignore[no-untyped-call]
+add_promotion_rule(AbstractQuantity, AbstractQuantity, AbstractQuantity)
+
 
 # ===============================================================
 # Support for ``at``.
