@@ -1632,16 +1632,16 @@ wheels = [
 
 [[package]]
 name = "plum-dispatch"
-version = "2.5.5"
+version = "2.5.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beartype" },
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2d/38/183b965280e0d2c94e62fa96b8aadb72c8b2b4e858b18cd818c590c72332/plum_dispatch-2.5.5.tar.gz", hash = "sha256:96c995002cfb389f255ee228daf370d96e9377afd3486b30fdfcb706732699cb", size = 35387 }
+sdist = { url = "https://files.pythonhosted.org/packages/50/6f/940dcf576c7dff934613a08bf7eaaf54ba3ccdd744137defe784abcd9cbb/plum_dispatch-2.5.6.tar.gz", hash = "sha256:ab25c2b891a14e30e04013a9ca36a3ab3d3e1c02105dc00dab82c47372efea99", size = 35450 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a5/7c/6e2fda096569a9c596459f27821168c473218059861cbdaa4dc4ef36bbda/plum_dispatch-2.5.5-py3-none-any.whl", hash = "sha256:38d5600c31382aa92a229c3397e086699ff2e3d8f8bf8d4786529883661cf998", size = 42521 },
+    { url = "https://files.pythonhosted.org/packages/c7/10/71ef7f92d25521c2be9152e8d117f2ac9281715899f4fb6260bc023f65b2/plum_dispatch-2.5.6-py3-none-any.whl", hash = "sha256:07b6c8b1b453656fc650caf99c4e77f41ee37317062129e3bb558afeae10eeb6", size = 42609 },
 ]
 
 [[package]]
@@ -2614,7 +2614,7 @@ wheels = [
 
 [[package]]
 name = "unxt"
-version = "1.0.1.dev25+g89da29b.d20250108"
+version = "1.0.1.dev26+g1d69f30.d20250115"
 source = { editable = "." }
 dependencies = [
     { name = "astropy" },
@@ -2765,7 +2765,7 @@ requires-dist = [
     { name = "matplotlib", marker = "extra == 'all'", specifier = ">=3.5" },
     { name = "matplotlib", marker = "extra == 'interop-mpl'", specifier = ">=3.5" },
     { name = "optional-dependencies", specifier = ">=0.3.2" },
-    { name = "plum-dispatch", specifier = ">=2.5.5" },
+    { name = "plum-dispatch", specifier = ">=2.5.6" },
     { name = "quax", specifier = ">=0.0.5" },
     { name = "quaxed", specifier = ">=0.7.1" },
     { name = "xmmutablemap", specifier = ">=0.1" },

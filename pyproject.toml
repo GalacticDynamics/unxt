@@ -34,7 +34,7 @@
     "jaxlib>0.4.32",
     "jaxtyping>=0.2.34",
     "optional-dependencies>=0.3.2",
-    "plum-dispatch>=2.5.5",
+    "plum-dispatch>=2.5.6",
     "quax>=0.0.5",
     "quaxed>=0.7.1",
     "xmmutablemap>=0.1",
