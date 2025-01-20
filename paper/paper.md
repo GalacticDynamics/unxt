@@ -56,7 +56,7 @@ existing JAX codebases.
 interface for defining and working with units and unit systems. It supports both
 static and dynamic definitions of unit systems, allowing for flexibility in
 various computational environments. Additionally, `unxt` leverages multiple
-dispatch to enable deep interoperability with other libraries, such as
+dispatch to enable deep interoperability with other libraries, currently
 `astropy`, and to support custom array-like objects in JAX. This extensibility
 makes `unxt` a powerful tool for a wide range of scientific and engineering
 applications, where unit-aware computations are essential.
@@ -98,6 +98,23 @@ class without needing to worry about the underlying JAX interfacing. This design
 allows users to perform unit-aware computations effortlessly, maintaining the
 high performance and flexibility that JAX offers while ensuring the correctness
 and consistency of operations involving physical quantities.
+
+# Related Works
+
+`unxt` is designed to be extensible to other unitful-computation libraries. The
+`unxt` package is not intended to replace these libraries, but rather to provide
+a JAX-optimized frontend. Some prominent libraries include:
+
+- `astropy.units` [@astropy:13; @astropy:22]. The `unxt` package currently uses
+  the unit conversion framework from `astropy.units` package in its backend,
+  providing a more flexible front-end interface and particularly JAX-compatible
+  Quantity classes for doing array computations with units.
+- `unyt` [@unyt:2018]. The `unyt` library is a popular Python package for
+  unit-aware computations. It provides `Quantity` classes that work with (at
+  time of writing) `numpy` [@numpy:2020] and `dask` [@dask:2016] arrays.
+- `pint` [@pint]. The `pint` library is a popular Python package for unit-aware
+  computations. It provides `Quantity` classes that work with many array types,
+  but not `jax` (at time of writing).
 
 # Acknowledgements
 
