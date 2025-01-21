@@ -3,7 +3,7 @@
 
 __all__: list[str] = []
 
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from dataclasses import replace
 from math import prod
 from typing import Any, TypeAlias, TypeVar
@@ -17,11 +17,10 @@ from astropy.units import (  # pylint: disable=no-name-in-module
 )
 from jax import lax, numpy as jnp
 from jax._src.ad_util import add_any_p
-from jax.core import Primitive
 from jaxtyping import Array, ArrayLike
 from plum import promote
 from plum.parametric import type_unparametrized as type_np
-from quax import register as register_
+from quax import register
 
 from quaxed import lax as qlax
 
@@ -35,11 +34,6 @@ from unxt._src.utils import promote_dtypes_if_needed
 T = TypeVar("T")
 
 Axes: TypeAlias = tuple[int, ...]
-
-
-def register(primitive: Primitive, **kwargs: Any) -> Callable[[T], T]:
-    """`quax.register`, but makes mypy happy."""
-    return register_(primitive, **kwargs)
 
 
 def _to_value_rad_or_one(q: AbstractQuantity) -> ArrayLike:
@@ -334,7 +328,7 @@ def _add_any_p(
     Quantity['length'](Array(1.5, dtype=float32, ...), unit='km')
 
     """
-    return replace(x, value=add_any_p.bind(ustrip(x), ustrip(y)))
+    return replace(x, value=add_any_p.bind(ustrip(x), ustrip(y)))  # type: ignore[no-untyped-call]
 
 
 # ==============================================================================
@@ -1078,9 +1072,7 @@ def _cond_p_vq(
     >>> from unxt import Quantity
 
     """
-    # print(branches)
-    # raise AttributeError
-    return lax.cond_p.bind(index, ustrip(consts), branches=branches)
+    return lax.cond_p.bind(index, ustrip(consts), branches=branches)  # type: ignore[no-untyped-call]
 
 
 # ==============================================================================
@@ -1119,7 +1111,8 @@ def _convert_element_type_p(
     """Convert the element type of a quantity."""
     # TODO: examples
     return replace(
-        operand, value=lax.convert_element_type_p.bind(ustrip(operand), **kwargs)
+        operand,
+        value=lax.convert_element_type_p.bind(ustrip(operand), **kwargs),  # type: ignore[no-untyped-call]
     )
 
 
@@ -1146,7 +1139,7 @@ def _copy_p(x: AbstractQuantity) -> AbstractQuantity:
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
-    return replace(x, value=lax.copy_p.bind(ustrip(x)))
+    return replace(x, value=lax.copy_p.bind(ustrip(x)))  # type: ignore[no-untyped-call]
 
 
 # ==============================================================================
@@ -1408,7 +1401,7 @@ def _device_put_p(x: AbstractQuantity, **kwargs: Any) -> AbstractQuantity:
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 
     """
-    return jt.map(lambda y: lax.device_put_p.bind(y, **kwargs), x)
+    return jt.map(lambda y: lax.device_put_p.bind(y, **kwargs), x)  # type: ignore[no-untyped-call]
 
 
 # ==============================================================================
@@ -1865,7 +1858,7 @@ def _exp2_p(x: AbstractQuantity) -> AbstractQuantity:
     Quantity['dimensionless'](Array(8., dtype=float32, ...), unit='')
 
     """
-    return replace(x, value=qlax.exp2(ustrip(one, x)))
+    return replace(x, value=qlax.exp2(ustrip(one, x)))  # type: ignore[attr-defined]
 
 
 # ==============================================================================
@@ -3110,6 +3103,30 @@ def _neg_p(x: AbstractQuantity) -> AbstractQuantity:
     return replace(x, value=qlax.neg(ustrip(x)))
 
 
+# =============================================================================
+
+
+@register(lax.not_p)
+def _not_p(x: AbstractQuantity) -> AbstractQuantity:
+    """Logical negation of a quantity.
+
+    Examples
+    --------
+    >>> from unxt.quantity import UncheckedQuantity
+
+    >>> q = UncheckedQuantity(1, "")
+    >>> ~q
+    UncheckedQuantity(Array(-2, dtype=int32, weak_type=True), unit='')
+
+    >>> from unxt.quantity import Quantity
+    >>> q = Quantity(1, "")
+    >>> ~q
+    Quantity['dimensionless'](Array(-2, dtype=int32, weak_type=True), unit='')
+
+    """
+    return replace(x, value=qlax.bitwise_not(ustrip(one, x)))
+
+
 # ==============================================================================
 
 
@@ -3437,7 +3454,7 @@ def _scan_p(
     u = unit_of(arg0)
     arg0_ = ustrip(u, arg0)
     arg1_ = ustrip(u, arg1)
-    return lax.scan_p.bind(arg0_, arg1_, *args, **kwargs)
+    return lax.scan_p.bind(arg0_, arg1_, *args, **kwargs)  # type: ignore[no-untyped-call]
 
 
 # ==============================================================================
@@ -3596,7 +3613,7 @@ def _select_n_p_jqq(which: ArrayLike, *cases: AbstractQuantity) -> AbstractQuant
     dtypes = tuple(case.dtype for case in cases)
     casesv = promote_dtypes_if_needed(dtypes, *(ustrip(u, case) for case in cases))
 
-    return replace(cases[0], value=qlax.select_n(which, *casesv))
+    return replace(cases[0], value=qlax.select_n(which, *casesv))  # type: ignore[arg-type]
 
 
 # ==============================================================================
@@ -3719,7 +3736,7 @@ def _sort_p_two_operands(
     is_stable: bool,
     num_keys: int,
 ) -> tuple[AbstractQuantity, ArrayLike]:
-    out0, out1 = lax.sort_p.bind(
+    out0, out1 = lax.sort_p.bind(  # type: ignore[no-untyped-call]
         ustrip(operand0),
         operand1,
         dimension=dimension,
@@ -3734,7 +3751,7 @@ def _sort_p_two_operands(
 def _sort_p_one_operand(
     operand: AbstractQuantity, *, dimension: int, is_stable: bool, num_keys: int
 ) -> tuple[AbstractQuantity]:
-    (out,) = lax.sort_p.bind(
+    (out,) = lax.sort_p.bind(  # type: ignore[no-untyped-call]
         ustrip(operand), dimension=dimension, is_stable=is_stable, num_keys=num_keys
     )
     return (type_np(operand)(out, unit=operand.unit),)

@@ -80,6 +80,7 @@ repos:
         files: src
         additional_dependencies:
           - plum-dispatch>=2.5.6
+          - quaxed>=0.8.1
 
   - repo: https://github.com/codespell-project/codespell
     rev: "v2.3.0"
@@ -91,11 +92,3 @@ repos:
   #   hooks:
   #     - id: validate-pyproject
   #       additional_dependencies: ["validate-pyproject-schema-store[all]"]
-
-  - repo: local
-    hooks:
-      - id: disallow-caps
-        name: Disallow improper capitalization
-        language: pygrep
-        entry: PyBind|Numpy|Cmake|CCache|Github|PyTest
-        exclude: .pre-commit-config.yaml

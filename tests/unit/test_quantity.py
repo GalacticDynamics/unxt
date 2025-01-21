@@ -138,8 +138,13 @@ def test_getitem():
 
 def test_len():
     """Test the ``len(Quantity)`` method."""
+    # Length 3
     q = u.Quantity([1, 2, 3], "m")
     assert len(q) == 3
+
+    # Scalar
+    q = u.Quantity(1, "m")
+    assert len(q) == 0
 
 
 @pytest.mark.skip("TODO")
