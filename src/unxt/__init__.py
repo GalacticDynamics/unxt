@@ -38,6 +38,7 @@ __all__ = [
     # quantities
     "quantity",  # module
     "Quantity",  # main class
+    "AbstractQuantity",  # base class
     "uconvert",  # convert units
     "ustrip",  # strip units
     "is_unit_convertible",  # check if units can be converted
@@ -51,7 +52,13 @@ with install_import_hook("unxt", RUNTIME_TYPECHECKER):
     from . import dims, quantity, units, unitsystems
     from ._version import version as __version__
     from .dims import dimension, dimension_of
-    from .quantity import Quantity, is_unit_convertible, uconvert, ustrip
+    from .quantity import (
+        AbstractQuantity,
+        Quantity,
+        is_unit_convertible,
+        uconvert,
+        ustrip,
+    )
     from .units import unit, unit_of
     from .unitsystems import AbstractUnitSystem, unitsystem, unitsystem_of
 
