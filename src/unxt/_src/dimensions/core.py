@@ -3,7 +3,7 @@
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-__all__ = ["dimension", "dimension_of"]
+__all__: list[str] = []
 
 from typing import Any, TypeAlias
 
@@ -11,26 +11,13 @@ import astropy.units as apyu
 from astropy.units import Unit
 from plum import dispatch
 
+from .api import AbstractDimension
+
 AbstractUnits: TypeAlias = apyu.UnitBase | Unit
-AbstractDimension: TypeAlias = apyu.PhysicalType
 
 
 # ===================================================================
 # Construct the dimensions
-
-
-@dispatch.abstract
-def dimension(obj: Any, /) -> AbstractDimension:
-    """Construct the dimension.
-
-    .. note::
-
-        This function uses multiple dispatch. Dispatches made in other modules
-        may not be included in the rendered docs. To see the full range of
-        options, execute ``unxt.dims.dimension.methods`` in an interactive
-        Python session.
-
-    """
 
 
 @dispatch
@@ -69,20 +56,6 @@ def dimension(obj: str, /) -> AbstractDimension:
 
 # ===================================================================
 # Get the dimension
-
-
-@dispatch.abstract
-def dimension_of(obj: Any, /) -> AbstractDimension:
-    """Return the dimension of the given units.
-
-    .. note::
-
-        This function uses multiple dispatch. Dispatches made in other modules
-        may not be included in the rendered docs. To see the full range of
-        options, execute ``unxt.dimension_of.methods`` in an interactive Python
-        session.
-
-    """
 
 
 @dispatch
