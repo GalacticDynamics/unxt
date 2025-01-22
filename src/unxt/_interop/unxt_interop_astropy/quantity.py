@@ -21,14 +21,14 @@ from unxt.units import unit, unit_of
 
 
 @dispatch
-def value_converter(obj: AstropyQuantity, /) -> NoReturn:
+def convert_to_quantity_value(obj: AstropyQuantity, /) -> NoReturn:
     """Disallow conversion of `AstropyQuantity` to a value.
 
     >>> import astropy.units as apyu
-    >>> from unxt.quantity import value_converter
+    >>> from unxt.quantity import convert_to_quantity_value
 
     >>> try:
-    ...     value_converter(apyu.Quantity(1, "m"))
+    ...     convert_to_quantity_value(apyu.Quantity(1, "m"))
     ... except TypeError as e:
     ...     print(e)
     Cannot convert 'Quantity' to a value.

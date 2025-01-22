@@ -22,7 +22,7 @@ with install_import_hook("unxt.quantity", RUNTIME_TYPECHECKER):
     from ._src.quantity.base_parametric import AbstractParametricQuantity
     from ._src.quantity.quantity import Quantity
     from ._src.quantity.unchecked import UncheckedQuantity
-    from ._src.quantity.value import value_converter
+    from ._src.quantity.value import convert_to_quantity_value
 
 # isort: split
 # Register dispatches and conversions
@@ -47,7 +47,7 @@ __all__: list[str] = [
     "ustrip",
     "is_unit_convertible",
     "is_any_quantity",
-    "value_converter",
+    "convert_to_quantity_value",
 ]
 
 

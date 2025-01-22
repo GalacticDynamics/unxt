@@ -1,4 +1,4 @@
-__all__ = ["value_converter"]
+__all__ = ["convert_to_quantity_value"]
 
 import warnings
 from typing import Any, NoReturn
@@ -13,13 +13,13 @@ from .base import AbstractQuantity
 
 
 @dispatch.abstract
-def value_converter(obj: Any, /) -> Any:
+def convert_to_quantity_value(obj: Any, /) -> Any:
     """Convert for the value field of an `AbstractQuantity` subclass."""
     raise NotImplementedError  # pragma: no cover
 
 
 @dispatch
-def value_converter(obj: quax.ArrayValue, /) -> Any:
+def convert_to_quantity_value(obj: quax.ArrayValue, /) -> Any:
     """Convert a `quax.ArrayValue` for the value field.
 
     >>> import warnings
@@ -40,7 +40,7 @@ def value_converter(obj: quax.ArrayValue, /) -> Any:
     >>> x = MyArray(jnp.array([1, 2, 3]))
     >>> with warnings.catch_warnings(record=True) as w:
     ...     warnings.simplefilter("always")
-    ...     y = value_converter(x)
+    ...     y = convert_to_quantity_value(x)
     >>> y
     MyArray(value=i32[3])
     >>> print(f"Warning caught: {w[-1].message}")
@@ -57,13 +57,13 @@ def value_converter(obj: quax.ArrayValue, /) -> Any:
 
 
 @dispatch
-def value_converter(obj: ArrayLike | list[Any] | tuple[Any, ...], /) -> Array:
+def convert_to_quantity_value(obj: ArrayLike | list[Any] | tuple[Any, ...], /) -> Array:
     """Convert an array-like object to a `jax.numpy.ndarray`.
 
     >>> import jax.numpy as jnp
-    >>> from unxt.quantity import value_converter
+    >>> from unxt.quantity import convert_to_quantity_value
 
-    >>> value_converter([1, 2, 3])
+    >>> convert_to_quantity_value([1, 2, 3])
     Array([1, 2, 3], dtype=int32)
 
     """
@@ -71,14 +71,14 @@ def value_converter(obj: ArrayLike | list[Any] | tuple[Any, ...], /) -> Array:
 
 
 @dispatch
-def value_converter(obj: AbstractQuantity, /) -> NoReturn:
+def convert_to_quantity_value(obj: AbstractQuantity, /) -> NoReturn:
     """Disallow conversion of `AbstractQuantity` to a value.
 
     >>> import unxt as u
-    >>> from unxt.quantity import value_converter
+    >>> from unxt.quantity import convert_to_quantity_value
 
     >>> try:
-    ...     value_converter(u.Quantity(1, "m"))
+    ...     convert_to_quantity_value(u.Quantity(1, "m"))
     ... except TypeError as e:
     ...     print(e)
     Cannot convert 'Quantity[PhysicalType('length')]' to a value.
