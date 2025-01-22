@@ -50,7 +50,9 @@ class SingletonMixin:
 class HasDType(Protocol):
     """Protocol for objects that have a dtype attribute."""
 
-    dtype: DType
+    @property
+    def dtype(self) -> DType:
+        """The dtype of the object."""
 
 
 def promote_dtypes(*arrays: HasDType) -> tuple[HasDType, ...]:
@@ -77,7 +79,7 @@ def promote_dtypes(*arrays: HasDType) -> tuple[HasDType, ...]:
     """
     common_dtype = dtypes.result_type(*arrays)
     # TODO: check if this copies.
-    return tuple(qlax.convert_element_type(arr, common_dtype) for arr in arrays)
+    return tuple(qlax.convert_element_type(arr, common_dtype) for arr in arrays)  # type: ignore[arg-type]
 
 
 def promote_dtypes_if_needed(

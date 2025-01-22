@@ -7,19 +7,20 @@ from collections.abc import Callable, Mapping
 from functools import partial
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeGuard, TypeVar
+from typing_extensions import override
 
 import equinox as eqx
 import jax
 import jax.core
 from astropy.units import UnitConversionError
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
-from jaxtyping import Array, ArrayLike, ScalarLike, Shaped
+from jaxtyping import Array, ArrayLike, Bool, ScalarLike, Shaped
 from plum import add_promotion_rule, dispatch
 from quax import ArrayValue
 
 import quaxed.numpy as jnp
-import quaxed.operator as qoperator
-from dataclassish import fields, replace
+from dataclassish import replace
+from quaxed.experimental import arrayish
 
 from .api import is_unit_convertible, uconvert, ustrip
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
@@ -55,7 +56,16 @@ class AbstractQuantity(
     AstropyQuantityCompatMixin,
     NumPyCompatMixin,
     IPythonReprMixin,
-    ArrayValue,  # type: ignore[misc]
+    ArrayValue,
+    arrayish.NumpyBinaryOpsMixin[Any, "AbstractQuantity"],
+    arrayish.NumpyComparisonMixin[Any, Bool[Array, "*shape"]],  # TODO: shape hint
+    arrayish.NumpyUnaryMixin["AbstractQuantity"],
+    arrayish.NumpyRoundMixin["AbstractQuantity"],
+    arrayish.NumpyTruncMixin["AbstractQuantity"],
+    arrayish.NumpyFloorMixin["AbstractQuantity"],
+    arrayish.NumpyCeilMixin["AbstractQuantity"],
+    arrayish.LaxLenMixin,
+    arrayish.LaxLengthHintMixin,
 ):
     """Represents an array, with each axis bound to a name.
 
@@ -175,7 +185,7 @@ class AbstractQuantity(
         raise RuntimeError(msg)
 
     def aval(self) -> jax.core.ShapedArray:
-        return jax.core.get_aval(self.value)
+        return jax.core.get_aval(self.value)  # type: ignore[no-untyped-call]
 
     def enable_materialise(self, _: bool = True) -> "Self":  # noqa: FBT001, FBT002
         return replace(self, value=self.value, unit=self.unit)
@@ -289,47 +299,6 @@ class AbstractQuantity(
     # ---------------------------------------------------------------
     # arithmetic operators
 
-    def __pos__(self) -> "AbstractQuantity":
-        """Return the value of the array.
-
-        Examples
-        --------
-        >>> import unxt as u
-        >>> q = u.Quantity(1, "m")
-        >>> +q
-        Quantity['length'](Array(1, dtype=int32, ...), unit='m')
-
-        """
-        return replace(self, value=+self.value)  # pylint: disable=E1130
-
-    def __neg__(self) -> "AbstractQuantity":
-        """Negate the value of the array.
-
-        Examples
-        --------
-        >>> import unxt as u
-        >>> q = u.Quantity(1, "m")
-        >>> -q
-        Quantity['length'](Array(-1, dtype=int32, ...), unit='m')
-
-        """
-        return replace(self, value=-self.value)  # pylint: disable=E1130
-
-    __add__ = qoperator.add
-    __radd__ = _flip_binop(qoperator.add)
-
-    __sub__ = qoperator.sub
-    __rsub__ = _flip_binop(qoperator.sub)
-
-    __mul__ = qoperator.mul
-    __rmul__ = _flip_binop(qoperator.mul)
-
-    __truediv__ = qoperator.truediv
-    __rtruediv__ = _flip_binop(qoperator.truediv)
-
-    __floordiv__ = qoperator.floordiv
-    __rfloordiv__ = _flip_binop(qoperator.floordiv)
-
     @dispatch
     def __mod__(self: "AbstractQuantity", other: Any) -> "AbstractQuantity":
         """Take the modulus.
@@ -363,45 +332,11 @@ class AbstractQuantity(
         """
         return self % other
 
-    __pow__ = qoperator.pow
-    __rpow__ = _flip_binop(qoperator.pow)
-
-    # ---------------------------------------------------------------
-    # array operators
-
-    __matmul__ = qoperator.matmul
-    __rmatmul__ = _flip_binop(qoperator.matmul)
-
-    # ---------------------------------------------------------------
-    # bitwise operators
-    # TODO: handle edge cases, e.g. boolean Quantity, not in Astropy
-
-    # __invert__ = qoperator.invert
-    # __and__ = qoperator.and_
-    # __rand__ = _flip_binop(qoperator.and_)
-    # __or__ = qoperator.or_
-    # __ror__ = _flip_binop(qoperator.or_)
-    # __xor__ = qoperator.xor
-    # __rxor__ = _flip_binop(qoperator.xor)
-    # __lshift__ = qoperator.lshift
-    # __rlshift__ = _flip_binop(qoperator.lshift)
-    # __rshift__ = qoperator.rshift
-    # __rrshift__ = _flip_binop(qoperator.rshift)
-
-    # ---------------------------------------------------------------
-    # comparison operators
-
-    __lt__ = bool_op(jnp.less)
-    __le__ = bool_op(jnp.less_equal)
-    __eq__ = bool_op(jnp.equal)
-    __ge__ = bool_op(jnp.greater_equal)
-    __gt__ = bool_op(jnp.greater)
-    __ne__ = bool_op(jnp.not_equal)
+    # required to override mixin methods
+    __eq__ = arrayish.NumpyEqMixin.__eq__
 
     # ---------------------------------------------------------------
     # methods
-
-    __abs__ = qoperator.abs
 
     def __bool__(self) -> bool:
         """Convert a zero-dimensional array to a Python bool object.
@@ -538,29 +473,6 @@ class AbstractQuantity(
         """
         yield from (self[i] for i in range(len(self.value)))
 
-    def __len__(self) -> int:
-        """Return the length of the array.
-
-        Examples
-        --------
-        >>> import unxt as u
-
-        Length of an unsized array:
-
-        >>> try:
-        ...     len(u.Quantity(1, "m"))
-        ... except TypeError as e:
-        ...     print(e)
-        len() of unsized object
-
-        Length of a sized array:
-
-        >>> len(u.Quantity([1, 2, 3], "m"))
-        3
-
-        """
-        return len(self.value)
-
     def argmax(self, *args: Any, **kwargs: Any) -> Array:
         """Return the indices of the maximum value.
 
@@ -605,7 +517,7 @@ class AbstractQuantity(
 
     @partial(property, doc=jax.Array.at.__doc__)
     def at(self) -> "_QuantityIndexUpdateHelper":
-        return _QuantityIndexUpdateHelper(self)
+        return _QuantityIndexUpdateHelper(self)  # type: ignore[no-untyped-call]
 
     def block_until_ready(self) -> "AbstractQuantity":
         """Block until the array is ready.
@@ -756,25 +668,6 @@ class AbstractQuantity(
 
     # ===============================================================
     # Python stuff
-
-    def __hash__(self) -> int:
-        """Hash the object as the tuple of its field values.
-
-        This raises a `TypeError` if the object is unhashable,
-        which JAX arrays are.
-
-        Examples
-        --------
-        >>> import unxt as u
-        >>> q1 = u.Quantity(1, "m")
-        >>> try:
-        ...     hash(q1)
-        ... except TypeError as e:
-        ...     print(e)
-        unhashable type: ...
-
-        """
-        return hash(tuple(getattr(self, f.name) for f in fields(self)))
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self.value!r}, unit={self.unit.to_string()!r})"
@@ -976,9 +869,9 @@ add_promotion_rule(AbstractQuantity, AbstractQuantity, AbstractQuantity)
 # runtime-checkable type annotation in `AbstractQuantity.at`.
 # `_QuantityIndexUpdateRef` is defined after `AbstractQuantity` because it
 # references `AbstractQuantity` in its runtime-checkable type annotations.
-class _QuantityIndexUpdateHelper(_IndexUpdateHelper):  # type: ignore[misc]
+class _QuantityIndexUpdateHelper(_IndexUpdateHelper):
     def __getitem__(self, index: Any) -> "_IndexUpdateRef":
-        return _QuantityIndexUpdateRef(self.array, index)
+        return _QuantityIndexUpdateRef(self.array, index)  # type: ignore[no-untyped-call]
 
     def __repr__(self) -> str:
         """Return a string representation of the object.
@@ -994,14 +887,15 @@ class _QuantityIndexUpdateHelper(_IndexUpdateHelper):  # type: ignore[misc]
         return f"_QuantityIndexUpdateHelper({self.array!r})"
 
 
-class _QuantityIndexUpdateRef(_IndexUpdateRef):  # type: ignore[misc]
+class _QuantityIndexUpdateRef(_IndexUpdateRef):
     # This is a subclass of `_IndexUpdateRef` that is used to implement the `at`
     # attribute of `AbstractQuantity`. See also `_QuantityIndexUpdateHelper`.
 
     def __repr__(self) -> str:
         return super().__repr__().replace("_IndexUpdateRef", "_QuantityIndexUpdateRef")
 
-    def get(
+    @override
+    def get(  # type: ignore[override]
         self,
         *,
         indices_are_sorted: bool = False,

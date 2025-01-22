@@ -521,7 +521,6 @@ def test_bitwise_left_shift():
     assert jnp.array_equal(got.value, expected.value)
 
 
-@pytest.mark.xfail(reason="TODO")
 def test_bitwise_invert():
     """Test `bitwise_invert`."""
     x = u.Quantity(jnp.asarray([1, 2, 3], dtype=int), "")
@@ -836,7 +835,6 @@ def test_logical_and():
     assert jnp.array_equal(got, expected)
 
 
-@pytest.mark.xfail(reason="TODO")
 def test_logical_not():
     """Test `logical_not`."""
     x = u.Quantity([True, False, True], "")

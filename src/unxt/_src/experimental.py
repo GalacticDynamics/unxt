@@ -24,19 +24,20 @@ __all__ = ["grad", "hessian", "jacfwd"]
 
 from collections.abc import Callable
 from functools import partial
-from typing import Any, ParamSpec, TypeVar
+from typing import Any, TypeVar, TypeVarTuple
+from typing_extensions import Unpack
 
 import equinox as eqx
 import jax
 from jaxtyping import ArrayLike
 from plum.parametric import type_unparametrized
 
-from .quantity import Quantity, ustrip
+from .quantity import AbstractQuantity, UncheckedQuantity as FastQ, ustrip
 from .typing_ext import Unit
 from .units import unit, unit_of
 
-P = ParamSpec("P")
-R = TypeVar("R", bound=Quantity)
+Args = TypeVarTuple("Args")
+R = TypeVar("R", bound=AbstractQuantity)
 
 
 def unit_or_none(obj: Any) -> Unit | None:
@@ -44,8 +45,8 @@ def unit_or_none(obj: Any) -> Unit | None:
 
 
 def grad(
-    fun: Callable[P, R], argnums: int = 0, *, units: tuple[Unit | str, ...]
-) -> Callable[P, R]:
+    fun: Callable[[Unpack[Args]], R], argnums: int = 0, *, units: tuple[Unit | str, ...]
+) -> Callable[[Unpack[Args]], R]:
     """Gradient of a function with units.
 
     In general, if you can use ``quax.quaxify(jax.grad(func))`` (or the
@@ -76,22 +77,22 @@ def grad(
 
     # Gradient of function, stripping and adding units
     @partial(jax.grad, argnums=argnums)
-    def gradfun_mag(*args: P.args) -> ArrayLike:
+    def gradfun_mag(*args: Any) -> ArrayLike:
         args_ = (
-            (a if unit is None else Quantity(a, unit))
+            (a if unit is None else FastQ(a, unit))
             for a, unit in zip(args, theunits, strict=True)
         )
-        return ustrip(fun(*args_))  # type: ignore[call-arg]
+        return ustrip(fun(*args_))  # type: ignore[arg-type]
 
-    def gradfun(*args: P.args, **kw: P.kwargs) -> R:
+    def gradfun(*args: Unpack[Args]) -> R:
         # Get the value of the args. They are turned back into Quantity
         # inside the function we are taking the grad of.
-        args_ = tuple(
+        args_ = tuple(  # type: ignore[var-annotated]
             (a if unit is None else ustrip(unit, a))
-            for a, unit in zip(args, theunits, strict=True)
+            for a, unit in zip(args, theunits, strict=True)  # type: ignore[arg-type]
         )
         # Call the grad, returning a Quantity
-        value = fun(*args)  # type: ignore[call-arg]
+        value = fun(*args)
         grad_value = gradfun_mag(*args_)
         # Adjust the Quantity by the units of the derivative
         # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
@@ -103,8 +104,8 @@ def grad(
 
 
 def jacfwd(
-    fun: Callable[P, R], argnums: int = 0, *, units: tuple[Unit | str, ...]
-) -> Callable[P, R]:
+    fun: Callable[[Unpack[Args]], R], argnums: int = 0, *, units: tuple[Unit | str, ...]
+) -> Callable[[Unpack[Args]], R]:
     """Jacobian of ``fun`` evaluated column-by-column using forward-mode AD.
 
     In general, if you can use `quax.quaxify(jax.jacfwd(func))` (or the
@@ -128,7 +129,7 @@ def jacfwd(
 
     >>> jacfwd_cubbe_volume = u.experimental.jacfwd(cubbe_volume, units=("m",))
     >>> jacfwd_cubbe_volume(u.Quantity(2.0, "m"))
-    Quantity['area'](Array(12., dtype=float32, weak_type=True), unit='m2')
+    UncheckedQuantity(Array(12., dtype=float32, weak_type=True), unit='m2')
 
     """
     argnums = eqx.error_if(
@@ -140,19 +141,19 @@ def jacfwd(
     theunits: tuple[Unit | None, ...] = tuple(map(unit_or_none, units))
 
     @partial(jax.jacfwd, argnums=argnums)
-    def jacfun_mag(*args: P.args) -> R:
-        args_ = (
-            (a if unit is None else Quantity(a, unit))
+    def jacfun_mag(*args: Any) -> R:
+        args_ = tuple(
+            (a if unit is None else FastQ(a, unit))
             for a, unit in zip(args, theunits, strict=True)
         )
-        return fun(*args_)  # type: ignore[call-arg]
+        return fun(*args_)  # type: ignore[arg-type]
 
-    def jacfun(*args: P.args, **kw: P.kwargs) -> R:
+    def jacfun(*args: Unpack[Args]) -> R:
         # Get the value of the args. They are turned back into Quantity
         # inside the function we are taking the Jacobian of.
-        args_ = tuple(
+        args_ = tuple(  # type: ignore[var-annotated]
             (a if unit is None else ustrip(unit, a))
-            for a, unit in zip(args, theunits, strict=True)
+            for a, unit in zip(args, theunits, strict=True)  # type: ignore[arg-type]
         )
         # Call the Jacobian, returning a Quantity
         value = jacfun_mag(*args_)
@@ -167,8 +168,8 @@ def jacfwd(
 
 
 def hessian(
-    fun: Callable[P, R], argnums: int = 0, *, units: tuple[Unit | str, ...]
-) -> Callable[P, R]:
+    fun: Callable[[Unpack[Args]], R], argnums: int = 0, *, units: tuple[Unit | str, ...]
+) -> Callable[[Unpack[Args]], R]:
     """Hessian.
 
     In general, if you can use `quax.quaxify(jax.hessian(func))` (or the
@@ -192,25 +193,25 @@ def hessian(
 
     >>> hessian_cubbe_volume = u.experimental.hessian(cubbe_volume, units=("m",))
     >>> hessian_cubbe_volume(u.Quantity(2.0, "m"))
-    Quantity['length'](Array(12., dtype=float32, weak_type=True), unit='m')
+    UncheckedQuantity(Array(12., dtype=float32, weak_type=True), unit='m')
 
     """
     theunits: tuple[Unit, ...] = tuple(map(unit_or_none, units))
 
     @partial(jax.hessian)
-    def hessfun_mag(*args: P.args) -> R:
-        args_ = (
-            (a if unit is None else Quantity(a, unit))
+    def hessfun_mag(*args: Any) -> R:
+        args_ = tuple(
+            (a if unit is None else FastQ(a, unit))
             for a, unit in zip(args, theunits, strict=True)
         )
-        return fun(*args_)  # type: ignore[call-arg]
+        return fun(*args_)  # type: ignore[arg-type]
 
-    def hessfun(*args: P.args, **kw: P.kwargs) -> R:
+    def hessfun(*args: Unpack[Args]) -> R:
         # Get the value of the args. They are turned back into Quantity
         # inside the function we are taking the hessian of.
-        args_ = tuple(
+        args_ = tuple(  # type: ignore[var-annotated]
             (a if unit is None else ustrip(unit, a))
-            for a, unit in zip(args, units, strict=True)
+            for a, unit in zip(args, units, strict=True)  # type: ignore[arg-type]
         )
         # Call the hessian, returning a Quantity
         value = hessfun_mag(*args_)
