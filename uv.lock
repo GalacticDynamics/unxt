@@ -2627,7 +2627,7 @@ wheels = [
 
 [[package]]
 name = "unxt"
-version = "1.0.1.dev29+g49de864.d20250122"
+version = "1.0.1.dev30+gc7ae4f5.d20250122"
 source = { editable = "." }
 dependencies = [
     { name = "astropy" },
