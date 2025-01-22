@@ -13,7 +13,7 @@ The main features are:
 # ruff:noqa: F403
 
 from ._src.quantity.api import is_unit_convertible, uconvert, ustrip
-from ._src.quantity.base import AbstractQuantity
+from ._src.quantity.base import AbstractQuantity, is_any_quantity
 from ._src.quantity.base_parametric import AbstractParametricQuantity
 from ._src.quantity.quantity import Quantity
 from ._src.quantity.unchecked import UncheckedQuantity
@@ -40,6 +40,7 @@ __all__: list[str] = [
     "uconvert",
     "ustrip",
     "is_unit_convertible",
+    "is_any_quantity",
 ]
 
 
