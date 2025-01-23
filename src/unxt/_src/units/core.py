@@ -57,11 +57,6 @@ def unit(obj: str, /) -> AbstractUnits:
 # Get units
 
 
-@dispatch.abstract
-def unit_of(obj: Any, /) -> AbstractUnits:
-    """Return the units of an object."""
-
-
 @dispatch
 def unit_of(obj: Any, /) -> None:
     """Return the units of an object.
