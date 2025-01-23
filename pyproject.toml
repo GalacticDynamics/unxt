@@ -220,6 +220,9 @@ UNXT_ENABLE_RUNTIME_TYPECHECKING = "beartype.beartype"
       "noxfile.py"   = ["T20"]
       "tests/**"     = ["ANN", "E731", "S101", "SLF001", "T20"]
 
+    [tool.ruff.lint.flake8-import-conventions.aliases]
+      equinox = "eqx"
+
     [tool.ruff.lint.isort]
       combine-as-imports = true
       extra-standard-library = ["typing_extensions"]
