@@ -3,10 +3,10 @@
 
 __all__ = ["AbstractQuantity", "is_any_quantity"]
 
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 from functools import partial
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeGuard, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeGuard
 from typing_extensions import override
 
 import equinox as eqx
@@ -31,25 +31,7 @@ if TYPE_CHECKING:
     from typing import Self
 
 
-FMT = TypeVar("FMT")
 ArrayLikeSequence: TypeAlias = list[ScalarLike] | tuple[ScalarLike, ...]
-
-
-def _flip_binop(binop: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
-    def _binop(x: Any, y: Any) -> Any:
-        return binop(y, x)
-
-    return _binop
-
-
-def bool_op(op: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
-    def _op(self: "AbstractQuantity", other: Any) -> Shaped[Array, "..."]:
-        return op(self, other)
-
-    return _op
-
-
-##############################################################################
 
 
 class AbstractQuantity(
