@@ -40,10 +40,6 @@ def _to_value_rad_or_one(q: AbstractQuantity) -> ArrayLike:
     return ustrip(radian if is_unit_convertible(q.unit, radian) else one, q)
 
 
-def _bshape(arrs: tuple[Any, ...], /) -> tuple[int, ...]:
-    return jnp.broadcast_shapes(*map(jnp.shape, arrs))
-
-
 ################################################################################
 # Registering Primitives
 
@@ -51,7 +47,7 @@ def _bshape(arrs: tuple[Any, ...], /) -> tuple[int, ...]:
 
 
 @register(lax.abs_p)
-def _abs_p(x: AbstractQuantity) -> AbstractQuantity:
+def abs_p(x: AbstractQuantity) -> AbstractQuantity:
     """Absolute value of a quantity.
 
     Examples
@@ -79,7 +75,7 @@ def _abs_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.acos_p)
-def _acos_p_aq(x: AbstractQuantity) -> AbstractQuantity:
+def acos_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     """Inverse cosine of a quantity.
 
     Examples
@@ -104,7 +100,7 @@ def _acos_p_aq(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.acosh_p)
-def _acosh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
+def acosh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     """Inverse hyperbolic cosine of a quantity.
 
     Examples
@@ -130,7 +126,7 @@ def _acosh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.add_p)
-def _add_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+def add_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     """Add two quantities.
 
     Examples
@@ -163,7 +159,7 @@ def _add_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.add_p)
-def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
+def add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     """Add a value and a quantity.
 
     Examples
@@ -230,7 +226,7 @@ def _add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.add_p)
-def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
+def add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     """Add a quantity and a value.
 
     Examples
@@ -306,7 +302,7 @@ def _add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 
 @register(add_any_p)
-def _add_any_p(
+def add_any_p(
     x: AbstractParametricQuantity, y: AbstractParametricQuantity
 ) -> AbstractParametricQuantity:
     """Add two quantities using the ``jax._src.ad_util.add_any_p``.
@@ -335,7 +331,7 @@ def _add_any_p(
 
 
 @register(lax.and_p)
-def _and_p_aq(x1: AbstractQuantity, x2: AbstractQuantity, /) -> ArrayLike:
+def and_p_aq(x1: AbstractQuantity, x2: AbstractQuantity, /) -> ArrayLike:
     """Bitwise AND of two quantities.
 
     Examples
@@ -361,7 +357,7 @@ def _and_p_aq(x1: AbstractQuantity, x2: AbstractQuantity, /) -> ArrayLike:
 
 
 @register(lax.argmax_p)
-def _argmax_p(
+def argmax_p(
     operand: AbstractQuantity, *, axes: Any, index_dtype: Any
 ) -> AbstractQuantity:
     """Argmax of a Quantity.
@@ -387,7 +383,7 @@ def _argmax_p(
 
 
 @register(lax.argmin_p)
-def _argmin_p(
+def argmin_p(
     operand: AbstractQuantity, *, axes: Any, index_dtype: Any
 ) -> AbstractQuantity:
     """Argmin of a quantity.
@@ -413,7 +409,7 @@ def _argmin_p(
 
 
 @register(lax.asin_p)
-def _asin_p_aq(x: AbstractQuantity) -> AbstractQuantity:
+def asin_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     """Inverse sine of a quantity.
 
     Examples
@@ -429,7 +425,7 @@ def _asin_p_aq(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.asin_p)
-def _asin_p_q(
+def asin_p_q(
     x: AbstractParametricQuantity["dimensionless"],
 ) -> AbstractParametricQuantity["angle"]:
     """Inverse sine of a quantity.
@@ -450,7 +446,7 @@ def _asin_p_q(
 
 
 @register(lax.asinh_p)
-def _asinh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
+def asinh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     """Inverse hyperbolic sine of a quantity.
 
     Examples
@@ -466,7 +462,7 @@ def _asinh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.asinh_p)
-def _asinh_p_q(
+def asinh_p_q(
     x: AbstractParametricQuantity["dimensionless"],
 ) -> AbstractParametricQuantity["angle"]:
     """Inverse hyperbolic sine of a quantity.
@@ -487,7 +483,7 @@ def _asinh_p_q(
 
 
 @register(lax.atan2_p)
-def _atan2_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+def atan2_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     """Arctangent2 of two abstract quantities.
 
     Examples
@@ -506,7 +502,7 @@ def _atan2_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.atan2_p)
-def _atan2_p_qq(
+def atan2_p_qq(
     x: AbstractParametricQuantity, y: AbstractParametricQuantity
 ) -> AbstractParametricQuantity["radian"]:
     """Arctangent2 of two quantities.
@@ -530,7 +526,7 @@ def _atan2_p_qq(
 
 
 @register(lax.atan2_p)
-def _atan2_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
+def atan2_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     """Arctangent2 of a value and a quantity.
 
     Examples
@@ -548,7 +544,7 @@ def _atan2_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.atan2_p)
-def _atan2_p_vq(
+def atan2_p_vq(
     x: ArrayLike, y: AbstractParametricQuantity["dimensionless"]
 ) -> AbstractParametricQuantity["angle"]:
     """Arctangent2 of a value and a quantity.
@@ -571,7 +567,7 @@ def _atan2_p_vq(
 
 
 @register(lax.atan2_p)
-def _atan2_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
+def atan2_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     """Arctangent2 of a quantity and a value.
 
     Examples
@@ -589,7 +585,7 @@ def _atan2_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 
 @register(lax.atan2_p)
-def _atan2_p_qv(
+def atan2_p_qv(
     x: AbstractParametricQuantity["dimensionless"], y: ArrayLike
 ) -> AbstractParametricQuantity["angle"]:
     """Arctangent2 of a quantity and a value.
@@ -612,7 +608,7 @@ def _atan2_p_qv(
 
 
 @register(lax.atan_p)
-def _atan_p_aq(x: AbstractQuantity) -> AbstractQuantity:
+def atan_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     """Arctangent of a quantity.
 
     Examples
@@ -628,7 +624,7 @@ def _atan_p_aq(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.atan_p)
-def _atan_p_q(
+def atan_p_q(
     x: AbstractParametricQuantity["dimensionless"],
 ) -> AbstractParametricQuantity["angle"]:
     """Arctangent of a quantity.
@@ -649,7 +645,7 @@ def _atan_p_q(
 
 
 @register(lax.atanh_p)
-def _atanh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
+def atanh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     """Inverse hyperbolic tangent of a quantity.
 
     Examples
@@ -665,7 +661,7 @@ def _atanh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.atanh_p)
-def _atanh_p_q(
+def atanh_p_q(
     x: AbstractParametricQuantity["dimensionless"],
 ) -> AbstractParametricQuantity["angle"]:
     """Inverse hyperbolic tangent of a quantity.
@@ -686,7 +682,7 @@ def _atanh_p_q(
 
 
 @register(lax.broadcast_in_dim_p)
-def _broadcast_in_dim_p(operand: AbstractQuantity, **kwargs: Any) -> AbstractQuantity:
+def broadcast_in_dim_p(operand: AbstractQuantity, **kwargs: Any) -> AbstractQuantity:
     """Broadcast a quantity in a specific dimension."""
     return replace(operand, value=qlax.broadcast_in_dim(ustrip(operand), **kwargs))
 
@@ -695,7 +691,7 @@ def _broadcast_in_dim_p(operand: AbstractQuantity, **kwargs: Any) -> AbstractQua
 
 
 @register(lax.cbrt_p)
-def _cbrt_p(x: AbstractQuantity) -> AbstractQuantity:
+def cbrt_p(x: AbstractQuantity) -> AbstractQuantity:
     """Cube root of a quantity.
 
     Examples
@@ -720,7 +716,7 @@ def _cbrt_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.ceil_p)
-def _ceil_p(x: AbstractQuantity) -> AbstractQuantity:
+def ceil_p(x: AbstractQuantity) -> AbstractQuantity:
     """Ceiling of a quantity.
 
     Examples
@@ -744,7 +740,7 @@ def _ceil_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.clamp_p)
-def _clamp_p(
+def clamp_p(
     min: AbstractQuantity, x: AbstractQuantity, max: AbstractQuantity
 ) -> AbstractQuantity:
     """Clamp a quantity between two other quantities.
@@ -784,7 +780,7 @@ def _clamp_p(
 
 
 @register(lax.clamp_p)
-def _clamp_p_vaqaq(
+def clamp_p_vaqaq(
     min: ArrayLike, x: AbstractQuantity, max: AbstractQuantity
 ) -> AbstractQuantity:
     """Clamp a quantity between a value and another quantity.
@@ -816,7 +812,7 @@ def _clamp_p_vaqaq(
 
 
 @register(lax.clamp_p)
-def _clamp_p_aqvaq(
+def clamp_p_aqvaq(
     min: AbstractQuantity, x: ArrayLike, max: AbstractQuantity
 ) -> ArrayLike:
     """Clamp a value between two quantities.
@@ -838,7 +834,7 @@ def _clamp_p_aqvaq(
 
 
 @register(lax.clamp_p)
-def _clamp_p_qvq(
+def clamp_p_qvq(
     min: AbstractParametricQuantity["dimensionless"],
     x: ArrayLike,
     max: AbstractParametricQuantity["dimensionless"],
@@ -865,7 +861,7 @@ def _clamp_p_qvq(
 
 
 @register(lax.clamp_p)
-def _clamp_p_aqaqv(
+def clamp_p_aqaqv(
     min: AbstractQuantity, x: AbstractQuantity, max: ArrayLike
 ) -> AbstractQuantity:
     """Clamp a quantity between a quantity and a value.
@@ -887,7 +883,7 @@ def _clamp_p_aqaqv(
 
 
 @register(lax.clamp_p)
-def _clamp_p_qqv(
+def clamp_p_qqv(
     min: AbstractParametricQuantity["dimensionless"],
     x: AbstractParametricQuantity["dimensionless"],
     max: ArrayLike,
@@ -914,7 +910,7 @@ def _clamp_p_qqv(
 
 
 @register(lax.complex_p)
-def _complex_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+def complex_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     """Complex number from two quantities.
 
     Examples
@@ -943,7 +939,7 @@ def _complex_p(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.concatenate_p)
-def _concatenate_p_aq(*operands: AbstractQuantity, dimension: Any) -> AbstractQuantity:
+def concatenate_p_aq(*operands: AbstractQuantity, dimension: Any) -> AbstractQuantity:
     """Concatenate quantities.
 
     Examples
@@ -975,7 +971,7 @@ def _concatenate_p_aq(*operands: AbstractQuantity, dimension: Any) -> AbstractQu
 
 
 @register(lax.concatenate_p, precedence=1)
-def _concatenate_p_qnd(
+def concatenate_p_qnd(
     operand0: AbstractParametricQuantity["dimensionless"],
     *operands: AbstractParametricQuantity["dimensionless"] | ArrayLike,
     dimension: Any,
@@ -1014,7 +1010,7 @@ def _concatenate_p_qnd(
 
 
 @register(lax.concatenate_p)
-def _concatenate_p_vqnd(
+def concatenate_p_vqnd(
     operand0: ArrayLike,
     *operands: AbstractParametricQuantity["dimensionless"],
     dimension: Any,
@@ -1056,12 +1052,12 @@ def _concatenate_p_vqnd(
 
 
 @register(lax.cond_p)  # TODO: implement
-def _cond_p_q(index: AbstractQuantity, consts: AbstractQuantity) -> AbstractQuantity:
+def cond_p_q(index: AbstractQuantity, consts: AbstractQuantity) -> AbstractQuantity:
     raise NotImplementedError
 
 
 @register(lax.cond_p)  # TODO: implement
-def _cond_p_vq(
+def cond_p_vq(
     index: ArrayLike, consts: AbstractQuantity, *, branches: Any
 ) -> AbstractQuantity:
     """Conditional on a value and a quantity.
@@ -1079,7 +1075,7 @@ def _cond_p_vq(
 
 
 @register(lax.conj_p)
-def _conj_p(x: AbstractQuantity, *, input_dtype: Any) -> AbstractQuantity:
+def conj_p(x: AbstractQuantity, *, input_dtype: Any) -> AbstractQuantity:
     """Conjugate of a quantity.
 
     Examples
@@ -1105,7 +1101,7 @@ def _conj_p(x: AbstractQuantity, *, input_dtype: Any) -> AbstractQuantity:
 
 
 @register(lax.convert_element_type_p)
-def _convert_element_type_p(
+def convert_element_type_p(
     operand: AbstractQuantity, **kwargs: Any
 ) -> AbstractQuantity:
     """Convert the element type of a quantity."""
@@ -1120,7 +1116,7 @@ def _convert_element_type_p(
 
 
 @register(lax.copy_p)
-def _copy_p(x: AbstractQuantity) -> AbstractQuantity:
+def copy_p(x: AbstractQuantity) -> AbstractQuantity:
     """Copy a quantity.
 
     Examples
@@ -1146,7 +1142,7 @@ def _copy_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.cos_p)
-def _cos_p_aq(x: AbstractQuantity) -> AbstractQuantity:
+def cos_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     """Cosine of a quantity.
 
     Examples
@@ -1166,7 +1162,7 @@ def _cos_p_aq(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.cos_p)
-def _cos_p_q(
+def cos_p_q(
     x: AbstractParametricQuantity["angle"] | Quantity["dimensionless"],
 ) -> AbstractParametricQuantity["dimensionless"]:
     """Cosine of a quantity.
@@ -1191,7 +1187,7 @@ def _cos_p_q(
 
 
 @register(lax.cosh_p)
-def _cosh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
+def cosh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     """Cosine of a quantity.
 
     Examples
@@ -1211,7 +1207,7 @@ def _cosh_p_aq(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.cosh_p)
-def _cosh_p_q(
+def cosh_p_q(
     x: AbstractParametricQuantity["angle"] | Quantity["dimensionless"],
 ) -> AbstractParametricQuantity["dimensionless"]:
     """Cosine of a quantity.
@@ -1236,7 +1232,7 @@ def _cosh_p_q(
 
 
 @register(lax.cumlogsumexp_p)
-def _cumlogsumexp_p(
+def cumlogsumexp_p(
     operand: AbstractQuantity, *, axis: Any, reverse: Any
 ) -> AbstractQuantity:
     """Cumulative log sum exp of a quantity.
@@ -1267,9 +1263,7 @@ def _cumlogsumexp_p(
 
 
 @register(lax.cummax_p)
-def _cummax_p(
-    operand: AbstractQuantity, *, axis: Any, reverse: Any
-) -> AbstractQuantity:
+def cummax_p(operand: AbstractQuantity, *, axis: Any, reverse: Any) -> AbstractQuantity:
     """Cumulative maximum of a quantity.
 
     Examples
@@ -1296,9 +1290,7 @@ def _cummax_p(
 
 
 @register(lax.cummin_p)
-def _cummin_p(
-    operand: AbstractQuantity, *, axis: Any, reverse: Any
-) -> AbstractQuantity:
+def cummin_p(operand: AbstractQuantity, *, axis: Any, reverse: Any) -> AbstractQuantity:
     """Cumulative maximum of a quantity.
 
     Examples
@@ -1325,7 +1317,7 @@ def _cummin_p(
 
 
 @register(lax.cumprod_p)
-def _cumprod_p(
+def cumprod_p(
     operand: AbstractQuantity, *, axis: Any, reverse: Any
 ) -> AbstractQuantity:
     """Cumulative product of a quantity.
@@ -1354,9 +1346,7 @@ def _cumprod_p(
 
 
 @register(lax.cumsum_p)
-def _cumsum_p(
-    operand: AbstractQuantity, *, axis: Any, reverse: Any
-) -> AbstractQuantity:
+def cumsum_p(operand: AbstractQuantity, *, axis: Any, reverse: Any) -> AbstractQuantity:
     """Cumulative sum of a quantity.
 
     Examples
@@ -1383,7 +1373,7 @@ def _cumsum_p(
 
 
 @register(lax.device_put_p)
-def _device_put_p(x: AbstractQuantity, **kwargs: Any) -> AbstractQuantity:
+def device_put_p(x: AbstractQuantity, **kwargs: Any) -> AbstractQuantity:
     """Put a quantity on a device.
 
     Examples
@@ -1408,7 +1398,7 @@ def _device_put_p(x: AbstractQuantity, **kwargs: Any) -> AbstractQuantity:
 
 
 @register(lax.digamma_p)
-def _digamma_p(x: AbstractQuantity) -> AbstractQuantity:
+def digamma_p(x: AbstractQuantity) -> AbstractQuantity:
     """Digamma function of a quantity.
 
     Examples
@@ -1434,7 +1424,7 @@ def _digamma_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.div_p)
-def _div_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+def div_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     """Division of two quantities.
 
     Examples
@@ -1464,7 +1454,7 @@ def _div_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.div_p)
-def _div_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
+def div_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     """Division of an array by a quantity.
 
     Examples
@@ -1492,7 +1482,7 @@ def _div_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.div_p)
-def _div_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
+def div_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     """Division of a quantity by an array.
 
     Examples
@@ -1522,7 +1512,7 @@ def _div_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 
 @register(lax.dot_general_p)
-def _dot_general_jq(
+def dot_general_jq(
     lhs: ArrayLike, rhs: AbstractQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
     """Dot product of an array and a quantity.
@@ -1558,7 +1548,7 @@ def _dot_general_jq(
 
 
 @register(lax.dot_general_p)
-def _dot_general_qq(
+def dot_general_qq(
     lhs: AbstractQuantity, rhs: AbstractQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
     """Dot product of two quantities.
@@ -1607,7 +1597,7 @@ def _dot_general_qq(
 
 
 @register(lax.dynamic_slice_p)
-def _dynamic_slice_q(
+def dynamic_slice_q(
     operand: AbstractQuantity, *indices: ArrayLike, **kwargs: Any
 ) -> AbstractQuantity:
     """Dynamic slice of a quantity.
@@ -1631,7 +1621,7 @@ def _dynamic_slice_q(
 
 
 @register(lax.eq_p)
-def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
+def eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     """Equality of two quantities.
 
     Examples
@@ -1664,7 +1654,7 @@ def _eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
 
 
 @register(lax.eq_p)
-def _eq_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
+def eq_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     """Equality of an array and a quantity.
 
     Examples
@@ -1699,7 +1689,7 @@ def _eq_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
 
 
 @register(lax.eq_p)
-def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
+def eq_p_aqv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     """Equality of an array and a quantity.
 
     Examples
@@ -1761,7 +1751,7 @@ def _eq_p_aqv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
 
 
 @register(lax.erf_inv_p)
-def _erf_inv_p(x: AbstractQuantity) -> AbstractQuantity:
+def erf_inv_p(x: AbstractQuantity) -> AbstractQuantity:
     """Inverse error function of a quantity.
 
     Examples
@@ -1787,7 +1777,7 @@ def _erf_inv_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.erf_p)
-def _erf_p(x: AbstractQuantity) -> AbstractQuantity:
+def erf_p(x: AbstractQuantity) -> AbstractQuantity:
     """Error function of a quantity.
 
     Examples
@@ -1814,7 +1804,7 @@ def _erf_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.erfc_p)
-def _erfc_p(x: AbstractQuantity) -> AbstractQuantity:
+def erfc_p(x: AbstractQuantity) -> AbstractQuantity:
     """Complementary error function of a quantity.
 
     Examples
@@ -1840,7 +1830,7 @@ def _erfc_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.exp2_p)
-def _exp2_p(x: AbstractQuantity) -> AbstractQuantity:
+def exp2_p(x: AbstractQuantity) -> AbstractQuantity:
     """2^x of a quantity.
 
     Examples
@@ -1865,7 +1855,7 @@ def _exp2_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.exp_p)
-def _exp_p(x: AbstractQuantity) -> AbstractQuantity:
+def exp_p(x: AbstractQuantity) -> AbstractQuantity:
     """Exponential of a quantity.
 
     Examples
@@ -1898,7 +1888,7 @@ def _exp_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.expm1_p)
-def _expm1_p(x: AbstractQuantity) -> AbstractQuantity:
+def expm1_p(x: AbstractQuantity) -> AbstractQuantity:
     """Exponential of a quantity minus 1.
 
     Examples
@@ -1923,7 +1913,7 @@ def _expm1_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.fft_p)
-def _fft_p(x: AbstractQuantity, *, fft_type: Any, fft_lengths: Any) -> AbstractQuantity:
+def fft_p(x: AbstractQuantity, *, fft_type: Any, fft_lengths: Any) -> AbstractQuantity:
     """Fast Fourier transform of a quantity.
 
     Examples
@@ -1951,7 +1941,7 @@ def _fft_p(x: AbstractQuantity, *, fft_type: Any, fft_lengths: Any) -> AbstractQ
 
 
 @register(lax.floor_p)
-def _floor_p(x: AbstractQuantity) -> AbstractQuantity:
+def floor_p(x: AbstractQuantity) -> AbstractQuantity:
     """Floor of a quantity.
 
     Examples
@@ -1977,7 +1967,7 @@ def _floor_p(x: AbstractQuantity) -> AbstractQuantity:
 
 # used in `jnp.cross`
 @register(lax.gather_p)
-def _gather_p(
+def gather_p(
     operand: AbstractQuantity, start_indices: ArrayLike, **kwargs: Any
 ) -> AbstractQuantity:
     # TODO: examples
@@ -1990,7 +1980,7 @@ def _gather_p(
 
 
 @register(lax.ge_p)
-def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
+def ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     """Greater than or equal to of two quantities.
 
     Examples
@@ -2023,7 +2013,7 @@ def _ge_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
 
 
 @register(lax.ge_p)
-def _ge_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
+def ge_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     """Greater than or equal to of an array and a quantity.
 
     Examples
@@ -2059,7 +2049,7 @@ def _ge_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
 
 
 @register(lax.ge_p)
-def _ge_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
+def ge_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     """Greater than or equal to of a quantity and an array.
 
     Examples
@@ -2098,7 +2088,7 @@ def _ge_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
 
 
 @register(lax.gt_p)
-def _gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
+def gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     """Greater than of two quantities.
 
     Examples
@@ -2130,7 +2120,7 @@ def _gt_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
 
 
 @register(lax.gt_p)
-def _gt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
+def gt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     """Greater than of an array and a quantity.
 
     Examples
@@ -2166,7 +2156,7 @@ def _gt_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
 
 
 @register(lax.gt_p)
-def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
+def gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     """Greater than comparison between a quantity and an array.
 
     Examples
@@ -2205,7 +2195,7 @@ def _gt_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
 
 
 @register(lax.igamma_p)
-def _igamma_p(a: AbstractQuantity, x: AbstractQuantity) -> AbstractQuantity:
+def igamma_p(a: AbstractQuantity, x: AbstractQuantity) -> AbstractQuantity:
     """Regularized incomplete gamma function of a and x.
 
     Examples
@@ -2232,7 +2222,7 @@ def _igamma_p(a: AbstractQuantity, x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.imag_p)
-def _imag_p(x: AbstractQuantity) -> AbstractQuantity:
+def imag_p(x: AbstractQuantity) -> AbstractQuantity:
     return replace(x, value=qlax.imag(ustrip(x)))
 
 
@@ -2240,7 +2230,7 @@ def _imag_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.integer_pow_p)
-def _integer_pow_p(x: AbstractQuantity, *, y: Any) -> AbstractQuantity:
+def integer_pow_p(x: AbstractQuantity, *, y: Any) -> AbstractQuantity:
     """Integer power of a quantity.
 
     Examples
@@ -2263,7 +2253,7 @@ def _integer_pow_p(x: AbstractQuantity, *, y: Any) -> AbstractQuantity:
 
 
 @register(lax.is_finite_p)
-def _is_finite_p(x: AbstractQuantity) -> ArrayLike:
+def is_finite_p(x: AbstractQuantity) -> ArrayLike:
     """Check if a quantity is finite.
 
     Examples
@@ -2294,7 +2284,7 @@ def _is_finite_p(x: AbstractQuantity) -> ArrayLike:
 
 
 @register(lax.le_p)
-def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
+def le_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
     """Less than or equal to of two quantities.
 
     Examples
@@ -2323,7 +2313,7 @@ def _le_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
 
 
 @register(lax.le_p)
-def _le_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
+def le_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     """Less than or equal to of an array and a quantity.
 
     Examples
@@ -2359,7 +2349,7 @@ def _le_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
 
 
 @register(lax.le_p)
-def _le_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
+def le_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     """Less than or equal to of a quantity and an array.
 
     Examples
@@ -2398,7 +2388,7 @@ def _le_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
 
 
 @register(lax.lgamma_p)
-def _lgamma_p(x: AbstractQuantity) -> AbstractQuantity:
+def lgamma_p(x: AbstractQuantity) -> AbstractQuantity:
     """Log-gamma function of a quantity.
 
     Examples
@@ -2424,7 +2414,7 @@ def _lgamma_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.log1p_p)
-def _log1p_p(x: AbstractQuantity) -> AbstractQuantity:
+def log1p_p(x: AbstractQuantity) -> AbstractQuantity:
     """Logarithm of 1 plus a quantity.
 
     Examples
@@ -2448,7 +2438,7 @@ def _log1p_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.log_p)
-def _log_p(x: AbstractQuantity) -> AbstractQuantity:
+def log_p(x: AbstractQuantity) -> AbstractQuantity:
     """Logarithm of a quantity.
 
     Examples
@@ -2472,7 +2462,7 @@ def _log_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.logistic_p)
-def _logistic_p(x: AbstractQuantity) -> AbstractQuantity:
+def logistic_p(x: AbstractQuantity) -> AbstractQuantity:
     """Logarithm of a quantity.
 
     Examples
@@ -2496,7 +2486,7 @@ def _logistic_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.lt_p)
-def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
+def lt_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
     """Less than of two quantities.
 
     Examples
@@ -2557,7 +2547,7 @@ def _lt_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> ArrayLike:
 
 
 @register(lax.lt_p)
-def _lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
+def lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
     """Less than of an array and a quantity.
 
     Examples
@@ -2615,7 +2605,7 @@ def _lt_p_vq(x: ArrayLike, y: AbstractQuantity, /) -> ArrayLike:
 
 
 @register(lax.lt_p)
-def _lt_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
+def lt_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
     """Compare a unitless Quantity to a value.
 
     Examples
@@ -2680,7 +2670,7 @@ def _lt_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
 
 
 @register(lax.max_p)
-def _max_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> AbstractQuantity:
+def max_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> AbstractQuantity:
     """Maximum of two quantities.
 
     Examples
@@ -2705,7 +2695,7 @@ def _max_p_qq(x: AbstractQuantity, y: AbstractQuantity, /) -> AbstractQuantity:
 
 
 @register(lax.max_p)
-def _max_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
+def max_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     """Maximum of an array and quantity.
 
     Examples
@@ -2729,7 +2719,7 @@ def _max_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.max_p)
-def _max_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
+def max_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     """Maximum of an array and quantity.
 
     Examples
@@ -2756,7 +2746,7 @@ def _max_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 
 @register(lax.min_p)
-def _min_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+def min_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     """Minimum of two quantities.
 
     Examples
@@ -2785,7 +2775,7 @@ def _min_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.min_p)
-def _min_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
+def min_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     """Minimum of an array and quantity.
 
     Examples
@@ -2807,7 +2797,7 @@ def _min_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.min_p)
-def _min_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
+def min_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     """Minimum of a quantity and an array.
 
     Examples
@@ -2833,7 +2823,7 @@ def _min_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 
 @register(lax.mul_p)
-def _mul_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+def mul_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     """Multiplication of two quantities.
 
     Examples
@@ -2867,7 +2857,7 @@ def _mul_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.mul_p)
-def _mul_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
+def mul_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     """Multiplication of an array-like and a quantity.
 
     Examples
@@ -2903,7 +2893,7 @@ def _mul_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.mul_p)
-def _mul_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
+def mul_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     """Multiplication of a quantity and an array-like.
 
     Examples
@@ -2942,7 +2932,7 @@ def _mul_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 
 @register(lax.ne_p)
-def _ne_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
+def ne_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     """Inequality of two quantities.
 
     Examples
@@ -2985,7 +2975,7 @@ def _ne_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
 
 
 @register(lax.ne_p)
-def _ne_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
+def ne_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
     """Inequality of an array and a quantity.
 
     Examples
@@ -3030,7 +3020,7 @@ def _ne_p_vq(x: ArrayLike, y: AbstractQuantity) -> ArrayLike:
 
 
 @register(lax.ne_p)
-def _ne_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
+def ne_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
     """Inequality of a quantity and an array.
 
     Examples
@@ -3075,7 +3065,7 @@ def _ne_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
 
 
 # @register(lax.ne_p)
-# def _ne_p_qv(x: AbstractParametricQuantity, y: ArrayLike) -> ArrayLike:
+# def ne_p_qv(x: AbstractParametricQuantity, y: ArrayLike) -> ArrayLike:
 #     return lax.
 
 
@@ -3083,7 +3073,7 @@ def _ne_p_qv(x: AbstractQuantity, y: ArrayLike) -> ArrayLike:
 
 
 @register(lax.neg_p)
-def _neg_p(x: AbstractQuantity) -> AbstractQuantity:
+def neg_p(x: AbstractQuantity) -> AbstractQuantity:
     """Negation of a quantity.
 
     Examples
@@ -3107,7 +3097,7 @@ def _neg_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.not_p)
-def _not_p(x: AbstractQuantity) -> AbstractQuantity:
+def not_p(x: AbstractQuantity) -> AbstractQuantity:
     """Logical negation of a quantity.
 
     Examples
@@ -3131,7 +3121,7 @@ def _not_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.pow_p)
-def _pow_p_qq(
+def pow_p_qq(
     x: AbstractQuantity, y: AbstractParametricQuantity["dimensionless"]
 ) -> AbstractQuantity:
     """Power of a quantity.
@@ -3162,7 +3152,7 @@ def _pow_p_qq(
 
 
 @register(lax.pow_p)
-def _pow_p_qf(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
+def pow_p_qf(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     """Power of a quantity.
 
     Examples
@@ -3188,7 +3178,7 @@ def _pow_p_qf(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 
 @register(lax.pow_p)
-def _pow_p_vq(
+def pow_p_vq(
     x: ArrayLike, y: AbstractParametricQuantity["dimensionless"]
 ) -> AbstractQuantity:
     """Array raised to a quantity.
@@ -3211,7 +3201,7 @@ def _pow_p_vq(
 
 
 @register(lax.real_p)
-def _real_p(x: AbstractQuantity) -> AbstractQuantity:
+def real_p(x: AbstractQuantity) -> AbstractQuantity:
     """Real part of a quantity.
 
     Examples
@@ -3239,7 +3229,7 @@ def _real_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.reduce_and_p)
-def _reduce_and_p(operand: AbstractQuantity, *, axes: Sequence[int]) -> Any:
+def reduce_and_p(operand: AbstractQuantity, *, axes: Sequence[int]) -> Any:
     return lax.reduce_and_p.bind(ustrip(operand), axes=tuple(axes))
 
 
@@ -3247,7 +3237,7 @@ def _reduce_and_p(operand: AbstractQuantity, *, axes: Sequence[int]) -> Any:
 
 
 @register(lax.reduce_max_p)
-def _reduce_max_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
+def reduce_max_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
     return replace(operand, value=lax.reduce_max_p.bind(ustrip(operand), axes=axes))
 
 
@@ -3255,7 +3245,7 @@ def _reduce_max_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
 
 
 @register(lax.reduce_min_p)
-def _reduce_min_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
+def reduce_min_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
     return replace(operand, value=lax.reduce_min_p.bind(ustrip(operand), axes=axes))
 
 
@@ -3263,7 +3253,7 @@ def _reduce_min_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
 
 
 @register(lax.reduce_or_p)
-def _reduce_or_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
+def reduce_or_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
     return type_np(operand)(lax.reduce_or_p.bind(ustrip(operand), axes=axes), unit=one)
 
 
@@ -3271,7 +3261,7 @@ def _reduce_or_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
 
 
 @register(lax.reduce_prod_p)
-def _reduce_prod_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
+def reduce_prod_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
     value = lax.reduce_prod_p.bind(ustrip(operand), axes=axes)
     u = operand.unit ** prod(operand.shape[ax] for ax in axes)
     return type_np(operand)(value, unit=u)
@@ -3281,7 +3271,7 @@ def _reduce_prod_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity
 
 
 @register(lax.reduce_sum_p)
-def _reduce_sum_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
+def reduce_sum_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
     return replace(operand, value=lax.reduce_sum_p.bind(ustrip(operand), axes=axes))
 
 
@@ -3289,7 +3279,7 @@ def _reduce_sum_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
 
 
 @register(lax.rem_p)
-def _rem_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+def rem_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     """Remainder of two quantities.
 
     Examples
@@ -3312,7 +3302,7 @@ def _rem_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.rem_p)
-def _rem_p_uqv(x: Quantity["dimensionless"], y: ArrayLike) -> Quantity["dimensionless"]:
+def rem_p_uqv(x: Quantity["dimensionless"], y: ArrayLike) -> Quantity["dimensionless"]:
     """Remainder of two quantities.
 
     Examples
@@ -3333,7 +3323,7 @@ def _rem_p_uqv(x: Quantity["dimensionless"], y: ArrayLike) -> Quantity["dimensio
 
 
 @register(lax.reshape_p)
-def _reshape_p(
+def reshape_p(
     operand: AbstractQuantity, *, new_sizes: Any, dimensions: Any
 ) -> AbstractQuantity:
     """Reshape a quantity.
@@ -3363,7 +3353,7 @@ def _reshape_p(
 
 
 @register(lax.rev_p)
-def _rev_p(operand: AbstractQuantity, *, dimensions: Any) -> AbstractQuantity:
+def rev_p(operand: AbstractQuantity, *, dimensions: Any) -> AbstractQuantity:
     """Reverse a quantity.
 
     Examples
@@ -3387,7 +3377,7 @@ def _rev_p(operand: AbstractQuantity, *, dimensions: Any) -> AbstractQuantity:
 
 
 @register(lax.round_p)
-def _round_p(x: AbstractQuantity, *, rounding_method: Any) -> AbstractQuantity:
+def round_p(x: AbstractQuantity, *, rounding_method: Any) -> AbstractQuantity:
     """Round a quantity.
 
     Examples
@@ -3411,7 +3401,7 @@ def _round_p(x: AbstractQuantity, *, rounding_method: Any) -> AbstractQuantity:
 
 
 @register(lax.rsqrt_p)
-def _rsqrt_p(x: AbstractQuantity) -> AbstractQuantity:
+def rsqrt_p(x: AbstractQuantity) -> AbstractQuantity:
     """Reciprocal square root of a quantity.
 
     Examples
@@ -3435,7 +3425,7 @@ def _rsqrt_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.scan_p)
-def _scan_p(
+def scan_p(
     arg0: AbstractQuantity, arg1: AbstractQuantity, /, *args: ArrayLike, **kwargs: Any
 ) -> list[Array]:
     """Scan operator, e.g. for ``numpy.digitize``.
@@ -3461,7 +3451,7 @@ def _scan_p(
 
 
 @register(lax.scatter_add_p)
-def _scatter_add_p_qvq(
+def scatter_add_p_qvq(
     operand: AbstractQuantity,
     scatter_indices: ArrayLike,
     updates: AbstractQuantity,
@@ -3493,7 +3483,7 @@ def _scatter_add_p_qvq(
 
 
 @register(lax.scatter_add_p)
-def _scatter_add_p_vvq(
+def scatter_add_p_vvq(
     operand: ArrayLike,
     scatter_indices: ArrayLike,
     updates: AbstractQuantity,
@@ -3519,7 +3509,7 @@ def _scatter_add_p_vvq(
 
 
 @register(lax.select_n_p)
-def _select_n_p(which: AbstractQuantity, *cases: AbstractQuantity) -> AbstractQuantity:
+def select_n_p(which: AbstractQuantity, *cases: AbstractQuantity) -> AbstractQuantity:
     """Select from a list of quantities using a quantity selector.
 
     Examples
@@ -3540,7 +3530,7 @@ def _select_n_p(which: AbstractQuantity, *cases: AbstractQuantity) -> AbstractQu
 
 
 @register(lax.select_n_p)
-def _select_n_p_vq(
+def select_n_p_vq(
     which: AbstractQuantity, case0: AbstractQuantity, case1: ArrayLike
 ) -> AbstractQuantity:
     """Select from a quantity and array using a quantity selector."""
@@ -3552,7 +3542,7 @@ def _select_n_p_vq(
 
 
 @register(lax.select_n_p)
-def _select_n_p_jjq(
+def select_n_p_jjq(
     which: ArrayLike, case0: ArrayLike, case1: AbstractQuantity
 ) -> AbstractQuantity:
     """Select from an array and quantity using a quantity selector."""
@@ -3561,7 +3551,7 @@ def _select_n_p_jjq(
 
 
 @register(lax.select_n_p)
-def _select_n_p_jqj(
+def select_n_p_jqj(
     which: ArrayLike, case0: AbstractQuantity, case1: ArrayLike
 ) -> AbstractQuantity:
     """Select from a quantity and array using a non-quantity selector.
@@ -3586,7 +3576,7 @@ def _select_n_p_jqj(
 
 
 @register(lax.select_n_p)
-def _select_n_p_jqq(which: ArrayLike, *cases: AbstractQuantity) -> AbstractQuantity:
+def select_n_p_jqq(which: ArrayLike, *cases: AbstractQuantity) -> AbstractQuantity:
     """Select from a list of quantities using a non-quantity selector.
 
     Examples
@@ -3620,7 +3610,7 @@ def _select_n_p_jqq(which: ArrayLike, *cases: AbstractQuantity) -> AbstractQuant
 
 
 @register(lax.sign_p)
-def _sign_p(x: AbstractQuantity) -> ArrayLike:
+def sign_p(x: AbstractQuantity) -> ArrayLike:
     """Sign of a quantity.
 
     Examples
@@ -3645,7 +3635,7 @@ def _sign_p(x: AbstractQuantity) -> ArrayLike:
 
 
 @register(lax.sin_p)
-def _sin_p(x: AbstractQuantity) -> AbstractQuantity:
+def sin_p(x: AbstractQuantity) -> AbstractQuantity:
     """Sine of a quantity.
 
     Examples
@@ -3677,7 +3667,7 @@ def _sin_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.sinh_p)
-def _sinh_p(x: AbstractQuantity) -> AbstractQuantity:
+def sinh_p(x: AbstractQuantity) -> AbstractQuantity:
     """Sinh of a quantity.
 
     Examples
@@ -3709,7 +3699,7 @@ def _sinh_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.slice_p)
-def _slice_p(
+def slice_p(
     operand: AbstractQuantity, *, start_indices: Any, limit_indices: Any, strides: Any
 ) -> AbstractQuantity:
     return replace(
@@ -3728,7 +3718,7 @@ def _slice_p(
 
 # Called by `argsort`
 @register(lax.sort_p)
-def _sort_p_two_operands(
+def sort_p_two_operands(
     operand0: AbstractQuantity,
     operand1: ArrayLike,
     *,
@@ -3748,7 +3738,7 @@ def _sort_p_two_operands(
 
 # Called by `sort`
 @register(lax.sort_p)
-def _sort_p_one_operand(
+def sort_p_one_operand(
     operand: AbstractQuantity, *, dimension: int, is_stable: bool, num_keys: int
 ) -> tuple[AbstractQuantity]:
     (out,) = lax.sort_p.bind(  # type: ignore[no-untyped-call]
@@ -3761,7 +3751,7 @@ def _sort_p_one_operand(
 
 
 @register(lax.sqrt_p)
-def _sqrt_p_q(x: AbstractQuantity) -> AbstractQuantity:
+def sqrt_p_q(x: AbstractQuantity) -> AbstractQuantity:
     """Square root of a quantity.
 
     Examples
@@ -3787,7 +3777,7 @@ def _sqrt_p_q(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.squeeze_p)
-def _squeeze_p(x: AbstractQuantity, *, dimensions: Any) -> AbstractQuantity:
+def squeeze_p(x: AbstractQuantity, *, dimensions: Any) -> AbstractQuantity:
     """Squeeze a quantity.
 
     Examples
@@ -3811,7 +3801,7 @@ def _squeeze_p(x: AbstractQuantity, *, dimensions: Any) -> AbstractQuantity:
 
 
 @register(lax.stop_gradient_p)
-def _stop_gradient_p(x: AbstractQuantity) -> AbstractQuantity:
+def stop_gradient_p(x: AbstractQuantity) -> AbstractQuantity:
     """Stop gradient of a quantity.
 
     Examples
@@ -3832,7 +3822,7 @@ def _stop_gradient_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.sub_p)
-def _sub_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
+def sub_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     """Subtract two quantities.
 
     Examples
@@ -3865,7 +3855,7 @@ def _sub_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.sub_p)
-def _sub_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
+def sub_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     """Subtract a quantity from an array.
 
     Examples
@@ -3895,7 +3885,7 @@ def _sub_p_vq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.sub_p)
-def _sub_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
+def sub_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     """Subtract an array from a quantity.
 
     Examples
@@ -3928,7 +3918,7 @@ def _sub_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 
 
 @register(lax.tan_p)
-def _tan_p(x: AbstractQuantity) -> AbstractQuantity:
+def tan_p(x: AbstractQuantity) -> AbstractQuantity:
     """Tangent of a quantity.
 
     Examples
@@ -3960,7 +3950,7 @@ def _tan_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.tanh_p)
-def _tanh_p(x: AbstractQuantity) -> AbstractQuantity:
+def tanh_p(x: AbstractQuantity) -> AbstractQuantity:
     """Hyperbolic tangent of a quantity.
 
     Examples
@@ -3992,7 +3982,7 @@ def _tanh_p(x: AbstractQuantity) -> AbstractQuantity:
 
 
 @register(lax.transpose_p)
-def _transpose_p(operand: AbstractQuantity, *, permutation: Any) -> AbstractQuantity:
+def transpose_p(operand: AbstractQuantity, *, permutation: Any) -> AbstractQuantity:
     """Transpose a quantity.
 
     Examples
