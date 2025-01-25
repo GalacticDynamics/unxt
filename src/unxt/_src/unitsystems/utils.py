@@ -7,6 +7,8 @@ from typing import Any
 
 from plum import dispatch
 
+from zeroth import zeroth
+
 from . import builtin_dimensions as bdims
 from unxt._src.dimensions import AbstractDimension, dimension_of
 from unxt._src.typing_ext import Unit
@@ -73,7 +75,7 @@ def get_dimension_name(pt: AbstractDimension, /) -> str:
         case bdims.speed:
             out = "speed"
         case _:
-            out = get_dimension_name(next(iter(pt._physical_type)))  # noqa: SLF001
+            out = get_dimension_name(zeroth(pt._physical_type))  # noqa: SLF001
     return out
 
 

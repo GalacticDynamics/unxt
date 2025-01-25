@@ -40,7 +40,6 @@
     "xmmutablemap>=0.1",
     "zeroth>=1.0.0",
 ]
-  # NOTE: zeroth is only required for matplotlib
 
   [project.optional-dependencies]
     # jax extras
@@ -230,6 +229,7 @@ UNXT_ENABLE_RUNTIME_TYPECHECKING = "beartype.beartype"
         "optional_dependencies",
         "quaxed",
         "xmmutablemap",
+        "zeroth",
       ]
       known-local-folder = ["unxt"]
 
