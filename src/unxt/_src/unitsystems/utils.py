@@ -11,7 +11,7 @@ from zeroth import zeroth
 
 from . import builtin_dimensions as bdims
 from unxt._src.dimensions import AbstractDimension, dimension_of
-from unxt._src.typing_ext import Unit
+from unxt._src.units.api import AbstractUnits
 
 # ------------------------------------
 
@@ -80,7 +80,7 @@ def get_dimension_name(pt: AbstractDimension, /) -> str:
 
 
 @dispatch
-def get_dimension_name(pt: Unit, /) -> str:
+def get_dimension_name(pt: AbstractUnits, /) -> str:
     """Return the dimension name from a unit.
 
     Examples

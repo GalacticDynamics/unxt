@@ -33,19 +33,22 @@ from jaxtyping import ArrayLike
 from plum.parametric import type_unparametrized
 
 from .quantity import AbstractQuantity, UncheckedQuantity as FastQ, ustrip
-from .typing_ext import Unit
 from .units import unit, unit_of
+from .units.api import AbstractUnits
 
 Args = TypeVarTuple("Args")
 R = TypeVar("R", bound=AbstractQuantity)
 
 
-def unit_or_none(obj: Any) -> Unit | None:
+def unit_or_none(obj: Any) -> AbstractUnits | None:
     return obj if obj is None else unit(obj)
 
 
 def grad(
-    fun: Callable[[Unpack[Args]], R], argnums: int = 0, *, units: tuple[Unit | str, ...]
+    fun: Callable[[Unpack[Args]], R],
+    argnums: int = 0,
+    *,
+    units: tuple[AbstractUnits | str, ...],
 ) -> Callable[[Unpack[Args]], R]:
     """Gradient of a function with units.
 
@@ -73,7 +76,7 @@ def grad(
     Quantity['area'](Array(12., dtype=float32, weak_type=True), unit='m2')
 
     """
-    theunits: tuple[Unit | None, ...] = tuple(map(unit_or_none, units))
+    theunits: tuple[AbstractUnits | None, ...] = tuple(map(unit_or_none, units))
 
     # Gradient of function, stripping and adding units
     @partial(jax.grad, argnums=argnums)
@@ -104,7 +107,10 @@ def grad(
 
 
 def jacfwd(
-    fun: Callable[[Unpack[Args]], R], argnums: int = 0, *, units: tuple[Unit | str, ...]
+    fun: Callable[[Unpack[Args]], R],
+    argnums: int = 0,
+    *,
+    units: tuple[AbstractUnits | str, ...],
 ) -> Callable[[Unpack[Args]], R]:
     """Jacobian of ``fun`` evaluated column-by-column using forward-mode AD.
 
@@ -138,7 +144,7 @@ def jacfwd(
         "only int argnums are currently supported",
     )
 
-    theunits: tuple[Unit | None, ...] = tuple(map(unit_or_none, units))
+    theunits: tuple[AbstractUnits | None, ...] = tuple(map(unit_or_none, units))
 
     @partial(jax.jacfwd, argnums=argnums)
     def jacfun_mag(*args: Any) -> R:
@@ -168,7 +174,10 @@ def jacfwd(
 
 
 def hessian(
-    fun: Callable[[Unpack[Args]], R], argnums: int = 0, *, units: tuple[Unit | str, ...]
+    fun: Callable[[Unpack[Args]], R],
+    argnums: int = 0,
+    *,
+    units: tuple[AbstractUnits | str, ...],
 ) -> Callable[[Unpack[Args]], R]:
     """Hessian.
 
@@ -196,7 +205,7 @@ def hessian(
     UncheckedQuantity(Array(12., dtype=float32, weak_type=True), unit='m')
 
     """
-    theunits: tuple[Unit, ...] = tuple(map(unit_or_none, units))
+    theunits: tuple[AbstractUnits, ...] = tuple(map(unit_or_none, units))
 
     @partial(jax.hessian)
     def hessfun_mag(*args: Any) -> R:

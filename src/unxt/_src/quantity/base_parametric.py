@@ -16,8 +16,8 @@ from dataclassish import field_items, fields
 
 from .base import AbstractQuantity
 from unxt._src.dimensions import AbstractDimension, dimension, dimension_of
-from unxt._src.typing_ext import Unit as UnitTypes
 from unxt._src.units import unit as parse_unit
+from unxt._src.units.api import AbstractUnits
 
 
 @parametric
@@ -70,7 +70,9 @@ class AbstractParametricQuantity(AbstractQuantity):
 
     @classmethod
     @dispatch
-    def __init_type_parameter__(cls, unit: UnitTypes, /) -> tuple[AbstractDimension]:
+    def __init_type_parameter__(
+        cls, unit: AbstractUnits, /
+    ) -> tuple[AbstractDimension]:
         """Infer the type parameter from the arguments."""
         dims = dimension_of(unit)
         if dims != "unknown":
