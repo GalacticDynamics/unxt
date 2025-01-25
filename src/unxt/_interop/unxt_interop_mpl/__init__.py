@@ -14,6 +14,7 @@ from typing import Any
 import matplotlib.units
 from jaxtyping import Array
 from matplotlib.axes import Axes
+
 from zeroth import zeroth
 
 from unxt.quantity import AbstractQuantity, UncheckedQuantity, ustrip
