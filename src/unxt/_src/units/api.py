@@ -10,7 +10,7 @@ from typing import Any, TypeAlias
 import astropy.units as apyu
 from plum import dispatch
 
-AbstractUnits: TypeAlias = apyu.UnitBase | apyu.Unit
+AbstractUnits: TypeAlias = apyu.Unit | apyu.UnitBase | apyu.CompositeUnit
 
 
 @dispatch.abstract

@@ -5,16 +5,12 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 
 __all__: list[str] = []
 
-from typing import Any, TypeAlias
+from typing import Any
 
 import astropy.units as apyu
-from astropy.units import Unit
 from plum import dispatch
 
 from .api import AbstractDimension
-
-AbstractUnits: TypeAlias = apyu.UnitBase | Unit
-
 
 # ===================================================================
 # Construct the dimensions
