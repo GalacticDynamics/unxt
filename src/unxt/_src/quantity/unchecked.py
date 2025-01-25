@@ -7,8 +7,10 @@ from typing import Any
 
 import equinox as eqx
 from jaxtyping import Array, Shaped
+from plum import add_promotion_rule
 
 from .base import AbstractQuantity
+from .quantity import Quantity
 from .value import convert_to_quantity_value
 from unxt._src.units import AstropyUnits, unit as parse_unit
 from unxt.units import unit as parse_unit
@@ -27,8 +29,8 @@ class UncheckedQuantity(AbstractQuantity):
     """The unit associated with this value."""
 
     def __class_getitem__(
-        cls: type["UncheckedQuantity"], item: Any
-    ) -> type["UncheckedQuantity"]:
+        cls: "type[UncheckedQuantity]", item: Any
+    ) -> "type[UncheckedQuantity]":
         """No-op support for `UncheckedQuantity[...]` syntax.
 
         This method is called when the class is subscripted, e.g.:
@@ -39,3 +41,6 @@ class UncheckedQuantity(AbstractQuantity):
 
         """
         return cls
+
+
+add_promotion_rule(UncheckedQuantity, Quantity, Quantity)
