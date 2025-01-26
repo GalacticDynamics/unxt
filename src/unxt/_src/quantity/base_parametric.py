@@ -15,9 +15,8 @@ from plum import dispatch, parametric, type_nonparametric, type_unparametrized
 from dataclassish import field_items, fields
 
 from .base import AbstractQuantity
-from unxt._src.dimensions import AbstractDimension, dimension, dimension_of
-from unxt._src.units import unit as parse_unit
-from unxt._src.units.api import AbstractUnits
+from unxt.dims import AbstractDimension, dimension, dimension_of
+from unxt.units import AbstractUnits, unit as parse_unit
 
 
 @parametric

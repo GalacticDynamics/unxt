@@ -14,8 +14,7 @@ from jaxtyping import Array
 from dataclassish import replace
 
 from .api import uconvert, ustrip
-from unxt._src.units import unit as parse_unit
-from unxt._src.units.api import AbstractUnits
+from unxt.units import AbstractUnits, unit as parse_unit
 
 if TYPE_CHECKING:
     import unxt.quantity

@@ -6,7 +6,7 @@ __all__: list[str] = []
 import astropy.units as apyu
 from plum import dispatch
 
-from unxt._src.dimensions import AbstractDimension
+from unxt.dims import AbstractDimension
 
 
 @dispatch

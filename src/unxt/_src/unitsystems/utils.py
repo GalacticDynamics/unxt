@@ -10,8 +10,8 @@ from plum import dispatch
 from zeroth import zeroth
 
 from . import builtin_dimensions as bdims
-from unxt._src.dimensions import AbstractDimension, dimension_of
-from unxt._src.units.api import AbstractUnits
+from unxt.dims import AbstractDimension, dimension_of
+from unxt.units import AbstractUnits
 
 # ------------------------------------
 

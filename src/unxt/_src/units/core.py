@@ -16,7 +16,7 @@ from astropy.units import Unit
 from plum import dispatch
 
 from .api import AbstractUnits
-from unxt._src.dimensions import AbstractDimension
+from unxt.dims import AbstractDimension
 
 # ===================================================================
 # Construct units
