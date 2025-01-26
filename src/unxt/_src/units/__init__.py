@@ -10,4 +10,7 @@ from .api import (
     unit,
     unit_of,
 )
-from .core import Unit  # noqa: F401  # TODO: remove
+
+# Register dispatches
+# isort: split
+from . import register_dispatches  # noqa: F401
