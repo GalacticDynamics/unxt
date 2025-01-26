@@ -10,7 +10,8 @@ import jax
 from jaxtyping import Array, Shaped
 
 from .base import AbstractQuantity
-from unxt.units import AbstractUnits, unit as parse_unit
+from unxt._src.units import AstropyUnits
+from unxt.units import unit as parse_unit
 
 
 class UncheckedQuantity(AbstractQuantity):
@@ -22,7 +23,7 @@ class UncheckedQuantity(AbstractQuantity):
     value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
     """The value of the `AbstractQuantity`."""
 
-    unit: AbstractUnits = eqx.field(static=True, converter=parse_unit)
+    unit: AstropyUnits = eqx.field(static=True, converter=parse_unit)
     """The unit associated with this value."""
 
     def __class_getitem__(

@@ -14,7 +14,8 @@ from jaxtyping import Array
 from dataclassish import replace
 
 from .api import uconvert, ustrip
-from unxt.units import AbstractUnits, unit as parse_unit
+from unxt._src.units import AstropyUnits
+from unxt.units import unit as parse_unit
 
 if TYPE_CHECKING:
     import unxt.quantity
@@ -24,7 +25,7 @@ class AstropyQuantityCompatMixin:
     """Mixin for compatibility with `astropy.units.Quantity`."""
 
     value: eqx.AbstractVar[ArrayLike]
-    unit: eqx.AbstractVar[AbstractUnits]
+    unit: eqx.AbstractVar[AstropyUnits]
     uconvert: Callable[[Any], "unxt.quantity.AbstractQuantity"]
     ustrip: Callable[[Any], ArrayLike]
 
@@ -61,7 +62,7 @@ class AstropyQuantityCompatMixin:
         return ustrip(u, self)  # redirect to the standard method
 
     def decompose(
-        self, bases: Sequence[AbstractUnits | str], /
+        self, bases: Sequence[AstropyUnits | str], /
     ) -> "unxt.quantity.AbstractQuantity":
         """Decompose the quantity into the given bases.
 
@@ -94,7 +95,7 @@ class IPythonReprMixin:
     """Mixin class for IPython representation of a Quantity."""
 
     value: Array
-    unit: AbstractUnits
+    unit: AstropyUnits
 
     def _repr_mimebundle_(
         self,
@@ -188,7 +189,7 @@ class IPythonReprMixin:
 class NumPyCompatMixin:
     """Mixin for compatibility with numpy arrays."""
 
-    unit: AbstractUnits
+    unit: AstropyUnits
 
     __array_namespace__: Callable[[], Any]
 

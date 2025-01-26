@@ -10,14 +10,14 @@ from typing import Any, TypeAlias
 import astropy.units as apyu
 from plum import dispatch
 
-AbstractUnits: TypeAlias = apyu.Unit | apyu.UnitBase | apyu.CompositeUnit
+AstropyUnits: TypeAlias = apyu.Unit | apyu.UnitBase | apyu.CompositeUnit
 
 
 @dispatch.abstract
-def unit(obj: Any, /) -> AbstractUnits:
+def unit(obj: Any, /) -> AstropyUnits:
     """Construct the units from a units object."""
 
 
 @dispatch.abstract
-def unit_of(obj: Any, /) -> AbstractUnits:
+def unit_of(obj: Any, /) -> AstropyUnits:
     """Return the units of an object."""

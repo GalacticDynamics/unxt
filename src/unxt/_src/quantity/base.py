@@ -24,7 +24,8 @@ from quaxed.experimental import arrayish
 
 from .api import is_unit_convertible, uconvert, ustrip
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
-from unxt.units import AbstractUnits, unit_of
+from unxt._src.units import AstropyUnits
+from unxt.units import unit_of
 
 if TYPE_CHECKING:
     from typing import Self
@@ -97,7 +98,7 @@ class AbstractQuantity(
     value: eqx.AbstractVar[Shaped[Array, "*shape"]]
     """The value of the `AbstractQuantity`."""
 
-    unit: eqx.AbstractVar[AbstractUnits]
+    unit: eqx.AbstractVar[AstropyUnits]
     """The unit associated with this value."""
 
     # ---------------------------------------------------------------

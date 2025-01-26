@@ -3,10 +3,10 @@
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-__all__ = ["unit", "unit_of", "AbstractUnits"]
+__all__ = ["unit", "unit_of", "AstropyUnits"]
 
 from .api import (
-    AbstractUnits,  # TODO: remove
+    AstropyUnits,  # TODO: remove
     unit,
     unit_of,
 )

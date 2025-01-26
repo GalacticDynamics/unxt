@@ -13,7 +13,8 @@ from plum import parametric
 
 from .base import AbstractQuantity
 from .base_parametric import AbstractParametricQuantity
-from unxt.units import AbstractUnits, unit as parse_unit
+from unxt._src.units import AstropyUnits
+from unxt.units import unit as parse_unit
 
 
 @final
@@ -108,7 +109,7 @@ class Quantity(AbstractParametricQuantity):
     value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
     """The value of the `AbstractQuantity`."""
 
-    unit: AbstractUnits = eqx.field(static=True, converter=parse_unit)
+    unit: AstropyUnits = eqx.field(static=True, converter=parse_unit)
     """The unit associated with this value."""
 
 

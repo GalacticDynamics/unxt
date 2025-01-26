@@ -11,8 +11,9 @@ from plum import dispatch
 
 from .api import ustrip
 from .base import AbstractQuantity
+from unxt._src.units import AstropyUnits
 from unxt.dims import AbstractDimension, dimension_of
-from unxt.units import AbstractUnits, unit
+from unxt.units import unit
 from unxt.unitsystems import AbstractUnitSystem
 
 # ===================================================================
@@ -39,7 +40,7 @@ def dimension_of(obj: AbstractQuantity, /) -> AbstractDimension:
 
 
 @dispatch
-def unit_of(obj: AbstractQuantity, /) -> AbstractUnits:
+def unit_of(obj: AbstractQuantity, /) -> AstropyUnits:
     """Return the units of an object.
 
     Examples
@@ -114,7 +115,7 @@ def ustrip(x: AbstractQuantity, /) -> Array:
 
 
 @dispatch
-def ustrip(u: AbstractUnits, x: AbstractQuantity, /) -> Array:
+def ustrip(u: AstropyUnits, x: AbstractQuantity, /) -> Array:
     """Strip the units from the quantity.
 
     Examples

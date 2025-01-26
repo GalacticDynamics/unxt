@@ -2,9 +2,8 @@
 
 __all__: list[str] = []
 
-from typing import Any, TypeAlias
+from typing import Any
 
-import astropy.units as apyu
 from astropy.coordinates import Angle as AstropyAngle, Distance as AstropyDistance
 from astropy.units import Quantity as AstropyQuantity
 from plum import conversion_method, dispatch, type_unparametrized as type_up
@@ -12,6 +11,7 @@ from plum import conversion_method, dispatch, type_unparametrized as type_up
 import quaxed.numpy as jnp
 from dataclassish import field_items, replace
 
+from .custom_types import APYUnits
 from unxt.dims import dimension_of
 from unxt.quantity import AbstractQuantity, Quantity, UncheckedQuantity, ustrip
 from unxt.units import unit, unit_of
@@ -179,13 +179,8 @@ def convert_astropy_quantity_to_unxt_uncheckedquantity(
 ###############################################################################
 
 
-AstropyUnit: TypeAlias = (
-    apyu.UnitBase | apyu.Unit | apyu.FunctionUnitBase | apyu.StructuredUnit
-)
-
-
 @dispatch
-def uconvert(u: AstropyUnit, x: AbstractQuantity, /) -> AbstractQuantity:
+def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
     """Convert the quantity to the specified units.
 
     Examples
