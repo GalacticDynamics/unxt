@@ -11,10 +11,10 @@ from plum import dispatch
 
 from .api import ustrip
 from .base import AbstractQuantity
-from unxt._src.dimensions import AbstractDimension, dimension_of
 from unxt._src.units import unit
 from unxt._src.units.api import AbstractUnits
 from unxt._src.unitsystems import AbstractUnitSystem
+from unxt.dims import AbstractDimension, dimension_of
 
 # ===================================================================
 # Get dimensions
