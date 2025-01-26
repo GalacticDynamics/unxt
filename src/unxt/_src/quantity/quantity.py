@@ -13,8 +13,7 @@ from plum import parametric
 
 from .base import AbstractQuantity
 from .base_parametric import AbstractParametricQuantity
-from unxt._src.units import unit as parse_unit
-from unxt._src.units.api import AbstractUnits
+from unxt.units import AbstractUnits, unit as parse_unit
 
 
 @final

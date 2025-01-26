@@ -24,8 +24,7 @@ from quaxed.experimental import arrayish
 
 from .api import is_unit_convertible, uconvert, ustrip
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
-from unxt._src.units import unit_of
-from unxt._src.units.api import AbstractUnits
+from unxt.units import AbstractUnits, unit_of
 
 if TYPE_CHECKING:
     from typing import Self

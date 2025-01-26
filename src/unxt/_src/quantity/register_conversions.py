@@ -8,7 +8,7 @@ from .api import ustrip
 from .base import AbstractQuantity
 from .quantity import Quantity
 from .unchecked import UncheckedQuantity
-from unxt._src.units.api import unit_of
+from unxt.units import unit_of
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=UncheckedQuantity)  # type: ignore[arg-type]

@@ -7,7 +7,7 @@ The main features are:
 
 """
 
-__all__ = ["unit", "unit_of"]
+__all__ = ["unit", "unit_of", "AbstractUnits"]
 
 from jaxtyping import install_import_hook
 
@@ -15,6 +15,7 @@ from .setup_package import RUNTIME_TYPECHECKER
 
 with install_import_hook("unxt.units", RUNTIME_TYPECHECKER):
     from ._src.units import unit, unit_of
+    from ._src.units.api import AbstractUnits  # TODO: remove
 
 # Clean up the namespace
 del install_import_hook, RUNTIME_TYPECHECKER

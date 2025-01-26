@@ -13,9 +13,8 @@ from astropy.units.physical import _physical_unit_mapping
 from is_annotated import isannotated
 
 from .utils import get_dimension_name
-from unxt._src.units import unit
-from unxt._src.units.api import AbstractUnits
 from unxt.dims import AbstractDimension, dimension
+from unxt.units import AbstractUnits, unit
 
 Unit = AstropyUnitBase
 

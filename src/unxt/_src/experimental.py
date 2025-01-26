@@ -33,8 +33,7 @@ from jaxtyping import ArrayLike
 from plum.parametric import type_unparametrized
 
 from .quantity import AbstractQuantity, UncheckedQuantity as FastQ, ustrip
-from .units import unit, unit_of
-from .units.api import AbstractUnits
+from .units import AbstractUnits, unit, unit_of
 
 Args = TypeVarTuple("Args")
 R = TypeVar("R", bound=AbstractQuantity)
