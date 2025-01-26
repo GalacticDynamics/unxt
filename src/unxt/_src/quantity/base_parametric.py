@@ -15,8 +15,9 @@ from plum import dispatch, parametric, type_nonparametric, type_unparametrized
 from dataclassish import field_items, fields
 
 from .base import AbstractQuantity
+from unxt._src.units import AstropyUnits
 from unxt.dims import AbstractDimension, dimension, dimension_of
-from unxt.units import AbstractUnits, unit as parse_unit
+from unxt.units import unit as parse_unit
 
 
 @parametric
@@ -69,9 +70,7 @@ class AbstractParametricQuantity(AbstractQuantity):
 
     @classmethod
     @dispatch
-    def __init_type_parameter__(
-        cls, unit: AbstractUnits, /
-    ) -> tuple[AbstractDimension]:
+    def __init_type_parameter__(cls, unit: AstropyUnits, /) -> tuple[AbstractDimension]:
         """Infer the type parameter from the arguments."""
         dims = dimension_of(unit)
         if dims != "unknown":

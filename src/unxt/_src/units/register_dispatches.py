@@ -10,7 +10,7 @@ from typing import Any
 import astropy.units as apyu
 from plum import dispatch
 
-from .api import AbstractUnits
+from .api import AstropyUnits
 from unxt.dims import AbstractDimension
 
 # ===================================================================
@@ -18,7 +18,7 @@ from unxt.dims import AbstractDimension
 
 
 @dispatch
-def unit(obj: AbstractUnits, /) -> AbstractUnits:
+def unit(obj: AstropyUnits, /) -> AstropyUnits:
     """Construct the units from a units object.
 
     Examples
@@ -34,7 +34,7 @@ def unit(obj: AbstractUnits, /) -> AbstractUnits:
 
 
 @dispatch
-def unit(obj: str, /) -> AbstractUnits:
+def unit(obj: str, /) -> AstropyUnits:
     """Construct units from a string.
 
     Examples
@@ -67,7 +67,7 @@ def unit_of(obj: Any, /) -> None:
 
 
 @dispatch
-def unit_of(obj: AbstractUnits, /) -> AbstractUnits:
+def unit_of(obj: AstropyUnits, /) -> AstropyUnits:
     """Return the units of an unit.
 
     Examples
@@ -87,7 +87,7 @@ def unit_of(obj: AbstractUnits, /) -> AbstractUnits:
 
 
 @dispatch
-def dimension_of(obj: AbstractUnits, /) -> AbstractDimension:
+def dimension_of(obj: AstropyUnits, /) -> AbstractDimension:
     """Return the dimensions of the given units.
 
     Examples

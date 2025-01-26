@@ -2,19 +2,18 @@
 
 __all__: list[str] = []
 
-from typing import TypeAlias
 
 import astropy.units as apyu
 from plum import dispatch
 
-AstropyUnits: TypeAlias = apyu.UnitBase
+from .custom_types import APYUnits
 
 # ===================================================================
 # Register dispatches
 
 
 @dispatch
-def unit(obj: apyu.UnitBase | apyu.Unit, /) -> AstropyUnits:
+def unit(obj: apyu.UnitBase | apyu.Unit, /) -> APYUnits:
     """Construct the units from an Astropy unit.
 
     Examples
@@ -29,7 +28,7 @@ def unit(obj: apyu.UnitBase | apyu.Unit, /) -> AstropyUnits:
 
 
 @dispatch
-def unit(obj: apyu.Quantity, /) -> AstropyUnits:
+def unit(obj: apyu.Quantity, /) -> APYUnits:
     """Construct the units from an Astropy quantity.
 
     Examples
@@ -47,7 +46,7 @@ def unit(obj: apyu.Quantity, /) -> AstropyUnits:
 
 
 @dispatch
-def unit_of(obj: apyu.UnitBase | apyu.Unit, /) -> AstropyUnits:
+def unit_of(obj: apyu.UnitBase | apyu.Unit, /) -> APYUnits:
     """Return the units of an object.
 
     Examples
@@ -63,7 +62,7 @@ def unit_of(obj: apyu.UnitBase | apyu.Unit, /) -> AstropyUnits:
 
 
 @dispatch
-def unit_of(obj: apyu.Quantity, /) -> AstropyUnits:
+def unit_of(obj: apyu.Quantity, /) -> APYUnits:
     """Return the units of an Astropy quantity.
 
     Examples
