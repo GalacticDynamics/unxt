@@ -6,11 +6,11 @@ __all__ = ["UncheckedQuantity"]
 from typing import Any
 
 import equinox as eqx
-import jax
 from jaxtyping import Array, Shaped
 
 from .base import AbstractQuantity
-from unxt._src.units import AstropyUnits
+from .value import convert_to_quantity_value
+from unxt._src.units import AstropyUnits, unit as parse_unit
 from unxt.units import unit as parse_unit
 
 
@@ -20,7 +20,7 @@ class UncheckedQuantity(AbstractQuantity):
     This class is not parametrized by its dimensionality.
     """
 
-    value: Shaped[Array, "*shape"] = eqx.field(converter=jax.numpy.asarray)
+    value: Shaped[Array, "*shape"] = eqx.field(converter=convert_to_quantity_value)
     """The value of the `AbstractQuantity`."""
 
     unit: AstropyUnits = eqx.field(static=True, converter=parse_unit)

@@ -12,11 +12,17 @@ The main features are:
 """
 # ruff:noqa: F403
 
-from ._src.quantity.api import is_unit_convertible, uconvert, ustrip
-from ._src.quantity.base import AbstractQuantity, is_any_quantity
-from ._src.quantity.base_parametric import AbstractParametricQuantity
-from ._src.quantity.quantity import Quantity
-from ._src.quantity.unchecked import UncheckedQuantity
+from jaxtyping import install_import_hook
+
+from .setup_package import RUNTIME_TYPECHECKER
+
+with install_import_hook("unxt.quantity", RUNTIME_TYPECHECKER):
+    from ._src.quantity.api import is_unit_convertible, uconvert, ustrip
+    from ._src.quantity.base import AbstractQuantity, is_any_quantity
+    from ._src.quantity.base_parametric import AbstractParametricQuantity
+    from ._src.quantity.quantity import Quantity
+    from ._src.quantity.unchecked import UncheckedQuantity
+    from ._src.quantity.value import convert_to_quantity_value
 
 # isort: split
 # Register dispatches and conversions
@@ -41,6 +47,7 @@ __all__: list[str] = [
     "ustrip",
     "is_unit_convertible",
     "is_any_quantity",
+    "convert_to_quantity_value",
 ]
 
 
