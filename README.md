@@ -8,12 +8,15 @@
     <a href="https://pypi.org/project/unxt/"> <img alt="unxt license" src="https://img.shields.io/github/license/GalacticDynamics/unxt" /> </a>
 </p>
 <p align="center">
-    <a href="https://github.com/GalacticDynamics/unxt/actions"> <img alt="CI status" src="https://github.com/GalacticDynamics/unxt/actions/workflows/ci.yml/badge.svg?branch=main" /> </a>
-    <a href="https://unxt.readthedocs.io/en/"> <img alt="ReadTheDocs" src="https://readthedocs.org/projects/unxt/badge/?version=latest" /> </a>
-    <a href="https://codecov.io/gh/GalacticDynamics/unxt"> <img alt="codecov" src="https://codecov.io/gh/GalacticDynamics/unxt/graph/badge.svg" /> </a>
     <a href="https://scientific-python.org/specs/spec-0000/"> <img alt="ruff" src="https://img.shields.io/badge/SPEC-0-green?labelColor=%23004811&color=%235CA038" /> </a>
     <a href="https://docs.astral.sh/ruff/"> <img alt="ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json" /> </a>
     <a href="https://pre-commit.com"> <img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit" /> </a>
+    <a href="https://codspeed.io/GalacticDynamics/unxt"><img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed Badge"/></a>
+</p>
+<p align="center">
+    <a href="https://github.com/GalacticDynamics/unxt/actions"> <img alt="CI status" src="https://github.com/GalacticDynamics/unxt/actions/workflows/ci.yml/badge.svg?branch=main" /> </a>
+    <a href="https://unxt.readthedocs.io/en/"> <img alt="ReadTheDocs" src="https://readthedocs.org/projects/unxt/badge/?version=latest" /> </a>
+    <a href="https://codecov.io/gh/GalacticDynamics/unxt"> <img alt="codecov" src="https://codecov.io/gh/GalacticDynamics/unxt/graph/badge.svg" /> </a>
 </p>
 
 ---
@@ -186,6 +189,7 @@ consider citing this work.
 [![SPEC 0 — Minimum Supported Dependencies][spec0-badge]][spec0-link]
 [![pre-commit][pre-commit-badge]][pre-commit-link]
 [![ruff][ruff-badge]][ruff-link]
+[![CodSpeed Badge](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/GalacticDynamics/unxt)
 
 We welcome contributions!
 
