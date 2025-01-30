@@ -51,7 +51,7 @@ def process_pytest_argvalues(
     return {"argvalues": processed_argvalues, "ids": ids}
 
 
-# TODO: also benchmark UncheckedQuantity
+# TODO: also benchmark BareQuantity
 funcs_and_args: list[tuple[Callable[..., Any], Unpack[tuple[Args, ...]]]] = [
     (jnp.abs, (x_nodim,), (x_length,)),
     (jnp.acos, (x_nodim,)),

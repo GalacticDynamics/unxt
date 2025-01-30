@@ -185,16 +185,15 @@ separated
 This parametric design is how `unxt` supports runtime type checking.
 
 In `unxt` not all Quantity classes are parametric. The base class,
-`AbstractQuantity` is not parametric, nor is the concrete class
-`UncheckedQuantity`. Parametric classes incur a small performance overhead
-(generally eliminated in [`jit`ted code][JAX-jit-link]), which
-ultra-performance-optimized code might want to avoid, at the cost of inference
-and checking of the dimensions.
+`AbstractQuantity` is not parametric, nor is the concrete class `BareQuantity`.
+Parametric classes incur a small performance overhead (generally eliminated in
+[`jit`ted code][JAX-jit-link]), which ultra-performance-optimized code might
+want to avoid, at the cost of inference and checking of the dimensions.
 
 :::{note}
 
-`UncheckedQuantity[<dimension>]` **does nothing** and is for informational
-purposes only.
+`BareQuantity[<dimension>]` **does nothing** and is for informational purposes
+only.
 
 :::
 

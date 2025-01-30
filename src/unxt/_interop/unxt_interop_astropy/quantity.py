@@ -13,7 +13,7 @@ from dataclassish import field_items, replace
 
 from .custom_types import APYUnits
 from unxt.dims import dimension_of
-from unxt.quantity import AbstractQuantity, Quantity, UncheckedQuantity, ustrip
+from unxt.quantity import AbstractQuantity, BareQuantity, Quantity, ustrip
 from unxt.units import unit, unit_of
 
 # ============================================================================
@@ -179,27 +179,27 @@ def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity
 
 
 # ============================================================================
-# UncheckedQuantity
+# BareQuantity
 
 
-@conversion_method(type_from=AstropyQuantity, type_to=UncheckedQuantity)  # type: ignore[arg-type]
+@conversion_method(type_from=AstropyQuantity, type_to=BareQuantity)  # type: ignore[arg-type]
 def convert_astropy_quantity_to_unxt_uncheckedquantity(
     q: AstropyQuantity, /
-) -> UncheckedQuantity:
-    """Convert a `astropy.units.Quantity` to a `unxt.UncheckedQuantity`.
+) -> BareQuantity:
+    """Convert a `astropy.units.Quantity` to a `unxt.BareQuantity`.
 
     Examples
     --------
     >>> from astropy.units import Quantity as AstropyQuantity
     >>> from plum import convert
-    >>> from unxt.quantity import UncheckedQuantity
+    >>> from unxt.quantity import BareQuantity
 
-    >>> convert(AstropyQuantity(1.0, "cm"), UncheckedQuantity)
-    UncheckedQuantity(Array(1., dtype=float32), unit='cm')
+    >>> convert(AstropyQuantity(1.0, "cm"), BareQuantity)
+    BareQuantity(Array(1., dtype=float32), unit='cm')
 
     """
     u = unit_of(q)
-    return UncheckedQuantity(ustrip(u, q), u)
+    return BareQuantity(ustrip(u, q), u)
 
 
 ###############################################################################
