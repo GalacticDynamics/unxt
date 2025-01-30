@@ -149,7 +149,16 @@ def add_p_aqaq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> q1 + q2
     Quantity['length'](Array(1.5, dtype=float32, ...), unit='km')
 
+    >>> q1 = UncheckedQuantity(1, "km")
+    >>> q2 = Quantity(500.0, "m")
+    >>> jnp.add(q1, q2)
+    Quantity['length'](Array(1.5, dtype=float32, weak_type=True), unit='km')
+    >>> q1 + q2
+    Quantity['length'](Array(1.5, dtype=float32, weak_type=True), unit='km')
+
     """
+    x, y = promote(x, y)
+
     # Strip the units to compare the values.
     xv = ustrip(x)
     yv = ustrip(x.unit, y)  # this can change the dtype
@@ -2845,7 +2854,7 @@ def mul_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
     >>> q1 = UncheckedQuantity(2, "m")
     >>> q2 = Quantity(3, "m")
     >>> jnp.multiply(q1, q2)
-    UncheckedQuantity(Array(6, dtype=int32, ...), unit='m2')
+    Quantity['area'](Array(6, dtype=int32, weak_type=True), unit='m2')
 
     """
     # Promote to a common type
