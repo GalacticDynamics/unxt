@@ -1020,11 +1020,9 @@ def _concatenate_p_qnd(
 
 
 @register(lax.concatenate_p)
-def _concatenate_p_vqnd(
-    operand0: ArrayLike,
-    *operands: AbstractParametricQuantity["dimensionless"],
-    dimension: Any,
-) -> AbstractParametricQuantity["dimensionless"]:
+def concatenate_p_vqnd(
+    operand0: ArrayLike, *operands: AbstractQuantity, dimension: Any
+) -> AbstractQuantity:
     """Concatenate quantities and arrays with dimensionless units.
 
     Examples
@@ -1046,16 +1044,8 @@ def _concatenate_p_vqnd(
                   unit='')
 
     """
-    return Quantity(
-        lax.concatenate(
-            [
-                (ustrip(one, op) if hasattr(op, "unit") else op)
-                for op in (operand0, *operands)
-            ],
-            dimension=dimension,
-        ),
-        unit=one,
-    )
+    arrs = [operand0, *(ustrip(one, op) for op in operands)]
+    return Quantity(lax.concatenate(arrs, dimension=dimension), unit=one)
 
 
 # ==============================================================================
