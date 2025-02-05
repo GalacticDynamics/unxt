@@ -651,6 +651,27 @@ class AbstractQuantity(
     # ===============================================================
     # Python stuff
 
+    def __hash__(self) -> int:
+        """Return the hash of the quantity.
+
+        This is the hash of the value and the unit, however since the value is
+        generally not hashable this will generally raise an exception.
+        Defining the `__hash__` method is required for the `AbstractQuantity` to
+        be considered immutable, e.g. by `dataclasses.dataclass`.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Quantity(1, "m")
+        >>> try:
+        ...     hash(q)
+        ... except TypeError as e:
+        ...     print(e)
+        unhashable type: 'jaxlib.xla_extension.ArrayImpl'
+
+        """
+        return hash((self.value, self.unit))
+
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self.value!r}, unit={self.unit.to_string()!r})"
 
