@@ -17,7 +17,7 @@ from matplotlib.axes import Axes
 
 from zeroth import zeroth
 
-from unxt.quantity import AbstractQuantity, UncheckedQuantity, ustrip
+from unxt.quantity import AbstractQuantity, BareQuantity, ustrip
 
 
 @dataclass
@@ -52,7 +52,7 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
         if isinstance(obj, AbstractQuantity):
             return ustrip(unit, obj)
 
-        return ustrip(unit, UncheckedQuantity.from_(obj, axis.get_units()))
+        return BareQuantity.from_(obj, axis.get_units()).unstrip(unit)
 
     def axisinfo(self, unit: Any, _: Axes) -> matplotlib.units.AxisInfo:
         """Return axis information for this particular unit."""

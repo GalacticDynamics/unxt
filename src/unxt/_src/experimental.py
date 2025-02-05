@@ -32,7 +32,7 @@ import jax
 from jaxtyping import ArrayLike
 from plum.parametric import type_unparametrized
 
-from .quantity import AbstractQuantity, UncheckedQuantity as FastQ, ustrip
+from .quantity import AbstractQuantity, BareQuantity, ustrip
 from .units import AstropyUnits, unit, unit_of
 
 Args = TypeVarTuple("Args")
@@ -81,7 +81,7 @@ def grad(
     @partial(jax.grad, argnums=argnums)
     def gradfun_mag(*args: Any) -> ArrayLike:
         args_ = (
-            (a if unit is None else FastQ(a, unit))
+            (a if unit is None else BareQuantity(a, unit))
             for a, unit in zip(args, theunits, strict=True)
         )
         return ustrip(fun(*args_))  # type: ignore[arg-type]
@@ -134,7 +134,7 @@ def jacfwd(
 
     >>> jacfwd_cubbe_volume = u.experimental.jacfwd(cubbe_volume, units=("m",))
     >>> jacfwd_cubbe_volume(u.Quantity(2.0, "m"))
-    UncheckedQuantity(Array(12., dtype=float32, weak_type=True), unit='m2')
+    BareQuantity(Array(12., dtype=float32, weak_type=True), unit='m2')
 
     """
     argnums = eqx.error_if(
@@ -148,7 +148,7 @@ def jacfwd(
     @partial(jax.jacfwd, argnums=argnums)
     def jacfun_mag(*args: Any) -> R:
         args_ = tuple(
-            (a if unit is None else FastQ(a, unit))
+            (a if unit is None else BareQuantity(a, unit))
             for a, unit in zip(args, theunits, strict=True)
         )
         return fun(*args_)  # type: ignore[arg-type]
@@ -201,7 +201,7 @@ def hessian(
 
     >>> hessian_cubbe_volume = u.experimental.hessian(cubbe_volume, units=("m",))
     >>> hessian_cubbe_volume(u.Quantity(2.0, "m"))
-    UncheckedQuantity(Array(12., dtype=float32, weak_type=True), unit='m')
+    BareQuantity(Array(12., dtype=float32, weak_type=True), unit='m')
 
     """
     theunits: tuple[AstropyUnits, ...] = tuple(map(unit_or_none, units))
@@ -209,7 +209,7 @@ def hessian(
     @partial(jax.hessian)
     def hessfun_mag(*args: Any) -> R:
         args_ = tuple(
-            (a if unit is None else FastQ(a, unit))
+            (a if unit is None else BareQuantity(a, unit))
             for a, unit in zip(args, theunits, strict=True)
         )
         return fun(*args_)  # type: ignore[arg-type]

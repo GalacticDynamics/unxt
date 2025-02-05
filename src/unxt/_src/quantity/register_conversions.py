@@ -7,34 +7,34 @@ from plum import conversion_method
 from .api import ustrip
 from .base import AbstractQuantity
 from .quantity import Quantity
-from .unchecked import UncheckedQuantity
+from .unchecked import BareQuantity
 from unxt.units import unit_of
 
 
-@conversion_method(type_from=AbstractQuantity, type_to=UncheckedQuantity)  # type: ignore[arg-type]
-def _quantity_to_unchecked(q: AbstractQuantity, /) -> UncheckedQuantity:
+@conversion_method(type_from=AbstractQuantity, type_to=BareQuantity)  # type: ignore[arg-type]
+def _quantity_to_unchecked(q: AbstractQuantity, /) -> BareQuantity:
     """Convert any quantity to an unchecked quantity.
 
     Examples
     --------
     >>> from plum import convert
-    >>> from unxt.quantity import Quantity, UncheckedQuantity
+    >>> from unxt.quantity import Quantity, BareQuantity
 
     >>> q = Quantity(1, "m")
-    >>> convert(q, UncheckedQuantity)
-    UncheckedQuantity(Array(1, dtype=int32, weak_type=True), unit='m')
+    >>> convert(q, BareQuantity)
+    BareQuantity(Array(1, dtype=int32, weak_type=True), unit='m')
 
     The self-conversion doesn't copy the object:
 
-    >>> q = UncheckedQuantity(1, "m")
-    >>> convert(q, UncheckedQuantity) is q
+    >>> q = BareQuantity(1, "m")
+    >>> convert(q, BareQuantity) is q
     True
 
     """
-    if isinstance(q, UncheckedQuantity):
+    if isinstance(q, BareQuantity):
         return q
     unit = unit_of(q)
-    return UncheckedQuantity(ustrip(unit, q), unit)
+    return BareQuantity(ustrip(unit, q), unit)
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=Quantity)  # type: ignore[arg-type]
@@ -44,11 +44,11 @@ def _quantity_to_checked(q: AbstractQuantity, /) -> Quantity:
     Examples
     --------
     >>> from plum import convert
-    >>> from unxt.quantity import Quantity, UncheckedQuantity
+    >>> from unxt.quantity import Quantity, BareQuantity
 
-    >>> q = UncheckedQuantity(1, "m")
+    >>> q = BareQuantity(1, "m")
     >>> q
-    UncheckedQuantity(Array(1, dtype=int32, ...), unit='m')
+    BareQuantity(Array(1, dtype=int32, ...), unit='m')
 
     >>> convert(q, Quantity)
     Quantity['length'](Array(1, dtype=int32, ...), unit='m')

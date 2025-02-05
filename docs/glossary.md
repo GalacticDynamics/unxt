@@ -32,6 +32,6 @@ Parametric Class
 
 Non-parametric Class
   A non-parametric class is a class that is not defined by a set of parameters.
-  The `unxt.UncheckedQuantity` class is an example of a non-parametric class; it does not use any parameter.
+  The `unxt.quantity.BareQuantity` class is an example of a non-parametric class; it does not use any parameter.
 
 ```
