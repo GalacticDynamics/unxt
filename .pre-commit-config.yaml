@@ -81,6 +81,7 @@ repos:
         additional_dependencies:
           - plum-dispatch>=2.5.6
           - quaxed>=0.8.1
+          - quax-blocks>=0.1
 
   - repo: https://github.com/codespell-project/codespell
     rev: "v2.3.0"

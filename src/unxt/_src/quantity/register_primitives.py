@@ -192,7 +192,7 @@ def add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     ...     x + y
     ... except Exception as e:
     ...     print(e)
-    'km' (length) and '' (dimensionless) are not convertible
+    unsupported operand type(s) for +: 'jaxlib.xla_extension.ArrayImpl' and 'BareQuantity'
 
     >>> y = BareQuantity(100.0, "")
     >>> jnp.add(x, y)
@@ -215,7 +215,7 @@ def add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     ...     x + q2
     ... except Exception as e:
     ...     print(e)
-    'km' (length) and '' (dimensionless) are not convertible
+    unsupported operand type(s) for +: 'jaxlib.xla_extension.ArrayImpl' and 'Quantity[PhysicalType('length')]'
 
     >>> q2 = Quantity(100.0, "")
     >>> jnp.add(x, q2)
@@ -229,7 +229,7 @@ def add_p_vaq(x: ArrayLike, y: AbstractQuantity) -> AbstractQuantity:
     >>> jnp.add(x, q2 / q3)
     Quantity['dimensionless'](Array(501., dtype=float32, weak_type=True), unit='')
 
-    """
+    """  # noqa: E501
     y = uconvert(one, y)
     return replace(y, value=qlax.add(x, ustrip(y)))
 
@@ -259,7 +259,7 @@ def add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     ...     q1 + y
     ... except Exception as e:
     ...     print(e)
-    'km' (length) and '' (dimensionless) are not convertible
+    unsupported operand type(s) for +: 'BareQuantity' and 'jaxlib.xla_extension.ArrayImpl'
 
     >>> q1 = BareQuantity(100.0, "")
     >>> jnp.add(q1, y)
@@ -288,7 +288,7 @@ def add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     ...     q1 + y
     ... except Exception as e:
     ...     print(e)
-    'km' (length) and '' (dimensionless) are not convertible
+    unsupported operand type(s) for +: 'Quantity[PhysicalType('length')]' and 'jaxlib.xla_extension.ArrayImpl'
 
     >>> q1 = Quantity(100.0, "")
     >>> jnp.add(q1, y)
@@ -302,7 +302,7 @@ def add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     >>> jnp.add(q2 / q3, y)
     Quantity['dimensionless'](Array(501., dtype=float32, weak_type=True), unit='')
 
-    """
+    """  # noqa: E501
     x = uconvert(one, x)
     return replace(x, value=qlax.add(ustrip(x), y))
 
