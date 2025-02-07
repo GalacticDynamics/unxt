@@ -12,7 +12,7 @@ from unxt.units import unit_of
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=BareQuantity)  # type: ignore[arg-type]
-def _quantity_to_unchecked(q: AbstractQuantity, /) -> BareQuantity:
+def quantity_to_unchecked(q: AbstractQuantity, /) -> BareQuantity:
     """Convert any quantity to an unchecked quantity.
 
     Examples
@@ -38,7 +38,7 @@ def _quantity_to_unchecked(q: AbstractQuantity, /) -> BareQuantity:
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=Quantity)  # type: ignore[arg-type]
-def _quantity_to_checked(q: AbstractQuantity, /) -> Quantity:
+def quantity_to_checked(q: AbstractQuantity, /) -> Quantity:
     """Convert any quantity to a checked quantity.
 
     Examples
