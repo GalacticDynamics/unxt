@@ -2062,8 +2062,26 @@ wheels = [
 ]
 
 [[package]]
+name = "quax-blocks"
+version = "0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "jax" },
+    { name = "jaxlib" },
+    { name = "jaxtyping" },
+    { name = "optype" },
+    { name = "plum-dispatch" },
+    { name = "quax" },
+    { name = "quaxed" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e5/c2/27e034789d45fbd6fbdb950504e2b8deeb0d1221786a8953e87eac7f85de/quax_blocks-0.1.tar.gz", hash = "sha256:5c24c4fed433ff0e7aef271dccdde7e715bbc8058729d96be7db3aae68800e27", size = 58964 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/13/a7/bf1f54c011591e9401679ae8363cff00a55ee298edce74bbcb6a4a520970/quax_blocks-0.1-py3-none-any.whl", hash = "sha256:9c692134bf17529222bda63a032506098a2824302b3d42973e11644f9a5055ea", size = 16174 },
+]
+
+[[package]]
 name = "quaxed"
-version = "0.8.1"
+version = "0.8.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jax" },
@@ -2073,9 +2091,9 @@ dependencies = [
     { name = "plum-dispatch" },
     { name = "quax" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/75/17/80c24f8f21e764f2819182eaf032d620fbdd72df56388929ac4781347d02/quaxed-0.8.1.tar.gz", hash = "sha256:3856a778360cf74f01860f6774bb699a1a49b2b73c4ec7df13dd518f144084fc", size = 131590 }
+sdist = { url = "https://files.pythonhosted.org/packages/5c/dd/8e7a7efc78c6fc317132ffa98f9d8f75f2867cc697059fea0babd2c73227/quaxed-0.8.3.tar.gz", hash = "sha256:a838ce9a57df87615e6968e305f86cae669ed9c1811ed14bede043b0ca44dc72", size = 131906 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cd/54/3694e96202a6fea6b197071e4d874ebda49dca5c9eb53434f7c3310b3f06/quaxed-0.8.1-py3-none-any.whl", hash = "sha256:0ce637a7154ccaf7d045caeebb0b7d1433c1f75b6d20a233a29ea99810dbd0ba", size = 48267 },
+    { url = "https://files.pythonhosted.org/packages/f4/75/dde255f8644ac2a167b588c986582f66226637e0225e262a2d05f487ba07/quaxed-0.8.3-py3-none-any.whl", hash = "sha256:cbcd1067f51c09a4ee0652f10e0ab8b4b167f7250b1c418c085512b29b18f1b1", size = 48633 },
 ]
 
 [[package]]
@@ -2639,6 +2657,7 @@ dependencies = [
     { name = "optional-dependencies" },
     { name = "plum-dispatch" },
     { name = "quax" },
+    { name = "quax-blocks" },
     { name = "quaxed" },
     { name = "xmmutablemap" },
     { name = "zeroth" },
@@ -2779,6 +2798,7 @@ requires-dist = [
     { name = "optional-dependencies", specifier = ">=0.3.2" },
     { name = "plum-dispatch", specifier = ">=2.5.6" },
     { name = "quax", specifier = ">=0.0.5" },
+    { name = "quax-blocks", specifier = ">=0.1" },
     { name = "quaxed", specifier = ">=0.8.1" },
     { name = "xmmutablemap", specifier = ">=0.1" },
     { name = "zeroth", specifier = ">=1.0.0" },

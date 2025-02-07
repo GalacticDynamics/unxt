@@ -167,8 +167,7 @@ Arithmetic will raise an error if the units are incompatible:
 >>> z = u.Quantity(5.0, "second")
 >>> try: x + z
 ... except Exception as e: print(e)
-...
-'s' (time) and 'm' (length) are not convertible
+unsupported operand type(s) for +: 'Quantity[PhysicalType('length')]' and 'Quantity[PhysicalType('time')]'
 ```
 
 ### Converting Units

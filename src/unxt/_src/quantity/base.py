@@ -12,6 +12,7 @@ from typing_extensions import override
 import equinox as eqx
 import jax
 import jax.core
+import quax_blocks
 from astropy.units import UnitConversionError
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Bool, ScalarLike, Shaped
@@ -20,7 +21,6 @@ from quax import ArrayValue
 
 import quaxed.numpy as jnp
 from dataclassish import replace
-from quaxed.experimental import arrayish
 
 from .api import is_unit_convertible, uconvert, ustrip
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
@@ -39,15 +39,15 @@ class AbstractQuantity(
     NumPyCompatMixin,
     IPythonReprMixin,
     ArrayValue,
-    arrayish.NumpyBinaryOpsMixin[Any, "AbstractQuantity"],
-    arrayish.NumpyComparisonMixin[Any, Bool[Array, "*shape"]],  # TODO: shape hint
-    arrayish.NumpyUnaryMixin["AbstractQuantity"],
-    arrayish.NumpyRoundMixin["AbstractQuantity"],
-    arrayish.NumpyTruncMixin["AbstractQuantity"],
-    arrayish.NumpyFloorMixin["AbstractQuantity"],
-    arrayish.NumpyCeilMixin["AbstractQuantity"],
-    arrayish.LaxLenMixin,
-    arrayish.LaxLengthHintMixin,
+    quax_blocks.NumpyBinaryOpsMixin[Any, "AbstractQuantity"],
+    quax_blocks.NumpyComparisonMixin[Any, Bool[Array, "*shape"]],  # TODO: shape hint
+    quax_blocks.NumpyUnaryMixin["AbstractQuantity"],
+    quax_blocks.NumpyRoundMixin["AbstractQuantity"],
+    quax_blocks.NumpyTruncMixin["AbstractQuantity"],
+    quax_blocks.NumpyFloorMixin["AbstractQuantity"],
+    quax_blocks.NumpyCeilMixin["AbstractQuantity"],
+    quax_blocks.LaxLenMixin,
+    quax_blocks.LaxLengthHintMixin,
 ):
     """Represents an array, with each axis bound to a name.
 
@@ -315,7 +315,7 @@ class AbstractQuantity(
         return self % other
 
     # required to override mixin methods
-    __eq__ = arrayish.NumpyEqMixin.__eq__
+    __eq__ = quax_blocks.NumpyEqMixin.__eq__
 
     # ---------------------------------------------------------------
     # methods
@@ -898,7 +898,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
         return super().__repr__().replace("_IndexUpdateRef", "_QuantityIndexUpdateRef")
 
     @override
-    def get(  # type: ignore[override]
+    def get(
         self,
         *,
         indices_are_sorted: bool = False,
