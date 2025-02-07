@@ -6,26 +6,21 @@ from doctest import ELLIPSIS, NORMALIZE_WHITESPACE
 from typing import Any
 
 from sybil import Document, Region, Sybil
-from sybil.parsers.myst import (
-    DocTestDirectiveParser as MarkdownDocTestDirectiveParser,
-    PythonCodeBlockParser as MarkdownPythonCodeBlockParser,
-    SkipParser as MarkdownSkipParser,
-)
-from sybil.parsers.rest import DocTestParser as ReSTDocTestParser
+from sybil.parsers import myst, rest
 
 from optional_dependencies import OptionalDependencyEnum, auto
 
 optionflags = ELLIPSIS | NORMALIZE_WHITESPACE
 
 parsers: Sequence[Callable[[Document], Iterable[Region]]] = [
-    MarkdownDocTestDirectiveParser(optionflags=optionflags),
-    MarkdownPythonCodeBlockParser(doctest_optionflags=optionflags),
-    MarkdownSkipParser(),
+    myst.DocTestDirectiveParser(optionflags=optionflags),
+    myst.PythonCodeBlockParser(doctest_optionflags=optionflags),
+    myst.SkipParser(),
 ]
 
 docs = Sybil(parsers=parsers, patterns=["*.md"])
 python = Sybil(
-    parsers=[ReSTDocTestParser(optionflags=optionflags), *parsers], patterns=["*.py"]
+    parsers=[*parsers, rest.DocTestParser(optionflags=optionflags)], patterns=["*.py"]
 )
 
 
