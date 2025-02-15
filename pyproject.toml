@@ -73,7 +73,8 @@
     { include-group = "docs" },
     { include-group = "nox" },
     { include-group = "test-all" },
-  ]
+    "pre-commit>=4.1.0",
+]
   docs = [
     "myst-nb>=1.1.2",
     "myst_parser>=0.13",

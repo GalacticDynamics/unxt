@@ -157,7 +157,7 @@ class IPythonReprMixin:
 
         """
         unit_repr = getattr(self.unit, "_repr_html_", self.unit.__repr__)()
-        value_repr = np.array2string(self.value, separator=", ")  # type: ignore[arg-type]
+        value_repr = np.array2string(self.value, separator=", ")  # type: ignore[call-overload]
 
         return f"<span>{value_repr}</span> * <span>{unit_repr}</span>"
 
@@ -174,7 +174,7 @@ class IPythonReprMixin:
 
         """
         unit_repr = getattr(self.unit, "_repr_latex_", self.unit.__repr__)()
-        value_repr = np.array2string(self.value, separator=",~")  # type: ignore[arg-type]
+        value_repr = np.array2string(self.value, separator=",~")  # type: ignore[call-overload]
 
         return f"${value_repr} \\; {unit_repr[1:-1]}$"
 
