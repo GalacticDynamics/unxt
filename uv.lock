@@ -1,6 +1,5 @@
 version = 1
-revision = 1
-requires-python = ">=3.11, <3.14"
+requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.13'",
     "python_full_version == '3.12.*'",
@@ -2848,7 +2847,6 @@ requires-dist = [
     { name = "xmmutablemap", specifier = ">=0.1" },
     { name = "zeroth", specifier = ">=1.0.0" },
 ]
-provides-extras = ["all", "backend-astropy", "cpu", "cuda", "cuda12", "cuda12-local", "interop-gala", "interop-mpl", "k8s", "rocm"]
 
 [package.metadata.requires-dev]
 dev = [

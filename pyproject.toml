@@ -3,7 +3,7 @@
   dynamic = ["version"]
   description = "Quantities in JAX"
   readme = "README.md"
-  requires-python = ">=3.11,<3.14"
+  requires-python = ">=3.11"
   authors = [
     { name = "GalacticDynamics", email = "nstarman@users.noreply.github.com" },
     { name = "Nathaniel Starkman", email = "nstarman@users.noreply.github.com" },
@@ -136,7 +136,7 @@
   ]
   log_cli_level = "INFO"
   minversion = "8.3"
-  testpaths = ["docs", "src/", "tests/"]
+  testpaths = ["docs", "README.md", "src/", "tests/"]
   norecursedirs = ["docs/_build"]
   xfail_strict = true
 

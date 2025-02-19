@@ -1,5 +1,6 @@
 __all__ = ["AllowValue"]
 
+from numbers import Number
 from typing import Any, NoReturn
 
 from jaxtyping import Array
@@ -42,7 +43,7 @@ class AllowValue:
 
 
 @dispatch
-def ustrip(flag: type[AllowValue], unit: Any, x: Array, /) -> Array:
+def ustrip(flag: type[AllowValue], unit: Any, x: Array | Number, /) -> Array | Number:
     """Strip the units from a value. This is a no-op.
 
     Examples

@@ -108,6 +108,16 @@ Alternatively the `ustrip` method can be used.
 Array(500., dtype=float32, ...)
 ```
 
+When working with either an array or a `Quantity` object, you can use the
+`ustrip` function with the `unxt.quantity.AllowValue` flag to allow arrays
+without units to be passed in, assuming them to be in the correct output units.
+
+```{code-block} python
+>>> import jax.numpy as jnp
+>>> u.ustrip(u.quantity.AllowValue, "cm", 500)
+500
+```
+
 :::{note} :class: dropdown
 
 The Astropy API `.to_value` is also available for `Quantity` objects.
