@@ -80,6 +80,7 @@ pip install -e .  # editable mode
 
 ```python
 import unxt as u
+import jax.numpy as jnp
 
 x = u.Quantity(jnp.arange(1, 5, dtype=float), "km")
 print(x)
@@ -164,7 +165,7 @@ import quaxed.numpy as jnp
 print(jnp.square(x))
 # Quantity['area'](Array([ 1.,  4.,  9., 16.], dtype=float64), unit='km2')
 
-print(qnp.power(x, 3))
+print(jnp.power(x, 3))
 # Quantity['volume'](Array([ 1.,  8., 27., 64.], dtype=float64), unit='km3')
 
 print(vmap(grad(lambda x: x**3))(x))
