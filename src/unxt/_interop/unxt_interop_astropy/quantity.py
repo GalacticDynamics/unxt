@@ -271,7 +271,7 @@ def ustrip(u: Any, x: AstropyQuantity) -> Any:
 
 
 @dispatch  # TODO: type annotate by value
-def ustrip(flag: type[AllowValue], unit: Any, x: AstropyQuantity, /) -> Any:
+def ustrip(flag: type[AllowValue], u: Any, x: AstropyQuantity, /) -> Any:
     """Strip the units from a quantity.
 
     Examples
@@ -282,4 +282,4 @@ def ustrip(flag: type[AllowValue], unit: Any, x: AstropyQuantity, /) -> Any:
     Array(1., dtype=float64, ...)
 
     """
-    return ustrip(unit, x)
+    return ustrip(u, x)
