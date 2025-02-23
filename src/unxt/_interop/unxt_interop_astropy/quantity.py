@@ -13,7 +13,7 @@ from dataclassish import field_items, replace
 
 from .custom_types import APYUnits
 from unxt.dims import dimension_of
-from unxt.quantity import AbstractQuantity, BareQuantity, Quantity, ustrip
+from unxt.quantity import AbstractQuantity, AllowValue, BareQuantity, Quantity, ustrip
 from unxt.units import unit, unit_of
 
 # ============================================================================
@@ -268,3 +268,18 @@ def ustrip(u: Any, x: AstropyQuantity) -> Any:
 
     """
     return x.to_value(u)
+
+
+@dispatch  # TODO: type annotate by value
+def ustrip(flag: type[AllowValue], u: Any, x: AstropyQuantity, /) -> Any:
+    """Strip the units from a quantity.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> q = u.Quantity(1000, "m")
+    >>> u.ustrip(AllowValue, "km", q)
+    Array(1., dtype=float32, ...)
+
+    """
+    return ustrip(u, x)
