@@ -5,12 +5,14 @@ __all__: list[str] = []
 
 from typing import Any
 
+import equinox as eqx
 from astropy.units import UnitConversionError
 from jaxtyping import Array
 from plum import dispatch
 
 from .api import ustrip
 from .base import AbstractQuantity
+from .quantity import Quantity
 from unxt._src.units import AstropyUnits
 from unxt.dims import AbstractDimension, dimension_of
 from unxt.units import unit
@@ -26,13 +28,39 @@ def dimension_of(obj: AbstractQuantity, /) -> AbstractDimension:
 
     Examples
     --------
-    >>> from unxt import dimension_of, Quantity
-    >>> q = Quantity(1, "m")
-    >>> dimension_of(q)
+    >>> import unxt as u
+    >>> q = u.Quantity(1, "m")
+    >>> u.dimension_of(q)
     PhysicalType('length')
 
     """
     return dimension_of(obj.unit)
+
+
+@dispatch
+def dimension_of(obj: type[Quantity], /) -> AbstractDimension:
+    """Return the dimension of a quantity.
+
+    Examples
+    --------
+    >>> import unxt as u
+
+    >>> try:
+    ...     u.dimension_of(u.Quantity)
+    ... except Exception as e:
+    ...     print(e)
+    can only get dimensions from parametrized Quantity -- Quantity[dim].
+
+    >>> u.dimension_of(u.Quantity["length"])
+    PhysicalType('length')
+
+    """
+    obj = eqx.error_if(
+        obj,
+        not hasattr(obj, "_type_parameter"),
+        "can only get dimensions from parametrized Quantity -- Quantity[dim].",
+    )
+    return obj._type_parameter  # noqa: SLF001
 
 
 # ===================================================================
