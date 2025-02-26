@@ -5,7 +5,7 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 
 __all__: list[str] = []
 
-from typing import Any
+from typing import Any, NoReturn
 
 import astropy.units as apyu
 from plum import dispatch
@@ -85,3 +85,22 @@ def dimension_of(obj: AbstractDimension, /) -> AbstractDimension:
 
     """
     return obj
+
+
+@dispatch
+def dimension_of(obj: type, /) -> NoReturn:
+    """Get the dimension of a type.
+
+    Examples
+    --------
+    >>> import unxt as u
+
+    >>> try:
+    ...     u.dimension_of(u.quantity.BareQuantity)
+    ... except ValueError as e:
+    ...     print(e)
+    Cannot get the dimension of <class 'unxt._src.quantity.unchecked.BareQuantity'>.
+
+    """
+    msg = f"Cannot get the dimension of {obj}."
+    raise ValueError(msg)
