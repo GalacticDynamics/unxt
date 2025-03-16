@@ -182,7 +182,7 @@ If you found this library to be useful and want to support the development and
 maintenance of lower-level code libraries for the scientific community, please
 consider citing this work.
 
-## Development
+## Contributing and Development
 
 [![Actions Status][actions-badge]][actions-link]
 [![Documentation Status][rtd-badge]][rtd-link]
@@ -192,7 +192,19 @@ consider citing this work.
 [![ruff][ruff-badge]][ruff-link]
 [![CodSpeed Badge](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/GalacticDynamics/unxt)
 
-We welcome contributions!
+We welcome contributions! Contributions are how open source projects improve and
+grow.
+
+To contribute to `unxt`, please
+[fork](https://github.com/GalacticDynamics/unxt/fork) the repository, make a
+development branch, develop on that branch, then
+[open a pull request](https://github.com/GalacticDynamics/unxt/compare) from the
+branch in your fork to main.
+
+To report bugs, request features, or suggest other ideas, please
+[open an issue](https://github.com/GalacticDynamics/unxt/issues/new/choose).
+
+For more information, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 <!-- prettier-ignore-start -->
 [equinox]: https://docs.kidger.site/equinox/
