@@ -77,7 +77,7 @@ poses a challenge for scientific applications that require handling of physical
 units.
 
 Astropy has been an invaluable resource for the scientific community, with over
-10,000 citations on its initial paper and more than 2,000 citations on its 2022
+10,000 citations to its initial paper and more than 2,000 citations to its 2022
 paper [@astropy:13; @astropy:22]. One of the foundational sub-packages within
 Astropy is `astropy.units`, which provides robust support for units and
 quantities, enabling the propagation of units through NumPy functions. This
