@@ -89,6 +89,11 @@ repos:
       - id: codespell
         exclude: paper/paper.bib
 
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.6.8
+    hooks:
+      - id: uv-lock
+
   # - repo: https://github.com/abravalheri/validate-pyproject
   #   rev: v0.23
   #   hooks:
