@@ -389,7 +389,7 @@ Quantity['frequency'](Array(0.5, dtype=float32, weak_type=True), unit='1 / s')
 
 ## Citation
 
-[![DOI][zenodo-badge]][zenodo-link]
+[![JOSS][joss]][joss-link] [![DOI][zenodo-badge]][zenodo-link]
 
 If you found this library to be useful and want to support the development and
 maintenance of lower-level code libraries for the scientific community, please
@@ -419,6 +419,8 @@ consider citing this work.
 [equinox]: https://docs.kidger.site/equinox/
 [galax]: https://github.com/GalacticDynamics/galax
 [jax]: https://jax.readthedocs.io/en/latest/
+[joss]: https://joss.theoj.org/papers/10.21105/joss.07771/status.svg
+[joss-link]: https://doi.org/10.21105/joss.07771
 [plum]: https://pypi.org/project/plum-dispatch/
 [quax]: https://github.com/patrick-kidger/quax
 [quaxed]: https://quaxed.readthedocs.io/en/latest/
