@@ -18,6 +18,9 @@
     <a href="https://unxt.readthedocs.io/en/"> <img alt="ReadTheDocs" src="https://readthedocs.org/projects/unxt/badge/?version=latest" /> </a>
     <a href="https://codecov.io/gh/GalacticDynamics/unxt"> <img alt="codecov" src="https://codecov.io/gh/GalacticDynamics/unxt/graph/badge.svg" /> </a>
 </p>
+<p align="center">
+    <a style="border-width:0" href="https://doi.org/10.21105/joss.07771"> <img src="https://joss.theoj.org/papers/10.21105/joss.07771/status.svg" alt="DOI badge" > </a>
+</p>
 
 ---
 
