@@ -385,8 +385,6 @@ Quantity['frequency'](Array(0.5, dtype=float32, weak_type=True), unit='1 / s')
 
 ::::
 
----
-
 ## Citation
 
 [![JOSS][joss]][joss-link] [![DOI][zenodo-badge]][zenodo-link]

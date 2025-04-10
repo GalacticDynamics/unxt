@@ -27,6 +27,7 @@ from quaxed import lax as qlax
 from .api import is_unit_convertible, uconvert, ustrip
 from .base import AbstractQuantity
 from .base_parametric import AbstractParametricQuantity
+from .flag import AllowValue
 from .quantity import Quantity
 from unxt._src.utils import promote_dtypes_if_needed
 from unxt.units import unit, unit_of
@@ -3272,6 +3273,71 @@ def reduce_prod_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
 @register(lax.reduce_sum_p)
 def reduce_sum_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
     return replace(operand, value=lax.reduce_sum_p.bind(ustrip(operand), axes=axes))
+
+
+# ==============================================================================
+
+
+@register(lax.regularized_incomplete_beta_p)
+def regularized_incomplete_beta_q(
+    a: ArrayLike | AbstractQuantity,
+    b: ArrayLike | AbstractQuantity,
+    x: ArrayLike,
+) -> Array:
+    """Regularized incomplete beta function.
+
+    Examples
+    --------
+    >>> import quaxed.scipy.special as jsp
+    >>> from unxt.quantity import BareQuantity, Quantity
+
+    >>> a = BareQuantity(2.0, "")
+    >>> b = BareQuantity(3.0, "")
+    >>> x = 0.5
+    >>> jsp.betainc(a, b, x)
+    Array(0.68749976, dtype=float32, weak_type=True)
+
+    """
+    a = ustrip(AllowValue, one, a)
+    b = ustrip(AllowValue, one, b)
+    return lax.regularized_incomplete_beta_p.bind(a, b, x)
+
+
+@register(lax.regularized_incomplete_beta_p)
+def regularized_incomplete_beta_q(
+    a: ArrayLike | AbstractQuantity,
+    b: ArrayLike | AbstractQuantity,
+    x: AbstractQuantity,
+) -> AbstractQuantity:
+    """Regularized incomplete beta function.
+
+    Examples
+    --------
+    >>> import quaxed.scipy.special as jsp
+    >>> from unxt.quantity import BareQuantity, Quantity
+
+    >>> a = 2.0
+    >>> b = 3.0
+    >>> x = BareQuantity(0.5, "")
+    >>> jsp.betainc(a, b, x)
+    BareQuantity(Array(0.68749976, dtype=float32, weak_type=True), unit='')
+
+    >>> x = Quantity(0.5, "")
+    >>> jsp.betainc(a, b, x)
+    Quantity['dimensionless'](Array(0.68749976, dtype=float32, weak_type=True), unit='')
+
+    >>> x = Quantity(0.5, "m")
+    >>> try:
+    ...     jsp.betainc(a, b, x)
+    ... except Exception as e:
+    ...     print(e)
+    'm' (length) and '' (dimensionless) are not convertible
+
+    """
+    a = ustrip(AllowValue, one, a)
+    b = ustrip(AllowValue, one, b)
+    xv = ustrip(one, x)
+    return replace(x, value=lax.regularized_incomplete_beta_p.bind(a, b, xv))
 
 
 # ==============================================================================
