@@ -74,7 +74,7 @@
     { include-group = "nox" },
     { include-group = "test-all" },
     "pre-commit>=4.1.0",
-]
+  ]
   docs = [
     "myst-nb>=1.1.2",
     "myst_parser>=0.13",
@@ -101,7 +101,7 @@
     "pytest-env>=1.1.5",
     "pytest-github-actions-annotate-failures>=0.2.0",
     "sybil>=8.0.0",
-]
+  ]
   pytest-benchmark-parallel = [
     "pytest-xdist>=3.6.1",
   ]
