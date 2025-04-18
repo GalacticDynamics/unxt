@@ -2,7 +2,6 @@
 
 from collections.abc import Callable
 from typing import Any, TypeAlias, TypedDict
-from typing_extensions import Unpack
 
 import jax
 import pytest
@@ -34,7 +33,7 @@ class ParameterizationKWArgs(TypedDict):
 
 def process_pytest_argvalues(
     process_fn: Callable[[Callable[..., Any], Args], tuple[Callable[..., Any], Args]],
-    argvalues: list[tuple[Callable[..., Any], Unpack[tuple[Args, ...]]]],
+    argvalues: list[tuple[Callable[..., Any], *tuple[Args, ...]]],
 ) -> ParameterizationKWArgs:
     """Process the argvalues."""
     # Get the ID for each parameterization
@@ -52,7 +51,7 @@ def process_pytest_argvalues(
 
 
 # TODO: also benchmark BareQuantity
-funcs_and_args: list[tuple[Callable[..., Any], Unpack[tuple[Args, ...]]]] = [
+funcs_and_args: list[tuple[Callable[..., Any], *tuple[Args, ...]]] = [
     (jnp.abs, (x_nodim,), (x_length,)),
     (jnp.acos, (x_nodim,)),
     (jnp.acosh, (x_nodim,)),

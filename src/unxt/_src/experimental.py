@@ -22,8 +22,8 @@ To import this experimental module
 
 __all__ = ["grad", "hessian", "jacfwd"]
 
+import functools as ft
 from collections.abc import Callable
-from functools import partial
 from typing import Any, TypeVar, TypeVarTuple
 from typing_extensions import Unpack
 
@@ -78,7 +78,7 @@ def grad(
     theunits: tuple[AstropyUnits | None, ...] = tuple(map(unit_or_none, units))
 
     # Gradient of function, stripping and adding units
-    @partial(jax.grad, argnums=argnums)
+    @ft.partial(jax.grad, argnums=argnums)
     def gradfun_mag(*args: Any) -> ArrayLike:
         args_ = (
             (a if unit is None else BareQuantity(a, unit))
@@ -86,7 +86,7 @@ def grad(
         )
         return ustrip(fun(*args_))  # type: ignore[arg-type]
 
-    def gradfun(*args: Unpack[Args]) -> R:
+    def gradfun(*args: *Args) -> R:
         # Get the value of the args. They are turned back into Quantity
         # inside the function we are taking the grad of.
         args_ = tuple(  # type: ignore[var-annotated]
@@ -145,7 +145,7 @@ def jacfwd(
 
     theunits: tuple[AstropyUnits | None, ...] = tuple(map(unit_or_none, units))
 
-    @partial(jax.jacfwd, argnums=argnums)
+    @ft.partial(jax.jacfwd, argnums=argnums)
     def jacfun_mag(*args: Any) -> R:
         args_ = tuple(
             (a if unit is None else BareQuantity(a, unit))
@@ -153,7 +153,7 @@ def jacfwd(
         )
         return fun(*args_)  # type: ignore[arg-type]
 
-    def jacfun(*args: Unpack[Args]) -> R:
+    def jacfun(*args: *Args) -> R:
         # Get the value of the args. They are turned back into Quantity
         # inside the function we are taking the Jacobian of.
         args_ = tuple(  # type: ignore[var-annotated]
@@ -206,7 +206,7 @@ def hessian(
     """
     theunits: tuple[AstropyUnits, ...] = tuple(map(unit_or_none, units))
 
-    @partial(jax.hessian)
+    @ft.partial(jax.hessian)
     def hessfun_mag(*args: Any) -> R:
         args_ = tuple(
             (a if unit is None else BareQuantity(a, unit))
@@ -214,7 +214,7 @@ def hessian(
         )
         return fun(*args_)  # type: ignore[arg-type]
 
-    def hessfun(*args: Unpack[Args]) -> R:
+    def hessfun(*args: *Args) -> R:
         # Get the value of the args. They are turned back into Quantity
         # inside the function we are taking the hessian of.
         args_ = tuple(  # type: ignore[var-annotated]
