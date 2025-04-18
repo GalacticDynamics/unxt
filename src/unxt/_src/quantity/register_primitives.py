@@ -84,13 +84,13 @@ def acos_p_aq(x: AbstractQuantity) -> AbstractQuantity:
     >>> import quaxed.numpy as xp
     >>> from unxt.quantity import BareQuantity
     >>> q = BareQuantity(-1, "")
-    >>> jnp.acos(q)
-    BareQuantity(Array(3.1415925, dtype=float32, ...), unit='rad')
+    >>> jnp.acos(q).round(4)
+    BareQuantity(Array(3.1416, dtype=float32, weak_type=True), unit='rad')
 
     >>> from unxt.quantity import Quantity
     >>> q = Quantity(-1, "")
-    >>> jnp.acos(q)
-    Quantity['angle'](Array(3.1415925, dtype=float32, ...), unit='rad')
+    >>> jnp.acos(q).round(4)
+    Quantity['angle'](Array(3.1416, dtype=float32, ...), unit='rad')
 
     """
     x_ = ustrip(one, x)
