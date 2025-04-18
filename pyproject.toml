@@ -30,14 +30,14 @@
     "dataclassish>=0.8.0",
     "equinox>=0.11.8",
     "is-annotated>=1.0",
-    "jax>0.4.32",
-    "jaxlib>0.4.32",
+    "jax>=0.5.3",
+    "jaxlib>=0.5.3",
     "jaxtyping>=0.2.34",
     "optional-dependencies>=0.3.2",
-    "plum-dispatch>=2.5.6",
-    "quax>=0.0.5",
-    "quax-blocks>=0.2",
-    "quaxed>=0.8.1",
+    "plum-dispatch>=2.5.7",
+    "quax>=0.2.0",
+    "quax-blocks>=0.3",
+    "quaxed>=0.9.0",
     "xmmutablemap>=0.1",
     "zeroth>=1.0.0",
 ]
@@ -48,7 +48,6 @@
     cuda            = ["jax[cuda]"]
     cuda12          = ["jax[cuda12]"]
     cuda12_local    = ["jax[cuda12_local]"]
-    rocm            = ["jax[rocm]"]
     k8s             = ["jax[k8s]"]
     # extra extras
     all             = ["unxt[backend-astropy,interop-gala,interop-mpl]"]
@@ -92,7 +91,7 @@
   ]
   nox = ["nox>=2024.10.9"]
   test = [
-    "hypothesis[numpy]>=6.112.2",
+    "hypothesis[numpy]>=6.131.2",
     "pytest>=8.3.3",
     "pytest-arraydiff>=0.6.1",
     "pytest-benchmark>=5.1",
@@ -137,7 +136,11 @@
   log_cli_level = "INFO"
   minversion = "8.3"
   testpaths = ["docs", "README.md", "src/", "tests/"]
-  norecursedirs = ["docs/_build"]
+  norecursedirs = [
+    ".*",          # ignores .hypothesis, .git, etc.
+    "__pycache__",
+    "docs/_build"
+  ]
   xfail_strict = true
 
 
@@ -268,6 +271,7 @@ UNXT_ENABLE_RUNTIME_TYPECHECKING = "beartype.beartype"
     "wildcard-import",            # handled by ruff
     "wrong-import-order",         # handled by ruff
     "wrong-import-position",
+    "W0221",  # Arguments in function call differ from overridden method
   ]
   py-version = "3.11"
   reports.output-format = "colorized"
@@ -286,7 +290,4 @@ conflicts = [
         { extra = "cuda" }, { extra = "cuda12" }, { extra = "cuda12_local" },
         { extra = "rocm" }, { extra = "k8s" }
     ]
-]
-constraint-dependencies = [
-  "jax<0.4.36", # TODO: remove when https://github.com/patrick-kidger/quax/pull/37 is merged
 ]

@@ -5,14 +5,16 @@ from __future__ import annotations
 __all__ = ["DimensionlessUnitSystem", "LTMAUnitSystem"]
 
 from dataclasses import dataclass
-from typing import Annotated, TypeAlias, final
+from typing import TYPE_CHECKING, Annotated, TypeAlias, final
 from typing_extensions import override
 
 from astropy.units import UnitBase as AstropyUnitBase, dimensionless_unscaled
 
-from . import builtin_dimensions as ud
 from .base import AbstractUnitSystem
 from unxt._src.utils import SingletonMixin
+
+if TYPE_CHECKING:
+    from . import builtin_dimensions as ud
 
 Unit: TypeAlias = AstropyUnitBase
 

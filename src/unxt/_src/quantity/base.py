@@ -3,8 +3,8 @@
 
 __all__ = ["AbstractQuantity", "is_any_quantity"]
 
+import functools as ft
 from collections.abc import Mapping
-from functools import partial
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeGuard
 from typing_extensions import override
@@ -315,7 +315,7 @@ class AbstractQuantity(
         return self % other
 
     # required to override mixin methods
-    __eq__ = quax_blocks.NumpyEqMixin.__eq__
+    __eq__ = quax_blocks.NumpyEqMixin.__eq__  # type: ignore[assignment,unused-ignore]
 
     # ---------------------------------------------------------------
     # methods
@@ -497,7 +497,7 @@ class AbstractQuantity(
         """
         return replace(self, value=self.value.astype(*args, **kwargs))
 
-    @partial(property, doc=jax.Array.at.__doc__)
+    @ft.partial(property, doc=jax.Array.at.__doc__)
     def at(self) -> "_QuantityIndexUpdateHelper":
         return _QuantityIndexUpdateHelper(self)  # type: ignore[no-untyped-call]
 
@@ -899,153 +899,70 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
 
     @override
     def get(
-        self,
-        *,
-        indices_are_sorted: bool = False,
-        unique_indices: bool = False,
-        mode: jax.lax.GatherScatterMode | None = None,
-        fill_value: AbstractQuantity | None = None,
+        self, *, fill_value: AbstractQuantity | None = None, **kw: Any
     ) -> AbstractQuantity:
         # TODO: by quaxified super
         value = self.array.value.at[self.index].get(
-            indices_are_sorted=indices_are_sorted,
-            unique_indices=unique_indices,
-            mode=mode,
-            fill_value=fill_value
-            if fill_value is None
-            else ustrip(self.array.unit, fill_value),
+            fill_value=(
+                fill_value
+                if fill_value is None
+                else ustrip(self.array.unit, fill_value)
+            ),
+            **kw,
         )
         return replace(self.array, value=value)
 
-    def set(
-        self,
-        values: AbstractQuantity,
-        *,
-        indices_are_sorted: bool = False,
-        unique_indices: bool = False,
-        mode: None = None,
-    ) -> AbstractQuantity:
+    def set(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:
         # TODO: by quaxified super
         value = self.array.value.at[self.index].set(
-            ustrip(self.array.unit, values),
-            indices_are_sorted=indices_are_sorted,
-            unique_indices=unique_indices,
-            mode=mode,
+            ustrip(self.array.unit, values), **kw
         )
         return replace(self.array, value=value)
 
-    def apply(
-        self,
-        func: Any,
-        *,
-        indices_are_sorted: bool = False,
-        unique_indices: bool = False,
-        mode: jax.lax.GatherScatterMode | None = None,
-    ) -> AbstractQuantity:
+    def apply(self, func: Any, **kw: Any) -> AbstractQuantity:
         raise NotImplementedError  # TODO: by quaxified super
 
-    def add(
-        self,
-        values: AbstractQuantity,
-        *,
-        indices_are_sorted: bool = False,
-        unique_indices: bool = False,
-        mode: jax.lax.GatherScatterMode | None = None,
-    ) -> AbstractQuantity:
+    def add(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:
         # TODO: by quaxified super
         value = self.array.value.at[self.index].add(
-            ustrip(self.array.unit, values),
-            indices_are_sorted=indices_are_sorted,
-            unique_indices=unique_indices,
-            mode=mode,
+            ustrip(self.array.unit, values), **kw
         )
         return replace(self.array, value=value)
 
-    def multiply(
-        self,
-        values: ArrayLike,
-        *,
-        indices_are_sorted: bool = False,
-        unique_indices: bool = False,
-        mode: jax.lax.GatherScatterMode | None = None,
-    ) -> AbstractQuantity:
+    def multiply(self, values: ArrayLike, **kw: Any) -> AbstractQuantity:
         values = eqx.error_if(
             values, isinstance(values, AbstractQuantity), "values cannot be a Quantity"
         )  # TODO: can permit dimensionless quantities.
 
         # TODO: by quaxified super
-        value = self.array.value.at[self.index].multiply(
-            values,
-            indices_are_sorted=indices_are_sorted,
-            unique_indices=unique_indices,
-            mode=mode,
-        )
+        value = self.array.value.at[self.index].multiply(values, **kw)
         return replace(self.array, value=value)
 
     mul = multiply
 
-    def divide(
-        self,
-        values: ArrayLike,
-        *,
-        indices_are_sorted: bool = False,
-        unique_indices: bool = False,
-        mode: jax.lax.GatherScatterMode | None = None,
-    ) -> AbstractQuantity:
+    def divide(self, values: ArrayLike, **kw: Any) -> AbstractQuantity:
         values = eqx.error_if(
             values, isinstance(values, AbstractQuantity), "values cannot be a Quantity"
         )  # TODO: can permit dimensionless quantities.
 
         # TODO: by quaxified super
-        value = self.array.value.at[self.index].divide(
-            values,
-            indices_are_sorted=indices_are_sorted,
-            unique_indices=unique_indices,
-            mode=mode,
-        )
+        value = self.array.value.at[self.index].divide(values, **kw)
         return replace(self.array, value=value)
 
-    def power(
-        self,
-        values: ArrayLike,
-        *,
-        indices_are_sorted: bool = False,
-        unique_indices: bool = False,
-        mode: jax.lax.GatherScatterMode | None = None,
-    ) -> AbstractQuantity:
+    def power(self, values: ArrayLike, **kw: Any) -> AbstractQuantity:
         raise NotImplementedError
 
-    def min(
-        self,
-        values: AbstractQuantity,
-        *,
-        indices_are_sorted: bool = False,
-        unique_indices: bool = False,
-        mode: jax.lax.GatherScatterMode | None = None,
-    ) -> AbstractQuantity:
+    def min(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:
         # TODO: by quaxified super
         value = self.array.value.at[self.index].min(
-            ustrip(self.array.unit, values),
-            indices_are_sorted=indices_are_sorted,
-            unique_indices=unique_indices,
-            mode=mode,
+            ustrip(self.array.unit, values), **kw
         )
         return replace(self.array, value=value)
 
-    def max(
-        self,
-        values: AbstractQuantity,
-        *,
-        indices_are_sorted: bool = False,
-        unique_indices: bool = False,
-        mode: jax.lax.GatherScatterMode | None = None,
-    ) -> AbstractQuantity:
+    def max(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:
         # TODO: by quaxified super
         value = self.array.value.at[self.index].max(
-            ustrip(self.array.unit, values),
-            indices_are_sorted=indices_are_sorted,
-            unique_indices=unique_indices,
-            mode=mode,
+            ustrip(self.array.unit, values), **kw
         )
         return replace(self.array, value=value)
 
