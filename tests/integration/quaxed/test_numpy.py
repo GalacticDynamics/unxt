@@ -508,7 +508,6 @@ def test_bitwise_and():
     assert jnp.array_equal(got, expected)
 
 
-@pytest.mark.xfail(reason="TODO")
 def test_bitwise_left_shift():
     """Test `bitwise_left_shift`."""
     x = u.Quantity(jnp.asarray([1, 2, 3], dtype=int), "")
@@ -532,7 +531,6 @@ def test_bitwise_invert():
     assert jnp.array_equal(got.value, expected.value)
 
 
-@pytest.mark.xfail(reason="TODO")
 def test_bitwise_or():
     """Test `bitwise_or`."""
     x = u.Quantity(jnp.asarray([1, 2, 3], dtype=int), "")
@@ -545,7 +543,6 @@ def test_bitwise_or():
     assert jnp.array_equal(got.value, expected.value)
 
 
-@pytest.mark.xfail(reason="TODO")
 def test_bitwise_right_shift():
     """Test `bitwise_right_shift`."""
     x = u.Quantity(jnp.asarray([1, 2, 3], dtype=int), "")
@@ -558,7 +555,6 @@ def test_bitwise_right_shift():
     assert jnp.array_equal(got.value, expected.value)
 
 
-@pytest.mark.xfail(reason="TODO")
 def test_bitwise_xor():
     """Test `bitwise_xor`."""
     x = u.Quantity(jnp.asarray([1, 2, 3], dtype=int), "")
@@ -846,7 +842,6 @@ def test_logical_not():
     assert jnp.array_equal(got.value, expected.value)
 
 
-@pytest.mark.xfail(reason="TODO")
 def test_logical_or():
     """Test `logical_or`."""
     x = u.Quantity([True, False, True], "")
@@ -859,7 +854,6 @@ def test_logical_or():
     assert jnp.array_equal(got.value, expected.value)
 
 
-@pytest.mark.xfail(reason="TODO")
 def test_logical_xor():
     """Test `logical_xor`."""
     x = u.Quantity([True, False, True], "")
@@ -1277,22 +1271,17 @@ def test_argmax():
     """Test `argmax`."""
     x = u.Quantity(jnp.asarray([1, 2, 3], dtype=float), "m")
     got = jnp.argmax(x)
-    expected = u.Quantity(jnp.argmax(x.value), "m")
+    exp = jnp.argmax(x.value)
 
-    assert isinstance(got, u.Quantity)
-    assert got.unit == expected.unit
-    assert jnp.array_equal(got.value, expected.value)
+    assert jnp.array_equal(got, exp)
 
 
 def test_argmin():
     """Test `argmin`."""
     x = u.Quantity(jnp.asarray([1, 2, 3], dtype=float), "m")
     got = jnp.argmin(x)
-    expected = u.Quantity(jnp.argmin(x.value), "m")
-
-    assert isinstance(got, u.Quantity)
-    assert got.unit == expected.unit
-    assert jnp.array_equal(got.value, expected.value)
+    exp = jnp.argmin(x.value)
+    assert jnp.array_equal(got, exp)
 
 
 @pytest.mark.xfail(reason="TODO")

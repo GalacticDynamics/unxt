@@ -40,7 +40,7 @@
     "quaxed>=0.9.0",
     "xmmutablemap>=0.1",
     "zeroth>=1.0.0",
-]
+  ]
 
   [project.optional-dependencies]
     # jax extras
@@ -69,10 +69,10 @@
   dev = [
     "ipykernel>=6.29.5",
     "cz-conventional-gitmoji>=0.6.1",
+    "pre-commit>=4.1.0",
     { include-group = "docs" },
     { include-group = "nox" },
     { include-group = "test-all" },
-    "pre-commit>=4.1.0",
   ]
   docs = [
     "myst-nb>=1.1.2",
