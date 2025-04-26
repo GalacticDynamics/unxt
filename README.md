@@ -179,7 +179,7 @@ See the [documentation][rtd-link] for more examples and details of JIT and AD
 
 ## Citation
 
-[![DOI][zenodo-badge]][zenodo-link]
+[![JOSS][joss-badge]][joss-link] [![DOI][zenodo-badge]][zenodo-link]
 
 If you found this library to be useful and want to support the development and
 maintenance of lower-level code libraries for the scientific community, please
@@ -219,6 +219,8 @@ For more information, see [CONTRIBUTING.md](CONTRIBUTING.md).
 [actions-link]:             https://github.com/GalacticDynamics/unxt/actions
 [codecov-badge]:            https://codecov.io/gh/GalacticDynamics/unxt/graph/badge.svg
 [codecov-link]:             https://codecov.io/gh/GalacticDynamics/unxt
+[joss-badge]:               https://joss.theoj.org/papers/10.21105/joss.07771/status.svg
+[joss-link]:                https://doi.org/10.21105/joss.07771
 [pre-commit-badge]:         https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit
 [pre-commit-link]:          https://pre-commit.com
 [pypi-link]:                https://pypi.org/project/unxt/
