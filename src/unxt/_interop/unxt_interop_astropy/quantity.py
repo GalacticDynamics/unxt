@@ -64,7 +64,7 @@ def from_(
     >>> import astropy.units as apyu
 
     >>> u.Quantity.from_(apyu.Quantity(1, "m"))
-    Quantity['length'](Array(1., dtype=float32), unit='m')
+    Quantity(Array(1., dtype=float32), unit='m')
 
     """
     u = unit_of(value)
@@ -86,7 +86,7 @@ def from_(
     >>> import astropy.units as apyu
 
     >>> u.Quantity.from_(apyu.Quantity(1, "m"), "cm")
-    Quantity['length'](Array(100., dtype=float32), unit='cm')
+    Quantity(Array(100., dtype=float32), unit='cm')
 
     """
     u = unit(u)
@@ -171,7 +171,7 @@ def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity
     >>> from unxt import Quantity
 
     >>> convert(AstropyQuantity(1.0, "cm"), Quantity)
-    Quantity['length'](Array(1., dtype=float32), unit='cm')
+    Quantity(Array(1., dtype=float32), unit='cm')
 
     """
     u = unit_of(q)
@@ -216,21 +216,21 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
 
     >>> x = u.Quantity(1000, "m")
     >>> u.uconvert(u.unit("km"), x)
-    Quantity['length'](Array(1., dtype=float32, ...), unit='km')
+    Quantity(Array(1., dtype=float32, ...), unit='km')
 
     >>> x = u.Quantity([1, 2, 3], "Kelvin")
     >>> with apyu.add_enabled_equivalencies(apyu.temperature()):
     ...     y = x.uconvert("deg_C")
     >>> y
-    Quantity['temperature'](Array([-272.15, -271.15, -270.15], dtype=float32, ...), unit='deg_C')
+    Quantity(Array([-272.15, -271.15, -270.15], dtype=float32, ...), unit='deg_C')
 
     >>> x = Quantity([1, 2, 3], "radian")
     >>> with apyu.add_enabled_equivalencies(apyu.dimensionless_angles()):
     ...     y = x.uconvert("")
     >>> y
-    Quantity['dimensionless'](Array([1., 2., 3.], dtype=float32, ...), unit='')
+    Quantity(Array([1., 2., 3.], dtype=float32, ...), unit='')
 
-    """  # noqa: E501
+    """
     # Hot-path: if no unit conversion is necessary
     if x.unit == u:
         return x

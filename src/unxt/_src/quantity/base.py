@@ -13,14 +13,15 @@ import equinox as eqx
 import jax
 import jax.core
 import quax_blocks
+import wadler_lindig as wl
 from astropy.units import UnitConversionError
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Bool, ScalarLike, Shaped
-from plum import add_promotion_rule, dispatch
+from plum import add_promotion_rule, dispatch, type_nonparametric
 from quax import ArrayValue
 
 import quaxed.numpy as jnp
-from dataclassish import replace
+from dataclassish import field_items, replace
 
 from .api import is_unit_convertible, uconvert, ustrip
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
@@ -58,40 +59,40 @@ class AbstractQuantity(
     From an integer:
 
     >>> u.Quantity(1, "m")
-    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32, ...), unit='m')
 
     From a float:
 
     >>> u.Quantity(1.0, "m")
-    Quantity['length'](Array(1., dtype=float32, ...), unit='m')
+    Quantity(Array(1., dtype=float32, ...), unit='m')
 
     From a list:
 
     >>> u.Quantity([1, 2, 3], "m")
-    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a tuple:
 
     >>> u.Quantity((1, 2, 3), "m")
-    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a `numpy.ndarray`:
 
     >>> import numpy as np
     >>> u.Quantity(np.array([1, 2, 3]), "m")
-    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a `jax.Array`:
 
     >>> import jax.numpy as jnp
     >>> u.Quantity(jnp.array([1, 2, 3]), "m")
-    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     The unit can also be given as a `astropy.units.Unit`:
 
     >>> import astropy.units as apyu
     >>> u.Quantity(1, apyu.m)
-    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32, ...), unit='m')
 
     """
 
@@ -131,7 +132,7 @@ class AbstractQuantity(
 
         >>> q = u.Quantity(1, "m")
         >>> q.uconvert("cm")
-        Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
+        Quantity(Array(100., dtype=float32, ...), unit='cm')
 
         """
         return uconvert(u, self)
@@ -229,7 +230,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Quantity([[0, 1], [1, 2]], "m")
         >>> q.mT
-        Quantity['length'](Array([[0, 1],
+        Quantity(Array([[0, 1],
                                   [1, 2]], dtype=int32), unit='m')
 
         """
@@ -272,7 +273,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Quantity([[0, 1], [1, 2]], "m")
         >>> q.T
-        Quantity['length'](Array([[0, 1],
+        Quantity(Array([[0, 1],
                                   [1, 2]], dtype=int32), unit='m')
 
         """
@@ -291,7 +292,7 @@ class AbstractQuantity(
 
         >>> q = u.Quantity(480, "deg")
         >>> q % u.Quantity(360, "deg")
-        Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
+        Quantity(Array(120, dtype=int32, ...), unit='deg')
 
         """
         if not is_unit_convertible(other.unit, self.unit):
@@ -309,7 +310,7 @@ class AbstractQuantity(
 
         >>> q = u.Quantity(480, "deg")
         >>> q.__rmod__(u.Quantity(360, "deg"))
-        Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
+        Quantity(Array(120, dtype=int32, ...), unit='deg')
 
         """
         return self % other
@@ -432,7 +433,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Quantity(1, "m")
         >>> q.to_device(None)
-        Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
+        Quantity(Array(1, dtype=int32, weak_type=True), unit='m')
 
         """
         return replace(self, value=self.value.to_device(device))
@@ -448,9 +449,9 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Quantity([1, 2, 3], "m")
         >>> [x for x in q]
-        [Quantity['length'](Array(1, dtype=int32), unit='m'),
-         Quantity['length'](Array(2, dtype=int32), unit='m'),
-         Quantity['length'](Array(3, dtype=int32), unit='m')]
+        [Quantity(Array(1, dtype=int32), unit='m'),
+         Quantity(Array(2, dtype=int32), unit='m'),
+         Quantity(Array(3, dtype=int32), unit='m')]
 
         """
         yield from (self[i] for i in range(len(self.value)))
@@ -492,7 +493,7 @@ class AbstractQuantity(
         dtype('int32')
 
         >>> q.astype(float)
-        Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+        Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
         """
         return replace(self, value=self.value.astype(*args, **kwargs))
@@ -536,7 +537,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Quantity([[1, 2], [3, 4]], "m")
         >>> q.flatten()
-        Quantity['length'](Array([1, 2, 3, 4], dtype=int32), unit='m')
+        Quantity(Array([1, 2, 3, 4], dtype=int32), unit='m')
 
         """
         return replace(self, value=self.value.flatten())
@@ -549,7 +550,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Quantity([1, 2, 3], "m")
         >>> q.max()
-        Quantity['length'](Array(3, dtype=int32), unit='m')
+        Quantity(Array(3, dtype=int32), unit='m')
 
         """
         return replace(self, value=self.value.max(*args, **kwargs))
@@ -562,7 +563,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Quantity([1, 2, 3], "m")
         >>> q.mean()
-        Quantity['length'](Array(2., dtype=float32), unit='m')
+        Quantity(Array(2., dtype=float32), unit='m')
 
         """
         return replace(self, value=self.value.mean(*args, **kwargs))
@@ -575,7 +576,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Quantity([1, 2, 3], "m")
         >>> q.min()
-        Quantity['length'](Array(1, dtype=int32), unit='m')
+        Quantity(Array(1, dtype=int32), unit='m')
 
         """
         return replace(self, value=self.value.min(*args, **kwargs))
@@ -588,7 +589,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Quantity([[1, 2], [3, 4]], "m")
         >>> q.ravel()
-        Quantity['length'](Array([1, 2, 3, 4], dtype=int32), unit='m')
+        Quantity(Array([1, 2, 3, 4], dtype=int32), unit='m')
 
         """
         return replace(self, value=self.value.ravel())
@@ -601,7 +602,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Quantity([1, 2, 3, 4], "m")
         >>> q.reshape(2, 2)
-        Quantity['length'](Array([[1, 2],
+        Quantity(Array([[1, 2],
                                   [3, 4]], dtype=int32), unit='m')
 
         """
@@ -616,7 +617,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Quantity([1.1, 2.2, 3.3], "m")
         >>> q.round(0)
-        Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+        Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
         """
         return replace(self, value=self.value.round(*args, **kwargs))
@@ -643,7 +644,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Quantity([[[1], [2], [3]]], "m")
         >>> q.squeeze()
-        Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+        Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
         """
         return replace(self, value=self.value.squeeze(*args, **kwargs))
@@ -672,8 +673,36 @@ class AbstractQuantity(
         """
         return hash((self.value, self.unit))
 
+    def __pdoc__(self, *, named_unit: bool = True, **kwargs: Any) -> wl.AbstractDoc:
+        """Return the Wadler-Lindig representation of this class."""
+        cls_name = wl.TextDoc(type_nonparametric(self).__name__)
+        fs = dict(field_items(self))
+        del fs["value"]
+        del fs["unit"]
+
+        base_fields = [
+            wl.pdoc(self.value, **kwargs),
+            wl.TextDoc("unit=" if named_unit else "")
+            + wl.pdoc(self.unit.to_string(), **kwargs),
+        ]
+        extra_fields = wl.named_objs(tuple(fs.items()), **kwargs)
+
+        return (
+            cls_name
+            + wl.TextDoc("(")
+            + wl.join(wl.comma, base_fields + extra_fields)
+            .group()
+            .nest(kwargs.get("indent", 4))
+            + wl.TextDoc(")")
+        )
+
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({self.value!r}, unit={self.unit.to_string()!r})"
+        # TODO: make named_unit False?
+        return wl.pformat(self, short_arrays=False, named_unit=True, indent=4)
+
+    def __str__(self) -> str:
+        # TODO: make named_unit False?
+        return wl.pformat(self, short_arrays=True, named_unit=True, indent=4)
 
 
 # -----------------------------------------------
@@ -705,13 +734,13 @@ def from_(
 
     >>> x = jnp.array([1.0, 2, 3])
     >>> u.Quantity.from_(x, "m")
-    Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     >>> u.Quantity.from_([1.0, 2, 3], "m")
-    Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     >>> u.Quantity.from_((1.0, 2, 3), "m")
-    Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     """
     # Dispatch on both arguments.
@@ -737,7 +766,7 @@ def from_(
 
     >>> import unxt as u
     >>> u.Quantity.from_([1.0, 2, 3], unit="m")
-    Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     """
     # Dispatch on the `value` only. Dispatch to the full constructor.
@@ -757,7 +786,7 @@ def from_(
 
     >>> import unxt as u
     >>> u.Quantity.from_(value=[1.0, 2, 3], unit="m")
-    Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     """
     # Dispatched on no argument. Dispatch to the full constructor.
@@ -779,10 +808,10 @@ def from_(cls: type[AbstractQuantity], mapping: Mapping[str, Any]) -> AbstractQu
     >>> x = jnp.array([1.0, 2, 3])
     >>> q = u.Quantity.from_({"value": x, "unit": "m"})
     >>> q
-    Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     >>> u.Quantity.from_({"value": q, "unit": "km"})
-    Quantity['length'](Array([0.001, 0.002, 0.003], dtype=float32), unit='km')
+    Quantity(Array([0.001, 0.002, 0.003], dtype=float32), unit='km')
 
     """
     # Dispatch on both arguments.
@@ -809,7 +838,7 @@ def from_(
 
     >>> q = u.Quantity(1, "m")
     >>> u.Quantity.from_(q, "cm")
-    Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
+    Quantity(Array(100., dtype=float32, ...), unit='cm')
 
     """
     value = jnp.asarray(uconvert(unit, value), dtype=dtype)
@@ -835,7 +864,7 @@ def from_(
 
     >>> q = u.Quantity(1, "m")
     >>> u.Quantity.from_(q, None)
-    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32, ...), unit='m')
 
     """
     value = jnp.asarray(value, dtype=dtype)
@@ -884,9 +913,9 @@ class _QuantityIndexUpdateHelper(_IndexUpdateHelper):
         >>> import unxt as u
         >>> q = u.Quantity([1, 2, 3, 4], "m")
         >>> q.at
-        _QuantityIndexUpdateHelper(Quantity['length'](Array([1, 2, 3, 4], dtype=int32), unit='m'))
+        _QuantityIndexUpdateHelper(Quantity(Array([1, 2, 3, 4], dtype=int32), unit='m'))
 
-        """  # noqa: E501
+        """
         return f"_QuantityIndexUpdateHelper({self.array!r})"
 
 

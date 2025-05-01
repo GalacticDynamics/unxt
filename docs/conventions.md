@@ -28,7 +28,7 @@ As an example, consider the following code snippets:
 
 >>> q = u.Quantity(1, 'm')
 >>> q
-Quantity['length'](Array(1, dtype=int32, weak_type=True), unit='m')
+Quantity(Array(1, dtype=int32, weak_type=True), unit='m')
 ```
 
 First we'll show the object-oriented API:
@@ -36,7 +36,7 @@ First we'll show the object-oriented API:
 ```{code-block} python
 
 >>> q.uconvert('cm')
-Quantity['length'](Array(100., dtype=float32, weak_type=True), unit='cm')
+Quantity(Array(100., dtype=float32, weak_type=True), unit='cm')
 ```
 
 And now the function-oriented API:
@@ -44,7 +44,7 @@ And now the function-oriented API:
 ```{code-block} python
 
 >>> u.uconvert("cm", q)
-Quantity['length'](Array(100., dtype=float32, weak_type=True), unit='cm')
+Quantity(Array(100., dtype=float32, weak_type=True), unit='cm')
 ```
 
 ## Argument Order of Functional APIs
@@ -59,7 +59,7 @@ function with the unit as the first argument and the quantity as the second:
 ```{code-block} python
 
 >>> u.uconvert("cm", q)  # convert[to_unit](quantity)
-Quantity['length'](Array(100., dtype=float32, weak_type=True), unit='cm')
+Quantity(Array(100., dtype=float32, weak_type=True), unit='cm')
 ```
 
 One of the reasons for this order is because it works very well with a
@@ -90,7 +90,7 @@ For example, `unxt` provides a `Quantity.from_` method that can convert an
 
 >>> xq = u.Quantity.from_(aq)  # unxt Quantity
 >>> xq
-Quantity['length'](Array(1., dtype=float32), unit='m')
+Quantity(Array(1., dtype=float32), unit='m')
 
 ```
 

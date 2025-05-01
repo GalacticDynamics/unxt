@@ -33,13 +33,13 @@ def arange(
     >>> from unxt import Quantity
 
     >>> jnp.arange(Quantity(5, "m"))
-    Quantity['length'](Array([0, 1, 2, 3, 4], dtype=int32), unit='m')
+    Quantity(Array([0, 1, 2, 3, 4], dtype=int32), unit='m')
 
     >>> jnp.arange(Quantity(5, "m"), Quantity(10, "m"))
-    Quantity['length'](Array([5, 6, 7, 8, 9], dtype=int32), unit='m')
+    Quantity(Array([5, 6, 7, 8, 9], dtype=int32), unit='m')
 
     >>> jnp.arange(Quantity(5, "m"), Quantity(10, "m"), Quantity(2, "m"))
-    Quantity['length'](Array([5, 7, 9], dtype=int32), unit='m')
+    Quantity(Array([5, 7, 9], dtype=int32), unit='m')
 
     """
     unit = start.unit
@@ -69,7 +69,7 @@ def empty_like(
     >>> from unxt import Quantity
 
     >>> jnp.empty_like(Quantity(5, "m"))
-    Quantity['length'](Array(0, dtype=int32, ...), unit='m')
+    Quantity(Array(0, dtype=int32, ...), unit='m')
 
     """
     out = type_np(x)(jax_xp.empty_like(x.value, **kwargs), unit=x.unit)
@@ -91,7 +91,7 @@ def full(
     >>> from unxt import Quantity
 
     >>> jnp.full((2, 2), Quantity(5, "m"))
-    Quantity['length'](Array([[5, 5], [5, 5]], dtype=int32, ...), unit='m')
+    Quantity(Array([[5, 5], [5, 5]], dtype=int32, ...), unit='m')
 
     """
     fill_val = ustrip(fill_value.unit, fill_value)
@@ -113,7 +113,7 @@ def full_like(
     >>> from unxt import Quantity
 
     >>> jnp.full_like(Quantity(5, "m"), fill_value=Quantity(10, "m"))
-    Quantity['length'](Array(10, dtype=int32, ...), unit='m')
+    Quantity(Array(10, dtype=int32, ...), unit='m')
 
     """
     # re-dispatch to the correct implementation
@@ -132,7 +132,7 @@ def full_like(
     >>> from unxt import Quantity
 
     >>> jnp.full_like(Quantity(5, "m"), 100.0)
-    Quantity['length'](Array(100, dtype=int32, ...), unit='m')
+    Quantity(Array(100, dtype=int32, ...), unit='m')
 
     """
     return type_np(x)(jax_xp.full_like(x.value, fill_value, **kwargs), unit=x.unit)
@@ -150,7 +150,7 @@ def full_like(
     >>> from unxt import Quantity
 
     >>> jnp.full_like(Quantity(5, "m"), Quantity(10, "m"))
-    Quantity['length'](Array(10, dtype=int32, ...), unit='m')
+    Quantity(Array(10, dtype=int32, ...), unit='m')
 
     """
     fill_val = ustrip(x.unit, fill_value)
@@ -172,7 +172,7 @@ def linspace(
     >>> from unxt import Quantity
 
     >>> jnp.linspace(Quantity(0, "m"), Quantity(10, "m"), 5)
-    Quantity['length'](Array([ 0. ,  2.5,  5. ,  7.5, 10. ], dtype=float32), unit='m')
+    Quantity(Array([ 0. ,  2.5,  5. ,  7.5, 10. ], dtype=float32), unit='m')
 
     """
     unit = start.unit
@@ -194,7 +194,7 @@ def linspace(
     >>> from unxt import Quantity
 
     >>> jnp.linspace(Quantity(0, "m"), Quantity(10, "m"), num=5)
-    Quantity['length'](Array([ 0. ,  2.5,  5. ,  7.5, 10. ], dtype=float32), unit='m')
+    Quantity(Array([ 0. ,  2.5,  5. ,  7.5, 10. ], dtype=float32), unit='m')
 
     """
     unit = start.unit
@@ -218,7 +218,7 @@ def ones_like(
     >>> from unxt import Quantity
 
     >>> jnp.ones_like(Quantity(5, "m"))
-    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32, ...), unit='m')
 
     """
     out = type_np(x)(jax_xp.ones_like(x.value, **kwargs), unit=x.unit)
@@ -240,7 +240,7 @@ def zeros_like(
     >>> from unxt import Quantity
 
     >>> jnp.zeros_like(Quantity(5, "m"))
-    Quantity['length'](Array(0, dtype=int32, ...), unit='m')
+    Quantity(Array(0, dtype=int32, ...), unit='m')
 
     """
     out = type_np(x)(jax_xp.zeros_like(x.value, **kwargs), unit=x.unit)

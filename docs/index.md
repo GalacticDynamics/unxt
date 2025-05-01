@@ -120,7 +120,7 @@ Create a `Quantity` by passing a JAX array-compatible object and a unit:
 
 >>> x = u.Quantity([1.0, 2.0, 3.0], apyu.m)
 >>> x
-Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 ```
 
 As a shorthand, we also support specifying units as strings (parsed by
@@ -130,7 +130,7 @@ As a shorthand, we also support specifying units as strings (parsed by
 
 >>> y = u.Quantity([4.0, 5.0, 6.0], "m")
 >>> y
-Quantity['length'](Array([4., 5., 6.], dtype=float32), unit='m')
+Quantity(Array([4., 5., 6.], dtype=float32), unit='m')
 ```
 
 The constituent value and unit are accessible as attributes:
@@ -151,13 +151,13 @@ correct units:
 ```{code-block} python
 
 >>> x + y
-Quantity['length'](Array([5., 7., 9.], dtype=float32), unit='m')
+Quantity(Array([5., 7., 9.], dtype=float32), unit='m')
 
 >>> x * y
-Quantity['area'](Array([ 4., 10., 18.], dtype=float32), unit='m2')
+Quantity(Array([ 4., 10., 18.], dtype=float32), unit='m2')
 
 >>> x / y
-Quantity['dimensionless'](Array([0.25, 0.4 , 0.5 ], dtype=float32), unit='')
+Quantity(Array([0.25, 0.4 , 0.5 ], dtype=float32), unit='')
 
 ```
 
@@ -184,7 +184,7 @@ using the explicit syntax
 ```{code-block} python
 
 >>> x.uconvert("cm")
-Quantity['length'](Array([100., 200., 300.], dtype=float32), unit='cm')
+Quantity(Array([100., 200., 300.], dtype=float32), unit='cm')
 
 ```
 
@@ -193,7 +193,7 @@ or Astropy's API
 ```{code-block} python
 
 >>> x.to("cm")
-Quantity['length'](Array([100., 200., 300.], dtype=float32), unit='cm')
+Quantity(Array([100., 200., 300.], dtype=float32), unit='cm')
 
 ```
 
@@ -206,7 +206,7 @@ or a function-oriented approach
 ```{code-block} python
 
 >>> u.uconvert("cm", x)
-Quantity['length'](Array([100., 200., 300.], dtype=float32), unit='cm')
+Quantity(Array([100., 200., 300.], dtype=float32), unit='cm')
 
 ```
 
@@ -254,7 +254,7 @@ top function. With `unxt` you can use normal JAX!
 ...     return jnp.square(x) + jnp.multiply(x, y)  # normal JAX
 
 >>> func(x, y)
-Quantity['area'](Array([ 5., 14., 27.], dtype=float32), unit='m2')
+Quantity(Array([ 5., 14., 27.], dtype=float32), unit='m2')
 
 ```
 
@@ -270,7 +270,7 @@ It's a drop-in replacement for much of JAX.
 >>> import quaxed.numpy as jnp  # pre-quaxified JAX
 
 >>> jnp.square(x) + jnp.multiply(x, y)
-Quantity['area'](Array([ 5., 14., 27.], dtype=float32), unit='m2')
+Quantity(Array([ 5., 14., 27.], dtype=float32), unit='m2')
 
 ```
 
@@ -292,7 +292,7 @@ Quantity['area'](Array([ 5., 14., 27.], dtype=float32), unit='m2')
 
 >>> jitted_func = jit(func)
 >>> jitted_func(x, y)
-Quantity['area'](Array([ 5., 14., 27.], dtype=float32), unit='m2')
+Quantity(Array([ 5., 14., 27.], dtype=float32), unit='m2')
 
 ```
 
@@ -321,7 +321,7 @@ JAX Auto-Differentiation (AD) is supported:
 
 >>> grad_f = quaxify(jax.grad(f))
 >>> grad_f(x, y)
-Quantity['speed'](Array(0.5, dtype=float32, weak_type=True), unit='m / s')
+Quantity(Array(0.5, dtype=float32, weak_type=True), unit='m / s')
 
 ```
 
@@ -333,7 +333,7 @@ or using the convenience library
 
 >>> grad_f = qjax.grad(f)
 >>> grad_f(x, y)
-Quantity['speed'](Array(0.5, dtype=float32, weak_type=True), unit='m / s')
+Quantity(Array(0.5, dtype=float32, weak_type=True), unit='m / s')
 
 ```
 
@@ -345,7 +345,7 @@ Quantity['speed'](Array(0.5, dtype=float32, weak_type=True), unit='m / s')
 
 >>> jac_f = quaxify(jax.jacfwd(f))
 >>> jac_f(x, y)
-Quantity['speed'](Array(0.5, dtype=float32, weak_type=True), unit='m / s')
+Quantity(Array(0.5, dtype=float32, weak_type=True), unit='m / s')
 
 ```
 
@@ -355,7 +355,7 @@ or using the convenience library
 
 >>> jac_f = qjax.jacfwd(f)
 >>> jac_f(x, y)
-Quantity['speed'](Array(0.5, dtype=float32, weak_type=True), unit='m / s')
+Quantity(Array(0.5, dtype=float32, weak_type=True), unit='m / s')
 
 ```
 
@@ -367,7 +367,7 @@ Quantity['speed'](Array(0.5, dtype=float32, weak_type=True), unit='m / s')
 
 >>> hess_f = quaxify(jax.hessian(f))
 >>> hess_f(x, y)
-Quantity['frequency'](Array(0.5, dtype=float32, weak_type=True), unit='1 / s')
+Quantity(Array(0.5, dtype=float32, weak_type=True), unit='1 / s')
 
 ```
 
@@ -377,7 +377,7 @@ or using the convenience library
 
 >>> hess_f = qjax.hessian(f)
 >>> hess_f(x, y)
-Quantity['frequency'](Array(0.5, dtype=float32, weak_type=True), unit='1 / s')
+Quantity(Array(0.5, dtype=float32, weak_type=True), unit='1 / s')
 
 ```
 

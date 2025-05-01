@@ -72,7 +72,7 @@ Quantity][unxt-Quantity] is straightforward -- use `unxt.Quantity.from_`:
 
 >>> xq = u.Quantity.from_(aq)  # unxt Quantity
 >>> xq
-Quantity['length'](Array(1., dtype=float32), unit='m')
+Quantity(Array(1., dtype=float32), unit='m')
 ```
 
 Alternatively, the multiple-dispatch library on which `unxt` is built enables
@@ -82,7 +82,7 @@ Alternatively, the multiple-dispatch library on which `unxt` is built enables
 >>> from plum import convert
 
 >>> convert(aq, u.Quantity)
-Quantity['length'](Array(1., dtype=float32), unit='m')
+Quantity(Array(1., dtype=float32), unit='m')
 
 >>> convert(xq, apyu.Quantity)
 <Quantity 1. m>

@@ -40,7 +40,7 @@ class AstropyQuantityCompatMixin:
 
         >>> q = Quantity(1, "m")
         >>> q.to("cm")
-        Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
+        Quantity(Array(100., dtype=float32, ...), unit='cm')
 
         """
         return uconvert(u, self)  # redirect to the standard method
@@ -72,7 +72,7 @@ class AstropyQuantityCompatMixin:
 
         >>> q = Quantity(1, "m")
         >>> q.decompose(["cm", "s"])
-        Quantity['length'](Array(100., dtype=float32, ...), unit='cm')
+        Quantity(Array(100., dtype=float32, ...), unit='cm')
 
         """
         bases_ = [parse_unit(b) for b in bases]
@@ -117,17 +117,17 @@ class IPythonReprMixin:
 
         >>> q = Quantity([1.0, 2, 3, 4], "m")
         >>> q._repr_mimebundle_()
-        {'text/plain': "Quantity['length'](Array([1., 2., 3., 4.], dtype=float32), unit='m')",
+        {'text/plain': "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')",
          'text/html': '<span>[1., 2., 3., 4.]</span> * <span>Unit("m")</span>',
          'text/latex': '$[1.,~2.,~3.,~4.] \\; \\mathrm{m}$'}
 
         >>> q._repr_mimebundle_(include=["text/plain"])
-        {'text/plain': "Quantity['length'](Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
+        {'text/plain': "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
 
         >>> q._repr_mimebundle_(exclude=["text/html", "text/latex"])
-        {'text/plain': "Quantity['length'](Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
+        {'text/plain': "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
 
-        """  # noqa: E501
+        """
         # Determine the set of keys to include in the MIME bundle
         keys: Sequence[str]
         if include is None and exclude is None:
@@ -177,7 +177,6 @@ class IPythonReprMixin:
         """
         unit_repr = getattr(self.unit, "_repr_latex_", self.unit.__repr__)()
         value_repr = np.array2string(self.value, separator=",~")  # type: ignore[call-overload]
-
         return f"${value_repr} \\; {unit_repr[1:-1]}$"
 
     # TODO: implement:
@@ -227,10 +226,10 @@ class NumPyCompatMixin:
 
         >>> q = u.Quantity([1.0, 2, 3, 4], "m")
         >>> np.sum(q)
-        Quantity['length'](Array(10., dtype=float32), unit='m')
+        Quantity(Array(10., dtype=float32), unit='m')
 
         >>> np.stack([q, q])
-        Quantity['length'](Array([[1., 2., 3., 4.],
+        Quantity(Array([[1., 2., 3., 4.],
                                   [1., 2., 3., 4.]], dtype=float32), unit='m')
 
         """
