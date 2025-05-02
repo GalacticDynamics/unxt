@@ -8,9 +8,10 @@ from functools import partial
 from typing import Any
 
 import equinox as eqx
+import wadler_lindig as wl
 from astropy.units import PhysicalType, Unit
 from jaxtyping import Array, Shaped
-from plum import dispatch, parametric, type_nonparametric, type_unparametrized
+from plum import dispatch, parametric, type_unparametrized
 
 from dataclassish import field_items, fields
 
@@ -115,7 +116,7 @@ class AbstractParametricQuantity(AbstractQuantity):
 
         >>> x = u.Quantity([1, 2, 3], "m")
         >>> pycopy.copy(x)
-        Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+        Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
         """
         return (), field_items(self)
@@ -174,27 +175,34 @@ class AbstractParametricQuantity(AbstractQuantity):
 
         return partial(type_unparametrized(self), **kwargs), tuple(args)
 
-    def __repr__(self) -> str:
-        # --- class name ---
-        base_cls_name = type_nonparametric(self).__name__
-        if self._type_parameter == "unknown":
-            ptid = self._type_parameter._unit._physical_type_id  # noqa: SLF001
-            dim = " ".join(
-                f"{unit}{power}" if power != 1 else unit for unit, power in ptid
-            )
+    def __pdoc__(
+        self, *, include_params: bool = False, named_unit: bool = True, **kwargs: Any
+    ) -> wl.AbstractDoc:
+        """Return the Wadler-Lindig representation of this class."""
+        pdoc = super().__pdoc__(
+            include_params=include_params, named_unit=named_unit, **kwargs
+        )
+        # cls_name = wl.TextDoc(type_nonparametric(self).__name__)
+        if not include_params:
+            param = wl.TextDoc("")
         else:
-            dim = self._type_parameter._name_string_as_ordered_set().split("'")[1]  # noqa: SLF001
-        cls_name = f"{base_cls_name}[{dim!r}]"
+            if self._type_parameter == "unknown":
+                ptid = self._type_parameter._unit._physical_type_id  # noqa: SLF001
+                dim = " ".join(
+                    f"{unit}{power}" if power != 1 else unit for unit, power in ptid
+                )
+            else:
+                dim = self._type_parameter._name_string_as_ordered_set().split("'")[1]  # noqa: SLF001
+            param = wl.TextDoc(f"[{dim}]")
 
-        # --- args, kwargs ---
+        return wl.ConcatDoc(pdoc.children[0], param, *pdoc.children[1:])
 
-        fs = dict(field_items(self))
-        del fs["value"]
-        del fs["unit"]
+    def __repr__(self) -> str:
+        return wl.pformat(
+            self, include_params=False, named_unit=True, short_arrays=False, indent=4
+        )
 
-        base_fields = f"{self.value!r}, unit={self.unit.to_string()!r}"
-        extra_fields = ", ".join(f"{k}={v}" for k, v in fs.items())
-        all_fields = base_fields + (", " + extra_fields if fs else "")
-
-        # ------
-        return f"{cls_name}({all_fields})"
+    def __str__(self) -> str:
+        return wl.pformat(
+            self, include_params=True, named_unit=True, short_arrays=True, indent=4
+        )

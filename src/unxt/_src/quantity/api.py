@@ -17,10 +17,10 @@ def uconvert(u: Any, x: Any, /) -> Any:
 
     >>> q = u.Quantity(1, "km")
     >>> u.uconvert(u.unit("m"), q)
-    Quantity['length'](Array(1000., dtype=float32, ...), unit='m')
+    Quantity(Array(1000., dtype=float32, ...), unit='m')
 
     >>> u.uconvert("m", q)
-    Quantity['length'](Array(1000., dtype=float32, ...), unit='m')
+    Quantity(Array(1000., dtype=float32, ...), unit='m')
 
     For further examples, see the other method dispatches.
 

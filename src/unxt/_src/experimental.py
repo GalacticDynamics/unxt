@@ -72,7 +72,7 @@ def grad(
 
     >>> grad_cube_volume = u.experimental.grad(cube_volume, units=("m",))
     >>> grad_cube_volume(u.Quantity(2.0, "m"))
-    Quantity['area'](Array(12., dtype=float32, weak_type=True), unit='m2')
+    Quantity(Array(12., dtype=float32, weak_type=True), unit='m2')
 
     """
     theunits: tuple[AstropyUnits | None, ...] = tuple(map(unit_or_none, units))

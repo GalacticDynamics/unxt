@@ -51,7 +51,7 @@ def quantity_to_checked(q: AbstractQuantity, /) -> Quantity:
     BareQuantity(Array(1, dtype=int32, ...), unit='m')
 
     >>> convert(q, Quantity)
-    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32, ...), unit='m')
 
     The self-conversion doesn't copy the object:
 

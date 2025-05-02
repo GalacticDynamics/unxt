@@ -96,7 +96,7 @@ def uconvert(ustr: str, x: AbstractQuantity, /) -> AbstractQuantity:
 
     >>> x = Quantity(1000, "m")
     >>> uconvert("km", x)
-    Quantity['length'](Array(1., dtype=float32, ...), unit='km')
+    Quantity(Array(1., dtype=float32, ...), unit='km')
 
     """
     return uconvert(unit(ustr), x)
@@ -113,7 +113,7 @@ def uconvert(usys: AbstractUnitSystem, x: AbstractQuantity, /) -> AbstractQuanti
 
     >>> q = Quantity(1e17, "km")
     >>> uconvert(galactic, q)
-    Quantity['length'](Array(3.2407792, dtype=float32, ...), unit='kpc')
+    Quantity(Array(3.2407792, dtype=float32, ...), unit='kpc')
 
     """
     return uconvert(usys[dimension_of(x)], x)

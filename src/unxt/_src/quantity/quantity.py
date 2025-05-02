@@ -31,45 +31,45 @@ class Quantity(AbstractParametricQuantity):
     From an integer:
 
     >>> u.Quantity(1, "m")
-    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32, ...), unit='m')
 
     From a float:
 
     >>> u.Quantity(1.0, "m")
-    Quantity['length'](Array(1., dtype=float32, ...), unit='m')
+    Quantity(Array(1., dtype=float32, ...), unit='m')
 
     From a list:
 
     >>> u.Quantity([1, 2, 3], "m")
-    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a tuple:
 
     >>> u.Quantity((1, 2, 3), "m")
-    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a `numpy.ndarray`:
 
     >>> import numpy as np
     >>> u.Quantity(np.array([1, 2, 3]), "m")
-    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a `jax.Array`:
 
     >>> import jax.numpy as jnp
     >>> u.Quantity(jnp.array([1, 2, 3]), "m")
-    Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     The unit can also be given as a units object:
 
     >>> u.Quantity(1, u.unit("m"))
-    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32, ...), unit='m')
 
     In the previous examples, the dimension parameter was inferred from the
     values. It can also be given explicitly:
 
     >>> u.Quantity["length"](1, "m")
-    Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32, ...), unit='m')
 
     This can be used for runtime checking of the input dimension!
 
@@ -85,12 +85,12 @@ class Quantity(AbstractParametricQuantity):
     >>> dims
     PhysicalType('length')
     >>> u.Quantity[dims](1.0, "m")
-    Quantity['length'](Array(1., dtype=float32, ...), unit='m')
+    Quantity(Array(1., dtype=float32, ...), unit='m')
 
     Or as a unit:
 
     >>> u.Quantity[u.unit("m")](1.0, "m")
-    Quantity['length'](Array(1., dtype=float32, ...), unit='m')
+    Quantity(Array(1., dtype=float32, ...), unit='m')
 
     Some tricky cases are when the physical type is unknown:
 
@@ -101,8 +101,8 @@ class Quantity(AbstractParametricQuantity):
     The dimension can be given as a string in all cases, but is necessary when
     the physical type is unknown:
 
-    >>> u.Quantity["m2 kg-1 s-2"](1.0, unit)
-    Quantity['m2 kg-1 s-2'](Array(1., dtype=float32, ...), unit='m2 / (kg s2)')
+    >>> print(u.Quantity["m2 kg-1 s-2"](1.0, unit))  # to show the [dim]
+    Quantity[m2 kg-1 s-2](f32[](jax), unit='m2 / (kg s2)')
 
     """
 
@@ -123,7 +123,7 @@ def mod(self: Quantity["dimensionless"], other: ArrayLike) -> Quantity["dimensio
 
     >>> q = u.Quantity(480, "deg")
     >>> q % u.Quantity(360, "deg")
-    Quantity['angle'](Array(120, dtype=int32, ...), unit='deg')
+    Quantity(Array(120, dtype=int32, ...), unit='deg')
 
     """
     return replace(self, value=self.value % other)

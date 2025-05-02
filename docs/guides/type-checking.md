@@ -118,7 +118,7 @@ Here's an example:
 >>> t = u.Quantity([1.], "s")
 
 >>> velocity(x, t)
-Quantity['speed'](Array([2.], dtype=float32), unit='m / s')
+Quantity(Array([2.], dtype=float32), unit='m / s')
 
 ```
 

@@ -8,7 +8,7 @@ constructor.
 ```{code-block} python
 >>> import unxt as u
 >>> u.Quantity(5, "m")
-Quantity['length'](Array(5, dtype=int32, weak_type=True), unit='m')
+Quantity(Array(5, dtype=int32, weak_type=True), unit='m')
 ```
 
 The constructor will automatically
@@ -35,16 +35,16 @@ appropriate constructor based on the input arguments.
 
 ```{code-block} python
 >>> u.Quantity.from_(5, "m")  # same as Quantity(5, "m")
-Quantity['length'](Array(5, dtype=int32, ...), unit='m')
+Quantity(Array(5, dtype=int32, ...), unit='m')
 
 >>> u.Quantity.from_({"value": [1, 2, 3], "unit": "m"})
-Quantity['length'](Array([1, 2, 3], dtype=int32), unit='m')
+Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
 >>> u.Quantity.from_(q)  # from another Quantity object
-Quantity['length'](Array([1, 2, 3, 5], dtype=int32), unit='m')
+Quantity(Array([1, 2, 3, 5], dtype=int32), unit='m')
 
 >>> u.Quantity.from_(5, "m", dtype=float)  # specify the dtype
-Quantity['length'](Array(5., dtype=float32), unit='m')
+Quantity(Array(5., dtype=float32), unit='m')
 
 ```
 
@@ -73,7 +73,7 @@ units. If you prefer an object-oriented approach, use the `uconvert` method.
 ```{code-block} python
 >>> q = u.Quantity(5, "m")
 >>> q.uconvert("cm")
-Quantity['length'](Array(500., dtype=float32, ...), unit='cm')
+Quantity(Array(500., dtype=float32, ...), unit='cm')
 ```
 
 :::{note} :class: dropdown
@@ -82,7 +82,7 @@ The Astropy API `.to` is also available for `Quantity` objects.
 
 ```{code-block} python
 >>> q.to("cm")
-Quantity['length'](Array(500., dtype=float32, ...), unit='cm')
+Quantity(Array(500., dtype=float32, ...), unit='cm')
 ```
 
 :::
@@ -91,7 +91,7 @@ If you prefer a more functional approach, use the `uconvert` function.
 
 ```{code-block} python
 >>> u.uconvert("cm", q)
-Quantity['length'](Array(500., dtype=float32, ...), unit='cm')
+Quantity(Array(500., dtype=float32, ...), unit='cm')
 ```
 
 To convert to the value in the new units, use the `ustrip` function.
@@ -153,16 +153,16 @@ You can perform standard mathematical operations on `Quantity` objects:
 >>> q2 = u.Quantity(10, "m")
 
 >>> q1 + q2
-Quantity['length'](Array(15, dtype=int32, ...), unit='m')
+Quantity(Array(15, dtype=int32, ...), unit='m')
 
 >>> q1 * 1.5
-Quantity['length'](Array(7.5, dtype=float32, ...), unit='m')
+Quantity(Array(7.5, dtype=float32, ...), unit='m')
 
 >>> q1 / q2
-Quantity['dimensionless'](Array(0.5, dtype=float32, ...), unit='')
+Quantity(Array(0.5, dtype=float32, ...), unit='')
 
 >>> q1 ** 2
-Quantity['area'](Array(25, dtype=int32, ...), unit='m2')
+Quantity(Array(25, dtype=int32, ...), unit='m2')
 
 ```
 
@@ -186,10 +186,10 @@ Array([ True, False,  True], dtype=bool)
 >>> q = u.Quantity([1, 2, 3, 4], "m")
 
 >>> q[1]
-Quantity['length'](Array(2, dtype=int32), unit='m')
+Quantity(Array(2, dtype=int32), unit='m')
 
 >>> q[1:]
-Quantity['length'](Array([2, 3, 4], dtype=int32), unit='m')
+Quantity(Array([2, 3, 4], dtype=int32), unit='m')
 
 ```
 
@@ -203,7 +203,7 @@ for more details.
 >>> q = u.Quantity([1., 2, 3, 4], "m")
 
 >>> q.at[2].set(u.Quantity(30.1, "cm"))
-Quantity['length'](Array([1.   , 2.   , 0.301, 4.   ], dtype=float32), unit='m')
+Quantity(Array([1.   , 2.   , 0.301, 4.   ], dtype=float32), unit='m')
 
 ```
 
@@ -244,7 +244,7 @@ top function. With `unxt` you can use normal JAX!
 
 >>> y = u.Quantity([4, 5, 6], "m")
 >>> func(x, y)
-Quantity['area'](Array([ 5, 14, 27], dtype=int32), unit='m2')
+Quantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
 
 ```
 
@@ -257,7 +257,7 @@ It's a drop-in replacement for much of JAX.
 >>> import quaxed.numpy as jnp  # pre-quaxified JAX
 
 >>> jnp.square(x) + jnp.multiply(x, y)
-Quantity['area'](Array([ 5, 14, 27], dtype=int32), unit='m2')
+Quantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
 
 ```
 
