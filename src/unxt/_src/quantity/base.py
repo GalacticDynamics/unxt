@@ -315,7 +315,7 @@ class AbstractQuantity(
         return self % other
 
     # required to override mixin methods
-    __eq__ = quax_blocks.NumpyEqMixin.__eq__
+    __eq__ = quax_blocks.NumpyEqMixin.__eq__  # type: ignore[assignment,unused-ignore]
 
     # ---------------------------------------------------------------
     # methods
@@ -899,38 +899,20 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
 
     @override
     def get(
-        self,
-        *,
-        indices_are_sorted: bool = False,
-        unique_indices: bool = False,
-        mode: jax.lax.GatherScatterMode | None = None,
-        fill_value: AbstractQuantity | None = None,
+        self, *, fill_value: AbstractQuantity | None = None, **kw: Any
     ) -> AbstractQuantity:
         # TODO: by quaxified super
         value = self.array.value.at[self.index].get(
-            indices_are_sorted=indices_are_sorted,
-            unique_indices=unique_indices,
-            mode=mode,
             fill_value=fill_value
             if fill_value is None
             else ustrip(self.array.unit, fill_value),
+            **kw,
         )
         return replace(self.array, value=value)
 
-    def set(
-        self,
-        values: AbstractQuantity,
-        *,
-        indices_are_sorted: bool = False,
-        unique_indices: bool = False,
-        mode: None = None,
-    ) -> AbstractQuantity:
-        # TODO: by quaxified super
+    def set(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:
         value = self.array.value.at[self.index].set(
-            ustrip(self.array.unit, values),
-            indices_are_sorted=indices_are_sorted,
-            unique_indices=unique_indices,
-            mode=mode,
+            ustrip(self.array.unit, values), **kw
         )
         return replace(self.array, value=value)
 
