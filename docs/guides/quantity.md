@@ -76,7 +76,8 @@ units. If you prefer an object-oriented approach, use the `uconvert` method.
 Quantity(Array(500., dtype=float32, ...), unit='cm')
 ```
 
-:::{note} :class: dropdown
+:::{note}
+:class: dropdown
 
 The Astropy API `.to` is also available for `Quantity` objects.
 
@@ -118,7 +119,8 @@ without units to be passed in, assuming them to be in the correct output units.
 500
 ```
 
-:::{note} :class: dropdown
+:::{note}
+:class: dropdown
 
 The Astropy API `.to_value` is also available for `Quantity` objects.
 
@@ -272,6 +274,74 @@ doesn't work, please open an issue on the
 [GitHub repository](https:://github.com/GalacticDynamics/unxt).
 
 :::
+
+## Pretty Printing
+
+`Quantity` objects support the
+[`wadler_lindig`](https://docs.kidger.site/wadler_lindig) library for pretty
+printing.
+
+```{code-block} python
+
+>>> import wadler_lindig as wl
+
+>>> q = u.Quantity([1, 2, 3], "m")
+
+>>> wl.pprint(q)  # The default pretty printing
+Quantity(i32[3], unit='m')
+
+```
+
+The type parameter can be included in the representation:
+
+```{code-block} python
+
+>>> wl.pprint(q, include_params=True)
+Quantity[length](i32[3], unit='m')
+
+```
+
+The `str` method uses this as well:
+
+```{code-block} python
+
+>>> print(q)
+Quantity[length](i32[3], unit='m')
+
+```
+
+Arrays can be printed in full:
+
+```{code-block} python
+
+>>> wl.pprint(q, short_arrays=False)
+Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+
+```
+
+The `repr` method uses this setting:
+
+```{code-block} python
+
+>>> print(repr(q))
+Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+
+```
+
+The units can be turned from a named argument to a positional argument by
+setting `named_unit=False`:
+
+```{code-block} python
+
+>>> wl.pprint(q, named_unit=False)
+Quantity(i32[3], 'm')
+
+```
+
+See the [`wadler_lindig` documentation](https://docs.kidger.site/wadler_lindig)
+for more details on the pretty printing options.
+
+---
 
 :::{seealso}
 

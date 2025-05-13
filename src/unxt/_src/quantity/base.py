@@ -50,7 +50,7 @@ class AbstractQuantity(
     quax_blocks.LaxLenMixin,
     quax_blocks.LaxLengthHintMixin,
 ):
-    """Represents an array, with each axis bound to a name.
+    """Represents a Quantity with a unit.
 
     Examples
     --------
@@ -674,12 +674,67 @@ class AbstractQuantity(
         return hash((self.value, self.unit))
 
     def __pdoc__(self, *, named_unit: bool = True, **kwargs: Any) -> wl.AbstractDoc:
-        """Return the Wadler-Lindig representation of this class."""
+        """Return the Wadler-Lindig representation of this class.
+
+        This is used for the `__repr__` and `__str__` methods or when using the
+        `wadler_lindig` library.
+
+        Parameters
+        ----------
+        named_unit
+            If `True`, the unit is included in the representation as a named
+            argument. If `False`, the unit is included as a positional argument.
+            For example, ``Quantity(<array>, unit='m')`` versus
+            ``Quantity(<array>, 'm')``.
+        kwargs
+            Additional keyword arguments ``wadler_lindig.pdoc`` method
+            for formatting the value, stringified unit, and other fields.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> import wadler_lindig as wl
+
+        >>> q = u.quantity.BareQuantity([1, 2, 3], "m")
+
+        The default pretty printing:
+
+        >>> wl.pprint(q)
+        BareQuantity(i32[3], unit='m')
+
+        The `str` method uses this as well:
+
+        >>> print(q)
+        BareQuantity(i32[3], unit='m')
+
+        Arrays can be printed in full:
+
+        >>> wl.pprint(q, short_arrays=False)
+        BareQuantity(Array([1, 2, 3], dtype=int32), unit='m')
+
+        The `repr` method uses this setting:
+
+        >>> print(repr(q))
+        BareQuantity(Array([1, 2, 3], dtype=int32), unit='m')
+
+        The units can be turned from a named argument to a positional argument
+        by setting `named_unit=False`:
+
+        >>> wl.pprint(q, named_unit=False)
+        BareQuantity(i32[3], 'm')
+
+        """
         cls_name = wl.TextDoc(type_nonparametric(self).__name__)
         fs = dict(field_items(self))
         del fs["value"]
         del fs["unit"]
 
+        # Customize the array to NOT include the kind -- f32[shape](kind)
+        # since Quantity only supports the jax kind.
+        if kwargs.get("short_arrays", True):
+            kwargs["custom"] = custom_pdoc_no_kind
+
+        # Make the pdocs for the base and extra fields.
         base_fields = [
             wl.pdoc(self.value, **kwargs),
             wl.TextDoc("unit=" if named_unit else "")
@@ -996,6 +1051,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
         return replace(self.array, value=value)
 
 
+# This is public!
 def is_any_quantity(obj: Any, /) -> TypeGuard[AbstractQuantity]:
     """Check if an object is an instance of `unxt.quantity.AbstractQuantity`.
 
@@ -1009,3 +1065,14 @@ def is_any_quantity(obj: Any, /) -> TypeGuard[AbstractQuantity]:
 
     """
     return isinstance(obj, AbstractQuantity)
+
+
+def custom_pdoc_no_kind(obj: Any) -> wl.AbstractDoc | None:
+    """Return custom pdoc for ``AbstractQuantity`` objects."""
+    if isinstance(obj, jax.Array):
+        dtype = obj.dtype.name
+        # Added in JAX 0.4.32 to `ShapeDtypeStruct`
+        if getattr(obj, "weak_type", False):
+            dtype = f"weak_{dtype}"
+        return wl.array_summary(obj.shape, dtype, kind=None)
+    return None
