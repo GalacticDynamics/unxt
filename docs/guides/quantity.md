@@ -76,7 +76,8 @@ units. If you prefer an object-oriented approach, use the `uconvert` method.
 Quantity(Array(500., dtype=float32, ...), unit='cm')
 ```
 
-:::{note} :class: dropdown
+:::{note}
+:class: dropdown
 
 The Astropy API `.to` is also available for `Quantity` objects.
 
@@ -118,7 +119,8 @@ without units to be passed in, assuming them to be in the correct output units.
 500
 ```
 
-:::{note} :class: dropdown
+:::{note}
+:class: dropdown
 
 The Astropy API `.to_value` is also available for `Quantity` objects.
 
