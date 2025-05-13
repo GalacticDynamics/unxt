@@ -311,7 +311,7 @@ Quantity(i32[3], 'm')
 
 ```
 
-See the [wadler_lindig documentation](https://docs.kidger.site/wadler_lindig)
+See the [`wadler_lindig` documentation](https://docs.kidger.site/wadler_lindig)
 for more details on the pretty printing options.
 
 ---
