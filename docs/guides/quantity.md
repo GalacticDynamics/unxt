@@ -265,6 +265,14 @@ Quantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
 [`quax.quaxify`](https://docs.kidger.site/quax/api/quax/#quax.quaxify) manually,
 to only decorate your top-level functions or to call 3rd party functions.
 
+:::{attention}
+
+`Quantity` should support **all** JAX functions. If you find a function that
+doesn't work, please open an issue on the
+[GitHub repository](https:://github.com/GalacticDynamics/unxt).
+
+:::
+
 ## Pretty Printing
 
 `Quantity` objects support the
@@ -306,13 +314,7 @@ Quantity(i32[3], 'm')
 See the [wadler_lindig documentation](https://docs.kidger.site/wadler_lindig)
 for more details on the pretty printing options.
 
-:::{attention}
-
-`Quantity` should support **all** JAX functions. If you find a function that
-doesn't work, please open an issue on the
-[GitHub repository](https:://github.com/GalacticDynamics/unxt).
-
-:::
+---
 
 :::{seealso}
 
