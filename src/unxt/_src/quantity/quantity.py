@@ -102,7 +102,7 @@ class Quantity(AbstractParametricQuantity):
     the physical type is unknown:
 
     >>> print(u.Quantity["m2 kg-1 s-2"](1.0, unit))  # to show the [dim]
-    Quantity[m2 kg-1 s-2](f32[](jax), unit='m2 / (kg s2)')
+    Quantity[m2 kg-1 s-2](weak_f32[], unit='m2 / (kg s2)')
 
     """
 
