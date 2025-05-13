@@ -178,7 +178,65 @@ class AbstractParametricQuantity(AbstractQuantity):
     def __pdoc__(
         self, *, include_params: bool = False, named_unit: bool = True, **kwargs: Any
     ) -> wl.AbstractDoc:
-        """Return the Wadler-Lindig representation of this class."""
+        """Return the Wadler-Lindig representation of this class.
+
+        This is used for the `__repr__` and `__str__` methods or when using the
+        `wadler_lindig` library.
+
+        Parameters
+        ----------
+        include_params
+            If `True`, the type parameter is included in the representation. If
+            `False`, the type parameter is not included in the representation.
+            For example, ``Quantity['length'][i32]`` versus ``Quantity[i32]``.
+        named_unit
+            If `True`, the unit is included in the representation as a named
+            argument. If `False`, the unit is included as a positional argument.
+            For example, ``Quantity(<array>, unit='m')`` versus
+            ``Quantity(<array>, 'm')``.
+        kwargs
+            Additional keyword arguments ``wadler_lindig.pdoc`` method for
+            formatting the value, stringified unit, and other fields.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> import wadler_lindig as wl
+
+        >>> q = u.Quantity([1, 2, 3], "m")
+
+        The default pretty printing:
+
+        >>> wl.pprint(q)
+        Quantity(i32[3], unit='m')
+
+        The type parameter can be included in the representation:
+
+        >>> wl.pprint(q, include_params=True)
+        Quantity[length](i32[3], unit='m')
+
+        The `str` method uses this as well:
+
+        >>> print(q)
+        Quantity[length](i32[3], unit='m')
+
+        Arrays can be printed in full:
+
+        >>> wl.pprint(q, short_arrays=False)
+        Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+
+        The `repr` method uses this setting:
+
+        >>> print(repr(q))
+        Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+
+        The units can be turned from a named argument to a positional argument
+        by setting `named_unit=False`:
+
+        >>> wl.pprint(q, named_unit=False)
+        Quantity(i32[3], 'm')
+
+        """
         pdoc = super().__pdoc__(
             include_params=include_params, named_unit=named_unit, **kwargs
         )

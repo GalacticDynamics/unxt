@@ -265,6 +265,47 @@ Quantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
 [`quax.quaxify`](https://docs.kidger.site/quax/api/quax/#quax.quaxify) manually,
 to only decorate your top-level functions or to call 3rd party functions.
 
+## Pretty Printing
+
+`Quantity` objects support the
+[`wadler_lindig`](https://docs.kidger.site/wadler_lindig) library for pretty
+printing.
+
+```{code-block} python
+
+>>> import wadler_lindig as wl
+
+>>> q = u.Quantity([1, 2, 3], "m")
+
+>>> wl.pprint(q)  # The default pretty printing
+Quantity(i32[3], unit='m')
+
+# The type parameter can be included in the representation:
+>>> wl.pprint(q, include_params=True)
+Quantity[length](i32[3], unit='m')
+
+# The `str` method uses this as well:
+>>> print(q)
+Quantity[length](i32[3], unit='m')
+
+# Arrays can be printed in full:
+>>> wl.pprint(q, short_arrays=False)
+Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+
+# The `repr` method uses this setting:
+>>> print(repr(q))
+Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+
+# The units can be turned from a named argument to
+# a positional argument by setting `named_unit=False`:
+>>> wl.pprint(q, named_unit=False)
+Quantity(i32[3], 'm')
+
+```
+
+See the [wadler_lindig documentation](https://docs.kidger.site/wadler_lindig)
+for more details on the pretty printing options.
+
 :::{attention}
 
 `Quantity` should support **all** JAX functions. If you find a function that
