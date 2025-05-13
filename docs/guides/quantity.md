@@ -288,24 +288,49 @@ printing.
 >>> wl.pprint(q)  # The default pretty printing
 Quantity(i32[3], unit='m')
 
-# The type parameter can be included in the representation:
+```
+
+The type parameter can be included in the representation:
+
+```{code-block} python
+
 >>> wl.pprint(q, include_params=True)
 Quantity[length](i32[3], unit='m')
 
-# The `str` method uses this as well:
+```
+
+The `str` method uses this as well:
+
+```{code-block} python
+
 >>> print(q)
 Quantity[length](i32[3], unit='m')
 
-# Arrays can be printed in full:
+```
+
+Arrays can be printed in full:
+
+```{code-block} python
+
 >>> wl.pprint(q, short_arrays=False)
 Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
-# The `repr` method uses this setting:
+```
+
+The `repr` method uses this setting:
+
+```{code-block} python
+
 >>> print(repr(q))
 Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
-# The units can be turned from a named argument to
-# a positional argument by setting `named_unit=False`:
+```
+
+The units can be turned from a named argument to a positional argument by
+setting `named_unit=False`:
+
+```{code-block} python
+
 >>> wl.pprint(q, named_unit=False)
 Quantity(i32[3], 'm')
 
