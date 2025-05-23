@@ -1,20 +1,24 @@
 """Benchmark tests for `unxt.units`."""
 
+from typing import TYPE_CHECKING
+
 import equinox as eqx
 import jax
 import pytest
-from jaxlib.xla_extension import PjitFunction
 
 import unxt as u
 
+if TYPE_CHECKING:
+    import jaxlib
+
 
 @pytest.fixture
-def func_unit() -> PjitFunction:
+def func_unit() -> "jaxlib._jax.PjitFunction":
     return eqx.filter_jit(u.unit)
 
 
 @pytest.fixture
-def func_unit_of() -> PjitFunction:
+def func_unit_of() -> "jaxlib._jax.PjitFunction":
     # need to filter_jit because arg can be a array or other object
     return eqx.filter_jit(u.unit_of)
 

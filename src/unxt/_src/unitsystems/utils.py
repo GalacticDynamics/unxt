@@ -17,29 +17,29 @@ from unxt.dims import AbstractDimension, dimension_of
 
 
 @dispatch.abstract
-def get_dimension_name(pt: Any, /) -> str:
+def parse_dimlike_name(pt: Any, /) -> str:
     """Get the dimension name from the object."""
     raise NotImplementedError  # pragma: no cover
 
 
 @dispatch
-def get_dimension_name(pt: str, /) -> str:
+def parse_dimlike_name(pt: str, /) -> str:
     """Return the dimension name.
 
     Note that this does not check for the existence of that dimension.
 
     Examples
     --------
-    >>> from unxt._src.unitsystems.utils import get_dimension_name
+    >>> from unxt._src.unitsystems.utils import parse_dimlike_name
 
-    >>> get_dimension_name("length")
+    >>> parse_dimlike_name("length")
     'length'
 
-    >>> get_dimension_name("not real")
+    >>> parse_dimlike_name("not real")
     'not_real'
 
     >>> try:
-    ...     get_dimension_name("*62")
+    ...     parse_dimlike_name("*62")
     ... except ValueError as e:
     ...     print(e)
     Input contains non-letter characters
@@ -54,18 +54,18 @@ def get_dimension_name(pt: str, /) -> str:
 
 
 @dispatch
-def get_dimension_name(pt: AbstractDimension, /) -> str:
+def parse_dimlike_name(pt: AbstractDimension, /) -> str:
     """Return the dimension name from a dimension.
 
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt._src.unitsystems.utils import get_dimension_name
+    >>> from unxt._src.unitsystems.utils import parse_dimlike_name
 
-    >>> get_dimension_name(u.dimension("length"))
+    >>> parse_dimlike_name(u.dimension("length"))
     'length'
 
-    >>> get_dimension_name(u.dimension("speed"))
+    >>> parse_dimlike_name(u.dimension("speed"))
     'speed'
 
     """
@@ -75,21 +75,21 @@ def get_dimension_name(pt: AbstractDimension, /) -> str:
         case bdims.speed:
             out = "speed"
         case _:
-            out = get_dimension_name(zeroth(pt._physical_type))  # noqa: SLF001
+            out = parse_dimlike_name(zeroth(pt._physical_type))  # noqa: SLF001
     return out
 
 
 @dispatch
-def get_dimension_name(pt: AstropyUnits, /) -> str:
+def parse_dimlike_name(pt: AstropyUnits, /) -> str:
     """Return the dimension name from a unit.
 
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt._src.unitsystems.utils import get_dimension_name
+    >>> from unxt._src.unitsystems.utils import parse_dimlike_name
 
-    >>> get_dimension_name(u.unit("km"))
+    >>> parse_dimlike_name(u.unit("km"))
     'length'
 
     """
-    return get_dimension_name(dimension_of(pt))
+    return parse_dimlike_name(dimension_of(pt))

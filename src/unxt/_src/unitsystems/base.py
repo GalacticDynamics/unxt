@@ -12,7 +12,7 @@ from astropy.units.physical import _physical_unit_mapping
 
 from is_annotated import isannotated
 
-from .utils import get_dimension_name
+from .utils import parse_dimlike_name
 from unxt._src.units import AstropyUnits
 from unxt.dims import AbstractDimension, dimension
 from unxt.units import unit
@@ -140,7 +140,7 @@ class AbstractUnitSystem:
         """
         key = dimension(key)
         if key in self.base_dimensions:
-            return getattr(self, get_dimension_name(key))
+            return getattr(self, parse_dimlike_name(key))
 
         out: AstropyUnits
         for k, v in _physical_unit_mapping.items():
@@ -245,7 +245,7 @@ def parse_field_names_and_dimensions(
             )
             raise TypeError(msg)
 
-        field_names.append(get_dimension_name(name))
+        field_names.append(parse_dimlike_name(name))
         dims.append(f_dim[0])
 
     if len(set(dims)) < len(dims):

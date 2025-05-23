@@ -16,6 +16,7 @@ from plum import dispatch, parametric, type_unparametrized
 from dataclassish import field_items, fields
 
 from .base import AbstractQuantity
+from unxt._src.dimensions.core import name_of
 from unxt._src.units import AstropyUnits
 from unxt.dims import AbstractDimension, dimension, dimension_of
 from unxt.units import unit as parse_unit
@@ -240,18 +241,12 @@ class AbstractParametricQuantity(AbstractQuantity):
         pdoc = super().__pdoc__(
             include_params=include_params, named_unit=named_unit, **kwargs
         )
-        # cls_name = wl.TextDoc(type_nonparametric(self).__name__)
+
+        # Type Parameter
         if not include_params:
             param = wl.TextDoc("")
         else:
-            if self._type_parameter == "unknown":
-                ptid = self._type_parameter._unit._physical_type_id  # noqa: SLF001
-                dim = " ".join(
-                    f"{unit}{power}" if power != 1 else unit for unit, power in ptid
-                )
-            else:
-                dim = self._type_parameter._name_string_as_ordered_set().split("'")[1]  # noqa: SLF001
-            param = wl.TextDoc(f"[{dim}]")
+            param = wl.TextDoc(f"[{name_of(self._type_parameter)}]")
 
         return wl.ConcatDoc(pdoc.children[0], param, *pdoc.children[1:])
 

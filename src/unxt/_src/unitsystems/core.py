@@ -18,7 +18,7 @@ from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
 from .builtin import DimensionlessUnitSystem
 from .flags import AbstractUSysFlag, DynamicalSimUSysFlag, StandardUSysFlag
 from .realizations import NAMED_UNIT_SYSTEMS, dimensionless
-from .utils import get_dimension_name
+from .utils import parse_dimlike_name
 from unxt.dims import dimension_of
 from unxt.units import unit
 
@@ -108,7 +108,7 @@ def unitsystem(*args: Any) -> AbstractUnitSystem:
 
     # Otherwise, create a new unit system
     # dimension names of all the units
-    du = {get_dimension_name(x).replace(" ", "_"): dimension_of(x) for x in args}
+    du = {parse_dimlike_name(x).replace(" ", "_"): dimension_of(x) for x in args}
     # name: physical types
     cls_name = "".join(k.title().replace("_", "") for k in du) + "UnitSystem"
     # fields: name, unit
