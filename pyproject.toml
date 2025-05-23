@@ -41,7 +41,7 @@
     "wadler-lindig>=0.1.5",
     "xmmutablemap>=0.1",
     "zeroth>=1.0.0",
-]
+  ]
 
   [project.optional-dependencies]
     # jax extras
@@ -184,6 +184,7 @@ UNXT_ENABLE_RUNTIME_TYPECHECKING = "beartype.beartype"
       "jax.*",
       "jaxtyping.*",
       "numpy.*",
+      "plum.*",
       "quax.*",
       "quaxed.*",
       "unxt.*",

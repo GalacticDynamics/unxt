@@ -1,27 +1,31 @@
 """Benchmark tests for `unxt.unitsystems`."""
 
+from typing import TYPE_CHECKING
+
 import equinox as eqx
 import jax
 import pytest
-from jaxlib.xla_extension import PjitFunction
 
 import unxt as u
 
+if TYPE_CHECKING:
+    import jaxlib
+
 
 @pytest.fixture
-def func_unitsystem() -> PjitFunction:
+def func_unitsystem() -> "jaxlib._jax.PjitFunction":
     # The lambda function is necessary because JIT doesn't understand how to
     # introspect the signature of a multiple-dispatch function.
     return eqx.filter_jit(lambda *args: u.unitsystem(*args))
 
 
 @pytest.fixture
-def func_unitsystem_of() -> PjitFunction:
+def func_unitsystem_of() -> "jaxlib._jax.PjitFunction":
     return eqx.filter_jit(u.unitsystem_of)
 
 
 @pytest.fixture
-def func_equivalent() -> PjitFunction:
+def func_equivalent() -> "jaxlib._jax.PjitFunction":
     return eqx.filter_jit(u.unitsystems.equivalent)
 
 

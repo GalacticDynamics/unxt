@@ -500,7 +500,7 @@ class AbstractQuantity(
 
     @ft.partial(property, doc=jax.Array.at.__doc__)
     def at(self) -> "_QuantityIndexUpdateHelper":
-        return _QuantityIndexUpdateHelper(self)  # type: ignore[no-untyped-call]
+        return _QuantityIndexUpdateHelper(self)  # type: ignore[arg-type]
 
     def block_until_ready(self) -> "AbstractQuantity":
         """Block until the array is ready.
@@ -958,7 +958,7 @@ add_promotion_rule(AbstractQuantity, AbstractQuantity, AbstractQuantity)
 # references `AbstractQuantity` in its runtime-checkable type annotations.
 class _QuantityIndexUpdateHelper(_IndexUpdateHelper):
     def __getitem__(self, index: Any) -> "_IndexUpdateRef":
-        return _QuantityIndexUpdateRef(self.array, index)  # type: ignore[no-untyped-call]
+        return _QuantityIndexUpdateRef(self.array, index)
 
     def __repr__(self) -> str:
         """Return a string representation of the object.
@@ -978,11 +978,13 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
     # This is a subclass of `_IndexUpdateRef` that is used to implement the `at`
     # attribute of `AbstractQuantity`. See also `_QuantityIndexUpdateHelper`.
 
+    array: AbstractQuantity  # type: ignore[assignment]
+
     def __repr__(self) -> str:
         return super().__repr__().replace("_IndexUpdateRef", "_QuantityIndexUpdateRef")
 
     @override
-    def get(
+    def get(  # type: ignore[override]
         self, *, fill_value: AbstractQuantity | None = None, **kw: Any
     ) -> AbstractQuantity:
         # TODO: by quaxified super
@@ -996,24 +998,28 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
         )
         return replace(self.array, value=value)
 
-    def set(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:
+    @override
+    def set(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
         # TODO: by quaxified super
         value = self.array.value.at[self.index].set(
             ustrip(self.array.unit, values), **kw
         )
         return replace(self.array, value=value)
 
-    def apply(self, func: Any, **kw: Any) -> AbstractQuantity:
+    @override
+    def apply(self, func: Any, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
         raise NotImplementedError  # TODO: by quaxified super
 
-    def add(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:
+    @override
+    def add(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
         # TODO: by quaxified super
         value = self.array.value.at[self.index].add(
             ustrip(self.array.unit, values), **kw
         )
         return replace(self.array, value=value)
 
-    def multiply(self, values: ArrayLike, **kw: Any) -> AbstractQuantity:
+    @override
+    def multiply(self, values: ArrayLike, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
         values = eqx.error_if(
             values, isinstance(values, AbstractQuantity), "values cannot be a Quantity"
         )  # TODO: can permit dimensionless quantities.
@@ -1022,9 +1028,10 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
         value = self.array.value.at[self.index].multiply(values, **kw)
         return replace(self.array, value=value)
 
-    mul = multiply
+    mul = multiply  # type: ignore[assignment]
 
-    def divide(self, values: ArrayLike, **kw: Any) -> AbstractQuantity:
+    @override
+    def divide(self, values: ArrayLike, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
         values = eqx.error_if(
             values, isinstance(values, AbstractQuantity), "values cannot be a Quantity"
         )  # TODO: can permit dimensionless quantities.
@@ -1033,17 +1040,20 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
         value = self.array.value.at[self.index].divide(values, **kw)
         return replace(self.array, value=value)
 
-    def power(self, values: ArrayLike, **kw: Any) -> AbstractQuantity:
+    @override
+    def power(self, values: ArrayLike, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
         raise NotImplementedError
 
-    def min(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:
+    @override
+    def min(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
         # TODO: by quaxified super
         value = self.array.value.at[self.index].min(
             ustrip(self.array.unit, values), **kw
         )
         return replace(self.array, value=value)
 
-    def max(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:
+    @override
+    def max(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
         # TODO: by quaxified super
         value = self.array.value.at[self.index].max(
             ustrip(self.array.unit, values), **kw

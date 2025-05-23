@@ -1,20 +1,24 @@
 """Benchmark tests for quaxified jax."""
 
+from typing import TYPE_CHECKING
+
 import equinox as eqx
 import jax
 import pytest
-from jaxlib.xla_extension import PjitFunction
 
 import unxt as u
 
+if TYPE_CHECKING:
+    import jaxlib
+
 
 @pytest.fixture
-def func_dimension() -> PjitFunction:
+def func_dimension() -> "jaxlib._jax.PjitFunction":
     return eqx.filter_jit(u.dimension)
 
 
 @pytest.fixture
-def func_dimension_of() -> PjitFunction:
+def func_dimension_of() -> "jaxlib._jax.PjitFunction":
     return eqx.filter_jit(u.dimension_of)
 
 

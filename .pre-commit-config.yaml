@@ -7,7 +7,7 @@ default_stages: [pre-commit, pre-push]
 
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.6.0
+    rev: v4.8.2
     hooks:
       - id: commitizen
         additional_dependencies: [cz-conventional-gitmoji]
@@ -17,7 +17,7 @@ repos:
       - id: check-useless-excludes
 
   - repo: https://github.com/scientific-python/cookie
-    rev: 2025.01.22
+    rev: 2025.05.02
     hooks:
       - id: sp-repo-review
 
@@ -50,7 +50,7 @@ repos:
       - id: check-readthedocs
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.11.6"
+    rev: "v0.11.11"
     hooks:
       # Run the linter
       - id: ruff
@@ -80,7 +80,9 @@ repos:
       - id: mypy
         files: src
         additional_dependencies:
+          - equinox>=0.11.8
           - plum-dispatch>=2.5.6
+          - quax>=0.2.0
           - quaxed>=0.8.1
           - quax-blocks>=0.1
 
@@ -91,7 +93,7 @@ repos:
         exclude: paper/paper.bib
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.6.14
+    rev: 0.7.7
     hooks:
       - id: uv-lock
 
