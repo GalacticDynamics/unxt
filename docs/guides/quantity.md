@@ -338,6 +338,15 @@ Quantity(i32[3], 'm')
 
 ```
 
+Instead of printing the value as either a full Array or a short array, you can compactify the value to its compact Array form:
+
+```{code-block} python
+
+>>> wl.pprint(q, compact_arrays=True, short_arrays=False)
+Quantity([1 2 3], unit='m')
+
+```
+
 See the [`wadler_lindig` documentation](https://docs.kidger.site/wadler_lindig)
 for more details on the pretty printing options.
 

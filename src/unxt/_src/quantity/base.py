@@ -686,9 +686,13 @@ class AbstractQuantity(
             argument. If `False`, the unit is included as a positional argument.
             For example, ``Quantity(<array>, unit='m')`` versus
             ``Quantity(<array>, 'm')``.
+        compact_arrays
+            If `True`, the array is printed in a compact form,
+            ``Quantity(Array([1., 2.], dtype=float32), unit='')`` to
+            ``Quantity([1., 2.], unit='')``.
         kwargs
-            Additional keyword arguments ``wadler_lindig.pdoc`` method
-            for formatting the value, stringified unit, and other fields.
+            Additional keyword arguments ``wadler_lindig.pdoc`` method for
+            formatting the value, stringified unit, and other fields.
 
         Examples
         --------
@@ -723,15 +727,43 @@ class AbstractQuantity(
         >>> wl.pprint(q, named_unit=False)
         BareQuantity(i32[3], 'm')
 
+        The arrays can be printed in a compact form by setting
+        ``compact_arrays=True``:
+
+        >>> wl.pprint(q, compact_arrays=True, short_arrays=False)
+        BareQuantity([1 2 3], unit='m')
+
+        Note that `compact_arrays` and `short_arrays` are mutually exclusive.
+
+        >>> try:
+        ...     wl.pprint(q, compact_arrays=True, short_arrays=True)
+        ... except ValueError as e:
+        ...     print(e)
+        compact_arrays and short_arrays are mutually exclusive.
+
         """
         cls_name = wl.TextDoc(type_nonparametric(self).__name__)
         fs = dict(field_items(self))
         del fs["value"]
         del fs["unit"]
 
-        # Customize the array to NOT include the kind -- f32[shape](kind)
-        # since Quantity only supports the jax kind.
-        if kwargs.get("short_arrays", True):
+        compact_arrays: bool = kwargs.get("compact_arrays", False)
+        short_arrays: bool
+        if "short_arrays" in kwargs:
+            short_arrays = kwargs["short_arrays"]
+        elif compact_arrays:
+            short_arrays = False
+        else:
+            short_arrays = True
+
+        if compact_arrays and short_arrays:
+            msg = "compact_arrays and short_arrays are mutually exclusive."
+            raise ValueError(msg)
+        if compact_arrays:
+            # Customize the array to NOT include the kind -- f32[shape](kind)
+            # since Quantity only supports the jax kind.
+            kwargs["custom"] = custom_pdoc_noarray
+        elif short_arrays:
             kwargs["custom"] = custom_pdoc_no_kind
 
         # Make the pdocs for the base and extra fields.
@@ -1077,6 +1109,7 @@ def is_any_quantity(obj: Any, /) -> TypeGuard[AbstractQuantity]:
     return isinstance(obj, AbstractQuantity)
 
 
+# TODO: replace with `equinox.internal.TreeWLCustom` when available.
 def custom_pdoc_no_kind(obj: Any) -> wl.AbstractDoc | None:
     """Return custom pdoc for ``AbstractQuantity`` objects."""
     if isinstance(obj, jax.Array):
@@ -1085,4 +1118,11 @@ def custom_pdoc_no_kind(obj: Any) -> wl.AbstractDoc | None:
         if getattr(obj, "weak_type", False):
             dtype = f"weak_{dtype}"
         return wl.array_summary(obj.shape, dtype, kind=None)
+    return None
+
+
+def custom_pdoc_noarray(obj: Any) -> wl.AbstractDoc | None:
+    """Return custom pdoc for ``AbstractQuantity`` objects."""
+    if isinstance(obj, jax.Array):
+        return wl.TextDoc(str(obj))
     return None
