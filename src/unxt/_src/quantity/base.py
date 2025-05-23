@@ -668,7 +668,7 @@ class AbstractQuantity(
         ...     hash(q)
         ... except TypeError as e:
         ...     print(e)
-        unhashable type: 'jaxlib.xla_extension.ArrayImpl'
+        unhashable type: 'jaxlib...ArrayImpl'
 
         """
         return hash((self.value, self.unit))
