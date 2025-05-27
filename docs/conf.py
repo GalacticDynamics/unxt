@@ -152,8 +152,8 @@ html_theme_options: dict[str, Any] = {
             "type": "url",
         },
         {
-            "name": "Zenodo",
-            "url": "https://doi.org/10.5281/zenodo.10850455",
+            "name": "JOSS",
+            "url": "https://doi.org/10.21105/joss.07771",
             "icon": "fa fa-quote-right",
         },
     ],
