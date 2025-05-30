@@ -10,8 +10,7 @@ build:
     - asdf install uv latest
     - asdf global uv latest
     - uv sync --group docs --frozen
-    - uv run -m sphinx -T -b html -d docs/_build/doctrees -D language=en docs
-      $READTHEDOCS_OUTPUT/html
+    - uv run nox -s docs -- --output-dir=$READTHEDOCS_OUTPUT
 
 sphinx:
   builder: html

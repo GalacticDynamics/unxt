@@ -40,6 +40,7 @@ api/index.md
 glossary.md
 conventions.md
 contributing.md
+dev.md
 ```
 
 # 🚀 Get Started
