@@ -122,6 +122,7 @@ def docs(session: nox.Session, /) -> None:
         f"-b={args.builder}",
         f"-d {args.output_dir}/doctrees",
         "-D language=en",
+        ".",
         f"{args.output_dir}/{args.builder}",
         *posargs,
     )
