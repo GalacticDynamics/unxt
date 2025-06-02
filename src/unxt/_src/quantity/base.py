@@ -6,12 +6,13 @@ __all__ = ["AbstractQuantity", "is_any_quantity"]
 import functools as ft
 from collections.abc import Mapping
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeGuard
+from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeGuard, cast
 from typing_extensions import override
 
 import equinox as eqx
 import jax
 import jax.core
+import numpy as np
 import quax_blocks
 import wadler_lindig as wl
 from astropy.units import UnitConversionError
@@ -731,7 +732,7 @@ class AbstractQuantity(
         ``compact_arrays=True``:
 
         >>> wl.pprint(q, compact_arrays=True, short_arrays=False)
-        BareQuantity([1 2 3], unit='m')
+        BareQuantity([1, 2, 3], unit='m')
 
         Note that `compact_arrays` and `short_arrays` are mutually exclusive.
 
@@ -742,19 +743,17 @@ class AbstractQuantity(
         compact_arrays and short_arrays are mutually exclusive.
 
         """
+        # Class Name
         cls_name = wl.TextDoc(type_nonparametric(self).__name__)
+
+        # Object fields
         fs = dict(field_items(self))
         del fs["value"]
         del fs["unit"]
 
+        # Customize value representation
         compact_arrays: bool = kwargs.get("compact_arrays", False)
-        short_arrays: bool
-        if "short_arrays" in kwargs:
-            short_arrays = kwargs["short_arrays"]
-        elif compact_arrays:
-            short_arrays = False
-        else:
-            short_arrays = True
+        short_arrays: bool = kwargs.get("short_arrays", not compact_arrays)
 
         if compact_arrays and short_arrays:
             msg = "compact_arrays and short_arrays are mutually exclusive."
@@ -774,6 +773,7 @@ class AbstractQuantity(
         ]
         extra_fields = wl.named_objs(tuple(fs.items()), **kwargs)
 
+        # Construct and return the Wadler-Lindig document.
         return (
             cls_name
             + wl.TextDoc("(")
@@ -1124,5 +1124,5 @@ def custom_pdoc_no_kind(obj: Any) -> wl.AbstractDoc | None:
 def custom_pdoc_noarray(obj: Any) -> wl.AbstractDoc | None:
     """Return custom pdoc for ``AbstractQuantity`` objects."""
     if isinstance(obj, jax.Array):
-        return wl.TextDoc(str(obj))
+        return wl.TextDoc(np.array2string(cast("np.ndarray", obj), separator=", "))
     return None
