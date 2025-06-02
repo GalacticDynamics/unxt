@@ -219,7 +219,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         The `str` method uses this as well:
 
         >>> print(q)
-        Quantity['length'](i32[3], unit='m')
+        Quantity['length']([1, 2, 3], unit='m')
 
         Arrays can be printed in full:
 
@@ -257,5 +257,10 @@ class AbstractParametricQuantity(AbstractQuantity):
 
     def __str__(self) -> str:
         return wl.pformat(
-            self, include_params=True, named_unit=True, short_arrays=True, indent=4
+            self,
+            include_params=True,
+            named_unit=True,
+            compact_arrays=True,
+            short_arrays=False,
+            indent=4,
         )

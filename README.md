@@ -87,16 +87,16 @@ import jax.numpy as jnp
 
 x = u.Quantity(jnp.arange(1, 5, dtype=float), "km")
 print(x)
-# Quantity['length'](Array([1., 2., 3., 4.], dtype=float64), unit='km')
+# Quantity['length']([1., 2., 3., 4.], unit='km')
 ```
 
 The constituent value and unit are accessible as attributes:
 
 ```python
-print(x.value)
+repr(x.value)
 # Array([1., 2., 3., 4.], dtype=float64)
 
-print(x.unit)
+repr(x.unit)
 # Unit("m")
 ```
 
@@ -105,20 +105,20 @@ print(x.unit)
 ```python
 # Addition / Subtraction
 print(x + x)
-# Quantity['length'](Array([2., 4., 6., 8.], dtype=float64), unit='km')
+Quantity["length"]([2.0, 4.0, 6.0, 8.0], unit="km")
 
 # Multiplication / Division
 print(2 * x)
-# Quantity['length'](Array([2., 4., 6., 8.], dtype=float64), unit='km')
+Quantity["length"]([2.0, 4.0, 6.0, 8.0], unit="km")
 
 y = u.Quantity(jnp.arange(4, 8, dtype=float), "yr")
 
 print(x / y)
-# Quantity['speed'](Array([0.25      , 0.4       , 0.5       , 0.57142857], dtype=float64), unit='km / yr')
+# Quantity['speed']([0.25, 0.4 , 0.5 , 0.57142857], unit='km / yr')
 
 # Exponentiation
 print(x**2)
-# Quantity['area'](Array([0., 1., 4., 9.], dtype=float64), unit='km2')
+# Quantity['area']([ 1.,  4.,  9., 16.], unit='km2')
 
 # Unit checking on operations
 try:
@@ -132,10 +132,10 @@ Quantities can be converted to different units:
 
 ```python
 print(u.uconvert("m", x))  # via function
-# Quantity['length'](Array([1000., 2000., 3000., 4000.], dtype=float64), unit='m')
+# Quantity['length']([1000., 2000., 3000., 4000.], unit='m')
 
 print(x.uconvert("m"))  # via method
-# Quantity['length'](Array([1000., 2000., 3000., 4000.], dtype=float64), unit='m')
+# Quantity['length']([1000., 2000., 3000., 4000.], unit='m')
 ```
 
 Since `Quantity` is parametric, it can do runtime dimension checking!
@@ -143,7 +143,7 @@ Since `Quantity` is parametric, it can do runtime dimension checking!
 ```python
 LengthQuantity = u.Quantity["length"]
 print(LengthQuantity(2, "km"))
-# Quantity['length'](Array(2, dtype=int64, weak_type=True), unit='km')
+# Quantity['length'](2, unit='km')
 
 try:
     LengthQuantity(2, "s")
@@ -166,13 +166,13 @@ from quaxed import grad, vmap
 import quaxed.numpy as jnp
 
 print(jnp.square(x))
-# Quantity['area'](Array([ 1.,  4.,  9., 16.], dtype=float64), unit='km2')
+# Quantity['area']([ 1.,  4.,  9., 16.], unit='km2')
 
 print(jnp.power(x, 3))
-# Quantity['volume'](Array([ 1.,  8., 27., 64.], dtype=float64), unit='km3')
+# Quantity['volume']([ 1.,  8., 27., 64.], unit='km3')
 
 print(vmap(grad(lambda x: x**3))(x))
-# Quantity['area'](Array([ 3., 12., 27., 48.], dtype=float64), unit='km2')
+# Quantity['area']([ 3., 12., 27., 48.], unit='km2')
 ```
 
 See the [documentation][rtd-link] for more examples and details of JIT and AD

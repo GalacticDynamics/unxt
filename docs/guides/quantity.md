@@ -306,7 +306,7 @@ The `str` method uses this as well:
 ```{code-block} python
 
 >>> print(q)
-Quantity['length'](i32[3], unit='m')
+Quantity['length']([1, 2, 3], unit='m')
 
 ```
 
