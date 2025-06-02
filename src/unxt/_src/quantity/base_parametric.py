@@ -214,12 +214,12 @@ class AbstractParametricQuantity(AbstractQuantity):
         The type parameter can be included in the representation:
 
         >>> wl.pprint(q, include_params=True)
-        Quantity[length](i32[3], unit='m')
+        Quantity['length'](i32[3], unit='m')
 
         The `str` method uses this as well:
 
         >>> print(q)
-        Quantity[length](i32[3], unit='m')
+        Quantity['length'](i32[3], unit='m')
 
         Arrays can be printed in full:
 
@@ -246,7 +246,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         if not include_params:
             param = wl.TextDoc("")
         else:
-            param = wl.TextDoc(f"[{name_of(self._type_parameter)}]")
+            param = wl.TextDoc(f"[{name_of(self._type_parameter)!r}]")
 
         return wl.ConcatDoc(pdoc.children[0], param, *pdoc.children[1:])
 

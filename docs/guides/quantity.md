@@ -297,7 +297,7 @@ The type parameter can be included in the representation:
 ```{code-block} python
 
 >>> wl.pprint(q, include_params=True)
-Quantity[length](i32[3], unit='m')
+Quantity['length'](i32[3], unit='m')
 
 ```
 
@@ -306,7 +306,7 @@ The `str` method uses this as well:
 ```{code-block} python
 
 >>> print(q)
-Quantity[length](i32[3], unit='m')
+Quantity['length'](i32[3], unit='m')
 
 ```
 
