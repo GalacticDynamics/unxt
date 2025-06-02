@@ -1,5 +1,4 @@
 version = 1
-revision = 1
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.13'",
@@ -11,8 +10,8 @@ conflicts = [[
     { package = "unxt", extra = "cuda" },
     { package = "unxt", extra = "cuda12" },
     { package = "unxt", extra = "cuda12-local" },
-    { package = "unxt", extra = "k8s" },
     { package = "unxt", extra = "rocm" },
+    { package = "unxt", extra = "k8s" },
 ]]
 
 [[package]]
@@ -934,11 +933,11 @@ wheels = [
 
 [package.optional-dependencies]
 cuda = [
-    { name = "jax-cuda12-plugin", extra = ["with-cuda"], marker = "extra == 'extra-4-unxt-cuda' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
+    { name = "jax-cuda12-plugin", extra = ["with-cuda"] },
     { name = "jaxlib" },
 ]
 cuda12 = [
-    { name = "jax-cuda12-plugin", extra = ["with-cuda"], marker = "extra == 'extra-4-unxt-cuda12' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cpu' and extra != 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra != 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra != 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm')" },
+    { name = "jax-cuda12-plugin", extra = ["with-cuda"] },
     { name = "jaxlib" },
 ]
 cuda12-local = [
@@ -2963,16 +2962,16 @@ backend-astropy = [
     { name = "astropy" },
 ]
 cpu = [
-    { name = "jax", marker = "extra == 'extra-4-unxt-cpu' or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
+    { name = "jax" },
 ]
 cuda = [
-    { name = "jax", extra = ["cuda"], marker = "extra == 'extra-4-unxt-cuda' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
+    { name = "jax", extra = ["cuda"] },
 ]
 cuda12 = [
-    { name = "jax", extra = ["cuda12"], marker = "extra == 'extra-4-unxt-cuda12' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cpu' and extra != 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra != 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra != 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm')" },
+    { name = "jax", extra = ["cuda12"] },
 ]
 cuda12-local = [
-    { name = "jax", extra = ["cuda12-local"], marker = "extra == 'extra-4-unxt-cuda12-local' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cpu' and extra != 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra != 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra != 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra != 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm')" },
+    { name = "jax", extra = ["cuda12-local"] },
 ]
 interop-gala = [
     { name = "gala" },
@@ -2981,7 +2980,7 @@ interop-mpl = [
     { name = "matplotlib" },
 ]
 k8s = [
-    { name = "jax", extra = ["k8s"], marker = "extra == 'extra-4-unxt-k8s' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cpu' and extra != 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra != 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra != 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
+    { name = "jax", extra = ["k8s"] },
 ]
 
 [package.dev-dependencies]
@@ -3093,7 +3092,6 @@ requires-dist = [
     { name = "xmmutablemap", specifier = ">=0.1" },
     { name = "zeroth", specifier = ">=1.0.0" },
 ]
-provides-extras = ["all", "backend-astropy", "cpu", "cuda", "cuda12", "cuda12-local", "interop-gala", "interop-mpl", "k8s"]
 
 [package.metadata.requires-dev]
 dev = [
