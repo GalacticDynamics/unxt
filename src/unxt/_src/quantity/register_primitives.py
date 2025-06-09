@@ -1771,6 +1771,31 @@ def dynamic_update_slice_p(
 # ==============================================================================
 
 
+@register(lax.linalg.eigh_p)
+def eigh_p(x: AbstractQuantity, /, **kw: Any) -> tuple[Array, AbstractQuantity]:
+    """Eigenvalues and eigenvectors of a Hermitian matrix quantity.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> from unxt import Quantity
+
+    >>> q = Quantity([[2, -1], [1, 3]], "eV")
+    >>> w, v = jnp.linalg.eigh(q)
+    >>> w
+    Quantity(Array([2., 3.], dtype=float32), unit='eV')
+    >>> v
+    Array([[1., 0.],
+           [0., 1.]], dtype=float32)
+
+    """
+    v, w = lax.linalg.eigh_p.bind(ustrip(x), **kw)
+    return v, replace(x, value=w)
+
+
+# ==============================================================================
+
+
 @register(lax.eq_p)
 def eq_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> ArrayLike:
     """Equality of two quantities.
