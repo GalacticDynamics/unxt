@@ -52,7 +52,7 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
         if isinstance(obj, AbstractQuantity):
             return ustrip(unit, obj)
 
-        return BareQuantity.from_(obj, axis.get_units()).unstrip(unit)
+        return BareQuantity.from_(obj, axis.get_units()).ustrip(unit)
 
     def axisinfo(self, unit: Any, _: Axes) -> matplotlib.units.AxisInfo:
         """Return axis information for this particular unit."""
