@@ -171,6 +171,20 @@ wheels = [
 ]
 
 [[package]]
+name = "build"
+version = "1.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "os_name == 'nt' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
+    { name = "packaging" },
+    { name = "pyproject-hooks" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/25/1c/23e33405a7c9eac261dff640926b8b5adaed6a6eb3e1767d441ed611d0c0/build-1.3.0.tar.gz", hash = "sha256:698edd0ea270bde950f53aed21f3a0135672206f3911e0176261a31e0e07b397", size = 48544 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cb/8c/2b30c12155ad8de0cf641d76a8b396a16d2c36bc6d50b621a62b7c4567c1/build-1.3.0-py3-none-any.whl", hash = "sha256:7145f0b5061ba90a1500d60bd1b13ca0a8a4cebdd0cc16ed8adf1c0e739f43b4", size = 23382 },
+]
+
+[[package]]
 name = "cachetools"
 version = "5.5.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2223,6 +2237,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pyproject-hooks"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e7/82/28175b2414effca1cdac8dc99f76d660e7a4fb0ceefa4b4ab8f5f6742925/pyproject_hooks-1.2.0.tar.gz", hash = "sha256:1e859bd5c40fae9448642dd871adf459e5e2084186e8d2c2a79a824c970da1f8", size = 19228 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bd/24/12818598c362d7f300f18e74db45963dbcb85150324092410c8b49405e42/pyproject_hooks-1.2.0-py3-none-any.whl", hash = "sha256:9e5c6bfa8dcc30091c74b0cf803c81fdd29d94f01992a7707bc97babb1141913", size = 10216 },
+]
+
+[[package]]
 name = "pytest"
 version = "8.4.2"
 source = { registry = "https://pypi.org/simple" }
@@ -3299,7 +3322,11 @@ k8s = [
 ]
 
 [package.dev-dependencies]
+build = [
+    { name = "build" },
+]
 dev = [
+    { name = "build" },
     { name = "cz-conventional-gitmoji" },
     { name = "hypothesis", extra = ["numpy"] },
     { name = "ipykernel" },
@@ -3417,7 +3444,9 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
+build = [{ name = "build", specifier = ">=1.3.0" }]
 dev = [
+    { name = "build", specifier = ">=1.3.0" },
     { name = "cz-conventional-gitmoji", specifier = ">=0.6.1" },
     { name = "hypothesis", extras = ["numpy"], specifier = ">=6.131.2" },
     { name = "ipykernel", specifier = ">=6.29.5" },

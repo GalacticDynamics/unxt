@@ -70,10 +70,14 @@
   dev = [
     "ipykernel>=6.29.5",
     "cz-conventional-gitmoji>=0.6.1",
+    { include-group = "build" },
     { include-group = "docs" },
     { include-group = "lint" },
     { include-group = "nox" },
     { include-group = "test-all" },
+  ]
+  build = [
+    "build>=1.3.0",
   ]
   docs = [
     "myst-nb>=1.1.2",

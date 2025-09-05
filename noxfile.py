@@ -113,6 +113,7 @@ def tests_benchmark(session: nox.Session, /) -> None:
 @nox.session(venv_backend="uv")(reuse_venv=True)
 def docs(session: nox.Session, /) -> None:
     """Build the docs. Pass "--serve" to serve. Pass "-b linkcheck" to check links."""
+    # Parse command line arguments for docs building
     parser = argparse.ArgumentParser()
     parser.add_argument("--serve", action="store_true", help="Serve after building")
     parser.add_argument(
@@ -127,7 +128,15 @@ def docs(session: nox.Session, /) -> None:
 
     offline_command = ["--offline"] if args.offline else []
 
-    session.run("uv", "sync", "--group", "docs", "--active", *offline_command)
+    session.run_install(
+        "uv",
+        "sync",
+        "--group=docs",
+        f"--python={session.virtualenv.location}",
+        "--active",
+        *offline_command,
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
     session.chdir("docs")
 
     if args.builder == "linkcheck":
@@ -156,7 +165,13 @@ def docs(session: nox.Session, /) -> None:
 @nox.session(venv_backend="uv")
 def build_api_docs(session: nox.Session, /) -> None:
     """Build (regenerate) API docs."""
-    session.install("sphinx")
+    session.run_install(
+        "uv",
+        "sync",
+        "--group=docs",
+        f"--python={session.virtualenv.location}",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
     session.chdir("docs")
     session.run(
         "sphinx-apidoc",
@@ -176,5 +191,11 @@ def build(session: nox.Session, /) -> None:
     if build_path.exists():
         shutil.rmtree(build_path)
 
-    session.install("build")
+    session.run_install(
+        "uv",
+        "sync",
+        "--group=build",
+        f"--python={session.virtualenv.location}",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
     session.run("python", "-m", "build")
