@@ -105,11 +105,11 @@ repr(x.unit)
 ```python
 # Addition / Subtraction
 print(x + x)
-Quantity["length"]([2.0, 4.0, 6.0, 8.0], unit="km")
+# Quantity["length"]([2.0, 4.0, 6.0, 8.0], unit="km")
 
 # Multiplication / Division
 print(2 * x)
-Quantity["length"]([2.0, 4.0, 6.0, 8.0], unit="km")
+# Quantity["length"]([2.0, 4.0, 6.0, 8.0], unit="km")
 
 y = u.Quantity(jnp.arange(4, 8, dtype=float), "yr")
 

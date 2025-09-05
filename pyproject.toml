@@ -45,11 +45,11 @@
 
   [project.optional-dependencies]
     # jax extras
-    cpu             = ["jax[cpu]"]
-    cuda            = ["jax[cuda]"]
-    cuda12          = ["jax[cuda12]"]
-    cuda12_local    = ["jax[cuda12_local]"]
-    k8s             = ["jax[k8s]"]
+    cpu             = ["jax[cpu]>=0.5.3"]
+    cuda            = ["jax[cuda]>=0.5.3"]
+    cuda12          = ["jax[cuda12]>=0.5.3"]
+    cuda12_local    = ["jax[cuda12_local]>=0.5.3"]
+    k8s             = ["jax[k8s]>=0.5.3"]
     # extra extras
     all             = ["unxt[backend-astropy,interop-gala,interop-mpl]"]
     backend-astropy = ["astropy>=6.0"]
@@ -70,8 +70,8 @@
   dev = [
     "ipykernel>=6.29.5",
     "cz-conventional-gitmoji>=0.6.1",
-    "pre-commit>=4.1.0",
     { include-group = "docs" },
+    { include-group = "lint" },
     { include-group = "nox" },
     { include-group = "test-all" },
   ]
@@ -91,6 +91,10 @@
     "sphinxext-opengraph>=0.9.1",
     "sphinxext-rediraffe>=0.2.7",
   ]
+  lint = [
+    "pre-commit>=4.1.0",
+    "pylint>=3.3.8",
+]
   nox = ["nox>=2024.10.9"]
   test = [
     "hypothesis[numpy]>=6.131.2",
@@ -106,7 +110,7 @@
   pytest-benchmark-parallel = [
     "pytest-xdist>=3.6.1",
   ]
-  test-mpl = ["pytest-mpl>=0.17.0"]
+  test-mpl = ["pytest-mpl>=0.17.0", "matplotlib>=3.5,<3.10"]
   test-all = [{ include-group = "test" }, { include-group = "test-mpl" }]
 
 
@@ -132,8 +136,15 @@
     "error",
     "ignore:Attribute s is deprecated and will be removed in Python 3\\.14:DeprecationWarning", # from Sybil
     "ignore:ast\\.Str is deprecated and will be removed in Python 3\\.14:DeprecationWarning",   # from Sybil
+    # pytest
+    "ignore:The hookimpl.*uses old-style configuration options:pytest.PytestDeprecationWarning",
     # jax
     "ignore:jax\\.core\\.pp_eqn_rules is deprecated:DeprecationWarning",
+    "ignore:jax\\.core\\.Primitive is deprecated:DeprecationWarning",
+    "ignore:jax\\.interpreters\\.batching\\.NotMapped is deprecated:DeprecationWarning",
+    # Additional potential JAX deprecations for older versions
+    "ignore:The numpy\\.array_function protocol:DeprecationWarning",
+    "ignore:numpy\\.ndarray size changed:RuntimeWarning",
   ]
   log_cli_level = "INFO"
   minversion = "8.3"
@@ -281,6 +292,11 @@ UNXT_ENABLE_RUNTIME_TYPECHECKING = "beartype.beartype"
 
   [tool.pylint."FORMAT"]
   max-module-lines = 2000
+
+
+[tool.codespell]
+skip = "uv.lock,paper/paper.bib"
+
 
 
 [tool.uv]

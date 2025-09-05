@@ -15,7 +15,7 @@ nox.options.sessions = [
     # Testing
     "tests",
     "tests_all",
-    "tests_benckmark",
+    "tests_benchmark",
     # Documentation
     "docs",
     "build_api_docs",
@@ -30,27 +30,36 @@ DIR = Path(__file__).parent.resolve()
 # Linting
 
 
-@nox.session
+@nox.session(venv_backend="uv")
 def lint(session: nox.Session, /) -> None:
     """Run the linter."""
-    session.run("uv", "sync")
-    session.run(
+    precommit(session)  # reuse pre-commit session
+    pylint(session)  # reuse pylint session
+
+
+@nox.session(venv_backend="uv")
+def precommit(session: nox.Session, /) -> None:
+    """Run pre-commit."""
+    session.run_install(
         "uv",
-        "run",
-        "pre-commit",
-        "run",
-        "--all-files",
-        "--show-diff-on-failure",
-        *session.posargs,
+        "sync",
+        "--group=lint",
+        f"--python={session.virtualenv.location}",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
     )
+    session.run("pre-commit", "run", "--all-files", *session.posargs)
 
 
-@nox.session
+@nox.session(venv_backend="uv")
 def pylint(session: nox.Session, /) -> None:
     """Run PyLint."""
-    # This needs to be installed into the package environment, and is slower
-    # than a pre-commit check
-    session.install(".", "pylint")
+    session.run_install(
+        "uv",
+        "sync",
+        "--group=lint",
+        f"--python={session.virtualenv.location}",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
     session.run("pylint", "unxt", *session.posargs)
 
 
@@ -58,39 +67,50 @@ def pylint(session: nox.Session, /) -> None:
 # Testing
 
 
-@nox.session
+@nox.session(venv_backend="uv")
 def tests(session: nox.Session, /) -> None:
     """Run the unit and regular tests."""
-    session.run("uv", "sync", "--group", "test")
-    session.run("uv", "run", "pytest", *session.posargs)
+    session.run_install(
+        "uv",
+        "sync",
+        "--group=test",
+        f"--python={session.virtualenv.location}",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
+    session.run("pytest", *session.posargs)
 
 
-@nox.session
+@nox.session(venv_backend="uv")
 def tests_all(session: nox.Session, /) -> None:
     """Run the tests with all optional dependencies."""
-    session.run("uv", "sync", "--group", "test-all")
-    session.run("uv", "run", "pytest", *session.posargs)
-
-
-@nox.session
-def tests_benckmark(session: nox.Session, /) -> None:
-    """Run the benchmarks."""
-    session.run("uv", "sync", "--group", "test")
-    session.run(
+    session.run_install(
         "uv",
-        "run",
-        "pytest",
-        "tests/benchmark",
-        "--codspeed",
-        *session.posargs,
+        "sync",
+        "--group=test-all",
+        f"--python={session.virtualenv.location}",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
     )
+    session.run("pytest", *session.posargs)
+
+
+@nox.session(venv_backend="uv")
+def tests_benchmark(session: nox.Session, /) -> None:
+    """Run the benchmarks."""
+    session.run_install(
+        "uv",
+        "sync",
+        "--group=test",
+        f"--python={session.virtualenv.location}",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
+    session.run("pytest", "tests/benchmark", "--codspeed", *session.posargs)
 
 
 # =============================================================================
 # Documentation
 
 
-@nox.session(reuse_venv=True)
+@nox.session(venv_backend="uv")(reuse_venv=True)
 def docs(session: nox.Session, /) -> None:
     """Build the docs. Pass "--serve" to serve. Pass "-b linkcheck" to check links."""
     parser = argparse.ArgumentParser()
@@ -133,7 +153,7 @@ def docs(session: nox.Session, /) -> None:
         session.run("sphinx-build", "--keep-going", *shared_args)
 
 
-@nox.session
+@nox.session(venv_backend="uv")
 def build_api_docs(session: nox.Session, /) -> None:
     """Build (regenerate) API docs."""
     session.install("sphinx")
@@ -149,7 +169,7 @@ def build_api_docs(session: nox.Session, /) -> None:
     )
 
 
-@nox.session
+@nox.session(venv_backend="uv")
 def build(session: nox.Session, /) -> None:
     """Build an SDist and wheel."""
     build_path = DIR.joinpath("build")

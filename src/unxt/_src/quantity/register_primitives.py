@@ -792,7 +792,7 @@ def bitcast_convert_type_p(
 @register(lax.broadcast_in_dim_p)
 def broadcast_in_dim_p(operand: AbstractQuantity, /, **kw: Any) -> AbstractQuantity:
     """Broadcast a quantity in a specific dimension."""
-    return replace(operand, value=lax.broadcast_in_dim_p.bind(ustrip(operand), **kw))
+    return replace(operand, value=lax.broadcast_in_dim_p.bind(ustrip(operand), **kw))  # type: ignore[no-untyped-call,unused-ignore]
 
 
 # ==============================================================================
