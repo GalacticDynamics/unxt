@@ -3613,12 +3613,12 @@ def regularized_incomplete_beta_q(
     >>> a = BareQuantity(2.0, "")
     >>> b = BareQuantity(3.0, "")
     >>> x = 0.5
-    >>> jsp.betainc(a, b, x)
+    >>> jsp.betainc(a, b, x).round(7)
     Array(0.6874998, dtype=float32, weak_type=True)
 
     >>> a = Quantity(2.0, "")
     >>> b = Quantity(3.0, "")
-    >>> jsp.betainc(a, b, x)
+    >>> jsp.betainc(a, b, x).round(7)
     Array(0.6874998, dtype=float32, weak_type=True)
 
     """
@@ -3643,11 +3643,11 @@ def regularized_incomplete_beta_q(
     >>> a = 2.0
     >>> b = 3.0
     >>> x = BareQuantity(0.5, "")
-    >>> jsp.betainc(a, b, x)
+    >>> jsp.betainc(a, b, x).round(7)
     BareQuantity(Array(0.6874998, dtype=float32, weak_type=True), unit='')
 
     >>> x = Quantity(0.5, "")
-    >>> jsp.betainc(a, b, x)
+    >>> jsp.betainc(a, b, x).round(7)
     Quantity(Array(0.6874998, dtype=float32, weak_type=True), unit='')
 
     >>> x = Quantity(0.5, "m")
