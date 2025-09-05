@@ -151,8 +151,9 @@ def docs(session: nox.Session, /) -> None:
         "-n",  # nitpicky mode
         "-T",  # full tracebacks
         f"-b={args.builder}",
-        f"-d {args.output_dir}/doctrees",
-        "-D language=en",
+        f"-d={args.output_dir}/doctrees",
+        "-D",
+        "language=en",
         ".",
         f"{args.output_dir}/{args.builder}",
         *posargs,
