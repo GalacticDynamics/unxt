@@ -135,7 +135,7 @@ jobs:
         uses: astral-sh/setup-uv@557e51de59eb14aaaba2ed9621916900a91d50c6 # v6.6.1
 
       - name: Run benchmarks
-        uses: CodSpeedHQ/action@6eeb021fd0f305388292348b775d96d95253adf4 # v4.0.9
+        uses: CodSpeedHQ/action@6eeb021fd0f305388292348b775d96d95253adf4 # v4.0.0
         with:
           token: ${{ secrets.CODSPEED_TOKEN }}
           run: uv run --group test pytest tests/benchmark --codspeed
