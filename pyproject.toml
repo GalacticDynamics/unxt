@@ -54,7 +54,7 @@
     all             = ["unxt[backend-astropy,interop-gala,interop-mpl]"]
     backend-astropy = ["astropy>=6.0"]
     interop-gala    = ["gala>=1.8"]
-    interop-mpl     = ["matplotlib>=3.5"]
+    interop-mpl     = ["matplotlib>=3.8"]
 
   [project.urls]
     "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"
@@ -110,7 +110,7 @@
   pytest-benchmark-parallel = [
     "pytest-xdist>=3.6.1",
   ]
-  test-mpl = ["pytest-mpl>=0.17.0", "matplotlib>=3.5,<3.10"]
+  test-mpl = ["pytest-mpl>=0.17.0", "matplotlib>=3.8,<3.10"]
   test-all = [{ include-group = "test" }, { include-group = "test-mpl" }]
 
 
@@ -145,6 +145,8 @@
     # Additional potential JAX deprecations for older versions
     "ignore:The numpy\\.array_function protocol:DeprecationWarning",
     "ignore:numpy\\.ndarray size changed:RuntimeWarning",
+    # matplotlib
+    "ignore:.*:matplotlib._api.deprecation.MatplotlibDeprecationWarning",
   ]
   log_cli_level = "INFO"
   minversion = "8.3"
