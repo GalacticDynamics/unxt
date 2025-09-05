@@ -5,7 +5,7 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 
 __all__: list[str] = []
 
-from typing import TYPE_CHECKING, Any, Protocol, cast, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar, cast, runtime_checkable
 
 from jax import dtypes
 from jax.numpy import dtype as DType  # noqa: N812
@@ -55,7 +55,10 @@ class HasDType(Protocol):
         """The dtype of the object."""
 
 
-def promote_dtypes(*arrays: HasDType) -> tuple[HasDType, ...]:
+HasDTypeT = TypeVar("HasDTypeT", bound=HasDType)
+
+
+def promote_dtypes(*arrays: HasDTypeT) -> tuple[HasDTypeT, ...]:
     """Promotes all input arrays to a common dtype.
 
     Examples
@@ -79,12 +82,27 @@ def promote_dtypes(*arrays: HasDType) -> tuple[HasDType, ...]:
     """
     common_dtype = dtypes.result_type(*arrays)
     # TODO: check if this copies.
-    return tuple(qlax.convert_element_type(arr, common_dtype) for arr in arrays)  # type: ignore[arg-type]
+    return tuple([qlax.convert_element_type(arr, common_dtype) for arr in arrays])  # type: ignore[arg-type,misc]  # pylint: disable=R1728
 
 
 def promote_dtypes_if_needed(
-    original_dtypes: tuple[DType, ...], /, *args: HasDType
-) -> tuple[HasDType, ...]:
+    original_dtypes: tuple[DType, ...], /, *args: HasDTypeT
+) -> tuple[HasDTypeT, ...]:
+    """Promotes dtypes of args if they differ from original_dtypes.
+
+    Examples
+    --------
+    >>> import jax.numpy as jnp
+    >>> import unxt as u
+    >>> from unxt._src.utils import promote_dtypes_if_needed
+    >>> x1 = jnp.array([1, 2, 3], dtype=jnp.int32)
+    >>> x2 = jnp.array([4, 5, 6], dtype=jnp.float32)
+    >>> original_dtypes = (x1.dtype, x1.dtype)
+    >>> x1_new, x2_new = promote_dtypes_if_needed(original_dtypes, x1, x2)
+    >>> x1_new.dtype, x2_new.dtype
+    (dtype('float32'), dtype('float32'))
+
+    """
     # Compare equality of all `original_dtypes` and all `args` dtypes.
     all_orig_dtypes_eq = all(dt == original_dtypes[0] for dt in original_dtypes)
     all_new_dtypes_eq = all(arg.dtype == args[0].dtype for arg in args)

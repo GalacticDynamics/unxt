@@ -792,7 +792,8 @@ def bitcast_convert_type_p(
 @register(lax.broadcast_in_dim_p)
 def broadcast_in_dim_p(operand: AbstractQuantity, /, **kw: Any) -> AbstractQuantity:
     """Broadcast a quantity in a specific dimension."""
-    return replace(operand, value=lax.broadcast_in_dim_p.bind(ustrip(operand), **kw))  # type: ignore[no-untyped-call,unused-ignore]
+    value = lax.broadcast_in_dim_p.bind(ustrip(operand), **kw)  # type: ignore[no-untyped-call,unused-ignore]
+    return replace(operand, value=value)
 
 
 # ==============================================================================
@@ -3389,6 +3390,103 @@ def or_p_qq(x: AbstractQuantity, y: AbstractQuantity) -> AbstractQuantity:
 # ==============================================================================
 
 
+@register(lax.pad_p)
+def pad_p(
+    operand: AbstractQuantity,
+    padding_value: AbstractQuantity,
+    /,
+    *,
+    padding_config: Any,
+) -> AbstractQuantity:
+    """Pad a quantity with another quantity.
+
+    Examples
+    --------
+    >>> import quaxed.lax as qlax
+    >>> from unxt.quantity import BareQuantity
+    >>> x = BareQuantity([1, 2, 3], "m")
+    >>> padding_value = BareQuantity(0, "m")
+    >>> qlax.pad(x, padding_value, padding_config=((1, 1, 0),))
+    BareQuantity(Array([0, 1, 2, 3, 0], dtype=int32), unit='m')
+
+    >>> from unxt.quantity import Quantity
+    >>> x = Quantity([1, 2, 3], "m")
+    >>> padding_value = Quantity(0, "m")
+    >>> qlax.pad(x, padding_value, padding_config=((1, 1, 0),))
+    Quantity(Array([0, 1, 2, 3, 0], dtype=int32), unit='m')
+
+    """
+    padding_value_stripped = ustrip(operand.unit, padding_value)
+    operand_stripped = ustrip(operand)
+
+    # Promote dtypes to ensure compatibility
+    operand_stripped, padding_value_stripped = promote_dtypes_if_needed(
+        (operand.dtype, padding_value.dtype), operand_stripped, padding_value_stripped
+    )
+
+    return replace(
+        operand,
+        value=lax.pad_p.bind(
+            operand_stripped, padding_value_stripped, padding_config=padding_config
+        ),
+    )
+
+
+@register(lax.pad_p)
+def pad_p_array_padding(
+    operand: AbstractQuantity,
+    padding_value: ArrayLike,
+    /,
+    *,
+    padding_config: Any,
+) -> AbstractQuantity:
+    """Pad a quantity with an array padding value.
+
+    This is only allowed when the padding value is zero everywhere.
+    This enables operations like jnp.diag that internally use pad with 0.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> from unxt.quantity import BareQuantity
+    >>> x = BareQuantity([1, 2, 3], "m")
+    >>> jnp.diag(x)
+    BareQuantity(Array([[1, 0, 0],
+                        [0, 2, 0],
+                        [0, 0, 3]], dtype=int32), unit='m')
+
+    >>> from unxt.quantity import Quantity
+    >>> x = Quantity([1, 2, 3], "m")
+    >>> result = jnp.diag(x)
+    >>> result.shape
+    (3, 3)
+    >>> result.unit
+    Unit("m")
+
+    """
+    # Convert padding_value to array to ensure it has dtype
+    pad_val = jnp.asarray(padding_value)
+
+    # Check that padding_value is zero everywhere
+    _ = eqx.error_if(
+        pad_val,
+        jnp.logical_not(jnp.all(jnp.equal(pad_val, 0))),
+        "Array padding values must be zero everywhere",
+    )
+
+    op_val = ustrip(operand)  # Promote dtypes to ensure compatibility
+    op_val, pad_val = promote_dtypes_if_needed(
+        (operand.dtype, pad_val.dtype), op_val, pad_val
+    )
+
+    return replace(
+        operand, value=lax.pad_p.bind(op_val, pad_val, padding_config=padding_config)
+    )
+
+
+# ==============================================================================
+
+
 @register(lax.polygamma_p)
 def polygamma_p(m: ArrayLike, x: AbstractQuantity) -> AbstractQuantity:
     """Polygamma function of a quantity.
@@ -3990,7 +4088,7 @@ def select_n_p_jqq(which: ArrayLike, *cases: AbstractQuantity) -> AbstractQuanti
     dtypes = tuple(case.dtype for case in cases)
     casesv = promote_dtypes_if_needed(dtypes, *(ustrip(u, case) for case in cases))
 
-    return replace(cases[0], value=qlax.select_n(which, *casesv))  # type: ignore[arg-type]
+    return replace(cases[0], value=qlax.select_n(which, *casesv))
 
 
 # ==============================================================================
