@@ -29,22 +29,11 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
-      - name: "Set up Python"
-        uses: actions/setup-python@v5
-        with:
-          python-version-file: ".python-version"
-
-      - name: Install the project
-        run: uv sync --group nox
 
       - uses: pre-commit/action@v3.0.1
 
       - name: Run PyLint
-        run: uv run nox -s pylint -- --output-format=github
+        run: uv run --group nox nox -s pylint -- --output-format=github
 
   checks:
     name: Check Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
@@ -56,29 +45,17 @@ jobs:
         python-version: ["3.11", "3.12", "3.13"]
         runs-on: [ubuntu-latest, macos-latest, windows-latest]
 
-        # TODO: check when pypy3.11 is available
-        # include:
-        #   - python-version: pypy-3.11
-        #     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
-      - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}
-
-      - name: Install the project
-        run: uv sync --group test
+          python-version: ${{ matrix.python-version }}
 
       - name: Test package
         run: >-
-          uv run pytest src docs tests -ra --cov --cov-report=xml
+          uv run --group test pytest src docs tests -ra --cov --cov-report=xml
           --cov-report=term --durations=20
 
       - name: Upload coverage report
@@ -102,19 +79,12 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
-      - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}
-
-      - name: Install the project
-        run: uv sync --extra all --group test-all --resolution lowest-direct
+          python-version: ${{ matrix.python-version }}
 
       - name: Test package
         run: >-
-          uv run pytest src docs tests -ra --cov --cov-report=xml
-          --cov-report=term --durations=20 --mpl
+          uv run --extra all --group test-all --resolution lowest-direct pytest
+          --cov --cov-report=xml --cov-report=term --durations=20 --mpl
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v5.4.3
@@ -136,16 +106,12 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
-
-      - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}
-
-      - name: Install the project
-        run: uv sync --extra all --group test-all
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - name: Test package
         run: >-
-          uv run pytest src docs tests -ra --cov --cov-report=xml
+          uv run --extra all --group test-all pytest --cov --cov-report=xml
           --cov-report=term --durations=20 --mpl
 
       - name: Upload coverage report
@@ -164,25 +130,12 @@ jobs:
       'refs/heads/main')
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
-      - name: "Set up Python"
-        uses: actions/setup-python@v5
-        with:
-          python-version-file: ".python-version"
-
-      - name: Install the project
-        run: uv sync --group test
 
       - name: Run benchmarks
         uses: CodSpeedHQ/action@v3
         with:
           token: ${{ secrets.CODSPEED_TOKEN }}
-          run: uv run pytest tests/benchmark --codspeed
+          run: uv run --group test pytest tests/benchmark --codspeed

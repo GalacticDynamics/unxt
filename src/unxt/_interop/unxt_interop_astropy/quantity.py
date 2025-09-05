@@ -253,6 +253,9 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
     return type_up(x)(**fs)
 
 
+# ============================================================================
+
+
 @dispatch
 def ustrip(u: Any, x: AstropyQuantity) -> Any:
     """Strip the units from the quantity.
@@ -263,8 +266,8 @@ def ustrip(u: Any, x: AstropyQuantity) -> Any:
     >>> import unxt as u
 
     >>> x = apyu.Quantity(1000, "m")
-    >>> u.ustrip(u.unit("m"), x)
-    np.float64(1000.0)
+    >>> float(u.ustrip(u.unit("m"), x))
+    1000.0
 
     """
     return x.to_value(u)

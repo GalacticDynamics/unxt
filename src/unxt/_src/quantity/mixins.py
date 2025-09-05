@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import equinox as eqx
 import numpy as np
+import numpy.typing as npt
 from astropy.units import CompositeUnit
 from jax.typing import ArrayLike
 from jaxtyping import Array
@@ -194,7 +195,7 @@ class NumPyCompatMixin:
 
     __array_namespace__: Callable[[], Any]
 
-    def __array__(self, **kwargs: Any) -> np.typing.NDArray[Any]:
+    def __array__(self, **kwargs: Any) -> npt.NDArray[Any]:
         """Return the array as a numpy array, stripping the units.
 
         Examples

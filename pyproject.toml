@@ -45,16 +45,16 @@
 
   [project.optional-dependencies]
     # jax extras
-    cpu             = ["jax[cpu]"]
-    cuda            = ["jax[cuda]"]
-    cuda12          = ["jax[cuda12]"]
-    cuda12_local    = ["jax[cuda12_local]"]
-    k8s             = ["jax[k8s]"]
+    cpu             = ["jax[cpu]>=0.5.3"]
+    cuda            = ["jax[cuda]>=0.5.3"]
+    cuda12          = ["jax[cuda12]>=0.5.3"]
+    cuda12_local    = ["jax[cuda12_local]>=0.5.3"]
+    k8s             = ["jax[k8s]>=0.5.3"]
     # extra extras
     all             = ["unxt[backend-astropy,interop-gala,interop-mpl]"]
     backend-astropy = ["astropy>=6.0"]
     interop-gala    = ["gala>=1.8"]
-    interop-mpl     = ["matplotlib>=3.5"]
+    interop-mpl     = ["matplotlib>=3.8"]
 
   [project.urls]
     "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"
@@ -70,10 +70,14 @@
   dev = [
     "ipykernel>=6.29.5",
     "cz-conventional-gitmoji>=0.6.1",
-    "pre-commit>=4.1.0",
+    { include-group = "build" },
     { include-group = "docs" },
+    { include-group = "lint" },
     { include-group = "nox" },
     { include-group = "test-all" },
+  ]
+  build = [
+    "build>=1.3.0",
   ]
   docs = [
     "myst-nb>=1.1.2",
@@ -91,22 +95,26 @@
     "sphinxext-opengraph>=0.9.1",
     "sphinxext-rediraffe>=0.2.7",
   ]
+  lint = [
+    "pre-commit>=4.1.0",
+    "pylint>=3.3.8",
+]
   nox = ["nox>=2024.10.9"]
   test = [
-    "hypothesis[numpy]>=6.131.2",
-    "pytest>=8.3.3",
+    "hypothesis[numpy]>=6.138.14",
+    "pytest>=8.4.2",
     "pytest-arraydiff>=0.6.1",
-    "pytest-benchmark>=5.1",
-    "pytest-codspeed>=3.1",
-    "pytest-cov>=3",
+    "pytest-benchmark>=5.1.0",
+    "pytest-codspeed>=4.0.0",
+    "pytest-cov>=6.2.1",
     "pytest-env>=1.1.5",
-    "pytest-github-actions-annotate-failures>=0.2.0",
-    "sybil>=8.0.0",
-  ]
+    "pytest-github-actions-annotate-failures>=0.3.0",
+    "sybil[pytest]>=9.2.0",
+]
   pytest-benchmark-parallel = [
     "pytest-xdist>=3.6.1",
   ]
-  test-mpl = ["pytest-mpl>=0.17.0"]
+  test-mpl = ["pytest-mpl>=0.17.0", "matplotlib>=3.8,<3.10"]
   test-all = [{ include-group = "test" }, { include-group = "test-mpl" }]
 
 
@@ -132,8 +140,19 @@
     "error",
     "ignore:Attribute s is deprecated and will be removed in Python 3\\.14:DeprecationWarning", # from Sybil
     "ignore:ast\\.Str is deprecated and will be removed in Python 3\\.14:DeprecationWarning",   # from Sybil
+    # pytest
+    "ignore:The hookimpl.*uses old-style configuration options:pytest.PytestDeprecationWarning",
     # jax
     "ignore:jax\\.core\\.pp_eqn_rules is deprecated:DeprecationWarning",
+    "ignore:jax\\.core\\.Primitive is deprecated:DeprecationWarning",
+    "ignore:jax\\.interpreters\\.batching\\.NotMapped is deprecated:DeprecationWarning",
+    # Additional potential JAX deprecations for older versions
+    "ignore:The numpy\\.array_function protocol:DeprecationWarning",
+    "ignore:numpy\\.ndarray size changed:RuntimeWarning",
+    # matplotlib
+    "ignore:.*:matplotlib._api.deprecation.MatplotlibDeprecationWarning",
+    # pillow
+    "ignore:'mode' parameter is deprecated and will be removed in Pillow 13 \\(2026-10-15\\):DeprecationWarning",
   ]
   log_cli_level = "INFO"
   minversion = "8.3"
@@ -283,6 +302,11 @@ UNXT_ENABLE_RUNTIME_TYPECHECKING = "beartype.beartype"
   max-module-lines = 2000
 
 
+[tool.codespell]
+skip = "uv.lock,paper/paper.bib"
+
+
+
 [tool.uv]
 # Require that `unxt[<jax-extras>]` requirements are resolved in different forks
 # so that they cannot conflict with one another.
@@ -292,4 +316,9 @@ conflicts = [
         { extra = "cuda" }, { extra = "cuda12" }, { extra = "cuda12_local" },
         { extra = "rocm" }, { extra = "k8s" }
     ]
+]
+# Temporary constraints to avoid problematic JAX versions
+constraint-dependencies = [
+    "jax>=0.5.3,!=0.7.0,!=0.7.1",
+    "jaxlib>=0.5.3,!=0.7.0,!=0.7.1",
 ]
