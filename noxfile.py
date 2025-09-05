@@ -128,6 +128,7 @@ def docs(session: nox.Session, /) -> None:
 
     offline_command = ["--offline"] if args.offline else []
 
+    # Install dependencies
     session.run_install(
         "uv",
         "sync",
@@ -139,6 +140,7 @@ def docs(session: nox.Session, /) -> None:
     )
     session.chdir("docs")
 
+    # Build the docs
     if args.builder == "linkcheck":
         session.run(
             "sphinx-build", "-b", "linkcheck", ".", "_build/linkcheck", *posargs
