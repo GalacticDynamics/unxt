@@ -17,7 +17,7 @@ from astropy.units import (  # pylint: disable=no-name-in-module
 )
 from jax import lax, numpy as jnp
 from jax._src.ad_util import add_any_p
-from jaxtyping import Array, ArrayLike, DTypeLike
+from jaxtyping import Array, ArrayLike, DTypeLike, Int
 from plum import promote
 from plum.parametric import type_unparametrized as type_np
 from quax import register
@@ -2879,6 +2879,34 @@ def lt_p_qv(x: AbstractQuantity, y: ArrayLike, /) -> ArrayLike:
         f"Cannot compare Q(x, {x.unit}) < y (except for y=0).",
     )
     return qlax.lt(ustrip(x), y)  # re-dispatch on the value
+
+
+# ==============================================================================
+
+
+@register(lax.linalg.lu_p)
+def lu_p_q(
+    x: AbstractQuantity, /
+) -> tuple[AbstractQuantity, Int[Array, "..."], Int[Array, "..."]]:
+    """LU decomposition of a quantity.
+
+    Examples
+    --------
+    >>> from quaxed import lax
+
+    >>> from unxt import Quantity
+    >>> x = Quantity([[1.0, 2.0], [3.0, 4.0]], "m")
+    >>> lu, pivots, permutation = lax.linalg.lu(x)
+    >>> lu
+    Quantity(Array([[3.        , 4.        ],
+                    [0.33333334, 0.6666666 ]], dtype=float32), unit='m')
+
+    >>> pivots
+    Array([1, 1], dtype=int32)
+
+    """
+    lu, pivots, permutation = lax.linalg.lu_p.bind(ustrip(x))
+    return Quantity(lu, unit=x.unit), pivots, permutation
 
 
 # ==============================================================================
