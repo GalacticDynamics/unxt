@@ -1494,6 +1494,34 @@ def cumsum_p(operand: AbstractQuantity, *, axis: Any, reverse: Any) -> AbstractQ
 # ==============================================================================
 
 
+@register(lax.linear_solve_p)
+def custom_linear_solve_q(
+    arg0: AbstractQuantity,
+    arg1: AbstractQuantity,
+    arg2: AbstractQuantity,
+    arg3: Array,
+    arg4: AbstractQuantity,
+    arg5: Array,
+    arg6: AbstractQuantity,
+    /,
+    **kwargs: Any,
+) -> Array:
+    u = unit_of(arg0)
+    return lax.linear_solve_p.bind(  # type: ignore[no-untyped-call]
+        ustrip(u, arg0),
+        ustrip(u, arg1),
+        ustrip(u, arg2),
+        arg3,
+        ustrip(u, arg4),
+        arg5,
+        ustrip(u, arg6),
+        **kwargs,
+    )
+
+
+# ==============================================================================
+
+
 @register(lax.device_put_p)
 def device_put_p(x: AbstractQuantity, /, **kw: Any) -> AbstractQuantity:
     """Put a quantity on a device.
