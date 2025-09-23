@@ -66,19 +66,18 @@ def wrap_to(x: Any, min: Any, max: Any, /) -> Any:
     Examples
     --------
     >>> import unxt as u
-
+    >>>
     >>> angle = u.Angle(370, "deg")
-    >>> u.quantity.wrap_to(angle, min=u.Quantity(0, "deg"), max=u.Quantity(360, "deg"))
+    >>> min, max = u.Quantity(0, "deg"), u.Quantity(360, "deg")
+    >>>
+    >>> u.quantity.wrap_to(angle, min, max)
+    Angle(Array(10, dtype=int32, ...), unit='deg')
+    >>>
+    >>> u.quantity.wrap_to(angle, min=min, max=max)
     Angle(Array(10, dtype=int32, ...), unit='deg')
 
     """
     raise NotImplementedError  # pragma: no cover
-
-
-@dispatch
-def wrap_to(x: Any, min: Any, /, *, max: Any) -> Any:
-    """Wrap to the range [min, max)."""
-    return wrap_to(x, min, max)  # redirect to the standard method
 
 
 @dispatch
