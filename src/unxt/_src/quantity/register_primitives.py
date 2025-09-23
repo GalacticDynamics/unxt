@@ -18,7 +18,7 @@ from astropy.units import (  # pylint: disable=no-name-in-module
 from jax import lax, numpy as jnp
 from jax.extend.core.primitives import add_jaxvals_p
 from jaxtyping import Array, ArrayLike, DTypeLike, Int
-from plum import promote
+from plum import convert, promote
 from plum.parametric import type_unparametrized as type_np
 from quax import register
 
@@ -26,6 +26,7 @@ from quaxed import lax as qlax
 
 from .api import is_unit_convertible, uconvert, ustrip
 from .base import AbstractQuantity
+from .base_angle import AbstractAngle
 from .base_parametric import AbstractParametricQuantity
 from .flag import AllowValue
 from .quantity import Quantity
@@ -802,7 +803,7 @@ def broadcast_in_dim_p(operand: AbstractQuantity, /, **kw: Any) -> AbstractQuant
 
 
 @register(lax.cbrt_p)
-def cbrt_p(x: AbstractQuantity, /, **kw: Any) -> AbstractQuantity:
+def cbrt_p_q(x: AbstractQuantity, /, **kw: Any) -> AbstractQuantity:
     """Cube root of a quantity.
 
     Examples
@@ -821,6 +822,24 @@ def cbrt_p(x: AbstractQuantity, /, **kw: Any) -> AbstractQuantity:
 
     """
     return type_np(x)(lax.cbrt_p.bind(ustrip(x), **kw), unit=x.unit ** (1 / 3))
+
+
+# TODO: can this be done with promotion/conversion/default rule instead?
+@register(lax.cbrt_p)
+def cbrt_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> AbstractQuantity:
+    """Cube root of an angle.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> q = u.Angle(8, "rad")
+    >>> jnp.cbrt(q)
+    Quantity(Array(2., dtype=float32, ...), unit='rad(1/3)')
+
+    """
+    return cbrt_p_q(convert(x, Quantity), **kw)
 
 
 # ==============================================================================
@@ -1288,7 +1307,7 @@ def cos_p_aq(x: AbstractQuantity, /, **kw: Any) -> AbstractQuantity:
 @register(lax.cos_p)
 def cos_p_q(
     x: AbstractParametricQuantity["angle"] | Quantity["dimensionless"], /, **kw: Any
-) -> AbstractParametricQuantity["dimensionless"]:
+) -> Quantity["dimensionless"]:
     """Cosine of a quantity.
 
     Examples
@@ -1305,6 +1324,23 @@ def cos_p_q(
 
     """
     return Quantity(lax.cos_p.bind(_to_value_rad_or_one(x), **kw), unit=one)
+
+
+@register(lax.cos_p)
+def cos_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> Quantity:
+    """Cosine of an Angle.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> q = u.Angle(0, "deg")
+    >>> jnp.cos(q)
+    Quantity(Array(1., dtype=float32, ...), unit='')
+
+    """
+    return cos_p_q(convert(x, Quantity), **kw)
 
 
 # ==============================================================================
@@ -1660,6 +1696,26 @@ def div_p_qv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
     return replace(x, value=qlax.div(ustrip(x), y))
 
 
+# TODO: can this be done with promotion/conversion/default rule instead?
+@register(lax.div_p)
+def div_p_a(x: AbstractAngle, y: AbstractAngle, /) -> AbstractQuantity:
+    """Division of a Quantity by an Angle.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> angle = u.Angle(1, "deg")
+    >>> q = u.Quantity(2, "km")
+    >>> jnp.divide(q, angle)
+    Quantity(Array(2., dtype=float32, ...), unit='km / deg')
+
+    """
+    x, y = promote(x, y)
+    return div_p_qq(convert(x, Quantity), convert(y, Quantity))
+
+
 # ==============================================================================
 
 
@@ -1744,6 +1800,33 @@ def dot_general_qq(
         lax.dot_general_p.bind(ustrip(lhs), ustrip(rhs), **kw),
         unit=lhs.unit * rhs.unit,
     )
+
+
+@register(lax.dot_general_p)
+def dot_general_abstractangle_abstractangle(
+    lhs: AbstractAngle, rhs: AbstractAngle, /, **kwargs: Any
+) -> Quantity:
+    """Dot product of two Angles.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> q1 = u.Angle([1, 2, 3], "deg")
+    >>> q2 = u.Angle([4, 5, 6], "deg")
+    >>> jnp.vecdot(q1, q2)
+    Quantity(Array(32, dtype=int32), unit='deg2')
+
+    >>> q1 @ q2
+    Quantity(Array(32, dtype=int32), unit='deg2')
+
+    """
+    value = lax.dot_general_p.bind(lhs.value, rhs.value, **kwargs)
+    return Quantity(value, unit=lhs.unit * rhs.unit)
+
+
+# ==============================================================================
 
 
 @register(lax.dynamic_slice_p)
@@ -2492,6 +2575,22 @@ def integer_pow_p(x: AbstractQuantity, *, y: Any) -> AbstractQuantity:
 
     """
     return type_np(x)(value=qlax.integer_pow(ustrip(x), y), unit=x.unit**y)
+
+
+@register(lax.integer_pow_p)
+def integer_pow_p_abstractangle(x: AbstractAngle, /, *, y: Any) -> AbstractQuantity:
+    """Integer power of an Angle.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> q = u.Angle(2, "deg")
+
+    >>> q**3
+    Quantity(Array(8, dtype=int32, ...), unit='deg3')
+
+    """
+    return integer_pow_p(convert(x, Quantity), y=y)
 
 
 # ==============================================================================
@@ -3672,6 +3771,26 @@ def pow_p_vq(
     return replace(y, value=qlax.pow(x, ustrip(y)))
 
 
+@register(lax.pow_p)
+def pow_p_abstractangle_arraylike(
+    x: AbstractAngle, y: ArrayLike, /
+) -> AbstractQuantity:
+    """Power of an Angle by redispatching to Quantity.
+
+    Examples
+    --------
+    >>> import math
+    >>> import unxt as u
+
+    >>> q1 = u.Angle(10.0, "deg")
+    >>> y = 3.0
+    >>> q1**y
+    Quantity(Array(1000., dtype=float32, ...), unit='deg3')
+
+    """
+    return pow_p_qf(convert(x, Quantity), y)
+
+
 # ==============================================================================
 
 
@@ -4234,6 +4353,23 @@ def sin_p(x: AbstractQuantity, /, **kw: Any) -> AbstractQuantity:
     return type_np(x)(lax.sin_p.bind(_to_value_rad_or_one(x), **kw), unit=one)
 
 
+@register(lax.sin_p)
+def sin_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> AbstractQuantity:
+    """Sine of an Angle.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> q = u.Angle(90, "deg")
+    >>> jnp.sin(q)
+    Quantity(Array(1., dtype=float32, ...), unit='')
+
+    """
+    return sin_p(convert(x, Quantity), **kw)
+
+
 # ==============================================================================
 
 
@@ -4401,6 +4537,23 @@ def sqrt_p_q(x: AbstractQuantity, /, **kw: Any) -> AbstractQuantity:
     """
     # Apply sqrt to the value and adjust the unit
     return type_np(x)(lax.sqrt_p.bind(ustrip(x), **kw), unit=x.unit ** (1 / 2))
+
+
+@register(lax.sqrt_p)
+def sqrt_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> AbstractQuantity:
+    """Square root of an Angle.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> q = u.Angle(9, "deg")
+    >>> jnp.sqrt(q)
+    Quantity(Array(3., dtype=float32, ...), unit='deg(1/2)')
+
+    """
+    return sqrt_p_q(convert(x, Quantity), **kw)
 
 
 # ==============================================================================
@@ -4574,6 +4727,23 @@ def tan_p(x: AbstractQuantity, /, **kw: Any) -> AbstractQuantity:
 
     """
     return type_np(x)(lax.tan_p.bind(_to_value_rad_or_one(x), **kw), unit=one)
+
+
+@register(lax.tan_p)
+def tan_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> AbstractQuantity:
+    """Tangent of an Angle.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> q = u.Angle(45, "deg")
+    >>> jnp.tan(q)
+    Quantity(Array(1., dtype=float32, ...), unit='')
+
+    """
+    return tan_p(convert(x, Quantity), **kw)
 
 
 # ==============================================================================

@@ -12,9 +12,10 @@ from plum import dispatch
 
 from .api import ustrip
 from .base import AbstractQuantity
+from .base_angle import AbstractAngle
 from .quantity import Quantity
 from unxt._src.units import AstropyUnits
-from unxt.dims import AbstractDimension, dimension_of
+from unxt.dims import AbstractDimension, dimension, dimension_of
 from unxt.units import unit
 from unxt.unitsystems import AbstractUnitSystem
 
@@ -61,6 +62,21 @@ def dimension_of(obj: type[Quantity], /) -> AbstractDimension:
         "can only get dimensions from parametrized Quantity -- Quantity[dim].",
     )
     return obj._type_parameter  # noqa: SLF001
+
+
+@dispatch
+def dimension_of(obj: type[AbstractAngle], /) -> AbstractDimension:
+    """Get the dimension of an angle class.
+
+    Examples
+    --------
+    >>> import unxt as u
+
+    >>> u.dimension_of(u.Angle)
+    PhysicalType('angle')
+
+    """
+    return dimension("angle")
 
 
 # ===================================================================

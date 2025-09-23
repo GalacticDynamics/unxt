@@ -39,6 +39,7 @@ __all__ = [
     "quantity",  # module
     "Quantity",  # main class
     "AbstractQuantity",  # base class
+    "Angle",  # angular quantity
     "uconvert",  # convert units
     "ustrip",  # strip units
     "is_unit_convertible",  # check if units can be converted
@@ -54,6 +55,7 @@ with install_import_hook("unxt", RUNTIME_TYPECHECKER):
     from .dims import dimension, dimension_of
     from .quantity import (
         AbstractQuantity,
+        Angle,
         Quantity,
         is_unit_convertible,
         uconvert,

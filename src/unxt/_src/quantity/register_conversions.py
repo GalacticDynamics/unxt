@@ -4,6 +4,7 @@ __all__: list[str] = []
 
 from plum import conversion_method
 
+from .angle import Angle
 from .api import ustrip
 from .base import AbstractQuantity
 from .quantity import Quantity
@@ -33,8 +34,8 @@ def quantity_to_unchecked(q: AbstractQuantity, /) -> BareQuantity:
     """
     if isinstance(q, BareQuantity):
         return q
-    unit = unit_of(q)
-    return BareQuantity(ustrip(unit, q), unit)
+    u = unit_of(q)
+    return BareQuantity(ustrip(u, q), u)
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=Quantity)  # type: ignore[arg-type]
@@ -64,3 +65,32 @@ def quantity_to_checked(q: AbstractQuantity, /) -> Quantity:
         return q
     u = unit_of(q)
     return Quantity(ustrip(u, q), u)
+
+
+@conversion_method(type_from=AbstractQuantity, type_to=Angle)  # type: ignore[arg-type]
+def convert_quantity_to_angle(q: AbstractQuantity, /) -> Angle:
+    """Convert any quantity to an Angle.
+
+    Examples
+    --------
+    >>> from plum import convert
+    >>> from unxt.quantity import Angle, BareQuantity
+    >>> q = BareQuantity(1, "rad")
+    >>> q
+    BareQuantity(Array(1, dtype=int32, ...), unit='rad')
+
+    >>> convert(q, Angle)
+    Angle(Array(1, dtype=int32, ...), unit='rad')
+
+    The self-conversion doesn't copy the object:
+
+    >>> q = Angle(1, "rad")
+    >>> convert(q, Angle) is q
+    True
+
+    """
+    if isinstance(q, Angle):
+        return q
+
+    unit = unit_of(q)
+    return Angle(ustrip(unit, q), unit)
