@@ -1,17 +1,13 @@
 """Base classes for angular quantities."""
 
-__all__: list[str] = [
-    "AbstractAngle",
-    "wrap_to",
-]
+__all__ = ("AbstractAngle",)
 
-
-from dataclasses import replace
 
 import equinox as eqx
 from jaxtyping import Array, Shaped
 from plum import add_promotion_rule
 
+from .api import wrap_to
 from .base import AbstractQuantity
 from .quantity import Quantity
 from .unchecked import BareQuantity
@@ -70,16 +66,19 @@ class AbstractAngle(AbstractQuantity):
         min, max
             The minimum, maximum value of the range.
 
+        See Also
+        --------
+        `unxt.quantity.wrap_to` : functional version of this method.
+
         Examples
         --------
         >>> import unxt as u
-
         >>> angle = u.Angle(370, "deg")
         >>> angle.wrap_to(min=u.Quantity(0, "deg"), max=u.Quantity(360, "deg"))
         Angle(Array(10, dtype=int32, ...), unit='deg')
 
         """
-        return wrap_to(self, min=min, max=max)
+        return wrap_to(self, min, max)
 
 
 # Add a rule that when a AbstractAngle interacts with a Quantity, the
@@ -88,35 +87,3 @@ class AbstractAngle(AbstractQuantity):
 # are not those of an angle.
 add_promotion_rule(AbstractAngle, Quantity, Quantity)
 add_promotion_rule(AbstractAngle, BareQuantity, BareQuantity)
-
-
-# =========================================================
-
-
-def wrap_to(
-    angle: AbstractAngle,
-    /,
-    min: AbstractQuantity,
-    max: AbstractQuantity,
-) -> AbstractAngle:
-    """Wrap the angle to the range [min, max).
-
-    Parameters
-    ----------
-    angle
-        The angle to wrap.
-    min, max
-        The minimum, maximum value of the range.
-
-    Examples
-    --------
-    >>> import unxt as u
-
-    >>> angle = u.Angle(370, "deg")
-    >>> u.quantity.wrap_to(angle, min=u.Quantity(0, "deg"), max=u.Quantity(360, "deg"))
-    Angle(Array(10, dtype=int32, ...), unit='deg')
-
-    """
-    minv, maxv = min.ustrip(angle.unit), max.ustrip(angle.unit)
-    value = ((angle.value - minv) % (maxv - minv)) + minv
-    return replace(angle, value=value)

@@ -1,8 +1,9 @@
 """Functional approach to Quantities."""
 
-__all__: list[str] = []
+__all__ = ()
 
 
+from dataclasses import replace
 from typing import Any
 
 import equinox as eqx
@@ -258,3 +259,29 @@ def is_unit_convertible(to_unit: Any, from_: AbstractQuantity, /) -> bool:
 
     """
     return is_unit_convertible(to_unit, from_.unit)
+
+
+# ============================================================================
+
+
+@dispatch
+def wrap_to(
+    angle: AbstractQuantity,
+    min: AbstractQuantity,
+    max: AbstractQuantity,
+    /,
+) -> AbstractQuantity:
+    """Wrap to the range [min, max).
+
+    Examples
+    --------
+    >>> import unxt as u
+
+    >>> angle = u.Angle(370, "deg")
+    >>> u.quantity.wrap_to(angle, min=u.Quantity(0, "deg"), max=u.Quantity(360, "deg"))
+    Angle(Array(10, dtype=int32, ...), unit='deg')
+
+    """
+    minv, maxv = min.ustrip(angle.unit), max.ustrip(angle.unit)
+    value = ((angle.value - minv) % (maxv - minv)) + minv
+    return replace(angle, value=value)
