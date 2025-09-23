@@ -7,6 +7,7 @@ constructor.
 
 ```{code-block} python
 >>> import unxt as u
+
 >>> u.Quantity(5, "m")
 Quantity(Array(5, dtype=int32, weak_type=True), unit='m')
 ```
@@ -349,6 +350,93 @@ Quantity([1, 2, 3], unit='m')
 
 See the [`wadler_lindig` documentation](https://docs.kidger.site/wadler_lindig)
 for more details on the pretty printing options.
+
+
+# Specialized Quantity Objects
+
+## Working with `Angle` Objects
+
+The {class}`~coordinax.angle.Angle` class in {mod}`coordinax.angle` is a
+specialized quantity for representing angular measurements, similar to
+{class}`~unxt.quantity.Quantity` but with additional features and constraints
+tailored for angles.
+
+### Creating Angles
+
+You can create an {class}`~coordinax.angle.Angle` just like a
+{class}`~unxt.quantity.Quantity`, by specifying a value and a unit with angular
+dimensions:
+
+```{code-block} python
+>>> a = u.Angle(45, "deg")
+>>> a
+Angle(Array(45, dtype=int32, weak_type=True), unit='deg')
+```
+
+Just like {class}`~unxt.quantity.Quantity`, you can flexibly create
+{class}`~coordinax.angle.Angle` objects using the
+{meth}`~coordinax.angle.Angle.from_` constructor:
+
+```{code-block} python
+>>> u.Angle.from_(45, "deg")
+Angle(Array(45, dtype=int32, weak_type=True), unit='deg')
+
+>>> u.Angle.from_([45, 90], "deg")
+Angle(Array([45, 90], dtype=int32), unit='deg')
+
+>>> u.Angle.from_(jnp.array([10, 15, 20]), "deg")
+Angle(Array([10, 15, 20], dtype=int32), unit='deg')
+
+```
+
+### Mathematical Operations
+
+{class}`~coordinax.angle.Angle` objects support arithmetic operations,
+broadcasting, and most mathematical functions, just like
+{class}`~unxt.quantity.Quantity`:
+
+```{code-block} python
+>>> b = u.Angle(30, "deg")
+>>> a + b
+Angle(Array(75, dtype=int32, weak_type=True), unit='deg')
+>>> 2 * a
+Angle(Array(90, dtype=int32, weak_type=True), unit='deg')
+>>> a.to("rad")
+Angle(Array(0.7853982, dtype=float32, weak_type=True), unit='rad')
+```
+
+For more information on mathematical operations, see the unxt documentation.
+
+### Enforced Dimensionality
+
+Unlike a generic {class}`~unxt.quantity.Quantity`, the
+{class}`~coordinax.angle.Angle` class enforces that the unit must be angular
+(e.g., degrees, radians). Attempting to use a non-angular unit will raise an
+error:
+
+```{code-block} python
+>>> try: u.Angle(1, "m")
+... except ValueError as e: print(e)
+Angle must have units with angular dimensions.
+```
+
+### Wrapping Angles
+
+A key feature of {class}`~coordinax.angle.Angle` is the ability to wrap values
+to a specified range, which is useful for keeping angles within a branch cut:
+
+```{code-block} python
+>>> a = u.Angle(370, "deg")
+>>> a.wrap_to(u.Quantity(0, "deg"), u.Quantity(360, "deg"))
+Angle(Array(10, dtype=int32, weak_type=True), unit='deg')
+```
+
+The {meth}`~coordinax.angle.Angle.wrap_to` method has a function counterpart
+
+```{code-block} python
+>>> u.quantity.wrap_to(a, u.Quantity(0, "deg"), u.Quantity(360, "deg"))
+Angle(Array(10, dtype=int32, weak_type=True), unit='deg')
+```
 
 ---
 
