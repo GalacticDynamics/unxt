@@ -356,14 +356,13 @@ for more details on the pretty printing options.
 
 ## Working with `Angle` Objects
 
-The {class}`~coordinax.angle.Angle` class in {mod}`coordinax.angle` is a
-specialized quantity for representing angular measurements, similar to
-{class}`~unxt.quantity.Quantity` but with additional features and constraints
-tailored for angles.
+The {class}`~unxt.quantity.Angle` class is a specialized quantity for
+representing angular measurements, similar to {class}`~unxt.quantity.Quantity`
+but with additional features and constraints tailored for angles.
 
 ### Creating Angles
 
-You can create an {class}`~coordinax.angle.Angle` just like a
+You can create an {class}`~unxt.quantity.Angle` just like a
 {class}`~unxt.quantity.Quantity`, by specifying a value and a unit with angular
 dimensions:
 
@@ -374,8 +373,8 @@ Angle(Array(45, dtype=int32, weak_type=True), unit='deg')
 ```
 
 Just like {class}`~unxt.quantity.Quantity`, you can flexibly create
-{class}`~coordinax.angle.Angle` objects using the
-{meth}`~coordinax.angle.Angle.from_` constructor:
+{class}`~unxt.quantity.Angle` objects using the
+{meth}`~unxt.quantity.Angle.from_` constructor:
 
 ```{code-block} python
 >>> u.Angle.from_(45, "deg")
@@ -391,7 +390,7 @@ Angle(Array([10, 15, 20], dtype=int32), unit='deg')
 
 ### Mathematical Operations
 
-{class}`~coordinax.angle.Angle` objects support arithmetic operations,
+{class}`~unxt.quantity.Angle` objects support arithmetic operations,
 broadcasting, and most mathematical functions, just like
 {class}`~unxt.quantity.Quantity`:
 
@@ -410,7 +409,7 @@ For more information on mathematical operations, see the unxt documentation.
 ### Enforced Dimensionality
 
 Unlike a generic {class}`~unxt.quantity.Quantity`, the
-{class}`~coordinax.angle.Angle` class enforces that the unit must be angular
+{class}`~unxt.quantity.Angle` class enforces that the unit must be angular
 (e.g., degrees, radians). Attempting to use a non-angular unit will raise an
 error:
 
@@ -422,7 +421,7 @@ Angle must have units with angular dimensions.
 
 ### Wrapping Angles
 
-A key feature of {class}`~coordinax.angle.Angle` is the ability to wrap values
+A key feature of {class}`~unxt.quantity.Angle` is the ability to wrap values
 to a specified range, which is useful for keeping angles within a branch cut:
 
 ```{code-block} python
@@ -431,7 +430,7 @@ to a specified range, which is useful for keeping angles within a branch cut:
 Angle(Array(10, dtype=int32, weak_type=True), unit='deg')
 ```
 
-The {meth}`~coordinax.angle.Angle.wrap_to` method has a function counterpart
+The {meth}`~unxt.quantity.Angle.wrap_to` method has a function counterpart
 
 ```{code-block} python
 >>> u.quantity.wrap_to(a, u.Quantity(0, "deg"), u.Quantity(360, "deg"))

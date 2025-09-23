@@ -187,6 +187,9 @@ def build_api_docs(session: nox.Session, /) -> None:
     )
 
 
+# =============================================================================
+
+
 @nox.session(venv_backend="uv")
 def build(session: nox.Session, /) -> None:
     """Build an SDist and wheel."""
