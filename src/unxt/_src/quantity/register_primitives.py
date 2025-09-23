@@ -16,7 +16,7 @@ from astropy.units import (  # pylint: disable=no-name-in-module
     radian,
 )
 from jax import lax, numpy as jnp
-from jax._src.ad_util import add_any_p
+from jax.extend.core.primitives import add_jaxvals_p
 from jaxtyping import Array, ArrayLike, DTypeLike, Int
 from plum import promote
 from plum.parametric import type_unparametrized as type_np
@@ -29,7 +29,7 @@ from .base import AbstractQuantity
 from .base_parametric import AbstractParametricQuantity
 from .flag import AllowValue
 from .quantity import Quantity
-from unxt._src.utils import promote_dtypes_if_needed
+from unxt._src.utils import promote_dtypes, promote_dtypes_if_needed
 from unxt.units import unit, unit_of
 
 T = TypeVar("T")
@@ -311,11 +311,11 @@ def add_p_aqv(x: AbstractQuantity, y: ArrayLike) -> AbstractQuantity:
 # ==============================================================================
 
 
-@register(add_any_p)
-def add_any_p(
+@register(add_jaxvals_p)
+def add_jaxvals_p_qq(
     x: AbstractParametricQuantity, y: AbstractParametricQuantity
 ) -> AbstractParametricQuantity:
-    """Add two quantities using the ``jax._src.ad_util.add_any_p``.
+    """Add two quantities using the ``jax.interpreters.ad.add_jaxvals_p``.
 
     Examples
     --------
@@ -328,13 +328,15 @@ def add_any_p(
 
     >>> @jax.jit
     ... def f(x, y):
-    ...     return x + y
+    ...     return add_jaxvals_p_qq(x, y)
 
     >>> f(q1, q2)
-    Quantity(Array(1.5, dtype=float32, ...), unit='km')
+    Quantity(Array(1.5, dtype=float32), unit='km')
 
     """
-    return replace(x, value=add_any_p.bind(ustrip(x), ustrip(y)))  # type: ignore[no-untyped-call]
+    xv, yv = ustrip(x), ustrip(x.unit, y)
+    xv, yv = promote_dtypes(xv, yv)
+    return replace(x, value=add_jaxvals_p.bind(xv, yv))  # type: ignore[no-untyped-call]
 
 
 # ==============================================================================
