@@ -22,13 +22,13 @@ __all__ = [
     # Angles
     "AbstractAngle",
     "Angle",
-    "wrap_to",
     # Base Parametric
     "AbstractParametricQuantity",
     # Functional
     "uconvert",
     "ustrip",
     "is_unit_convertible",
+    "wrap_to",
     "is_any_quantity",
     "convert_to_quantity_value",
     "AllowValue",
@@ -41,9 +41,9 @@ from .setup_package import RUNTIME_TYPECHECKER
 
 with install_import_hook("unxt.quantity", RUNTIME_TYPECHECKER):
     from ._src.quantity.angle import Angle
-    from ._src.quantity.api import is_unit_convertible, uconvert, ustrip
+    from ._src.quantity.api import is_unit_convertible, uconvert, ustrip, wrap_to
     from ._src.quantity.base import AbstractQuantity, is_any_quantity
-    from ._src.quantity.base_angle import AbstractAngle, wrap_to
+    from ._src.quantity.base_angle import AbstractAngle
     from ._src.quantity.base_parametric import AbstractParametricQuantity
     from ._src.quantity.flag import AllowValue
     from ._src.quantity.quantity import Quantity
