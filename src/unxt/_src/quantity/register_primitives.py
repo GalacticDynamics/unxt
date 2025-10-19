@@ -1250,8 +1250,7 @@ def convert_element_type_p(operand: AbstractQuantity, /, **kw: Any) -> AbstractQ
     """Convert the element type of a quantity."""
     # TODO: examples
     return replace(
-        operand,
-        value=lax.convert_element_type_p.bind(ustrip(operand), **kw),  # type: ignore[no-untyped-call]
+        operand, value=lax.convert_element_type_p.bind(ustrip(operand), **kw)
     )
 
 
