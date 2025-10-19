@@ -169,7 +169,7 @@ class AbstractQuantity(
         raise RuntimeError(msg)
 
     def aval(self) -> jax.core.ShapedArray:
-        return jax.core.get_aval(self.value)  # type: ignore[no-untyped-call]
+        return jax.core.get_aval(self.value)
 
     def enable_materialise(self, _: bool = True) -> "Self":  # noqa: FBT001, FBT002
         return replace(self, value=self.value, unit=self.unit)
