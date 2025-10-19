@@ -12,6 +12,7 @@ nox.options.sessions = [
     # Linting
     "lint",
     "pylint",
+    "precommit",
     # Testing
     "tests",
     "tests_all",
@@ -204,4 +205,4 @@ def build(session: nox.Session, /) -> None:
         f"--python={session.virtualenv.location}",
         env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
     )
-    session.run("python", "-m", "build")
+    session.run("build")
