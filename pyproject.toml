@@ -151,6 +151,8 @@
     "ignore:numpy\\.ndarray size changed:RuntimeWarning",
     # matplotlib
     "ignore::matplotlib.MatplotlibDeprecationWarning",
+    # numpy (platform-specific longdouble probe warning during import)
+    "ignore:Signature .* for <class 'numpy\\.longdouble'> does not match any known type:UserWarning:numpy\\._core\\.getlimits",
     # pillow
     "ignore:'mode' parameter is deprecated and will be removed in Pillow 13 \\(2026-10-15\\):DeprecationWarning",
   ]
