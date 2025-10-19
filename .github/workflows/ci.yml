@@ -63,7 +63,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  check_oldest:
+  test_oldest:
     name: Check Oldest Dependencies
     runs-on: ${{ matrix.runs-on }}
     needs: [format]
@@ -91,7 +91,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  check_interop:
+  test_interop:
     name: Check Interoperability
     runs-on: ${{ matrix.runs-on }}
     needs: [format]
@@ -144,7 +144,7 @@ jobs:
   status:
     name: CI Pass
     runs-on: ubuntu-latest
-    needs: [format, tests]
+    needs: [format, tests, test_oldest, test_interop]
     if: always()
     steps:
       - name: All required jobs passed
