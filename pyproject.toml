@@ -150,7 +150,7 @@
     "ignore:The numpy\\.array_function protocol:DeprecationWarning",
     "ignore:numpy\\.ndarray size changed:RuntimeWarning",
     # matplotlib
-    "ignore:.*:matplotlib._api.deprecation.MatplotlibDeprecationWarning",
+    "ignore::matplotlib.MatplotlibDeprecationWarning",
     # pillow
     "ignore:'mode' parameter is deprecated and will be removed in Pillow 13 \\(2026-10-15\\):DeprecationWarning",
   ]
