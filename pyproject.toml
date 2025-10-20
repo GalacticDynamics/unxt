@@ -36,7 +36,7 @@
     "optional-dependencies>=0.3.2",
     "plum-dispatch>=2.5.7",
     "quax>=0.2.1",
-    "quax-blocks>=0.3",
+    "quax-blocks>=0.4.0",
     "quaxed>=0.10.2",
     "wadler-lindig>=0.1.5",
     "xmmutablemap>=0.1",
