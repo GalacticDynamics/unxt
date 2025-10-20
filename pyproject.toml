@@ -319,8 +319,3 @@ conflicts = [
         { extra = "rocm" }, { extra = "k8s" }
     ]
 ]
-# Temporary constraints to avoid problematic JAX versions
-constraint-dependencies = [
-    "jax>=0.5.3,!=0.7.0,!=0.7.1",
-    "jaxlib>=0.5.3,!=0.7.0,!=0.7.1",
-]
