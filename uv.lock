@@ -3423,7 +3423,7 @@ requires-dist = [
     { name = "jax", extras = ["cuda12-local"], marker = "extra == 'cuda12-local'", specifier = ">=0.5.3" },
     { name = "jax", extras = ["k8s"], marker = "extra == 'k8s'", specifier = ">=0.5.3" },
     { name = "jaxlib", specifier = ">=0.5.3" },
-    { name = "jaxtyping", specifier = ">=0.2.34" },
+    { name = "jaxtyping", specifier = ">=0.3.3" },
     { name = "matplotlib", marker = "extra == 'all'", specifier = ">=3.8" },
     { name = "matplotlib", marker = "extra == 'interop-mpl'", specifier = ">=3.8" },
     { name = "optional-dependencies", specifier = ">=0.3.2" },

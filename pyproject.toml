@@ -32,7 +32,7 @@
     "is-annotated>=1.0",
     "jax>=0.5.3",
     "jaxlib>=0.5.3",
-    "jaxtyping>=0.2.34",
+    "jaxtyping>=0.3.3",
     "optional-dependencies>=0.3.2",
     "plum-dispatch>=2.5.7",
     "quax>=0.2.1",
