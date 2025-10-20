@@ -137,7 +137,7 @@
     "-ra",
   ]
   filterwarnings = [
-    "ignore:Signature .* for <class 'numpy\\.longdouble'> does not match any known type:UserWarning",
+    "ignore:Signature.*for <class 'numpy.longdouble'> does not match any known type:UserWarning",
     "error",
     "ignore:Attribute s is deprecated and will be removed in Python 3\\.14:DeprecationWarning", # from Sybil
     "ignore:ast\\.Str is deprecated and will be removed in Python 3\\.14:DeprecationWarning",   # from Sybil
