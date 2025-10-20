@@ -141,8 +141,8 @@ jobs:
           # Use folded scalars so formatters can wrap without inserting real newlines.
           PYTEST_ADDOPTS: |
             -p no:pytest_mpl
-            -W "ignore:Signature.*longdouble.*known type:UserWarning"
             -W error
+            -W "ignore:Signature.*longdouble.*known type:UserWarning"
           MPLBACKEND: Agg
         with:
           token: ${{ secrets.CODSPEED_TOKEN }}
