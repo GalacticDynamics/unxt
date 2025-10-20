@@ -138,7 +138,11 @@ jobs:
         uses: CodSpeedHQ/action@653fdc30e6c40ffd9739e40c8a0576f4f4523ca1 # v4.0.1
         env:
           # Prevent matplotlib loading to avoid the np.longdouble issue.
-          PYTEST_ADDOPTS: -p no:pytest_mpl
+          # Use folded scalars so formatters can wrap without inserting real newlines.
+          PYTEST_ADDOPTS: |
+            -p no:pytest_mpl
+            -W "ignore:Signature.*longdouble.*known type:UserWarning"
+            -W error
           MPLBACKEND: Agg
         with:
           token: ${{ secrets.CODSPEED_TOKEN }}
