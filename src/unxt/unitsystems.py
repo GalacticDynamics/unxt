@@ -41,11 +41,9 @@ __all__ = [
     "equivalent",
 ]
 
-from jaxtyping import install_import_hook
+from .setup_package import install_import_hook
 
-from .setup_package import RUNTIME_TYPECHECKER
-
-with install_import_hook("unxt.unitsystems", RUNTIME_TYPECHECKER):
+with install_import_hook("unxt.unitsystems"):
     from ._src.unitsystems import (
         NAMED_UNIT_SYSTEMS,
         UNITSYSTEMS_REGISTRY,
@@ -66,4 +64,4 @@ with install_import_hook("unxt.unitsystems", RUNTIME_TYPECHECKER):
     )
 
 # Clean up the namespace
-del install_import_hook, RUNTIME_TYPECHECKER
+del install_import_hook
