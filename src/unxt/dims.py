@@ -9,11 +9,9 @@ The main features are:
 
 __all__ = ["dimension", "dimension_of", "AbstractDimension"]
 
-from jaxtyping import install_import_hook
+from .setup_package import install_import_hook
 
-from .setup_package import RUNTIME_TYPECHECKER
-
-with install_import_hook("unxt.dims", RUNTIME_TYPECHECKER):
+with install_import_hook("unxt.dims"):
     from ._src.dimensions import AbstractDimension, dimension, dimension_of
 
 # Clean up the namespace

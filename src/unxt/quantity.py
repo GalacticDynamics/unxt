@@ -35,11 +35,9 @@ __all__ = [
 ]
 
 
-from jaxtyping import install_import_hook
+from .setup_package import install_import_hook
 
-from .setup_package import RUNTIME_TYPECHECKER
-
-with install_import_hook("unxt.quantity", RUNTIME_TYPECHECKER):
+with install_import_hook("unxt.quantity"):
     from ._src.quantity.angle import Angle
     from ._src.quantity.api import is_unit_convertible, uconvert, ustrip, wrap_to
     from ._src.quantity.base import AbstractQuantity, is_any_quantity
@@ -60,4 +58,10 @@ with install_import_hook("unxt.quantity", RUNTIME_TYPECHECKER):
     )
 
 # Clean up namespace
-del register_conversions, register_api, register_dispatches, register_primitives
+del (
+    register_conversions,
+    register_api,
+    register_dispatches,
+    register_primitives,
+    install_import_hook,
+)

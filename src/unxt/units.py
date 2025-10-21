@@ -9,12 +9,10 @@ The main features are:
 
 __all__ = ["unit", "unit_of"]
 
-from jaxtyping import install_import_hook
+from .setup_package import install_import_hook
 
-from .setup_package import RUNTIME_TYPECHECKER
-
-with install_import_hook("unxt.units", RUNTIME_TYPECHECKER):
+with install_import_hook("unxt.units"):
     from ._src.units import unit, unit_of
 
 # Clean up the namespace
-del install_import_hook, RUNTIME_TYPECHECKER
+del install_import_hook

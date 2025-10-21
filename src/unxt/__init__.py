@@ -45,11 +45,9 @@ __all__ = [
     "is_unit_convertible",  # check if units can be converted
 ]
 
-from jaxtyping import install_import_hook
+from .setup_package import install_import_hook
 
-from .setup_package import RUNTIME_TYPECHECKER
-
-with install_import_hook("unxt", RUNTIME_TYPECHECKER):
+with install_import_hook("unxt"):
     from . import dims, quantity, units, unitsystems
     from ._version import version as __version__
     from .dims import dimension, dimension_of
