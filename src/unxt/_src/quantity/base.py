@@ -4,9 +4,19 @@
 __all__ = ["AbstractQuantity", "is_any_quantity"]
 
 import functools as ft
+import warnings
 from collections.abc import Mapping
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, ClassVar, NoReturn, TypeAlias, TypeGuard, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Literal,
+    NoReturn,
+    TypeAlias,
+    TypeGuard,
+    cast,
+)
 from typing_extensions import override
 
 import equinox as eqx
@@ -674,7 +684,13 @@ class AbstractQuantity(
         """
         return hash((self.value, self.unit))
 
-    def __pdoc__(self, *, named_unit: bool = True, **kwargs: Any) -> wl.AbstractDoc:
+    def __pdoc__(
+        self,
+        *,
+        named_unit: bool = True,
+        short_arrays: bool | Literal["compact"] = True,
+        **kwargs: Any,
+    ) -> wl.AbstractDoc:
         """Return the Wadler-Lindig representation of this class.
 
         This is used for the `__repr__` and `__str__` methods or when using the
@@ -687,10 +703,11 @@ class AbstractQuantity(
             argument. If `False`, the unit is included as a positional argument.
             For example, ``Quantity(<array>, unit='m')`` versus
             ``Quantity(<array>, 'm')``.
-        compact_arrays
-            If `True`, the array is printed in a compact form,
+        short_arrays
+            If 'compact', the array is printed in a compact form,
             ``Quantity(Array([1., 2.], dtype=float32), unit='')`` to
-            ``Quantity([1., 2.], unit='')``.
+            ``Quantity([1., 2.], unit='')``. If `True` or `False` it uses the
+            default `wadler_lindig` behavior.
         kwargs
             Additional keyword arguments ``wadler_lindig.pdoc`` method for
             formatting the value, stringified unit, and other fields.
@@ -728,19 +745,11 @@ class AbstractQuantity(
         >>> wl.pprint(q, named_unit=False)
         BareQuantity(i32[3], 'm')
 
-        The arrays can be printed in a compact form by setting
-        ``compact_arrays=True``:
+        The arrays can be printed in a compact but informative form by setting
+        ``short_arrays="compact"``:
 
-        >>> wl.pprint(q, compact_arrays=True, short_arrays=False)
+        >>> wl.pprint(q, short_arrays="compact")
         BareQuantity([1, 2, 3], unit='m')
-
-        Note that `compact_arrays` and `short_arrays` are mutually exclusive.
-
-        >>> try:
-        ...     wl.pprint(q, compact_arrays=True, short_arrays=True)
-        ... except ValueError as e:
-        ...     print(e)
-        compact_arrays and short_arrays are mutually exclusive.
 
         """
         # Class Name
@@ -752,18 +761,24 @@ class AbstractQuantity(
         del fs["unit"]
 
         # Customize value representation
-        compact_arrays: bool = kwargs.get("compact_arrays", False)
-        short_arrays: bool = kwargs.get("short_arrays", not compact_arrays)
-
-        if compact_arrays and short_arrays:
-            msg = "compact_arrays and short_arrays are mutually exclusive."
-            raise ValueError(msg)
-        if compact_arrays:
-            # Customize the array to NOT include the kind -- f32[shape](kind)
-            # since Quantity only supports the jax kind.
-            kwargs["custom"] = custom_pdoc_noarray
-        elif short_arrays:
-            kwargs["custom"] = custom_pdoc_no_kind
+        # (backward compatibility for `compact_arrays` argument)
+        # TODO: remove in v2.0
+        if "compact_arrays" in kwargs:
+            short_arrays = kwargs.pop("compact_arrays")
+            warnings.warn(
+                "`compact_arrays` argument is deprecated; use "
+                "`short_arrays='compact'` instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        match short_arrays:
+            case "compact":
+                kwargs["custom"] = custom_pdoc_noarray
+            case True:
+                kwargs["custom"] = custom_pdoc_no_kind
+                kwargs["short_arrays"] = True
+            case False:
+                kwargs["short_arrays"] = False
 
         # Make the pdocs for the base and extra fields.
         base_fields = [
