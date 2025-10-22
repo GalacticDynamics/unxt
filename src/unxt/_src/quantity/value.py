@@ -38,8 +38,7 @@ def convert_to_quantity_value(obj: quax.ArrayValue, /) -> Any:
     ...         return self.value
 
     >>> x = MyArray(jnp.array([1, 2, 3]))
-    >>> with warnings.catch_warnings(record=True) as w:
-    ...     warnings.simplefilter("always")
+    >>> with warnings.catch_warnings(record=True, action="always") as w:
     ...     y = convert_to_quantity_value(x)
     >>> y
     MyArray(value=i32[3])
