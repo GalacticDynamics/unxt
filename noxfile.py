@@ -189,6 +189,7 @@ def build_api_docs(session: nox.Session, /) -> None:
 
 
 # =============================================================================
+# Packaging
 
 
 @nox.session(venv_backend="uv")
