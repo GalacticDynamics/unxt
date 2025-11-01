@@ -260,7 +260,6 @@ class AbstractParametricQuantity(AbstractQuantity):
             self,
             include_params=True,
             named_unit=True,
-            compact_arrays=True,
-            short_arrays=False,
+            short_arrays="compact",
             indent=4,
         )
