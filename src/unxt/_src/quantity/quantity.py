@@ -1,7 +1,7 @@
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
 
-__all__ = ["Quantity"]
+__all__ = ("Quantity", "Q")
 
 from dataclasses import replace
 from typing import final
@@ -111,6 +111,9 @@ class Quantity(AbstractParametricQuantity):
 
     unit: AstropyUnits = eqx.field(static=True, converter=parse_unit)
     """The unit associated with this value."""
+
+
+Q = Quantity  # convenience alias
 
 
 @AbstractQuantity.__mod__.dispatch  # type: ignore[misc, attr-defined]
