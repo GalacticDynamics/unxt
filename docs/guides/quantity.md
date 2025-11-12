@@ -343,7 +343,7 @@ Instead of printing the value as either a full Array or a short array, you can c
 
 ```{code-block} python
 
->>> wl.pprint(q, compact_arrays=True, short_arrays=False)
+>>> wl.pprint(q, short_arrays="compact")
 Quantity([1, 2, 3], unit='m')
 
 ```
