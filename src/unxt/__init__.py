@@ -38,6 +38,7 @@ __all__ = [
     # quantities
     "quantity",  # module
     "Quantity",  # main class
+    "Q",  # convenience alias
     "AbstractQuantity",  # base class
     "Angle",  # angular quantity
     "uconvert",  # convert units
@@ -54,6 +55,7 @@ with install_import_hook("unxt"):
     from .quantity import (
         AbstractQuantity,
         Angle,
+        Q,
         Quantity,
         is_unit_convertible,
         uconvert,
