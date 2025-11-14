@@ -1,6 +1,6 @@
 """Angular quantities."""
 
-__all__ = ["Angle"]
+__all__ = ("Angle",)
 
 from typing import final
 

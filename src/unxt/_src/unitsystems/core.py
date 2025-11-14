@@ -1,6 +1,6 @@
 """Tools for representing systems of units using ``astropy.units``."""
 
-__all__ = ["unitsystem", "unitsystem_of"]
+__all__ = ("unitsystem", "unitsystem_of")
 
 
 from collections.abc import Sequence

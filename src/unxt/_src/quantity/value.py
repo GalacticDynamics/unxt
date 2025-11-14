@@ -1,4 +1,6 @@
-__all__ = ["convert_to_quantity_value"]
+"""Conversion to quantity value types."""
+
+__all__ = ("convert_to_quantity_value",)
 
 import warnings
 from typing import Any, NoReturn

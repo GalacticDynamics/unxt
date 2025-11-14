@@ -20,7 +20,7 @@ To import this experimental module
 """
 # pylint: disable=import-error
 
-__all__ = ["grad", "hessian", "jacfwd"]
+__all__ = ("grad", "hessian", "jacfwd")
 
 import functools as ft
 from collections.abc import Callable

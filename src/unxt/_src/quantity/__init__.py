@@ -1,6 +1,6 @@
 """Quantities in JAX."""
 
-__all__ = [
+__all__ = (
     "AbstractParametricQuantity",
     "AbstractQuantity",
     "Quantity",
@@ -14,7 +14,8 @@ __all__ = [
     "AbstractAngle",
     "Angle",
     "wrap_to",
-]
+)
+
 
 from .angle import Angle
 from .api import is_unit_convertible, uconvert, ustrip, wrap_to

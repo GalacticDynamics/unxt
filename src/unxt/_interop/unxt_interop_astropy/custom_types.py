@@ -1,6 +1,6 @@
 """Custom type annotations for astropy."""
 
-__all__ = ["APYUnits"]
+__all__ = ("APYUnits",)
 
 
 from typing import TypeAlias

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["DimensionlessUnitSystem", "LTMAUnitSystem"]
+__all__ = ("DimensionlessUnitSystem", "LTMAUnitSystem")
 
 from dataclasses import dataclass
 from typing import Annotated, TypeAlias, final

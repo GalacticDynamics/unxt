@@ -1,6 +1,6 @@
 """Optional dependencies. Internal use only."""
 
-__all__ = ["OptDeps"]
+__all__ = ("OptDeps",)
 
 from optional_dependencies import OptionalDependencyEnum, auto
 
