@@ -1,7 +1,7 @@
 """Realizations of unit systems."""
 # pylint: disable=no-member
 
-__all__ = [
+__all__ = (
     # unit system instance
     "galactic",
     "dimensionless",
@@ -10,7 +10,7 @@ __all__ = [
     "cgs",
     # unit system alias
     "NAMED_UNIT_SYSTEMS",
-]
+)
 
 from .base import AbstractUnitSystem
 from .builtin import (

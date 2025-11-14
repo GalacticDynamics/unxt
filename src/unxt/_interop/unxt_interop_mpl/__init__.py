@@ -4,7 +4,7 @@
 # This module was adapted from both the `astropy` and `pint` package's
 # implementations.
 
-__all__ = ["UnxtConverter", "setup_matplotlib_support_for_unxt"]
+__all__ = ("UnxtConverter", "setup_matplotlib_support_for_unxt")
 
 
 from collections.abc import Iterable, Sized

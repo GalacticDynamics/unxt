@@ -1,4 +1,6 @@
-__all__ = ["AllowValue"]
+"""Flags for quantity operations."""
+
+__all__ = ("AllowValue",)
 
 from numbers import Number
 from typing import Any, NoReturn

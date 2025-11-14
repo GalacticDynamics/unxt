@@ -109,7 +109,7 @@ Quantity(Array(49., dtype=float32, ...), unit='kg m / s2')
 
 """
 
-__all__ = [
+__all__ = (
     # Core
     "Quantity",
     "Q",  # convenience alias
@@ -131,7 +131,7 @@ __all__ = [
     "is_any_quantity",
     "convert_to_quantity_value",
     "AllowValue",
-]
+)
 
 
 from .setup_package import install_import_hook

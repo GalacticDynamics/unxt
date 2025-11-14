@@ -1,6 +1,6 @@
 """Comparison functions."""
 
-__all__ = ["equivalent"]
+__all__ = ("equivalent",)
 
 from plum import dispatch
 

@@ -20,7 +20,7 @@ documentation.
 
 """
 
-__all__ = [
+__all__ = (
     "__version__",
     # dimensions
     "dims",  # module
@@ -44,7 +44,7 @@ __all__ = [
     "uconvert",  # convert units
     "ustrip",  # strip units
     "is_unit_convertible",  # check if units can be converted
-]
+)
 
 from .setup_package import install_import_hook
 

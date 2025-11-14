@@ -7,7 +7,7 @@ The main features are:
 
 """
 
-__all__ = ["unit", "unit_of"]
+__all__ = ("unit", "unit_of")
 
 from .setup_package import install_import_hook
 
