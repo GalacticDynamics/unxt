@@ -1,7 +1,5 @@
 """Built-in unit systems."""
 
-from __future__ import annotations
-
 __all__ = ("DimensionlessUnitSystem", "LTMAUnitSystem")
 
 from dataclasses import dataclass
