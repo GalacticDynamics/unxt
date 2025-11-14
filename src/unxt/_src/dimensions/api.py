@@ -3,7 +3,7 @@
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-__all__ = ["dimension", "dimension_of"]
+__all__ = ("dimension", "dimension_of")
 
 from typing import Any, TypeAlias
 

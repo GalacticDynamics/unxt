@@ -1,7 +1,7 @@
 """Tools for representing systems of units using ``astropy.units``."""
 # pylint: disable=duplicate-code
 
-__all__ = [
+__all__ = (
     "unitsystem",
     "unitsystem_of",
     # classes
@@ -23,7 +23,7 @@ __all__ = [
     "DynamicalSimUSysFlag",
     # functions
     "equivalent",
-]
+)
 
 from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
 from .builtin import DimensionlessUnitSystem, LTMAUnitSystem

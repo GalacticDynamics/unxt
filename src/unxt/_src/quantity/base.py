@@ -1,7 +1,7 @@
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
 
-__all__ = ["AbstractQuantity", "is_any_quantity"]
+__all__ = ("AbstractQuantity", "is_any_quantity")
 
 import functools as ft
 from collections.abc import Mapping

@@ -7,7 +7,7 @@ The main features are:
 
 """
 
-__all__ = ["dimension", "dimension_of", "AbstractDimension"]
+__all__ = ("dimension", "dimension_of", "AbstractDimension")
 
 from .setup_package import install_import_hook
 

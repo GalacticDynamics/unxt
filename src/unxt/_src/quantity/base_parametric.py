@@ -1,7 +1,7 @@
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
 
-__all__ = ["AbstractParametricQuantity"]
+__all__ = ("AbstractParametricQuantity",)
 
 from collections.abc import Callable
 from functools import partial

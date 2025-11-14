@@ -1,6 +1,6 @@
 """Tools for representing systems of units using ``astropy.units``."""
 
-__all__ = ["UNITSYSTEMS_REGISTRY", "AbstractUnitSystem"]
+__all__ = ("UNITSYSTEMS_REGISTRY", "AbstractUnitSystem")
 
 from collections.abc import Iterator
 from dataclasses import dataclass

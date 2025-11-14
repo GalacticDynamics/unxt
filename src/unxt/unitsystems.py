@@ -17,7 +17,7 @@ working with unit systems in `unxt`.
 """
 # pylint: disable=duplicate-code
 
-__all__ = [
+__all__ = (
     "unitsystem",
     "unitsystem_of",
     # classes
@@ -39,7 +39,7 @@ __all__ = [
     "DynamicalSimUSysFlag",
     # functions
     "equivalent",
-]
+)
 
 from .setup_package import install_import_hook
 

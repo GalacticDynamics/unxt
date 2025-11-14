@@ -3,7 +3,7 @@
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-__all__ = ["unit", "unit_of", "AstropyUnits"]
+__all__ = ("unit", "unit_of", "AstropyUnits")
 
 from .api import (
     AstropyUnits,  # TODO: remove

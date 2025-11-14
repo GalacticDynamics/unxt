@@ -1,7 +1,7 @@
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
 
-__all__ = ["BareQuantity", "UncheckedQuantity"]
+__all__ = ("BareQuantity", "UncheckedQuantity")
 
 import warnings
 from typing import Any, Final

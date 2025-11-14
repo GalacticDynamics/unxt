@@ -11,7 +11,7 @@ The main features are:
 
 """
 
-__all__ = [
+__all__ = (
     # Core
     "Quantity",
     # Base
@@ -32,7 +32,7 @@ __all__ = [
     "is_any_quantity",
     "convert_to_quantity_value",
     "AllowValue",
-]
+)
 
 
 from .setup_package import install_import_hook
