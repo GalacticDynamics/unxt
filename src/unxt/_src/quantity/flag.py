@@ -114,3 +114,24 @@ def ustrip(flag: type[AllowValue], unit: Any, x: AbstractQuantity, /) -> Any:
 
     """
     return api.ustrip(unit, x)
+
+
+@dispatch
+def ustrip(flag: type[AllowValue], x: AbstractQuantity, /) -> Any:
+    """Strip the units from a quantity.
+
+    Examples
+    --------
+    >>> import jax.numpy as jnp
+    >>> import unxt as u
+    >>> from unxt.quantity import AllowValue
+
+    >>> x = u.Quantity(1, "kpc")
+    >>> y = u.ustrip(AllowValue, x)
+    >>> not isinstance(y, u.Quantity)
+    True
+    >>> y == 1
+    Array(True, dtype=bool, ...)
+
+    """
+    return api.ustrip(x)
