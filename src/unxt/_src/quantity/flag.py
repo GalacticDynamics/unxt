@@ -2,10 +2,8 @@
 
 __all__ = ("AllowValue",)
 
-from numbers import Number
 from typing import Any, NoReturn
 
-from jaxtyping import Array
 from plum import dispatch
 
 from . import api
@@ -45,7 +43,7 @@ class AllowValue:
 
 
 @dispatch
-def ustrip(flag: type[AllowValue], unit: Any, x: Array | Number, /) -> Array | Number:
+def ustrip(flag: type[AllowValue], unit: Any, x: Any, /) -> Any:
     """Strip the units from a value. This is a no-op.
 
     Examples
@@ -55,6 +53,16 @@ def ustrip(flag: type[AllowValue], unit: Any, x: Array | Number, /) -> Array | N
     >>> from unxt.quantity import AllowValue
 
     >>> x = jnp.array(1)
+    >>> y = u.ustrip(AllowValue, "km", x)
+    >>> y is x
+    True
+
+    >>> x = 1_000
+    >>> y = u.ustrip(AllowValue, "km", x)
+    >>> y is x
+    True
+
+    >>> x = "hello"
     >>> y = u.ustrip(AllowValue, "km", x)
     >>> y is x
     True
