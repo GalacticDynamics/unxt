@@ -71,6 +71,35 @@ def ustrip(flag: type[AllowValue], unit: Any, x: Any, /) -> Any:
     return x
 
 
+@dispatch
+def ustrip(flag: type[AllowValue], x: Any, /) -> Any:
+    """Strip the units from a value. This is a no-op.
+
+    Examples
+    --------
+    >>> import jax.numpy as jnp
+    >>> import unxt as u
+    >>> from unxt.quantity import AllowValue
+
+    >>> x = jnp.array(1)
+    >>> y = u.ustrip(AllowValue, x)
+    >>> y is x
+    True
+
+    >>> x = 1_000
+    >>> y = u.ustrip(AllowValue, x)
+    >>> y is x
+    True
+
+    >>> x = "hello"
+    >>> y = u.ustrip(AllowValue, x)
+    >>> y is x
+    True
+
+    """
+    return x
+
+
 @dispatch  # TODO: type annotate by value
 def ustrip(flag: type[AllowValue], unit: Any, x: AbstractQuantity, /) -> Any:
     """Strip the units from a quantity.
