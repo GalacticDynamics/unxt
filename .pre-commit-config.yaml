@@ -53,7 +53,7 @@ repos:
     rev: "v0.11.11"
     hooks:
       # Run the linter
-      - id: ruff
+      - id: ruff-check
         types_or: [python, pyi, jupyter]
         args: ["--fix", "--show-fixes"]
       # Run the formatter
