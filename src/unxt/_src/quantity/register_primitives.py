@@ -1753,6 +1753,35 @@ def dot_general_jq(
 
 
 @register(lax.dot_general_p)
+def dot_general_qj(
+    lhs: AbstractQuantity, rhs: ArrayLike, /, **kw: Any
+) -> AbstractQuantity:
+    """Dot product of a quantity and an array.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> from unxt.quantity import Quantity, BareQuantity
+
+    >>> theta = jnp.pi / 2  # 90 degrees
+    >>> Rz = Quantity(
+    ...     [
+    ...         [jnp.cos(theta), -jnp.sin(theta), 0],
+    ...         [jnp.sin(theta), jnp.cos(theta), 0],
+    ...         [0, 0, 1],
+    ...     ],
+    ...     "km",
+    ... )
+
+    >>> q = jnp.asarray([1, 2, 3])
+    >>> jnp.linalg.matmul(Rz, q).round(2)
+    Quantity(Array([-2.,  1.,  3.], dtype=float32), unit='km')
+
+    """
+    return type_np(lhs)(lax.dot_general_p.bind(ustrip(lhs), rhs, **kw), unit=lhs.unit)
+
+
+@register(lax.dot_general_p)
 def dot_general_qq(
     lhs: AbstractQuantity, rhs: AbstractQuantity, /, **kw: Any
 ) -> AbstractQuantity:
