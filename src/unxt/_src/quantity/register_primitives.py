@@ -3893,8 +3893,8 @@ def reduce_prod_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
 
 
 @register(lax.reduce_sum_p)
-def reduce_sum_p(operand: AbstractQuantity, *, axes: Axes) -> AbstractQuantity:
-    return replace(operand, value=lax.reduce_sum_p.bind(ustrip(operand), axes=axes))
+def reduce_sum_p(operand: AbstractQuantity, **kw: Any) -> AbstractQuantity:
+    return replace(operand, value=lax.reduce_sum_p.bind(ustrip(operand), **kw))
 
 
 # ==============================================================================
