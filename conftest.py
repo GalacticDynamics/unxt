@@ -20,7 +20,13 @@ parsers: Sequence[Callable[[Document], Iterable[Region]]] = [
 
 docs = Sybil(parsers=parsers, patterns=["*.md"])
 python = Sybil(
-    parsers=[*parsers, rest.DocTestParser(optionflags=optionflags)], patterns=["*.py"]
+    parsers=[
+        *parsers,
+        rest.PythonCodeBlockParser(),
+        rest.DocTestParser(optionflags=optionflags),
+        rest.SkipParser(),
+    ],
+    patterns=["*.py"],
 )
 
 
