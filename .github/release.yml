@@ -1,5 +1,125 @@
 changelog:
   exclude:
     authors:
-      - dependabot
-      - pre-commit-ci
+      - dependabot[bot]
+      - pre-commit-ci[bot]
+  categories:
+    - title: 💥 Breaking Changes
+      labels:
+        - "💥 boom"
+    - title: ✨ New Features
+      labels:
+        - "✨ sparkles"
+        - "🎉 tada"
+    - title: 🐛 Bug Fixes
+      labels:
+        - "🐛 bug"
+        - "🚑️ ambulance"
+        - "🩹 adhesive-bandage"
+        - "🥅 goal-net"
+        - "🚨 rotating-light"
+        - "✏️ pencil2"
+    - title: 🔒️ Security
+      labels:
+        - "🔒️ lock"
+        - "🔐 closed-lock-with-key"
+        - "🛂 passport-control"
+    - title: ⚡️ Performance
+      labels:
+        - "⚡️ zap"
+        - "🧵 thread"
+    - title: 📝 Documentation
+      labels:
+        - "📝 memo"
+        - "💡 bulb"
+        - "📄 page-facing-up"
+    - title: 🎨♻️ Code Quality & Refactoring
+      labels:
+        - "🎨 art"
+        - "♻️ recycle"
+        - "⚰️ coffin"
+        - "🔥 fire"
+        - "🚚 truck"
+        - "🗑️ wastebasket"
+    - title: ✅ Testing
+      labels:
+        - "✅ white-check-mark"
+        - "🧪 test-tube"
+        - "📸 camera-flash"
+        - "🤡 clown-face"
+    - title: 🔧 Configuration & Dependencies
+      labels:
+        - "🔧 wrench"
+        - "⬆️ arrow-up"
+        - "⬇️ arrow-down"
+        - "📌 pushpin"
+        - "➕ heavy-plus-sign"
+        - "➖ heavy-minus-sign"
+        - "🚩 triangular-flag-on-post"
+    - title: 🏗️ Architecture & Infrastructure
+      labels:
+        - "🏗️ building-construction"
+        - "🧱 bricks"
+        - "👷 construction-worker"
+        - "💚 green-heart"
+        - "📦️ package"
+        - "🍱 bento"
+    - title: 🚀 Deployment & Releases
+      labels:
+        - "🚀 rocket"
+        - "🔖 bookmark"
+    - title: 🎨 UI & Styling
+      labels:
+        - "💄 lipstick"
+        - "💫 dizzy"
+        - "📱 iphone"
+    - title: ♿️ Accessibility & UX
+      labels:
+        - "♿️ wheelchair"
+        - "🚸 children-crossing"
+        - "✈️ airplane"
+    - title: 🌐 Internationalization
+      labels:
+        - "🌐 globe-with-meridians"
+        - "💬 speech-balloon"
+    - title: 🗃️ Data & Database
+      labels:
+        - "🗃️ card-file-box"
+        - "🌱 seedling"
+    - title: 🔊 Logging & Monitoring
+      labels:
+        - "🔊 loud-sound"
+        - "🔇 mute"
+        - "🩺 stethoscope"
+        - "🔍️ mag"
+        - "📈 chart-with-upwards-trend"
+    - title: 🏷️ Types & Validation
+      labels:
+        - "🏷️ label"
+        - "🦺 safety-vest"
+    - title: 👔 Business Logic & Sponsorship
+      labels:
+        - "👔 necktie"
+        - "💸 money-with-wings"
+    - title: 🔨 Development Experience
+      labels:
+        - "🔨 hammer"
+        - "🧑‍💻 technologist"
+        - "🙈 see-no-evil"
+        - "🔀 twisted-rightwards-arrows"
+        - "⏪️ rewind"
+    - title: 👽️🦖 External & Backwards Compatibility Changes
+      labels:
+        - "👽️ alien"
+        - "🦖 t-rex"
+    - title: 🚧 Work in Progress & Experiments
+      labels:
+        - "🚧 construction"
+        - "⚗️ alembic"
+        - "🧐 monocle-face"
+    - title: 🍻 Miscellaneous
+      labels:
+        - "🍻 beers"
+        - "💩 poop"
+        - "🥚 egg"
+        - "👥 busts-in-silhouette"

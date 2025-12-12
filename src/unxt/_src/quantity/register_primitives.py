@@ -2630,20 +2630,34 @@ def is_finite_p(x: AbstractQuantity) -> ArrayLike:
 
     Examples
     --------
+    .. invisible-code-block: python
+
+        import jax
+        from packaging.version import Version
+        jax_version_gte_0_8 = Version(jax.__version__) >= Version("0.8.0")
+
     >>> import quaxed.numpy as jnp
 
     >>> from unxt.quantity import BareQuantity
     >>> q = BareQuantity(1, "m")
+
+    .. skip: next if(jax_version_gte_0_8, reason="jax >= 0.8 returns TypedNdArray")
+
     >>> jnp.isfinite(q)
     array(True)
+
     >>> q = BareQuantity(float("inf"), "m")
     >>> jnp.isfinite(q)
     Array(False, dtype=bool, ...)
 
     >>> from unxt.quantity import Quantity
     >>> q = Quantity(1, "m")
+
+    .. skip: next if(jax_version_gte_0_8, reason="jax >= 0.8 returns TypedNdArray")
+
     >>> jnp.isfinite(q)
     array(True)
+
     >>> q = Quantity(float("inf"), "m")
     >>> jnp.isfinite(q)
     Array(False, dtype=bool, ...)
