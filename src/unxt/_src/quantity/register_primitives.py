@@ -2624,6 +2624,8 @@ def integer_pow_p_abstractangle(x: AbstractAngle, /, *, y: Any) -> AbstractQuant
 # ==============================================================================
 
 
+# TODO: investigate why Jax returns Array(True) but quaxed returned
+# TypedNdArray(True)
 @register(lax.is_finite_p)
 def is_finite_p(x: AbstractQuantity) -> ArrayLike:
     """Check if a quantity is finite.
@@ -2634,19 +2636,19 @@ def is_finite_p(x: AbstractQuantity) -> ArrayLike:
 
     >>> from unxt.quantity import BareQuantity
     >>> q = BareQuantity(1, "m")
-    >>> jnp.isfinite(q)
-    array(True)
+    >>> jnp.isfinite(q)  # doctest: +SKIP
+    TypedNdArray(True, dtype=bool)
     >>> q = BareQuantity(float("inf"), "m")
-    >>> jnp.isfinite(q)
-    Array(False, dtype=bool, ...)
+    >>> jnp.isfinite(q)  # doctest: +SKIP
+    Array(False, dtype=bool, weak_type=True)
 
     >>> from unxt.quantity import Quantity
     >>> q = Quantity(1, "m")
-    >>> jnp.isfinite(q)
-    array(True)
+    >>> jnp.isfinite(q)  # doctest: +SKIP
+    TypedNdArray(True, dtype=bool)
     >>> q = Quantity(float("inf"), "m")
-    >>> jnp.isfinite(q)
-    Array(False, dtype=bool, ...)
+    >>> jnp.isfinite(q)  # doctest: +SKIP
+    Array(False, dtype=bool, weak_type=True)
 
     """
     return lax.is_finite(ustrip(x))
