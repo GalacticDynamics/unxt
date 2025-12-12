@@ -154,8 +154,8 @@ version_tuple = {version_tuple!r}
     # Additional potential JAX deprecations for older versions
     "ignore:The numpy\\.array_function protocol:DeprecationWarning",
     "ignore:numpy\\.ndarray size changed:RuntimeWarning",
-    # matplotlib
-    "ignore::matplotlib.MatplotlibDeprecationWarning",
+    # matplotlib (using module pattern to avoid import requirement)
+    "ignore::DeprecationWarning:matplotlib",
     # numpy (platform-specific longdouble probe warning during import)
     "ignore:Signature .* for <class 'numpy\\.longdouble'> does not match any known type:UserWarning:numpy\\._core\\.getlimits",
     # pillow
