@@ -59,7 +59,7 @@ def pylint(s: nox.Session, /) -> None:
 def test(s: nox.Session, /) -> None:
     """Run the unit and regular tests."""
     s.notify("pytest", posargs=s.posargs)
-    s.notify("pytest_benchmark", posargs=s.posargs)
+    # s.notify("pytest_benchmark", posargs=s.posargs)
 
 
 @session(uv_groups=["test-all"], reuse_venv=True)
