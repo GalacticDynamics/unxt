@@ -17,6 +17,18 @@ nox.options.default_venv_backend = "uv"
 DIR = Path(__file__).parent.resolve()
 
 # =============================================================================
+# Comprehensive sessions
+
+
+@session(uv_groups=["all"], reuse_venv=True, default=True)
+def all(s: nox.Session, /) -> None:  # noqa: A001
+    """Run all default sessions."""
+    s.notify("lint")
+    s.notify("test")
+    s.notify("docs")
+
+
+# =============================================================================
 # Linting
 
 
@@ -43,27 +55,27 @@ def pylint(s: nox.Session, /) -> None:
 # Testing
 
 
-@session(uv_groups=["test"], reuse_venv=True, default=True)
+@session(uv_groups=["test-all"], reuse_venv=True, default=True)
 def test(s: nox.Session, /) -> None:
     """Run the unit and regular tests."""
     s.notify("pytest", posargs=s.posargs)
-    s.notify("tests_benchmark", posargs=s.posargs)
+    s.notify("pytest_benchmark", posargs=s.posargs)
 
 
-@session(uv_groups=["test"], reuse_venv=True)
+@session(uv_groups=["test-all"], reuse_venv=True)
 def pytest(s: nox.Session, /) -> None:
     """Run the unit and regular tests."""
     s.run("pytest", *s.posargs)
 
 
-@session(uv_groups=["test-all"], reuse_venv=True)
-def tests_all(s: nox.Session, /) -> None:
-    """Run the tests with all optional dependencies."""
+@session(uv_groups=["test"], reuse_venv=True)
+def pytest_minimal(s: nox.Session, /) -> None:
+    """Run the tests with minimal dependencies."""
     s.run("pytest", *s.posargs)
 
 
 @session(uv_groups=["test"], reuse_venv=True)
-def tests_benchmark(s: nox.Session, /) -> None:
+def pytest_benchmark(s: nox.Session, /) -> None:
     """Run the benchmarks."""
     s.run("pytest", "tests/benchmark", "--codspeed", *s.posargs)
 
