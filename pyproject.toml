@@ -78,7 +78,7 @@
   ]
   build = [
     "build>=1.3.0",
-  ]
+]
   docs = [
     "myst-nb>=1.1.2",
     "myst_parser>=0.13",
@@ -120,6 +120,11 @@
 
 [tool.hatch]
   build.hooks.vcs.version-file = "src/unxt/_version.py"
+  build.hooks.vcs.version-file-template = """\
+version: str = {version!r}
+version_tuple: tuple[int, int, int] | tuple[int, int, int, str, str]
+version_tuple = {version_tuple!r}
+"""
   version.source               = "vcs"
 
 
@@ -149,8 +154,8 @@
     # Additional potential JAX deprecations for older versions
     "ignore:The numpy\\.array_function protocol:DeprecationWarning",
     "ignore:numpy\\.ndarray size changed:RuntimeWarning",
-    # matplotlib
-    "ignore::matplotlib.MatplotlibDeprecationWarning",
+    # matplotlib (using module pattern to avoid import requirement)
+    "ignore::DeprecationWarning:matplotlib",
     # numpy (platform-specific longdouble probe warning during import)
     "ignore:Signature .* for <class 'numpy\\.longdouble'> does not match any known type:UserWarning:numpy\\._core\\.getlimits",
     # pillow
@@ -305,7 +310,7 @@ UNXT_ENABLE_RUNTIME_TYPECHECKING = "beartype.beartype"
 
 
 [tool.codespell]
-skip = "uv.lock,paper/paper.bib"
+skip = ["uv.lock", "paper/paper.bib"]
 
 
 

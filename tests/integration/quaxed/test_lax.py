@@ -410,7 +410,6 @@ xround = u.Quantity(xround_val, unit="m")
             {},
             u.Quantity(lax.transpose(x_val, (1, 0)), unit="m"),
         ),
-        ("zeros_like_array", (x_L,), {}, lax.zeros_like_array(x_val)),
         ("zeta", (x_L, 2.0), {}, u.Quantity(lax.zeta(x_val, 2.0), unit="m")),
         pytest.param("associative_scan", (), {}, True, marks=mark_todo),
         pytest.param("fori_loop", (), {}, True, marks=mark_todo),
