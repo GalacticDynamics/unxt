@@ -1,6 +1,6 @@
 """Compatibility for Quantity."""
 
-__all__: list[str] = []
+__all__: tuple[str, ...] = ()
 
 from plum import conversion_method
 

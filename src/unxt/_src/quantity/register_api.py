@@ -1,6 +1,6 @@
 """Functional approach to Quantities."""
 
-__all__ = ()
+__all__: tuple[str, ...] = ()
 
 from dataclasses import replace
 from typing import Any
