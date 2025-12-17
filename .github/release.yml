@@ -6,120 +6,120 @@ changelog:
   categories:
     - title: 💥 Breaking Changes
       labels:
-        - "💥 boom"
+        - "💥 Introduce breaking changes"
     - title: ✨ New Features
       labels:
-        - "✨ sparkles"
-        - "🎉 tada"
+        - "✨ Introduce new features"
+        - "🎉 Begin a project"
     - title: 🐛 Bug Fixes
       labels:
-        - "🐛 bug"
-        - "🚑️ ambulance"
-        - "🩹 adhesive-bandage"
-        - "🥅 goal-net"
-        - "🚨 rotating-light"
-        - "✏️ pencil2"
+        - "🐛 Fix a bug"
+        - "🚑️ Critical hotfix"
+        - "🩹 Simple fix (non-critical)"
+        - "🥅 Catch errors"
+        - "🚨 Fix compiler / linter warnings"
+        - "✏️ Fix typos"
     - title: 🔒️ Security
       labels:
-        - "🔒️ lock"
-        - "🔐 closed-lock-with-key"
-        - "🛂 passport-control"
+        - "🔒️ Fix security / privacy issues"
+        - "🔐 Add / update secrets"
+        - "🛂 Authorization / roles / permissions"
     - title: ⚡️ Performance
       labels:
-        - "⚡️ zap"
-        - "🧵 thread"
+        - "⚡️ Improve performance"
+        - "🧵 Add / update multithreading / concurrency"
     - title: 📝 Documentation
       labels:
-        - "📝 memo"
-        - "💡 bulb"
-        - "📄 page-facing-up"
+        - "📝 Add / update documentation"
+        - "💡 Add / update source code comments"
+        - "📄 Add / update license"
     - title: 🎨♻️ Code Quality & Refactoring
       labels:
-        - "🎨 art"
-        - "♻️ recycle"
-        - "⚰️ coffin"
-        - "🔥 fire"
-        - "🚚 truck"
-        - "🗑️ wastebasket"
+        - "🎨 Improve code structure / format"
+        - "♻️ Refactor code"
+        - "⚰️ Remove dead code"
+        - "🔥 Remove code or files"
+        - "🚚 Move / rename resources"
+        - "🗑️ Deprecate code"
     - title: ✅ Testing
       labels:
-        - "✅ white-check-mark"
-        - "🧪 test-tube"
-        - "📸 camera-flash"
-        - "🤡 clown-face"
+        - "✅ Add / update / pass tests"
+        - "🧪 Add a failing test"
+        - "📸 Add / update snapshots"
+        - "🤡 Mock things"
     - title: 🔧 Configuration & Dependencies
       labels:
-        - "🔧 wrench"
-        - "⬆️ arrow-up"
-        - "⬇️ arrow-down"
-        - "📌 pushpin"
-        - "➕ heavy-plus-sign"
-        - "➖ heavy-minus-sign"
-        - "🚩 triangular-flag-on-post"
+        - "🔧 Add / update configuration"
+        - "⬆️ Upgrade dependencies"
+        - "⬇️ Downgrade dependencies"
+        - "📌 Pin dependencies"
+        - "➕ Add a dependency"
+        - "➖ Remove a dependency"
+        - "🚩 Add / update / remove feature flags"
     - title: 🏗️ Architecture & Infrastructure
       labels:
-        - "🏗️ building-construction"
-        - "🧱 bricks"
-        - "👷 construction-worker"
-        - "💚 green-heart"
-        - "📦️ package"
-        - "🍱 bento"
+        - "🏗️ Architectural changes"
+        - "🧱 Infrastructure changes"
+        - "👷 Add / update CI build system"
+        - "💚 Fix CI build"
+        - "📦️ Add / update packages"
+        - "🍱 Add / update assets"
     - title: 🚀 Deployment & Releases
       labels:
-        - "🚀 rocket"
-        - "🔖 bookmark"
+        - "🚀 Deploy"
+        - "🔖 Release / version tags"
     - title: 🎨 UI & Styling
       labels:
-        - "💄 lipstick"
-        - "💫 dizzy"
-        - "📱 iphone"
+        - "💄 Add / update UI and styles"
+        - "💫 Add / update animations"
+        - "📱 Work on responsive design"
     - title: ♿️ Accessibility & UX
       labels:
-        - "♿️ wheelchair"
-        - "🚸 children-crossing"
-        - "✈️ airplane"
+        - "♿️ Improve accessibility"
+        - "🚸 Improve UX / usability"
+        - "✈️ Improve offline support"
     - title: 🌐 Internationalization
       labels:
-        - "🌐 globe-with-meridians"
-        - "💬 speech-balloon"
+        - "🌐 Internationalization / localization"
+        - "💬 Add / update text and literals"
     - title: 🗃️ Data & Database
       labels:
-        - "🗃️ card-file-box"
-        - "🌱 seedling"
+        - "🗃️ Database changes"
+        - "🌱 Add / update seed files"
     - title: 🔊 Logging & Monitoring
       labels:
-        - "🔊 loud-sound"
-        - "🔇 mute"
-        - "🩺 stethoscope"
-        - "🔍️ mag"
-        - "📈 chart-with-upwards-trend"
+        - "🔊 Add / update logs"
+        - "🔇 Remove logs"
+        - "🩺 Add / update healthcheck"
+        - "🔍️ Improve SEO"
+        - "📈 Add / update analytics"
     - title: 🏷️ Types & Validation
       labels:
-        - "🏷️ label"
-        - "🦺 safety-vest"
+        - "🏷️ Add / update types"
+        - "🦺 Add / update validation"
     - title: 👔 Business Logic & Sponsorship
       labels:
-        - "👔 necktie"
-        - "💸 money-with-wings"
+        - "👔 Add / update business logic"
+        - "💸 Add sponsorships / financial infrastructure"
     - title: 🔨 Development Experience
       labels:
-        - "🔨 hammer"
-        - "🧑‍💻 technologist"
-        - "🙈 see-no-evil"
-        - "🔀 twisted-rightwards-arrows"
-        - "⏪️ rewind"
+        - "🔨 Add / update development scripts"
+        - "🧑‍💻 Improve developer experience"
+        - "🙈 Add / update .gitignore"
+        - "🔀 Merge branches"
+        - "⏪️ Revert changes"
     - title: 👽️🦖 External & Backwards Compatibility Changes
       labels:
-        - "👽️ alien"
-        - "🦖 t-rex"
+        - "👽️ Update due to external API changes"
+        - "🦖 Add backwards compatibility"
     - title: 🚧 Work in Progress & Experiments
       labels:
-        - "🚧 construction"
-        - "⚗️ alembic"
-        - "🧐 monocle-face"
+        - "🚧 Work in progress"
+        - "⚗️ Perform experiments"
+        - "🧐 Data exploration / inspection"
     - title: 🍻 Miscellaneous
       labels:
-        - "🍻 beers"
-        - "💩 poop"
-        - "🥚 egg"
-        - "👥 busts-in-silhouette"
+        - "🍻 Write code drunkenly"
+        - "💩 Bad code (needs improvement)"
+        - "🥚 Add / update easter egg"
+        - "👥 Add / update contributors"

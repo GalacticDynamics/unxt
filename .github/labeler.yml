@@ -1,0 +1,40 @@
+# .github/labeler.yml
+# Automatically apply labels based on file paths
+
+"🙈 Add / update .gitignore":
+  - changed-files:
+      - any-glob-to-any-file: "**/.gitignore"
+
+"👷 Add / update CI build system":
+  - changed-files:
+      - any-glob-to-any-file: ".github/workflows/**"
+
+"🔧 Add / update configuration":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "pyproject.toml"
+          - "noxfile.py"
+          - ".github/labels.yml"
+          - ".github/labeler.yml"
+          - ".github/dependabot.yml"
+          - ".github/release.yml"
+          - "conftest.py"
+
+"📝 Add / update documentation":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "README.md"
+          - "CONTRIBUTING.md"
+          - "docs/**"
+
+"📄 Add / update license":
+  - changed-files:
+      - any-glob-to-any-file: "LICENSE"
+
+"✅ Add / update / pass tests":
+  - changed-files:
+      - any-glob-to-any-file: "tests/**"
+
+"⏱️ Run benchmarks":
+  - changed-files:
+      - any-glob-to-any-file: "tests/benchmark/**"
