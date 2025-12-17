@@ -1,15 +1,15 @@
 # .github/labeler.yml
 # Automatically apply labels based on file paths
 
-"🙈 see-no-evil":
+"🙈 Add / update .gitignore":
   - changed-files:
       - any-glob-to-any-file: "**/.gitignore"
 
-"👷 construction-worker":
+"👷 Add / update CI build system":
   - changed-files:
       - any-glob-to-any-file: ".github/workflows/**"
 
-"🔧 wrench":
+"🔧 Add / update configuration":
   - changed-files:
       - any-glob-to-any-file:
           - "pyproject.toml"
@@ -20,17 +20,21 @@
           - ".github/release.yml"
           - "conftest.py"
 
-"📝 memo":
+"📝 Add / update documentation":
   - changed-files:
       - any-glob-to-any-file:
           - "README.md"
           - "CONTRIBUTING.md"
           - "docs/**"
 
-"📄 page-facing-up":
+"📄 Add / update license":
   - changed-files:
       - any-glob-to-any-file: "LICENSE"
 
-"✅ white-check-mark":
+"✅ Add / update / pass tests":
   - changed-files:
       - any-glob-to-any-file: "tests/**"
+
+"⏱️ Run benchmarks":
+  - changed-files:
+      - any-glob-to-any-file: "tests/benchmark/**"
