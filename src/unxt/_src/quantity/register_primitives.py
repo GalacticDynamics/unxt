@@ -1,7 +1,7 @@
 """Register jax primitives support for Quantity."""
 # pylint: disable=import-error, too-many-lines
 
-__all__: list[str] = []
+__all__: tuple[str, ...] = ()
 
 from collections.abc import Sequence
 from dataclasses import replace

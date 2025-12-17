@@ -1,7 +1,7 @@
 """Unitsystem compatibility."""
 # TODO: move to a compatibility module
 
-__all__: list[str] = []
+__all__: tuple[str, ...] = ()
 
 from typing import Any
 

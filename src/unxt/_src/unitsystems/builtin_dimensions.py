@@ -1,6 +1,6 @@
 """Built-in dimensions."""
 
-__all__: list[str] = []
+__all__: tuple[str, ...] = ()
 
 from unxt._src.dimensions import dimension
 

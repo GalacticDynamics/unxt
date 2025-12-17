@@ -1,7 +1,7 @@
 """`unxt` interoperability with other libraries."""
 # ruff:noqa: F401
 
-__all__: list[str] = []
+__all__: tuple[str, ...] = ()
 
 from .optional_deps import OptDeps
 
