@@ -32,7 +32,7 @@ def all(s: nox.Session, /) -> None:  # noqa: A001
 # Linting
 
 
-@session(uv_groups=["lint"], reuse_venv=True, default=True)
+@session(uv_groups=["lint"], reuse_venv=True)
 def lint(s: nox.Session, /) -> None:
     """Run the linter."""
     s.notify("precommit")
@@ -55,7 +55,7 @@ def pylint(s: nox.Session, /) -> None:
 # Testing
 
 
-@session(uv_groups=["test-all"], reuse_venv=True, default=True)
+@session(uv_groups=["test-all"], reuse_venv=True)
 def test(s: nox.Session, /) -> None:
     """Run the unit and regular tests."""
     s.notify("pytest", posargs=s.posargs)
