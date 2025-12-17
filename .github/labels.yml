@@ -1,302 +1,306 @@
 # .github/labels.yml
 # Gitmoji labels for GitHub issues and pull requests
 
-- name: "🎨 art"
+- name: "🎨 Improve code structure / format"
   color: "e3d7ff"
   description: "Improve structure / format of the code."
 
-- name: "⚡️ zap"
+- name: "⚡️ Improve performance"
   color: "fbca04"
   description: "Improve performance."
 
-- name: "🔥 fire"
+- name: "🔥 Remove code or files"
   color: "d73a4a"
   description: "Remove code or files."
 
-- name: "🐛 bug"
+- name: "🐛 Fix a bug"
   color: "d73a4a"
   description: "Fix a bug."
 
-- name: "🚑️ ambulance"
+- name: "🚑️ Critical hotfix"
   color: "b60205"
   description: "Critical hotfix."
 
-- name: "✨ sparkles"
+- name: "✨ Introduce new features"
   color: "0e8a16"
   description: "Introduce new features."
 
-- name: "📝 memo"
+- name: "📝 Add / update documentation"
   color: "0075ca"
   description: "Add or update documentation."
 
-- name: "🚀 rocket"
+- name: "🚀 Deploy"
   color: "5319e7"
   description: "Deploy stuff."
 
-- name: "💄 lipstick"
+- name: "💄 Add / update UI and styles"
   color: "f9d0c4"
   description: "Add or update the UI and style files."
 
-- name: "🎉 tada"
+- name: "🎉 Begin a project"
   color: "0e8a16"
   description: "Begin a project."
 
-- name: "✅ white-check-mark"
+- name: "✅ Add / update / pass tests"
   color: "0e8a16"
   description: "Add, update, or pass tests."
 
-- name: "🔒️ lock"
+- name: "🔒️ Fix security / privacy issues"
   color: "d73a4a"
   description: "Fix security or privacy issues."
 
-- name: "🔐 closed-lock-with-key"
+- name: "🔐 Add / update secrets"
   color: "d4c5f9"
   description: "Add or update secrets."
 
-- name: "🔖 bookmark"
+- name: "🔖 Release / version tags"
   color: "fbca04"
   description: "Release / Version tags."
 
-- name: "🚨 rotating-light"
+- name: "🚨 Fix compiler / linter warnings"
   color: "fbca04"
   description: "Fix compiler / linter warnings."
 
-- name: "🚧 construction"
+- name: "🚧 Work in progress"
   color: "fbca04"
   description: "Work in progress."
 
-- name: "💚 green-heart"
+- name: "💚 Fix CI build"
   color: "0e8a16"
   description: "Fix CI Build."
 
-- name: "⬇️ arrow-down"
+- name: "⬇️ Downgrade dependencies"
   color: "0366d6"
   description: "Downgrade dependencies."
 
-- name: "⬆️ arrow-up"
+- name: "⬆️ Upgrade dependencies"
   color: "0366d6"
   description: "Upgrade dependencies."
 
-- name: "📌 pushpin"
+- name: "📌 Pin dependencies"
   color: "0366d6"
   description: "Pin dependencies to specific versions."
 
-- name: "👷 construction-worker"
+- name: "👷 Add / update CI build system"
   color: "1d76db"
   description: "Add or update CI build system."
 
-- name: "📈 chart-with-upwards-trend"
+- name: "📈 Add / update analytics"
   color: "c5def5"
   description: "Add or update analytics or track code."
 
-- name: "♻️ recycle"
+- name: "♻️ Refactor code"
   color: "e3d7ff"
   description: "Refactor code."
 
-- name: "➕ heavy-plus-sign"
+- name: "➕ Add a dependency"
   color: "0366d6"
   description: "Add a dependency."
 
-- name: "➖ heavy-minus-sign"
+- name: "➖ Remove a dependency"
   color: "0366d6"
   description: "Remove a dependency."
 
-- name: "🔧 wrench"
+- name: "🔧 Add / update configuration"
   color: "d4c5f9"
   description: "Add or update configuration files."
 
-- name: "🔨 hammer"
+- name: "🔨 Add / update development scripts"
   color: "bfd4f2"
   description: "Add or update development scripts."
 
-- name: "🌐 globe-with-meridians"
+- name: "🌐 Internationalization / localization"
   color: "c5def5"
   description: "Internationalization and localization."
 
-- name: "✏️ pencil2"
+- name: "✏️ Fix typos"
   color: "ffffff"
   description: "Fix typos."
 
-- name: "💩 poop"
+- name: "💩 Bad code (needs improvement)"
   color: "7057ff"
   description: "Write bad code that needs to be improved."
 
-- name: "⏪️ rewind"
+- name: "⏪️ Revert changes"
   color: "fbca04"
   description: "Revert changes."
 
-- name: "🔀 twisted-rightwards-arrows"
+- name: "🔀 Merge branches"
   color: "e99695"
   description: "Merge branches."
 
-- name: "📦️ package"
+- name: "📦️ Add / update packages"
   color: "bfd4f2"
   description: "Add or update compiled files or packages."
 
-- name: "👽️ alien"
+- name: "👽️ Update due to external API changes"
   color: "5319e7"
   description: "Update code due to external API changes."
 
-- name: "🚚 truck"
+- name: "🚚 Move / rename resources"
   color: "e3d7ff"
   description: "Move or rename resources (e.g.: files, paths, routes)."
 
-- name: "📄 page-facing-up"
+- name: "📄 Add / update license"
   color: "d4c5f9"
   description: "Add or update license."
 
-- name: "💥 boom"
+- name: "💥 Introduce breaking changes"
   color: "b60205"
   description: "Introduce breaking changes."
 
-- name: "🍱 bento"
+- name: "🍱 Add / update assets"
   color: "f9d0c4"
   description: "Add or update assets."
 
-- name: "♿️ wheelchair"
+- name: "♿️ Improve accessibility"
   color: "c5def5"
   description: "Improve accessibility."
 
-- name: "💡 bulb"
+- name: "💡 Add / update source code comments"
   color: "fef2c0"
   description: "Add or update comments in source code."
 
-- name: "🍻 beers"
+- name: "🍻 Write code drunkenly"
   color: "fbca04"
   description: "Write code drunkenly."
 
-- name: "💬 speech-balloon"
+- name: "💬 Add / update text and literals"
   color: "c5def5"
   description: "Add or update text and literals."
 
-- name: "🗃️ card-file-box"
+- name: "🗃️ Database changes"
   color: "bfdadc"
   description: "Perform database related changes."
 
-- name: "🔊 loud-sound"
+- name: "🔊 Add / update logs"
   color: "c5def5"
   description: "Add or update logs."
 
-- name: "🔇 mute"
+- name: "🔇 Remove logs"
   color: "c5def5"
   description: "Remove logs."
 
-- name: "👥 busts-in-silhouette"
+- name: "👥 Add / update contributors"
   color: "bfdadc"
   description: "Add or update contributor(s)."
 
-- name: "🚸 children-crossing"
+- name: "🚸 Improve UX / usability"
   color: "fbca04"
   description: "Improve user experience / usability."
 
-- name: "🏗️ building-construction"
+- name: "🏗️ Architectural changes"
   color: "e3d7ff"
   description: "Make architectural changes."
 
-- name: "📱 iphone"
+- name: "📱 Work on responsive design"
   color: "f9d0c4"
   description: "Work on responsive design."
 
-- name: "🤡 clown-face"
+- name: "🤡 Mock things"
   color: "fef2c0"
   description: "Mock things."
 
-- name: "🥚 egg"
+- name: "🥚 Add / update easter egg"
   color: "fef2c0"
   description: "Add or update an easter egg."
 
-- name: "🙈 see-no-evil"
+- name: "🙈 Add / update .gitignore"
   color: "d4c5f9"
   description: "Add or update a .gitignore file."
 
-- name: "📸 camera-flash"
+- name: "📸 Add / update snapshots"
   color: "bfdadc"
   description: "Add or update snapshots."
 
-- name: "⚗️ alembic"
+- name: "⚗️ Perform experiments"
   color: "d876e3"
   description: "Perform experiments."
 
-- name: "🔍️ mag"
+- name: "🔍️ Improve SEO"
   color: "c5def5"
   description: "Improve SEO."
 
-- name: "🏷️ label"
+- name: "🏷️ Add / update types"
   color: "c5def5"
   description: "Add or update types."
 
-- name: "🌱 seedling"
+- name: "🌱 Add / update seed files"
   color: "0e8a16"
   description: "Add or update seed files."
 
-- name: "🚩 triangular-flag-on-post"
+- name: "🚩 Add / update / remove feature flags"
   color: "fbca04"
   description: "Add, update, or remove feature flags."
 
-- name: "🥅 goal-net"
+- name: "🥅 Catch errors"
   color: "d73a4a"
   description: "Catch errors."
 
-- name: "💫 dizzy"
+- name: "💫 Add / update animations"
   color: "f9d0c4"
   description: "Add or update animations and transitions."
 
-- name: "🗑️ wastebasket"
+- name: "🗑️ Deprecate code"
   color: "d73a4a"
   description: "Deprecate code that needs to be cleaned up."
 
-- name: "🛂 passport-control"
+- name: "🛂 Authorization / roles / permissions"
   color: "d4c5f9"
   description: "Work on code related to authorization, roles and permissions."
 
-- name: "🩹 adhesive-bandage"
+- name: "🩹 Simple fix (non-critical)"
   color: "d73a4a"
   description: "Simple fix for a non-critical issue."
 
-- name: "🧐 monocle-face"
+- name: "🧐 Data exploration / inspection"
   color: "c5def5"
   description: "Data exploration/inspection."
 
-- name: "⚰️ coffin"
+- name: "⚰️ Remove dead code"
   color: "d73a4a"
   description: "Remove dead code."
 
-- name: "🧪 test-tube"
+- name: "🧪 Add a failing test"
   color: "0e8a16"
   description: "Add a failing test."
 
-- name: "👔 necktie"
+- name: "👔 Add / update business logic"
   color: "1d76db"
   description: "Add or update business logic."
 
-- name: "🩺 stethoscope"
+- name: "🩺 Add / update healthcheck"
   color: "0e8a16"
   description: "Add or update healthcheck."
 
-- name: "🧱 bricks"
+- name: "🧱 Infrastructure changes"
   color: "bfdadc"
   description: "Infrastructure related changes."
 
-- name: "🧑‍💻 technologist"
+- name: "🧑‍💻 Improve developer experience"
   color: "c5def5"
   description: "Improve developer experience."
 
-- name: "💸 money-with-wings"
+- name: "💸 Add sponsorships / financial infrastructure"
   color: "0e8a16"
   description: "Add sponsorships or money related infrastructure."
 
-- name: "🧵 thread"
+- name: "🧵 Add / update multithreading / concurrency"
   color: "d876e3"
   description: "Add or update code related to multithreading or concurrency."
 
-- name: "🦺 safety-vest"
+- name: "🦺 Add / update validation"
   color: "fbca04"
   description: "Add or update code related to validation."
 
-- name: "✈️ airplane"
+- name: "✈️ Improve offline support"
   color: "c5def5"
   description: "Improve offline support."
 
-- name: "🦖 t-rex"
+- name: "🦖 Add backwards compatibility"
   color: "0e8a16"
   description: "Code that adds backwards compatibility."
+
+- name: "⏱️ Run benchmarks"
+  color: "d876e3"
+  description: "Run benchmarks."
