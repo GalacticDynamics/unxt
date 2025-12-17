@@ -3,7 +3,7 @@
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-__all__: list[str] = []
+__all__: tuple[str, ...] = ()
 
 import importlib.metadata
 from typing import Any, NoReturn

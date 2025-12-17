@@ -1,6 +1,6 @@
 """Astropy units compatibility."""
 
-__all__: list[str] = []
+__all__: tuple[str, ...] = ()
 
 
 import astropy.units as apyu
