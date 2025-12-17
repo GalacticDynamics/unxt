@@ -1,0 +1,6 @@
+# CODEOWNERS - Defines who must review changes to specific files
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# GitHub workflows and configuration files require review from repository owners
+# This helps protect against unauthorized changes to CI/CD pipelines and automation
+/.github/ @GalacticDynamics/unxt-maintainers
