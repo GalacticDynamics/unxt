@@ -127,8 +127,8 @@ jobs:
     needs: [format]
     if:
       github.event_name == 'workflow_dispatch' || (github.event_name ==
-      'pull_request' && contains(github.event.pull_request.labels.*.name,
-      'run-benchmarks')) || (github.event_name == 'push' && github.ref ==
+      'pull_request' && contains(github.event.pull_request.labels.*.name, '⏱️
+      Run benchmarks')) || (github.event_name == 'push' && github.ref ==
       'refs/heads/main')
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.5.0
