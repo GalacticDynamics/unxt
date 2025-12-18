@@ -3,6 +3,7 @@
 """Test the Array API."""
 
 import pickle
+import re
 
 import astropy.units as apyu
 import equinox as eqx
@@ -103,7 +104,7 @@ def test_parametric():
     assert dims == u.dimension("length")
 
     # type-checks
-    with pytest.raises(ValueError, match="Physical type mismatch."):
+    with pytest.raises(ValueError, match=re.escape("Physical type mismatch.")):
         u.Quantity["time"](1, "m")
 
 
