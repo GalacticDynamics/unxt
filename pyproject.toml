@@ -62,9 +62,11 @@ Changelog     = "https://github.com/GalacticDynamics/unxt/releases"
 Discussions   = "https://github.com/GalacticDynamics/unxt/discussions"
 Homepage      = "https://github.com/GalacticDynamics/unxt"
 
+
 [build-system]
 build-backend = "hatchling.build"
 requires      = ["hatch-vcs", "hatchling"]
+
 
 [dependency-groups]
 build = ["build>=1.3.0"]
@@ -121,8 +123,91 @@ version_tuple = {version_tuple!r}
 version.source = "vcs"
 
 
+[tool.codespell]
+skip = ["uv.lock", "paper/paper.bib"]
+
+
 [tool.commitizen]
 name = "cz_gitmoji"
+
+
+[tool.coverage]
+report.exclude_also = [
+  '\.\.\.',
+  'if typing.TYPE_CHECKING:',
+  'if TYPE_CHECKING:',
+]
+run.branch = true
+run.source = ["unxt"]
+
+
+[tool.mypy]
+disallow_incomplete_defs = false
+disallow_untyped_defs    = false
+enable_error_code        = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+files                    = ["src", "tests"]
+python_version           = "3.11"
+strict                   = true
+warn_return_any          = false
+warn_unreachable         = true
+warn_unused_configs      = true
+
+[[tool.mypy.overrides]]
+disable_error_code       = ["name-defined", "no-redef", "type-arg"]
+disallow_incomplete_defs = true
+disallow_untyped_defs    = true
+module                   = "unxt.*"
+
+[[tool.mypy.overrides]]
+ignore_missing_imports = true
+module = [
+  "astropy.*",
+  "equinox.*",
+  "hypothesis.*",
+  "jax.*",
+  "jaxtyping.*",
+  "numpy.*",
+  "plum.*",
+  "quax.*",
+  "quaxed.*",
+  "unxt.*",
+]
+
+
+[tool.pylint]
+ignore-paths = [".*/_compat.py", ".*/_version.py"]
+messages_control.disable = [
+  "cyclic-import",              # TODO: resolve
+  "design",
+  "fixme",
+  "abstract-method",
+  "function-redefined",         # plum-dispatch
+  "invalid-name",               # handled by ruff
+  "line-too-long",
+  "missing-function-docstring", # TODO: resolve
+  "missing-kwoa",               # plum-dispatch
+  "missing-module-docstring",
+  "no-value-for-parameter",     # plum-dispatch
+  "not-callable",               # handled by mypy
+  "property-with-parameters",   # handled by ruff
+  "protected-access",           # handled by ruff
+  "redefined-builtin",          # handled by ruff
+  "too-many-function-args",     # plum-dispatch
+  "unexpected-keyword-arg",     # plum-dispatch
+  "unused-argument",            # handled by ruff
+  "unused-import",              # handled by ruff
+  "unused-wildcard-import",     # handled by ruff
+  "wildcard-import",            # handled by ruff
+  "wrong-import-order",         # handled by ruff
+  "wrong-import-position",
+  "W0221",                      # Arguments in function call differ from overridden method
+]
+py-version = "3.11"
+reports.output-format = "colorized"
+similarities.ignore-imports = "yes"
+
+[tool.pylint."FORMAT"]
+max-module-lines = 2000
 
 
 [tool.pytest.ini_options]
@@ -167,48 +252,6 @@ xfail_strict = true
 
 [tool.pytest_env]
 UNXT_ENABLE_RUNTIME_TYPECHECKING = "beartype.beartype"
-
-
-[tool.coverage]
-report.exclude_also = [
-  '\.\.\.',
-  'if typing.TYPE_CHECKING:',
-  'if TYPE_CHECKING:',
-]
-run.branch = true
-run.source = ["unxt"]
-
-[tool.mypy]
-disallow_incomplete_defs = false
-disallow_untyped_defs    = false
-enable_error_code        = ["ignore-without-code", "redundant-expr", "truthy-bool"]
-files                    = ["src", "tests"]
-python_version           = "3.11"
-strict                   = true
-warn_return_any          = false
-warn_unreachable         = true
-warn_unused_configs      = true
-
-[[tool.mypy.overrides]]
-disable_error_code       = ["name-defined", "no-redef", "type-arg"]
-disallow_incomplete_defs = true
-disallow_untyped_defs    = true
-module                   = "unxt.*"
-
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = [
-  "astropy.*",
-  "equinox.*",
-  "hypothesis.*",
-  "jax.*",
-  "jaxtyping.*",
-  "numpy.*",
-  "plum.*",
-  "quax.*",
-  "quaxed.*",
-  "unxt.*",
-]
 
 
 [tool.ruff]
@@ -264,46 +307,6 @@ known-local-folder = ["unxt"]
 
 [tool.ruff.format]
 docstring-code-format = true
-
-
-[tool.pylint]
-ignore-paths = [".*/_compat.py", ".*/_version.py"]
-messages_control.disable = [
-  "cyclic-import",              # TODO: resolve
-  "design",
-  "fixme",
-  "abstract-method",
-  "function-redefined",         # plum-dispatch
-  "invalid-name",               # handled by ruff
-  "line-too-long",
-  "missing-function-docstring", # TODO: resolve
-  "missing-kwoa",               # plum-dispatch
-  "missing-module-docstring",
-  "no-value-for-parameter",     # plum-dispatch
-  "not-callable",               # handled by mypy
-  "property-with-parameters",   # handled by ruff
-  "protected-access",           # handled by ruff
-  "redefined-builtin",          # handled by ruff
-  "too-many-function-args",     # plum-dispatch
-  "unexpected-keyword-arg",     # plum-dispatch
-  "unused-argument",            # handled by ruff
-  "unused-import",              # handled by ruff
-  "unused-wildcard-import",     # handled by ruff
-  "wildcard-import",            # handled by ruff
-  "wrong-import-order",         # handled by ruff
-  "wrong-import-position",
-  "W0221",                      # Arguments in function call differ from overridden method
-]
-py-version = "3.11"
-reports.output-format = "colorized"
-similarities.ignore-imports = "yes"
-
-[tool.pylint."FORMAT"]
-max-module-lines = 2000
-
-
-[tool.codespell]
-skip = ["uv.lock", "paper/paper.bib"]
 
 
 [tool.uv]
