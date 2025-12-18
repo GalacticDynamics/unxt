@@ -46,21 +46,21 @@ args = [
 
 
 @pytest.mark.parametrize("args", args, ids=str)
-@pytest.mark.benchmark(group="unitsystems", warmup=False, max_time=1.0)
+@pytest.mark.benchmark(group="unitsystems", max_time=1.0)
 def test_unitsystem(args):
     """Test calling `unxt.unitsystem`."""
     _ = u.unitsystem(*args)
 
 
 @pytest.mark.parametrize("args", args, ids=str)
-@pytest.mark.benchmark(group="unitsystems", warmup=False, max_time=1.0)
+@pytest.mark.benchmark(group="unitsystems", max_time=1.0)
 def test_unitsystem_jit_compile(func_unitsystem, args):
     """Test the speed of jitting."""
     _ = func_unitsystem.lower(*args).compile()
 
 
 @pytest.mark.parametrize("args", args, ids=str)
-@pytest.mark.benchmark(group="unitsystems", warmup=True, max_time=1.0)
+@pytest.mark.benchmark(group="unitsystems", max_time=1.0)
 def test_unitsystem_execute(func_unitsystem, args):
     """Test the speed of calling the function."""
     _ = jax.block_until_ready(func_unitsystem(*args))
@@ -77,21 +77,21 @@ args = [
 
 
 @pytest.mark.parametrize("args", args, ids=str)
-@pytest.mark.benchmark(group="unitsystems", warmup=False, max_time=1.0)
+@pytest.mark.benchmark(group="unitsystems", max_time=1.0)
 def test_unitsystem_of(args):
     """Test calling `unxt.unitsystem_of`."""
     _ = u.unitsystem_of(*args)
 
 
 @pytest.mark.parametrize("args", args, ids=str)
-@pytest.mark.benchmark(group="unitsystems", warmup=False, max_time=1.0)
+@pytest.mark.benchmark(group="unitsystems", max_time=1.0)
 def test_unitsystem_of_jit_compile(func_unitsystem_of, args):
     """Test the speed of jitting."""
     _ = func_unitsystem_of.lower(*args).compile()
 
 
 @pytest.mark.parametrize("args", args, ids=str)
-@pytest.mark.benchmark(group="unitsystems", warmup=True, max_time=1.0)
+@pytest.mark.benchmark(group="unitsystems", max_time=1.0)
 def test_unitsystem_of_execute(func_unitsystem_of, args):
     """Test the speed of calling the function."""
     _ = jax.block_until_ready(func_unitsystem_of(*args))
@@ -106,21 +106,21 @@ args = [
 
 
 @pytest.mark.parametrize("args", args, ids=str)
-@pytest.mark.benchmark(group="unitsystems", warmup=False, max_time=1.0)
+@pytest.mark.benchmark(group="unitsystems", max_time=1.0)
 def test_equivalent(args):
     """Test calling `unxt.equivalent`."""
     _ = u.unitsystems.equivalent(*args)
 
 
 @pytest.mark.parametrize("args", args, ids=str)
-@pytest.mark.benchmark(group="unitsystems", warmup=False, max_time=1.0)
+@pytest.mark.benchmark(group="unitsystems", max_time=1.0)
 def test_equivalent_jit_compile(func_equivalent, args):
     """Test the speed of jitting."""
     _ = func_equivalent.lower(*args).compile()
 
 
 @pytest.mark.parametrize("args", args, ids=str)
-@pytest.mark.benchmark(group="unitsystems", warmup=True, max_time=1.0)
+@pytest.mark.benchmark(group="unitsystems", max_time=1.0)
 def test_equivalent_execute(func_equivalent, args):
     """Test the speed of calling the function."""
     _ = jax.block_until_ready(func_equivalent(*args))

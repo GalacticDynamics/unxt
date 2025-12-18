@@ -120,7 +120,7 @@ funcs_and_args: list[tuple[Callable[..., Any], *tuple[Args, ...]]] = [
 @pytest.mark.parametrize(
     ("func", "args"), **process_pytest_argvalues(process_func, funcs_and_args)
 )
-@pytest.mark.benchmark(group="quaxed", max_time=1.0, warmup=False)
+@pytest.mark.benchmark(group="quaxed", max_time=1.0)
 def test_jit_compile(func, args):
     """Test the speed of jitting a function."""
     _ = func.lower(*args).compile()
@@ -129,11 +129,7 @@ def test_jit_compile(func, args):
 @pytest.mark.parametrize(
     ("func", "args"), **process_pytest_argvalues(process_func, funcs_and_args)
 )
-@pytest.mark.benchmark(
-    group="quaxed",
-    max_time=1.0,  # NOTE: max_time is ignored
-    warmup=True,
-)
+@pytest.mark.benchmark(group="quaxed", max_time=1.0)
 def test_execute(func, args):
     """Test the speed of calling the function."""
     _ = jax.block_until_ready(func(*args))
