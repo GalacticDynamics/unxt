@@ -1,6 +1,5 @@
 """Test the Array API."""
 # pylint: disable=import-error, too-many-lines
-# ruff:noqa: E402
 
 import re
 
