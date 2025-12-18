@@ -10,8 +10,8 @@ from plum import dispatch
 from zeroth import zeroth
 
 from . import builtin_dimensions as bdims
-from unxt._src.units import AstropyUnits
 from unxt.dims import AbstractDimension, dimension_of
+from unxt.units import AbstractUnit
 
 # ------------------------------------
 
@@ -80,7 +80,7 @@ def parse_dimlike_name(pt: AbstractDimension, /) -> str:
 
 
 @dispatch
-def parse_dimlike_name(pt: AstropyUnits, /) -> str:
+def parse_dimlike_name(pt: AbstractUnit, /) -> str:
     """Return the dimension name from a unit.
 
     Examples

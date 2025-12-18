@@ -5,6 +5,7 @@ list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 """
 
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Final
@@ -12,6 +13,12 @@ from typing import Any, Final
 import pytz
 
 from unxt import __version__
+
+# Add package docs directories to the source paths
+_docs_dir = Path(__file__).parent
+_repo_root = _docs_dir.parent
+sys.path.insert(0, str(_repo_root / "packages" / "unxt-api" / "docs"))
+sys.path.insert(0, str(_repo_root / "packages" / "unxt-hypothesis" / "docs"))
 
 # -- Project information -----------------------------------------------------
 
@@ -51,6 +58,11 @@ exclude_patterns = [
     ".DS_Store",
     ".env",
     ".venv",
+]
+
+# Include package documentation directories
+html_extra_path = [
+    str(p) for p in (_repo_root / "packages").glob("*/docs") if p.is_dir()
 ]
 
 source_suffix = [".md", ".rst"]

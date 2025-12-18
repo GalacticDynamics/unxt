@@ -14,9 +14,8 @@ from jaxtyping import Array
 
 from dataclassish import replace
 
-from .api import uconvert, ustrip
-from unxt._src.units import AstropyUnits
-from unxt.units import unit as parse_unit
+import unxt_api as api
+from unxt.units import AbstractUnit, unit as parse_unit
 
 if TYPE_CHECKING:
     import unxt.quantity
@@ -26,7 +25,7 @@ class AstropyQuantityCompatMixin:
     """Mixin for compatibility with `astropy.units.Quantity`."""
 
     value: eqx.AbstractVar[ArrayLike]
-    unit: eqx.AbstractVar[AstropyUnits]
+    unit: eqx.AbstractVar[AbstractUnit]
     uconvert: Callable[[Any], "unxt.quantity.AbstractQuantity"]
     ustrip: Callable[[Any], ArrayLike]
 
@@ -44,7 +43,7 @@ class AstropyQuantityCompatMixin:
         Quantity(Array(100., dtype=float32, ...), unit='cm')
 
         """
-        return uconvert(u, self)  # redirect to the standard method
+        return api.uconvert(u, self)  # redirect to the standard method
 
     def to_value(self, u: Any, /) -> ArrayLike:
         """Return the value in the given units.
@@ -60,10 +59,10 @@ class AstropyQuantityCompatMixin:
         Array(100., dtype=float32, weak_type=True)
 
         """
-        return ustrip(u, self)  # redirect to the standard method
+        return api.ustrip(u, self)  # redirect to the standard method
 
     def decompose(
-        self, bases: Sequence[AstropyUnits | str], /
+        self, bases: Sequence[AbstractUnit | str], /
     ) -> "unxt.quantity.AbstractQuantity":
         """Decompose the quantity into the given bases.
 
@@ -96,7 +95,7 @@ class IPythonReprMixin:
     """Mixin class for IPython representation of a Quantity."""
 
     value: Array
-    unit: AstropyUnits
+    unit: AbstractUnit
 
     def _repr_mimebundle_(
         self,
@@ -191,7 +190,7 @@ class IPythonReprMixin:
 class NumPyCompatMixin:
     """Mixin for compatibility with numpy arrays."""
 
-    unit: AstropyUnits
+    unit: AbstractUnit
 
     __array_namespace__: Callable[[], Any]
 
@@ -208,7 +207,7 @@ class NumPyCompatMixin:
         array(1.01, dtype=float32)
 
         """
-        return np.asarray(ustrip(self.unit, self), **kwargs)
+        return np.asarray(api.ustrip(self.unit, self), **kwargs)
 
     # TODO: why doesn't `__array_namespace__` supersede this?
     def __array_function__(

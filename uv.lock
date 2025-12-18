@@ -17,6 +17,7 @@ conflicts = [[
 [manifest]
 members = [
     "unxt",
+    "unxt-api",
     "unxt-hypothesis",
 ]
 
@@ -3477,6 +3478,7 @@ dependencies = [
     { name = "quax" },
     { name = "quax-blocks" },
     { name = "quaxed" },
+    { name = "unxt-api" },
     { name = "wadler-lindig" },
     { name = "xmmutablemap" },
     { name = "zeroth" },
@@ -3610,6 +3612,7 @@ test-mpl = [
     { name = "pytest-mpl" },
 ]
 workspace = [
+    { name = "unxt-api" },
     { name = "unxt-hypothesis" },
 ]
 
@@ -3638,6 +3641,7 @@ requires-dist = [
     { name = "quax", specifier = ">=0.2.1" },
     { name = "quax-blocks", specifier = ">=0.4.0" },
     { name = "quaxed", specifier = ">=0.10.2" },
+    { name = "unxt-api", editable = "packages/unxt-api" },
     { name = "wadler-lindig", specifier = ">=0.1.5" },
     { name = "xmmutablemap", specifier = ">=0.1" },
     { name = "zeroth", specifier = ">=1.0.0" },
@@ -3733,7 +3737,24 @@ test-mpl = [
     { name = "matplotlib", specifier = ">=3.8,<3.10" },
     { name = "pytest-mpl", specifier = ">=0.17.0" },
 ]
-workspace = [{ name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" }]
+workspace = [
+    { name = "unxt-api", editable = "packages/unxt-api" },
+    { name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" },
+]
+
+[[package]]
+name = "unxt-api"
+source = { editable = "packages/unxt-api" }
+dependencies = [
+    { name = "astropy" },
+    { name = "plum-dispatch" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "astropy", specifier = ">=7.0.0" },
+    { name = "plum-dispatch", specifier = ">=2.5.7" },
+]
 
 [[package]]
 name = "unxt-hypothesis"

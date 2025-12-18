@@ -12,7 +12,7 @@ from .base import AbstractQuantity
 from .quantity import Quantity
 from .unchecked import BareQuantity
 from unxt._src.dimensions import dimension, dimension_of
-from unxt._src.units.api import AstropyUnits
+from unxt.units import AbstractUnit
 
 angle_dimension = dimension("angle")
 
@@ -47,7 +47,7 @@ class AbstractAngle(AbstractQuantity):
     value: eqx.AbstractVar[Shaped[Array, "*shape"]]
     """The value of the `unxt.AbstractQuantity`."""
 
-    unit: eqx.AbstractVar[AstropyUnits]
+    unit: eqx.AbstractVar[AbstractUnit]
     """The unit associated with this value."""
 
     def __check_init__(self) -> None:

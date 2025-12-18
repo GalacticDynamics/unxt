@@ -1,20 +1,17 @@
-"""Units objects in JAX.
+"""Dimension API for unxt.
 
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
 __all__ = ("dimension", "dimension_of")
 
-from typing import Any, TypeAlias
+from typing import Any
 
-import astropy.units as apyu
-from plum import dispatch
-
-AbstractDimension: TypeAlias = apyu.PhysicalType
+import plum
 
 
-@dispatch.abstract
-def dimension(obj: Any, /) -> AbstractDimension:
+@plum.dispatch.abstract
+def dimension(obj: Any, /) -> Any:
     """Construct the dimension.
 
     .. note::
@@ -27,8 +24,8 @@ def dimension(obj: Any, /) -> AbstractDimension:
     """
 
 
-@dispatch.abstract
-def dimension_of(obj: Any, /) -> AbstractDimension:
+@plum.dispatch.abstract
+def dimension_of(obj: Any, /) -> Any:
     """Return the dimension of the given units.
 
     .. note::

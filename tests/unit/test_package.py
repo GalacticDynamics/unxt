@@ -2,9 +2,9 @@
 
 import importlib.metadata
 
-import unxt as m
+import unxt as u
 
 
 def test_version():
     """Test version."""
-    assert importlib.metadata.version("unxt") == m.__version__
+    assert importlib.metadata.version("unxt") == u.__version__

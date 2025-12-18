@@ -1,73 +1,98 @@
 # Release Process for unxt Workspace
 
-This workspace contains two packages that can be released independently:
+This workspace contains three packages that can be released independently:
 
 - `unxt` - the main package
-- `unxt-hypothesis` - hypothesis testing strategies for unxt
+- `unxt-api` - abstract dispatch API
+- `unxt-hypothesis` - hypothesis testing strategies
 
-## Tag-Based Releases
+## Versioning with hatch-vcs
 
-Each package uses **package-prefixed tags** to determine its version via
-hatch-vcs.
+All packages use **hatch-vcs** for automatic version detection from git tags.
 
 ### Tag Format
 
-- **unxt**: `unxt-v<version>` (e.g., `unxt-v1.5.0`)
-- **unxt-hypothesis**: `unxt-hypothesis-v<version>` (e.g.,
-  `unxt-hypothesis-v1.3.0`)
+- **unxt**: `unxt-vX.Y.Z` (e.g., `unxt-v1.8.0`)
+- **unxt-api**: `unxt-api-vX.Y.Z` (e.g., `unxt-api-v0.1.0`)
+- **unxt-hypothesis**: `unxt-hypothesis-vX.Y.Z` (e.g., `unxt-hypothesis-v0.1.0`)
 
 The version must follow PEP 440 format: `X.Y.Z` with optional suffixes like
 `a1`, `b2`, `rc1`, `.post1`, `.dev0`, etc.
 
+**Note**: Each package uses `git describe` with tag pattern matching to find
+only its own tags. This allows independent versioning in the monorepo.
+
+## How Versioning Works
+
+When you tag a commit:
+
+- The package version matches the tag (e.g., tag `unxt-api-v0.1.0` → version
+  `0.1.0`)
+- After the tag, development versions are created automatically (e.g.,
+  `0.1.1.dev5+gabc1234`)
+- Each package only looks at tags matching its pattern, ignoring tags for other
+  packages
+
 ## Release Workflows
 
-### Option 1: Release via Git Tags (Recommended)
+### Release via Git Tags (Recommended)
 
 1. **Create and push a tag:**
 
    ```bash
-   # For unxt
-   git tag unxt-v1.5.0
-   git push origin unxt-v1.5.0
+   # For unxt (accepts either format)
+   git tag unxt-v1.8.0 -m "Release unxt 1.8.0"
+   # or
+   git tag v1.8.0 -m "Release unxt 1.8.0"
+
+   git push origin unxt-v1.8.0
+
+   # For unxt-api
+   git tag unxt-api-v0.2.0 -m "Release unxt-api 0.2.0"
+   git push origin unxt-api-v0.2.0
 
    # For unxt-hypothesis
-   git tag unxt-hypothesis-v1.3.0
-   git push origin unxt-hypothesis-v1.3.0
+   git tag unxt-hypothesis-v0.2.0 -m "Release unxt-hypothesis 0.2.0"
+   git push origin unxt-hypothesis-v0.2.0
    ```
 
-2. **GitHub Actions will automatically:**
-   - Detect which package to release based on the tag
-   - Build the package
-   - Publish to TestPyPI
-   - Publish to PyPI
+2. **Build and publish manually:**
 
-### Option 2: Release via GitHub Releases
+   ```bash
+   # Build the package (version will be detected from tags)
+   cd /path/to/package
+   uv build
 
-1. **Create a GitHub Release:**
+   # Publish to PyPI
+   uv publish
+   ```
+
+3. **Create a GitHub Release:**
    - Go to https://github.com/GalacticDynamics/unxt/releases/new
    - Choose or create a tag following the package-prefixed format
    - Fill in release notes
    - Publish the release
 
-2. **GitHub Actions will automatically:**
-   - Build and publish the package(s) corresponding to the tag
+### Manual Build and Publish
 
-### Option 3: Manual Release
-
-For testing or special cases:
+For all packages:
 
 ```bash
-# Build a specific package
-uv run --directory packages/unxt hatch build
-uv run --directory packages/unxt-hypothesis hatch build
+# From repository root for unxt
+uv build
+uv publish
 
-# Or from the package directory
-cd packages/unxt
-uv run hatch build
+# From package directory for workspace packages
+cd packages/unxt-api
+uv build
+uv publish
 
-# Publish (requires PyPI credentials)
-uv run hatch publish
+cd ../unxt-hypothesis
+uv build
+uv publish
 ```
+
+**Note**: Publishing requires PyPI credentials configured.
 
 ## Release Scenarios
 
@@ -77,49 +102,107 @@ Packages can be released independently at different versions:
 
 ```bash
 # Release only unxt
-git tag unxt-v1.5.0
-git push origin unxt-v1.5.0
+git tag unxt-v1.8.0 -m "Release unxt 1.8.0"
+git push origin unxt-v1.8.0
 
-# Later, release only unxt-hypothesis
-git tag unxt-hypothesis-v1.3.0
-git push origin unxt-hypothesis-v1.3.0
+# Later, release only unxt-api
+git tag unxt-api-v0.2.0 -m "Release unxt-api 0.2.0"
+git push origin unxt-api-v0.2.0
+
+# Even later, release only unxt-hypothesis
+git tag unxt-hypothesis-v0.2.0 -m "Release unxt-hypothesis 0.2.0"
+git push origin unxt-hypothesis-v0.2.0
 ```
 
 ### Synchronized Releases
 
-To release both packages together (e.g., for coordinated changes):
+To release all packages together (e.g., for coordinated changes):
 
 ```bash
-# Create both tags
-git tag unxt-v1.5.0
-git tag unxt-hypothesis-v1.3.0
+# Create tags for all packages
+git tag unxt-v1.8.0 -m "Release unxt 1.8.0"
+git tag unxt-api-v0.2.0 -m "Release unxt-api 0.2.0"
+git tag unxt-hypothesis-v0.2.0 -m "Release unxt-hypothesis 0.2.0"
 
-# Push both tags
-git push origin unxt-v1.5.0 unxt-hypothesis-v1.3.0
+# Push all tags
+git push origin unxt-v1.8.0 unxt-api-v0.2.0 unxt-hypothesis-v0.2.0
 ```
 
-The CD workflow will build and publish both packages.
+Then build and publish each package individually.
 
-### Bugfix Releases on Old Branches
+### Development Versions
 
-Create a maintenance branch and tag from there:
+Between releases, versions are automatically suffixed with development info:
+
+- `0.1.1.dev5+gabc1234` - 5 commits after v0.1.0 tag, at commit abc1234
+
+This happens automatically via hatch-vcs without any manual intervention.
+
+### Bugfix Releases on Old Versions
+
+Create a maintenance branch from an old tag and release from there:
 
 ```bash
 # Create maintenance branch from old release
-git checkout unxt-v1.4.0
-git checkout -b maint-1.4.x
+git checkout unxt-v1.7.0
+git checkout -b maint-1.7.x
 
 # Make bugfix changes
-git commit -am "Fix bug in 1.4 series"
+git commit -am "Fix critical bug in 1.7 series"
 
 # Tag the bugfix release
-git tag unxt-v1.4.1
-git push origin maint-1.4.x unxt-v1.4.1
+git tag unxt-v1.7.1 -m "Bugfix release 1.7.1"
+git push origin maint-1.7.x unxt-v1.7.1
 ```
 
-## CI/CD Workflow Details
+## Version Detection Details
 
-The `.github/workflows/cd.yml` workflow:
+Each package's `pyproject.toml` is configured with:
+
+```toml
+[tool.hatch.version]
+  source = "vcs"
+  raw-options = {
+    git_describe_command = "git describe --dirty --tags --long --match '<pattern>'"
+  }
+```
+
+Where `<pattern>` is:
+
+- `unxt-api-v*` for unxt-api
+- `unxt-hypothesis-v*` for unxt-hypothesis
+- `v*` and `unxt-v*` for unxt (matches both formats)
+
+This ensures each package only considers its own tags when determining the
+version.
+
+## Testing Versions Locally
+
+You can test version detection without pushing tags to the remote:
+
+```bash
+# Create local test tags (DO NOT PUSH)
+git tag unxt-api-v0.1.0 -m "Test tag"
+git tag unxt-hypothesis-v0.1.0 -m "Test tag"
+git tag unxt-v1.8.0 -m "Test tag"
+
+# Build packages to see detected versions
+uv sync
+
+# Check detected versions
+uv run python -c "import unxt; import unxt_api; print(f'unxt: {unxt.__version__}'); print(f'unxt_api: {unxt_api.__version__}')"
+
+# Delete test tags when done
+git tag -d unxt-api-v0.1.0 unxt-hypothesis-v0.1.0 unxt-v1.8.0
+```
+
+The version will match the tag exactly (e.g., `0.1.0` for tag
+`unxt-api-v0.1.0`), and commits after the tag will show development versions
+like `0.1.1.dev1+gabc1234`.
+
+## CI/CD Workflow
+
+The automated release workflow:
 
 1. **Detects the package(s) to release** based on:
    - Git tag name (e.g., `unxt-v*` or `unxt-hypothesis-v*`)

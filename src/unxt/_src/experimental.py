@@ -33,13 +33,13 @@ from jaxtyping import ArrayLike
 from plum.parametric import type_unparametrized
 
 from .quantity import AbstractQuantity, BareQuantity, ustrip
-from .units import AstropyUnits, unit, unit_of
+from .units import AbstractUnit, unit, unit_of
 
 Args = TypeVarTuple("Args")
 R = TypeVar("R", bound=AbstractQuantity)
 
 
-def unit_or_none(obj: Any) -> AstropyUnits | None:
+def unit_or_none(obj: Any) -> AbstractUnit | None:
     return obj if obj is None else unit(obj)
 
 
@@ -47,7 +47,7 @@ def grad(
     fun: Callable[[Unpack[Args]], R],
     argnums: int = 0,
     *,
-    units: tuple[AstropyUnits | str, ...],
+    units: tuple[AbstractUnit | str, ...],
 ) -> Callable[[Unpack[Args]], R]:
     """Gradient of a function with units.
 
@@ -75,7 +75,7 @@ def grad(
     Quantity(Array(12., dtype=float32, weak_type=True), unit='m2')
 
     """
-    theunits: tuple[AstropyUnits | None, ...] = tuple(map(unit_or_none, units))
+    theunits: tuple[AbstractUnit | None, ...] = tuple(map(unit_or_none, units))
 
     # Gradient of function, stripping and adding units
     @ft.partial(jax.grad, argnums=argnums)
@@ -109,7 +109,7 @@ def jacfwd(
     fun: Callable[[Unpack[Args]], R],
     argnums: int = 0,
     *,
-    units: tuple[AstropyUnits | str, ...],
+    units: tuple[AbstractUnit | str, ...],
 ) -> Callable[[Unpack[Args]], R]:
     """Jacobian of ``fun`` evaluated column-by-column using forward-mode AD.
 
@@ -143,7 +143,7 @@ def jacfwd(
         "only int argnums are currently supported",
     )
 
-    theunits: tuple[AstropyUnits | None, ...] = tuple(map(unit_or_none, units))
+    theunits: tuple[AbstractUnit | None, ...] = tuple(map(unit_or_none, units))
 
     @ft.partial(jax.jacfwd, argnums=argnums)
     def jacfun_mag(*args: Any) -> R:
@@ -176,7 +176,7 @@ def hessian(
     fun: Callable[[Unpack[Args]], R],
     argnums: int = 0,
     *,
-    units: tuple[AstropyUnits | str, ...],
+    units: tuple[AbstractUnit | str, ...],
 ) -> Callable[[Unpack[Args]], R]:
     """Hessian.
 
@@ -204,7 +204,7 @@ def hessian(
     BareQuantity(Array(12., dtype=float32, weak_type=True), unit='m')
 
     """
-    theunits: tuple[AstropyUnits, ...] = tuple(map(unit_or_none, units))
+    theunits: tuple[AbstractUnit, ...] = tuple(map(unit_or_none, units))
 
     @ft.partial(jax.hessian)
     def hessfun_mag(*args: Any) -> R:

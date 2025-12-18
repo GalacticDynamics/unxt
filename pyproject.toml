@@ -32,6 +32,7 @@ dependencies = [
   "quax>=0.2.1",
   "quax-blocks>=0.4.0",
   "quaxed>=0.10.2",
+  "unxt-api",
   "wadler-lindig>=0.1.5",
   "xmmutablemap>=0.1",
   "zeroth>=1.0.0",
@@ -113,7 +114,7 @@ test = [
 ]
 test-all = [{ include-group = "test" }, { include-group = "test-mpl" }]
 test-mpl = ["pytest-mpl>=0.17.0", "matplotlib>=3.8,<3.10"]
-workspace = ["unxt-hypothesis"]
+workspace = ["unxt-api", "unxt-hypothesis"]
 
 
 [tool.hatch]
@@ -255,6 +256,11 @@ testpaths = [
   "docs",
   "src/",
   "tests/",
+  # unxt-api
+  "packages/unxt-api/README.md",
+  "packages/unxt-api/src/",
+  "packages/unxt-api/docs/",
+  "packages/unxt-api/tests/",
   # unxt-hypothesis
   "packages/unxt-hypothesis/",
 ]
@@ -307,6 +313,8 @@ ignore = [
 [tool.ruff.lint.flake8-import-conventions.aliases]
 equinox                 = "eqx"
 "hypothesis.strategies" = "st"
+unxt                    = "u"
+unxt_api                = "api"
 unxt_hypothesis         = "ust"
 
 [tool.ruff.lint.isort]
@@ -320,7 +328,7 @@ known-first-party = [
   "xmmutablemap",
   "zeroth",
 ]
-known-local-folder = ["unxt", "unxt_hypothesis"]
+known-local-folder = ["unxt", "unxt_api", "unxt_hypothesis"]
 
 [tool.ruff.format]
 docstring-code-format = true
@@ -340,8 +348,11 @@ conflicts = [
   ],
 ]
 
+
 [tool.uv.sources]
+unxt-api        = { workspace = true }
 unxt-hypothesis = { workspace = true }
+
 
 [tool.uv.workspace]
 members = ["packages/*"]

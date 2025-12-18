@@ -1,18 +1,20 @@
-"""Units objects in JAX.
+"""Dimensions module.
 
-Copyright (c) 2023 Galactic Dynamics. All rights reserved.
+This is the private implementation of the dimensions module.
+
 """
 
-__all__: tuple[str, ...] = ()
+__all__ = ("AbstractDimension", "dimension", "dimension_of")
 
 import importlib.metadata
-from typing import Any, NoReturn
+from typing import Any, NoReturn, TypeAlias
 
 import astropy.units as apyu
 from packaging.version import Version, parse as parse_version
 from plum import dispatch
 
-from .api import AbstractDimension
+AbstractDimension: TypeAlias = apyu.PhysicalType
+
 
 # ===================================================================
 # Construct the dimensions
