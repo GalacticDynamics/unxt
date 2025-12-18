@@ -9,6 +9,7 @@ from typing import Annotated
 import astropy.units as apyu
 import numpy as np
 import pytest
+from astropy.constants import G as const_G  # noqa: N811
 
 from unxt import dimension, unit, unitsystems
 from unxt._src.unitsystems.base import _UNITSYSTEMS_REGISTRY
@@ -220,8 +221,6 @@ def test_standard_flag():
 
 def test_simulation_usys():
     """Test defining the simulation unit system with expected inputs."""
-    from astropy.constants import G as const_G  # noqa: N811
-
     tmp_G = const_G.decompose([apyu.kpc, apyu.Myr, apyu.Msun])
     usys1 = unitsystem(DynamicalSimUSysFlag, "kpc", "Myr", "rad")
     assert np.isclose((1 * usys1["mass"]).to_value("Msun"), 1 / tmp_G.value)

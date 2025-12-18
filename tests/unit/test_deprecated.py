@@ -8,7 +8,7 @@ from unxt.quantity import BareQuantity, UncheckedQuantity
 
 
 def test_unchecked_quantity_deprecated():
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(DeprecationWarning, match="Use `BareQuantity` instead."):
         UncheckedQuantity(1, "m")
 
 
