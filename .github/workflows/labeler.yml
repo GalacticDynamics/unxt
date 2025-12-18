@@ -22,15 +22,15 @@ jobs:
         with:
           github-token: ${{ github.token }}
           script: |
-            const fs = require('fs');
-            const yaml = require('js-yaml');
-
-            // Read labels.yml and build emoji-to-label map
-            const labelsFile = fs.readFileSync('.github/labels.yml', 'utf8');
-            const labelsConfig = yaml.load(labelsFile);
+            // Get repository labels and build emoji-to-label map
+            const { data: repoLabels } = await github.rest.issues.listLabelsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
 
             const labelMap = {};
-            for (const label of labelsConfig) {
+            for (const label of repoLabels) {
               // Extract the emoji from the label name (first character(s))
               const match = label.name.match(/^(\p{Emoji}[\u200d\ufe0f]*)/u);
               if (match) {
