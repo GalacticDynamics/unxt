@@ -21,7 +21,7 @@ correctness.
 
 ## Examples
 
-#### Creating quantities with units:
+### Creating quantities with units:
 
 >>> import unxt as u
 >>> import jax
@@ -58,7 +58,7 @@ Strip units for numerical operations
 Array(100, dtype=int32, ...)
 
 
-#### Working with angles:
+### Working with angles:
 
 Create angle quantities
 
@@ -80,7 +80,7 @@ Wrap angles to a range
 Angle(Array(90, dtype=int32, ...), unit='deg')
 
 
-#### Advanced usage with JAX transformations:
+### Advanced usage with JAX transformations:
 
 Quantities work with JAX transformations
 

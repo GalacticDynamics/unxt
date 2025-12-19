@@ -6,7 +6,8 @@ list see the documentation:
 """
 
 from datetime import datetime
-from typing import Any
+from pathlib import Path
+from typing import Any, Final
 
 import pytz
 
@@ -54,14 +55,31 @@ exclude_patterns = [
 
 source_suffix = [".md", ".rst"]
 
+_docs_path = Path(__file__).parent
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "jax": ("https://jax.readthedocs.io/en/latest/", None),
-    "jaxtyping": ("https://docs.kidger.site/jaxtyping/", None),
+    "jaxtyping": (
+        "https://docs.kidger.site/jaxtyping/",
+        str(_docs_path / "_static" / "jaxtyping.inv"),
+    ),
+    "equinox": (
+        "https://docs.kidger.site/equinox/",
+        str(_docs_path / "_static" / "equinox.inv"),
+    ),
+    # quax-blocks doesn't have hosted docs; links point to source code on GitHub
+    "quax_blocks": (
+        "https://github.com/GalacticDynamics/quax-blocks/",
+        str(_docs_path / "_static" / "quax_blocks.inv"),
+    ),
     "astropy": ("https://docs.astropy.org/en/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "quax": ("https://docs.kidger.site/quax/", None),
 }
+
+# -- Napoleon settings ---------------------------------------------------
+
+napoleon_use_math = True
 
 # -- Autodoc settings ---------------------------------------------------
 
@@ -78,7 +96,38 @@ autodoc_default_options = {
 
 always_document_param_types = True
 typehints_use_signature = True
+typehints_fully_qualified = False
+simplify_optional_unions = True
 
+# Map unqualified type names to fully qualified names for intersphinx resolution
+autodoc_type_aliases = {
+    "ndarray": "numpy.ndarray",
+    "numpy.typing.ndarray": "numpy.ndarray",
+    "numpy.ndarray": "numpy.ndarray",
+    "NDArray": "numpy.typing.NDArray",
+    "ArrayLike": "jaxtyping.ArrayLike",
+    "jax._src.literals.TypedNdArray": "jaxtyping.TypedNdArray",
+}
+
+
+# -- Nitpick ignore patterns -------------------------------------------------
+
+# Jaxtyping creates many shape-annotated types like Float[Array, "N 3"] that
+# appear as class/data references. Instead of listing every combination, use
+# regex patterns to ignore all shape annotations.
+
+# Match single shape tokens: F (feature), N (batch), S (sequence), 1, 2, or "..."
+_SHAPE_NAME_RE: Final[str] = r"^(?:F|N|S|1|2|\.\.\.)$"
+
+# Match space-separated shape tuples like "N 3", "... 4", "F N S"
+_SHAPE_TUPLE_RE: Final[str] = r"^(?:F|N|S|\d+|\.\.\.)(?:\s+(?:F|N|S|\d+|\.\.\.))*$"
+
+nitpick_ignore_regex: Final[list[tuple[str, str]]] = [
+    ("py:class", _SHAPE_TUPLE_RE),
+    ("py:data", _SHAPE_TUPLE_RE),
+    ("py:class", _SHAPE_NAME_RE),
+    ("py:data", _SHAPE_NAME_RE),
+]
 
 nitpick_ignore = [
     ("py:class", "_io.StringIO"),
@@ -90,11 +139,9 @@ nitpick_ignore = [
     ("py:class", "unxt._src.quantity.mixins.AstropyQuantityCompatMixin"),
     ("py:class", "unxt._src.quantity.mixins.IPythonReprMixin"),
     ("py:class", "unxt._src.utils.SingletonMixin"),
-    ("py:class", "ArrayLike"),
     ("py:class", "NoneType"),
     ("py:class", "quax._core.ArrayValue"),
     ("py:class", "PhysicalType"),
-    ("py:class", "jaxtyping.Shaped[Array, '*shape']"),
     ("py:class", "astropy.units.core.Annotated"),
 ]
 
@@ -113,10 +160,10 @@ myst_enable_extensions = [
 ]
 myst_heading_anchors = 3
 
-# myst_substitutions = {
-#     "ArrayLike": ":obj:`jaxtyping.ArrayLike`",
-#     "Any": ":obj:`typing.Any`",
-# }
+myst_substitutions = {
+    "ArrayLike": ":obj:`jaxtyping.ArrayLike`",
+    "Any": ":obj:`typing.Any`",
+}
 
 
 # -- HTML output -------------------------------------------------

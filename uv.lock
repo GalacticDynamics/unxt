@@ -3251,6 +3251,20 @@ wheels = [
 ]
 
 [[package]]
+name = "sphobjinv"
+version = "2.3.1.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "attrs" },
+    { name = "certifi" },
+    { name = "jsonschema" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/77/9a/4887ebe7b46f4669a896dc286a3ac559101d2ceadbbea4614472960c2222/sphobjinv-2.3.1.3.tar.gz", hash = "sha256:a1d51e4cf3d968b9e0d3ed1cbccea0071e5e5795f24a2d7401a4e37d6bd75717", size = 268835 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/63/f9/f48a8f489c8ae8930f12c558b4dd26da96791837747fca87e9da2643f12d/sphobjinv-2.3.1.3-py3-none-any.whl", hash = "sha256:41fc39f6f740a707cfe5b24c1a3a4a6e4ddbdd6429a59bf21f0b5ef1fddf932a", size = 50812 },
+]
+
+[[package]]
 name = "sqlalchemy"
 version = "2.0.44"
 source = { registry = "https://pypi.org/simple" }
@@ -3528,6 +3542,7 @@ dev = [
     { name = "sphinx-togglebutton" },
     { name = "sphinxext-opengraph" },
     { name = "sphinxext-rediraffe" },
+    { name = "sphobjinv" },
     { name = "sybil", extra = ["pytest"] },
 ]
 docs = [
@@ -3545,6 +3560,7 @@ docs = [
     { name = "sphinx-togglebutton" },
     { name = "sphinxext-opengraph" },
     { name = "sphinxext-rediraffe" },
+    { name = "sphobjinv" },
 ]
 lint = [
     { name = "pre-commit" },
@@ -3648,6 +3664,7 @@ dev = [
     { name = "sphinx-togglebutton", specifier = ">=0.3.2" },
     { name = "sphinxext-opengraph", specifier = ">=0.9.1" },
     { name = "sphinxext-rediraffe", specifier = ">=0.2.7" },
+    { name = "sphobjinv", specifier = ">=2.3" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
 docs = [
@@ -3665,6 +3682,7 @@ docs = [
     { name = "sphinx-togglebutton", specifier = ">=0.3.2" },
     { name = "sphinxext-opengraph", specifier = ">=0.9.1" },
     { name = "sphinxext-rediraffe", specifier = ">=0.2.7" },
+    { name = "sphobjinv", specifier = ">=2.3" },
 ]
 lint = [
     { name = "pre-commit", specifier = ">=4.1.0" },

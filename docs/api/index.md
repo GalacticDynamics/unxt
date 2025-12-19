@@ -5,21 +5,19 @@
 :caption: API submodules
 :glob:
 
-dims.md
-units.md
-unitsystems.md
-quantity.md
-*
+dims
+units
+unitsystems
+quantity
+experimental
 ```
 
 ---
 
 ```{eval-rst}
-
 .. currentmodule:: unxt
 
 .. automodule:: unxt
-    :exclude-members: aval, default, materialise, enable_materialise
-    :noindex:
-
+   :exclude-members: aval, default, materialise, enable_materialise
+   :noindex:
 ```

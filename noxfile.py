@@ -101,6 +101,11 @@ def docs(s: nox.Session, /) -> None:
 
     s.chdir("docs")
 
+    # Generate custom intersphinx inventories
+    s.run("python", "_static/generate_jaxtyping_inv.py")
+    s.run("python", "_static/generate_equinox_inv.py")
+    s.run("python", "_static/generate_quax_blocks_inv.py")
+
     if args.builder == "linkcheck":
         s.run("sphinx-build", "-b", "linkcheck", ".", "_build/linkcheck", *posargs)
         return
