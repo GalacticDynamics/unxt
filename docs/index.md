@@ -9,10 +9,10 @@ sd_hide_title: true
 :hidden:
 :caption: 📚 Guides
 
-guides/quantity.md
-guides/dimensions.md
-guides/units_and_systems.md
-guides/type-checking.md
+guides/quantity
+guides/dimensions
+guides/units_and_systems
+guides/type-checking
 ```
 
 ```{toctree}
@@ -29,7 +29,7 @@ interop/*
 :hidden:
 :caption: 🔌 API Reference
 
-api/index.md
+api/index
 ```
 
 ```{toctree}
@@ -37,10 +37,10 @@ api/index.md
 :hidden:
 :caption: More
 
-glossary.md
-conventions.md
-contributing.md
-dev.md
+glossary
+conventions
+contributing
+dev
 ```
 
 # 🚀 Get Started
