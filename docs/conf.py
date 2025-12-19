@@ -107,6 +107,7 @@ autodoc_type_aliases = {
     "NDArray": "numpy.typing.NDArray",
     "ArrayLike": "jaxtyping.ArrayLike",
     "jax._src.literals.TypedNdArray": "jaxtyping.TypedNdArray",
+    "AbstractUnit": "unxt.AbstractUnit",
 }
 
 

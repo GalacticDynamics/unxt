@@ -7,6 +7,14 @@ sd_hide_title: true
 ```{toctree}
 :maxdepth: 1
 :hidden:
+:caption: 📦 Packages
+
+unxt <self>
+```
+
+```{toctree}
+:maxdepth: 1
+:hidden:
 :caption: 📚 Guides
 
 guides/quantity
@@ -25,7 +33,7 @@ interop/*
 ```
 
 ```{toctree}
-:maxdepth: 2
+:maxdepth: 1
 :hidden:
 :caption: 🔌 API Reference
 
