@@ -14,6 +14,12 @@ conflicts = [[
     { package = "unxt", extra = "k8s" },
 ]]
 
+[manifest]
+members = [
+    "unxt",
+    "unxt-hypothesis",
+]
+
 [[package]]
 name = "accessible-pygments"
 version = "0.0.5"
@@ -3544,6 +3550,7 @@ dev = [
     { name = "sphinxext-rediraffe" },
     { name = "sphobjinv" },
     { name = "sybil", extra = ["pytest"] },
+    { name = "unxt-hypothesis" },
 ]
 docs = [
     { name = "myst-nb" },
@@ -3582,6 +3589,7 @@ test = [
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
     { name = "sybil", extra = ["pytest"] },
+    { name = "unxt-hypothesis" },
 ]
 test-all = [
     { name = "hypothesis", extra = ["numpy"] },
@@ -3595,10 +3603,14 @@ test-all = [
     { name = "pytest-github-actions-annotate-failures" },
     { name = "pytest-mpl" },
     { name = "sybil", extra = ["pytest"] },
+    { name = "unxt-hypothesis" },
 ]
 test-mpl = [
     { name = "matplotlib" },
     { name = "pytest-mpl" },
+]
+workspace = [
+    { name = "unxt-hypothesis" },
 ]
 
 [package.metadata]
@@ -3666,6 +3678,7 @@ dev = [
     { name = "sphinxext-rediraffe", specifier = ">=0.2.7" },
     { name = "sphobjinv", specifier = ">=2.3" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
+    { name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" },
 ]
 docs = [
     { name = "myst-nb", specifier = ">=1.1.2" },
@@ -3700,6 +3713,7 @@ test = [
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
+    { name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" },
 ]
 test-all = [
     { name = "hypothesis", extras = ["numpy"], specifier = ">=6.138.14" },
@@ -3713,10 +3727,28 @@ test-all = [
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
     { name = "pytest-mpl", specifier = ">=0.17.0" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
+    { name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" },
 ]
 test-mpl = [
     { name = "matplotlib", specifier = ">=3.8,<3.10" },
     { name = "pytest-mpl", specifier = ">=0.17.0" },
+]
+workspace = [{ name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" }]
+
+[[package]]
+name = "unxt-hypothesis"
+source = { editable = "packages/unxt-hypothesis" }
+dependencies = [
+    { name = "hypothesis", extra = ["numpy"] },
+    { name = "jax" },
+    { name = "unxt" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "hypothesis", extras = ["numpy"], specifier = ">=6.138.14" },
+    { name = "jax", specifier = ">=0.5.3" },
+    { name = "unxt", editable = "." },
 ]
 
 [[package]]

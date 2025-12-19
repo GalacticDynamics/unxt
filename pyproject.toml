@@ -109,9 +109,11 @@ test = [
   "pytest-env>=1.1.5",
   "pytest-github-actions-annotate-failures>=0.3.0",
   "sybil[pytest]>=9.2.0",
+  "unxt-hypothesis",
 ]
 test-all = [{ include-group = "test" }, { include-group = "test-mpl" }]
 test-mpl = ["pytest-mpl>=0.17.0", "matplotlib>=3.8,<3.10"]
+workspace = ["unxt-hypothesis"]
 
 
 [tool.hatch]
@@ -247,12 +249,24 @@ norecursedirs = [
   "__pycache__",
   "docs/_build",
 ]
-testpaths = ["docs", "README.md", "src/", "tests/"]
+testpaths = [
+  # Main package
+  "README.md",
+  "docs",
+  "src/",
+  "tests/",
+  # unxt-hypothesis
+  "packages/unxt-hypothesis/",
+]
 xfail_strict = true
 
 
 [tool.pytest_env]
 UNXT_ENABLE_RUNTIME_TYPECHECKING = "beartype.beartype"
+
+
+[tool.repo-review]
+ignore = ["PC140"]
 
 
 [tool.ruff]
@@ -285,13 +299,15 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+"**tests/**"   = ["ANN", "E731", "INP001", "S101", "SLF001", "T20"]
 "__init__.py"  = ["F403"]
 "docs/conf.py" = ["A001", "INP001"]
 "noxfile.py"   = ["T20"]
-"tests/**"     = ["ANN", "E731", "S101", "SLF001", "T20"]
 
 [tool.ruff.lint.flake8-import-conventions.aliases]
-equinox = "eqx"
+equinox                 = "eqx"
+"hypothesis.strategies" = "st"
+unxt_hypothesis         = "ust"
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
@@ -304,7 +320,7 @@ known-first-party = [
   "xmmutablemap",
   "zeroth",
 ]
-known-local-folder = ["unxt"]
+known-local-folder = ["unxt", "unxt_hypothesis"]
 
 [tool.ruff.format]
 docstring-code-format = true
@@ -323,3 +339,9 @@ conflicts = [
     { extra = "k8s" },
   ],
 ]
+
+[tool.uv.sources]
+unxt-hypothesis = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/*"]

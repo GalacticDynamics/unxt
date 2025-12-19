@@ -10,6 +10,7 @@ sd_hide_title: true
 :caption: 📦 Packages
 
 unxt <self>
+unxt-hypothesis <packages/unxt-hypothesis/index>
 ```
 
 ```{toctree}
@@ -21,6 +22,7 @@ guides/quantity
 guides/dimensions
 guides/units_and_systems
 guides/type-checking
+packages/unxt-hypothesis/testing-guide
 ```
 
 ```{toctree}
@@ -38,6 +40,7 @@ interop/*
 :caption: 🔌 API Reference
 
 api/index
+packages/unxt-hypothesis/api
 ```
 
 ```{toctree}
@@ -416,6 +419,8 @@ consider citing this work.
 
 ### `unxt`'s Dependents
 
+- [unxt-hypothesis][unxt-hypothesis]: `unxt` integration with `hypothesis` property-based testing.
+
 - [coordinax][coordinax]: Coordinates in JAX.
 - [galax][galax]: Galactic dynamics in JAX.
 
@@ -431,6 +436,7 @@ consider citing this work.
 [plum]: https://pypi.org/project/plum-dispatch/
 [quax]: https://github.com/patrick-kidger/quax
 [quaxed]: https://quaxed.readthedocs.io/en/latest/
+[unxt-hypothesis]: https://pypi.org/project/unxt-hypothesis/
 [pypi-link]: https://pypi.org/project/unxt/
 [pypi-platforms]: https://img.shields.io/pypi/pyversions/unxt
 [pypi-version]: https://img.shields.io/pypi/v/unxt

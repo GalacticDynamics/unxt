@@ -8,10 +8,13 @@ __all__: tuple[str, ...] = ()
 from typing import Any
 
 import astropy.units as apyu
+import unxt_api as api
 from plum import dispatch
 
 from .api import AstropyUnits
 from unxt.dims import AbstractDimension
+
+AbstractUnit: TypeAlias = apyu.Unit | apyu.UnitBase | apyu.CompositeUnit
 
 # ===================================================================
 # Construct units
@@ -97,4 +100,4 @@ def dimension_of(obj: AstropyUnits, /) -> AbstractDimension:
     PhysicalType('length')
 
     """
-    return obj.physical_type
+    return api.dimension(obj.physical_type)
