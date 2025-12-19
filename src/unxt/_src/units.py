@@ -3,22 +3,25 @@
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-__all__: tuple[str, ...] = ()
+__all__ = ("unit", "unit_of", "AbstractUnit")
 
-from typing import Any
+from typing import Any, TypeAlias
 
 import astropy.units as apyu
 from plum import dispatch
 
-from .api import AstropyUnits
+import unxt_api as api
 from unxt.dims import AbstractDimension
+
+AbstractUnit: TypeAlias = apyu.Unit | apyu.UnitBase | apyu.CompositeUnit
+
 
 # ===================================================================
 # Construct units
 
 
 @dispatch
-def unit(obj: AstropyUnits, /) -> AstropyUnits:
+def unit(obj: AbstractUnit, /) -> AbstractUnit:
     """Construct the units from a units object.
 
     Examples
@@ -34,7 +37,7 @@ def unit(obj: AstropyUnits, /) -> AstropyUnits:
 
 
 @dispatch
-def unit(obj: str, /) -> AstropyUnits:
+def unit(obj: str, /) -> AbstractUnit:
     """Construct units from a string.
 
     Examples
@@ -67,7 +70,7 @@ def unit_of(obj: Any, /) -> None:
 
 
 @dispatch
-def unit_of(obj: AstropyUnits, /) -> AstropyUnits:
+def unit_of(obj: AbstractUnit, /) -> AbstractUnit:
     """Return the units of an unit.
 
     Examples
@@ -87,7 +90,7 @@ def unit_of(obj: AstropyUnits, /) -> AstropyUnits:
 
 
 @dispatch
-def dimension_of(obj: AstropyUnits, /) -> AbstractDimension:
+def dimension_of(obj: AbstractUnit, /) -> AbstractDimension:
     """Return the dimensions of the given units.
 
     Examples
@@ -97,4 +100,4 @@ def dimension_of(obj: AstropyUnits, /) -> AbstractDimension:
     PhysicalType('length')
 
     """
-    return obj.physical_type
+    return api.dimension(obj.physical_type)

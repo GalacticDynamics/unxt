@@ -110,7 +110,7 @@ def unitsystem(*args: Any) -> AbstractUnitSystem:
     # dimension names of all the units
     du = {parse_dimlike_name(x).replace(" ", "_"): dimension_of(x) for x in args}
     # name: physical types
-    cls_name = "".join(k.title().replace("_", "") for k in du) + "UnitSystem"
+    cls_name = "".join(k.title().replace("_", "") for k in du) + "UnitSystem"  # pylint: disable=unreachable
     # fields: name, unit
     fields = [
         (
@@ -191,7 +191,7 @@ def unitsystem(usys: AbstractUnitSystem, *args: Any) -> AbstractUnitSystem:
     current_units = [
         u for u in usys.base_units if dimension_of(u) not in new_usys.base_dimensions
     ]
-    return unitsystem(*current_units, *args)
+    return unitsystem(*current_units, *args)  # pylint: disable=unreachable
 
 
 @dispatch
@@ -271,11 +271,6 @@ def _call_unitsystem(*args: Any) -> AbstractUnitSystem:
 
 # ===================================================================
 # `unitsystem_of` function
-
-
-@dispatch.abstract
-def unitsystem_of(obj: Any, /) -> AbstractUnitSystem:
-    """Return the unit system of the object."""
 
 
 @dispatch

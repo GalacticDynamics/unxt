@@ -49,6 +49,7 @@ if not OptDeps.GALA.installed:
     collect_ignore_glob.append("docs/interop/gala.md")
 if not OptDeps.MATPLOTLIB.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_mpl/*")
+    collect_ignore_glob.append("docs/interop/matplotlib.md")
 
 
 def pytest_generate_tests(metafunc: Any) -> None:

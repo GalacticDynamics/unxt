@@ -36,8 +36,7 @@ from dataclassish import field_items, replace
 
 from .api import is_unit_convertible, uconvert, ustrip
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
-from unxt._src.units import AstropyUnits
-from unxt.units import unit_of
+from unxt.units import AbstractUnit, unit_of
 
 if TYPE_CHECKING:
     from typing import Self
@@ -110,7 +109,7 @@ class AbstractQuantity(
     value: eqx.AbstractVar[Shaped[Array, "*shape"]]
     """The value of the `AbstractQuantity`."""
 
-    unit: eqx.AbstractVar[AstropyUnits]
+    unit: eqx.AbstractVar[AbstractUnit]
     """The unit associated with this value."""
 
     # ---------------------------------------------------------------

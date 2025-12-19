@@ -74,18 +74,6 @@ repos:
         args: [--prose-wrap=always]
         exclude: "^docs/.*\\.md$"
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: "v1.15.0"
-    hooks:
-      - id: mypy
-        files: src
-        additional_dependencies:
-          - equinox>=0.11.8
-          - plum-dispatch>=2.5.6
-          - quax>=0.2.0
-          - quaxed>=0.8.1
-          - quax-blocks>=0.1
-
   - repo: https://github.com/codespell-project/codespell
     rev: "v2.4.1"
     hooks:

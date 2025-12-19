@@ -14,8 +14,7 @@ from plum import add_promotion_rule
 from .base import AbstractQuantity
 from .quantity import Quantity
 from .value import convert_to_quantity_value
-from unxt._src.units import AstropyUnits, unit as parse_unit
-from unxt.units import unit as parse_unit
+from unxt.units import AbstractUnit, unit as parse_unit
 
 
 class BareQuantity(AbstractQuantity):
@@ -27,7 +26,7 @@ class BareQuantity(AbstractQuantity):
     value: Shaped[Array, "*shape"] = eqx.field(converter=convert_to_quantity_value)
     """The value of the `AbstractQuantity`."""
 
-    unit: AstropyUnits = eqx.field(static=True, converter=parse_unit)
+    unit: AbstractUnit = eqx.field(static=True, converter=parse_unit)
     """The unit associated with this value."""
 
     def __class_getitem__(cls: "type[BareQuantity]", item: Any) -> "type[BareQuantity]":
@@ -62,7 +61,7 @@ class UncheckedQuantity(BareQuantity):
     value: Shaped[Array, "*shape"] = eqx.field(converter=convert_to_quantity_value)
     """The value of the `AbstractQuantity`."""
 
-    unit: AstropyUnits = eqx.field(static=True, converter=parse_unit)
+    unit: AbstractUnit = eqx.field(static=True, converter=parse_unit)
     """The unit associated with this value."""
 
     def __init__(self, value: Any, unit: Any) -> None:

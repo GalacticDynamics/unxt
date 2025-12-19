@@ -13,9 +13,8 @@ from astropy.units.physical import _physical_unit_mapping
 from is_annotated import isannotated
 
 from .utils import parse_dimlike_name
-from unxt._src.units import AstropyUnits
 from unxt.dims import AbstractDimension, dimension
-from unxt.units import unit
+from unxt.units import AbstractUnit, unit
 
 Unit = AstropyUnitBase
 
@@ -112,14 +111,14 @@ class AbstractUnitSystem:
         return self._base_dimensions
 
     @property
-    def base_units(self) -> tuple[AstropyUnits, ...]:
+    def base_units(self) -> tuple[AbstractUnit, ...]:
         """List of core units."""
         return tuple(getattr(self, k) for k in self._base_field_names)
 
     # ===============================================================
     # Python stuff
 
-    def __getitem__(self, key: AbstractDimension | str) -> AstropyUnits:
+    def __getitem__(self, key: AbstractDimension | str) -> AbstractUnit:
         """Get the unit for a given physical type.
 
         Examples
@@ -142,7 +141,7 @@ class AbstractUnitSystem:
         if key in self.base_dimensions:
             return getattr(self, parse_dimlike_name(key))
 
-        out: AstropyUnits
+        out: AbstractUnit
         for k, v in _physical_unit_mapping.items():
             if v == key:
                 out = unit(" ".join([f"{x}**{y}" for x, y in k]))
@@ -171,7 +170,7 @@ class AbstractUnitSystem:
         return len(self.base_dimensions)
 
     # TODO: should this be changed to _base_field_names -> Iterator[str]?
-    def __iter__(self) -> Iterator[AstropyUnits]:
+    def __iter__(self) -> Iterator[AbstractUnit]:
         """Iterate over the base units.
 
         This is different than a dictionary, which would iterate over the

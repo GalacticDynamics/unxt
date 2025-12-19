@@ -6,7 +6,9 @@
 
 import argparse
 import shutil
+from enum import StrEnum, auto
 from pathlib import Path
+from typing import assert_never
 
 import nox
 from nox_uv import session
@@ -16,11 +18,31 @@ nox.options.default_venv_backend = "uv"
 
 DIR = Path(__file__).parent.resolve()
 
+
+class PackageEnum(StrEnum):
+    """Enum for package names."""
+
+    @staticmethod
+    def _generate_next_value_(name: str, *_: object, **__: object) -> str:
+        return name
+
+    def __repr__(self) -> str:
+        return f"{self.value!r}"
+
+    unxt = auto()
+    hypothesis = auto()
+
+
 # =============================================================================
 # Comprehensive sessions
 
 
-@session(uv_groups=["all"], reuse_venv=True, default=True)
+@session(
+    uv_groups=["lint", "test", "docs"],
+    uv_extras=["all"],
+    reuse_venv=True,
+    default=True,
+)
 def all(s: nox.Session, /) -> None:  # noqa: A001
     """Run all default sessions."""
     s.notify("lint")
@@ -36,7 +58,8 @@ def all(s: nox.Session, /) -> None:  # noqa: A001
 def lint(s: nox.Session, /) -> None:
     """Run the linter."""
     s.notify("precommit")
-    s.notify("pylint")
+    s.notify("pylint(package='unxt')")
+    s.notify("pylint(package='hypothesis')")
 
 
 @session(uv_groups=["lint"], reuse_venv=True)
@@ -46,32 +69,65 @@ def precommit(s: nox.Session, /) -> None:
 
 
 @session(uv_groups=["lint"], reuse_venv=True)
-def pylint(s: nox.Session, /) -> None:
+@nox.parametrize("package", list(PackageEnum))
+def pylint(s: nox.Session, /, package: PackageEnum) -> None:
     """Run PyLint."""
-    s.run("pylint", "unxt", *s.posargs)
+    match package:
+        case PackageEnum.unxt:
+            package_paths = ["packages/unxt-api/src", "src/unxt"]
+        case PackageEnum.hypothesis:
+            package_paths = ["packages/unxt-hypothesis/src"]
+            s.install("-e", "packages/unxt-hypothesis")
+        case _:
+            assert_never(package)
+
+    s.run("pylint", *package_paths, *s.posargs)
 
 
 # =============================================================================
 # Testing
 
 
-@session(uv_groups=["test-all"], reuse_venv=True)
+@session(uv_groups=["test"], reuse_venv=True)
 def test(s: nox.Session, /) -> None:
     """Run the unit and regular tests."""
-    s.notify("pytest", posargs=s.posargs)
+    s.notify("pytest(package='unxt')", posargs=s.posargs)
+    s.notify("pytest(package='hypothesis')", posargs=s.posargs)
     # s.notify("pytest_benchmark", posargs=s.posargs)
 
 
-@session(uv_groups=["test-all"], reuse_venv=True)
-def pytest(s: nox.Session, /) -> None:
-    """Run the unit and regular tests."""
-    s.run("pytest", *s.posargs)
+def _parse_pytest_paths(package: PackageEnum, /) -> list[str]:
+    match package:
+        case PackageEnum.unxt:
+            package_paths = [
+                "README.md",
+                "docs",
+                "src/",
+                "tests/",
+                "packages/unxt-api/",
+            ]
+        case PackageEnum.hypothesis:
+            package_paths = ["packages/unxt-hypothesis/"]
+        case _:
+            assert_never(package)
+
+    return package_paths
 
 
 @session(uv_groups=["test"], reuse_venv=True)
-def pytest_minimal(s: nox.Session, /) -> None:
-    """Run the tests with minimal dependencies."""
-    s.run("pytest", *s.posargs)
+@nox.parametrize("package", list(PackageEnum))
+def pytest(s: nox.Session, /, package: PackageEnum) -> None:
+    """Run the unit and regular tests."""
+    package_paths = _parse_pytest_paths(package)
+    s.run("pytest", *package_paths, *s.posargs)
+
+
+@session(uv_groups=["test-all"], uv_extras=["interop-mpl"], reuse_venv=True)
+@nox.parametrize("package", list(PackageEnum))
+def pytest_all(s: nox.Session, /, package: PackageEnum) -> None:
+    """Run the unit and regular tests."""
+    package_paths = _parse_pytest_paths(package)
+    s.run("pytest", *package_paths, *s.posargs)
 
 
 @session(uv_groups=["test"], reuse_venv=True)
@@ -84,7 +140,7 @@ def pytest_benchmark(s: nox.Session, /) -> None:
 # Documentation
 
 
-@session(uv_groups=["docs"], reuse_venv=True)
+@session(uv_groups=["docs", "workspace"], reuse_venv=True)
 def docs(s: nox.Session, /) -> None:
     """Build the docs. Pass "--serve" to serve. Pass "-b linkcheck" to check links."""
     parser = argparse.ArgumentParser()

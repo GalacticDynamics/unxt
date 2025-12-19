@@ -14,9 +14,8 @@ from .api import ustrip
 from .base import AbstractQuantity
 from .base_angle import AbstractAngle
 from .quantity import Quantity
-from unxt._src.units import AstropyUnits
 from unxt.dims import AbstractDimension, dimension, dimension_of
-from unxt.units import unit
+from unxt.units import AbstractUnit, unit
 from unxt.unitsystems import AbstractUnitSystem
 
 # ===================================================================
@@ -84,7 +83,7 @@ def dimension_of(obj: type[AbstractAngle], /) -> AbstractDimension:
 
 
 @dispatch
-def unit_of(obj: AbstractQuantity, /) -> AstropyUnits:
+def unit_of(obj: AbstractQuantity, /) -> AbstractUnit:
     """Return the units of an object.
 
     Examples
@@ -159,7 +158,7 @@ def ustrip(x: AbstractQuantity, /) -> Array:
 
 
 @dispatch
-def ustrip(u: AstropyUnits, x: AbstractQuantity, /) -> Array:
+def ustrip(u: AbstractUnit, x: AbstractQuantity, /) -> Array:
     """Strip the units from the quantity.
 
     Examples

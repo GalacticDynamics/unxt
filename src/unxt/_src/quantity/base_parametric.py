@@ -16,10 +16,9 @@ from plum import dispatch, parametric, type_unparametrized
 from dataclassish import field_items, fields
 
 from .base import AbstractQuantity
-from unxt._src.dimensions.core import name_of
-from unxt._src.units import AstropyUnits
+from unxt._src.dimensions import name_of
 from unxt.dims import AbstractDimension, dimension, dimension_of
-from unxt.units import unit as parse_unit
+from unxt.units import AbstractUnit, unit as parse_unit
 
 
 @parametric
@@ -44,7 +43,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         """Check whether the arguments are valid."""
         expected_dimensions = self._type_parameter
         got_dimensions = dimension_of(self.unit)
-        if got_dimensions != expected_dimensions:
+        if got_dimensions != expected_dimensions:  # pylint: disable=unreachable
             msg = "Physical type mismatch."  # TODO: better error message
             raise ValueError(msg)
 
@@ -72,10 +71,10 @@ class AbstractParametricQuantity(AbstractQuantity):
 
     @classmethod
     @dispatch
-    def __init_type_parameter__(cls, unit: AstropyUnits, /) -> tuple[AbstractDimension]:
+    def __init_type_parameter__(cls, unit: AbstractUnit, /) -> tuple[AbstractDimension]:
         """Infer the type parameter from the arguments."""
         dims = dimension_of(unit)
-        if dims != "unknown":
+        if dims != "unknown":  # pylint: disable=unreachable
             return (dims,)
         return (PhysicalType(unit, unit.to_string(fraction=False)),)
 

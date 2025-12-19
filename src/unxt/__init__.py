@@ -24,10 +24,12 @@ __all__ = (
     "__version__",
     # dimensions
     "dims",  # module
+    "AbstractDimension",  # dimension type
     "dimension",  # convenience constructor
     "dimension_of",  # get the dimensions
     # units
     "units",  # module
+    "AbstractUnit",  # unit type
     "unit",
     "unit_of",
     # units systems
@@ -51,7 +53,7 @@ from .setup_package import install_import_hook
 with install_import_hook("unxt"):
     from . import dims, quantity, units, unitsystems
     from ._version import version as __version__
-    from .dims import dimension, dimension_of
+    from .dims import AbstractDimension, dimension, dimension_of
     from .quantity import (
         AbstractQuantity,
         Angle,
@@ -61,7 +63,7 @@ with install_import_hook("unxt"):
         uconvert,
         ustrip,
     )
-    from .units import unit, unit_of
+    from .units import AbstractUnit, unit, unit_of
     from .unitsystems import AbstractUnitSystem, unitsystem, unitsystem_of
 
 from ._src import experimental  # noqa: F401

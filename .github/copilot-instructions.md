@@ -59,6 +59,8 @@ acceleration.
 - Keep dependencies minimal; the core dependencies are listed in
   `pyproject.toml`
 - Docstrings should be concise and include testable usage examples
+- `__all__` should always be a tuple (not list) unless it needs to be mutated
+  with `+=` - prefer immutable by default
 
 ### JAX Integration via Quax
 
