@@ -126,6 +126,9 @@ version_tuple = {version_tuple!r}
 """
 version.source = "vcs"
 
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"
+
 
 [tool.codespell]
 skip = ["uv.lock", "paper/paper.bib"]
