@@ -3,11 +3,17 @@ name: CD - unxt-hypothesis
 on:
   workflow_dispatch:
   pull_request:
+    paths:
+      - "packages/unxt-hypothesis/**"
+      - ".github/workflows/cd-unxt-hypothesis.yml"
   push:
     branches:
       - main
     tags:
       - "unxt-hypothesis-v*"
+    paths:
+      - "packages/unxt-hypothesis/**"
+      - ".github/workflows/cd-unxt-hypothesis.yml"
   release:
     types:
       - published

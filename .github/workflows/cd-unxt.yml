@@ -3,11 +3,21 @@ name: CD - unxt
 on:
   workflow_dispatch:
   pull_request:
+    paths:
+      - "src/**"
+      - "pyproject.toml"
+      - "README.md"
+      - ".github/workflows/cd-unxt.yml"
   push:
     branches:
       - main
     tags:
       - "unxt-v*"
+    paths:
+      - "src/**"
+      - "pyproject.toml"
+      - "README.md"
+      - ".github/workflows/cd-unxt.yml"
   release:
     types:
       - published
