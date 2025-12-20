@@ -14,9 +14,9 @@ from .base import AbstractQuantity
 from .base_angle import AbstractAngle
 from .quantity import Quantity
 from unxt.dims import AbstractDimension
-from unxt.units import AbstractUnit, unit
+from unxt.units import AbstractUnit
 from unxt.unitsystems import AbstractUnitSystem
-from unxt_api import dimension, dimension_of, ustrip
+from unxt_api import dimension, dimension_of, unit, ustrip
 
 # ===================================================================
 # Get dimensions

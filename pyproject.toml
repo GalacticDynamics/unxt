@@ -79,6 +79,7 @@ dev = [
   { include-group = "lint" },
   { include-group = "nox" },
   { include-group = "test-all" },
+  { include-group = "workspace" },
 ]
 docs = [
   "myst-nb>=1.1.2",
@@ -110,11 +111,11 @@ test = [
   "pytest-env>=1.1.5",
   "pytest-github-actions-annotate-failures>=0.3.0",
   "sybil[pytest]>=9.2.0",
-  "unxt-hypothesis",
+  { include-group = "workspace" },
 ]
 test-all = [{ include-group = "test" }, { include-group = "test-mpl" }]
 test-mpl = ["pytest-mpl>=0.17.0", "matplotlib>=3.8,<3.10"]
-workspace = ["unxt-api", "unxt-hypothesis"]
+workspace = ["unxt-api", "unxt-hypothesis", "unxt-xarray"]
 
 
 [tool.hatch]
@@ -308,10 +309,10 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"**tests/**"   = ["ANN", "E731", "INP001", "S101", "SLF001", "T20"]
-"__init__.py"  = ["F403"]
-"docs/conf.py" = ["A001", "INP001"]
-"noxfile.py"   = ["T20"]
+"**docs/**"   = ["A001", "INP001"]
+"**tests/**"  = ["ANN", "E731", "INP001", "S101", "SLF001", "T20"]
+"__init__.py" = ["F403"]
+"noxfile.py"  = ["T20"]
 
 [tool.ruff.lint.flake8-import-conventions.aliases]
 equinox                 = "eqx"
@@ -355,6 +356,7 @@ conflicts = [
 [tool.uv.sources]
 unxt-api        = { workspace = true }
 unxt-hypothesis = { workspace = true }
+unxt-xarray     = { workspace = true }
 
 
 [tool.uv.workspace]

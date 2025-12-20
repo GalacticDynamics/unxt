@@ -62,6 +62,39 @@ acceleration.
 - `__all__` should always be a tuple (not list) unless it needs to be mutated
   with `+=` - prefer immutable by default
 
+### Documentation
+
+- Always use `::::{tab-set}` format for installation instructions with pip and
+  uv options:
+
+  ````markdown
+  ::::{tab-set}
+
+  :::{tab-item} pip
+
+  ```bash
+  pip install unxt
+  ```
+  ````
+
+  :::
+
+  :::{tab-item} uv
+
+  ````bash
+
+  ```bash
+  uv add unxt
+  ````
+
+  :::
+
+  ::::
+
+  ```
+
+  ```
+
 ### JAX Integration via Quax
 
 - Quantities are `ArrayValue` subclasses (Quax protocol)
