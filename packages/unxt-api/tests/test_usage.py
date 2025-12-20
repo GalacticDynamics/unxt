@@ -9,7 +9,7 @@ from typing import Any, ClassVar
 import plum
 import pytest
 
-import unxt_api as api
+import unxt_api as uapi
 
 # ==============================================================================
 # Custom type integration tests
@@ -333,7 +333,7 @@ def test_no_matching_dispatch() -> None:
     obj = UnknownType()
 
     with pytest.raises(plum.resolver.NotFoundLookupError):
-        api.dimension(obj)
+        uapi.dimension(obj)
 
 
 def test_custom_error_in_implementation() -> None:

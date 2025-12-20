@@ -2,7 +2,7 @@
 
 import plum
 
-import unxt_api as api
+import unxt_api as uapi
 
 # ==============================================================================
 # Tests for unitsystem_of()
@@ -11,13 +11,13 @@ import unxt_api as api
 
 def test_unitsystem_of_is_abstract_dispatch() -> None:
     """Test that unitsystem_of is an abstract dispatch function."""
-    assert isinstance(api.unitsystem_of, plum.function.Function)
-    assert hasattr(api.unitsystem_of, "methods")
+    assert isinstance(uapi.unitsystem_of, plum.function.Function)
+    assert hasattr(uapi.unitsystem_of, "methods")
 
 
 def test_unitsystem_of_accepts_any_type() -> None:
     """Test that unitsystem_of accepts Any type in signature."""
-    assert "unitsystem_of" in dir(api)
+    assert "unitsystem_of" in dir(uapi)
 
 
 def test_unitsystem_of_no_default_implementation() -> None:
@@ -33,7 +33,7 @@ def test_unitsystem_of_no_default_implementation() -> None:
     obj = NoDispatchType()
 
     try:
-        result = api.unitsystem_of(obj)
+        result = uapi.unitsystem_of(obj)
         # If it doesn't raise, unxt has provided a default implementation
         # (typically returns DimensionlessUnitSystem or None)
         assert result is not None or result is None
@@ -62,7 +62,7 @@ def test_unitsystem_of_can_register_custom_dispatch(custom_quantity_type) -> Non
 
 def test_unitsystem_of_multiple_dispatches_possible() -> None:
     """Test that multiple dispatches can coexist."""
-    initial_count = len(api.unitsystem_of.methods)
+    initial_count = len(uapi.unitsystem_of.methods)
     assert initial_count >= 0
 
 
@@ -73,14 +73,14 @@ def test_unitsystem_of_multiple_dispatches_possible() -> None:
 
 def test_unitsystem_of_is_exported() -> None:
     """Test that unitsystem_of is exported from unxt_api."""
-    assert hasattr(api, "unitsystem_of")
+    assert hasattr(uapi, "unitsystem_of")
 
 
 def test_unitsystem_of_in_all() -> None:
     """Test that unitsystem_of is in __all__."""
-    assert "unitsystem_of" in api.__all__
+    assert "unitsystem_of" in uapi.__all__
 
 
 def test_unitsystem_of_is_dispatch_function() -> None:
     """Test that unitsystem_of is a dispatch function."""
-    assert isinstance(api.unitsystem_of, plum.function.Function)
+    assert isinstance(uapi.unitsystem_of, plum.function.Function)

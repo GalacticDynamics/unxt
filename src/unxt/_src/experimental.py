@@ -32,8 +32,9 @@ import jax
 from jaxtyping import ArrayLike
 from plum.parametric import type_unparametrized
 
-from .quantity import AbstractQuantity, BareQuantity, ustrip
-from .units import AbstractUnit, unit, unit_of
+from .quantity import AbstractQuantity, BareQuantity
+from .units import AbstractUnit
+from unxt_api import unit, unit_of, ustrip
 
 Args = TypeVarTuple("Args")
 R = TypeVar("R", bound=AbstractQuantity)

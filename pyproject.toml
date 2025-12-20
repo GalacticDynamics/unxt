@@ -317,7 +317,7 @@ ignore = [
 equinox                 = "eqx"
 "hypothesis.strategies" = "st"
 unxt                    = "u"
-unxt_api                = "api"
+unxt_api                = "uapi"
 unxt_hypothesis         = "ust"
 
 [tool.ruff.lint.isort]

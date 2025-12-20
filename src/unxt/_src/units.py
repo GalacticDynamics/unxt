@@ -10,7 +10,7 @@ from typing import Any, TypeAlias
 import astropy.units as apyu
 from plum import dispatch
 
-import unxt_api as api
+import unxt_api as uapi
 from unxt.dims import AbstractDimension
 
 AbstractUnit: TypeAlias = apyu.Unit | apyu.UnitBase | apyu.CompositeUnit
@@ -100,4 +100,4 @@ def dimension_of(obj: AbstractUnit, /) -> AbstractDimension:
     PhysicalType('length')
 
     """
-    return api.dimension(obj.physical_type)
+    return uapi.dimension(obj.physical_type)

@@ -14,7 +14,7 @@ from jaxtyping import Array
 
 from dataclassish import replace
 
-import unxt_api as api
+import unxt_api as uapi
 from unxt.units import AbstractUnit, unit as parse_unit
 
 if TYPE_CHECKING:
@@ -43,7 +43,7 @@ class AstropyQuantityCompatMixin:
         Quantity(Array(100., dtype=float32, ...), unit='cm')
 
         """
-        return api.uconvert(u, self)  # redirect to the standard method
+        return uapi.uconvert(u, self)  # redirect to the standard method
 
     def to_value(self, u: Any, /) -> ArrayLike:
         """Return the value in the given units.
@@ -59,7 +59,7 @@ class AstropyQuantityCompatMixin:
         Array(100., dtype=float32, weak_type=True)
 
         """
-        return api.ustrip(u, self)  # redirect to the standard method
+        return uapi.ustrip(u, self)  # redirect to the standard method
 
     def decompose(
         self, bases: Sequence[AbstractUnit | str], /
@@ -207,7 +207,7 @@ class NumPyCompatMixin:
         array(1.01, dtype=float32)
 
         """
-        return np.asarray(api.ustrip(self.unit, self), **kwargs)
+        return np.asarray(uapi.ustrip(self.unit, self), **kwargs)
 
     # TODO: why doesn't `__array_namespace__` supersede this?
     def __array_function__(

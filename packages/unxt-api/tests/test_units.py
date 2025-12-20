@@ -3,7 +3,7 @@
 import plum
 import pytest
 
-import unxt_api as api
+import unxt_api as uapi
 
 # ==============================================================================
 # Tests for unit()
@@ -12,13 +12,13 @@ import unxt_api as api
 
 def test_unit_is_abstract_dispatch() -> None:
     """Test that unit is an abstract dispatch function."""
-    assert isinstance(api.unit, plum.function.Function)
-    assert hasattr(api.unit, "methods")
+    assert isinstance(uapi.unit, plum.function.Function)
+    assert hasattr(uapi.unit, "methods")
 
 
 def test_unit_accepts_any_type() -> None:
     """Test that unit accepts Any type in signature."""
-    assert "unit" in dir(api)
+    assert "unit" in dir(uapi)
 
 
 def test_unit_no_default_implementation() -> None:
@@ -30,7 +30,7 @@ def test_unit_no_default_implementation() -> None:
     obj = NoDispatchType()
 
     with pytest.raises(plum.resolver.NotFoundLookupError):
-        api.unit(obj)
+        uapi.unit(obj)
 
 
 def test_unit_can_register_custom_dispatch(custom_unit_type) -> None:
@@ -47,7 +47,7 @@ def test_unit_can_register_custom_dispatch(custom_unit_type) -> None:
 
 def test_unit_multiple_dispatches_possible() -> None:
     """Test that multiple dispatches can coexist."""
-    initial_count = len(api.unit.methods)
+    initial_count = len(uapi.unit.methods)
     assert initial_count >= 0
 
 
@@ -58,13 +58,13 @@ def test_unit_multiple_dispatches_possible() -> None:
 
 def test_unit_of_is_abstract_dispatch() -> None:
     """Test that unit_of is an abstract dispatch function."""
-    assert isinstance(api.unit_of, plum.function.Function)
-    assert hasattr(api.unit_of, "methods")
+    assert isinstance(uapi.unit_of, plum.function.Function)
+    assert hasattr(uapi.unit_of, "methods")
 
 
 def test_unit_of_accepts_any_type() -> None:
     """Test that unit_of accepts Any type in signature."""
-    assert "unit_of" in dir(api)
+    assert "unit_of" in dir(uapi)
 
 
 def test_unit_of_no_default_implementation() -> None:
@@ -80,7 +80,7 @@ def test_unit_of_no_default_implementation() -> None:
     obj = NoDispatchType()
 
     try:
-        result = api.unit_of(obj)
+        result = uapi.unit_of(obj)
         # If it doesn't raise, it should return None (unxt's default)
         assert result is None
     except plum.resolver.NotFoundLookupError:
@@ -107,17 +107,17 @@ def test_unit_of_can_register_custom_dispatch(custom_quantity_type) -> None:
 
 def test_both_unit_functions_are_exported() -> None:
     """Test that both functions are exported from unxt_api."""
-    assert hasattr(api, "unit")
-    assert hasattr(api, "unit_of")
+    assert hasattr(uapi, "unit")
+    assert hasattr(uapi, "unit_of")
 
 
 def test_both_unit_functions_in_all() -> None:
     """Test that both functions are in __all__."""
-    assert "unit" in api.__all__
-    assert "unit_of" in api.__all__
+    assert "unit" in uapi.__all__
+    assert "unit_of" in uapi.__all__
 
 
 def test_unit_functions_have_independent_registries() -> None:
     """Test that unit and unit_of have independent dispatch registries."""
-    assert api.unit is not api.unit_of
-    assert id(api.unit.methods) != id(api.unit_of.methods)
+    assert uapi.unit is not uapi.unit_of
+    assert id(uapi.unit.methods) != id(uapi.unit_of.methods)

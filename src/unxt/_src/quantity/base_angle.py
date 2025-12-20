@@ -7,7 +7,7 @@ import equinox as eqx
 from jaxtyping import Array, Shaped
 from plum import add_promotion_rule
 
-from .api import wrap_to
+import unxt_api as uapi
 from .base import AbstractQuantity
 from .quantity import Quantity
 from .unchecked import BareQuantity
@@ -78,7 +78,7 @@ class AbstractAngle(AbstractQuantity):
         Angle(Array(10, dtype=int32, ...), unit='deg')
 
         """
-        return wrap_to(self, min, max)
+        return uapi.wrap_to(self, min, max)
 
 
 # Add a rule that when a AbstractAngle interacts with a Quantity, the
