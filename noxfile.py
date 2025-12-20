@@ -31,6 +31,7 @@ class PackageEnum(StrEnum):
 
     unxt = auto()
     hypothesis = auto()
+    xarray = auto()
 
 
 # =============================================================================
@@ -60,6 +61,7 @@ def lint(s: nox.Session, /) -> None:
     s.notify("precommit")
     s.notify("pylint(package='unxt')")
     s.notify("pylint(package='hypothesis')")
+    s.notify("pylint(package='xarray')")
 
 
 @session(uv_groups=["lint"], reuse_venv=True)
@@ -78,6 +80,9 @@ def pylint(s: nox.Session, /, package: PackageEnum) -> None:
         case PackageEnum.hypothesis:
             package_paths = ["packages/unxt-hypothesis/src"]
             s.install("-e", "packages/unxt-hypothesis")
+        case PackageEnum.xarray:
+            package_paths = ["packages/unxt-xarray/src"]
+            s.install("-e", "packages/unxt-xarray")
         case _:
             assert_never(package)
 
@@ -93,6 +98,7 @@ def test(s: nox.Session, /) -> None:
     """Run the unit and regular tests."""
     s.notify("pytest(package='unxt')", posargs=s.posargs)
     s.notify("pytest(package='hypothesis')", posargs=s.posargs)
+    s.notify("pytest(package='xarray')", posargs=s.posargs)
     # s.notify("pytest_benchmark", posargs=s.posargs)
 
 
@@ -108,6 +114,8 @@ def _parse_pytest_paths(package: PackageEnum, /) -> list[str]:
             ]
         case PackageEnum.hypothesis:
             package_paths = ["packages/unxt-hypothesis/"]
+        case PackageEnum.xarray:
+            package_paths = ["packages/unxt-xarray/"]
         case _:
             assert_never(package)
 

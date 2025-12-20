@@ -7,11 +7,11 @@ from typing import Any
 
 import equinox as eqx
 import numpy as np
+import unxt_api as uapi
 from astropy.units import UnitConversionError
 from jaxtyping import Array, ArrayLike
 from plum import dispatch
 
-import unxt_api as uapi
 from .base import AbstractQuantity
 from .base_angle import AbstractAngle
 from .base_parametric import AbstractParametricQuantity
