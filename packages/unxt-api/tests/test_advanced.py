@@ -5,7 +5,7 @@ import math
 import plum
 import pytest
 
-import unxt_api as api
+import unxt_api as uapi
 
 # ==============================================================================
 # Dispatch method inspection tests
@@ -14,22 +14,22 @@ import unxt_api as api
 
 def test_methods_attribute_exists() -> None:
     """Test that dispatch functions have methods attribute."""
-    assert hasattr(api.dimension, "methods")
-    assert hasattr(api.unit, "methods")
-    assert hasattr(api.uconvert, "methods")
+    assert hasattr(uapi.dimension, "methods")
+    assert hasattr(uapi.unit, "methods")
+    assert hasattr(uapi.uconvert, "methods")
 
 
 def test_can_list_registered_methods() -> None:
     """Test that we can list registered methods."""
     # All abstract functions should have at least their abstract signature
-    assert len(api.dimension.methods) >= 0
-    assert len(api.unit.methods) >= 0
+    assert len(uapi.dimension.methods) >= 0
+    assert len(uapi.unit.methods) >= 0
 
 
 def test_can_inspect_method_signatures() -> None:
     """Test that we can inspect individual method signatures."""
     # The methods should be inspectable
-    for method in api.dimension.methods:
+    for method in uapi.dimension.methods:
         assert hasattr(method, "signature")
 
 
@@ -42,7 +42,7 @@ def test_abstract_signatures_use_any() -> None:
     """Test that abstract signatures accept Any type."""
     # Check dimension signature
     # Note: The actual signature may be wrapped, so we check the docstring
-    assert api.dimension.__doc__ is not None
+    assert uapi.dimension.__doc__ is not None
 
 
 def test_return_type_annotations() -> None:
@@ -190,7 +190,7 @@ def test_is_unit_convertible_no_default() -> None:
 
     # Should raise when no dispatch is registered
     with pytest.raises(plum.resolver.NotFoundLookupError):
-        api.is_unit_convertible(obj1, obj2)
+        uapi.is_unit_convertible(obj1, obj2)
 
 
 def test_other_functions_raise_by_default() -> None:
@@ -202,10 +202,10 @@ def test_other_functions_raise_by_default() -> None:
     obj = UnknownType()
 
     with pytest.raises(plum.resolver.NotFoundLookupError):
-        api.dimension(obj)
+        uapi.dimension(obj)
 
     with pytest.raises(plum.resolver.NotFoundLookupError):
-        api.unit(obj)
+        uapi.unit(obj)
 
 
 # ==============================================================================
@@ -362,17 +362,17 @@ def test_ambiguous_dispatch_error() -> None:
 def test_uconvert_docstring_example_pattern() -> None:
     """Test that the pattern shown in uconvert docstring is valid."""
     # The docstring shows examples with unxt, but we test the pattern
-    assert api.uconvert.__doc__ is not None
-    assert "Examples" in api.uconvert.__doc__
+    assert uapi.uconvert.__doc__ is not None
+    assert "Examples" in uapi.uconvert.__doc__
 
 
 def test_ustrip_docstring_example_pattern() -> None:
     """Test that the pattern shown in ustrip docstring is valid."""
-    assert api.ustrip.__doc__ is not None
-    assert "Examples" in api.ustrip.__doc__
+    assert uapi.ustrip.__doc__ is not None
+    assert "Examples" in uapi.ustrip.__doc__
 
 
 def test_wrap_to_docstring_example_pattern() -> None:
     """Test that the pattern shown in wrap_to docstring is valid."""
-    assert api.wrap_to.__doc__ is not None
-    assert "Examples" in api.wrap_to.__doc__
+    assert uapi.wrap_to.__doc__ is not None
+    assert "Examples" in uapi.wrap_to.__doc__

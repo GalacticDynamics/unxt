@@ -6,7 +6,7 @@ from typing import Any, NoReturn
 
 from plum import dispatch
 
-from . import api
+import unxt_api as uapi
 from .base import AbstractQuantity
 
 
@@ -113,7 +113,7 @@ def ustrip(flag: type[AllowValue], unit: Any, x: AbstractQuantity, /) -> Any:
     Array(1., dtype=float32, ...)
 
     """
-    return api.ustrip(unit, x)
+    return uapi.ustrip(unit, x)
 
 
 @dispatch
@@ -134,4 +134,4 @@ def ustrip(flag: type[AllowValue], x: AbstractQuantity, /) -> Any:
     Array(True, dtype=bool, ...)
 
     """
-    return api.ustrip(x)
+    return uapi.ustrip(x)

@@ -6,7 +6,7 @@ from typing import Any
 import plum
 import pytest
 
-import unxt_api as api
+import unxt_api as uapi
 
 # ==============================================================================
 # Tests for uconvert()
@@ -15,13 +15,13 @@ import unxt_api as api
 
 def test_uconvert_is_abstract_dispatch() -> None:
     """Test that uconvert is an abstract dispatch function."""
-    assert isinstance(api.uconvert, plum.function.Function)
-    assert hasattr(api.uconvert, "methods")
+    assert isinstance(uapi.uconvert, plum.function.Function)
+    assert hasattr(uapi.uconvert, "methods")
 
 
 def test_uconvert_accepts_any_type() -> None:
     """Test that uconvert accepts Any type in signature."""
-    assert "uconvert" in dir(api)
+    assert "uconvert" in dir(uapi)
 
 
 def test_uconvert_no_default_implementation_raises() -> None:
@@ -34,7 +34,7 @@ def test_uconvert_no_default_implementation_raises() -> None:
     obj2 = NoDispatchType()
 
     with pytest.raises(plum.resolver.NotFoundLookupError):
-        api.uconvert(obj1, obj2)
+        uapi.uconvert(obj1, obj2)
 
 
 def test_uconvert_can_register_custom_dispatch(
@@ -64,13 +64,13 @@ def test_uconvert_can_register_custom_dispatch(
 
 def test_ustrip_is_abstract_dispatch() -> None:
     """Test that ustrip is an abstract dispatch function."""
-    assert isinstance(api.ustrip, plum.function.Function)
-    assert hasattr(api.ustrip, "methods")
+    assert isinstance(uapi.ustrip, plum.function.Function)
+    assert hasattr(uapi.ustrip, "methods")
 
 
 def test_ustrip_accepts_any_type() -> None:
     """Test that ustrip accepts varargs."""
-    assert "ustrip" in dir(api)
+    assert "ustrip" in dir(uapi)
 
 
 def test_ustrip_no_default_implementation_raises() -> None:
@@ -82,7 +82,7 @@ def test_ustrip_no_default_implementation_raises() -> None:
     obj = NoDispatchType()
 
     with pytest.raises(plum.resolver.NotFoundLookupError):
-        api.ustrip(obj)
+        uapi.ustrip(obj)
 
 
 def test_ustrip_can_register_custom_dispatch(custom_quantity_type) -> None:
@@ -110,13 +110,13 @@ def test_ustrip_varargs_signature() -> None:
 
 def test_is_unit_convertible_is_abstract_dispatch() -> None:
     """Test that is_unit_convertible is an abstract dispatch function."""
-    assert isinstance(api.is_unit_convertible, plum.function.Function)
-    assert hasattr(api.is_unit_convertible, "methods")
+    assert isinstance(uapi.is_unit_convertible, plum.function.Function)
+    assert hasattr(uapi.is_unit_convertible, "methods")
 
 
 def test_is_unit_convertible_accepts_any_type() -> None:
     """Test that is_unit_convertible accepts Any types."""
-    assert "is_unit_convertible" in dir(api)
+    assert "is_unit_convertible" in dir(uapi)
 
 
 def test_is_unit_convertible_no_default_implementation() -> None:
@@ -130,7 +130,7 @@ def test_is_unit_convertible_no_default_implementation() -> None:
 
     # Should raise NotFoundLookupError when no dispatch is registered
     with pytest.raises(plum.resolver.NotFoundLookupError):
-        api.is_unit_convertible(obj1, obj2)
+        uapi.is_unit_convertible(obj1, obj2)
 
 
 def test_is_unit_convertible_can_register_custom_dispatch(custom_unit_type) -> None:
@@ -154,7 +154,7 @@ def test_is_unit_convertible_can_register_custom_dispatch(custom_unit_type) -> N
 def test_is_unit_convertible_returns_bool() -> None:
     """Test that return type annotation is bool."""
     # The abstract signature returns bool
-    inspect.signature(api.is_unit_convertible.__wrapped__)
+    inspect.signature(uapi.is_unit_convertible.__wrapped__)
     # Note: __wrapped__ may not be available, but we can check the docstring
 
 
@@ -165,13 +165,13 @@ def test_is_unit_convertible_returns_bool() -> None:
 
 def test_wrap_to_is_abstract_dispatch() -> None:
     """Test that wrap_to is an abstract dispatch function."""
-    assert isinstance(api.wrap_to, plum.function.Function)
-    assert hasattr(api.wrap_to, "methods")
+    assert isinstance(uapi.wrap_to, plum.function.Function)
+    assert hasattr(uapi.wrap_to, "methods")
 
 
 def test_wrap_to_accepts_any_type() -> None:
     """Test that wrap_to accepts Any types."""
-    assert "wrap_to" in dir(api)
+    assert "wrap_to" in dir(uapi)
 
 
 def test_wrap_to_no_default_implementation_raises() -> None:
@@ -183,7 +183,7 @@ def test_wrap_to_no_default_implementation_raises() -> None:
     obj = NoDispatchType()
 
     with pytest.raises(plum.resolver.NotFoundLookupError):
-        api.wrap_to(obj, obj, obj)
+        uapi.wrap_to(obj, obj, obj)
 
 
 def test_wrap_to_can_register_custom_dispatch(custom_quantity_type) -> None:
@@ -214,7 +214,7 @@ def test_wrap_to_keyword_argument_dispatch() -> None:
     # The package provides a keyword argument dispatch that redirects
     # to the positional version
     # Check that both dispatches exist
-    assert len(api.wrap_to.methods) >= 2
+    assert len(uapi.wrap_to.methods) >= 2
 
 
 # ==============================================================================
@@ -224,23 +224,23 @@ def test_wrap_to_keyword_argument_dispatch() -> None:
 
 def test_all_quantity_functions_are_exported() -> None:
     """Test that all quantity functions are exported."""
-    assert hasattr(api, "uconvert")
-    assert hasattr(api, "ustrip")
-    assert hasattr(api, "is_unit_convertible")
-    assert hasattr(api, "wrap_to")
+    assert hasattr(uapi, "uconvert")
+    assert hasattr(uapi, "ustrip")
+    assert hasattr(uapi, "is_unit_convertible")
+    assert hasattr(uapi, "wrap_to")
 
 
 def test_all_quantity_functions_in_all() -> None:
     """Test that all quantity functions are in __all__."""
-    assert "uconvert" in api.__all__
-    assert "ustrip" in api.__all__
-    assert "is_unit_convertible" in api.__all__
-    assert "wrap_to" in api.__all__
+    assert "uconvert" in uapi.__all__
+    assert "ustrip" in uapi.__all__
+    assert "is_unit_convertible" in uapi.__all__
+    assert "wrap_to" in uapi.__all__
 
 
 def test_all_quantity_functions_are_dispatch_functions() -> None:
     """Test that all quantity functions are dispatch functions."""
-    assert isinstance(api.uconvert, plum.function.Function)
-    assert isinstance(api.ustrip, plum.function.Function)
-    assert isinstance(api.is_unit_convertible, plum.function.Function)
-    assert isinstance(api.wrap_to, plum.function.Function)
+    assert isinstance(uapi.uconvert, plum.function.Function)
+    assert isinstance(uapi.ustrip, plum.function.Function)
+    assert isinstance(uapi.is_unit_convertible, plum.function.Function)
+    assert isinstance(uapi.wrap_to, plum.function.Function)

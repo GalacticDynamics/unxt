@@ -59,9 +59,9 @@ with install_import_hook("unxt.unitsystems"):
         galactic,
         si,
         solarsystem,
-        unitsystem,
-        unitsystem_of,
+        unitsystem,  # TODO: move unitsystem to unxt_api
     )
+    from unxt_api import unitsystem_of
 
 # Clean up the namespace
 del install_import_hook

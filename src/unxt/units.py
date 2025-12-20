@@ -12,7 +12,8 @@ __all__ = ("unit", "unit_of", "AbstractUnit")
 from .setup_package import install_import_hook
 
 with install_import_hook("unxt.units"):
-    from ._src.units import AbstractUnit, unit, unit_of
+    from ._src.units import AbstractUnit
+    from unxt_api import unit, unit_of
 
 # Clean up the namespace
 del install_import_hook
