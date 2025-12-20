@@ -114,8 +114,8 @@ Here's an example:
 ... ) -> Shaped[u.Quantity["speed"], "N"]:
 ...     return x / t
 
->>> x = u.Quantity([2.], "m")
->>> t = u.Quantity([1.], "s")
+>>> x = u.Q([2.], "m")
+>>> t = u.Q([1.], "s")
 
 >>> velocity(x, t)
 Quantity(Array([2.], dtype=float32), unit='m / s')
@@ -156,7 +156,7 @@ Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 or inferred.
 
 ```{code-block}
->>> u.Quantity(1, "m")
+>>> u.Q(1, "m")
 Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 ```
 

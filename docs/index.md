@@ -133,17 +133,17 @@ Create a `Quantity` by passing a JAX array-compatible object and a unit:
 >>> import astropy.units as apyu
 >>> import unxt as u
 
->>> x = u.Quantity([1.0, 2.0, 3.0], apyu.m)
+>>> x = u.Quantity([1.0, 2.0, 3.0], apyu.m)  # or u.Q(...) for short
 >>> x
 Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 ```
 
-As a shorthand, we also support specifying units as strings (parsed by
-`unxt.unit`, using Astropy as the backend):
+As a shorthand, we also support `u.Q` and specifying units as strings
+(parsed by `unxt.unit`, using Astropy as the backend):
 
 ```{code-block} python
 
->>> y = u.Quantity([4.0, 5.0, 6.0], "m")
+>>> y = u.Q([4.0, 5.0, 6.0], "m")
 >>> y
 Quantity(Array([4., 5., 6.], dtype=float32), unit='m')
 ```
@@ -180,7 +180,7 @@ Arithmetic will raise an error if the units are incompatible:
 
 ```{code-block} python
 
->>> z = u.Quantity(5.0, "second")
+>>> z = u.Q(5.0, "second")
 >>> try: x + z
 ... except Exception as e: print(e)
 's' (time) and 'm' (length) are not convertible
@@ -317,11 +317,11 @@ JAX Auto-Differentiation (AD) is supported:
 
 ```{code-block} python
 
->>> def f(x: u.Quantity["length"], t: u.Quantity["time"]) -> u.Quantity["diffusivity"]:
+>>> def f(x: u.Q["length"], t: u.Q["time"]) -> u.Q["diffusivity"]:
 ...    return jnp.square(x) / t
 
->>> x = u.Quantity(1.0, "m")
->>> y = u.Quantity(4.0, "s")
+>>> x = u.Q(1.0, "m")
+>>> y = u.Q(4.0, "s")
 
 ```
 

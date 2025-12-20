@@ -3,7 +3,7 @@
 ## Creating Quantity Instances
 
 `Quantity` objects are created by passing a value and a unit to the `Quantity`
-constructor.
+constructor (with `Q` as a shorthand).
 
 ```{code-block} python
 >>> import unxt as u
@@ -21,7 +21,7 @@ The value and unit of a `Quantity` object can be accessed using the `value` and
 `unit` attributes, respectively:
 
 ```{code-block} python
->>> q = u.Quantity([1, 2, 3, 5], "m")
+>>> q = u.Q([1, 2, 3, 5], "m")
 >>> q.value
 Array([1, 2, 3, 5], dtype=int32)
 
@@ -35,16 +35,16 @@ If you want more flexible options to create a `Quantity`, you can use the
 appropriate constructor based on the input arguments.
 
 ```{code-block} python
->>> u.Quantity.from_(5, "m")  # same as Quantity(5, "m")
+>>> u.Q.from_(5, "m")  # same as Quantity(5, "m")
 Quantity(Array(5, dtype=int32, ...), unit='m')
 
->>> u.Quantity.from_({"value": [1, 2, 3], "unit": "m"})
+>>> u.Q.from_({"value": [1, 2, 3], "unit": "m"})
 Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
->>> u.Quantity.from_(q)  # from another Quantity object
+>>> u.Q.from_(q)  # from another Quantity object
 Quantity(Array([1, 2, 3, 5], dtype=int32), unit='m')
 
->>> u.Quantity.from_(5, "m", dtype=float)  # specify the dtype
+>>> u.Q.from_(5, "m", dtype=float)  # specify the dtype
 Quantity(Array(5., dtype=float32), unit='m')
 
 ```
@@ -72,7 +72,7 @@ List of 9 method(s):
 units. If you prefer an object-oriented approach, use the `uconvert` method.
 
 ```{code-block} python
->>> q = u.Quantity(5, "m")
+>>> q = u.Q(5, "m")
 >>> q.uconvert("cm")
 Quantity(Array(500., dtype=float32, ...), unit='cm')
 ```
@@ -152,8 +152,8 @@ This means you can operations on `Quantity` objects just like you would with
 You can perform standard mathematical operations on `Quantity` objects:
 
 ```{code-block} python
->>> q1 = u.Quantity(5, "m")
->>> q2 = u.Quantity(10, "m")
+>>> q1 = u.Q(5, "m")
+>>> q2 = u.Q(10, "m")
 
 >>> q1 + q2
 Quantity(Array(15, dtype=int32, ...), unit='m')
@@ -172,8 +172,8 @@ Quantity(Array(25, dtype=int32, ...), unit='m2')
 ### Comparison Operations
 
 ```{code-block} python
->>> q1 = u.Quantity([1., 2, 3], "m")
->>> q2 = u.Quantity([100., 201, 300], "cm")
+>>> q1 = u.Q([1., 2, 3], "m")
+>>> q2 = u.Q([100., 201, 300], "cm")
 
 >>> q1 < q2
 Array([False,  True, False], dtype=bool)
@@ -186,7 +186,7 @@ Array([ True, False,  True], dtype=bool)
 ### Indexing and Slicing
 
 ```{code-block} python
->>> q = u.Quantity([1, 2, 3, 4], "m")
+>>> q = u.Q([1, 2, 3, 4], "m")
 
 >>> q[1]
 Quantity(Array(2, dtype=int32), unit='m')
@@ -203,9 +203,9 @@ Quantity(Array([2, 3, 4], dtype=int32), unit='m')
 for more details.
 
 ```{code-block} python
->>> q = u.Quantity([1., 2, 3, 4], "m")
+>>> q = u.Q([1., 2, 3, 4], "m")
 
->>> q.at[2].set(u.Quantity(30.1, "cm"))
+>>> q.at[2].set(u.Q(30.1, "cm"))
 Quantity(Array([1.   , 2.   , 0.301, 4.   ], dtype=float32), unit='m')
 
 ```
@@ -217,7 +217,7 @@ JAX function normally only support pure JAX arrays.
 ```{code-block} python
 
 >>> import jax.numpy as jnp  # regular JAX
->>> x = u.Quantity([1, 2, 3], "m")
+>>> x = u.Q([1, 2, 3], "m")
 
 >>> try: jnp.square(x)
 ... except TypeError: print("not a pure JAX array")
@@ -245,7 +245,7 @@ top function. With `unxt` you can use normal JAX!
 ... def func(x, y):
 ...     return jnp.square(x) + jnp.multiply(x, y)  # normal JAX
 
->>> y = u.Quantity([4, 5, 6], "m")
+>>> y = u.Q([4, 5, 6], "m")
 >>> func(x, y)
 Quantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
 
@@ -286,7 +286,7 @@ printing.
 
 >>> import wadler_lindig as wl
 
->>> q = u.Quantity([1, 2, 3], "m")
+>>> q = u.Q([1, 2, 3], "m")
 
 >>> wl.pprint(q)  # The default pretty printing
 Quantity(i32[3], unit='m')
@@ -345,6 +345,28 @@ Instead of printing the value as either a full Array or a short array, you can c
 
 >>> wl.pprint(q, short_arrays="compact")
 Quantity([1, 2, 3], unit='m')
+
+```
+
+For more compact output, the `Quantity` class has a short name `Q` that can be
+used by setting `use_short_name=True`:
+
+```{code-block} python
+
+>>> wl.pprint(q, use_short_name=True)
+Q(i32[3], unit='m')
+
+```
+
+The short name can be combined with other printing options:
+
+```{code-block} python
+
+>>> wl.pprint(q, use_short_name=True, include_params=True)
+Q['length'](i32[3], unit='m')
+
+>>> wl.pprint(q, use_short_name=True, short_arrays="compact")
+Q([1, 2, 3], unit='m')
 
 ```
 
@@ -426,14 +448,14 @@ to a specified range, which is useful for keeping angles within a branch cut:
 
 ```{code-block} python
 >>> a = u.Angle(370, "deg")
->>> a.wrap_to(u.Quantity(0, "deg"), u.Quantity(360, "deg"))
+>>> a.wrap_to(u.Q(0, "deg"), u.Q(360, "deg"))
 Angle(Array(10, dtype=int32, weak_type=True), unit='deg')
 ```
 
 The {meth}`~unxt.quantity.Angle.wrap_to` method has a function counterpart
 
 ```{code-block} python
->>> u.quantity.wrap_to(a, u.Quantity(0, "deg"), u.Quantity(360, "deg"))
+>>> u.quantity.wrap_to(a, u.Q(0, "deg"), u.Q(360, "deg"))
 Angle(Array(10, dtype=int32, weak_type=True), unit='deg')
 ```
 

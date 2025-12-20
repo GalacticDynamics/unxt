@@ -4,7 +4,7 @@
 __all__ = ("Quantity", "Q")
 
 from dataclasses import replace
-from typing import final
+from typing import ClassVar, final
 
 import equinox as eqx
 from jaxtyping import Array, ArrayLike, Shaped
@@ -22,6 +22,11 @@ class Quantity(AbstractParametricQuantity):
     """Arrays with associated units.
 
     This class is parametrized by the dimensions of the units.
+
+    Attributes
+    ----------
+    short_name : str
+        Short name 'Q' used for compact wadler-lindig printing.
 
     Examples
     --------
@@ -104,6 +109,9 @@ class Quantity(AbstractParametricQuantity):
     Quantity['m2 kg-1 s-2'](1., unit='m2 / (kg s2)')
 
     """
+
+    short_name: ClassVar[str] = "Q"
+    """Short name for compact printing."""
 
     value: Shaped[Array, "*shape"] = eqx.field(converter=convert_to_quantity_value)
     """The value of the `AbstractQuantity`."""

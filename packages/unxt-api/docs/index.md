@@ -148,7 +148,7 @@ functions. When you use:
 ```python
 import unxt as u
 
-q = u.Quantity(5, "m")
+q = u.Q(5, "m")
 u.uconvert("km", q)
 ```
 

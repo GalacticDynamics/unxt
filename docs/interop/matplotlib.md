@@ -36,8 +36,8 @@ import matplotlib.pyplot as plt
 import jax.numpy as jnp
 import unxt as u
 
-x = u.Quantity(jnp.linspace(0, 360, 100), "deg")
-y = u.Quantity(jnp.sin(x.ustrip("rad")), "")
+x = u.Q(jnp.linspace(0, 360, 100), "deg")
+y = u.Q(jnp.sin(x.ustrip("rad")), "")
 
 plt.plot(x, y)
 ```
@@ -50,7 +50,7 @@ plt.plot(x, y)
 
 import quaxed.numpy as jnp
 
-x = u.Quantity(jnp.linspace(0, 360, 100), "deg")
+x = u.Q(jnp.linspace(0, 360, 100), "deg")
 y = jnp.sin(x)
 
 plt.plot(x, y)

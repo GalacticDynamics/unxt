@@ -26,7 +26,7 @@ As an example, consider the following code snippets:
 
 >>> import unxt as u
 
->>> q = u.Quantity(1, 'm')
+>>> q = u.Q(1, 'm')
 >>> q
 Quantity(Array(1, dtype=int32, weak_type=True), unit='m')
 ```
