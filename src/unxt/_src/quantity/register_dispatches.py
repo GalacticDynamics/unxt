@@ -11,9 +11,9 @@ from jaxtyping import ArrayLike
 from plum import dispatch
 from plum.parametric import type_unparametrized as type_np
 
-from .api import ustrip
 from .base import AbstractQuantity
 from .quantity import Quantity
+from unxt_api import ustrip
 
 # -----------------------------------------------
 

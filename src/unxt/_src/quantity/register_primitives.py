@@ -24,14 +24,13 @@ from quax import register
 
 from quaxed import lax as qlax
 
-from .api import is_unit_convertible, uconvert, ustrip
 from .base import AbstractQuantity
 from .base_angle import AbstractAngle
 from .base_parametric import AbstractParametricQuantity
 from .flag import AllowValue
 from .quantity import Quantity
 from unxt._src.utils import promote_dtypes, promote_dtypes_if_needed
-from unxt.units import unit, unit_of
+from unxt_api import is_unit_convertible, uconvert, unit, unit_of, ustrip
 
 T = TypeVar("T")
 

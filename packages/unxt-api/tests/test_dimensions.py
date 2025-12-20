@@ -3,7 +3,7 @@
 import plum
 import pytest
 
-import unxt_api as api
+import unxt_api as uapi
 
 # ==============================================================================
 # Tests for dimension()
@@ -12,14 +12,14 @@ import unxt_api as api
 
 def test_dimension_is_abstract_dispatch() -> None:
     """Test that dimension is an abstract dispatch function."""
-    assert isinstance(api.dimension, plum.function.Function)
-    assert hasattr(api.dimension, "methods")
+    assert isinstance(uapi.dimension, plum.function.Function)
+    assert hasattr(uapi.dimension, "methods")
 
 
 def test_dimension_accepts_any_type() -> None:
     """Test that dimension accepts Any type in signature."""
     # The abstract signature should accept Any
-    assert "dimension" in dir(api)
+    assert "dimension" in dir(uapi)
 
 
 def test_dimension_no_default_implementation() -> None:
@@ -33,7 +33,7 @@ def test_dimension_no_default_implementation() -> None:
 
     # Should raise NotFoundLookupError since no dispatch is registered
     with pytest.raises(plum.resolver.NotFoundLookupError):
-        api.dimension(obj)
+        uapi.dimension(obj)
 
 
 def test_dimension_can_register_custom_dispatch(custom_dimension_type) -> None:
@@ -54,7 +54,7 @@ def test_dimension_multiple_dispatches_possible() -> None:
     """Test that multiple dispatches can coexist."""
     # The abstract function should support multiple dispatches
     # Count existing methods
-    initial_count = len(api.dimension.methods)
+    initial_count = len(uapi.dimension.methods)
     assert initial_count >= 0  # At least the abstract signature
 
 
@@ -65,13 +65,13 @@ def test_dimension_multiple_dispatches_possible() -> None:
 
 def test_dimension_of_is_abstract_dispatch() -> None:
     """Test that dimension_of is an abstract dispatch function."""
-    assert isinstance(api.dimension_of, plum.function.Function)
-    assert hasattr(api.dimension_of, "methods")
+    assert isinstance(uapi.dimension_of, plum.function.Function)
+    assert hasattr(uapi.dimension_of, "methods")
 
 
 def test_dimension_of_accepts_any_type() -> None:
     """Test that dimension_of accepts Any type in signature."""
-    assert "dimension_of" in dir(api)
+    assert "dimension_of" in dir(uapi)
 
 
 def test_dimension_of_no_default_implementation() -> None:
@@ -87,7 +87,7 @@ def test_dimension_of_no_default_implementation() -> None:
     obj = NoDispatchType()
 
     try:
-        result = api.dimension_of(obj)
+        result = uapi.dimension_of(obj)
         # If it doesn't raise, it should return None (unxt's default)
         assert result is None
     except plum.resolver.NotFoundLookupError:
@@ -114,21 +114,21 @@ def test_dimension_of_can_register_custom_dispatch(custom_unit_type) -> None:
 
 
 def test_both_dimension_functions_are_exported() -> None:
-    """Test that both functions are exported from unxt_api."""
-    assert hasattr(api, "dimension")
-    assert hasattr(api, "dimension_of")
+    """Test that both functions are exported from unxt_uapi."""
+    assert hasattr(uapi, "dimension")
+    assert hasattr(uapi, "dimension_of")
 
 
 def test_both_dimension_functions_in_all() -> None:
     """Test that both functions are in __all__."""
-    assert "dimension" in api.__all__
-    assert "dimension_of" in api.__all__
+    assert "dimension" in uapi.__all__
+    assert "dimension_of" in uapi.__all__
 
 
 def test_dimension_functions_have_independent_registries() -> None:
     """Test that dimension and dimension_of have independent dispatch registries."""
     # They should be different function objects
-    assert api.dimension is not api.dimension_of
+    assert uapi.dimension is not uapi.dimension_of
 
     # They should have their own method registries
-    assert id(api.dimension.methods) != id(api.dimension_of.methods)
+    assert id(uapi.dimension.methods) != id(uapi.dimension_of.methods)

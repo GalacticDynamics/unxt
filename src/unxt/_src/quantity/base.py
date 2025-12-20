@@ -34,9 +34,9 @@ from quax import ArrayValue
 import quaxed.numpy as jnp
 from dataclassish import field_items, replace
 
-from .api import is_unit_convertible, uconvert, ustrip
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
-from unxt.units import AbstractUnit, unit_of
+from unxt.units import AbstractUnit
+from unxt_api import is_unit_convertible, uconvert, unit_of, ustrip
 
 if TYPE_CHECKING:
     from typing import Self
