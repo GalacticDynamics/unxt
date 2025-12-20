@@ -98,7 +98,7 @@ docs = [
   "sphinxext-rediraffe>=0.2.7",
 ]
 lint = ["pre-commit>=4.1.0", "pylint>=3.3.8"]
-nox = ["nox>=2024.10.9"]
+nox = ["nox>=2024.10.9", "nox-uv>=0.6.3"]
 pytest-benchmark-parallel = ["pytest-xdist>=3.6.1"]
 test = [
   "hypothesis[numpy]>=6.138.14",
