@@ -3,11 +3,17 @@ name: CD - unxt-api
 on:
   workflow_dispatch:
   pull_request:
+    paths:
+      - "packages/unxt-api/**"
+      - ".github/workflows/cd-unxt-api.yml"
   push:
     branches:
       - main
     tags:
       - "unxt-api-v*"
+    paths:
+      - "packages/unxt-api/**"
+      - ".github/workflows/cd-unxt-api.yml"
   release:
     types:
       - published
