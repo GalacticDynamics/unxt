@@ -5,11 +5,10 @@ __all__: tuple[str, ...] = ()
 from plum import conversion_method
 
 from .angle import Angle
-from .api import ustrip
 from .base import AbstractQuantity
 from .quantity import Quantity
 from .unchecked import BareQuantity
-from unxt.units import unit_of
+from unxt_api import unit_of, ustrip
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=BareQuantity)  # type: ignore[arg-type]
