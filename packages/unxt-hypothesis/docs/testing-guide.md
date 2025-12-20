@@ -16,7 +16,7 @@ import unxt as u
 
 
 def test_addition():
-    x, y = u.Quantity(5, "m"), u.Quantity(3, "m")
+    x, y = u.Q(5, "m"), u.Q(3, "m")
     assert x + y == y + x
 ```
 
@@ -104,7 +104,7 @@ def test_addition_commutative(q1, q2):
 @given(q=ust.quantities("m", shape=()))
 def test_multiplication_identity(q):
     """Multiplying by 1 (dimensionless) preserves the quantity."""
-    one = u.Quantity(1.0, "")
+    one = u.Q(1.0, "")
     result = q * one
     assert result.unit == q.unit
     assert jnp.allclose(result.value, q.value)
@@ -448,8 +448,8 @@ and latitude:
 @given(
     lon=ust.wrap_to(
         ust.quantities("deg", quantity_cls=u.Angle),
-        min=u.Quantity(0, "deg"),
-        max=u.Quantity(360, "deg"),
+        min=u.Q(0, "deg"),
+        max=u.Q(360, "deg"),
     )
 )
 def test_longitude_range(lon):
@@ -461,8 +461,8 @@ def test_longitude_range(lon):
 @given(
     lat=ust.wrap_to(
         ust.quantities("deg", quantity_cls=u.Angle, shape=()),
-        min=u.Quantity(-90, "deg"),
-        max=u.Quantity(90, "deg"),
+        min=u.Q(-90, "deg"),
+        max=u.Q(90, "deg"),
     )
 )
 def test_latitude_range(lat):
@@ -476,9 +476,7 @@ The `wrap_to()` strategy can wrap any quantity, not just angles:
 ```python
 @given(
     distance=ust.wrap_to(
-        ust.quantities("kpc", shape=10),
-        min=u.Quantity(0, "kpc"),
-        max=u.Quantity(100, "kpc"),
+        ust.quantities("kpc", shape=10), min=u.Q(0, "kpc"), max=u.Q(100, "kpc")
     )
 )
 def test_distance_range(distance):
@@ -743,8 +741,8 @@ import unxt_hypothesis as ust
 
 @given(q1=ust.quantities(), q2=ust.quantities())
 @example(
-    q1=u.Quantity(jnp.array([0.0], dtype=jnp.float32), "m"),
-    q2=u.Quantity(jnp.array([jnp.inf], dtype=jnp.float32), "m"),
+    q1=u.Q(jnp.array([0.0], dtype=jnp.float32), "m"),
+    q2=u.Q(jnp.array([jnp.inf], dtype=jnp.float32), "m"),
 )
 def test_addition_commutative(q1, q2):
     """Test that addition is commutative."""
@@ -765,8 +763,8 @@ You can also copy the failing example into a separate test for debugging:
 ```python
 def test_debug_specific_case():
     """Debug the specific failing case."""
-    q1 = u.Quantity(jnp.array([0.0]), "m")
-    q2 = u.Quantity(jnp.array([jnp.inf]), "m")
+    q1 = u.Q([0.0], "m")
+    q2 = u.Q(jnp.inf, "m")
 
     # Add debugging
     print(f"q1 = {q1}")

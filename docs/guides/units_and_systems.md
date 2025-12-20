@@ -39,7 +39,7 @@ None
 >>> u.unit_of(m)  # from a unit object
 Unit("m")
 
->>> q = u.Quantity(5, 'm')  # from a Quantity
+>>> q = u.Q(5, 'm')  # from a Quantity
 >>> u.unit_of(q)
 Unit("m")
 

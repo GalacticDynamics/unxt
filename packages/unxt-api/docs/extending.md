@@ -123,14 +123,14 @@ def dimension_of(obj: Distance, /) -> u.AbstractDimension:
 def ustrip(to_unit: u.AbstractUnit, obj: Distance, /):
     """Convert Distance to specified unit and return value."""
     # Convert meters to target unit
-    in_meters = u.Quantity(obj.meters, "m")
+    in_meters = u.Q(obj.meters, "m")
     return u.ustrip(to_unit, in_meters)
 
 
 @dispatch
 def uconvert(to_unit: u.AbstractUnit, obj: Distance, /):
     """Convert Distance to specified unit."""
-    in_meters = u.Quantity(obj.meters, "m")
+    in_meters = u.Q(obj.meters, "m")
     return u.uconvert(to_unit, in_meters)
 
 
@@ -164,7 +164,7 @@ class Vector3D:
         """Convert to unxt.Quantity."""
         import jax.numpy as jnp
 
-        return u.Quantity(jnp.array([self.x, self.y, self.z]), self.unit_str)
+        return u.Q(jnp.array([self.x, self.y, self.z]), self.unit_str)
 
     @classmethod
     def from_quantity(cls, q):

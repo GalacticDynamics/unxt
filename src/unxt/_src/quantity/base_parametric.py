@@ -176,7 +176,12 @@ class AbstractParametricQuantity(AbstractQuantity):
         return partial(type_unparametrized(self), **kwargs), tuple(args)
 
     def __pdoc__(
-        self, *, include_params: bool = False, named_unit: bool = True, **kwargs: Any
+        self,
+        *,
+        include_params: bool = False,
+        named_unit: bool = True,
+        use_short_name: bool = False,
+        **kwargs: Any,
     ) -> wl.AbstractDoc:
         """Return the Wadler-Lindig representation of this class.
 
@@ -194,6 +199,10 @@ class AbstractParametricQuantity(AbstractQuantity):
             argument. If `False`, the unit is included as a positional argument.
             For example, ``Quantity(<array>, unit='m')`` versus
             ``Quantity(<array>, 'm')``.
+        use_short_name
+            If `True` and the class has a ``short_name`` class variable, use the
+            short name instead of the full class name. For example, ``Q(...)``
+            instead of ``Quantity(...)``.
         kwargs
             Additional keyword arguments ``wadler_lindig.pdoc`` method for
             formatting the value, stringified unit, and other fields.
@@ -236,9 +245,22 @@ class AbstractParametricQuantity(AbstractQuantity):
         >>> wl.pprint(q, named_unit=False)
         Quantity(i32[3], 'm')
 
+        The class can be printed with its short name:
+
+        >>> wl.pprint(q, use_short_name=True)
+        Q(i32[3], unit='m')
+
+        Short name with type parameter:
+
+        >>> wl.pprint(q, use_short_name=True, include_params=True)
+        Q['length'](i32[3], unit='m')
+
         """
         pdoc = super().__pdoc__(
-            include_params=include_params, named_unit=named_unit, **kwargs
+            include_params=include_params,
+            named_unit=named_unit,
+            use_short_name=use_short_name,
+            **kwargs,
         )
 
         # Type Parameter

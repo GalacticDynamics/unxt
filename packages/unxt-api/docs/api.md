@@ -61,7 +61,7 @@ import unxt as u
 u.dimension_of(u.unit("km"))  # PhysicalType('length')
 
 # From quantity
-q = u.Quantity(5, "kg")
+q = u.Q(5, "kg")
 u.dimension_of(q)  # PhysicalType('mass')
 ```
 
@@ -118,7 +118,7 @@ def unit_of(obj: Any, /) -> u.AbstractUnit:
 import unxt as u
 
 # From quantity
-q = u.Quantity(5, "m")
+q = u.Q(5, "m")
 u.unit_of(q)  # Unit("m")
 
 # From non-quantity
@@ -150,7 +150,7 @@ def uconvert(u: Any, x: Any, /) -> Any:
 import unxt as u
 
 # Convert quantity
-q = u.Quantity(1, "km")
+q = u.Q(1, "km")
 u.uconvert("m", q)  # Quantity(Array(1000., ...), unit='m')
 ```
 
@@ -178,7 +178,7 @@ def ustrip(*args: Any) -> Any:
 import unxt as u
 
 # Strip current units
-q = u.Quantity(5, "km")
+q = u.Q(5, "km")
 u.ustrip(q)  # Array(5., ...)
 
 # Convert then strip
@@ -214,7 +214,7 @@ u.is_unit_convertible(u.unit("km"), u.unit("m"))  # True
 u.is_unit_convertible(u.unit("kg"), u.unit("m"))  # False
 
 # Check quantity
-q = u.Quantity(5, "m")
+q = u.Q(5, "m")
 u.is_unit_convertible(u.unit("km"), q)  # True
 u.is_unit_convertible(u.unit("kg"), q)  # False
 ```
@@ -242,9 +242,9 @@ def wrap_to(x: Any, min: Any, max: Any, /) -> Any:
 import unxt as u
 
 # Wrap angle to [0, 360) degrees
-angle = u.Quantity(370, "deg")
-min_angle = u.Quantity(0, "deg")
-max_angle = u.Quantity(360, "deg")
+angle = u.Q(370, "deg")
+min_angle = u.Q(0, "deg")
+max_angle = u.Q(360, "deg")
 
 u.quantity.wrap_to(angle, min_angle, max_angle)  # Angle(Array(10, ...), unit='deg')
 

@@ -62,6 +62,12 @@ class AbstractQuantity(
 ):
     """Represents a Quantity with a unit.
 
+    Attributes
+    ----------
+    short_name : str | None
+        Optional short name for the class used in wadler-lindig printing when
+        ``use_short_name=True``. Defaults to ``None``.
+
     Examples
     --------
     >>> import unxt as u
@@ -688,6 +694,7 @@ class AbstractQuantity(
         *,
         named_unit: bool = True,
         short_arrays: bool | Literal["compact"] = True,
+        use_short_name: bool = False,
         **kwargs: Any,
     ) -> wl.AbstractDoc:
         """Return the Wadler-Lindig representation of this class.
@@ -707,6 +714,10 @@ class AbstractQuantity(
             ``Quantity(Array([1., 2.], dtype=float32), unit='')`` to
             ``Quantity([1., 2.], unit='')``. If `True` or `False` it uses the
             default `wadler_lindig` behavior.
+        use_short_name
+            If `True` and the class has a ``short_name`` class variable, use the
+            short name instead of the full class name. For example, ``Q(...)``
+            instead of ``Quantity(...)``.
         kwargs
             Additional keyword arguments ``wadler_lindig.pdoc`` method for
             formatting the value, stringified unit, and other fields.
@@ -750,9 +761,17 @@ class AbstractQuantity(
         >>> wl.pprint(q, short_arrays="compact")
         BareQuantity([1, 2, 3], unit='m')
 
+        The class short name can be used if available:
+
+        >>> wl.pprint(q, use_short_name=True)
+        BareQuantity(i32[3], unit='m')
+
         """
         # Class Name
-        cls_name = wl.TextDoc(type_nonparametric(self).__name__)
+        if use_short_name and getattr(self, "short_name", None) is not None:
+            cls_name = wl.TextDoc(self.short_name)
+        else:
+            cls_name = wl.TextDoc(type_nonparametric(self).__name__)
 
         # Object fields
         fs = dict(field_items(self))

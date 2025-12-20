@@ -48,7 +48,7 @@ None
 >>> dimension_of(dim)  # from a dimension object
 PhysicalType('length')
 
->>> q = u.Quantity(5, 'm')  # from a Quantity
+>>> q = u.Q(5, 'm')  # from a Quantity
 >>> dimension_of(q)
 PhysicalType('length')
 
