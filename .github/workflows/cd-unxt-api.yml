@@ -83,7 +83,10 @@ jobs:
       url: https://pypi.org/p/unxt-api
     permissions:
       id-token: write
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: |
+      github.event_name == 'release' &&
+      github.event.action == 'published' &&
+      startsWith(github.event.release.tag_name, 'unxt-api-v')
 
     steps:
       - name: Download built artifact to dist/
