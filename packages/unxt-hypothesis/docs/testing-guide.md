@@ -1,4 +1,4 @@
-# Testing with Hypothesis
+# Testing with `hypothesis`
 
 This guide shows how to use the `unxt-hypothesis` package for property-based
 testing of code that uses `unxt` quantities.
