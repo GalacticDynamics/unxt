@@ -81,7 +81,7 @@ def test_properties(value):
         q.materialise()
 
     # Test aval
-    assert q.aval() == jax.core.get_aval(expected)
+    assert q.aval() == jax.typeof(expected)
 
     # Test enable_materialise
     assert np.array_equal(q.enable_materialise().value, q.value)
