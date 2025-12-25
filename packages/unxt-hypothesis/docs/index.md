@@ -285,6 +285,74 @@ def test_galactic_system(sys):
     assert len(sys) == 4
 ```
 
+## Type Strategy Registration
+
+The package automatically registers type strategies for Hypothesis's
+`st.from_type()` function, enabling automatic strategy generation for unxt
+types. This allows you to use type annotations directly in your tests without
+explicitly importing the strategy functions.
+
+**Registered Types:**
+
+- `u.AbstractQuantity` → uses `quantities()`
+- `u.Angle` → uses `angles()`
+- `u.AbstractUnitSystem` → uses `unitsystems()`
+
+**Examples:**
+
+```python
+from hypothesis import given, strategies as st
+
+import unxt as u
+
+
+# Hypothesis automatically uses the registered strategies
+@given(q=st.from_type(u.AbstractQuantity))
+def test_quantity_via_from_type(q):
+    """Test quantities generated via st.from_type()."""
+    assert isinstance(q, u.AbstractQuantity)
+    assert u.dimension_of(q) is not None
+
+
+@given(a=st.from_type(u.Angle))
+def test_angle_via_from_type(a):
+    """Test angles generated via st.from_type()."""
+    assert isinstance(a, u.Angle)
+    assert u.dimension_of(a) == u.dimension("angle")
+
+
+@given(sys=st.from_type(u.AbstractUnitSystem))
+def test_unitsystem_via_from_type(sys):
+    """Test unit systems generated via st.from_type()."""
+    assert isinstance(sys, u.AbstractUnitSystem)
+```
+
+This integration makes tests more concise and easier to read, especially when
+combined with type-annotated function signatures:
+
+```python
+from hypothesis import given, strategies as st
+
+import unxt as u
+
+
+def calculate_momentum(mass: u.Quantity, velocity: u.Quantity) -> u.Quantity:
+    """Calculate momentum: p = m * v"""
+    return mass * velocity
+
+
+# Using st.from_type() for cleaner test code
+@given(
+    mass=st.from_type(u.AbstractQuantity),
+    velocity=st.from_type(u.AbstractQuantity),
+)
+def test_momentum_dimensions(mass, velocity):
+    """Momentum has the right dimensions."""
+    momentum = calculate_momentum(mass, velocity)
+    expected_dim = u.dimension_of(mass) * u.dimension_of(velocity)
+    assert u.dimension_of(momentum) == expected_dim
+```
+
 ## Advanced Usage
 
 ### Combining Strategies
