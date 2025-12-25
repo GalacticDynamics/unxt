@@ -81,6 +81,39 @@ This is a UV workspace repository containing multiple packages:
 - `__all__` should always be a tuple unless it needs to be modified (e.g., with
   `+=`), in which case use a list - prefer immutable by default
 
+### Documentation
+
+- Always use `::::{tab-set}` format for installation instructions with pip and
+  uv options:
+
+  ````markdown
+  ::::{tab-set}
+
+  :::{tab-item} pip
+
+  ```bash
+  pip install unxt
+  ```
+  ````
+
+  :::
+
+  :::{tab-item} uv
+
+  ````bash
+
+  ```bash
+  uv add unxt
+  ````
+
+  :::
+
+  ::::
+
+  ```
+
+  ```
+
 ### JAX Integration via Quax
 
 - Quantities are `ArrayValue` subclasses (Quax protocol)

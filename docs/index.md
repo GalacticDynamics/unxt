@@ -12,6 +12,7 @@ sd_hide_title: true
 unxt-api <packages/unxt-api/index>
 unxt <self>
 unxt-hypothesis <packages/unxt-hypothesis/index>
+unxt-xarray <packages/unxt-xarray/index>
 ```
 
 ```{toctree}
@@ -25,6 +26,7 @@ guides/units_and_systems
 guides/type-checking
 packages/unxt-api/extending
 packages/unxt-hypothesis/testing-guide
+packages/unxt-xarray/xarray-guide
 ```
 
 ```{toctree}
