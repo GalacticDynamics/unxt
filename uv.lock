@@ -3764,15 +3764,11 @@ workspace = [
 name = "unxt-api"
 source = { editable = "packages/unxt-api" }
 dependencies = [
-    { name = "astropy" },
     { name = "plum-dispatch" },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "astropy", specifier = ">=7.0.0" },
-    { name = "plum-dispatch", specifier = ">=2.5.7" },
-]
+requires-dist = [{ name = "plum-dispatch", specifier = ">=2.5.7" }]
 
 [[package]]
 name = "unxt-hypothesis"
