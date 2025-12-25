@@ -1,8 +1,16 @@
 # Project Overview
 
-This repository provides `unxt`, a library for unitful quantities in JAX with
-support for JIT compilation, auto-differentiation, vectorization, and GPU/TPU
-acceleration.
+This is a UV workspace repository containing multiple packages:
+
+- **unxt**: Main library for unitful quantities in JAX with support for JIT
+  compilation, auto-differentiation, vectorization, and GPU/TPU acceleration
+- **unxt-api**: Abstract dispatch API that defines the multiple-dispatch
+  interfaces implemented by `unxt` and other packages. Minimal dependencies
+  (only `plum-dispatch`).
+- **unxt-hypothesis**: Hypothesis strategies for property-based testing with
+  `unxt`
+
+## Main Package: unxt
 
 - **Language**: Python 3.11+
 - **Main API**: `Quantity`, `Angle`, unit conversion and manipulation
@@ -33,17 +41,28 @@ acceleration.
 
 ## Folder Structure
 
-- `/src/unxt/`: Public API with re-exports
-  - `_src/`: Private implementation code
-    - `quantity/`: Quantity classes and operations
-    - `units/`: Unit handling and wrapping
-    - `dimensions/`: Physical dimension types
-    - `unitsystems/`: Unit system definitions
-  - `_interop/`: Optional dependency integrations
-- `/tests/`: Organized into `unit/`, `integration/`, `benchmark/`
-- `README.md`: Tested via Sybil (all Python code blocks are doctests)
+### Root Level (UV Workspace)
+
+- `/src/unxt/`: Main package public API with re-exports
+- `/packages/`: Workspace packages
+  - `unxt-api/`: Abstract dispatch API package
+  - `unxt-hypothesis/`: Hypothesis strategies package
+- `/tests/`: Main package tests, organized into `unit/`, `integration/`,
+  `benchmark/`
+- `README.md`: Main package documentation, tested via Sybil (all Python code
+  blocks are doctests)
 - `conftest.py`: Pytest config, Sybil setup, optional dependency handling
 - `noxfile.py`: Task automation with dependency groups
+- `pyproject.toml`: Root workspace configuration with `[tool.uv.workspace]`
+
+### Main Package Structure (`/src/unxt/`)
+
+- `_src/`: Private implementation code
+  - `quantity/`: Quantity classes and operations
+  - `units/`: Unit handling and wrapping
+  - `dimensions/`: Physical dimension types
+  - `unitsystems/`: Unit system definitions
+- `_interop/`: Optional dependency integrations
 
 ## Coding Style
 
@@ -59,8 +78,8 @@ acceleration.
 - Keep dependencies minimal; the core dependencies are listed in
   `pyproject.toml`
 - Docstrings should be concise and include testable usage examples
-- `__all__` should always be a tuple (not list) unless it needs to be mutated
-  with `+=` - prefer immutable by default
+- `__all__` should always be a tuple unless it needs to be modified (e.g., with
+  `+=`), in which case use a list - prefer immutable by default
 
 ### JAX Integration via Quax
 
@@ -121,6 +140,37 @@ Three optional interop groups:
 - `interop-mpl`: Matplotlib quantity plotting
 
 Install with: `uv add unxt --extra all` or specific groups
+
+## Workspace Packages
+
+This repository uses a UV workspace structure with multiple packages (e.g.,
+`unxt`, `unxt-api`, `unxt-hypothesis`). When creating new workspace packages,
+use this versioning setup pattern:
+
+```toml
+[build-system]
+build-backend = "hatchling.build"
+requires      = ["hatch-vcs", "hatchling"]
+
+[tool.hatch.version]
+raw-options = { root = "../..", search_parent_directories = true, git_describe_command = "git describe --dirty --tags --long --match '<package-name>-v*'", local_scheme = "no-local-version" }
+source      = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/<package_name>/_version.py"
+version-file-template = """\
+version: str = {version!r}
+version_tuple: tuple[int, int, int] | tuple[int, int, int, str, str]
+version_tuple = {version_tuple!r}
+"""
+
+[tool.uv.sources]
+unxt = { workspace = true }
+```
+
+Replace `<package-name>` with the actual package name (e.g.,
+`unxt-hypothesis-v*`) and `<package_name>` with the Python module name (e.g.,
+`unxt_hypothesis`). This enables automatic versioning from git tags.
 
 ## Final Notes
 
