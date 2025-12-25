@@ -302,7 +302,7 @@ def angles(
 
     Returns
     -------
-    coordinax.Angle
+    unxt.Angle
         A strategy that generates Angle instances.
 
     Examples
