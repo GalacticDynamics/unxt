@@ -245,6 +245,8 @@ filterwarnings = [
   "ignore:Signature .* for <class 'numpy\\.longdouble'> does not match any known type:UserWarning:numpy\\._core\\.getlimits",
   # pillow
   "ignore:'mode' parameter is deprecated and will be removed in Pillow 13 \\(2026-10-15\\):DeprecationWarning",
+  # pyparsing <- matplotlib
+  "ignore:'parseAll' argument is deprecated, use 'parse_all':DeprecationWarning",
 ]
 log_level = "INFO"
 minversion = "8.3"
