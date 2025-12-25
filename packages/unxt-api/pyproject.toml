@@ -18,7 +18,7 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
 ]
-dependencies = ["astropy>=7.0.0", "plum-dispatch>=2.5.7"]
+dependencies = ["plum-dispatch>=2.5.7"]
 description = "Abstract dispatch API definitions for unxt"
 dynamic = ["version"]
 license.text = "BSD-3-Clause"
