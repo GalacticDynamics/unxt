@@ -104,6 +104,43 @@ Generate random `UnitSystem` objects.
 
 **Returns:** `unxt.AbstractUnitSystem`
 
+## Type Strategy Registration
+
+The package automatically registers type strategies for Hypothesis's
+`st.from_type()` function, enabling automatic strategy generation for unxt
+types:
+
+```python
+from hypothesis import given, strategies as st
+
+import unxt as u
+
+
+# Hypothesis automatically uses the registered strategies
+@given(q=st.from_type(u.AbstractQuantity))
+def test_quantity_via_from_type(q):
+    """Test quantities generated via st.from_type()."""
+    assert isinstance(q, u.AbstractQuantity)
+    assert u.dimension_of(q) is not None
+
+
+@given(a=st.from_type(u.Angle))
+def test_angle_via_from_type(a):
+    """Test angles generated via st.from_type()."""
+    assert isinstance(a, u.Angle)
+    assert u.dimension_of(a) == u.dimension("angle")
+
+
+@given(sys=st.from_type(u.AbstractUnitSystem))
+def test_unitsystem_via_from_type(sys):
+    """Test unit systems generated via st.from_type()."""
+    assert isinstance(sys, u.AbstractUnitSystem)
+```
+
+This integration allows you to use type annotations directly in your tests
+without explicitly importing the strategy functions, making tests more concise
+and easier to read.
+
 ## Examples
 
 ### Generate quantities with specific shapes

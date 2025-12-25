@@ -1,6 +1,6 @@
 """Hypothesis strategies for UnitSystem objects."""
 
-__all__ = ["unitsystems"]
+__all__ = ("unitsystems",)
 
 from hypothesis import strategies as st
 
@@ -69,3 +69,8 @@ def unitsystems(
     ]
     # Create and return the unit system
     return u.unitsystem(*unit_objs)
+
+
+# Register type strategy for Hypothesis's st.from_type()
+# Note: Pass the callable, not an invoked strategy
+st.register_type_strategy(u.AbstractUnitSystem, lambda _: unitsystems())
