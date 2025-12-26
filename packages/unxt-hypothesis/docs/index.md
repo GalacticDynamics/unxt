@@ -304,6 +304,7 @@ explicitly importing the strategy functions.
 from hypothesis import given, strategies as st
 
 import unxt as u
+import unxt_hypothesis as ust  # Import to register strategies
 
 
 # Hypothesis automatically uses the registered strategies
