@@ -132,10 +132,10 @@ def test_angle_via_from_type(a):
     assert u.dimension_of(a) == u.dimension("angle")
 
 
-@given(sys=st.from_type(u.AbstractUnitSystem))
-def test_unitsystem_via_from_type(sys):
+@given(usys=st.from_type(u.AbstractUnitSystem))
+def test_unitsystem_via_from_type(usys):
     """Test unit systems generated via st.from_type()."""
-    assert isinstance(sys, u.AbstractUnitSystem)
+    assert isinstance(usys, u.AbstractUnitSystem)
 ```
 
 This integration allows you to use type annotations directly in your tests

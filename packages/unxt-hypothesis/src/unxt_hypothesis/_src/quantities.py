@@ -2,7 +2,7 @@
 
 __all__ = ("quantities", "wrap_to", "angles")
 
-from typing import Any, TypeAlias
+from typing import Any, T, TypeAlias, TypeVar
 
 import jax.numpy as jnp
 import numpy as np
@@ -12,11 +12,18 @@ from hypothesis.extra.array_api import make_strategies_namespace
 import unxt as u
 from .units import units
 
+T = TypeVar("T")
+
 # Create array API strategies namespace for JAX
 xps = make_strategies_namespace(jnp)
 
 
 SI_UNITS_STRAT = st.sampled_from(tuple(u.unit(x) for x in u.unitsystems.si))
+
+
+def draw_if_strategy(draw: st.DrawFn, v: T | st.SearchStrategy[T], /) -> T:
+    """Draw a value if a strategy is given, else return the value."""
+    return draw(v) if isinstance(v, st.SearchStrategy) else v
 
 
 @st.composite
@@ -30,7 +37,7 @@ def quantities(
     *,
     quantity_cls: type[u.AbstractQuantity] = u.Quantity,
     dtype: Any | st.SearchStrategy[np.dtype] = jnp.float32,
-    shape: int | tuple[int, ...] | st.SearchStrategy[tuple[int, ...]] | None = None,
+    shape: int | tuple[int, ...] | st.SearchStrategy[int | tuple[int, ...]] = (),
     elements: st.SearchStrategy[float] | None = None,
     unique: bool = False,
     **kwargs: Any,
@@ -45,33 +52,38 @@ def quantities(
     draw : st.DrawFn
         Hypothesis draw function (automatically provided by @st.composite).
     unit : str | st.SearchStrategy[unxt.AbstractUnit]
-        Unit specification for the Quantity. Can be: - str: Fixed unit (e.g.,
-        "kpc", "km/s") - unxt.AbstractUnit: Fixed unit object -
-        unxt.AbstractDimension: Dimension to derive unit from (uses
-        `unxt_hypothesis.units` strategy) - SearchStrategy: Strategy that
-        generates units (e.g., from `units()`) or dimensions.  The default
-        strategy samples from SI base units.
-    quantity_cls : type[unxt.AbstractQuantity], optional
-        The target quantity class to convert to. Default is unxt.Quantity.  Can
-        be any AbstractQuantity subclass like Quantity or Angle.
+        Unit specification for the Quantity. Can be:
+
+        - str: Fixed unit (e.g., "kpc", "km/s")
+        - `unxt.AbstractUnit`: Fixed unit object
+        - `unxt.AbstractDimension`: Dimension to derive unit from (uses
+          `unxt_hypothesis.units` strategy)
+        - SearchStrategy: Strategy that generates units (e.g., from `units()`)
+          or dimensions. The default strategy samples from SI base units.
+    quantity_cls : type[`unxt.AbstractQuantity`], optional
+        The target quantity class to convert to. Default is `unxt.Quantity`.
+        Can be any `unxt.AbstractQuantity` subclass like `unxt.Quantity` or
+        `unxt.Angle`.
     dtype : Any, optional
-        NumPy/JAX dtype for the underlying array. Default is jnp.float32.  Can
-        also be a SearchStrategy that generates dtypes.
-    shape : int | tuple[int, ...] | st.SearchStrategy[tuple[int, ...]] | None
-        Shape of the array. Can be: - int: 1D array of that length - tuple:
-        fixed shape - SearchStrategy: strategy that generates shapes - None:
-        scalar (shape ())
+        NumPy/JAX dtype for the underlying array. Default is jnp.float32.
+        Can also be a `SearchStrategy` that generates dtypes.
+    shape : int | tuple[int, ...] | st.SearchStrategy[tuple[int, ...]]
+        Shape of the array. Can be:
+
+        - int: 1D array of that length
+        - tuple: fixed shape
+        - `SearchStrategy`: strategy that generates shapes
     elements : st.SearchStrategy[float] | None, optional
-        Strategy for generating array elements. If None, uses finite floats.
+        Strategy for generating array elements. If `None`, uses finite floats.
     unique : bool, optional
-        Whether array elements should be unique. Default is False.
+        Whether array elements should be unique. Default is `False`.
     **kwargs : Any
         Additional keyword arguments (currently unused, reserved for future
         use).
 
     Returns
     -------
-    u.Quantity
+    `unxt.Quantity`
         A Quantity object with the specified unit and array properties.
 
     Examples
@@ -163,25 +175,17 @@ def quantities(
 
     """
     # Handle unit specification - draw from strategy if needed
-    if isinstance(unit, st.SearchStrategy):
-        unit = draw(unit)
+    unit = draw_if_strategy(draw, unit)
     unit_obj = (
         draw(units(unit)) if isinstance(unit, u.AbstractDimension) else u.unit(unit)
     )
 
     # Handle shape specification
-    if shape is None:
-        array_shape = ()
-    elif isinstance(shape, int):
-        array_shape = (shape,)
-    elif isinstance(shape, tuple):
-        array_shape = shape
-    else:
-        # It's a strategy, draw from it
-        array_shape = draw(shape)
+    shape = draw_if_strategy(draw, shape)
+    array_shape = (shape,) if isinstance(shape, int) else shape
 
     # DType handling
-    dtype = draw(dtype) if isinstance(dtype, st.SearchStrategy) else dtype
+    dtype = draw_if_strategy(draw, dtype)
 
     # Default elements strategy if not provided
     if elements is None:
@@ -259,15 +263,12 @@ def wrap_to(
     ...     assert 0 <= angle.value <= 6.28318530718
 
     """
-    # Draw the base quantity
-    q = draw(quantity) if isinstance(quantity, st.SearchStrategy) else quantity
-
-    # Draw min/max if they're strategies
-    min_val = draw(min) if isinstance(min, st.SearchStrategy) else min
-    max_val = draw(max) if isinstance(max, st.SearchStrategy) else max
-
     # Wrap the quantity to the specified range
-    return u.quantity.wrap_to(q, min_val, max_val)
+    return u.quantity.wrap_to(
+        draw_if_strategy(draw, quantity),
+        draw_if_strategy(draw, min),
+        draw_if_strategy(draw, max),
+    )
 
 
 # Alias for use in angles strategy
@@ -325,8 +326,7 @@ def angles(
 
     """
     # Determine wrapping bounds if provided
-    if isinstance(wrap_to, st.SearchStrategy):
-        wrap_to = draw(wrap_to)
+    wrap_to = draw_if_strategy(draw, wrap_to)
 
     # Extract unit if provided (to avoid conflicts with dimension) Default to
     # angle dimension, but user can override with specific unit. If user
