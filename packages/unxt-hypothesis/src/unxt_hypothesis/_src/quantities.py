@@ -18,9 +18,6 @@ T = TypeVar("T")
 xps = make_strategies_namespace(jnp)
 
 
-SI_UNITS_STRAT = st.sampled_from(tuple(u.unit(x) for x in u.unitsystems.si))
-
-
 def draw_if_strategy(draw: st.DrawFn, v: T | st.SearchStrategy[T], /) -> T:
     """Draw a value if a strategy is given, else return the value."""
     return draw(v) if isinstance(v, st.SearchStrategy) else v
@@ -33,7 +30,7 @@ def quantities(
     unit: str
     | u.AbstractUnit
     | st.SearchStrategy[u.AbstractUnit | u.AbstractDimension]
-    | u.AbstractDimension = SI_UNITS_STRAT,
+    | u.AbstractDimension = units(),  # noqa: B008
     *,
     quantity_cls: type[u.AbstractQuantity] = u.Quantity,
     dtype: Any | st.SearchStrategy[np.dtype] = jnp.float32,
@@ -347,5 +344,11 @@ def angles(
 
 # Register type strategy for Hypothesis's st.from_type()
 # Note: Pass the callable, not an invoked strategy
-st.register_type_strategy(u.AbstractQuantity, lambda _: quantities())
 st.register_type_strategy(u.Angle, lambda _: angles())
+st.register_type_strategy(
+    u.AbstractQuantity, lambda _: quantities(quantity_cls=u.Quantity)
+)
+st.register_type_strategy(
+    u.quantity.BareQuantity, lambda typ: quantities(quantity_cls=typ)
+)
+st.register_type_strategy(u.Quantity, lambda typ: quantities(quantity_cls=typ))
