@@ -117,7 +117,6 @@ __all__ = (
     "AbstractQuantity",
     # Fast
     "BareQuantity",
-    "UncheckedQuantity",
     # Angles
     "AbstractAngle",
     "Angle",
@@ -143,7 +142,7 @@ with install_import_hook("unxt.quantity"):
     from ._src.quantity.base_parametric import AbstractParametricQuantity
     from ._src.quantity.flag import AllowValue
     from ._src.quantity.quantity import Q, Quantity
-    from ._src.quantity.unchecked import BareQuantity, UncheckedQuantity
+    from ._src.quantity.unchecked import BareQuantity
     from ._src.quantity.value import convert_to_quantity_value
     from unxt_api import is_unit_convertible, uconvert, ustrip, wrap_to
 
