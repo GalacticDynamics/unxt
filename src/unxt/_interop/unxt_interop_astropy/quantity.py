@@ -183,7 +183,7 @@ def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity
 
 
 @conversion_method(type_from=AstropyQuantity, type_to=BareQuantity)  # type: ignore[arg-type]
-def convert_astropy_quantity_to_unxt_uncheckedquantity(
+def convert_astropy_quantity_to_unxt_barequantity(
     q: AstropyQuantity, /
 ) -> BareQuantity:
     """Convert a `astropy.units.Quantity` to a `unxt.BareQuantity`.

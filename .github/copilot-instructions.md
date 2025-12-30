@@ -29,8 +29,7 @@ This is a UV workspace repository containing multiple packages:
   - `AbstractParametricQuantity`: Enables dimension parametrization
     (`Quantity["length"]`)
   - `Quantity`: Main parametric class with runtime dimension checking
-  - `BareQuantity`/`UncheckedQuantity`: Lightweight variants without dimension
-    checks
+  - `BareQuantity`: Lightweight variants without dimension checks
   - `Angle`: Specialized type with wrapping support
 - **Units system**: Wraps Astropy units, provides `unit()`, `unit_of()`
   constructors
