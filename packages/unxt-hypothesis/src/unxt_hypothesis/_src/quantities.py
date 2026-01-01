@@ -37,6 +37,7 @@ def quantities(
     shape: int | tuple[int, ...] | st.SearchStrategy[int | tuple[int, ...]] = (),
     elements: st.SearchStrategy[float] | None = None,
     unique: bool = False,
+    static_value: bool | st.SearchStrategy[bool] = False,
     **kwargs: Any,
 ) -> u.AbstractQuantity:
     """Generate hypothesis strategy for unxt Quantity objects.
@@ -74,6 +75,9 @@ def quantities(
         Strategy for generating array elements. If `None`, uses finite floats.
     unique : bool, optional
         Whether array elements should be unique. Default is `False`.
+    static_value : bool, optional
+        Whether to wrap the generated array in `unxt.quantity.StaticValue`.
+        Default is `False`.
     **kwargs : Any
         Additional keyword arguments (currently unused, reserved for future
         use).
@@ -183,6 +187,7 @@ def quantities(
 
     # DType handling
     dtype = draw_if_strategy(draw, dtype)
+    static_value = draw_if_strategy(draw, static_value)
 
     # Default elements strategy if not provided
     if elements is None:
@@ -194,6 +199,8 @@ def quantities(
     values = draw(
         xps.arrays(dtype=dtype, shape=array_shape, elements=elements, unique=unique)
     )
+    if static_value:
+        values = u.quantity.StaticValue(np.asarray(values))
 
     # Create Quantity with the specified unit
     return quantity_cls(values, unit_obj, **kwargs)
@@ -240,8 +247,8 @@ def wrap_to(
     >>> @given(
     ...     angle=ust.wrap_to(
     ...         ust.quantities("deg", quantity_cls=u.Angle),
-    ...         min=u.Quantity(0, "deg"),
-    ...         max=u.Quantity(360, "deg"),
+    ...         min=u.Q(0, "deg"),
+    ...         max=u.Q(360, "deg"),
     ...     )
     ... )
     ... def test_wrapped_angle(angle):
@@ -252,8 +259,8 @@ def wrap_to(
     >>> @given(
     ...     angle=ust.wrap_to(
     ...         ust.quantities("rad", quantity_cls=u.Angle),
-    ...         min=st.just(u.Quantity(0, "rad")),
-    ...         max=st.just(u.Quantity(6.28318530718, "rad")),
+    ...         min=st.just(u.Q(0, "rad")),
+    ...         max=st.just(u.Q(6.28318530718, "rad")),
     ...     )
     ... )
     ... def test_wrapped_angle_rad(angle):

@@ -9,13 +9,14 @@ from typing import Any
 
 import equinox as eqx
 import wadler_lindig as wl
-from astropy.units import PhysicalType, Unit
+from astropy.units import PhysicalType
 from jaxtyping import Array, Shaped
 from plum import dispatch, parametric, type_unparametrized
 
 from dataclassish import field_items, fields
 
 from .base import AbstractQuantity
+from .value import StaticValue
 from unxt._src.dimensions import name_of
 from unxt.dims import AbstractDimension, dimension, dimension_of
 from unxt.units import AbstractUnit, unit as parse_unit
@@ -29,10 +30,10 @@ class AbstractParametricQuantity(AbstractQuantity):
 
     """
 
-    value: eqx.AbstractVar[Shaped[Array, "*shape"]]
+    value: eqx.AbstractVar[Shaped[Array | StaticValue, "*shape"]]
     """The value of the `AbstractQuantity`."""
 
-    unit: eqx.AbstractVar[Unit]
+    unit: eqx.AbstractVar[AbstractUnit]
     """The unit associated with this value."""
 
     def __post_init__(self) -> None:

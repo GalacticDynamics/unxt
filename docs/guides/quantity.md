@@ -459,6 +459,51 @@ The {meth}`~unxt.quantity.Angle.wrap_to` method has a function counterpart
 Angle(Array(10, dtype=int32, weak_type=True), unit='deg')
 ```
 
+## Working with `StaticQuantity` Objects
+
+The {class}`~unxt.quantity.StaticQuantity` class is a parametric quantity with a
+static value stored as a NumPy array. It accepts Python scalars and NumPy arrays
+only, rejecting JAX arrays. This makes it convenient for static arguments in
+`jax.jit` or `jax.vmap`.
+
+```{code-block} python
+>>> import numpy as np
+>>> import jax
+>>> import jax.numpy as jnp
+>>> from functools import partial
+>>> import unxt as u
+
+>>> sq = u.StaticQuantity(np.array([1.0, 2.0]), "m")
+>>> jq = u.Q(jnp.array([1.0, 1.0]), "m")
+
+>>> @partial(jax.jit, static_argnames=("sq",))
+... def add(jq, sq):
+...     return jq + u.Q(jnp.asarray(sq.value), sq.unit)
+
+>>> add(jq, sq)
+Quantity(Array([2., 3.], dtype=float32), unit='m')
+```
+
+## Working with `StaticValue` in `Quantity`
+
+If you want a regular {class}`~unxt.quantity.Quantity` but need its value to be
+static (for hashing or static JAX arguments), wrap the value with
+{class}`~unxt.quantity.StaticValue`. Arithmetic behaves like the wrapped array,
+and `StaticValue + StaticValue` returns a `StaticValue`:
+
+```{code-block} python
+>>> import numpy as np
+>>> import jax.numpy as jnp
+>>> import unxt as u
+
+>>> sv = u.quantity.StaticValue(np.array([1.0, 2.0]))
+>>> q_static = u.Q(sv, "m")
+>>> q = u.Q(jnp.array([3.0, 4.0]), "m")
+
+>>> q_static + q
+Quantity(Array([4., 6.], dtype=float32), unit='m')
+```
+
 ---
 
 :::{seealso}

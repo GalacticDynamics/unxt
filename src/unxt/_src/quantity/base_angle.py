@@ -2,7 +2,6 @@
 
 __all__ = ("AbstractAngle",)
 
-
 import equinox as eqx
 from jaxtyping import Array, Shaped
 from plum import add_promotion_rule
@@ -12,6 +11,7 @@ from .base import AbstractQuantity
 from .quantity import Quantity
 from .unchecked import BareQuantity
 from unxt._src.dimensions import dimension, dimension_of
+from unxt._src.quantity.value import StaticValue
 from unxt.units import AbstractUnit
 
 angle_dimension = dimension("angle")
@@ -44,7 +44,7 @@ class AbstractAngle(AbstractQuantity):
 
     """
 
-    value: eqx.AbstractVar[Shaped[Array, "*shape"]]
+    value: eqx.AbstractVar[Shaped[Array | StaticValue, "*shape"]]
     """The value of the `unxt.AbstractQuantity`."""
 
     unit: eqx.AbstractVar[AbstractUnit]
@@ -74,7 +74,7 @@ class AbstractAngle(AbstractQuantity):
         --------
         >>> import unxt as u
         >>> angle = u.Angle(370, "deg")
-        >>> angle.wrap_to(min=u.Quantity(0, "deg"), max=u.Quantity(360, "deg"))
+        >>> angle.wrap_to(min=u.Q(0, "deg"), max=u.Q(360, "deg"))
         Angle(Array(10, dtype=int32, ...), unit='deg')
 
         """

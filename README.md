@@ -152,6 +152,43 @@ except ValueError as e:
 # Physical type mismatch.
 ```
 
+For static configuration values (e.g., JAX static arguments), use
+`StaticQuantity`, which stores NumPy values and rejects JAX arrays:
+
+```python
+import numpy as np
+from functools import partial
+import jax
+import jax.numpy as jnp
+import unxt as u
+
+cfg = u.StaticQuantity(np.array([1.0, 2.0]), "m")
+
+
+@partial(jax.jit, static_argnames=("q",))
+def add(x, q):
+    return x + jnp.asarray(q.value)
+
+
+print(add(1.0, cfg))
+```
+
+If you want a `Quantity` that keeps a static value but still participates in
+regular arithmetic, wrap the value with `StaticValue`. Arithmetic behaves like
+the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`:
+
+```python
+import numpy as np
+import jax.numpy as jnp
+import unxt as u
+
+sv = u.quantity.StaticValue(np.array([1.0, 2.0]))
+q_static = u.Q(sv, "m")
+q = u.Q(jnp.array([3.0, 4.0]), "m")
+
+print(q_static + q)
+```
+
 `unxt` is built on [`quax`][quax], which enables custom array-ish objects in
 JAX. For convenience we use the [`quaxed`][quaxed] library, which is just a
 `quax.quaxify` wrapper around `jax` to avoid boilerplate code.

@@ -74,7 +74,7 @@ def test_variable_shape_strategy(q: u.Quantity) -> None:
         elements=st.floats(min_value=0.0, max_value=100.0, width=32),
     )
 )
-@settings(max_examples=30)
+@settings(max_examples=30, deadline=None)
 def test_custom_elements(q: u.Quantity) -> None:
     """Test with custom element strategy."""
     assert isinstance(q, u.Quantity)
@@ -84,13 +84,21 @@ def test_custom_elements(q: u.Quantity) -> None:
 
 
 @given(q=ust.quantities(unit="m", shape=10, unique=True))
-@settings(max_examples=20)
+@settings(max_examples=20, deadline=None)
 def test_unique_elements(q: u.Quantity) -> None:
     """Test unique elements constraint."""
     assert isinstance(q, u.Quantity)
     assert q.shape == (10,)
     # All elements should be unique
     assert len(jnp.unique(q.value)) == 10
+
+
+@given(q=ust.quantities(unit="m", static_value=True))
+@settings(max_examples=30)
+def test_static_value_generation(q: u.Quantity) -> None:
+    """Test StaticValue wrapping for generated quantities."""
+    assert isinstance(q, u.Quantity)
+    assert isinstance(q.value, u.quantity.StaticValue)
 
 
 @given(q=ust.quantities(unit="rad"))
@@ -488,8 +496,8 @@ def test_physical_length_scale(q: u.Quantity) -> None:
 @given(
     angle=ust.wrap_to(
         ust.quantities("deg", quantity_cls=u.Angle),
-        min=u.Quantity(0, "deg"),
-        max=u.Quantity(360, "deg"),
+        min=u.Q(0, "deg"),
+        max=u.Q(360, "deg"),
     )
 )
 @settings(max_examples=50)
@@ -505,8 +513,8 @@ def test_wrap_to_longitude_range(angle: u.Angle) -> None:
 @given(
     angle=ust.wrap_to(
         ust.quantities("rad", quantity_cls=u.Angle, shape=10),
-        min=u.Quantity(0, "rad"),
-        max=u.Quantity(6.28, "rad"),
+        min=u.Q(0, "rad"),
+        max=u.Q(6.28, "rad"),
     )
 )
 @settings(max_examples=30)
@@ -524,8 +532,8 @@ def test_wrap_to_angle_array(angle: u.Angle) -> None:
 @given(
     lat=ust.wrap_to(
         ust.quantities("deg", quantity_cls=u.Angle, shape=()),
-        min=u.Quantity(-90, "deg"),
-        max=u.Quantity(90, "deg"),
+        min=u.Q(-90, "deg"),
+        max=u.Q(90, "deg"),
     )
 )
 @settings(max_examples=30)

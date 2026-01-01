@@ -6,13 +6,16 @@ from dataclasses import replace
 from typing import Any
 
 import equinox as eqx
+import jax.numpy as jnp
 from astropy.units import UnitConversionError
 from jaxtyping import Array
 from plum import dispatch
 
 from .base import AbstractQuantity
 from .base_angle import AbstractAngle
-from .quantity import Quantity
+from .base_parametric import AbstractParametricQuantity
+from .static_quantity import StaticQuantity
+from .value import StaticValue
 from unxt.dims import AbstractDimension
 from unxt.units import AbstractUnit, unit
 from unxt.unitsystems import AbstractUnitSystem
@@ -29,7 +32,7 @@ def dimension_of(obj: AbstractQuantity, /) -> AbstractDimension:
     Examples
     --------
     >>> import unxt as u
-    >>> q = u.Quantity(1, "m")
+    >>> q = u.Q(1, "m")
     >>> u.dimension_of(q)
     PhysicalType('length')
 
@@ -38,7 +41,7 @@ def dimension_of(obj: AbstractQuantity, /) -> AbstractDimension:
 
 
 @dispatch
-def dimension_of(obj: type[Quantity], /) -> AbstractDimension:
+def dimension_of(obj: type[AbstractParametricQuantity], /) -> AbstractDimension:
     """Return the dimension of a quantity.
 
     Examples
@@ -58,7 +61,8 @@ def dimension_of(obj: type[Quantity], /) -> AbstractDimension:
     obj = eqx.error_if(
         obj,
         not hasattr(obj, "_type_parameter"),
-        "can only get dimensions from parametrized Quantity -- Quantity[dim].",
+        f"can only get dimensions from parametrized {obj.__name__} "
+        f"-- {obj.__name__}[dim].",
     )
     return obj._type_parameter  # noqa: SLF001
 
@@ -139,6 +143,12 @@ def uconvert(usys: AbstractUnitSystem, x: AbstractQuantity, /) -> AbstractQuanti
 
 
 @dispatch
+def ustrip(x: StaticQuantity, /) -> Array:
+    """Strip the units from a static quantity."""
+    return jnp.asarray(x.value)
+
+
+@dispatch
 def ustrip(x: AbstractQuantity, /) -> Array:
     """Strip the units from the quantity.
 
@@ -146,7 +156,7 @@ def ustrip(x: AbstractQuantity, /) -> Array:
     --------
     >>> import unxt as u
 
-    >>> q = u.Quantity(1000, "m")
+    >>> q = u.Q(1000, "m")
     >>> u.ustrip(q)
     Array(1000, dtype=int32, weak_type=True)
 
@@ -154,7 +164,10 @@ def ustrip(x: AbstractQuantity, /) -> Array:
     True
 
     """
-    return x.value
+    value = x.value
+    if isinstance(value, StaticValue):
+        return jnp.asarray(value)
+    return value
 
 
 @dispatch
@@ -165,7 +178,7 @@ def ustrip(u: AbstractUnit, x: AbstractQuantity, /) -> Array:
     --------
     >>> import unxt as u
 
-    >>> q = u.Quantity(1000, "m")
+    >>> q = u.Q(1000, "m")
     >>> u.ustrip(u.unit("km"), q)
     Array(1., dtype=float32, ...)
 
@@ -181,7 +194,7 @@ def ustrip(u: str, x: AbstractQuantity, /) -> Array:
     --------
     >>> import unxt as u
 
-    >>> q = u.Quantity(1000, "m")
+    >>> q = u.Q(1000, "m")
     >>> u.ustrip("km", q)
     Array(1., dtype=float32, ...)
 
@@ -198,7 +211,7 @@ def ustrip(u: AbstractUnitSystem, x: AbstractQuantity, /) -> Array:
     >>> import unxt as u
     >>> from unxt.unitsystems import galactic
 
-    >>> q = u.Quantity(1e17, "km")
+    >>> q = u.Q(1e17, "km")
     >>> u.ustrip(galactic, q)
     Array(3.2407792, dtype=float32, weak_type=True)
 
@@ -276,7 +289,7 @@ def wrap_to(
     >>> import unxt as u
 
     >>> angle = u.Angle(370, "deg")
-    >>> u.quantity.wrap_to(angle, min=u.Quantity(0, "deg"), max=u.Quantity(360, "deg"))
+    >>> u.quantity.wrap_to(angle, min=u.Q(0, "deg"), max=u.Q(360, "deg"))
     Angle(Array(10, dtype=int32, ...), unit='deg')
 
     """

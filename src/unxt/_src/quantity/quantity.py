@@ -12,7 +12,7 @@ from plum import parametric
 
 from .base import AbstractQuantity
 from .base_parametric import AbstractParametricQuantity
-from .value import convert_to_quantity_value
+from .value import StaticValue, convert_to_quantity_value
 from unxt.units import AbstractUnit, unit as parse_unit
 
 
@@ -39,7 +39,7 @@ class Quantity(AbstractParametricQuantity):
 
     From a float:
 
-    >>> u.Quantity(1.0, "m")
+    >>> u.Q(1.0, "m")
     Quantity(Array(1., dtype=float32, ...), unit='m')
 
     From a list:
@@ -113,7 +113,9 @@ class Quantity(AbstractParametricQuantity):
     short_name: ClassVar[str] = "Q"
     """Short name for compact printing."""
 
-    value: Shaped[Array, "*shape"] = eqx.field(converter=convert_to_quantity_value)
+    value: Shaped[Array, "*shape"] | StaticValue = eqx.field(
+        converter=convert_to_quantity_value
+    )
     """The value of the `AbstractQuantity`."""
 
     unit: AbstractUnit = eqx.field(static=True, converter=parse_unit)
