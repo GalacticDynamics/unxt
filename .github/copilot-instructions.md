@@ -80,6 +80,157 @@ This is a UV workspace repository containing multiple packages:
 - `__all__` should always be a tuple unless it needs to be modified (e.g., with
   `+=`), in which case use a list - prefer immutable by default
 
+### Multiple Dispatch with Plum
+
+This project heavily relies on `plum-dispatch` for multiple dispatch, which
+allows different implementations of the same function based on argument types.
+Understanding how plum works is critical for working with this codebase.
+
+#### Multiple Dispatch Mechanism
+
+- **Single-dispatch vs Multiple-dispatch**: Unlike single dispatch (e.g.,
+  `functools.singledispatch`), plum selects implementations based on ALL
+  argument types, not just the first one
+- **Type-based routing**: Plum examines the runtime types of all arguments and
+  selects the most specific matching implementation
+- **Dispatch decorator**: Use `@dispatch` to register multiple implementations
+  of the same function name
+
+Example:
+
+```python
+from plum import dispatch
+
+
+@dispatch
+def process(x: int) -> str:
+    return f"integer: {x}"
+
+
+@dispatch
+def process(x: float) -> str:
+    return f"float: {x}"
+
+
+@dispatch
+def process(x: int, y: int) -> str:
+    return f"two integers: {x}, {y}"
+```
+
+#### Finding All Dispatches
+
+**CRITICAL**: When working with dispatched functions, you MUST check all
+registered implementations. A function may have dozens of overloads.
+
+**Two methods to find all dispatches:**
+
+1. **Use `.methods` attribute** (preferred in Python REPL/notebooks):
+
+   ```python
+   from unxt import ustrip
+
+   print(ustrip.methods)  # Shows all registered dispatch signatures
+   ```
+
+2. **Search the codebase** (preferred when coding):
+   - Search for `@dispatch` followed by the function name
+   - Look for all `def function_name(...)` definitions with `@dispatch`
+   - Example: searching for `@dispatch\ndef ustrip` finds all ustrip overloads
+
+**Why this matters:**
+
+- You might find a more specific dispatch that handles your exact case
+- Prevents accidentally adding duplicate dispatches
+- Reveals the complete API surface and supported type combinations
+- Essential for understanding how different types interact
+
+#### Parametric Classes
+
+Plum's `@parametric` decorator enables type parametrization, creating distinct
+types for different parameters:
+
+```python
+from plum import parametric
+
+
+@parametric
+class Container(type_parameter):
+    def __init__(self, value):
+        self.value = value
+
+
+# Creates distinct types:
+IntContainer = Container[int]
+FloatContainer = Container[float]
+```
+
+**In this codebase:**
+
+- `Quantity` is parametric by dimension: `Quantity["length"]`,
+  `Quantity["mass"]`
+- Each parametrization creates a distinct type for dispatch
+- Enables dimension-aware multiple dispatch:
+
+  ```python
+  @dispatch
+  def divide(x: Quantity["length"], y: Quantity["time"]) -> Quantity["speed"]:
+      ...  # Returns speed dimension
+  ```
+
+**Key properties:**
+
+- Parametric types are cached (same parameters = same type object)
+- Type parameters can be strings, tuples, or other hashable objects
+- Use `get_type_parameter(obj)` to retrieve the parameter from an instance
+- Parametric classes enable dimension checking at dispatch time
+
+#### Type Promotion with `plum.promote`
+
+`plum.promote` implements automatic type promotion for mixed-type operations:
+
+```python
+from plum import dispatch, promote
+
+
+@dispatch
+def add(x: int, y: int) -> int:
+    return x + y
+
+
+@dispatch
+def add(x: float, y: float) -> float:
+    return x + y
+
+
+# Without promotion:
+add(1, 2.5)  # Error: no dispatch for (int, float)
+
+
+# With promotion (defined separately):
+@dispatch
+def add(x: promote(int, float), y: float) -> float:
+    return add(float(x), y)
+```
+
+**In this codebase:**
+
+- `plum.promote` is used to convert between quantity types
+- Common pattern: promote bare numbers to quantities
+- Enables natural operations like `quantity + 5.0`
+
+**Usage pattern:**
+
+1. Define core implementations for specific types
+2. Add promotion dispatches to handle mixed types
+3. Promotion dispatches typically convert arguments and redispatch
+
+**Important notes:**
+
+- Promotion order matters: `promote(int, float)` != `promote(float, int)`
+- Keep promotion logic explicit and minimal
+- Prefer concrete dispatches over heavy promotion use
+- Document promotion behavior when it's non-obvious
+
 ### JAX Integration via Quax
 
 - Quantities are `ArrayValue` subclasses (Quax protocol)
@@ -114,11 +265,18 @@ This is a UV workspace repository containing multiple packages:
   - `nox -s docs`: build documentation (add `--serve` to preview)
   - `nox -s pytest_benchmark`: run CodSpeed benchmarks
 
+**IMPORTANT**: Never write temporary files outside the repository (e.g., to
+`/tmp/` or other system directories). Always use paths within the repository for
+any file operations, including temporary or scratch files.
+
 ## Testing
 
 - Use `pytest` for all test suites with Sybil for doctests in code and markdown
 - Add unit tests for every new function or class
 - Test organization: `unit/`, `integration/`, `benchmark/`
+- **All tests must actually test something**: Every test function must include
+  `assert` statements or return values that pytest can validate. Empty test
+  bodies or tests that only call functions without verification are not valid.
 - Optional dependencies handled via
   `optional_dependencies.OptionalDependencyEnum`
   - Tests requiring optional deps auto-skip if not installed
