@@ -41,6 +41,7 @@ __all__ = (
     "quantity",  # module
     "Quantity",  # main class
     "Q",  # convenience alias
+    "StaticQuantity",  # static value quantity
     "AbstractQuantity",  # base class
     "Angle",  # angular quantity
     "uconvert",  # convert units
@@ -59,6 +60,7 @@ with install_import_hook("unxt"):
         Angle,
         Q,
         Quantity,
+        StaticQuantity,
         is_unit_convertible,
         uconvert,
         ustrip,

@@ -8,6 +8,8 @@ correctness.
 
 - **`Quantity`**: The main quantity class with dimension parametrization and
   full unit checking. Aliased as `Q` for convenience.
+- **`StaticQuantity`**: Parametric quantity with static NumPy values for JAX
+  static arguments.
 - **`BareQuantity`**: Lightweight quantity without dimension parametrization.
 - **`Angle`**: Specialized quantity type for angular measurements with wrapping
   support.
@@ -113,6 +115,8 @@ __all__ = (
     # Core
     "Quantity",
     "Q",  # convenience alias
+    "StaticQuantity",
+    "StaticValue",
     # Base
     "AbstractQuantity",
     # Fast
@@ -142,8 +146,9 @@ with install_import_hook("unxt.quantity"):
     from ._src.quantity.base_parametric import AbstractParametricQuantity
     from ._src.quantity.flag import AllowValue
     from ._src.quantity.quantity import Q, Quantity
+    from ._src.quantity.static_quantity import StaticQuantity
     from ._src.quantity.unchecked import BareQuantity
-    from ._src.quantity.value import convert_to_quantity_value
+    from ._src.quantity.value import StaticValue, convert_to_quantity_value
     from unxt_api import is_unit_convertible, uconvert, ustrip, wrap_to
 
     # isort: split

@@ -35,6 +35,7 @@ import quaxed.numpy as jnp
 from dataclassish import field_items, replace
 
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
+from .value import StaticValue
 from unxt.units import AbstractUnit
 from unxt_api import is_unit_convertible, uconvert, unit_of, ustrip
 
@@ -112,7 +113,7 @@ class AbstractQuantity(
 
     """
 
-    value: eqx.AbstractVar[Shaped[Array, "*shape"]]
+    value: eqx.AbstractVar[Shaped[Array | StaticValue, "*shape"]]
     """The value of the `AbstractQuantity`."""
 
     unit: eqx.AbstractVar[AbstractUnit]
@@ -184,7 +185,10 @@ class AbstractQuantity(
         raise RuntimeError(msg)
 
     def aval(self) -> jax.core.ShapedArray:
-        return jax.typeof(self.value)
+        value = self.value
+        if isinstance(value, StaticValue):
+            value = jnp.asarray(value.array)
+        return jax.typeof(value)
 
     def enable_materialise(self, _: bool = True) -> "Self":  # noqa: FBT001, FBT002
         return replace(self, value=self.value, unit=self.unit)
@@ -1159,3 +1163,35 @@ def custom_pdoc_noarray(obj: Any) -> wl.AbstractDoc | None:
     if isinstance(obj, jax.Array):
         return wl.TextDoc(np.array2string(cast("np.ndarray", obj), separator=", "))
     return None
+
+
+@StaticValue.from_.dispatch
+def from_(cls: StaticValue, value: AbstractQuantity, /) -> StaticValue:
+    """Disallow conversion of `AbstractQuantity` to a value."""
+    msg = (
+        f"Cannot convert '{type(value).__name__}' to a value. "
+        "For a Quantity, use the `.from_` constructor instead."
+    )
+    raise TypeError(msg)
+
+
+@dispatch
+def convert_to_quantity_value(obj: AbstractQuantity, /) -> NoReturn:
+    """Disallow conversion of `AbstractQuantity` to a value.
+
+    >>> import unxt as u
+    >>> from unxt.quantity import convert_to_quantity_value
+
+    >>> try:
+    ...     convert_to_quantity_value(u.Quantity(1, "m"))
+    ... except TypeError as e:
+    ...     print(e)
+    Cannot convert 'Quantity[PhysicalType('length')]' to a value.
+    For a Quantity, use the `.from_` constructor instead.
+
+    """
+    msg = (
+        f"Cannot convert '{type(obj).__name__}' to a value. "
+        "For a Quantity, use the `.from_` constructor instead."
+    )
+    raise TypeError(msg)

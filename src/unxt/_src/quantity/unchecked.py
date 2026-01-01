@@ -11,7 +11,7 @@ from plum import add_promotion_rule
 
 from .base import AbstractQuantity
 from .quantity import Quantity
-from .value import convert_to_quantity_value
+from .value import StaticValue, convert_to_quantity_value
 from unxt.units import AbstractUnit, unit as parse_unit
 
 
@@ -21,7 +21,9 @@ class BareQuantity(AbstractQuantity):
     This class is not parametrized by its dimensionality.
     """
 
-    value: Shaped[Array, "*shape"] = eqx.field(converter=convert_to_quantity_value)
+    value: Shaped[Array | StaticValue, "*shape"] = eqx.field(
+        converter=convert_to_quantity_value
+    )
     """The value of the `AbstractQuantity`."""
 
     unit: AbstractUnit = eqx.field(static=True, converter=parse_unit)

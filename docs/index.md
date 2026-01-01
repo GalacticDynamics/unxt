@@ -311,6 +311,48 @@ Quantity(Array([ 5., 14., 27.], dtype=float32), unit='m2')
 
 ```
 
+Static quantities are also available when you need JAX-static configuration or
+constants:
+
+```{code-block} python
+
+>>> import numpy as np
+>>> from functools import partial
+>>> import jax.numpy as jnp
+>>> from jax import jit
+>>> import unxt as u
+
+>>> sq = u.StaticQuantity(np.array([1.0, 2.0]), "m")
+>>> jq = u.Q(jnp.array([1.0, 1.0]), "m")
+
+>>> @partial(jit, static_argnames=("sq",))
+... def add(jq, sq):
+...     return jq + u.Q(jnp.asarray(sq.value), sq.unit)
+
+>>> add(jq, sq)
+Quantity(Array([2., 3.], dtype=float32), unit='m')
+
+```
+
+You can also keep a static value inside a regular `Quantity` by wrapping it
+with `StaticValue`. Arithmetic behaves like the wrapped array, and
+`StaticValue + StaticValue` returns a `StaticValue`:
+
+```{code-block} python
+
+>>> import numpy as np
+>>> import jax.numpy as jnp
+>>> import unxt as u
+
+>>> sv = u.quantity.StaticValue(np.array([1.0, 2.0]))
+>>> q_static = u.Q(sv, "m")
+>>> q = u.Q(jnp.array([3.0, 4.0]), "m")
+
+>>> q_static + q
+Quantity(Array([4., 6.], dtype=float32), unit='m')
+
+```
+
 ### Auto-Differentiation
 
 JAX Auto-Differentiation (AD) is supported:
