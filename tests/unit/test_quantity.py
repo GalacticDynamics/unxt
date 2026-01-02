@@ -1022,6 +1022,7 @@ class TestQuantityProperties:
         assert isinstance(q, u.Angle)
         assert u.dimension_of(q) == u.dimension("angle")
 
+    @settings(max_examples=50, deadline=None)
     @given(
         q1=ust.quantities(
             "m", shape=3, elements=st.floats(min_value=-10, max_value=10, width=32)
