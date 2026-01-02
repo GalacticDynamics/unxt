@@ -67,7 +67,7 @@ def wrap_to(x: Any, min: Any, max: Any, /) -> Any:
     >>> import unxt as u
     >>>
     >>> angle = u.Angle(370, "deg")
-    >>> min, max = u.Quantity(0, "deg"), u.Quantity(360, "deg")
+    >>> min, max = u.Q(0, "deg"), u.Q(360, "deg")
     >>>
     >>> u.quantity.wrap_to(angle, min, max)
     Angle(Array(10, dtype=int32, ...), unit='deg')
