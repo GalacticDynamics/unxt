@@ -52,10 +52,11 @@ cuda12       = ["jax[cuda12]>=0.5.3"]
 cuda12_local = ["jax[cuda12_local]>=0.5.3"]
 k8s          = ["jax[k8s]>=0.5.3"]
 # extra extras
-all             = ["unxt[backend-astropy,interop-gala,interop-mpl]"]
+all             = ["unxt[backend-astropy,interop-gala,interop-mpl,workspace]"]
 backend-astropy = ["astropy>=6.0"]
 interop-gala    = ["gala>=1.8"]
 interop-mpl     = ["matplotlib>=3.8"]
+workspace       = ["unxt-api", "unxt-hypothesis"]
 
 [project.urls]
 "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"
@@ -110,11 +111,9 @@ test = [
   "pytest-env>=1.1.5",
   "pytest-github-actions-annotate-failures>=0.3.0",
   "sybil[pytest]>=9.2.0",
-  "unxt-hypothesis",
 ]
 test-all = [{ include-group = "test" }, { include-group = "test-mpl" }]
 test-mpl = ["pytest-mpl>=0.17.0", "matplotlib>=3.8,<3.10"]
-workspace = ["unxt-api", "unxt-hypothesis"]
 
 
 [tool.hatch]
