@@ -36,8 +36,9 @@ jobs:
       - name: Lint
         run: uv run --frozen nox -s lint
 
-  tests:
-    name: Check Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
+  # Main package tests
+  tests-unxt:
+    name: unxt Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
     needs: [format]
     strategy:
@@ -55,11 +56,88 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install
-        run: uv sync --no-default-groups --group nox --group test --locked
+        run: |
+          uv sync --no-default-groups --group nox --group test --locked --package unxt
 
       - name: Test package
         run: |
-          uv run --frozen nox -s test -- --cov --cov-report=xml --cov-report=term --durations=20
+          uv run --frozen --package unxt nox -s "pytest(package='unxt')" -- --cov --cov-report=xml --cov-report=term --durations=20
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # unxt-api package tests
+  tests-unxt-api:
+    name: unxt-api Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
+    runs-on: ${{ matrix.runs-on }}
+    needs: [format]
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'workspace: unxt-api') ||
+      startsWith(github.head_ref, 'unxt-api/')
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+        runs-on: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v5.5.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867 # v7.1.6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          uv sync --no-default-groups --group test --locked --package unxt-api
+
+      - name: Test package
+        run: |
+          uv run --frozen --package unxt-api pytest packages/unxt-api/tests --cov=packages/unxt-api/src --cov-report=xml --cov-report=term
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # unxt-hypothesis package tests
+  tests-unxt-hypothesis:
+    name:
+      unxt-hypothesis Python ${{ matrix.python-version }} on ${{ matrix.runs-on
+      }}
+    runs-on: ${{ matrix.runs-on }}
+    needs: [format]
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'workspace: unxt-hypothesis') ||
+      startsWith(github.head_ref, 'unxt-hypothesis/')
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+        runs-on: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v5.5.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867 # v7.1.6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          uv sync --no-default-groups --group test --locked --package unxt-hypothesis
+
+      - name: Test package
+        run: |
+          uv run --frozen --package unxt-hypothesis pytest packages/unxt-hypothesis/tests --cov=packages/unxt-hypothesis/src --cov-report=xml --cov-report=term
 
       - name: Upload coverage report
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
@@ -85,9 +163,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Test package
-        run: >-
-          uv run --extra all --group test-all --resolution lowest-direct pytest
-          --cov --cov-report=xml --cov-report=term --durations=20 --mpl
+        run: |
+          uv run --frozen --package unxt --extra all --group test-all --resolution lowest-direct pytest --cov --cov-report=xml --cov-report=term --durations=20 --mpl
 
       - name: Upload coverage report
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
@@ -114,7 +191,7 @@ jobs:
 
       - name: Test package
         run: |
-          uv run --extra all --group test-all pytest --cov --cov-report=xml --cov-report=term --durations=20 --mpl
+          uv run --frozen --package unxt --extra all --group test-all pytest --cov --cov-report=xml --cov-report=term --durations=20 --mpl
 
       - name: Upload coverage report
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
@@ -146,7 +223,7 @@ jobs:
   status:
     name: CI Pass
     runs-on: ubuntu-latest
-    needs: [format, tests, test_oldest, test_interop]
+    needs: [format, tests-unxt, test_oldest, test_interop]
     if: always()
     steps:
       - name: All required jobs passed
