@@ -56,7 +56,7 @@ def test_dimension_execute(func_dimension, args):
 args = [
     (u.dimension("length"),),  # -> Dimension('length')
     (u.unit("m"),),  # -> Dimension('length')
-    (u.Quantity(1, "m"),),  # -> Dimension('length')
+    (u.Q(1, "m"),),  # -> Dimension('length')
     (2,),  # -> None
 ]
 

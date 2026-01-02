@@ -53,7 +53,7 @@ def test_unit_execute(func_unit, args):
 #####################################################################
 # `unit_of`
 
-args = [(u.unit("meter"),), (u.Quantity(1, "m"),), (2,)]
+args = [(u.unit("meter"),), (u.Q(1, "m"),), (2,)]
 
 
 @pytest.mark.parametrize("args", args, ids=str)

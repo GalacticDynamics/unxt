@@ -21,27 +21,27 @@ class TestShortName:
 
     def test_use_short_name_default_false(self):
         """Test that use_short_name defaults to False."""
-        q = u.Quantity([1, 2, 3], "m")
+        q = u.Q([1, 2, 3], "m")
         result = wl.pformat(q)
         assert result.startswith("Quantity")
         assert not result.startswith("Q(")
 
     def test_use_short_name_true(self):
         """Test that use_short_name=True uses the short name."""
-        q = u.Quantity([1, 2, 3], "m")
+        q = u.Q([1, 2, 3], "m")
         result = wl.pformat(q, use_short_name=True)
         assert result.startswith("Q(")
         assert "unit='m'" in result
 
     def test_use_short_name_with_include_params(self):
         """Test that use_short_name works with include_params."""
-        q = u.Quantity([1, 2, 3], "m")
+        q = u.Q([1, 2, 3], "m")
         result = wl.pformat(q, use_short_name=True, include_params=True)
         assert result.startswith("Q['length']")
 
     def test_use_short_name_with_named_unit_false(self):
         """Test that use_short_name works with named_unit=False."""
-        q = u.Quantity([1, 2, 3], "m")
+        q = u.Q([1, 2, 3], "m")
         result = wl.pformat(q, use_short_name=True, named_unit=False)
         assert result.startswith("Q(")
         # Should have unit as positional arg not named
@@ -49,7 +49,7 @@ class TestShortName:
 
     def test_use_short_name_with_short_arrays(self):
         """Test that use_short_name works with short_arrays."""
-        q = u.Quantity([1, 2, 3], "m")
+        q = u.Q([1, 2, 3], "m")
 
         # Default short_arrays=True
         result = wl.pformat(q, use_short_name=True, short_arrays=True)
@@ -63,7 +63,7 @@ class TestShortName:
 
     def test_use_short_name_with_short_arrays_compact(self):
         """Test that use_short_name works with short_arrays='compact'."""
-        q = u.Quantity([1, 2, 3], "m")
+        q = u.Q([1, 2, 3], "m")
         result = wl.pformat(q, use_short_name=True, short_arrays="compact")
         assert result.startswith("Q(")
         assert "[1, 2, 3]" in result
@@ -77,13 +77,13 @@ class TestShortName:
 
     def test_pprint(self):
         """Test that pprint works with use_short_name."""
-        q = u.Quantity([1, 2, 3], "m")
+        q = u.Q([1, 2, 3], "m")
         # This should not raise an error
         wl.pprint(q, use_short_name=True)
 
     def test_pdoc_method_directly(self):
         """Test calling __pdoc__ directly with use_short_name."""
-        q = u.Quantity([1, 2, 3], "m")
+        q = u.Q([1, 2, 3], "m")
 
         doc = q.__pdoc__(use_short_name=False)
         formatted = wl.pformat(doc)

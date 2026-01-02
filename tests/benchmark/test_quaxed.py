@@ -14,9 +14,9 @@ import unxt as u
 Args: TypeAlias = tuple[Any, ...]
 
 x = jnp.linspace(0, 1, 1000)
-x_nodim = u.Quantity(x, "")
-x_length = u.Quantity(x, "m")
-x_angle = u.Quantity(x, "rad")
+x_nodim = u.Q(x, "")
+x_length = u.Q(x, "m")
+x_angle = u.Q(x, "rad")
 
 
 def process_func(func: Callable[..., Any], args: Args) -> tuple[Compiled, Args]:
