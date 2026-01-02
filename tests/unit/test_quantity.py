@@ -1082,7 +1082,7 @@ class TestQuantityUsageExamples:
     def test_position_vector(self):
         """Example: Working with 3D position vectors."""
         # Create a position in 3D space
-        position = u.Quantity([1.0, 2.0, 3.0], "kpc")
+        position = u.Q([1.0, 2.0, 3.0], "kpc")
 
         # Convert to different units
         position_pc = position.uconvert("pc")

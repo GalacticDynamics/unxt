@@ -15,7 +15,7 @@ def test_lora_array_as_quantity_value():
     with pytest.warns(
         UserWarning, match=re.escape("'quax.ArrayValue' subclass 'LoraArray'")
     ):
-        quantity = u.Quantity(lora_array, "m")
+        quantity = u.Q(lora_array, "m")
 
     assert quantity.value is lora_array
     assert quantity.unit == "m"

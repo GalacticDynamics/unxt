@@ -11,6 +11,6 @@ def quantity_as_module_field():
     class TestModule(eqx.Module):
         """Test module."""
 
-        field: u.Quantity = u.Quantity(1.0, "m")
+        field: u.Quantity = u.Q(1.0, "m")
 
-    assert TestModule().field == u.Quantity(1.0, "m")
+    assert TestModule().field == u.Q(1.0, "m")

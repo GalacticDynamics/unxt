@@ -74,7 +74,7 @@ def promote_dtypes(*arrays: HasDTypeT) -> tuple[HasDTypeT, ...]:
     (dtype('float32'), dtype('float32'))
 
     >>> q1 = u.Quantity.from_([1, 2, 3], "m", dtype=int)
-    >>> q2 = u.Quantity([4.0, 5, 6], unit="km")
+    >>> q2 = u.Q([4.0, 5, 6], unit="km")
     >>> q1, q2 = promote_dtypes(q1, q2)
     >>> q1.dtype, q2.dtype
     (dtype('float32'), dtype('float32'))

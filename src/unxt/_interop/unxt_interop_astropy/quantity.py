@@ -110,7 +110,7 @@ def convert_unxt_quantity_to_astropy_quantity(
     >>> from astropy.units import Quantity as AstropyQuantity
     >>> from plum import convert
 
-    >>> convert(u.Quantity(1.0, "cm"), AstropyQuantity)
+    >>> convert(u.Q(1.0, "cm"), AstropyQuantity)
     <Quantity 1. cm>
 
     """
@@ -130,7 +130,7 @@ def convert_unxt_quantity_to_astropy_distance(
     >>> from astropy.coordinates import Distance as AstropyDistance
     >>> from plum import convert
 
-    >>> convert(u.Quantity(1.0, "cm"), AstropyDistance)
+    >>> convert(u.Q(1.0, "cm"), AstropyDistance)
     <Distance 1. cm>
 
     """
@@ -148,7 +148,7 @@ def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAng
     >>> from astropy.coordinates import Angle as AstropyAngle
     >>> from plum import convert
 
-    >>> convert(u.Quantity(1.0, "radian"), AstropyAngle)
+    >>> convert(u.Q(1.0, "rad"), AstropyAngle)
     <Angle 1. rad>
 
     """

@@ -24,7 +24,7 @@ class AllowValue:
     >>> y is x
     True
 
-    >>> u.ustrip(AllowValue, "km", u.Quantity(1000, "m"))
+    >>> u.ustrip(AllowValue, "km", u.Q(1000, "m"))
     Array(1., dtype=float32, ...)
 
     This is a flag, so it cannot be instantiated.
@@ -108,7 +108,7 @@ def ustrip(flag: type[AllowValue], unit: Any, x: AbstractQuantity, /) -> Any:
     --------
     >>> import unxt as u
     >>> from unxt.quantity import AllowValue
-    >>> q = u.Quantity(1000, "m")
+    >>> q = u.Q(1000, "m")
     >>> u.ustrip(AllowValue, "km", q)
     Array(1., dtype=float32, ...)
 
@@ -126,7 +126,7 @@ def ustrip(flag: type[AllowValue], x: AbstractQuantity, /) -> Any:
     >>> import unxt as u
     >>> from unxt.quantity import AllowValue
 
-    >>> x = u.Quantity(1, "kpc")
+    >>> x = u.Q(1, "kpc")
     >>> y = u.ustrip(AllowValue, x)
     >>> not isinstance(y, u.Quantity)
     True
