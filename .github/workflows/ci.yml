@@ -76,7 +76,7 @@ jobs:
     if: |
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
-      contains(github.event.pull_request.labels.*.name, 'workspace: unxt-api') ||
+      contains(github.event.pull_request.labels.*.name, '🧩 unxt-api') ||
       startsWith(github.head_ref, 'unxt-api/')
     strategy:
       fail-fast: false
@@ -115,7 +115,7 @@ jobs:
     if: |
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
-      contains(github.event.pull_request.labels.*.name, 'workspace: unxt-hypothesis') ||
+      contains(github.event.pull_request.labels.*.name, '🧩 unxt-hypothesis') ||
       startsWith(github.head_ref, 'unxt-hypothesis/')
     strategy:
       fail-fast: false
