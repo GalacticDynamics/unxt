@@ -38,6 +38,7 @@ requires      = ["hatch-vcs", "hatchling"]
 test = [
   "hypothesis[numpy]>=6.138.14",
   "pytest>=8.4.2",
+  "pytest-arraydiff>=0.6.1",
   "pytest-cov>=6.2.1",
   "pytest-env>=1.1.5",
   "pytest-github-actions-annotate-failures>=0.3.0",
