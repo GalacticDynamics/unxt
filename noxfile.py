@@ -114,7 +114,7 @@ def _parse_pytest_paths(package: PackageEnum, /) -> list[str]:
     return package_paths
 
 
-@session(uv_groups=["test"], reuse_venv=True)
+@session(uv_groups=["test"], uv_extras=["workspace"], reuse_venv=True)
 @nox.parametrize("package", list(PackageEnum))
 def pytest(s: nox.Session, /, package: PackageEnum) -> None:
     """Run the unit and regular tests."""
@@ -140,7 +140,7 @@ def pytest_benchmark(s: nox.Session, /) -> None:
 # Documentation
 
 
-@session(uv_groups=["docs", "workspace"], reuse_venv=True)
+@session(uv_groups=["docs"], uv_extras=["workspace"], reuse_venv=True)
 def docs(s: nox.Session, /) -> None:
     """Build the docs. Pass "--serve" to serve. Pass "-b linkcheck" to check links."""
     parser = argparse.ArgumentParser()

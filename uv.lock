@@ -3501,6 +3501,8 @@ all = [
     { name = "astropy" },
     { name = "gala" },
     { name = "matplotlib" },
+    { name = "unxt-api" },
+    { name = "unxt-hypothesis" },
 ]
 backend-astropy = [
     { name = "astropy" },
@@ -3525,6 +3527,10 @@ interop-mpl = [
 ]
 k8s = [
     { name = "jax", extra = ["k8s"] },
+]
+workspace = [
+    { name = "unxt-api" },
+    { name = "unxt-hypothesis" },
 ]
 
 [package.dev-dependencies]
@@ -3565,7 +3571,6 @@ dev = [
     { name = "sphinxext-rediraffe" },
     { name = "sphobjinv" },
     { name = "sybil", extra = ["pytest"] },
-    { name = "unxt-hypothesis" },
 ]
 docs = [
     { name = "myst-nb" },
@@ -3605,7 +3610,6 @@ test = [
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
     { name = "sybil", extra = ["pytest"] },
-    { name = "unxt-hypothesis" },
 ]
 test-all = [
     { name = "hypothesis", extra = ["numpy"] },
@@ -3619,15 +3623,10 @@ test-all = [
     { name = "pytest-github-actions-annotate-failures" },
     { name = "pytest-mpl" },
     { name = "sybil", extra = ["pytest"] },
-    { name = "unxt-hypothesis" },
 ]
 test-mpl = [
     { name = "matplotlib" },
     { name = "pytest-mpl" },
-]
-workspace = [
-    { name = "unxt-api" },
-    { name = "unxt-hypothesis" },
 ]
 
 [package.metadata]
@@ -3656,6 +3655,10 @@ requires-dist = [
     { name = "quax-blocks", specifier = ">=0.4.0" },
     { name = "quaxed", specifier = ">=0.10.2" },
     { name = "unxt-api", editable = "packages/unxt-api" },
+    { name = "unxt-api", marker = "extra == 'all'", editable = "packages/unxt-api" },
+    { name = "unxt-api", marker = "extra == 'workspace'", editable = "packages/unxt-api" },
+    { name = "unxt-hypothesis", marker = "extra == 'all'", editable = "packages/unxt-hypothesis" },
+    { name = "unxt-hypothesis", marker = "extra == 'workspace'", editable = "packages/unxt-hypothesis" },
     { name = "wadler-lindig", specifier = ">=0.1.5" },
     { name = "xmmutablemap", specifier = ">=0.1" },
     { name = "zeroth", specifier = ">=1.0.0" },
@@ -3697,7 +3700,6 @@ dev = [
     { name = "sphinxext-rediraffe", specifier = ">=0.2.7" },
     { name = "sphobjinv", specifier = ">=2.3" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
-    { name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" },
 ]
 docs = [
     { name = "myst-nb", specifier = ">=1.1.2" },
@@ -3735,7 +3737,6 @@ test = [
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
-    { name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" },
 ]
 test-all = [
     { name = "hypothesis", extras = ["numpy"], specifier = ">=6.138.14" },
@@ -3749,15 +3750,10 @@ test-all = [
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
     { name = "pytest-mpl", specifier = ">=0.17.0" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
-    { name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" },
 ]
 test-mpl = [
     { name = "matplotlib", specifier = ">=3.8,<3.10" },
     { name = "pytest-mpl", specifier = ">=0.17.0" },
-]
-workspace = [
-    { name = "unxt-api", editable = "packages/unxt-api" },
-    { name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" },
 ]
 
 [[package]]
@@ -3767,8 +3763,26 @@ dependencies = [
     { name = "plum-dispatch" },
 ]
 
+[package.dev-dependencies]
+test = [
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-env" },
+    { name = "pytest-github-actions-annotate-failures" },
+    { name = "sybil", extra = ["pytest"] },
+]
+
 [package.metadata]
 requires-dist = [{ name = "plum-dispatch", specifier = ">=2.5.7" }]
+
+[package.metadata.requires-dev]
+test = [
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
+    { name = "pytest-env", specifier = ">=1.1.5" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
+]
 
 [[package]]
 name = "unxt-hypothesis"
@@ -3779,11 +3793,31 @@ dependencies = [
     { name = "unxt" },
 ]
 
+[package.dev-dependencies]
+test = [
+    { name = "hypothesis", extra = ["numpy"] },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-env" },
+    { name = "pytest-github-actions-annotate-failures" },
+    { name = "sybil", extra = ["pytest"] },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "hypothesis", extras = ["numpy"], specifier = ">=6.138.14" },
     { name = "jax", specifier = ">=0.5.3" },
     { name = "unxt", editable = "." },
+]
+
+[package.metadata.requires-dev]
+test = [
+    { name = "hypothesis", extras = ["numpy"], specifier = ">=6.138.14" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
+    { name = "pytest-env", specifier = ">=1.1.5" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
 
 [[package]]

@@ -304,3 +304,15 @@
 - name: "⏱️ Run benchmarks"
   color: "d876e3"
   description: "Run benchmarks."
+
+- name: "🧩 unxt"
+  color: "0366d6"
+  description: "Issues/PRs affecting the main unxt package"
+
+- name: "🧩 unxt-api"
+  color: "0366d6"
+  description: "Issues/PRs affecting the unxt-api workspace package"
+
+- name: "🧩 unxt-hypothesis"
+  color: "0366d6"
+  description: "Issues/PRs affecting the unxt-hypothesis workspace package"
