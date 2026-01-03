@@ -34,6 +34,16 @@ Homepage      = "https://github.com/GalacticDynamics/unxt"
 build-backend = "hatchling.build"
 requires      = ["hatch-vcs", "hatchling"]
 
+[dependency-groups]
+test = [
+  "hypothesis[numpy]>=6.138.14",
+  "pytest>=8.4.2",
+  "pytest-cov>=6.2.1",
+  "pytest-env>=1.1.5",
+  "pytest-github-actions-annotate-failures>=0.3.0",
+  "sybil[pytest]>=9.2.0",
+]
+
 [tool.hatch.version]
 raw-options = { root = "../..", search_parent_directories = true, git_describe_command = "git describe --dirty --tags --long --match 'unxt-hypothesis-v*'", local_scheme = "no-local-version" }
 source      = "vcs"
