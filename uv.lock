@@ -3765,6 +3765,7 @@ dependencies = [
 
 [package.dev-dependencies]
 test = [
+    { name = "optional-dependencies" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-env" },
@@ -3777,6 +3778,7 @@ requires-dist = [{ name = "plum-dispatch", specifier = ">=2.5.7" }]
 
 [package.metadata.requires-dev]
 test = [
+    { name = "optional-dependencies", specifier = ">=0.3.2" },
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "pytest-env", specifier = ">=1.1.5" },
