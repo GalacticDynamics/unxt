@@ -3765,7 +3765,9 @@ dependencies = [
 
 [package.dev-dependencies]
 test = [
+    { name = "optional-dependencies" },
     { name = "pytest" },
+    { name = "pytest-arraydiff" },
     { name = "pytest-cov" },
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
@@ -3777,7 +3779,9 @@ requires-dist = [{ name = "plum-dispatch", specifier = ">=2.5.7" }]
 
 [package.metadata.requires-dev]
 test = [
+    { name = "optional-dependencies", specifier = ">=0.3.2" },
     { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-arraydiff", specifier = ">=0.6.1" },
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
