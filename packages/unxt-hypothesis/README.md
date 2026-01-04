@@ -125,6 +125,26 @@ def test_quantity_via_from_type(q):
     assert u.dimension_of(q) is not None
 
 
+@given(q=st.from_type(u.Quantity))
+def test_quantity_class_via_from_type(q):
+    """Test Quantity instances generated via st.from_type()."""
+    assert isinstance(q, u.Quantity)
+
+
+@given(bq=st.from_type(u.quantity.BareQuantity))
+def test_bare_quantity_via_from_type(bq):
+    """Test BareQuantity instances generated via st.from_type()."""
+    assert isinstance(bq, u.quantity.BareQuantity)
+
+
+@given(sq=st.from_type(u.quantity.StaticQuantity))
+def test_static_quantity_via_from_type(sq):
+    """Test StaticQuantity instances generated via st.from_type()."""
+    assert isinstance(sq, u.quantity.StaticQuantity)
+    # StaticQuantity uses StaticValue wrapper
+    assert isinstance(sq.value, u.quantity.StaticValue)
+
+
 @given(a=st.from_type(u.Angle))
 def test_angle_via_from_type(a):
     """Test angles generated via st.from_type()."""
@@ -137,6 +157,19 @@ def test_unitsystem_via_from_type(usys):
     """Test unit systems generated via st.from_type()."""
     assert isinstance(usys, u.AbstractUnitSystem)
 ```
+
+### Registered Types
+
+The following types are automatically registered:
+
+- `u.AbstractQuantity` → generates `Quantity` instances
+- `u.Quantity` → generates `Quantity` instances with dimension checking
+- `u.quantity.BareQuantity` → generates `BareQuantity` instances (no dimension
+  checking)
+- `u.quantity.StaticQuantity` → generates `StaticQuantity` instances with
+  `StaticValue` wrapper (for non-traced values)
+- `u.Angle` → generates `Angle` instances with angle dimension
+- `u.AbstractUnitSystem` → generates unit systems
 
 This integration allows you to use type annotations directly in your tests
 without explicitly importing the strategy functions, making tests more concise
