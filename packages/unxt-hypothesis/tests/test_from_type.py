@@ -26,6 +26,35 @@ def test_from_type_angle(a: u.Angle) -> None:
     assert u.dimension_of(a) == u.dimension("angle")
 
 
+@given(q=st.from_type(u.Quantity))
+@settings(max_examples=20)
+def test_from_type_quantity(q: u.Quantity) -> None:
+    """Test st.from_type() with Quantity."""
+    assert isinstance(q, u.Quantity)
+    # Should have a dimension
+    assert u.dimension_of(q) is not None
+
+
+@given(bq=st.from_type(u.quantity.BareQuantity))
+@settings(max_examples=20)
+def test_from_type_bare_quantity(bq: u.quantity.BareQuantity) -> None:
+    """Test st.from_type() with BareQuantity."""
+    assert isinstance(bq, u.quantity.BareQuantity)
+    # BareQuantity should still have a unit
+    assert bq.unit is not None
+
+
+@given(sq=st.from_type(u.quantity.StaticQuantity))
+@settings(max_examples=20)
+def test_from_type_static_quantity(sq: u.quantity.StaticQuantity) -> None:
+    """Test st.from_type() with StaticQuantity."""
+    assert isinstance(sq, u.quantity.StaticQuantity)
+    # StaticQuantity should have a StaticValue wrapper
+    assert isinstance(sq.value, u.quantity.StaticValue)
+    # Should still have a unit
+    assert sq.unit is not None
+
+
 @pytest.mark.filterwarnings(
     "ignore:Do not use the `random` module inside "
     "strategies:hypothesis.errors.HypothesisDeprecationWarning"

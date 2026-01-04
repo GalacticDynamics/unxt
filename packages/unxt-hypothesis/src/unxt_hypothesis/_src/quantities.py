@@ -351,11 +351,15 @@ def angles(
 
 # Register type strategy for Hypothesis's st.from_type()
 # Note: Pass the callable, not an invoked strategy
-st.register_type_strategy(u.Angle, lambda _: angles())
 st.register_type_strategy(
     u.AbstractQuantity, lambda _: quantities(quantity_cls=u.Quantity)
 )
+st.register_type_strategy(u.Quantity, lambda typ: quantities(quantity_cls=typ))
 st.register_type_strategy(
     u.quantity.BareQuantity, lambda typ: quantities(quantity_cls=typ)
 )
-st.register_type_strategy(u.Quantity, lambda typ: quantities(quantity_cls=typ))
+st.register_type_strategy(
+    u.quantity.StaticQuantity,
+    lambda typ: quantities(quantity_cls=typ, static_value=True),
+)
+st.register_type_strategy(u.Angle, lambda _: angles())

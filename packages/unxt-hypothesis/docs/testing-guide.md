@@ -166,6 +166,122 @@ def test_matrix_multiplication_shape(q1, q2):
     assert result.shape == (3, 5)
 ```
 
+## Using Type-Based Strategies with `st.from_type()`
+
+The `unxt-hypothesis` package automatically registers type strategies for
+Hypothesis's `st.from_type()` function. This allows you to use type annotations
+directly in your tests, and Hypothesis will automatically generate appropriate
+test data.
+
+**Important:** You must import `unxt_hypothesis` to activate the type strategy
+registrations, even if you don't use it directly:
+
+```python
+from hypothesis import given, strategies as st
+
+import unxt as u
+import unxt_hypothesis as ust  # Must import to register strategies
+```
+
+### Registered Quantity Types
+
+The following quantity types are automatically registered:
+
+```python
+# AbstractQuantity generates Quantity instances
+@given(q=st.from_type(u.AbstractQuantity))
+def test_any_quantity(q):
+    """Test with any Quantity type."""
+    assert isinstance(q, u.AbstractQuantity)
+    assert u.dimension_of(q) is not None
+
+
+# Quantity generates Quantity instances with dimension checking
+@given(q=st.from_type(u.Quantity))
+def test_regular_quantity(q):
+    """Test with standard Quantity instances."""
+    assert isinstance(q, u.Quantity)
+
+
+# BareQuantity generates instances without dimension checking
+@given(bq=st.from_type(u.quantity.BareQuantity))
+def test_bare_quantity(bq):
+    """Test with BareQuantity (no dimension checks)."""
+    assert isinstance(bq, u.quantity.BareQuantity)
+    assert bq.unit is not None
+
+
+# StaticQuantity generates instances with StaticValue wrapper
+@given(sq=st.from_type(u.quantity.StaticQuantity))
+def test_static_quantity(sq):
+    """Test with StaticQuantity (non-traced values)."""
+    assert isinstance(sq, u.quantity.StaticQuantity)
+    # StaticQuantity uses StaticValue wrapper
+    assert isinstance(sq.value, u.quantity.StaticValue)
+```
+
+### Registered Angle Type
+
+The `Angle` type is registered with the angle dimension:
+
+```python
+@given(angle=st.from_type(u.Angle))
+def test_angle(angle):
+    """Test with Angle instances."""
+    assert isinstance(angle, u.Angle)
+    assert u.dimension_of(angle) == u.dimension("angle")
+```
+
+### Registered Unit System Type
+
+Unit systems can also be generated via `st.from_type()`:
+
+```python
+@given(sys=st.from_type(u.AbstractUnitSystem))
+def test_unit_system(sys):
+    """Test with generated unit systems."""
+    assert isinstance(sys, u.AbstractUnitSystem)
+```
+
+### When to Use `st.from_type()` vs Explicit Strategies
+
+**Use `st.from_type()`** when:
+
+- You want tests to be concise and type-focused
+- You're testing generic code that works with any quantity
+- You don't need to control specific properties (shape, unit, etc.)
+
+**Use explicit strategies** (e.g., `ust.quantities()`) when:
+
+- You need specific units or dimensions
+- You need specific shapes or dtypes
+- You want to control value ranges with `elements`
+- You need reproducible tests with particular configurations
+
+Example combining both approaches:
+
+```python
+# Generic test using st.from_type()
+@given(q1=st.from_type(u.Quantity), q2=st.from_type(u.Quantity))
+def test_quantity_equality_reflexive(q1, q2):
+    """Quantity equality is reflexive."""
+    assert q1 == q1
+    assert q2 == q2
+
+
+# Specific test using explicit strategy
+@given(
+    pos=ust.quantities("kpc", shape=(3,)),
+    vel=ust.quantities("km/s", shape=(3,)),
+)
+def test_phase_space_vectors(pos, vel):
+    """Test phase space with specific units and shapes."""
+    assert pos.shape == (3,)
+    assert vel.shape == (3,)
+    assert u.dimension_of(pos) == u.dimension("length")
+    assert u.dimension_of(vel) == u.dimension("velocity")
+```
+
 ## Intermediate Examples
 
 ### Using Unit Strategies
