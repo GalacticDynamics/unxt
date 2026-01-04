@@ -23,6 +23,7 @@ guides/quantity
 guides/dimensions
 guides/units_and_systems
 guides/type-checking
+guides/sharp-bits
 packages/unxt-api/extending
 packages/unxt-hypothesis/testing-guide
 ```
