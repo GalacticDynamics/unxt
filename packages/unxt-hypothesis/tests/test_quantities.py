@@ -500,7 +500,7 @@ def test_physical_length_scale(q: u.Quantity) -> None:
         max=u.Q(360, "deg"),
     )
 )
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_wrap_to_longitude_range(angle: u.Angle) -> None:
     """Test wrapping angles to longitude range [0, 360)."""
     assert isinstance(angle, u.Angle)

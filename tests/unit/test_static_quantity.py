@@ -87,7 +87,7 @@ def test_static_quantity_promotes_to_quantity() -> None:
 def test_static_value_pdoc() -> None:
     """StaticValue uses the contained value for formatting."""
     value = u.quantity.StaticValue(np.array([1.0, 2.0]))
-    assert wl.pformat(value) == wl.pformat(np.array([1.0, 2.0]))
+    assert wl.pformat(value, show_wrapper=False) == wl.pformat(np.array([1.0, 2.0]))
 
 
 def test_static_quantity_pdoc_hides_static_value() -> None:
@@ -146,22 +146,8 @@ def test_static_value_protocols() -> None:
     assert sv[0] == 1
     assert sv.shape == (2,)
     assert sv.dtype == jnp.asarray(arr).dtype
-    assert repr(sv) == repr(arr)
+    assert repr(sv) == f"StaticValue({repr(arr)!s})"
     assert np.allclose(np.asarray(sv.sum()), np.sum(arr))
-
-
-def test_static_value_dunder_protocols_explicit() -> None:
-    """Exercise StaticValue protocol dunders directly."""
-    arr = np.array([1, 2], dtype=np.int32)
-    sv = u.quantity.StaticValue(arr)
-
-    assert len(sv) == 2
-    assert list(iter(sv)) == [1, 2]
-    assert sv[1] == 2
-    assert sv.shape == (2,)
-    assert sv.__repr__() == repr(arr)
-    assert sv.__eq__(u.quantity.StaticValue(arr)) is True
-    assert sv.__eq__(object()) is NotImplemented
 
 
 def test_static_value_eq_hash() -> None:
@@ -175,6 +161,75 @@ def test_static_value_eq_hash() -> None:
     assert sv1 != 1
     assert sv1.__eq__(1) is NotImplemented
     assert hash(sv1) == hash(sv2)
+
+
+def test_static_value_rich_comparisons() -> None:
+    """StaticValue supports all rich comparison operators."""
+    sv1 = u.quantity.StaticValue(np.array([1.0, 2.0, 3.0]))
+    sv2 = u.quantity.StaticValue(np.array([2.0, 2.0, 2.0]))
+    sv3 = u.quantity.StaticValue(np.array([1.0, 2.0, 3.0]))
+
+    # Test with another StaticValue - eq/ne return bool
+    assert (sv1 == sv3) is True
+    assert (sv1 != sv2) is True
+    assert (sv1 == sv2) is False
+
+    # Ordering comparisons return arrays
+    assert np.array_equal(sv1 < sv2, np.array([True, False, False]))
+    assert np.array_equal(sv1 <= sv2, np.array([True, True, False]))
+    assert np.array_equal(sv1 > sv2, np.array([False, False, True]))
+    assert np.array_equal(sv1 >= sv2, np.array([False, True, True]))
+
+    # Test with regular arrays
+    arr = np.array([2.0, 2.0, 2.0])
+    assert np.array_equal(sv1 == arr, np.array([False, True, False]))
+    assert np.array_equal(sv1 != arr, np.array([True, False, True]))
+    assert np.array_equal(sv1 < arr, np.array([True, False, False]))
+    assert np.array_equal(sv1 <= arr, np.array([True, True, False]))
+    assert np.array_equal(sv1 > arr, np.array([False, False, True]))
+    assert np.array_equal(sv1 >= arr, np.array([False, True, True]))
+
+    # Test with scalars
+    assert np.array_equal(sv1 < 2.5, np.array([True, True, False]))
+    assert np.array_equal(sv1 > 1.5, np.array([False, True, True]))
+
+
+def test_static_value_comparison_incompatible_types() -> None:
+    """StaticValue handles incompatible types correctly in comparisons."""
+    sv = u.quantity.StaticValue(np.array([1.0, 2.0]))
+
+    # __eq__ and __ne__ with incompatible types return NotImplemented
+    assert sv.__eq__(object()) is NotImplemented
+    assert sv.__eq__(1) is NotImplemented
+    assert sv.__eq__("string") is NotImplemented
+    assert sv.__eq__({"key": "value"}) is NotImplemented
+
+    assert sv.__ne__(object()) is NotImplemented
+    assert sv.__ne__(1) is NotImplemented
+    assert sv.__ne__("string") is NotImplemented
+
+    # Python's comparison fallback handles NotImplemented correctly
+    # When comparing sv == 1, Python tries sv.__eq__(1), gets NotImplemented,
+    # then tries (1).__eq__(sv), which returns False
+    assert (sv == 1) is False
+    assert (sv != 1) is True
+    assert (sv == object()) is False
+    assert (sv != object()) is True
+
+    # Ordering comparisons with scalars that work with NumPy arrays
+    # These delegate to NumPy's broadcasting rules
+    assert np.array_equal(sv < 1.5, np.array([True, False]))
+    assert np.array_equal(sv <= 2.0, np.array([True, True]))
+    assert np.array_equal(sv > 1.5, np.array([False, True]))
+    assert np.array_equal(sv >= 1.0, np.array([True, True]))
+
+    # Ordering comparisons with incompatible types may raise errors
+    # (this is expected NumPy behavior)
+    with pytest.raises((TypeError, np.exceptions.DTypePromotionError)):
+        sv < "string"  # noqa: B015
+
+    with pytest.raises((TypeError, np.exceptions.DTypePromotionError)):
+        sv <= object()  # noqa: B015
 
 
 def test_static_value_from_dispatch() -> None:
