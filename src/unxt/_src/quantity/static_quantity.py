@@ -8,6 +8,7 @@ __all__ = ("StaticQuantity",)
 from typing import Any, final
 
 import equinox as eqx
+import wadler_lindig as wl
 from numpy.typing import NDArray
 from plum import add_promotion_rule, parametric
 
@@ -78,6 +79,10 @@ class StaticQuantity(AbstractParametricQuantity):
         if isinstance(other, StaticQuantity):
             return self.unit == other.unit and self.value == other.value
         return super().__eq__(other)
+
+    def __pdoc__(self, *, show_wrapper: bool = False, **kwargs: Any) -> wl.AbstractDoc:
+        """Return the Wadler-Lindig representation of this class."""
+        return super().__pdoc__(show_wrapper=False, **kwargs)
 
 
 add_promotion_rule(StaticQuantity, StaticQuantity, StaticQuantity)
