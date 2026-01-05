@@ -5,12 +5,14 @@ __all__ = ("StaticValue", "convert_to_quantity_value")
 import operator
 import warnings
 from typing import Any, final
+from typing_extensions import override
 
 import jax
 import numpy as np
 import quax
 import wadler_lindig as wl
 from jaxtyping import Array, ArrayLike
+from numpy.typing import NDArray
 from plum import dispatch
 
 import quaxed.numpy as jnp
@@ -24,6 +26,10 @@ class StaticValue:
     while avoiding Equinox's static-array warnings. Arithmetic operations
     degrade to the wrapped array unless both operands are `StaticValue`, in
     which case a `StaticValue` is returned.
+
+    Note that since the array is immutable, hashing is supported.
+    The hash is computed from the array's dtype, shape, and bytes.
+
     """
 
     __slots__ = ("_array",)
@@ -33,21 +39,46 @@ class StaticValue:
         value.setflags(write=False)
         self._array = value
 
+    @property
+    def array(self) -> np.ndarray:
+        """Return the contained NumPy array."""
+        return self._array
+
+    @property
+    def _jnparray(self) -> Array:
+        """Return the contained array as a JAX array."""
+        return jnp.asarray(self._array)
+
+    # Constructor
     @classmethod
     @dispatch.abstract
     def from_(cls: type["StaticValue"], *args: Any, **kwargs: Any) -> "StaticValue":
         """Create a `StaticValue` from given arguments."""
         raise NotImplementedError  # pragma: no cover
 
-    @property
-    def array(self) -> np.ndarray:
-        """Return the contained NumPy array."""
-        return self._array
+    # ==================================================
+    # NumPy API
 
     def __array__(self, dtype: Any = None) -> np.ndarray:
         if dtype is None:
             return np.asarray(self._array)
         return np.asarray(self._array, dtype=dtype)
+
+    # ==================================================
+    # Wadler-Lindig API
+
+    def __pdoc__(self, *, show_wrapper: bool = True, **kwargs: Any) -> wl.AbstractDoc:
+        """Return the Wadler-Lindig representation of this class."""
+        if not show_wrapper:
+            return wl.pdoc(self._array, **kwargs)
+        return (
+            wl.TextDoc("StaticValue(")
+            + wl.pdoc(self._array, **kwargs)
+            + wl.TextDoc(")")
+        )
+
+    # ==================================================
+    # Python container API
 
     def __len__(self) -> int:
         return len(self._array)
@@ -62,34 +93,57 @@ class StaticValue:
         return getattr(jnp.asarray(self._array), name)
 
     def __repr__(self) -> str:
-        return repr(self._array)
+        return wl.pformat(self, short_arrays=False, max_width=80)
 
-    def __eq__(self, other: object) -> bool:
+    @override
+    def __eq__(self, other: object, /) -> bool | NDArray[np.bool_]:  # type: ignore[override]
         if isinstance(other, StaticValue):
-            return np.array_equal(self._array, other._array)
+            return bool(np.array_equal(self._array, other._array))
+        if isinstance(other, (np.ndarray, Array, list, tuple)):
+            return self._array == other
         return NotImplemented
+
+    def __ne__(self, other: object, /) -> bool | NDArray[np.bool_]:  # type: ignore[override]
+        if isinstance(other, StaticValue):
+            return not bool(np.array_equal(self._array, other._array))
+        if isinstance(other, (np.ndarray, Array, list, tuple)):
+            return self._array != other
+        return NotImplemented
+
+    def __lt__(self, other: Any, /) -> NDArray[np.bool_]:
+        if isinstance(other, StaticValue):
+            other = other._array
+        return self._array < other
+
+    def __le__(self, other: Any, /) -> NDArray[np.bool_]:
+        if isinstance(other, StaticValue):
+            other = other._array
+        return self._array <= other
+
+    def __gt__(self, other: Any, /) -> NDArray[np.bool_]:
+        if isinstance(other, StaticValue):
+            other = other._array
+        return self._array > other
+
+    def __ge__(self, other: Any, /) -> NDArray[np.bool_]:
+        if isinstance(other, StaticValue):
+            other = other._array
+        return self._array >= other
 
     def __hash__(self) -> int:
         return hash((self._array.dtype.str, self._array.shape, self._array.tobytes()))
 
-    def __pdoc__(self, **kwargs: Any) -> wl.AbstractDoc:
-        """Return the Wadler-Lindig representation of this class."""
-        return wl.pdoc(self._array, **kwargs)
-
-    def _asarray(self) -> Array:
-        return jnp.asarray(self._array)
-
     def _binary_op(self, other: Any, op: Any) -> Any:
         if isinstance(other, StaticValue):
-            result = op(self._asarray(), jnp.asarray(other.array))
+            result = op(self._jnparray, jnp.asarray(other.array))
             return StaticValue(np.asarray(result))
-        return op(self._asarray(), other)
+        return op(self._jnparray, other)
 
     def _rbinary_op(self, other: Any, op: Any) -> Any:
         if isinstance(other, StaticValue):
-            result = op(jnp.asarray(other.array), self._asarray())
+            result = op(jnp.asarray(other.array), self._jnparray)
             return StaticValue(np.asarray(result))
-        return op(other, self._asarray())
+        return op(other, self._jnparray)
 
     def __add__(self, other: Any) -> Any:
         return self._binary_op(other, operator.add)
@@ -140,13 +194,13 @@ class StaticValue:
         return self._rbinary_op(other, operator.matmul)
 
     def __neg__(self) -> Any:
-        return -self._asarray()
+        return -self._jnparray
 
     def __pos__(self) -> Any:
-        return +self._asarray()
+        return +self._jnparray
 
     def __abs__(self) -> Any:
-        return abs(self._asarray())
+        return abs(self._jnparray)
 
 
 @StaticValue.from_.dispatch

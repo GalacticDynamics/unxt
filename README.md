@@ -175,7 +175,9 @@ print(add(1.0, cfg))
 
 If you want a `Quantity` that keeps a static value but still participates in
 regular arithmetic, wrap the value with `StaticValue`. Arithmetic behaves like
-the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`:
+the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`.
+Comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) return NumPy boolean
+arrays for element-wise comparison:
 
 ```python
 import numpy as np
@@ -187,6 +189,11 @@ q_static = u.Q(sv, "m")
 q = u.Q(jnp.array([3.0, 4.0]), "m")
 
 print(q_static + q)
+
+# Comparisons return NumPy boolean arrays (element-wise)
+sv2 = u.quantity.StaticValue(np.array([2.0, 1.0]))
+print(sv < sv2)  # array([ True, False])
+print(sv == np.array([1.0, 2.0]))  # array([ True,  True])
 ```
 
 `unxt` is built on [`quax`][quax], which enables custom array-ish objects in
