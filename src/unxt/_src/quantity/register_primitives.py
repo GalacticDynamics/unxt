@@ -10,6 +10,7 @@ from typing import Any, Literal, TypeAlias, TypeVar, overload
 
 import equinox as eqx
 import jax.tree as jt
+import numpy as np
 from astropy.units import (  # pylint: disable=no-name-in-module
     UnitConversionError,
     dimensionless_unscaled as one,
@@ -30,6 +31,7 @@ from .base_angle import AbstractAngle
 from .base_parametric import AbstractParametricQuantity as ABCPQ  # noqa: N814
 from .flag import AllowValue
 from .quantity import Q, Quantity
+from .static_quantity import StaticQuantity
 from unxt._src.utils import promote_dtypes, promote_dtypes_if_needed
 from unxt_api import is_unit_convertible, uconvert, unit, unit_of, ustrip
 
@@ -38,7 +40,7 @@ T = TypeVar("T")
 Axes: TypeAlias = tuple[int, ...]
 
 
-def _to_value_rad_or_one(q: ABCQ) -> ArrayLike:
+def _to_val_rad_or_one(q: ABCQ) -> ArrayLike:
     return ustrip(radian if is_unit_convertible(q.unit, radian) else one, q)
 
 
@@ -125,6 +127,27 @@ def acosh_p_aq(x: ABCQ) -> ABCQ:
 
 # ==============================================================================
 # Addition
+
+
+@register(lax.add_p)
+def add_p_sqsq(x: StaticQuantity, y: StaticQuantity) -> StaticQuantity:
+    """Add two static quantities.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import unxt as u
+
+    >>> sq1 = u.StaticQuantity(np.array(1.0), "km")
+    >>> sq2 = u.StaticQuantity(np.array(500.0), "m")
+    >>> sq1 + sq2
+    StaticQuantity(array(1.5), unit='km')
+
+    """
+    # Use numpy arrays to keep the result static
+    xv = np.asarray(x.value)
+    yv = np.asarray(ustrip(x.unit, y))
+    return replace(x, value=xv + yv)
 
 
 @register(lax.add_p)
@@ -1241,7 +1264,7 @@ def cos_p_aq(x: ABCQ, /, **kw: Any) -> ABCQ:
     BareQuantity(Array(0.5403023, dtype=float32, ...), unit='')
 
     """
-    return type_np(x)(lax.cos_p.bind(_to_value_rad_or_one(x), **kw), unit=one)
+    return type_np(x)(lax.cos_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
 
 
 @register(lax.cos_p)
@@ -1262,7 +1285,7 @@ def cos_p_q(x: ABCPQ["angle"] | Q["dimensionless"], /, **kw: Any) -> Q["dimensio
     Quantity(Array(0.5403023, dtype=float32, ...), unit='')
 
     """
-    return Quantity(lax.cos_p.bind(_to_value_rad_or_one(x), **kw), unit=one)
+    return Quantity(lax.cos_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
 
 
 @register(lax.cos_p)
@@ -1303,7 +1326,7 @@ def cosh_p_aq(x: ABCQ) -> ABCQ:
     BareQuantity(Array(1.5430806, dtype=float32, ...), unit='')
 
     """
-    return type_np(x)(lax.cosh(_to_value_rad_or_one(x)), unit=one)
+    return type_np(x)(lax.cosh(_to_val_rad_or_one(x)), unit=one)
 
 
 @register(lax.cosh_p)
@@ -1324,7 +1347,7 @@ def cosh_p_q(x: ABCPQ["angle"] | Q["dimensionless"]) -> ABCPQ["dimensionless"]:
     Quantity(Array(1.5430806, dtype=float32, ...), unit='')
 
     """
-    return type_np(x)(lax.cosh(_to_value_rad_or_one(x)), unit=one)
+    return type_np(x)(lax.cosh(_to_val_rad_or_one(x)), unit=one)
 
 
 # ==============================================================================
@@ -4434,7 +4457,7 @@ def sin_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(1., dtype=float32, ...), unit='')
 
     """
-    return type_np(x)(lax.sin_p.bind(_to_value_rad_or_one(x), **kw), unit=one)
+    return type_np(x)(lax.sin_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
 
 
 @register(lax.sin_p)
@@ -4483,7 +4506,7 @@ def sinh_p(x: ABCQ) -> ABCQ:
     Quantity(Array(2.301299, dtype=float32, ...), unit='')
 
     """
-    return type_np(x)(lax.sinh(_to_value_rad_or_one(x)), unit=one)
+    return type_np(x)(lax.sinh(_to_val_rad_or_one(x)), unit=one)
 
 
 # ==============================================================================
@@ -4708,12 +4731,14 @@ def sub_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
     Quantity(Array(0.5, dtype=float32, ...), unit='km')
 
     """
+    x, y = promote(x, y)
+
     # Get the values, promoting if needed
     xv = ustrip(x)
     yv = ustrip(x.unit, y)
     xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
     # Return the subtracted values, and the unit of the first operand
-    return replace(x, value=qlax.sub(xv, yv))
+    return replace(x, value=xv - yv)
 
 
 @register(lax.sub_p)
@@ -4803,7 +4828,7 @@ def tan_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(1., dtype=float32, weak_type=True), unit='')
 
     """
-    return type_np(x)(lax.tan_p.bind(_to_value_rad_or_one(x), **kw), unit=one)
+    return type_np(x)(lax.tan_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
 
 
 @register(lax.tan_p)
@@ -4852,7 +4877,7 @@ def tanh_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(0.65579426, dtype=float32, weak_type=True), unit='')
 
     """
-    return type_np(x)(lax.tanh_p.bind(_to_value_rad_or_one(x), **kw), unit=one)
+    return type_np(x)(lax.tanh_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
 
 
 # ==============================================================================

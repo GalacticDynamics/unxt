@@ -84,6 +84,60 @@ def test_static_quantity_promotes_to_quantity() -> None:
     assert isinstance(r_promoted, u.Q)
 
 
+def test_static_quantity_subtraction_with_quantity() -> None:
+    """StaticQuantity subtraction with Quantity promotes to Quantity."""
+    sq = u.StaticQuantity(np.array(1.0), "s")
+    q = u.Quantity(0.5, "s")
+
+    # Quantity - StaticQuantity -> Quantity
+    result1 = q - sq
+    assert isinstance(result1, u.Q)
+    assert np.allclose(np.asarray(result1.value), -0.5)
+
+    # StaticQuantity - Quantity -> Quantity
+    result2 = sq - q
+    assert isinstance(result2, u.Q)
+    assert np.allclose(np.asarray(result2.value), 0.5)
+
+
+def test_static_quantity_subtraction_preserves_static() -> None:
+    """StaticQuantity subtraction with StaticQuantity stays StaticQuantity."""
+    sq1 = u.StaticQuantity(np.array(1.0), "km")
+    sq2 = u.StaticQuantity(np.array(500.0), "m")
+
+    result = sq1 - sq2
+    assert isinstance(result, u.StaticQuantity)
+    assert np.allclose(np.asarray(result.value), 0.5)
+    assert result.unit == sq1.unit
+
+
+def test_static_quantity_addition_with_quantity() -> None:
+    """StaticQuantity addition with Quantity promotes to Quantity."""
+    sq = u.StaticQuantity(np.array(1.0), "s")
+    q = u.Quantity(0.5, "s")
+
+    # Quantity + StaticQuantity -> Quantity
+    result1 = q + sq
+    assert isinstance(result1, u.Q)
+    assert np.allclose(np.asarray(result1.value), 1.5)
+
+    # StaticQuantity + Quantity -> Quantity
+    result2 = sq + q
+    assert isinstance(result2, u.Q)
+    assert np.allclose(np.asarray(result2.value), 1.5)
+
+
+def test_static_quantity_addition_preserves_static() -> None:
+    """StaticQuantity addition with StaticQuantity stays StaticQuantity."""
+    sq1 = u.StaticQuantity(np.array(1.0), "km")
+    sq2 = u.StaticQuantity(np.array(500.0), "m")
+
+    result = sq1 + sq2
+    assert isinstance(result, u.StaticQuantity)
+    assert np.allclose(np.asarray(result.value), 1.5)
+    assert result.unit == sq1.unit
+
+
 def test_static_value_pdoc() -> None:
     """StaticValue uses the contained value for formatting."""
     value = u.quantity.StaticValue(np.array([1.0, 2.0]))
