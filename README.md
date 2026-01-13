@@ -79,10 +79,152 @@ pip install -e .  # editable mode
 
 [![Read The Docs](https://img.shields.io/badge/read_docs-here-orange)](https://unxt.readthedocs.io/en/)
 
-### Quick example
+For full documentation, including installation instructions, tutorials, and API
+reference, please see the [unxt docs][rtd-link]. This README provides a brief
+overview and some quick examples.
+
+### Dimensions
+
+Dimensions represent the physical type of a quantity, such as length, time, or
+mass.
 
 ```python
 import unxt as u
+```
+
+Create dimensions from strings:
+
+```python
+length_dim = u.dimension("length")
+print(length_dim)
+# PhysicalType('length')
+```
+
+Dimensions support mathematical expressions:
+
+```python
+speed_dim = u.dimension("length / time")
+print(speed_dim)
+# PhysicalType({'speed', 'velocity'})
+```
+
+Multi-word dimension names require parentheses in expressions:
+
+```python
+activity_dim = u.dimension("(amount of substance) / (time)")
+print(activity_dim)
+# PhysicalType('catalytic activity')
+```
+
+### Units
+
+Units specify the scale and dimension of measurements.
+
+```python
+meter = u.unit("m")
+print(meter)
+# Unit("m")
+```
+
+Units can be combined:
+
+```python
+velocity_unit = u.unit("km/h")  # in the expression
+print(velocity_unit)
+# Unit("km / h")
+
+velocity_unit2 = u.unit("km") / u.unit("h")  # via arithmetic
+print(velocity_unit2)
+# Unit("km / h")
+```
+
+Get the dimension of a unit:
+
+```python
+print(u.dimension_of(meter))
+# PhysicalType('length')
+```
+
+## Unit Systems
+
+Unit systems define consistent sets of base units for specific domains. `unxt`
+provides built-in unit systems and tools for creating custom ones.
+
+### Built-in Unit Systems
+
+```python
+# SI (International System of Units)
+si = u.unitsystem("si")
+print(si)
+# unitsystem(m, kg, s, mol, A, K, cd, rad)
+
+# CGS (centimeter-gram-second)
+cgs = u.unitsystem("cgs")
+print(cgs)
+# unitsystem(cm, g, s, dyn, erg, Ba, P, St, rad)
+
+# Galactic (astrophysics)
+galactic = u.unitsystem("galactic")
+print(galactic)
+# unitsystem(kpc, Myr, solMass, rad)
+```
+
+### Composing Units from a Unit System
+
+Once you have a unit system, you can get units for any physical dimension by
+indexing the system:
+
+```python
+usys = u.unitsystem("si")
+
+# Get specific units
+print(usys["length"])
+# Unit("m")
+```
+
+### Custom Unit Systems
+
+Create custom unit systems by specifying base units:
+
+```python
+import unxt as u
+
+# Define a custom unit system
+custom_usys = u.unitsystem("km", "h", "tonne", "degree")
+print(custom_usys)
+# unitsystem(km, h, t, deg)
+
+# Access derived units
+print(custom_usys["velocity"])
+# Unit("km / h")
+```
+
+### Dynamical Unit Systems
+
+For domains like gravitational dynamics, use dynamical unit systems where
+$G = 1$:
+
+```python
+from unxt.unitsystems import DynamicalSimUSysFlag
+
+# Create a dynamical system where G=1
+# Only specify 2 of (length, time, mass)
+usys = u.unitsystem(DynamicalSimUSysFlag, "kpc", "Myr")
+print(usys)
+# unitsystem(kpc, Myr, ...)
+
+# The third dimension (mass) is computed to make G=1
+print(usys["mass"])
+# Unit("10^11 solMass")  # computed value
+```
+
+### Quantities
+
+Quantities combine values with units, providing type-safe unitful arithmetic.
+
+#### Basic Quantities
+
+```python
 import jax.numpy as jnp
 
 x = u.Quantity(jnp.arange(1, 5, dtype=float), "km")
@@ -97,7 +239,7 @@ repr(x.value)
 # Array([1., 2., 3., 4.], dtype=float64)
 
 repr(x.unit)
-# Unit("m")
+# Unit("km")
 ```
 
 `Quantity` objects obey the rules of unitful arithmetic.
@@ -152,6 +294,47 @@ except ValueError as e:
 # Physical type mismatch.
 ```
 
+#### BareQuantity
+
+For performance-critical code where you don't need dimension checking, use
+`BareQuantity`:
+
+```python
+import unxt as u
+import jax.numpy as jnp
+
+# BareQuantity skips dimension checks for better performance
+bq = u.quantity.BareQuantity(jnp.array([1.0, 2.0, 3.0]), "m")
+print(bq)
+# BareQuantity([1., 2., 3.], unit='m')
+
+# Works just like Quantity but without dimension validation
+print(bq * 2)
+# BareQuantity([2., 4., 6.], unit='m')
+```
+
+#### Angle
+
+`Angle` is a specialized quantity with wrapping support for angular values:
+
+```python
+import unxt as u
+import jax.numpy as jnp
+
+# Angles can wrap to a specified range
+theta = u.Angle(jnp.array([0, 90, 180, 270, 360]), "deg")
+print(theta)
+# Angle([0., 90., 180., 270., 360.], unit='deg')
+
+# Optional wrapping to a specified range
+angle = u.Angle(jnp.array([370, -10]), "deg")
+wrapped = angle.wrap_to(u.Q(0, "deg"), u.Q(360, "deg"))
+print(wrapped)
+# Angle([10., 350.], unit='deg')
+```
+
+#### StaticQuantity
+
 For static configuration values (e.g., JAX static arguments), use
 `StaticQuantity`, which stores NumPy values and rejects JAX arrays:
 
@@ -172,6 +355,8 @@ def add(x, q):
 
 print(add(1.0, cfg))
 ```
+
+#### StaticValue
 
 If you want a `Quantity` that keeps a static value but still participates in
 regular arithmetic, wrap the value with `StaticValue`. Arithmetic behaves like
@@ -196,6 +381,8 @@ print(sv < sv2)  # array([ True, False])
 print(sv == np.array([1.0, 2.0]))  # array([ True,  True])
 ```
 
+### JAX Integration
+
 `unxt` is built on [`quax`][quax], which enables custom array-ish objects in
 JAX. For convenience we use the [`quaxed`][quaxed] library, which is just a
 `quax.quaxify` wrapper around `jax` to avoid boilerplate code.
@@ -209,6 +396,7 @@ JAX. For convenience we use the [`quaxed`][quaxed] library, which is just a
 from quaxed import grad, vmap
 import quaxed.numpy as jnp
 
+# Using the x quantity from earlier examples
 print(jnp.square(x))
 # Quantity['area']([ 1.,  4.,  9., 16.], unit='km2')
 

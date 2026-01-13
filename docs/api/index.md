@@ -1,4 +1,4 @@
-# `unxt` library
+# `unxt` API
 
 ```{toctree}
 :maxdepth: 1

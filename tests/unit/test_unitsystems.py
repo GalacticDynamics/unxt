@@ -139,7 +139,7 @@ def test_unitsystem_already_registered():
     """Test that a unit system can only be registered once."""
 
     class MyUnitSystem(AbstractUnitSystem):
-        length: Annotated[apyu.Unit, dimension("length")]
+        absement: Annotated[apyu.Unit, dimension("absement")]
         time: Annotated[apyu.Unit, dimension("time")]
 
     assert MyUnitSystem._base_dimensions in unitsystems.UNITSYSTEMS_REGISTRY
@@ -147,7 +147,7 @@ def test_unitsystem_already_registered():
     with pytest.raises(ValueError, match="already exists"):
 
         class MyUnitSystem(AbstractUnitSystem):
-            length: Annotated[apyu.Unit, dimension("length")]
+            absement: Annotated[apyu.Unit, dimension("absement")]
             time: Annotated[apyu.Unit, dimension("time")]
 
     # Clean up custom unit system from registry:
