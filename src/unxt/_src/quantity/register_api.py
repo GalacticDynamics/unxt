@@ -6,7 +6,7 @@ from dataclasses import replace
 from typing import Any
 
 import equinox as eqx
-import jax.numpy as jnp
+import numpy as np
 from astropy.units import UnitConversionError
 from jaxtyping import Array
 from plum import dispatch
@@ -123,7 +123,7 @@ def uconvert(ustr: str, x: AbstractQuantity, /) -> AbstractQuantity:
 
 @dispatch
 def uconvert(usys: AbstractUnitSystem, x: AbstractQuantity, /) -> AbstractQuantity:
-    """Strip the units from the quantity.
+    """Convert the quantity to the specified units.
 
     Examples
     --------
@@ -143,13 +143,14 @@ def uconvert(usys: AbstractUnitSystem, x: AbstractQuantity, /) -> AbstractQuanti
 
 
 @dispatch
-def ustrip(x: StaticQuantity, /) -> Array:
+def ustrip(x: StaticQuantity, /) -> np.ndarray:
     """Strip the units from a static quantity."""
-    return jnp.asarray(x.value)
+    v = x.value
+    return v.array if isinstance(v, StaticValue) else v
 
 
 @dispatch
-def ustrip(x: AbstractQuantity, /) -> Array:
+def ustrip(x: AbstractQuantity, /) -> Array | np.ndarray:
     """Strip the units from the quantity.
 
     Examples
@@ -164,14 +165,12 @@ def ustrip(x: AbstractQuantity, /) -> Array:
     True
 
     """
-    value = x.value
-    if isinstance(value, StaticValue):
-        return jnp.asarray(value)
-    return value
+    v = x.value
+    return v.array if isinstance(v, StaticValue) else v
 
 
 @dispatch
-def ustrip(u: AbstractUnit, x: AbstractQuantity, /) -> Array:
+def ustrip(u: AbstractUnit, x: AbstractQuantity, /) -> Array | np.ndarray:
     """Strip the units from the quantity.
 
     Examples
@@ -187,7 +186,7 @@ def ustrip(u: AbstractUnit, x: AbstractQuantity, /) -> Array:
 
 
 @dispatch
-def ustrip(u: str, x: AbstractQuantity, /) -> Array:
+def ustrip(u: str, x: AbstractQuantity, /) -> Array | np.ndarray:
     """Strip the units from the quantity.
 
     Examples
@@ -203,7 +202,7 @@ def ustrip(u: str, x: AbstractQuantity, /) -> Array:
 
 
 @dispatch
-def ustrip(u: AbstractUnitSystem, x: AbstractQuantity, /) -> Array:
+def ustrip(u: AbstractUnitSystem, x: AbstractQuantity, /) -> Array | np.ndarray:
     """Strip the units from the quantity.
 
     Examples
