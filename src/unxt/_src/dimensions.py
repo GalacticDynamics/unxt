@@ -23,18 +23,63 @@ AbstractDimension: TypeAlias = apyu.PhysicalType
 # Multiplication, Division). We match: ( ) * / ** but NOT space, +, or -
 _PEMD_PATTERN = re.compile(r"[()*/]|\*\*")
 
+# Regex pattern to match parenthesized dimension names that may contain spaces
+_PAREN_DIM_PATTERN = re.compile(r"\(([^()]+)\)")
+
 
 # ===================================================================
 # Construct the dimensions
 
 
-def _eval_dimension_node(node: ast.AST, /) -> AbstractDimension:  # noqa: C901
+def _preprocess_dimension_string(expr: str, /) -> tuple[str, dict[str, str]]:
+    """Preprocess dimension string to handle multi-word dimension names.
+
+    Converts (dimension name) to _dimN for parsing, then stores the mapping.
+
+    Parameters
+    ----------
+    expr : str
+        The expression string that may contain parenthesized dimension names.
+
+    Returns
+    -------
+    str
+        The preprocessed expression with valid Python identifiers.
+    dict[str, str]
+        Mapping from temporary identifiers to original dimension names.
+
+    """
+    dim_mapping: dict[str, str] = {}
+    counter = 0
+
+    def replace_paren_dim(match: re.Match[str], /) -> str:
+        nonlocal counter
+        # Strip whitespace from the captured dimension name to handle cases like
+        # "( amount of substance )" where users might include extra spaces
+        dim_name = match.group(1).strip()
+        temp_id = f"_dim{counter}"
+        dim_mapping[temp_id] = dim_name
+        counter += 1
+        return temp_id
+
+    preprocessed = _PAREN_DIM_PATTERN.sub(replace_paren_dim, expr)
+    return preprocessed, dim_mapping
+
+
+def _eval_dimension_node(  # noqa: C901
+    node: ast.AST,
+    /,
+    *,
+    dim_mapping: dict[str, str] | None = None,
+) -> AbstractDimension:
     """Recursively evaluate AST nodes into dimensions or numeric values.
 
     Parameters
     ----------
     node : ast.AST
         AST node to evaluate.
+    dim_mapping : dict[str, str] | None
+        Mapping from temporary identifiers to original dimension names.
 
     Returns
     -------
@@ -42,25 +87,40 @@ def _eval_dimension_node(node: ast.AST, /) -> AbstractDimension:  # noqa: C901
         Evaluated dimension.
 
     """
+    if dim_mapping is None:
+        dim_mapping = {}
+
     if isinstance(node, ast.Expression):
-        return _eval_dimension_node(node.body)
+        return _eval_dimension_node(node.body, dim_mapping=dim_mapping)
 
     if isinstance(node, ast.BinOp):
-        left = _eval_dimension_node(node.left)
+        left = _eval_dimension_node(node.left, dim_mapping=dim_mapping)
 
         if isinstance(node.op, ast.Pow):
-            # For powers, right side must be a numeric constant
-            if not isinstance(node.right, ast.Constant):
+            # For powers, evaluate the exponent
+            # It can be a Constant or a UnaryOp (for negative exponents like **-1)
+            if isinstance(node.right, ast.Constant):
+                right = node.right.value
+            elif isinstance(node.right, ast.UnaryOp) and isinstance(
+                node.right.op, ast.USub
+            ):
+                # Handle negative exponents like **-1
+                if isinstance(node.right.operand, ast.Constant):
+                    right = -node.right.operand.value
+                else:
+                    msg = "Power exponent must be a number"
+                    raise TypeError(msg)
+            else:
                 msg = "Power exponent must be a number"
                 raise TypeError(msg)
-            right = node.right.value
+
             if not isinstance(right, int | float):
                 msg = f"Power exponent must be a number, got: {type(right).__name__}"
                 raise TypeError(msg)
             return left**right
 
         # For other operators, evaluate right side normally
-        right = _eval_dimension_node(node.right)
+        right = _eval_dimension_node(node.right, dim_mapping=dim_mapping)
 
         if isinstance(node.op, ast.Mult):
             return left * right
@@ -71,15 +131,17 @@ def _eval_dimension_node(node: ast.AST, /) -> AbstractDimension:  # noqa: C901
         raise ValueError(msg)
 
     if isinstance(node, ast.UnaryOp):
-        operand = _eval_dimension_node(node.operand)
+        operand = _eval_dimension_node(node.operand, dim_mapping=dim_mapping)
         if isinstance(node.op, ast.USub):
             return operand**-1
         msg = f"Unsupported unary operator: {node.op.__class__.__name__}"
         raise ValueError(msg)
 
     if isinstance(node, ast.Name):
+        # Check if this is a temporary identifier that maps to a dimension name
+        dim_name = dim_mapping.get(node.id, node.id)
         # This is a dimension name - recursively call dimension()
-        return uapi.dimension(node.id)
+        return uapi.dimension(dim_name)
 
     if isinstance(node, ast.Constant):
         # Handle numeric constants (for exponents)
@@ -92,12 +154,14 @@ def _eval_dimension_node(node: ast.AST, /) -> AbstractDimension:  # noqa: C901
 def _parse_dimension_string(expr: str, /) -> AbstractDimension:
     """Parse a dimension string with mathematical operations.
 
-    Supports *, /, and ** operators following PEMDAS.
+    Supports *, /, and ** operators following PEMDAS. Dimension names can
+    be parenthesized and may contain spaces, e.g., "(amount of substance)".
 
     Parameters
     ----------
     expr : str
-        Mathematical expression like "length / time**2"
+        Mathematical expression like "length / time**2" or
+        "(amount of substance) / (time)"
 
     Returns
     -------
@@ -106,21 +170,24 @@ def _parse_dimension_string(expr: str, /) -> AbstractDimension:
 
     Examples
     --------
-    >>> _parse_dimension_string("length / time**2")  # doctest: +SKIP
+    >>> _parse_dimension_string("length / time**2")
     PhysicalType(...)
 
     """
     # Normalize whitespace
     expr = expr.strip()
 
+    # Preprocess to handle multi-word dimension names in parentheses
+    preprocessed, dim_mapping = _preprocess_dimension_string(expr)
+
     # Parse the expression into an AST
     try:
-        tree = ast.parse(expr, mode="eval")
+        tree = ast.parse(preprocessed, mode="eval")
     except SyntaxError as e:
         msg = f"Invalid dimension expression: {expr}"
         raise ValueError(msg) from e
 
-    return _eval_dimension_node(tree)
+    return _eval_dimension_node(tree, dim_mapping=dim_mapping)
 
 
 @dispatch
@@ -147,25 +214,95 @@ def dimension(obj: AbstractDimension, /) -> AbstractDimension:
 def dimension(obj: str, /) -> AbstractDimension:
     """Construct dimension from a string.
 
-    Supports simple dimension names and mathematical expressions using
-    *, /, and ** operators. Dimension names can contain spaces, +, and -.
+    The string can be:
+    1. A simple dimension name (e.g., "length", "time", "mass")
+    2. A multi-word dimension name (e.g., "amount of substance")
+    3. A mathematical expression using *, /, and ** operators
+
+    Mathematical Expressions:
+
+    Expressions are evaluated using operator precedence (PEMDAS):
+    - ** (exponentiation, highest precedence)
+    - * and / (multiplication and division, equal precedence, left-to-right)
+
+    Parentheses are supported for grouping and for dimension names with spaces.
+
+    Operators Supported:
+    - `*` : Multiplication (e.g., "length * time")
+    - `/` : Division (e.g., "length / time")
+    - `**` : Exponentiation (e.g., "length**2")
+
+    Unsupported Operators:
+    - `+` and `-` are NOT supported as operators since dimensions are invariant
+      under addition and subtraction. They are treated as part of dimension names.
+
+    Rules for Dimension Names in Expressions:
+    - Single-word names don't need parentheses: "length * time"
+    - Multi-word names MUST be parenthesized: "(amount of substance) * time"
+    - Parenthesized single-word names are allowed: "(length) / (time)"
+    - Whitespace is flexible: "length / time", "length/time", "length / time**2"
 
     Examples
     --------
     >>> from unxt.dims import dimension
 
-    Simple dimension name:
+    **Simple dimension names:**
 
     >>> dimension("length")
     PhysicalType('length')
 
-    Mathematical expressions:
+    >>> dimension("time")
+    PhysicalType('time')
 
-    >>> dimension("length / time")  # doctest: +SKIP
-    PhysicalType('speed')
+    >>> dimension("mass")
+    PhysicalType('mass')
 
-    >>> dimension("length / time**2")  # doctest: +SKIP
-    PhysicalType('acceleration')
+    **Multi-word dimension names:**
+
+    >>> dimension("amount of substance")
+    PhysicalType('amount of substance')
+
+    **Mathematical expressions with single-word names:**
+
+    >>> dimension("length / time")
+    PhysicalType({'speed', 'velocity'})
+
+    >>> dimension("length**2")
+    PhysicalType('area')
+
+    >>> dimension("length * mass / time**2")
+    PhysicalType('force')
+
+    **Parenthesized expressions:**
+
+    >>> dimension("(length) / (time)")
+    PhysicalType({'speed', 'velocity'})
+
+    **Expressions with multi-word dimension names:**
+
+    >>> dimension("(amount of substance) / (time)")
+    PhysicalType('catalytic activity')
+
+    **Mixed expressions (multi-word with parentheses, single-word without):**
+
+    >>> dimension("length * (amount of substance)")
+    PhysicalType('unknown')
+
+    >>> dimension("(absement) / (time)")
+    PhysicalType('length')
+
+    **Negative exponents:**
+
+    >>> dimension("length**-1")
+    PhysicalType('wavenumber')
+
+    >>> dimension("length**-2")
+    PhysicalType('column density')
+
+    See Also
+    --------
+    dimension_of : Get the dimension of an object
+    unxt.units : Unit specifications can also use dimension expressions
 
     """
     # Check if the string contains PEMD operators using regex
