@@ -6,15 +6,15 @@ from typing import Any, NoReturn
 
 from astropy.coordinates import Angle as AstropyAngle, Distance as AstropyDistance
 from astropy.units import Quantity as AstropyQuantity
+from jaxtyping import ArrayLike
 from plum import conversion_method, dispatch, type_unparametrized as type_up
 
 import quaxed.numpy as jnp
 from dataclassish import field_items, replace
 
+import unxt_api as uapi
 from .custom_types import APYUnits
-from unxt.dims import dimension_of
 from unxt.quantity import AbstractQuantity, AllowValue, BareQuantity, Quantity, ustrip
-from unxt.units import unit, unit_of
 
 # ============================================================================
 # Value Converter
@@ -67,8 +67,8 @@ def from_(
     Quantity(Array(1., dtype=float32), unit='m')
 
     """
-    u = unit_of(value)
-    value = jnp.asarray(ustrip(u, value), **kwargs)
+    u = uapi.unit_of(value)
+    value = jnp.asarray(uapi.ustrip(u, value), **kwargs)
     return cls(value, u)
 
 
@@ -89,8 +89,8 @@ def from_(
     Quantity(Array(100., dtype=float32), unit='cm')
 
     """
-    u = unit(u)
-    value = jnp.asarray(ustrip(u, value), **kwargs)
+    u = uapi.unit(u)
+    value = jnp.asarray(uapi.ustrip(u, value), **kwargs)
     return cls(value, u)
 
 
@@ -114,8 +114,8 @@ def convert_unxt_quantity_to_astropy_quantity(
     <Quantity 1. cm>
 
     """
-    u = unit_of(q)
-    return AstropyQuantity(ustrip(u, q), u)
+    u = uapi.unit_of(q)
+    return AstropyQuantity(uapi.ustrip(u, q), u)
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=AstropyDistance)  # type: ignore[arg-type]
@@ -134,8 +134,8 @@ def convert_unxt_quantity_to_astropy_distance(
     <Distance 1. cm>
 
     """
-    u = unit_of(q)
-    return AstropyDistance(ustrip(u, q), u)
+    u = uapi.unit_of(q)
+    return AstropyDistance(uapi.ustrip(u, q), u)
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=AstropyAngle)  # type: ignore[arg-type]
@@ -152,8 +152,8 @@ def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAng
     <Angle 1. rad>
 
     """
-    u = unit_of(q)
-    return AstropyAngle(ustrip(u, q), u)
+    u = uapi.unit_of(q)
+    return AstropyAngle(uapi.ustrip(u, q), u)
 
 
 # ============================================================================
@@ -174,8 +174,8 @@ def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity
     Quantity(Array(1., dtype=float32), unit='cm')
 
     """
-    u = unit_of(q)
-    return Quantity(ustrip(u, q), u)
+    u = uapi.unit_of(q)
+    return Quantity(uapi.ustrip(u, q), u)
 
 
 # ============================================================================
@@ -198,11 +198,32 @@ def convert_astropy_quantity_to_unxt_barequantity(
     BareQuantity(Array(1., dtype=float32), unit='cm')
 
     """
-    u = unit_of(q)
-    return BareQuantity(ustrip(u, q), u)
+    u = uapi.unit_of(q)
+    return BareQuantity(uapi.ustrip(u, q), u)
 
 
 ###############################################################################
+
+
+@dispatch
+def uconvert_value(uto: APYUnits, ufrom: APYUnits, x: ArrayLike, /) -> ArrayLike:
+    """Convert the value to the specified units.
+
+    Examples
+    --------
+    >>> import astropy.units as apyu
+    >>> import unxt as u
+
+    >>> u.uconvert_value(apyu.Unit("km"), apyu.Unit("m"), 1000)
+    1.0
+
+    """
+    # Hot-path: if no unit conversion is necessary
+    if ufrom == uto:
+        return x
+
+    # Compute the new value.
+    return ufrom.to(uto, x)
 
 
 @dispatch
@@ -235,11 +256,10 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
     if x.unit == u:
         return x
 
-    # Compute the value. Used in all subsequent branches.
-    value = x.unit.to(u, ustrip(x))
+    value = x.unit.to(u, uapi.ustrip(x))
 
     # If the dimensions are the same, we can just replace the value and unit.
-    if dimension_of(x.unit) == dimension_of(u):
+    if uapi.dimension_of(x.unit) == uapi.dimension_of(u):
         return replace(x, value=value, unit=u)
 
     # If the dimensions are different, we need to create a new quantity since
@@ -285,4 +305,4 @@ def ustrip(flag: type[AllowValue], u: Any, x: AstropyQuantity, /) -> Any:
     Array(1., dtype=float32, ...)
 
     """
-    return ustrip(u, x)
+    return uapi.ustrip(u, x)

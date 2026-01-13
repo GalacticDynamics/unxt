@@ -44,6 +44,7 @@ __all__ = (
     "StaticQuantity",  # static value quantity
     "AbstractQuantity",  # base class
     "Angle",  # angular quantity
+    "uconvert_value",  # convert values
     "uconvert",  # convert units
     "ustrip",  # strip units
     "is_unit_convertible",  # check if units can be converted
@@ -63,6 +64,7 @@ with install_import_hook("unxt"):
         StaticQuantity,
         is_unit_convertible,
         uconvert,
+        uconvert_value,
         ustrip,
     )
     from .units import AbstractUnit, unit, unit_of

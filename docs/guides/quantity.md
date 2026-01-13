@@ -96,6 +96,71 @@ If you prefer a more functional approach, use the `uconvert` function.
 Quantity(Array(500., dtype=float32, ...), unit='cm')
 ```
 
+### Low-Level Value Conversion with `uconvert_value`
+
+For operations on raw numerical values without `Quantity` wrapping, use the
+lower-level `uconvert_value` function. This is useful when you need to perform
+batch conversions or work with JAX transformations.
+
+**Basic usage with unit strings:**
+
+```{code-block} python
+>>> # Convert raw values between units
+>>> u.uconvert_value("km", "m", 1000)
+1.0
+
+>>> import jax.numpy as jnp
+>>> u.uconvert_value("km", "m", jnp.array([1000, 2000, 5000]))
+Array([1., 2., 5.], dtype=float32, ...)
+```
+
+**With unit objects:**
+
+```{code-block} python
+>>> u.uconvert_value(u.unit("km"), u.unit("m"), 5000)
+5.0
+```
+
+**Convenience dispatch for Quantity objects:**
+
+The `uconvert_value` function also provides a convenience dispatch that works
+directly with `Quantity` objects, allowing you to use the lower-level function
+without breaking compatibility:
+
+```{code-block} python
+>>> u.uconvert_value("km", "m", q)
+Quantity(Array(0.005, dtype=float32, ...), unit='km')
+```
+
+This dispatch just calls `uconvert` so you don't need to extract the value manually.
+
+**Relationship to other functions:**
+
+- `uconvert_value` operates on raw numerical values and returns raw values
+- `uconvert` operates on `Quantity` objects and returns `Quantity` objects
+- Internally, `uconvert` often delegates to `uconvert_value` for the numerical
+  conversion step
+
+**Performance considerations:**
+
+Use `uconvert_value` directly when:
+- Performing batch conversions on arrays
+- Working inside JAX transformations (jit, vmap, grad)
+- Avoiding the overhead of `Quantity` objects
+- Maximum performance is critical
+
+```{code-block} python
+>>> import jax
+>>> @jax.jit
+... def batch_convert_to_km(values_in_m):
+...     return u.uconvert_value("km", "m", values_in_m)
+
+>>> batch_convert_to_km(jnp.array([1000., 5000., 10000.]))
+Array([ 1.,  5., 10.], dtype=float32)
+```
+
+### Converting to Values in Different Units
+
 To convert to the value in the new units, use the `ustrip` function.
 
 ```{code-block} python

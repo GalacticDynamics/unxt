@@ -89,6 +89,76 @@ Quantity(Array(1., dtype=float32), unit='m')
 
 ```
 
+## Unit Conversion with Astropy
+
+`unxt` provides full support for unit conversions using Astropy's units. The
+low-level `uconvert_value` function works seamlessly with Astropy unit objects,
+enabling high-performance conversions suitable for JAX transformations.
+
+### `uconvert_value` with Astropy Units
+
+The `uconvert_value` function accepts Astropy unit objects and performs efficient
+numerical conversions:
+
+```{code-block} python
+
+>>> import unxt as u
+>>> import astropy.units as apyu
+>>> import numpy as np
+
+>>> # Scalar conversion
+>>> u.uconvert_value(apyu.Unit("km"), apyu.Unit("m"), 1000)
+1.0
+
+>>> # Array conversion
+>>> u.uconvert_value(apyu.Unit("km"), apyu.Unit("m"), np.array([1000, 2000, 5000]))
+array([1., 2., 5.])
+
+>>> # No conversion when units are identical (hot-path optimization)
+>>> u.uconvert_value(apyu.Unit("m"), apyu.Unit("m"), 1000)
+1000
+
+```
+
+### Complex Unit Conversions
+
+Support for composite units and unit equivalencies:
+
+```{code-block} python
+
+>>> # Velocity units
+>>> u.uconvert_value(apyu.Unit("m/s"), apyu.Unit("km/s"), 1)
+1000.0
+
+>>> # With equivalencies (e.g., temperature)
+>>> import astropy.units as apyu
+>>> with apyu.add_enabled_equivalencies(apyu.temperature()):
+...     u.uconvert_value(apyu.Unit("deg_C"), apyu.Unit("K"), 273.15)
+0.0
+
+```
+
+### Performance Considerations
+
+`uconvert_value` with Astropy units is optimized for performance:
+- **Hot-path**: When units are identical, the value is returned unchanged
+- **JAX compatible**: Works with JIT compilation, vmap, and autodiff
+- **Low overhead**: Direct Astropy unit conversion without Quantity wrapping
+
+```{code-block} python
+
+>>> import jax
+>>> import astropy.units as apyu
+
+>>> @jax.jit
+... def convert_to_km(values_in_m):
+...     return u.uconvert_value(apyu.Unit("km"), apyu.Unit("m"), values_in_m)
+
+>>> convert_to_km(np.array([1000., 5000., 10000.]))
+Array([ 1.,  5., 10.], dtype=float32)
+
+```
+
 <!-- Links -->
 
 [astropy-link]: https://www.astropy.org/

@@ -23,6 +23,7 @@ def test_all_exports() -> None:
         "dimension_of",
         "unit",
         "unit_of",
+        "uconvert_value",
         "uconvert",
         "ustrip",
         "is_unit_convertible",
