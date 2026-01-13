@@ -681,7 +681,7 @@ def test_mod():
     """Test taking the modulus."""
     q = u.Q(480.0, "deg")
 
-    with pytest.raises(AttributeError):
+    with pytest.raises(RuntimeError):
         _ = q % 2
 
     with pytest.raises(apyu.UnitConversionError):

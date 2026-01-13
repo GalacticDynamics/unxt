@@ -25,7 +25,6 @@ import jax.core
 import numpy as np
 import quax_blocks
 import wadler_lindig as wl
-from astropy.units import UnitConversionError
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Bool, ScalarLike, Shaped
 from plum import add_promotion_rule, dispatch, type_nonparametric
@@ -37,7 +36,7 @@ from dataclassish import field_items, replace
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
 from .value import StaticValue
 from unxt.units import AbstractUnit
-from unxt_api import is_unit_convertible, uconvert, unit_of, ustrip
+from unxt_api import uconvert, unit_of, ustrip
 
 if TYPE_CHECKING:
     from typing import Self
@@ -298,42 +297,6 @@ class AbstractQuantity(
 
         """
         return replace(self, value=self.value.T)
-
-    # ---------------------------------------------------------------
-    # arithmetic operators
-
-    @dispatch
-    def __mod__(self: "AbstractQuantity", other: Any) -> "AbstractQuantity":
-        """Take the modulus.
-
-        Examples
-        --------
-        >>> import unxt as u
-
-        >>> q = u.Quantity(480, "deg")
-        >>> q % u.Quantity(360, "deg")
-        Quantity(Array(120, dtype=int32, ...), unit='deg')
-
-        """
-        if not is_unit_convertible(other.unit, self.unit):
-            raise UnitConversionError
-
-        # TODO: figure out how to defer to quaxed (e.g. quaxed.operator.mod)
-        return replace(self, value=self.value % ustrip(self.unit, other))
-
-    def __rmod__(self, other: Any) -> Any:
-        """Take the modulus.
-
-        Examples
-        --------
-        >>> import unxt as u
-
-        >>> q = u.Quantity(480, "deg")
-        >>> q.__rmod__(u.Quantity(360, "deg"))
-        Quantity(Array(120, dtype=int32, ...), unit='deg')
-
-        """
-        return self % other
 
     # required to override mixin methods
     __eq__ = quax_blocks.NumpyEqMixin.__eq__  # type: ignore[assignment,unused-ignore]

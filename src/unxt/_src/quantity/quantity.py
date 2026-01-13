@@ -3,14 +3,12 @@
 
 __all__ = ("Quantity", "Q")
 
-from dataclasses import replace
 from typing import ClassVar, final
 
 import equinox as eqx
-from jaxtyping import Array, ArrayLike, Shaped
+from jaxtyping import Array, Shaped
 from plum import parametric
 
-from .base import AbstractQuantity
 from .base_parametric import AbstractParametricQuantity
 from .value import StaticValue, convert_to_quantity_value
 from unxt.units import AbstractUnit, unit as parse_unit
@@ -123,19 +121,3 @@ class Quantity(AbstractParametricQuantity):
 
 
 Q = Quantity  # convenience alias
-
-
-@AbstractQuantity.__mod__.dispatch  # type: ignore[misc, attr-defined]
-def mod(self: Quantity["dimensionless"], other: ArrayLike) -> Quantity["dimensionless"]:
-    """Take the mod.
-
-    Examples
-    --------
-    >>> import unxt as u
-
-    >>> q = u.Quantity(480, "deg")
-    >>> q % u.Quantity(360, "deg")
-    Quantity(Array(120, dtype=int32, ...), unit='deg')
-
-    """
-    return replace(self, value=self.value % other)
