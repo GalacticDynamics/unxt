@@ -156,3 +156,35 @@ class TestDimensionOperatorDetection:
         dim = u.dimension("length**2")
         expected = u.dimension("length") ** 2
         assert dim == expected
+
+    @given(dim_name=st.sampled_from(ust.DIMENSION_NAMES))
+    def test_parenthesized_with_whitespace(self, dim_name):
+        """Test that whitespace in parentheses is stripped correctly.
+
+        Hypothesis generates dimension names and tests that wrapping them in
+        parentheses with varying whitespace doesn't change the result.
+        """
+        # Without spaces
+        dim_no_space = u.dimension(f"({dim_name})")
+        # With spaces
+        dim_with_space = u.dimension(f"( {dim_name} )")
+        # With multiple spaces
+        dim_multi_space = u.dimension(f"(  {dim_name}  )")
+
+        expected = u.dimension(dim_name)
+        assert dim_no_space == expected
+        assert dim_with_space == expected
+        assert dim_multi_space == expected
+
+    @given(
+        dim_name1=st.sampled_from(ust.DIMENSION_NAMES),
+        dim_name2=st.sampled_from(ust.DIMENSION_NAMES),
+    )
+    def test_division_expression_with_whitespace(self, dim_name1, dim_name2):
+        """Test division expressions with whitespace in parentheses."""
+        dim_no_space = u.dimension(f"({dim_name1}) / ({dim_name2})")
+        dim_with_space = u.dimension(f"( {dim_name1} ) / ( {dim_name2} )")
+
+        expected = u.dimension(dim_name1) / u.dimension(dim_name2)
+        assert dim_no_space == expected
+        assert dim_with_space == expected
