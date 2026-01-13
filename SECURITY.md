@@ -3,7 +3,7 @@
 ## Supported Versions
 
 The most recent major version will receive security updates. Older major
-versions will be updated if backports are possible.
+versions will be updated if backports are requested and are reasonable.
 
 ## Reporting a Vulnerability
 
