@@ -1,52 +1,60 @@
 """Unit tests for dimension construction and parsing."""
 
 import pytest
+from hypothesis import example, given, strategies as st
 
 import unxt as u
+import unxt_hypothesis as ust
 
 
 class TestDimensionSimple:
     """Test simple dimension construction without mathematical operations."""
 
-    def test_dimension_from_string(self):
+    @given(dim_name=st.sampled_from(ust.DIMENSION_NAMES))
+    @example(dim_name="length")
+    @example(dim_name="time")
+    @example(dim_name="mass")
+    @example(dim_name="angle")
+    def test_dimension_from_string(self, dim_name):
         """Test creating dimension from simple string."""
-        dim = u.dimension("length")
-        assert str(dim) == "length"
+        dim = u.dimension(dim_name)
+        assert dim_name in str(dim)
 
-    def test_dimension_from_dimension(self):
+    @given(dim=ust.named_dimensions())
+    def test_dimension_from_dimension(self, dim) -> None:
         """Test dimension identity."""
-        dim = u.dimension("length")
         assert u.dimension(dim) is dim
-
-    def test_dimension_various_types(self):
-        """Test various dimension types."""
-        assert str(u.dimension("time")) == "time"
-        assert str(u.dimension("mass")) == "mass"
-        assert str(u.dimension("angle")) == "angle"
 
 
 class TestDimensionMathematicalParsing:
     """Test dimension construction from mathematical expressions."""
 
-    def test_division(self):
+    @given(
+        dim_name1=st.sampled_from(ust.DIMENSION_NAMES),
+        dim_name2=st.sampled_from(ust.DIMENSION_NAMES),
+    )
+    def test_division(self, dim_name1, dim_name2):
         """Test division operator."""
-        dim = u.dimension("length / time")
-        # Should be velocity/speed dimension
-        expected = u.dimension("length") / u.dimension("time")
-        assert dim == expected
+        parsed = u.dimension(f"({dim_name1}) / ({dim_name2})")
+        direct = u.dimension(dim_name1) / u.dimension(dim_name2)
+        assert parsed == direct
 
-    def test_multiplication(self):
+    @given(
+        dim_name1=st.sampled_from(ust.DIMENSION_NAMES),
+        dim_name2=st.sampled_from(ust.DIMENSION_NAMES),
+    )
+    def test_multiplication(self, dim_name1, dim_name2):
         """Test multiplication operator."""
-        dim = u.dimension("length * length")
-        # Should be area
-        expected = u.dimension("length") ** 2
-        assert dim == expected
+        parsed = u.dimension(f"({dim_name1}) * ({dim_name2})")
+        direct = u.dimension(dim_name1) * u.dimension(dim_name2)
+        assert parsed == direct
 
-    def test_power(self):
+    @given(dim_name=st.sampled_from(ust.DIMENSION_NAMES), exponent=st.integers(-3, 3))
+    def test_power(self, dim_name, exponent):
         """Test power operator."""
-        dim = u.dimension("length**2")
-        expected = u.dimension("length") ** 2
-        assert dim == expected
+        parsed = u.dimension(f"({dim_name})**{exponent}")
+        direct = u.dimension(dim_name) ** exponent
+        assert parsed == direct
 
     def test_acceleration(self):
         """Test compound expression for acceleration."""
