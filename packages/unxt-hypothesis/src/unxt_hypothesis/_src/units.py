@@ -8,8 +8,7 @@ import astropy.units as apyu
 from hypothesis import strategies as st
 
 import unxt as u
-
-SI_DIMS_STRAT = st.sampled_from(tuple(u.dimension_of(x) for x in u.unitsystems.si))
+from .dimensions import named_dimensions
 
 
 @st.composite
@@ -146,7 +145,7 @@ def units(
     draw: st.DrawFn,
     dimension: str
     | u.AbstractDimension
-    | st.SearchStrategy[u.AbstractDimension] = SI_DIMS_STRAT,
+    | st.SearchStrategy[u.AbstractDimension] = named_dimensions(),  # noqa: B008
     /,
     **kwargs: Any,
 ) -> u.AbstractUnit:
