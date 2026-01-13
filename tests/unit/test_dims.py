@@ -93,6 +93,54 @@ class TestDimensionMathematicalParsing:
         dim2 = u.dimension("length * length * length")
         assert dim2 == expected
 
+    def test_negative_exponents(self):
+        """Test negative exponents in dimension expressions."""
+        # Single negative exponent
+        dim = u.dimension("length**-1")
+        expected = u.dimension("length") ** -1
+        assert dim == expected
+
+        # Multiple dimensions with negative exponent
+        dim2 = u.dimension("length**-2")
+        expected2 = u.dimension("length") ** -2
+        assert dim2 == expected2
+
+    def test_negative_exponents_with_other_ops(self):
+        """Test negative exponents combined with other operations."""
+        # Negative exponent in compound expression
+        dim = u.dimension("mass * length**-1")
+        expected = u.dimension("mass") * u.dimension("length") ** -1
+        assert dim == expected
+
+        # Division followed by negative exponent
+        dim2 = u.dimension("length / time**-2")
+        expected2 = u.dimension("length") / u.dimension("time") ** -2
+        assert dim2 == expected2
+
+    def test_whitespace_robustness_in_parentheses(self):
+        """Test whitespace inside parens dimension names is handled correctly.
+
+        This ensures the parser is robust to user formatting variations like
+        adding spaces around multi-word dimension names in parentheses.
+        """
+        # Standard format without extra whitespace
+        dim1 = u.dimension("(amount of substance) / time")
+        expected = u.dimension("catalytic activity")
+        assert dim1 == expected
+
+        # With spaces inside parentheses
+        dim2 = u.dimension("( amount of substance ) / time")
+        assert dim2 == expected
+
+        # With multiple spaces
+        dim3 = u.dimension("(  amount of substance  ) / time")
+        assert dim3 == expected
+
+        # Multiple parenthesized names with whitespace
+        dim4 = u.dimension("( length ) / ( time )")
+        expected_speed = u.dimension("speed")
+        assert dim4 == expected_speed
+
 
 class TestDimensionErrors:
     """Test error handling in dimension parsing."""
