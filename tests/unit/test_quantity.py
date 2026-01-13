@@ -132,6 +132,134 @@ def test_ustrip():
     assert q.ustrip("km") == u.Q(0.001, "km").value
 
 
+def test_uconvert_value_with_units():
+    """Test the ``u.uconvert_value`` function with unit objects."""
+    # Convert 1 km to meters
+    result = u.uconvert_value(u.unit("m"), u.unit("km"), 1)
+    assert jnp.isclose(result, 1000.0)
+
+    # Convert array of values
+    result = u.uconvert_value(u.unit("m"), u.unit("km"), jnp.array([1, 2, 3]))
+    assert np.allclose(result, [1000.0, 2000.0, 3000.0])
+
+
+def test_uconvert_value_with_strings():
+    """Test the ``u.uconvert_value`` function with unit strings."""
+    # Convert 1 km to meters
+    result = u.uconvert_value("m", "km", 1)
+    assert jnp.isclose(result, 1000.0)
+
+    # Convert with different units
+    result = u.uconvert_value("cm", "m", 5)
+    assert jnp.isclose(result, 500.0)
+
+    # Array of values
+    result = u.uconvert_value("mm", "cm", jnp.array([1, 2, 3]))
+    assert np.allclose(result, [10.0, 20.0, 30.0])
+
+
+def test_uconvert_value_with_quantity():
+    """Test the ``u.uconvert_value`` convenience dispatch with Quantity objects."""
+    # Convert a Quantity object using uconvert_value
+    q = u.Q(1, "km")
+    result = u.uconvert_value("m", "km", q)
+    assert isinstance(result, u.Quantity)
+    assert jnp.isclose(result.value, 1000.0)
+    assert result.unit == u.unit("m")
+
+    # With unit objects
+    result = u.uconvert_value(u.unit("m"), u.unit("km"), q)
+    assert isinstance(result, u.Quantity)
+    assert jnp.isclose(result.value, 1000.0)
+    assert result.unit == u.unit("m")
+
+
+def test_uconvert_value_with_unit_system():
+    """Test the ``u.uconvert_value`` function with unit systems."""
+    # Convert to galactic unit system preferred units for length
+    result = u.uconvert_value(u.unitsystems.galactic, "km", 1e17)
+    # Should convert km to kpc (the galactic system's preferred length unit)
+    expected_unit = u.unitsystems.galactic[u.dimension("length")]
+    assert expected_unit == u.unit("kpc")
+    # 1e17 km in kpc
+    expected = u.uconvert_value("kpc", "km", 1e17)
+    assert jnp.isclose(result, expected)
+
+
+def test_uconvert_value_incompatible_units():
+    """Test that incompatible unit conversions raise errors."""
+    # Length to time - should raise
+    with pytest.raises((apyu.UnitConversionError, Exception)):
+        u.uconvert_value("s", "m", 1)
+
+    # Mass to length - should raise
+    with pytest.raises((apyu.UnitConversionError, Exception)):
+        u.uconvert_value("kg", "m", 1)
+
+
+def test_uconvert_value_vs_uconvert():
+    """Test the relationship between uconvert_value and uconvert."""
+    # uconvert_value on raw values should match uconvert on quantities
+    q = u.Q(1, "km")
+
+    # Using uconvert on quantity
+    result_quantity = u.uconvert("m", q)
+
+    # Using uconvert_value on raw value
+    result_value = u.uconvert_value("m", "km", 1)
+
+    # Values should match
+    assert jnp.isclose(result_quantity.value, result_value)
+    assert result_quantity.unit == u.unit("m")
+
+
+def test_uconvert_value_with_array_quantities():
+    """Test uconvert_value convenience dispatch with array Quantities."""
+    q = u.Q([1, 2, 3], "km")
+    result = u.uconvert_value("m", "km", q)
+
+    assert isinstance(result, u.Quantity)
+    assert np.allclose(result.value, [1000.0, 2000.0, 3000.0])
+    assert result.unit == u.unit("m")
+
+
+def test_uconvert_value_preserves_dtype():
+    """Test that uconvert_value preserves input dtype."""
+    # Float32 input
+    result = u.uconvert_value("m", "km", jnp.array(1.0, dtype=jnp.float32))
+    assert result.dtype == jnp.float32
+
+    # Int32 input
+    result = u.uconvert_value("m", "km", jnp.array(1, dtype=jnp.int32))
+    assert result.dtype == jnp.float32  # Conversion produces float
+
+
+def test_uconvert_value_with_jax_transformations():
+    """Test that uconvert_value works with JAX transformations."""
+
+    def convert_km_to_m(x):
+        return u.uconvert_value("m", "km", x)
+
+    # JIT compilation
+    jitted_convert = jax.jit(convert_km_to_m)
+    result = jitted_convert(5.0)
+    assert jnp.isclose(result, 5000.0)
+
+    # vmap over array
+    values = jnp.array([1, 2, 3, 4, 5])
+    result = jax.vmap(convert_km_to_m)(values)
+    expected = jnp.array([1000, 2000, 3000, 4000, 5000], dtype=jnp.float32)
+    assert np.allclose(result, expected)
+
+
+def test_uconvert_value_error_handling_quantity():
+    """Test error handling when converting incompatible Quantity with uconvert_value."""
+    q_length = u.Q(1, "m")
+    # Try to convert length quantity to time units - should raise
+    with pytest.raises(apyu.UnitConversionError, match="not convertible"):
+        u.uconvert_value("s", "m", q_length)
+
+
 def test_getitem():
     """Test the ``u.Q.__getitem__`` method."""
     # Scalar - cannot index

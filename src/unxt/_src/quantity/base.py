@@ -33,10 +33,10 @@ from quax import ArrayValue
 import quaxed.numpy as jnp
 from dataclassish import field_items, replace
 
+import unxt_api as uapi
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
 from .value import StaticValue
 from unxt.units import AbstractUnit
-from unxt_api import uconvert, unit_of, ustrip
 
 if TYPE_CHECKING:
     from typing import Self
@@ -151,7 +151,7 @@ class AbstractQuantity(
         Quantity(Array(100., dtype=float32, ...), unit='cm')
 
         """
-        return uconvert(u, self)
+        return uapi.uconvert(u, self)
 
     def ustrip(self, u: Any, /) -> Array:
         """Return the value in the given units.
@@ -169,7 +169,7 @@ class AbstractQuantity(
         Array(100., dtype=float32, weak_type=True)
 
         """
-        return ustrip(u, self)
+        return uapi.ustrip(u, self)
 
     # ===============================================================
     # Quax API
@@ -332,7 +332,7 @@ class AbstractQuantity(
         (1+0j)
 
         """
-        return complex(ustrip("", self))
+        return complex(uapi.ustrip("", self))
 
     def __dlpack__(self, *args: Any, **kwargs: Any) -> Any:
         """Export the array for consumption as a DLPack capsule."""
@@ -353,7 +353,7 @@ class AbstractQuantity(
         1.0
 
         """
-        return float(ustrip("", self))
+        return float(uapi.ustrip("", self))
 
     def __getitem__(self, key: Any) -> "AbstractQuantity":
         """Get an item from the array.
@@ -375,7 +375,7 @@ class AbstractQuantity(
         1
 
         """
-        return ustrip("", self).__index__()
+        return uapi.ustrip("", self).__index__()
 
     def __int__(self) -> int:
         """Convert a zero-dimensional array to a Python int object.
@@ -388,7 +388,7 @@ class AbstractQuantity(
         1
 
         """
-        return int(ustrip("", self))
+        return int(uapi.ustrip("", self))
 
     def __setitem__(self, key: Any, value: Any) -> None:
         """Set an item in the array.
@@ -928,8 +928,8 @@ def from_(
     Quantity(Array(100., dtype=float32, ...), unit='cm')
 
     """
-    value = jnp.asarray(uconvert(unit, value), dtype=dtype)
-    return cls(ustrip(unit, value), unit)
+    value = jnp.asarray(uapi.uconvert(unit, value), dtype=dtype)
+    return cls(uapi.ustrip(unit, value), unit)
 
 
 @AbstractQuantity.from_.dispatch
@@ -955,8 +955,8 @@ def from_(
 
     """
     value = jnp.asarray(value, dtype=dtype)
-    unit = unit_of(value)
-    return cls(ustrip(unit, value), unit)
+    unit = uapi.unit_of(value)
+    return cls(uapi.ustrip(unit, value), unit)
 
 
 @AbstractQuantity.from_.dispatch
@@ -970,8 +970,8 @@ def from_(
 ) -> AbstractQuantity:
     """Construct a `Quantity` from another `Quantity`, with no unit change."""
     unit = value.unit if unit is None else unit
-    value = jnp.asarray(uconvert(unit, value), dtype=dtype)
-    return cls(ustrip(unit, value), unit)
+    value = jnp.asarray(uapi.uconvert(unit, value), dtype=dtype)
+    return cls(uapi.ustrip(unit, value), unit)
 
 
 # -----------------------------------------------
@@ -1024,7 +1024,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
             fill_value=(
                 fill_value
                 if fill_value is None
-                else ustrip(self.array.unit, fill_value)
+                else uapi.ustrip(self.array.unit, fill_value)
             ),
             **kw,
         )
@@ -1034,7 +1034,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
     def set(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
         # TODO: by quaxified super
         value = self.array.value.at[self.index].set(
-            ustrip(self.array.unit, values), **kw
+            uapi.ustrip(self.array.unit, values), **kw
         )
         return replace(self.array, value=value)
 
@@ -1046,7 +1046,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
     def add(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
         # TODO: by quaxified super
         value = self.array.value.at[self.index].add(
-            ustrip(self.array.unit, values), **kw
+            uapi.ustrip(self.array.unit, values), **kw
         )
         return replace(self.array, value=value)
 
@@ -1080,7 +1080,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
     def min(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
         # TODO: by quaxified super
         value = self.array.value.at[self.index].min(
-            ustrip(self.array.unit, values), **kw
+            uapi.ustrip(self.array.unit, values), **kw
         )
         return replace(self.array, value=value)
 
@@ -1088,7 +1088,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
     def max(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
         # TODO: by quaxified super
         value = self.array.value.at[self.index].max(
-            ustrip(self.array.unit, values), **kw
+            uapi.ustrip(self.array.unit, values), **kw
         )
         return replace(self.array, value=value)
 

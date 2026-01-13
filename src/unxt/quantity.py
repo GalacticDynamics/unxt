@@ -110,6 +110,7 @@ JIT compilation works seamlessly
 Quantity(Array(49., dtype=float32, ...), unit='kg m / s2')
 
 """
+# pylint: disable=duplicate-code
 
 __all__ = (
     # Core
@@ -127,6 +128,7 @@ __all__ = (
     # Base Parametric
     "AbstractParametricQuantity",
     # Functional
+    "uconvert_value",
     "uconvert",
     "ustrip",
     "is_unit_convertible",
@@ -149,7 +151,7 @@ with install_import_hook("unxt.quantity"):
     from ._src.quantity.static_quantity import StaticQuantity
     from ._src.quantity.unchecked import BareQuantity
     from ._src.quantity.value import StaticValue, convert_to_quantity_value
-    from unxt_api import is_unit_convertible, uconvert, ustrip, wrap_to
+    from unxt_api import is_unit_convertible, uconvert, uconvert_value, ustrip, wrap_to
 
     # isort: split
     # Register dispatches and conversions

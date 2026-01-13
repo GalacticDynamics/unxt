@@ -9,6 +9,66 @@ import pytest
 import unxt_api as uapi
 
 # ==============================================================================
+# Tests for uconvert_value()
+# ==============================================================================
+
+
+def test_uconvert_value_is_abstract_dispatch() -> None:
+    """Test that uconvert_value is an abstract dispatch function."""
+    assert isinstance(uapi.uconvert_value, plum.function.Function)
+    assert hasattr(uapi.uconvert_value, "methods")
+
+
+def test_uconvert_value_accepts_any_type() -> None:
+    """Test that uconvert_value accepts Any types."""
+    assert "uconvert_value" in dir(uapi)
+
+
+def test_uconvert_value_no_default_implementation_raises() -> None:
+    """Test that calling uconvert_value without implementation raises error."""
+
+    class NoDispatchType:
+        pass
+
+    obj1 = NoDispatchType()
+    obj2 = NoDispatchType()
+    obj3 = NoDispatchType()
+
+    with pytest.raises(plum.resolver.NotFoundLookupError):
+        uapi.uconvert_value(obj1, obj2, obj3)
+
+
+def test_uconvert_value_can_register_custom_dispatch(custom_unit_type) -> None:
+    """Test that custom dispatches can be registered."""
+
+    @plum.dispatch
+    def uconvert_value(
+        uto: custom_unit_type, ufrom: custom_unit_type, x: float, /
+    ) -> float:
+        # Simple mock conversion (1 km = 1000 m)
+        conversion_factor = (
+            1000.0 if ufrom.unit_str == "km" and uto.unit_str == "m" else 1.0
+        )
+        return x * conversion_factor
+
+    from_unit = custom_unit_type("km")
+    to_unit = custom_unit_type("m")
+    result = uconvert_value(to_unit, from_unit, 5.0)
+
+    assert result == 5000.0
+
+
+def test_uconvert_value_signature_order() -> None:
+    """Test uconvert_value parameter order (to_unit, from_unit, value)."""
+    # This validates the documented order: (uto, ufrom, x)
+    # The docstring example shows this clearly:
+    # u.uconvert_value(u.unit("m"), u.unit("km"), 1)  # (to, from, value)
+    sig = inspect.signature(uapi.uconvert_value.__wrapped__)
+    params = list(sig.parameters.keys())
+    assert params == ["uto", "ufrom", "x"]
+
+
+# ==============================================================================
 # Tests for uconvert()
 # ==============================================================================
 
@@ -224,6 +284,7 @@ def test_wrap_to_keyword_argument_dispatch() -> None:
 
 def test_all_quantity_functions_are_exported() -> None:
     """Test that all quantity functions are exported."""
+    assert hasattr(uapi, "uconvert_value")
     assert hasattr(uapi, "uconvert")
     assert hasattr(uapi, "ustrip")
     assert hasattr(uapi, "is_unit_convertible")
@@ -232,6 +293,7 @@ def test_all_quantity_functions_are_exported() -> None:
 
 def test_all_quantity_functions_in_all() -> None:
     """Test that all quantity functions are in __all__."""
+    assert "uconvert_value" in uapi.__all__
     assert "uconvert" in uapi.__all__
     assert "ustrip" in uapi.__all__
     assert "is_unit_convertible" in uapi.__all__
@@ -240,6 +302,7 @@ def test_all_quantity_functions_in_all() -> None:
 
 def test_all_quantity_functions_are_dispatch_functions() -> None:
     """Test that all quantity functions are dispatch functions."""
+    assert isinstance(uapi.uconvert_value, plum.function.Function)
     assert isinstance(uapi.uconvert, plum.function.Function)
     assert isinstance(uapi.ustrip, plum.function.Function)
     assert isinstance(uapi.is_unit_convertible, plum.function.Function)

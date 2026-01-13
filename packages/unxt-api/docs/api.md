@@ -127,6 +127,108 @@ u.unit_of(5)  # None
 
 ## Quantities
 
+### `uconvert_value(to_unit, from_unit, value)`
+
+Convert a numerical value from one set of units to another.
+
+This is a low-level unit conversion function that operates on raw numerical
+values (numbers, arrays, etc.) rather than `Quantity` objects. It performs the
+pure numerical conversion between units, without wrapping the result in a
+`Quantity`.
+
+**Abstract Signature:**
+
+```python
+@plum.dispatch.abstract
+def uconvert_value(uto: Any, ufrom: Any, x: Any, /) -> Any:
+    """Convert the value from specified units to specified units.
+
+    General signature: ``(to_unit, from_unit, value) -> converted_value``
+    """
+```
+
+**Key Features:**
+
+- **Pure value conversion**: Converts raw numbers/arrays without `Quantity`
+  wrapping
+- **Flexible unit specification**: Accepts unit objects, strings, or unit
+  systems
+- **Multiple implementations**: Dispatches on unit type combinations
+- **High performance**: Suitable for batch conversions and internal operations
+
+**Example Implementations** (in `unxt`):
+
+- `uconvert_value(to_unit: AbstractUnit, from_unit: AbstractUnit, value: ArrayLike)` -
+  Convert value between two unit objects
+- `uconvert_value(to_unit: str, from_unit: str, value: ArrayLike)` - Convert
+  value using unit strings
+- `uconvert_value(to_unitsys: AbstractUnitSystem, from_unit: AbstractUnit, value: ArrayLike)` -
+  Convert to the preferred units of a unit system
+- `uconvert_value(to_unitsys: AbstractUnitSystem, from_unit: str, value: ArrayLike)` -
+  Convert to unit system preferred units using string input
+
+**Relationship to Other Functions:**
+
+- **vs `uconvert()`**: `uconvert_value()` operates on raw values; `uconvert()`
+  operates on `Quantity` objects and returns `Quantity` objects. Internally,
+  `uconvert()` often delegates to `uconvert_value()` to perform the numerical
+  conversion step.
+- **vs `ustrip()`**: `ustrip()` combines unit stripping with conversion in one
+  operation; `uconvert_value()` only performs the conversion.
+
+**Examples:**
+
+```python
+import unxt as u
+import numpy as np
+
+# Convert using unit objects
+u.uconvert_value(u.unit("m"), u.unit("km"), 1)
+# Array(1000., dtype=float32, ...)
+
+# Convert using unit strings
+u.uconvert_value("m", "km", 1)
+# Array(1000., dtype=float32, ...)
+
+# Convert array values
+u.uconvert_value("m", "km", np.array([1, 2, 3]))
+# Array([1000., 2000., 3000.], dtype=float32, ...)
+
+# Convert to unit system preferred units
+u.uconvert_value(u.unitsystems.galactic, "km", 1e17)
+# Converts the 1e17 km value to the galactic system's preferred length unit (kpc)
+# 3.2407792894443648
+
+# Verify the target unit
+u.unitsystems.galactic[u.dimension("length")]
+# Unit("kpc")
+
+# Batch conversion in a pipeline
+values_in_km = np.array([100, 500, 1000])
+values_in_m = u.uconvert_value("m", "km", values_in_km)
+# Array([100000., 500000., 1000000.], dtype=float32, ...)
+```
+
+**Error Handling:**
+
+The function will raise a `plum.resolver.NotFoundLookupError` if no dispatch is
+registered for the given unit type combination. This ensures type safety and
+prevents silent failures.
+
+```python
+import plum
+
+
+class CustomUnit:  # incompatible unit types without registered dispatch
+    pass
+
+
+try:
+    u.uconvert_value(CustomUnit(), CustomUnit(), 5)
+except plum.resolver.NotFoundLookupError:
+    print("Incompatible unit types for conversion.")
+```
+
 ### `uconvert(to_unit, quantity)`
 
 Convert a quantity to the specified units.
