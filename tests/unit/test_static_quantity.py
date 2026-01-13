@@ -138,6 +138,140 @@ def test_static_quantity_addition_preserves_static() -> None:
     assert result.unit == sq1.unit
 
 
+def test_static_quantity_multiplication_with_quantity() -> None:
+    """StaticQuantity multiplication with Quantity promotes to Quantity."""
+    sq = u.StaticQuantity(2.0, "m")
+    q = u.Quantity(3.0, "s")
+
+    # Quantity * StaticQuantity -> Quantity
+    result1 = q * sq
+    assert isinstance(result1, u.Q)
+    assert np.allclose(result1.value, 6.0)
+    assert result1.unit == u.unit("m * s")
+
+    # StaticQuantity * Quantity -> Quantity
+    result2 = sq * q
+    assert isinstance(result2, u.Q)
+    assert np.allclose(result2.value, 6.0)
+    assert result2.unit == u.unit("m * s")
+
+
+def test_static_quantity_multiplication_preserves_static() -> None:
+    """StaticQuantity multiplication with StaticQuantity stays StaticQuantity."""
+    sq1 = u.StaticQuantity(2.0, "m")
+    sq2 = u.StaticQuantity(3.0, "s")
+
+    result = sq1 * sq2
+    assert isinstance(result, u.StaticQuantity)
+    assert np.allclose(result.value, 6.0)
+    assert result.unit == u.unit("m * s")
+
+
+def test_static_quantity_division_with_quantity() -> None:
+    """StaticQuantity division with Quantity promotes to Quantity."""
+    sq = u.StaticQuantity(6.0, "m")
+    q = u.Quantity(2.0, "s")
+
+    # Quantity / StaticQuantity -> Quantity
+    result1 = q / sq
+    assert isinstance(result1, u.Q)
+    assert np.allclose(result1.value, 1.0 / 3.0)
+    assert result1.unit == u.unit("s / m")
+
+    # StaticQuantity / Quantity -> Quantity
+    result2 = sq / q
+    assert isinstance(result2, u.Q)
+    assert np.allclose(result2.value, 3.0)
+    assert result2.unit == u.unit("m / s")
+
+
+def test_static_quantity_division_preserves_static() -> None:
+    """StaticQuantity division with StaticQuantity stays StaticQuantity."""
+    sq1 = u.StaticQuantity(6.0, "m")
+    sq2 = u.StaticQuantity(2.0, "s")
+
+    result = sq1 / sq2
+    assert isinstance(result, u.StaticQuantity)
+    assert np.allclose(result.value, 3.0)
+    assert result.unit == u.unit("m / s")
+
+
+def test_static_quantity_division_integer_inputs() -> None:
+    """StaticQuantity division with integer inputs promotes to float."""
+    sq1 = u.StaticQuantity(6, "m")
+    sq2 = u.StaticQuantity(2, "s")
+
+    result = sq1 / sq2
+    assert isinstance(result, u.StaticQuantity)
+    # Integer division should promote to float (true division semantics)
+    assert result.value.dtype == np.float32
+    assert np.allclose(result.value, 3.0)
+    assert result.unit == u.unit("m / s")
+
+
+def test_static_quantity_modulo_with_quantity() -> None:
+    """StaticQuantity modulo with Quantity promotes to Quantity."""
+    sq = u.StaticQuantity(7.0, "m")
+    q = u.Quantity(3.0, "m")
+
+    # Quantity % StaticQuantity -> Quantity (via promotion)
+    result1 = q % sq
+    assert isinstance(result1, u.Q)
+    assert np.allclose(result1.value, 3.0 % 7.0)
+    assert result1.unit == u.unit("m")
+
+    # StaticQuantity % Quantity -> Quantity (via promotion)
+    result2 = sq % q
+    assert isinstance(result2, u.Q)
+    assert np.allclose(result2.value, 7.0 % 3.0)
+    assert result2.unit == u.unit("m")
+
+
+def test_static_quantity_modulo_with_static_quantity_promotes() -> None:
+    """StaticQuantity modulo StaticQuantity promotes to Quantity."""
+    sq1 = u.StaticQuantity(7.0, "m")
+    sq2 = u.StaticQuantity(3.0, "m")
+
+    result = sq1 % sq2
+    # Since there's no modulo_p primitive dispatch, plum promotion rules apply
+    # StaticQuantity % StaticQuantity -> Quantity (via default promotion)
+    assert isinstance(result, u.Q)
+    assert np.allclose(result.value, 7.0 % 3.0)
+    assert result.unit == u.unit("m")
+
+
+def test_static_quantity_modulo_preserves_numpy_input_values() -> None:
+    """StaticQuantity stores numpy arrays that persist through operations."""
+    # Verify that StaticQuantity with numpy arrays stores them correctly
+    sq = u.StaticQuantity(np.array([7.0, 8.0, 9.0]), "m")
+
+    # The underlying value should be a StaticValue wrapping a numpy array
+    assert isinstance(sq.value, u.quantity.StaticValue)
+    # Verify the array inside is numpy, not JAX
+    underlying_array = sq.value.array
+    assert isinstance(underlying_array, np.ndarray)
+    assert not isinstance(underlying_array, jnp.ndarray)
+    assert np.array_equal(underlying_array, np.array([7.0, 8.0, 9.0]))
+
+
+def test_static_value_modulo_operations() -> None:
+    """StaticValue modulo operations work correctly with forward and reverse."""
+    sv = u.quantity.StaticValue(np.array([7.0, 8.0]))
+
+    # Forward modulo
+    result_forward = sv % 3.0
+    assert np.allclose(result_forward, np.array([1.0, 2.0]))
+
+    # Reverse modulo
+    result_reverse = 10.0 % sv
+    assert np.allclose(result_reverse, np.array([3.0, 2.0]))
+    # With another StaticValue
+    sv2 = u.quantity.StaticValue(np.array([3.0, 3.0]))
+    result_sv = sv % sv2
+    assert isinstance(result_sv, u.quantity.StaticValue)
+    assert np.allclose(result_sv.array, np.array([1.0, 2.0]))
+
+
 def test_static_value_pdoc() -> None:
     """StaticValue uses the contained value for formatting."""
     value = u.quantity.StaticValue(np.array([1.0, 2.0]))
