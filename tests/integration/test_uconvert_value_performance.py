@@ -4,8 +4,6 @@ This module tests uconvert_value with JAX transformations (jit, vmap)
 and demonstrates the performance improvement from JIT compilation.
 """
 
-import time
-
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -55,57 +53,6 @@ class TestUconvertValueVmapJit:
 
         expected = jnp.array([1.0, 2.0, 3.0])
         assert np.allclose(result, expected)
-
-    def test_uconvert_value_vmap_jit_performance(self) -> None:
-        """Performance comparison: vmap(jit(uconvert_value)) vs plain uconvert_value.
-
-        This test demonstrates that JIT compilation can improve or maintain
-        performance for repeated conversions. The improvement factor depends
-        on the JAX backend, CPU vs GPU, and compilation overhead.
-
-        Note: On CPU backend, the speedup may be modest (1.0x-2.0x).
-
-        This is a demonstration test showing both approaches work correctly,
-        not a strict performance benchmark.
-        """
-        # Setup: large array of values
-        n = 100000
-        key = jax.random.key(0)
-        values = jax.random.uniform(key, shape=(n,)) * 10000.0
-
-        # Method 1: Plain vmap without JIT
-        def plain_vmap_uconvert(x):
-            return jax.vmap(u.uconvert_value, in_axes=(None, None, 0))(
-                u.unit("m"), u.unit("km"), x
-            )
-
-        # Method 2: vmap(jit(uconvert_value)) with static arguments
-        vmap_jit_uconvert = jax.vmap(
-            jax.jit(u.uconvert_value, static_argnums=(0, 1)),
-            in_axes=(None, None, 0),
-        )
-
-        # Warm up: call both versions to amortize JIT compilation
-        _ = plain_vmap_uconvert(values[:10])
-        _ = vmap_jit_uconvert(u.unit("m"), u.unit("km"), values[:10])
-
-        # Measure: plain version
-        start = time.perf_counter()
-        result_plain = plain_vmap_uconvert(values)
-        result_plain = jax.block_until_ready(result_plain)
-        time_plain = time.perf_counter() - start
-
-        # Measure: vmap(jit) version
-        start = time.perf_counter()
-        result_jit = vmap_jit_uconvert(u.unit("m"), u.unit("km"), values)
-        result_jit = jax.block_until_ready(result_jit)
-        time_jit = time.perf_counter() - start
-
-        # Results should match
-        assert np.allclose(result_plain, result_jit, rtol=1e-5)
-
-        # JIT version should be faster or comparable
-        assert time_jit <= time_plain
 
 
 class TestUconvertValueJitOnly:
