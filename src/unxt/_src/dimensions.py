@@ -54,7 +54,9 @@ def _preprocess_dimension_string(expr: str, /) -> tuple[str, dict[str, str]]:
 
     def replace_paren_dim(match: re.Match[str], /) -> str:
         nonlocal counter
-        dim_name = match.group(1)
+        # Strip whitespace from the captured dimension name to handle cases like
+        # "( amount of substance )" where users might include extra spaces
+        dim_name = match.group(1).strip()
         temp_id = f"_dim{counter}"
         dim_mapping[temp_id] = dim_name
         counter += 1
