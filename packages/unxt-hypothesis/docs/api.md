@@ -1,4 +1,4 @@
-# API Reference
+# `unxt-hypothesis` API
 
 Complete API documentation for all `unxt-hypothesis` strategies.
 

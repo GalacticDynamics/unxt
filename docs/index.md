@@ -121,20 +121,180 @@ pip install -e .  # editable mode
 
 ## Quickstart
 
-The starting point of `unxt` is the `Quantity` class. It combines a JAX array
-with unit information. We currently use [astropy.units][apyunits] for unit
-handling.
+### Dimensions
+
+Dimensions represent the physical nature of quantities (length, time, velocity, etc.).
+They're independent of the units used to measure them.
+
+```{code-block} python
+
+>>> import unxt as u
+
+>>> length_dim = u.dimension("length")
+>>> length_dim
+PhysicalType('length')
+
+```
+
+Dimensions support mathematical expressions:
+
+```{code-block} python
+
+>>> speed_dim = u.dimension("length / time")
+>>> speed_dim
+PhysicalType({'speed', 'velocity'})
+
+```
+
+Multi-word dimension names require parentheses in expressions:
+
+```{code-block} python
+
+>>> activity_dim = u.dimension("(amount of substance) / (time)")
+>>> activity_dim
+PhysicalType('catalytic activity')
+
+```
+
+For more details, see the [Dimensions Guide](guides/dimensions.md).
+
+### Units
+
+Units specify the scale and dimension of measurements. The same dimension can be
+measured in many different units:
+
+```{code-block} python
+
+>>> meter = u.unit("m")
+>>> meter
+Unit("m")
+
+```
+
+Units can be combined arithmetically:
+
+```{code-block} python
+
+>>> velocity_unit = u.unit("km") / u.unit("h")
+>>> velocity_unit
+Unit("km / h")
+
+```
+
+Get the dimension of a unit:
+
+```{code-block} python
+
+>>> u.dimension_of(meter)
+PhysicalType('length')
+
+```
+
+For more details, see the [Units and Systems Guide](guides/units_and_systems.md).
+
+### Unit Systems
+
+Unit systems define consistent sets of base units for specific domains. `unxt`
+provides built-in unit systems and tools for creating custom ones.
+
+#### Built-in Unit Systems
+
+```{code-block} python
+
+>>> si = u.unitsystem("si")
+>>> si
+unitsystem(m, kg, s, mol, A, K, cd, rad)
+
+>>> cgs = u.unitsystem("cgs")
+>>> cgs
+unitsystem(cm, g, s, dyn, erg, Ba, P, St, rad)
+
+>>> galactic = u.unitsystem("galactic")
+>>> galactic
+unitsystem(kpc, Myr, solMass, rad)
+
+>>> solarsystem = u.unitsystem("solarsystem")
+>>> solarsystem
+unitsystem(AU, yr, solMass, rad)
+
+```
+
+#### Composing Units from a Unit System
+
+Once you have a unit system, you can get units for any physical dimension by
+indexing the system:
+
+```{code-block} python
+
+>>> usys = u.unitsystem("si")
+
+>>> usys["length"]
+Unit("m")
+
+>>> usys["velocity"]
+Unit("m / s")
+
+>>> usys["energy"]
+Unit("m2 kg / s2")
+
+```
+
+You can use unit system units to create quantities:
+
+```{code-block} python
+
+>>> q = u.Quantity(10, usys["velocity"])
+>>> q
+Quantity(Array(10, dtype=int32, ...), unit='m / s')
+
+```
+
+#### Custom Unit Systems
+
+Create custom unit systems by specifying base units:
+
+```{code-block} python
+
+>>> custom_usys = u.unitsystem("km", "h", "tonne", "degree")
+>>> custom_usys
+unitsystem(km, h, t, deg)
+
+>>> custom_usys["velocity"]
+Unit("km / h")
+
+```
+
+#### Dynamical Unit Systems
+
+For domains like gravitational dynamics, use dynamical unit systems where
+$G = 1$:
+
+```{code-block} python
+
+>>> from unxt.unitsystems import DynamicalSimUSysFlag
+
+>>> usys = u.unitsystem(DynamicalSimUSysFlag, "kpc", "Myr")
+>>> usys  # doctest: +SKIP
+unitsystem(kpc, Myr, ...)
+
+```
+
+For more details, see the [Unit Systems Guide](guides/units_and_systems.md).
+
 
 ### Creating and Working with Quantity objects
+
+The primary API of {mod}`unxt` is the {class}`~unxt.Quantity` class. It combines a
+JAX array with unit information. We currently use [astropy.units][apyunits] for
+unit handling.
 
 Create a `Quantity` by passing a JAX array-compatible object and a unit:
 
 ```{code-block} python
 
->>> import astropy.units as apyu
 >>> import unxt as u
 
->>> x = u.Quantity([1.0, 2.0, 3.0], apyu.m)  # or u.Q(...) for short
+>>> x = u.Quantity([1.0, 2.0, 3.0], unit="m")  # or u.Q(...) for short
 >>> x
 Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 ```
@@ -229,6 +389,7 @@ Quantity(Array([100., 200., 300.], dtype=float32), unit='cm')
 :::
 
 ::::
+
 
 ### JAX functions
 

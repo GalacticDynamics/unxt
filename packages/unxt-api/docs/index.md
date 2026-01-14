@@ -10,15 +10,15 @@ extending
 
 Abstract dispatch API for [unxt](https://github.com/GalacticDynamics/unxt).
 
-`unxt-api` defines the abstract dispatch interfaces that `unxt` and other
-packages implement. It provides a minimal dependency foundation for packages
-that want to define or use `unxt`'s multiple-dispatch-based API without pulling
-in the full `unxt` implementation.
+{mod}`unxt-api` defines the abstract dispatch interfaces that {mod}`unxt` and
+other packages implement. It provides a minimal dependency foundation for
+packages that want to define or use {mod}`unxt`'s multiple-dispatch-based API
+without pulling in the full {mod}`unxt` implementation.
 
-The `unxt-api` package serves several important purposes:
+The {mod}`unxt-api` package serves several important purposes:
 
-1. **Minimal Dependencies**: Depends only on `plum-dispatch`, not on JAX, NumPy,
-   or Astropy
+1. **Minimal Dependencies**: Depends only on {mod}`plum-dispatch`, not on
+   {mod}`jax`, {mod}`numpy`, or {mod}`astropy`
 2. **Extensibility**: Allows third-party packages to register their own
    implementations
 3. **Type Safety**: Provides a clear contract for what functions exist and what
@@ -50,19 +50,22 @@ uv add unxt-api
 
 ## Core API
 
-The `unxt-api` package defines abstract dispatch functions organized by domain:
+The {mod}`unxt-api` package defines abstract dispatch functions organized by
+domain:
 
-- **Dimensions** (`dimension`, `dimension_of`) - Working with physical
-  dimensions
-- **Units** (`unit`, `unit_of`) - Constructing and inspecting units
-- **Quantities** (`uconvert`, `ustrip`, `is_unit_convertible`, `wrap_to`) - Unit
-  conversion and quantity operations
-- **Unit Systems** (`unitsystem_of`) - Inspecting unit systems
+- **Dimensions** ({func}`~unxt_api.dimension`, {func}`~unxt_api.dimension_of`) -
+  Working with physical dimensions
+- **Units** ({func}`~unxt_api.unit`, {func}`~unxt_api.unit_of`) - Constructing
+  and inspecting units
+- **Quantities** ({func}`~unxt_api.uconvert`, {func}`~unxt_api.uconvert_value`,
+  {func}`~unxt_api.ustrip`, {func}`~unxt_api.is_unit_convertible`,
+  {func}`~unxt_api.wrap_to`) - Unit conversion and quantity operations
+- **Unit Systems** ({func}`~unxt_api.unitsystem_of`) - Inspecting unit systems
 
 ## Using Multiple Dispatch
 
-All functions in `unxt-api` use [plum](https://beartype.github.io/plum/) for
-multiple dispatch. This means:
+All functions in {mod}`unxt-api` use [plum](https://beartype.github.io/plum/)
+for multiple dispatch. This means:
 
 1. **Functions can have multiple implementations** based on argument types
 2. **You can register your own implementations** for custom types
@@ -74,16 +77,16 @@ multiple dispatch. This means:
 To see all registered implementations of a function:
 
 ```python
-import unxt as u
+import unxt_api as uapi
 
 # View all dimension() implementations
-u.dimension.methods
+uapi.dimension.methods
 
 # View all uconvert() implementations
-u.uconvert.methods
+uapi.uconvert.methods
 
 # View all unit_of() implementations
-u.unit_of.methods
+uapi.unit_of.methods
 ```
 
 ### Registering Custom Implementations
@@ -92,7 +95,7 @@ You can extend `unxt-api`'s dispatch system with your own types:
 
 ```python
 from plum import dispatch
-import unxt_api as u
+import unxt_api as uapi
 
 
 class MyCustomQuantity:
@@ -105,12 +108,12 @@ class MyCustomQuantity:
 @dispatch
 def unit_of(obj: MyCustomQuantity, /):
     """Get unit from MyCustomQuantity."""
-    return u.unit(obj.unit_str)
+    return uapi.unit(obj.unit_str)
 
 
 # Now it works with the dispatch system
 my_q = MyCustomQuantity(5.0, "m")
-u.unit_of(my_q)  # Unit("m")
+uapi.unit_of(my_q)  # Unit("m")
 ```
 
 <!-- ## Design Philosophy
@@ -142,8 +145,8 @@ This separation allows:
 
 ## Integration with `unxt`
 
-The `unxt` package provides the concrete implementations of all `unxt-api`
-functions. When you use:
+The {mod}`unxt` package provides the concrete implementations of all
+{mod}`unxt-api` functions. When you use:
 
 ```python
 import unxt as u
@@ -152,8 +155,8 @@ q = u.Q(5, "m")
 u.uconvert("km", q)
 ```
 
-The `u.uconvert` function is the implementation registered by `unxt` for the
-abstract `unxt_api.uconvert` function.
+The `u.uconvert` function is the implementation registered by {mod}`unxt` for
+the abstract `unxt_api.uconvert` function.
 
 ## For Package Authors
 
@@ -161,7 +164,8 @@ If you're writing a package that works with physical quantities:
 
 ### Minimal Dependency Approach
 
-Depend on `unxt-api` to use the dispatch system without pulling in JAX:
+Depend on {mod}`unxt-api` to use the dispatch system without pulling in
+{mod}`JAX`:
 
 ```toml
 # pyproject.toml
@@ -197,7 +201,7 @@ def dimension_of(obj: YourType, /):
 
 ### Full Integration Approach
 
-If you need JAX and want full `unxt` functionality:
+If you need JAX and want full {mod}`unxt` functionality:
 
 ```toml
 # pyproject.toml
@@ -207,7 +211,7 @@ dependencies = [
 ]
 ```
 
-Then use `unxt`'s types directly:
+Then use {mod}`unxt`'s types directly:
 
 ```python
 import unxt as u
