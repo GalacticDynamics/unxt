@@ -12,8 +12,8 @@ Hypothesis strategies for property-based testing with
 [unxt](https://github.com/GalacticDynamics/unxt).
 
 This package provides [Hypothesis](https://hypothesis.readthedocs.io/)
-strategies for generating random `Quantity`, `Unit`, and `UnitSystem` objects
-for property-based testing.
+strategies for generating random `Quantity`, `Angle`, `Unit`, `Dimension`, and
+`UnitSystem` objects for property-based testing.
 
 ## Installation
 
@@ -42,32 +42,84 @@ uv add unxt-hypothesis
 ## Quick Start
 
 ```python
+import jax
 from hypothesis import given
 
 import unxt as u
 import unxt_hypothesis as ust
 
 
-@given(q=ust.quantities(unit="km/s"))
-def test_quantity_property(q):
-    """Test that all quantities have value and unit."""
-    assert q.value is not None
-    assert q.unit is not None
+@given(dim=ust.named_dimensions())
+def test_named_dimension(dim):
+    """Test that named dimensions are generated correctly."""
+    assert isinstance(dim, u.AbstractDimension)
 
 
-@given(u=ust.units("length"))
-def test_unit_property(u):
+@given(unit=ust.units("length"))
+def test_unit_property(unit):
     """Test that units can be converted to strings."""
-    assert str(u) is not None
+    assert isinstance(unit, u.AbstractUnit)
 
 
 @given(sys=ust.unitsystems("m", "s", "kg", "rad"))
 def test_unitsystem_property(sys):
     """Test that unit systems have expected base units."""
+    assert isinstance(sys, u.AbstractUnitSystem)
     assert len(sys) == 4
+
+
+@given(q=ust.quantities(unit="km/s"))
+def test_quantity_property(q):
+    """Test that all quantities have value and unit."""
+    assert isinstance(q.value, jax.Array)
+    assert q.unit == u.unit("km/s")
+
+
+@given(angle=ust.angles())
+def test_angle_property(angle):
+    """Test that all angles have the angle dimension."""
+    assert u.dimension_of(angle) == u.dimension("angle")
 ```
 
 ## Strategies
+
+### `named_dimensions()`
+
+Generate a named physical dimension from Astropy's physical type catalogue. This
+strategy samples from a curated set of 134 physical types and returns
+`u.AbstractDimension`. It pairs well with `units()` and `quantities()` for
+building dimension-aware tests.
+
+**Examples:**
+
+```python
+from hypothesis import given
+import unxt as u
+import unxt_hypothesis as ust
+
+
+# Any named dimension
+@given(dim=ust.named_dimensions())
+def test_named_dimension(dim):
+    assert isinstance(dim, u.AbstractDimension)
+
+
+# Units from any dimension
+@given(unit=ust.units(ust.named_dimensions()))
+def test_units_any_dimension(unit):
+    assert u.dimension_of(unit) in [u.dimension(name) for name in ust.DIMENSION_NAMES]
+
+
+# Quantities from any dimension
+@given(q=ust.quantities(unit=ust.units(ust.named_dimensions())))
+def test_quantities_any_dimension(q):
+    assert isinstance(q, u.Quantity)
+```
+
+See also: `ust.DIMENSION_NAMES` for the full set of names, and `unxt.dimension`
+to construct dimensions directly from names. You can use
+`st.sampled_from(ust.DIMENSION_NAMES)` to create custom strategies using these
+names.
 
 ### `derived_units(base, *, integer_powers=True, max_complexity=3)`
 
@@ -79,8 +131,8 @@ generate various representations of the same physical dimension.
 
 **Parameters:**
 
-- `base` (str | apyu.UnitBase | SearchStrategy): Base unit (e.g., "m", "s",
-  "kg") or a hypothesis strategy that generates such units.
+- `base` (str | Unit | SearchStrategy): Base unit (e.g., "m", "s", "kg") or a
+  hypothesis strategy that generates such units.
 - `integer_powers` (bool): If True, only generate units with integer powers of
   base units (default: True).
 - `max_complexity` (int): Maximum number of additional base unit factors to
@@ -124,9 +176,9 @@ Generate random `Unit` objects from astropy.
 
 **Parameters:**
 
-- `dimension` (str | apyu.PhysicalType | None): The physical dimension of the
-  unit. If None, generates units from various dimensions. Examples: `"length"`,
-  `"velocity"`, `"energy"`.
+- `dimension` (str | Dimension | SearchStrategy | None): The physical dimension
+  of the unit. If None, generates units from various dimensions. Examples:
+  `"length"`, `"velocity"`, `"energy"`.
 - `max_complexity` (int): Maximum complexity of compound units (default: 2).
   Higher values generate more complex compound units like `m^2/s`.
 - `allow_non_integer_powers` (bool): Whether to allow non-integer powers in
@@ -175,11 +227,10 @@ Generate random `Quantity` objects.
   - Strategy: A Hypothesis strategy that generates shapes
 - `dtype` (np.dtype | st.SearchStrategy | None): Data type of the array.
   Defaults to `float32`.
-- `unit` (str | apyu.UnitBase | st.SearchStrategy | None): Unit for the
-  quantity. Can be:
+- `unit` (str | Unit | st.SearchStrategy | None): Unit for the quantity. Can be:
   - `None` (default): Generates quantities with various common units
   - `str`: Specific unit string (e.g., `"m"`, `"km/s"`)
-  - `apyu.UnitBase`: Specific unit object
+  - `Unit`: Specific unit object
   - Strategy: A Hypothesis strategy that generates units (e.g., from `units()`)
 
 **Returns:** `unxt.Quantity`
@@ -244,10 +295,10 @@ Generate random `UnitSystem` objects.
 
 **Parameters:**
 
-- `*units` (str | apyu.UnitBase | st.SearchStrategy[apyu.UnitBase]): Variable
-  number of unit specifications. Each can be:
+- `*units` (str | Unit | st.SearchStrategy[Unit]): Variable number of unit
+  specifications. Each can be:
   - `str`: Fixed unit string (e.g., `"m"`, `"kg"`)
-  - `apyu.UnitBase`: Fixed unit object
+  - `Unit`: Fixed unit object
   - Strategy: A Hypothesis strategy that generates units (e.g., from `units()`)
 
 **Returns:** `unxt.AbstractUnitSystem`
@@ -284,6 +335,139 @@ def test_multiple_varying_units(sys):
 def test_galactic_system(sys):
     assert len(sys) == 4
 ```
+
+### `angles(*, wrap_to=None, **kwargs)`
+
+Generate random `Angle` objects with optional wrapping bounds.
+
+This is a specialized strategy for generating `unxt.Angle` instances, which are
+quantities with angle dimensions. Angles can optionally have wrapping bounds
+that keep values within a specified range (e.g., 0-360 degrees).
+
+**Parameters:**
+
+- `wrap_to` (tuple | st.SearchStrategy | None): Wrapping bounds for the angle.
+  Can be:
+  - `None` (default): No wrapping applied
+  - `tuple`: Pair of `(min, max)` quantities defining the wrapping range
+  - Strategy: A Hypothesis strategy that generates `(min, max)` tuples
+- `**kwargs`: Additional keyword arguments passed to `quantities()`. Common
+  options include `dtype`, `shape`, `elements`, `unique`. The `unit` and
+  `quantity_cls` parameters are set automatically and should not be provided.
+
+**Returns:** `unxt.Angle`
+
+**Examples:**
+
+```python
+from hypothesis import given, strategies as st
+
+import unxt as u
+import unxt_hypothesis as ust
+
+
+# Generate any angle
+@given(angle=ust.angles())
+def test_any_angle(angle):
+    assert isinstance(angle, u.Angle)
+    assert u.dimension_of(angle) == u.dimension("angle")
+
+
+# Generate angles with wrapping to 0-360 degrees
+@given(angle=ust.angles(wrap_to=(u.Q(0, "deg"), u.Q(360, "deg"))))
+def test_wrapped_angle_degrees(angle):
+    assert isinstance(angle, u.Angle)
+    assert angle.wrap_to is not None
+
+
+# Generate angles with wrapping to 0-2π radians
+@given(angle=ust.angles(wrap_to=(u.Q(0, "rad"), u.Q(6.28318530718, "rad"))))
+def test_wrapped_angle_radians(angle):
+    assert isinstance(angle, u.Angle)
+    assert 0 <= angle.value <= 6.28318530718
+
+
+# Generate angles with specific shape
+@given(angle=ust.angles(shape=(3,)))
+def test_angle_array(angle):
+    assert isinstance(angle, u.Angle)
+    assert angle.shape == (3,)
+
+
+# Generate angles with dynamic wrapping bounds
+@given(angle=ust.angles(wrap_to=st.just((u.Q(-180, "deg"), u.Q(180, "deg"))), shape=()))
+def test_angle_with_strategy_wrapping(angle):
+    assert isinstance(angle, u.Angle)
+    assert -180 <= angle.value <= 180
+```
+
+### `wrap_to(quantity, min, max)`
+
+Generate wrapped quantities by constraining values to a specified range.
+
+This strategy takes a quantity (or quantity strategy) and wraps the generated
+values to the range [min, max) using modular arithmetic. This is particularly
+useful for periodic quantities like angles.
+
+**Parameters:**
+
+- `quantity` (u.AbstractQuantity | st.SearchStrategy): Quantity or strategy that
+  generates the base quantity to wrap.
+- `min` (u.AbstractQuantity | st.SearchStrategy): Minimum value of the wrapping
+  range (inclusive).
+- `max` (u.AbstractQuantity | st.SearchStrategy): Maximum value of the wrapping
+  range (exclusive).
+
+**Returns:** `unxt.AbstractQuantity`
+
+**Examples:**
+
+```python
+from hypothesis import given, strategies as st
+
+import unxt as u
+import unxt_hypothesis as ust
+
+
+# Wrap angles to 0-360 degree range
+@given(
+    angle=ust.wrap_to(
+        ust.quantities("deg", quantity_cls=u.Angle),
+        min=u.Q(0, "deg"),
+        max=u.Q(360, "deg"),
+    )
+)
+def test_wrapped_angle(angle):
+    assert 0 <= angle.value < 360
+
+
+# Wrap angles to -π to π range
+@given(
+    angle=ust.wrap_to(
+        ust.quantities("rad", quantity_cls=u.Angle),
+        min=u.Q(-3.14159, "rad"),
+        max=u.Q(3.14159, "rad"),
+    )
+)
+def test_wrapped_angle_symmetric(angle):
+    assert -3.14159 <= angle.value < 3.14159
+
+
+# Dynamic min/max using strategies
+@given(
+    angle=ust.wrap_to(
+        ust.quantities("rad", quantity_cls=u.Angle),
+        min=st.just(u.Q(0, "rad")),
+        max=st.just(u.Q(6.28318530718, "rad")),
+    )
+)
+def test_wrapped_angle_with_strategies(angle):
+    assert 0 <= angle.value < 6.28318530718
+```
+
+Note: The `angles()` strategy provides a more convenient interface for
+generating wrapped angles, and should be preferred for most use cases involving
+to construct dimensions directly from names.
 
 ## Type Strategy Registration
 
