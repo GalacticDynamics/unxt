@@ -466,8 +466,8 @@ def test_wrapped_angle_with_strategies(angle):
 ```
 
 Note: The `angles()` strategy provides a more convenient interface for
-generating wrapped angles, and should be preferred for most use cases involving
-to construct dimensions directly from names.
+generating wrapped angles and should be preferred for most use cases involving
+angle generation.
 
 ## Type Strategy Registration
 
