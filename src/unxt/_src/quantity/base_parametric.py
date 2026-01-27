@@ -8,6 +8,7 @@ from functools import partial
 from typing import Any
 
 import equinox as eqx
+import jax
 import wadler_lindig as wl
 from astropy.units import PhysicalType
 from jaxtyping import Array, Shaped
@@ -282,6 +283,8 @@ class AbstractParametricQuantity(AbstractQuantity):
             self,
             include_params=True,
             named_unit=True,
-            short_arrays="compact",
+            short_arrays="compact"
+            if not isinstance(self.value, jax.core.Tracer)
+            else True,
             indent=4,
         )
