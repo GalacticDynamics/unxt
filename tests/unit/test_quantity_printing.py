@@ -1,5 +1,7 @@
 """Tests for Quantity printing with wadler-lindig."""
 
+import jax
+import jax.numpy as jnp
 import wadler_lindig as wl
 
 import unxt as u
@@ -91,3 +93,62 @@ class TestShortName:
 
         doc = q.__pdoc__(use_short_name=True)
         formatted = wl.pformat(doc)
+
+
+class TestStringConversionWithJIT:
+    """Test that str() works on Quantity and Angle inside JAX JIT with tracers."""
+
+    def test_str_quantity_in_jit(self):
+        """Test that str(Quantity) works inside jax.jit with tracers.
+
+        When values are tracers inside JIT, str() should work without raising an
+        error.  We verify this by calling str() during JIT tracing and returning
+        a derived value.
+        """
+
+        @jax.jit
+        def process_with_str(q: u.Quantity) -> u.Quantity:
+            # Call str() on the tracer to verify it doesn't raise
+            _ = str(q)
+            # Return the quantity multiplied by 2
+            return q * 2
+
+        q = u.Q([1.0, 2.0, 3.0], "m")
+        result = process_with_str(q)
+        assert result.unit == q.unit
+        assert jnp.allclose(result.value, q.value * 2)
+
+    def test_str_angle_in_jit(self):
+        """Test that str(Angle) works inside jax.jit with tracers.
+
+        When values are tracers inside JIT, str() should work without raising an error.
+        """
+
+        @jax.jit
+        def process_with_str(angle: u.Angle) -> u.Angle:
+            # Call str() on the tracer to verify it doesn't raise
+            _ = str(angle)
+            # Return the angle multiplied by 2
+            return angle * 2
+
+        angle = u.Angle([0.5, 1.0, 1.5], "rad")
+        result = process_with_str(angle)
+        assert result.unit == angle.unit
+        assert jnp.allclose(result.value, angle.value * 2)
+
+    def test_str_quantity_multiple_calls_in_jit(self):
+        """Test that str(Quantity) works reliably in multiple JIT calls."""
+
+        @jax.jit
+        def process_and_stringify(q: u.Quantity) -> u.Quantity:
+            # Multiple str() calls shouldn't affect the computation
+            _ = str(q)
+            q_doubled = q * 2
+            _ = str(q_doubled)
+            return q_doubled
+
+        q = u.Q(5.0, "kg")
+        result = process_and_stringify(q)
+        assert result.unit == q.unit
+
+        assert jnp.allclose(result.value, q.value * 2)
