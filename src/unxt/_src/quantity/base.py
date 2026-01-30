@@ -789,7 +789,14 @@ class AbstractQuantity(
 
     def __str__(self) -> str:
         # TODO: make named_unit False?
-        return wl.pformat(self, short_arrays=True, named_unit=True, indent=4)
+        return wl.pformat(
+            self,
+            short_arrays="compact"
+            if not isinstance(self.value, jax.core.Tracer)
+            else True,
+            named_unit=True,
+            indent=4,
+        )
 
 
 # -----------------------------------------------
