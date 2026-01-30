@@ -3,7 +3,7 @@
 
 __all__ = ("Quantity", "Q")
 
-from typing import ClassVar, final
+from typing import Any, ClassVar, final
 
 import equinox as eqx
 from jaxtyping import Array, Shaped
@@ -111,13 +111,15 @@ class Quantity(AbstractParametricQuantity):
     short_name: ClassVar[str] = "Q"
     """Short name for compact printing."""
 
-    value: Shaped[Array, "*shape"] | StaticValue = eqx.field(
-        converter=convert_to_quantity_value
-    )
+    value: Shaped[Array, "*shape"] | StaticValue = eqx.field()
     """The value of the `AbstractQuantity`."""
 
-    unit: AbstractUnit = eqx.field(static=True, converter=parse_unit)
+    unit: AbstractUnit = eqx.field(static=True)
     """The unit associated with this value."""
+
+    def __init__(self, value: Any, unit: Any) -> None:
+        object.__setattr__(self, "value", convert_to_quantity_value(value))
+        object.__setattr__(self, "unit", parse_unit(unit))
 
 
 Q = Quantity  # convenience alias
