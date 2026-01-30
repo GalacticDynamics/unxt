@@ -71,7 +71,7 @@ PhysicalType('mass')
 
 ```
 
-some dimension names have spaces, such as "amount of substance" and
+Some dimension names have spaces, such as "amount of substance" and
 "absement". You can use these names directly:
 
 ```{code-block} python
