@@ -5,7 +5,7 @@ __all__ = ("AbstractParametricQuantity",)
 
 from collections.abc import Callable
 from functools import partial
-from typing import Any
+from typing import Any, ClassVar
 
 import equinox as eqx
 import jax
@@ -37,9 +37,9 @@ class AbstractParametricQuantity(AbstractQuantity):
     unit: eqx.AbstractVar[AbstractUnit]
     """The unit associated with this value."""
 
-    def __post_init__(self) -> None:
-        """Check whether the arguments are valid."""
-        self._type_parameter: AbstractDimension
+    # def __post_init__(self) -> None:
+    #     """Check whether the arguments are valid."""
+    _type_parameter: ClassVar[AbstractDimension]
 
     def __check_init__(self) -> None:
         """Check whether the arguments are valid."""
