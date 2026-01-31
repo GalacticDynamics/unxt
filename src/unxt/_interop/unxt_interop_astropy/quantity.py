@@ -9,7 +9,6 @@ import plum
 from astropy.coordinates import Angle as AstropyAngle, Distance as AstropyDistance
 from astropy.units import Quantity as AstropyQuantity
 from jaxtyping import ArrayLike
-from plum import dispatch
 
 import dataclassish as dc
 import quaxed.numpy as jnp
@@ -162,7 +161,7 @@ def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAng
 # Quantity
 
 
-@plum.conversion_method(type_from=AstropyQuantity, type_to=Quantity)  # type: ignore[arg-type]
+@plum.conversion_method(type_from=AstropyQuantity, type_to=Quantity)
 def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity:
     """Convert a `astropy.units.Quantity` to a `unxt.Quantity`.
 
