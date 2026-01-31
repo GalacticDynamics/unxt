@@ -3517,7 +3517,7 @@ def ne_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     if not is_unit_convertible(x.unit, y.unit):
         msg = f"Cannot compare Q(x, {x.unit}) != Q(y, {y.unit})."
         raise UnitConversionError(msg)
-    return qlax.ne(ustrip(x), ustrip(x.unit, y))  # re-dispatch on the values
+    return jnp.not_equal(ustrip(x), ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @quax.register(lax.ne_p)
@@ -3562,7 +3562,7 @@ def ne_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x != Q(y, {y.unit}) (except for x=0).",
     )
-    return qlax.ne(x, yv)  # re-dispatch on the value
+    return jnp.not_equal(x, yv)  # re-dispatch on the value
 
 
 @quax.register(lax.ne_p)
@@ -3607,7 +3607,7 @@ def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) != y (except for y=0).",
     )
-    return qlax.ne(xv, y)  # re-dispatch on the value
+    return jnp.not_equal(xv, y)  # re-dispatch on the value
 
 
 # @quax.register(lax.ne_p)
