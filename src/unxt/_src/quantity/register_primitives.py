@@ -24,6 +24,7 @@ from plum import convert, promote
 from plum.parametric import type_unparametrized as type_np
 from quax import register
 
+import quaxed.numpy as qnp
 from quaxed import lax as qlax
 
 from .base import AbstractQuantity as ABCQ  # noqa: N814
@@ -3078,7 +3079,7 @@ def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     yv = ustrip(x.unit, y)  # this can change the dtype
     xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
 
-    return qlax.lt(xv, yv)  # re-dispatch on the values
+    return qnp.less(xv, yv)  # re-dispatch on the values
 
 
 @register(lax.lt_p)
@@ -3134,7 +3135,7 @@ def lt_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x < Q(y, {y.unit}) (except for x=0).",
     )
-    return qlax.lt(x, yv)  # re-dispatch on the value
+    return qnp.less(x, yv)  # re-dispatch on the value
 
 
 @register(lax.lt_p)
@@ -3194,7 +3195,7 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) < y (except for y=0).",
     )
-    return qlax.lt(xv, y)  # re-dispatch on the value
+    return qnp.less(xv, y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -3517,7 +3518,7 @@ def ne_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     if not is_unit_convertible(x.unit, y.unit):
         msg = f"Cannot compare Q(x, {x.unit}) != Q(y, {y.unit})."
         raise UnitConversionError(msg)
-    return jnp.not_equal(ustrip(x), ustrip(x.unit, y))  # re-dispatch on the values
+    return qnp.not_equal(ustrip(x), ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @register(lax.ne_p)
@@ -3562,7 +3563,7 @@ def ne_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x != Q(y, {y.unit}) (except for x=0).",
     )
-    return jnp.not_equal(x, yv)  # re-dispatch on the value
+    return qnp.not_equal(x, yv)  # re-dispatch on the value
 
 
 @register(lax.ne_p)
@@ -3607,7 +3608,7 @@ def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) != y (except for y=0).",
     )
-    return jnp.not_equal(xv, y)  # re-dispatch on the value
+    return qnp.not_equal(xv, y)  # re-dispatch on the value
 
 
 # @register(lax.ne_p)
