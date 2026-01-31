@@ -1,7 +1,8 @@
-"""Unitsystem compatibility."""
+"""Quantity compatibility."""
 
 __all__: tuple[str, ...] = ()
 
+import dataclasses
 from typing import Any, NoReturn
 
 from astropy.coordinates import Angle as AstropyAngle, Distance as AstropyDistance
@@ -9,8 +10,8 @@ from astropy.units import Quantity as AstropyQuantity
 from jaxtyping import ArrayLike
 from plum import conversion_method, dispatch, type_unparametrized as type_up
 
+import dataclassish as dc
 import quaxed.numpy as jnp
-from dataclassish import field_items, replace
 
 import unxt_api as uapi
 from .custom_types import APYUnits
@@ -260,13 +261,13 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
 
     # If the dimensions are the same, we can just replace the value and unit.
     if uapi.dimension_of(x.unit) == uapi.dimension_of(u):
-        return replace(x, value=value, unit=u)
+        return dc.replace(x, value=value, unit=u)
 
     # If the dimensions are different, we need to create a new quantity since
     # the dimensions can be part of the type. This won't work if the Quantity
     # type itself needs to be changed, e.g. `unxt.Angle` -> `unxt.Quantity`.
     # These cases are handled separately, in other dispatches.
-    fs = dict(field_items(x))  # pylint: disable=unreachable
+    fs = dict(dc.field_items(x))  # pylint: disable=unreachable
     fs["value"] = value
     fs["unit"] = u
 
@@ -306,3 +307,45 @@ def ustrip(flag: type[AllowValue], u: Any, x: AstropyQuantity, /) -> Any:
 
     """
     return uapi.ustrip(u, x)
+
+
+# ============================================================================
+
+
+@plum.dispatch
+def fields(obj: AbstractQuantity, /) -> tuple[dataclasses.Field, ...]:
+    """Return the fields of a quantity.
+
+    Examples
+    --------
+    >>> import dataclassish as dc
+    >>> import unxt as u
+
+    >>> q = u.Quantity(1, "m")
+    >>> dc.fields(q)
+    (Field(name='value',...), Field(name='unit',...))
+
+    """
+    value_field = dataclasses.Field(
+        dataclasses.MISSING,
+        dataclasses.MISSING,
+        True,  # noqa: FBT003
+        False,  # noqa: FBT003
+        False,  # noqa: FBT003
+        False,  # noqa: FBT003
+        {},
+        False,  # noqa: FBT003
+    )
+    value_field.name = "value"
+    unit_field = dataclasses.Field(
+        dataclasses.MISSING,
+        dataclasses.MISSING,
+        True,  # noqa: FBT003
+        False,  # noqa: FBT003
+        False,  # noqa: FBT003
+        False,  # noqa: FBT003
+        {},
+        False,  # noqa: FBT003
+    )
+    unit_field.name = "unit"
+    return (value_field, unit_field)
