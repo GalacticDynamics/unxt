@@ -5,10 +5,11 @@ __all__: tuple[str, ...] = ()
 import dataclasses
 from typing import Any, NoReturn
 
+import plum
 from astropy.coordinates import Angle as AstropyAngle, Distance as AstropyDistance
 from astropy.units import Quantity as AstropyQuantity
 from jaxtyping import ArrayLike
-from plum import conversion_method, dispatch, type_unparametrized as type_up
+from plum import dispatch
 
 import dataclassish as dc
 import quaxed.numpy as jnp
@@ -21,7 +22,7 @@ from unxt.quantity import AbstractQuantity, AllowValue, BareQuantity, Quantity, 
 # Value Converter
 
 
-@dispatch
+@plum.dispatch
 def convert_to_quantity_value(obj: AstropyQuantity, /) -> NoReturn:
     """Disallow conversion of `AstropyQuantity` to a value.
 
@@ -99,7 +100,7 @@ def from_(
 # Conversion Methods
 
 
-@conversion_method(type_from=AbstractQuantity, type_to=AstropyQuantity)  # type: ignore[arg-type]
+@plum.conversion_method(type_from=AbstractQuantity, type_to=AstropyQuantity)  # type: ignore[arg-type]
 def convert_unxt_quantity_to_astropy_quantity(
     q: AbstractQuantity, /
 ) -> AstropyQuantity:
@@ -119,7 +120,7 @@ def convert_unxt_quantity_to_astropy_quantity(
     return AstropyQuantity(uapi.ustrip(u, q), u)
 
 
-@conversion_method(type_from=AbstractQuantity, type_to=AstropyDistance)  # type: ignore[arg-type]
+@plum.conversion_method(type_from=AbstractQuantity, type_to=AstropyDistance)  # type: ignore[arg-type]
 def convert_unxt_quantity_to_astropy_distance(
     q: AbstractQuantity, /
 ) -> AstropyDistance:
@@ -139,7 +140,7 @@ def convert_unxt_quantity_to_astropy_distance(
     return AstropyDistance(uapi.ustrip(u, q), u)
 
 
-@conversion_method(type_from=AbstractQuantity, type_to=AstropyAngle)  # type: ignore[arg-type]
+@plum.conversion_method(type_from=AbstractQuantity, type_to=AstropyAngle)  # type: ignore[arg-type]
 def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAngle:
     """Convert a `unxt.quantity.AbstractQuantity` to a `astropy.coordinates.Angle`.
 
@@ -161,7 +162,7 @@ def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAng
 # Quantity
 
 
-@conversion_method(type_from=AstropyQuantity, type_to=Quantity)  # type: ignore[arg-type]
+@plum.conversion_method(type_from=AstropyQuantity, type_to=Quantity)  # type: ignore[arg-type]
 def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity:
     """Convert a `astropy.units.Quantity` to a `unxt.Quantity`.
 
@@ -183,7 +184,7 @@ def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity
 # BareQuantity
 
 
-@conversion_method(type_from=AstropyQuantity, type_to=BareQuantity)  # type: ignore[arg-type]
+@plum.conversion_method(type_from=AstropyQuantity, type_to=BareQuantity)  # type: ignore[arg-type]
 def convert_astropy_quantity_to_unxt_barequantity(
     q: AstropyQuantity, /
 ) -> BareQuantity:
@@ -206,7 +207,7 @@ def convert_astropy_quantity_to_unxt_barequantity(
 ###############################################################################
 
 
-@dispatch
+@plum.dispatch
 def uconvert_value(uto: APYUnits, ufrom: APYUnits, x: ArrayLike, /) -> ArrayLike:
     """Convert the value to the specified units.
 
@@ -227,7 +228,7 @@ def uconvert_value(uto: APYUnits, ufrom: APYUnits, x: ArrayLike, /) -> ArrayLike
     return ufrom.to(uto, x)
 
 
-@dispatch
+@plum.dispatch
 def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
     """Convert the quantity to the specified units.
 
@@ -271,13 +272,13 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
     fs["value"] = value
     fs["unit"] = u
 
-    return type_up(x)(**fs)
+    return plum.type_unparametrized(x)(**fs)
 
 
 # ============================================================================
 
 
-@dispatch
+@plum.dispatch
 def ustrip(u: Any, x: AstropyQuantity) -> Any:
     """Strip the units from the quantity.
 
@@ -294,7 +295,7 @@ def ustrip(u: Any, x: AstropyQuantity) -> Any:
     return x.to_value(u)
 
 
-@dispatch  # TODO: type annotate by value
+@plum.dispatch  # TODO: type annotate by value
 def ustrip(flag: type[AllowValue], u: Any, x: AstropyQuantity, /) -> Any:
     """Strip the units from a quantity.
 
