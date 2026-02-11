@@ -88,7 +88,7 @@ def pylint(s: nox.Session, /, package: PackageEnum) -> None:
 # Testing
 
 
-@session(uv_groups=["test"], reuse_venv=True)
+@session(uv_groups=["test"], uv_extras=["workspace"], reuse_venv=True)
 def test(s: nox.Session, /) -> None:
     """Run the unit and regular tests."""
     s.notify("pytest(package='unxt')", posargs=s.posargs)
