@@ -194,7 +194,7 @@ class NumPyCompatMixin:
 
     __array_namespace__: Callable[[], Any]
 
-    def __array__(self, **kwargs: Any) -> npt.NDArray[Any]:
+    def __array__(self, *args: object, **kw: object) -> npt.NDArray[Any]:
         """Return the array as a numpy array, stripping the units.
 
         Examples
@@ -207,7 +207,7 @@ class NumPyCompatMixin:
         array(1.01, dtype=float32)
 
         """
-        return np.asarray(uapi.ustrip(self.unit, self), **kwargs)
+        return np.asarray(uapi.ustrip(self.unit, self), *args, **kw)
 
     # TODO: why doesn't `__array_namespace__` supersede this?
     def __array_function__(

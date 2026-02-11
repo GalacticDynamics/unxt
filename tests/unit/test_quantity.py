@@ -120,6 +120,21 @@ def test_array_namespace():
     assert u.Q(1, "m").__array_namespace__() is jnp
 
 
+def test_numpy_array_copy_kwarg_uses_array_protocol():
+    """NumPy passes copy through __array__ when present.
+
+    Without *args/**kwargs in __array__, NumPy's copy parameter would cause
+    TypeError: __array__() got an unexpected keyword argument 'copy'.
+    """
+    q = u.Q(1.01, "m")
+
+    # NumPy 2.0+ passes copy=True to __array__ by default
+    arr = np.array(q)
+
+    assert arr.dtype == np.float32
+    assert np.isclose(arr, 1.01)
+
+
 def test_uconvert():
     """Test the ``u.Q.uconvert`` method."""
     q = u.Q(1, "m")
