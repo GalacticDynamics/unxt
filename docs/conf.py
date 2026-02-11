@@ -191,6 +191,8 @@ nb_execution_raise_on_error = True
 nb_execution_timeout = 100
 # Add download links for notebooks
 nb_html_download = True
+# Enable .ipynb download specifically
+nb_ipynb_download = True
 
 # -- HTML output -------------------------------------------------
 
