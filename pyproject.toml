@@ -82,6 +82,9 @@ dev = [
   { include-group = "test-all" },
 ]
 docs = [
+  # Sphinx & documentation tools
+  "jupytext>=1.16.4",
+  "jupyter-cache>=1.0.0",
   "myst-nb>=1.1.2",
   "myst_parser>=0.13",
   "pytz>=2024.2",                    # for copyright date
@@ -97,6 +100,10 @@ docs = [
   "sphinx_togglebutton>=0.3.2",
   "sphinxext-opengraph>=0.9.1",
   "sphinxext-rediraffe>=0.2.7",
+  # Runtime dependencies for notebook execution
+  "jax[cpu]>=0.5.3",
+  "jaxlib>=0.5.3",
+  "quax>=0.2.1",
 ]
 lint = ["pre-commit>=4.1.0", "pylint>=3.3.8"]
 nox = ["nox>=2024.10.9", "nox-uv>=0.6.3"]
@@ -131,6 +138,11 @@ local_scheme = "no-local-version"
 
 [tool.codespell]
 skip = ["uv.lock", "paper/paper.bib"]
+
+[tool.jupytext]
+cell_metadata_filter     = "tags,-all"
+formats                  = "ipynb,md:myst"
+notebook_metadata_filter = "kernelspec,language_info,jupytext"
 
 
 [tool.commitizen]
