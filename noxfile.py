@@ -162,6 +162,16 @@ def docs(s: nox.Session, /) -> None:
     s.run("python", "_static/generate_equinox_inv.py")
     s.run("python", "_static/generate_quax_blocks_inv.py")
 
+    # Convert jupytext markdown files to notebooks
+    s.run(
+        "jupytext",
+        "--to",
+        "notebook",
+        "guides/perf.md",
+        "--output",
+        "guides/perf.ipynb",
+    )
+
     if args.builder == "linkcheck":
         s.run("sphinx-build", "-b", "linkcheck", ".", "_build/linkcheck", *posargs)
         return
