@@ -33,7 +33,7 @@ language = "en"
 # -- General configuration ---------------------------------------------------
 
 extensions = [
-    "myst_parser",  # General MyST markdown support
+    "myst_nb",  # Jupyter notebook support via MyST (includes myst_parser functionality)
     "sphinx_design",
     "sphinx.ext.autodoc",  # TODO: replace with autodoc2
     "sphinx.ext.autosummary",  # TODO: replace with autodoc2
@@ -58,6 +58,7 @@ exclude_patterns = [
     ".DS_Store",
     ".env",
     ".venv",
+    "guides/perf.md",  # Excluded: converted to perf.ipynb during build
 ]
 
 # Include package documentation directories
@@ -65,7 +66,7 @@ html_extra_path = [
     str(p) for p in (_repo_root / "packages").glob("*/docs") if p.is_dir()
 ]
 
-source_suffix = [".md", ".rst"]
+source_suffix = [".md", ".rst", ".ipynb"]
 
 _docs_path = Path(__file__).parent
 intersphinx_mapping = {
@@ -178,6 +179,18 @@ myst_substitutions = {
     "Any": ":obj:`typing.Any`",
 }
 
+# -- MyST-NB settings (Jupyter notebook support) --------------------------
+
+# Execute notebooks during build
+nb_execution_mode = "cache"
+# Store execution cache in _build directory
+nb_execution_cache_path = "_build/.jupyter_cache"
+# Raise errors if notebook execution fails
+nb_execution_raise_on_error = True
+# Timeout for each notebook cell (in seconds)
+nb_execution_timeout = 100
+# Add download links for notebooks
+nb_html_download = True
 
 # -- HTML output -------------------------------------------------
 

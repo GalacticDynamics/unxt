@@ -24,6 +24,7 @@ guides/dimensions
 guides/units_and_systems
 guides/type-checking
 guides/sharp-bits
+Performance Optimization <guides/perf.ipynb>
 packages/unxt-api/extending
 packages/unxt-hypothesis/testing-guide
 ```
