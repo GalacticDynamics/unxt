@@ -1333,6 +1333,22 @@ wheels = [
 ]
 
 [[package]]
+name = "jupytext"
+version = "1.19.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "markdown-it-py" },
+    { name = "mdit-py-plugins" },
+    { name = "nbformat" },
+    { name = "packaging" },
+    { name = "pyyaml" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/13/a5/80c02f307c8ce863cb33e27daf049315e9d96979e14eead700923b5ec9cc/jupytext-1.19.1.tar.gz", hash = "sha256:82587c07e299173c70ed5e8ec7e75183edf1be289ed518bab49ad0d4e3d5f433", size = 4307829, upload-time = "2026-01-25T21:35:13.276Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/16/5a/736dd2f4535dbf3bf26523f9158c011389ef88dd06ec2eef67fd744f1c7b/jupytext-1.19.1-py3-none-any.whl", hash = "sha256:d8975035155d034bdfde5c0c37891425314b7ea8d3a6c4b5d18c294348714cd9", size = 170478, upload-time = "2026-01-25T21:35:11.17Z" },
+]
+
+[[package]]
 name = "kiwisolver"
 version = "1.4.9"
 source = { registry = "https://pypi.org/simple" }
@@ -3486,6 +3502,10 @@ dev = [
     { name = "cz-conventional-gitmoji" },
     { name = "hypothesis", extra = ["numpy"] },
     { name = "ipykernel" },
+    { name = "jax" },
+    { name = "jaxlib" },
+    { name = "jupyter-cache" },
+    { name = "jupytext" },
     { name = "matplotlib" },
     { name = "myst-nb" },
     { name = "myst-parser" },
@@ -3502,6 +3522,7 @@ dev = [
     { name = "pytest-github-actions-annotate-failures" },
     { name = "pytest-mpl" },
     { name = "pytz" },
+    { name = "quax" },
     { name = "sphinx" },
     { name = "sphinx-autobuild" },
     { name = "sphinx-autodoc-typehints" },
@@ -3517,9 +3538,14 @@ dev = [
     { name = "sybil", extra = ["pytest"] },
 ]
 docs = [
+    { name = "jax" },
+    { name = "jaxlib" },
+    { name = "jupyter-cache" },
+    { name = "jupytext" },
     { name = "myst-nb" },
     { name = "myst-parser" },
     { name = "pytz" },
+    { name = "quax" },
     { name = "sphinx" },
     { name = "sphinx-autobuild" },
     { name = "sphinx-autodoc-typehints" },
@@ -3616,6 +3642,10 @@ dev = [
     { name = "cz-conventional-gitmoji", specifier = ">=0.6.1" },
     { name = "hypothesis", extras = ["numpy"], specifier = ">=6.138.14" },
     { name = "ipykernel", specifier = ">=6.29.5" },
+    { name = "jax", extras = ["cpu"], specifier = ">=0.5.3" },
+    { name = "jaxlib", specifier = ">=0.5.3" },
+    { name = "jupyter-cache", specifier = ">=1.0.0" },
+    { name = "jupytext", specifier = ">=1.16.4" },
     { name = "matplotlib", specifier = ">=3.8,<3.10" },
     { name = "myst-nb", specifier = ">=1.1.2" },
     { name = "myst-parser", specifier = ">=0.13" },
@@ -3632,6 +3662,7 @@ dev = [
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
     { name = "pytest-mpl", specifier = ">=0.17.0" },
     { name = "pytz", specifier = ">=2024.2" },
+    { name = "quax", specifier = ">=0.2.1" },
     { name = "sphinx", specifier = ">=7.0" },
     { name = "sphinx-autobuild", specifier = ">=2024.9.3" },
     { name = "sphinx-autodoc-typehints", specifier = ">=3.0.0" },
@@ -3647,9 +3678,14 @@ dev = [
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
 docs = [
+    { name = "jax", extras = ["cpu"], specifier = ">=0.5.3" },
+    { name = "jaxlib", specifier = ">=0.5.3" },
+    { name = "jupyter-cache", specifier = ">=1.0.0" },
+    { name = "jupytext", specifier = ">=1.16.4" },
     { name = "myst-nb", specifier = ">=1.1.2" },
     { name = "myst-parser", specifier = ">=0.13" },
     { name = "pytz", specifier = ">=2024.2" },
+    { name = "quax", specifier = ">=0.2.1" },
     { name = "sphinx", specifier = ">=7.0" },
     { name = "sphinx-autobuild", specifier = ">=2024.9.3" },
     { name = "sphinx-autodoc-typehints", specifier = ">=3.0.0" },
