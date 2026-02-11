@@ -354,7 +354,7 @@ os.environ["UNXT_ENABLE_RUNTIME_TYPECHECKING"] = "beartype.beartype"
 
 ## Quantity as a PyTree: JAX flattening overhead
 
-See the [Performance Guide](../notebooks/my_example.md)
+See the [Performance Guide](perf.md)
 
 ### ❌ Problem: Quantity is slower than Array
 
@@ -374,12 +374,12 @@ func(x, y)
 
 # vs
 qx, qy = u.Q(x, "m"), u.Q(y, "m")
-func(x, y)
+func(qx, qy)
 ```
 
 ### ✅ Solution: Don't pass through the outermost `jax.jit` boundary
 
-If the PyTree is formed within the jit context than all the nodes
+If the PyTree is formed within the jit context then all the nodes
 of the PyTree (the static parts) are constant-folded by JAX and will
 not contribute to the run-time, only the time for first compilation.
 
