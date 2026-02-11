@@ -62,13 +62,15 @@ class StaticQuantity(AbstractParametricQuantity):
 
     """
 
-    value: StaticValue = eqx.field(  # type: ignore[assignment]
-        static=True, converter=StaticValue.from_
-    )
+    value: StaticValue = eqx.field(static=True)
     """The static value of the `AbstractQuantity`."""
 
-    unit: AbstractUnit = eqx.field(static=True, converter=parse_unit)
+    unit: AbstractUnit = eqx.field(static=True)
     """The unit associated with this value."""
+
+    def __init__(self, value: Any, unit: Any) -> None:
+        object.__setattr__(self, "value", StaticValue.from_(value))
+        object.__setattr__(self, "unit", parse_unit(unit))
 
     def __hash__(self) -> int:
         """Return the hash of the quantity."""

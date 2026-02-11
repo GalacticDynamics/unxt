@@ -21,13 +21,15 @@ class BareQuantity(AbstractQuantity):
     This class is not parametrized by its dimensionality.
     """
 
-    value: Shaped[Array | StaticValue, "*shape"] = eqx.field(
-        converter=convert_to_quantity_value
-    )
+    value: Shaped[Array | StaticValue, "*shape"] = eqx.field()
     """The value of the `AbstractQuantity`."""
 
-    unit: AbstractUnit = eqx.field(static=True, converter=parse_unit)
+    unit: AbstractUnit = eqx.field(static=True)
     """The unit associated with this value."""
+
+    def __init__(self, value: Any, unit: Any) -> None:
+        object.__setattr__(self, "value", convert_to_quantity_value(value))
+        object.__setattr__(self, "unit", parse_unit(unit))
 
     def __class_getitem__(cls: "type[BareQuantity]", item: Any) -> "type[BareQuantity]":
         """No-op support for `BareQuantity[...]` syntax.
