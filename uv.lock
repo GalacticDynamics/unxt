@@ -2197,16 +2197,25 @@ wheels = [
 
 [[package]]
 name = "plum-dispatch"
-version = "2.6.0"
+version = "2.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beartype" },
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9b/49/1da3299aceee66bb48e8f89b85d4a5af95ac863df39c2c295a1a238c91fc/plum_dispatch-2.6.0.tar.gz", hash = "sha256:09367134541a05f965e3f58c191f4f45b91ef1d87613835171790617bb87ce6d", size = 35394, upload-time = "2025-10-28T13:05:58.358Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/35/32/e5f2611f84a19dca71ad78e642285be86995861f1197e081869dc6464221/plum_dispatch-2.7.0.tar.gz", hash = "sha256:033ead1c601bd97c8d478b5f792fcf1ce533d95b7a4b3bc9cf4c4dd5a77e679a", size = 229364, upload-time = "2026-02-19T13:14:06.099Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4f/6a/f435b9d12f34e03548949a51c7475775feda4c3e5b5373e180d70fd7fbe4/plum_dispatch-2.6.0-py3-none-any.whl", hash = "sha256:8e9b8f20c5119f944720fa5b93f84338a9f604329f016a5132e419e4894cddf1", size = 42251, upload-time = "2025-10-28T13:05:56.874Z" },
+    { url = "https://files.pythonhosted.org/packages/47/ac/693fa3d4e4e7fe9f61199ac31d661218a3a105f8f0cfd83535de5e07531f/plum_dispatch-2.7.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:d4af8b7f43e5cf7bfbe7e501f471ed97637949bfa7f6374aff1774301830276c", size = 161861, upload-time = "2026-02-19T13:13:40.8Z" },
+    { url = "https://files.pythonhosted.org/packages/48/2b/fe9188eef7ff40e15854c8265f481a0665c9b7f6c1442715d7173f368515/plum_dispatch-2.7.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:25e880e0b6b087b56a3c1ea0851f276b3dfa7a5d19771181a7ff1bf4ef7d3bc9", size = 190689, upload-time = "2026-02-19T13:13:43.105Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/32/58d221a077765ab10dfe18dd687bdee348964a06bc23f6760d151b8a9d60/plum_dispatch-2.7.0-cp311-cp311-win_amd64.whl", hash = "sha256:d6ad027105932fd38a6a488e6c94f1930d44d7a691a03f5b8b764e933316a217", size = 146572, upload-time = "2026-02-19T13:13:52.8Z" },
+    { url = "https://files.pythonhosted.org/packages/42/d6/ebe0406569e0a678c58a1b29b4519e5ffbe1cc6c88cecb0693e7f49e99f2/plum_dispatch-2.7.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:61d7e9e2091f6761b6160d069cf5a986864950170b72fafe407304aa8dff2345", size = 164932, upload-time = "2026-02-19T13:13:54.657Z" },
+    { url = "https://files.pythonhosted.org/packages/4b/a4/571ca3f6cd47d61d2adc617284a74dd133ca4c132e2145b2ee085afe007c/plum_dispatch-2.7.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:5ab33ac3ee1db3704cc4f297fc9a04a96a4f5f055eb50d915a9c17434b730c3e", size = 192942, upload-time = "2026-02-19T13:13:56.963Z" },
+    { url = "https://files.pythonhosted.org/packages/44/e5/ecdad19a3af91d7b3be964d7f72613c06ac35d88a0b465ec72171db5c60f/plum_dispatch-2.7.0-cp312-cp312-win_amd64.whl", hash = "sha256:68b19e05cfe4e79ff019db84beb250d020bc3c250a26177402ca705d27df6fd5", size = 146814, upload-time = "2026-02-19T13:13:58.897Z" },
+    { url = "https://files.pythonhosted.org/packages/60/c6/f3fc7dc2f7f292c9822cb2d53960bf5b3d47e79f467afc144d57af0d42da/plum_dispatch-2.7.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:be6067fec38227dd5f7e07c1f6020c39e790e15aec5ebcf902ba88dccdc8b912", size = 164902, upload-time = "2026-02-19T13:14:00.338Z" },
+    { url = "https://files.pythonhosted.org/packages/bd/84/8d6b8848de23dc34e92a49ad401b269e99234ae46de11f8a971040980bfa/plum_dispatch-2.7.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:0b6032c15938b1ca3669cf3784489215ddf0061635302668dc9b41a146dd9a70", size = 192353, upload-time = "2026-02-19T13:14:01.66Z" },
+    { url = "https://files.pythonhosted.org/packages/80/16/637818133a6cb874fae93fbeb539ff79f48ed3f67d5635634858d7016a2f/plum_dispatch-2.7.0-cp313-cp313-win_amd64.whl", hash = "sha256:0dd06eef5a26b32667ff350b60da1ea8b9da28637e4c69ea2bd862676ff6f9f2", size = 146936, upload-time = "2026-02-19T13:14:03.156Z" },
+    { url = "https://files.pythonhosted.org/packages/9b/df/311697a3d5fc8f9f9d085fed7720f9fa9c0236afd22b52a67842c1e9585c/plum_dispatch-2.7.0-py3-none-any.whl", hash = "sha256:12d9d83343b22c616ed74695f08e54905e9517a464c611b0d8d9cb80c5f568ab", size = 44208, upload-time = "2026-02-19T13:14:04.789Z" },
 ]
 
 [[package]]
@@ -3620,7 +3629,7 @@ requires-dist = [
     { name = "matplotlib", marker = "extra == 'all'", specifier = ">=3.8" },
     { name = "matplotlib", marker = "extra == 'interop-mpl'", specifier = ">=3.8" },
     { name = "optional-dependencies", specifier = ">=0.3.2" },
-    { name = "plum-dispatch", specifier = ">=2.5.7" },
+    { name = "plum-dispatch", specifier = ">=2.7.0" },
     { name = "quax", specifier = ">=0.2.1" },
     { name = "quax-blocks", specifier = ">=0.4.0" },
     { name = "quaxed", specifier = ">=0.10.2" },
