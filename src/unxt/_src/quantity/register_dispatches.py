@@ -8,8 +8,7 @@ from typing import Any
 import jax
 import jax.numpy as jax_xp
 from jaxtyping import ArrayLike
-from plum import dispatch
-from plum import type_unparametrized as type_np
+from plum import dispatch, type_unparametrized as type_np
 
 from .base import AbstractQuantity
 from .quantity import Quantity
