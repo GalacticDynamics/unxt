@@ -30,7 +30,7 @@ from typing_extensions import Unpack
 import equinox as eqx
 import jax
 from jaxtyping import ArrayLike
-from plum.parametric import type_unparametrized
+from plum import type_unparametrized
 
 from .quantity import AbstractQuantity, BareQuantity
 from .units import AbstractUnit

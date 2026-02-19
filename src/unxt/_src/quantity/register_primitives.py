@@ -20,8 +20,7 @@ from jax import lax, numpy as jnp
 from jax._src.lax import linalg as lax_linalg
 from jax.extend.core.primitives import add_jaxvals_p
 from jaxtyping import Array, ArrayLike, DTypeLike, Int
-from plum import convert, promote
-from plum.parametric import type_unparametrized as type_np
+from plum import convert, promote, type_unparametrized as type_np
 from quax import register
 
 import quaxed.numpy as qnp
