@@ -211,7 +211,7 @@ values_in_m = u.uconvert_value("m", "km", values_in_km)
 
 **Error Handling:**
 
-The function will raise a `plum.resolver.NotFoundLookupError` if no dispatch is
+The function will raise a `plum.NotFoundLookupError` if no dispatch is
 registered for the given unit type combination. This ensures type safety and
 prevents silent failures.
 
@@ -225,7 +225,7 @@ class CustomUnit:  # incompatible unit types without registered dispatch
 
 try:
     u.uconvert_value(CustomUnit(), CustomUnit(), 5)
-except plum.resolver.NotFoundLookupError:
+except plum.NotFoundLookupError:
     print("Incompatible unit types for conversion.")
 ```
 
