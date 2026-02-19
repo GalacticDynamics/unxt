@@ -11,7 +11,6 @@ from typing import Any, Literal, TypeAlias, TypeVar, overload
 import equinox as eqx
 import jax.tree as jt
 import numpy as np
-import quax
 from astropy.units import (  # pylint: disable=no-name-in-module
     UnitConversionError,
     dimensionless_unscaled as one,
@@ -22,6 +21,7 @@ from jax._src.lax import linalg as lax_linalg
 from jax.extend.core.primitives import add_jaxvals_p
 from jaxtyping import Array, ArrayLike, DTypeLike, Int
 from plum import convert, promote, type_unparametrized as type_np
+from quax import register
 
 import quaxed.numpy as qnp
 from quaxed import lax as qlax
@@ -51,7 +51,7 @@ def _to_val_rad_or_one(q: ABCQ) -> ArrayLike:
 # ==============================================================================
 
 
-@quax.register(lax.abs_p)
+@register(lax.abs_p)
 def abs_p(x: ABCQ, /) -> ABCQ:
     """Absolute value of a quantity.
 
@@ -79,7 +79,7 @@ def abs_p(x: ABCQ, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.acos_p)
+@register(lax.acos_p)
 def acos_p_aq(x: ABCQ, /) -> ABCQ:
     """Inverse cosine of a quantity.
 
@@ -104,7 +104,7 @@ def acos_p_aq(x: ABCQ, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.acosh_p)
+@register(lax.acosh_p)
 def acosh_p_aq(x: ABCQ, /) -> ABCQ:
     """Inverse hyperbolic cosine of a quantity.
 
@@ -130,7 +130,7 @@ def acosh_p_aq(x: ABCQ, /) -> ABCQ:
 # Addition
 
 
-@quax.register(lax.add_p)
+@register(lax.add_p)
 def add_p_aqaq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """Add two quantities.
 
@@ -171,7 +171,7 @@ def add_p_aqaq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     return replace(x, value=xv + yv)
 
 
-@quax.register(lax.add_p)
+@register(lax.add_p)
 def add_p_vaq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     """Add a value and a quantity.
 
@@ -237,7 +237,7 @@ def add_p_vaq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     return replace(y, value=qlax.add(x, ustrip(y)))
 
 
-@quax.register(lax.add_p)
+@register(lax.add_p)
 def add_p_aqv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Add a quantity and a value.
 
@@ -312,7 +312,7 @@ def add_p_aqv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(add_jaxvals_p)
+@register(add_jaxvals_p)
 def add_jaxvals_p_qq(x: ABCPQ, y: ABCPQ, /) -> ABCPQ:
     """Add two quantities using the ``jax.interpreters.ad.add_jaxvals_p``.
 
@@ -341,7 +341,7 @@ def add_jaxvals_p_qq(x: ABCPQ, y: ABCPQ, /) -> ABCPQ:
 # ==============================================================================
 
 
-@quax.register(lax.and_p)
+@register(lax.and_p)
 def and_p_aq(x1: ABCQ, x2: ABCQ, /) -> ArrayLike:
     """Bitwise AND of two quantities.
 
@@ -367,7 +367,7 @@ def and_p_aq(x1: ABCQ, x2: ABCQ, /) -> ArrayLike:
 # ==============================================================================
 
 
-@quax.register(lax.approx_top_k_p)
+@register(lax.approx_top_k_p)
 def approx_top_k_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
     """Approximate top-k of a quantity.
 
@@ -388,7 +388,7 @@ def approx_top_k_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.argmax_p)
+@register(lax.argmax_p)
 def argmax_p(
     operand: ABCQ, /, *, axes: int | tuple[int, ...], index_dtype: DTypeLike
 ) -> Array:
@@ -414,7 +414,7 @@ def argmax_p(
 # ==============================================================================
 
 
-@quax.register(lax.argmin_p)
+@register(lax.argmin_p)
 def argmin_p(
     operand: ABCQ, *, axes: int | tuple[int, ...], index_dtype: DTypeLike
 ) -> Array:
@@ -440,7 +440,7 @@ def argmin_p(
 # ==============================================================================
 
 
-@quax.register(lax.asin_p)
+@register(lax.asin_p)
 def asin_p_aq(x: ABCQ) -> ABCQ:
     """Inverse sine of a quantity.
 
@@ -457,7 +457,7 @@ def asin_p_aq(x: ABCQ) -> ABCQ:
     return type_np(x)(lax.asin(ustrip(one, x)), unit=radian)
 
 
-@quax.register(lax.asin_p)
+@register(lax.asin_p)
 def asin_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
     """Inverse sine of a quantity.
 
@@ -477,7 +477,7 @@ def asin_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
 # ==============================================================================
 
 
-@quax.register(lax.asinh_p)
+@register(lax.asinh_p)
 def asinh_p_aq(x: ABCQ) -> ABCQ:
     """Inverse hyperbolic sine of a quantity.
 
@@ -494,7 +494,7 @@ def asinh_p_aq(x: ABCQ) -> ABCQ:
     return type_np(x)(lax.asinh(ustrip(one, x)), unit=radian)
 
 
-@quax.register(lax.asinh_p)
+@register(lax.asinh_p)
 def asinh_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
     """Inverse hyperbolic sine of a quantity.
 
@@ -514,7 +514,7 @@ def asinh_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
 # ==============================================================================
 
 
-@quax.register(lax.atan2_p)
+@register(lax.atan2_p)
 def atan2_p_aqaq(x: ABCQ, y: ABCQ) -> ABCQ:
     """Arctangent2 of two abstract quantities.
 
@@ -533,7 +533,7 @@ def atan2_p_aqaq(x: ABCQ, y: ABCQ) -> ABCQ:
     return type_np(x)(lax.atan2(ustrip(x), yv), unit=radian)
 
 
-@quax.register(lax.atan2_p)
+@register(lax.atan2_p)
 def atan2_p_qq(x: ABCPQ, y: ABCPQ) -> ABCPQ["radian"]:
     """Arctangent2 of two quantities.
 
@@ -554,7 +554,7 @@ def atan2_p_qq(x: ABCPQ, y: ABCPQ) -> ABCPQ["radian"]:
 # ---------------------------
 
 
-@quax.register(lax.atan2_p)
+@register(lax.atan2_p)
 def atan2_p_vaq(x: ArrayLike, y: ABCQ) -> ABCQ:
     """Arctangent2 of a value and a quantity.
 
@@ -572,7 +572,7 @@ def atan2_p_vaq(x: ArrayLike, y: ABCQ) -> ABCQ:
     return type_np(y)(lax.atan2(x, yv), unit=radian)
 
 
-@quax.register(lax.atan2_p)
+@register(lax.atan2_p)
 def atan2_p_vq(x: ArrayLike, y: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
     """Arctangent2 of a value and a quantity.
 
@@ -592,7 +592,7 @@ def atan2_p_vq(x: ArrayLike, y: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
 # ---------------------------
 
 
-@quax.register(lax.atan2_p)
+@register(lax.atan2_p)
 def atan2_p_aqv(x: ABCQ, y: ArrayLike) -> ABCQ:
     """Arctangent2 of a quantity and a value.
 
@@ -610,7 +610,7 @@ def atan2_p_aqv(x: ABCQ, y: ArrayLike) -> ABCQ:
     return type_np(x)(lax.atan2(xv, y), unit=radian)
 
 
-@quax.register(lax.atan2_p)
+@register(lax.atan2_p)
 def atan2_p_qv(x: ABCPQ["dimensionless"], y: ArrayLike) -> ABCPQ["angle"]:
     """Arctangent2 of a quantity and a value.
 
@@ -630,7 +630,7 @@ def atan2_p_qv(x: ABCPQ["dimensionless"], y: ArrayLike) -> ABCPQ["angle"]:
 # ==============================================================================
 
 
-@quax.register(lax.atan_p)
+@register(lax.atan_p)
 def atan_p_aq(x: ABCQ) -> ABCQ:
     """Arctangent of a quantity.
 
@@ -646,7 +646,7 @@ def atan_p_aq(x: ABCQ) -> ABCQ:
     return type_np(x)(lax.atan(ustrip(one, x)), unit=radian)
 
 
-@quax.register(lax.atan_p)
+@register(lax.atan_p)
 def atan_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
     """Arctangent of a quantity.
 
@@ -664,7 +664,7 @@ def atan_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
 # ==============================================================================
 
 
-@quax.register(lax.atanh_p)
+@register(lax.atanh_p)
 def atanh_p_aq(x: ABCQ) -> ABCQ:
     """Inverse hyperbolic tangent of a quantity.
 
@@ -680,7 +680,7 @@ def atanh_p_aq(x: ABCQ) -> ABCQ:
     return type_np(x)(lax.atanh(ustrip(one, x)), unit=radian)
 
 
-@quax.register(lax.atanh_p)
+@register(lax.atanh_p)
 def atanh_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
     """Inverse hyperbolic tangent of a quantity.
 
@@ -698,7 +698,7 @@ def atanh_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
 # ==============================================================================
 
 
-@quax.register(lax.bessel_i0e_p)
+@register(lax.bessel_i0e_p)
 def bessel_i0e_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
     r"""Return modified Bessel function of the first kind of order zero.
 
@@ -718,7 +718,7 @@ def bessel_i0e_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
     return replace(x, value=lax.bessel_i0e_p.bind(ustrip(one, x), **kwargs))
 
 
-@quax.register(lax.bessel_i1e_p)
+@register(lax.bessel_i1e_p)
 def bessel_i1e_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
     r"""Return modified Bessel function of the first kind of order one.
 
@@ -741,7 +741,7 @@ def bessel_i1e_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.bitcast_convert_type_p)
+@register(lax.bitcast_convert_type_p)
 def bitcast_convert_type_p(x: ABCQ, /, *, new_dtype: DTypeLike) -> ABCQ:
     """Bitcast convert type of a quantity.
 
@@ -766,7 +766,7 @@ def bitcast_convert_type_p(x: ABCQ, /, *, new_dtype: DTypeLike) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.broadcast_in_dim_p)
+@register(lax.broadcast_in_dim_p)
 def broadcast_in_dim_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
     """Broadcast a quantity in a specific dimension."""
     value = lax.broadcast_in_dim_p.bind(ustrip(operand), **kw)  # type: ignore[no-untyped-call,unused-ignore]
@@ -776,7 +776,7 @@ def broadcast_in_dim_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.cbrt_p)
+@register(lax.cbrt_p)
 def cbrt_p_q(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Cube root of a quantity.
 
@@ -797,7 +797,7 @@ def cbrt_p_q(x: ABCQ, /, **kw: Any) -> ABCQ:
 
 
 # TODO: can this be done with promotion/conversion/default rule instead?
-@quax.register(lax.cbrt_p)
+@register(lax.cbrt_p)
 def cbrt_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
     """Cube root of an angle.
 
@@ -817,7 +817,7 @@ def cbrt_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.ceil_p)
+@register(lax.ceil_p)
 def ceil_p(x: ABCQ, /) -> ABCQ:
     """Ceiling of a quantity.
 
@@ -840,7 +840,7 @@ def ceil_p(x: ABCQ, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.clamp_p)
+@register(lax.clamp_p)
 def clamp_p(min: ABCQ, x: ABCQ, max: ABCQ) -> ABCQ:
     """Clamp a quantity between two other quantities.
 
@@ -877,7 +877,7 @@ def clamp_p(min: ABCQ, x: ABCQ, max: ABCQ) -> ABCQ:
 # ---------------------------
 
 
-@quax.register(lax.clamp_p)
+@register(lax.clamp_p)
 def clamp_p_vaqaq(min: ArrayLike, x: ABCQ, max: ABCQ) -> ABCQ:
     """Clamp a quantity between a value and another quantity.
 
@@ -906,7 +906,7 @@ def clamp_p_vaqaq(min: ArrayLike, x: ABCQ, max: ABCQ) -> ABCQ:
 # ---------------------------
 
 
-@quax.register(lax.clamp_p)
+@register(lax.clamp_p)
 def clamp_p_aqvaq(min: ABCQ, x: ArrayLike, max: ABCQ) -> ArrayLike:
     """Clamp a value between two quantities.
 
@@ -926,7 +926,7 @@ def clamp_p_aqvaq(min: ABCQ, x: ArrayLike, max: ABCQ) -> ArrayLike:
     return lax.clamp(ustrip(one, min), x, ustrip(one, max))
 
 
-@quax.register(lax.clamp_p)
+@register(lax.clamp_p)
 def clamp_p_qvq(
     min: ABCPQ["dimensionless"], x: ArrayLike, max: ABCPQ["dimensionless"]
 ) -> ArrayLike:
@@ -950,7 +950,7 @@ def clamp_p_qvq(
 # ---------------------------
 
 
-@quax.register(lax.clamp_p)
+@register(lax.clamp_p)
 def clamp_p_aqaqv(min: ABCQ, x: ABCQ, max: ArrayLike) -> ABCQ:
     """Clamp a quantity between a quantity and a value.
 
@@ -970,7 +970,7 @@ def clamp_p_aqaqv(min: ABCQ, x: ABCQ, max: ArrayLike) -> ABCQ:
     return replace(x, value=qlax.clamp(ustrip(one, min), ustrip(one, x), max))
 
 
-@quax.register(lax.clamp_p)
+@register(lax.clamp_p)
 def clamp_p_qqv(
     min: ABCPQ["dimensionless"], x: ABCPQ["dimensionless"], max: ArrayLike
 ) -> ABCPQ["dimensionless"]:
@@ -994,7 +994,7 @@ def clamp_p_qqv(
 # ==============================================================================
 
 
-@quax.register(lax.clz_p)
+@register(lax.clz_p)
 def clz_p(x: ABCQ, /) -> ABCQ:
     """Count leading zeros of a quantity.
 
@@ -1018,7 +1018,7 @@ def clz_p(x: ABCQ, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.complex_p)
+@register(lax.complex_p)
 def complex_p(x: ABCQ, y: ABCQ) -> ABCQ:
     """Complex number from two quantities.
 
@@ -1047,7 +1047,7 @@ def complex_p(x: ABCQ, y: ABCQ) -> ABCQ:
 # Concatenation
 
 
-@quax.register(lax.concatenate_p)
+@register(lax.concatenate_p)
 def concatenate_p_aq(*operands: ABCQ, dimension: Any) -> ABCQ:
     """Concatenate quantities.
 
@@ -1077,7 +1077,7 @@ def concatenate_p_aq(*operands: ABCQ, dimension: Any) -> ABCQ:
 # ---------------------------
 
 
-@quax.register(lax.concatenate_p, precedence=1)
+@register(lax.concatenate_p, precedence=1)
 def concatenate_p_qnd(
     operand0: ABCPQ["dimensionless"],
     *operands: ABCPQ["dimensionless"] | ArrayLike,
@@ -1115,7 +1115,7 @@ def concatenate_p_qnd(
     )
 
 
-@quax.register(lax.concatenate_p)
+@register(lax.concatenate_p)
 def concatenate_p_vqnd(operand0: ArrayLike, *operands: ABCQ, dimension: Any) -> ABCQ:
     """Concatenate quantities and arrays with dimensionless units.
 
@@ -1144,12 +1144,12 @@ def concatenate_p_vqnd(operand0: ArrayLike, *operands: ABCQ, dimension: Any) -> 
 # ==============================================================================
 
 
-@quax.register(lax.cond_p)  # TODO: implement
+@register(lax.cond_p)  # TODO: implement
 def cond_p_q(index: ABCQ, consts: ABCQ) -> ABCQ:
     raise NotImplementedError
 
 
-@quax.register(lax.cond_p)  # TODO: implement
+@register(lax.cond_p)  # TODO: implement
 def cond_p_vq(index: ArrayLike, consts: ABCQ, *, branches: Any) -> ABCQ:
     """Conditional on a value and a quantity.
 
@@ -1165,7 +1165,7 @@ def cond_p_vq(index: ArrayLike, consts: ABCQ, *, branches: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.conj_p)
+@register(lax.conj_p)
 def conj_p(x: ABCQ, *, input_dtype: Any) -> ABCQ:
     """Conjugate of a quantity.
 
@@ -1190,7 +1190,7 @@ def conj_p(x: ABCQ, *, input_dtype: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.convert_element_type_p)
+@register(lax.convert_element_type_p)
 def convert_element_type_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
     """Convert the element type of a quantity."""
     # TODO: examples
@@ -1207,7 +1207,7 @@ def convert_element_type_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.copy_p)
+@register(lax.copy_p)
 def copy_p(x: ABCQ) -> ABCQ:
     """Copy a quantity.
 
@@ -1231,7 +1231,7 @@ def copy_p(x: ABCQ) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.cos_p)
+@register(lax.cos_p)
 def cos_p_aq(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Cosine of a quantity.
 
@@ -1252,7 +1252,7 @@ def cos_p_aq(x: ABCQ, /, **kw: Any) -> ABCQ:
     return type_np(x)(lax.cos_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
 
 
-@quax.register(lax.cos_p)
+@register(lax.cos_p)
 def cos_p_q(x: ABCPQ["angle"] | Q["dimensionless"], /, **kw: Any) -> Q["dimensionless"]:
     """Cosine of a quantity.
 
@@ -1273,7 +1273,7 @@ def cos_p_q(x: ABCPQ["angle"] | Q["dimensionless"], /, **kw: Any) -> Q["dimensio
     return Quantity(lax.cos_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
 
 
-@quax.register(lax.cos_p)
+@register(lax.cos_p)
 def cos_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> Quantity:
     """Cosine of an Angle.
 
@@ -1293,7 +1293,7 @@ def cos_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> Quantity:
 # ==============================================================================
 
 
-@quax.register(lax.cosh_p)
+@register(lax.cosh_p)
 def cosh_p_aq(x: ABCQ) -> ABCQ:
     """Cosine of a quantity.
 
@@ -1314,7 +1314,7 @@ def cosh_p_aq(x: ABCQ) -> ABCQ:
     return type_np(x)(lax.cosh(_to_val_rad_or_one(x)), unit=one)
 
 
-@quax.register(lax.cosh_p)
+@register(lax.cosh_p)
 def cosh_p_q(x: ABCPQ["angle"] | Q["dimensionless"]) -> ABCPQ["dimensionless"]:
     """Cosine of a quantity.
 
@@ -1338,7 +1338,7 @@ def cosh_p_q(x: ABCPQ["angle"] | Q["dimensionless"]) -> ABCPQ["dimensionless"]:
 # ==============================================================================
 
 
-@quax.register(lax.cumlogsumexp_p)
+@register(lax.cumlogsumexp_p)
 def cumlogsumexp_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
     """Cumulative log sum exp of a quantity.
 
@@ -1366,7 +1366,7 @@ def cumlogsumexp_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.cummax_p)
+@register(lax.cummax_p)
 def cummax_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
     """Cumulative maximum of a quantity.
 
@@ -1392,7 +1392,7 @@ def cummax_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.cummin_p)
+@register(lax.cummin_p)
 def cummin_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
     """Cumulative maximum of a quantity.
 
@@ -1418,7 +1418,7 @@ def cummin_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.cumprod_p)
+@register(lax.cumprod_p)
 def cumprod_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
     """Cumulative product of a quantity.
 
@@ -1444,7 +1444,7 @@ def cumprod_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.cumsum_p)
+@register(lax.cumsum_p)
 def cumsum_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
     """Cumulative sum of a quantity.
 
@@ -1470,7 +1470,7 @@ def cumsum_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.linear_solve_p)
+@register(lax.linear_solve_p)
 def custom_linear_solve_q(
     x0: ABCQ, x1: ABCQ, x2: ABCQ, x3: Array, x4: ABCQ, x5: Array, x6: ABCQ, /, **kw: Any
 ) -> Any:
@@ -1507,7 +1507,7 @@ def custom_linear_solve_q(
     return [type_np(x6)(result_value, unit=result_unit)]
 
 
-@quax.register(lax.linear_solve_p)
+@register(lax.linear_solve_p)
 def custom_linear_solve_q_array_arg6(
     x0: ABCQ,
     x1: ABCQ,
@@ -1553,7 +1553,7 @@ def svd_p_q(
 ) -> tuple[ABCQ, ArrayLike, ArrayLike]: ...
 
 
-@quax.register(lax_linalg.svd_p)
+@register(lax_linalg.svd_p)
 def svd_p_q(
     x: ABCQ, /, *, compute_uv: Literal[True, False] = True, **params: Any
 ) -> tuple[ABCQ] | tuple[ABCQ, ArrayLike, ArrayLike]:
@@ -1600,7 +1600,7 @@ def svd_p_q(
 # ==============================================================================
 
 
-@quax.register(lax_linalg.cholesky_p)
+@register(lax_linalg.cholesky_p)
 def cholesky_p_q(x: ABCQ, /, **params: Any) -> ABCQ:
     """Cholesky decomposition of a quantity matrix.
 
@@ -1634,7 +1634,7 @@ def cholesky_p_q(x: ABCQ, /, **params: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax_linalg.qr_p)
+@register(lax_linalg.qr_p)
 def qr_p_q(x: ABCQ, /, **params: Any) -> Any:
     """QR decomposition of a quantity matrix.
 
@@ -1672,7 +1672,7 @@ def qr_p_q(x: ABCQ, /, **params: Any) -> Any:
     ]
 
 
-@quax.register(lax_linalg.lu_p)
+@register(lax_linalg.lu_p)
 def lu_p_q(x: ABCQ, /, **params: Any) -> Any:
     """LU decomposition of a quantity matrix.
 
@@ -1711,7 +1711,7 @@ def lu_p_q(x: ABCQ, /, **params: Any) -> Any:
 # ==============================================================================
 
 
-@quax.register(lax.device_put_p)
+@register(lax.device_put_p)
 def device_put_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Put a quantity on a device.
 
@@ -1735,7 +1735,7 @@ def device_put_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.digamma_p)
+@register(lax.digamma_p)
 def digamma_p(x: ABCQ, /) -> ABCQ:
     """Digamma function of a quantity.
 
@@ -1760,7 +1760,7 @@ def digamma_p(x: ABCQ, /) -> ABCQ:
 # Division
 
 
-@quax.register(lax.div_p)
+@register(lax.div_p)
 def div_p_sqsq(x: StaticQuantity, y: StaticQuantity, /) -> StaticQuantity:
     """Division of two StaticQuantities.
 
@@ -1796,7 +1796,7 @@ def div_p_sqsq(x: StaticQuantity, y: StaticQuantity, /) -> StaticQuantity:
     return StaticQuantity(result, unit=u)
 
 
-@quax.register(lax.div_p)
+@register(lax.div_p)
 def div_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """Division of two quantities.
 
@@ -1827,7 +1827,7 @@ def div_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     return type_np(x)(qlax.div(xv, yv), unit=u)
 
 
-@quax.register(lax.div_p)
+@register(lax.div_p)
 def div_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     """Division of an array by a quantity.
 
@@ -1855,7 +1855,7 @@ def div_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     return type_np(y)(lax.div(x, ustrip(y)), unit=u)
 
 
-@quax.register(lax.div_p)
+@register(lax.div_p)
 def div_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Division of a quantity by an array.
 
@@ -1883,7 +1883,7 @@ def div_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
 
 # TODO: can this be done with promotion/conversion/default rule instead?
-@quax.register(lax.div_p)
+@register(lax.div_p)
 def div_p_a(x: AbstractAngle, y: AbstractAngle, /) -> ABCQ:
     """Division of a Quantity by an Angle.
 
@@ -1905,7 +1905,7 @@ def div_p_a(x: AbstractAngle, y: AbstractAngle, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.dot_general_p)
+@register(lax.dot_general_p)
 def dot_general_jq(lhs: ArrayLike, rhs: ABCQ, /, **kw: Any) -> ABCQ:
     """Dot product of an array and a quantity.
 
@@ -1937,7 +1937,7 @@ def dot_general_jq(lhs: ArrayLike, rhs: ABCQ, /, **kw: Any) -> ABCQ:
     return type_np(rhs)(lax.dot_general_p.bind(lhs, ustrip(rhs), **kw), unit=rhs.unit)
 
 
-@quax.register(lax.dot_general_p)
+@register(lax.dot_general_p)
 def dot_general_qj(lhs: ABCQ, rhs: ArrayLike, /, **kw: Any) -> ABCQ:
     """Dot product of a quantity and an array.
 
@@ -1964,7 +1964,7 @@ def dot_general_qj(lhs: ABCQ, rhs: ArrayLike, /, **kw: Any) -> ABCQ:
     return type_np(lhs)(lax.dot_general_p.bind(ustrip(lhs), rhs, **kw), unit=lhs.unit)
 
 
-@quax.register(lax.dot_general_p)
+@register(lax.dot_general_p)
 def dot_general_qq(lhs: ABCQ, rhs: ABCQ, /, **kw: Any) -> ABCQ:
     """Dot product of two quantities.
 
@@ -2009,7 +2009,7 @@ def dot_general_qq(lhs: ABCQ, rhs: ABCQ, /, **kw: Any) -> ABCQ:
     )
 
 
-@quax.register(lax.dot_general_p)
+@register(lax.dot_general_p)
 def dot_general_abstractangle_abstractangle(
     lhs: AbstractAngle, rhs: AbstractAngle, /, **kwargs: Any
 ) -> Quantity:
@@ -2036,7 +2036,7 @@ def dot_general_abstractangle_abstractangle(
 # ==============================================================================
 
 
-@quax.register(lax.dynamic_slice_p)
+@register(lax.dynamic_slice_p)
 def dynamic_slice_q(operand: ABCQ, /, *indices: ArrayLike, **kw: Any) -> ABCQ:
     """Dynamic slice of a quantity.
 
@@ -2058,7 +2058,7 @@ def dynamic_slice_q(operand: ABCQ, /, *indices: ArrayLike, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.dynamic_update_slice_p)
+@register(lax.dynamic_update_slice_p)
 def dynamic_update_slice_p(
     operand: ABCQ,
     update: ABCQ,
@@ -2090,7 +2090,7 @@ def dynamic_update_slice_p(
 # ==============================================================================
 
 
-@quax.register(lax.linalg.eigh_p)
+@register(lax.linalg.eigh_p)
 def eigh_p(x: ABCQ, /, **kw: Any) -> tuple[Array, ABCQ]:
     """Eigenvalues and eigenvectors of a Hermitian matrix quantity.
 
@@ -2115,7 +2115,7 @@ def eigh_p(x: ABCQ, /, **kw: Any) -> tuple[Array, ABCQ]:
 # ==============================================================================
 
 
-@quax.register(lax.eq_p)
+@register(lax.eq_p)
 def eq_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
     """Equality of two quantities.
 
@@ -2148,7 +2148,7 @@ def eq_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
     return qlax.eq(xv, ustrip(x.unit, y))  # re-dispatch on the values
 
 
-@quax.register(lax.eq_p)
+@register(lax.eq_p)
 def eq_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
     """Equality of an array and a quantity.
 
@@ -2184,7 +2184,7 @@ def eq_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
     return qlax.eq(x, yv)  # re-dispatch on the value
 
 
-@quax.register(lax.eq_p)
+@register(lax.eq_p)
 def eq_p_aqv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
     """Equality of an array and a quantity.
 
@@ -2247,7 +2247,7 @@ def eq_p_aqv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
 # ==============================================================================
 
 
-@quax.register(lax.erf_inv_p)
+@register(lax.erf_inv_p)
 def erf_inv_p(x: ABCQ) -> ABCQ:
     """Inverse error function of a quantity.
 
@@ -2272,7 +2272,7 @@ def erf_inv_p(x: ABCQ) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.erf_p)
+@register(lax.erf_p)
 def erf_p(x: ABCQ) -> ABCQ:
     """Error function of a quantity.
 
@@ -2297,7 +2297,7 @@ def erf_p(x: ABCQ) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.erfc_p)
+@register(lax.erfc_p)
 def erfc_p(x: ABCQ) -> ABCQ:
     """Complementary error function of a quantity.
 
@@ -2322,7 +2322,7 @@ def erfc_p(x: ABCQ) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.exp2_p)
+@register(lax.exp2_p)
 def exp2_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     """2^x of a quantity.
 
@@ -2346,7 +2346,7 @@ def exp2_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.exp_p)
+@register(lax.exp_p)
 def exp_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Exponential of a quantity.
 
@@ -2378,7 +2378,7 @@ def exp_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.expm1_p)
+@register(lax.expm1_p)
 def expm1_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Exponential of a quantity minus 1.
 
@@ -2402,7 +2402,7 @@ def expm1_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.fft_p)
+@register(lax.fft_p)
 def fft_p(x: ABCQ, *, fft_type: Any, fft_lengths: Any) -> ABCQ:
     """Fast Fourier transform of a quantity.
 
@@ -2428,7 +2428,7 @@ def fft_p(x: ABCQ, *, fft_type: Any, fft_lengths: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.floor_p)
+@register(lax.floor_p)
 def floor_p(x: ABCQ) -> ABCQ:
     """Floor of a quantity.
 
@@ -2452,7 +2452,7 @@ def floor_p(x: ABCQ) -> ABCQ:
 
 
 # used in `jnp.cross`
-@quax.register(lax.gather_p)
+@register(lax.gather_p)
 def gather_p(operand: ABCQ, start_indices: ArrayLike, /, **kw: Any) -> ABCQ:
     # TODO: examples
     return replace(
@@ -2463,7 +2463,7 @@ def gather_p(operand: ABCQ, start_indices: ArrayLike, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.ge_p)
+@register(lax.ge_p)
 def ge_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
     """Greater than or equal to of two quantities.
 
@@ -2496,7 +2496,7 @@ def ge_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
     return qlax.ge(xv, ustrip(x.unit, y))  # re-dispatch on the values
 
 
-@quax.register(lax.ge_p)
+@register(lax.ge_p)
 def ge_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
     """Greater than or equal to of an array and a quantity.
 
@@ -2532,7 +2532,7 @@ def ge_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
     return qlax.ge(x, yv)  # re-dispatch on the value
 
 
-@quax.register(lax.ge_p)
+@register(lax.ge_p)
 def ge_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
     """Greater than or equal to of a quantity and an array.
 
@@ -2571,7 +2571,7 @@ def ge_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
 # ==============================================================================
 
 
-@quax.register(lax.gt_p)
+@register(lax.gt_p)
 def gt_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
     """Greater than of two quantities.
 
@@ -2601,7 +2601,7 @@ def gt_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
     return qlax.gt(xv, yv)  # re-dispatch on the values
 
 
-@quax.register(lax.gt_p)
+@register(lax.gt_p)
 def gt_p_vq(x: ArrayLike, y: ABCQ) -> ArrayLike:
     """Greater than of an array and a quantity.
 
@@ -2637,7 +2637,7 @@ def gt_p_vq(x: ArrayLike, y: ABCQ) -> ArrayLike:
     return qlax.gt(x, yv)  # re-dispatch on the value
 
 
-@quax.register(lax.gt_p)
+@register(lax.gt_p)
 def gt_p_qv(x: ABCQ, y: ArrayLike) -> ArrayLike:
     """Greater than comparison between a quantity and an array.
 
@@ -2676,7 +2676,7 @@ def gt_p_qv(x: ABCQ, y: ArrayLike) -> ArrayLike:
 # ==============================================================================
 
 
-@quax.register(lax.igamma_p)
+@register(lax.igamma_p)
 def igamma_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
     """Regularized incomplete gamma function of a and x.
 
@@ -2706,7 +2706,7 @@ def igamma_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.igammac_p)
+@register(lax.igammac_p)
 def igammac_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
     """Regularized upper incomplete gamma function of a and x.
 
@@ -2735,7 +2735,7 @@ def igammac_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.imag_p)
+@register(lax.imag_p)
 def imag_p(x: ABCQ) -> ABCQ:
     return replace(x, value=qlax.imag(ustrip(x)))
 
@@ -2743,7 +2743,7 @@ def imag_p(x: ABCQ) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.integer_pow_p)
+@register(lax.integer_pow_p)
 def integer_pow_p(x: ABCQ, *, y: Any) -> ABCQ:
     """Integer power of a quantity.
 
@@ -2762,7 +2762,7 @@ def integer_pow_p(x: ABCQ, *, y: Any) -> ABCQ:
     return type_np(x)(value=qlax.integer_pow(ustrip(x), y), unit=x.unit**y)
 
 
-@quax.register(lax.integer_pow_p)
+@register(lax.integer_pow_p)
 def integer_pow_p_abstractangle(x: AbstractAngle, /, *, y: Any) -> ABCQ:
     """Integer power of an Angle.
 
@@ -2781,7 +2781,7 @@ def integer_pow_p_abstractangle(x: AbstractAngle, /, *, y: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.is_finite_p)
+@register(lax.is_finite_p)
 def is_finite_p(x: ABCQ) -> ArrayLike:
     """Check if a quantity is finite.
 
@@ -2824,7 +2824,7 @@ def is_finite_p(x: ABCQ) -> ArrayLike:
 # ==============================================================================
 
 
-@quax.register(lax.le_p)
+@register(lax.le_p)
 def le_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     """Less than or equal to of two quantities.
 
@@ -2852,7 +2852,7 @@ def le_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     return qlax.le(xv, ustrip(x.unit, y))  # re-dispatch on the values
 
 
-@quax.register(lax.le_p)
+@register(lax.le_p)
 def le_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
     """Less than or equal to of an array and a quantity.
 
@@ -2888,7 +2888,7 @@ def le_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
     return qlax.le(x, yv)  # re-dispatch on the value
 
 
-@quax.register(lax.le_p)
+@register(lax.le_p)
 def le_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
     """Less than or equal to of a quantity and an array.
 
@@ -2927,7 +2927,7 @@ def le_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
 # ==============================================================================
 
 
-@quax.register(lax.lgamma_p)
+@register(lax.lgamma_p)
 def lgamma_p(x: ABCQ) -> ABCQ:
     """Log-gamma function of a quantity.
 
@@ -2951,7 +2951,7 @@ def lgamma_p(x: ABCQ) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.log1p_p)
+@register(lax.log1p_p)
 def log1p_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Logarithm of 1 plus a quantity.
 
@@ -2975,7 +2975,7 @@ def log1p_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.log_p)
+@register(lax.log_p)
 def log_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Logarithm of a quantity.
 
@@ -2999,7 +2999,7 @@ def log_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.logistic_p)
+@register(lax.logistic_p)
 def logistic_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Logarithm of a quantity.
 
@@ -3023,7 +3023,7 @@ def logistic_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.lt_p)
+@register(lax.lt_p)
 def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     """Less than of two quantities.
 
@@ -3081,7 +3081,7 @@ def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     return qnp.less(xv, yv)  # re-dispatch on the values
 
 
-@quax.register(lax.lt_p)
+@register(lax.lt_p)
 def lt_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
     """Less than of an array and a quantity.
 
@@ -3137,7 +3137,7 @@ def lt_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
     return qnp.less(x, yv)  # re-dispatch on the value
 
 
-@quax.register(lax.lt_p)
+@register(lax.lt_p)
 def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
     """Compare a unitless Quantity to a value.
 
@@ -3200,7 +3200,7 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
 # ==============================================================================
 
 
-@quax.register(lax.linalg.lu_p)
+@register(lax.linalg.lu_p)
 def lu_p_q(x: ABCQ, /) -> tuple[ABCQ, Int[Array, "..."], Int[Array, "..."]]:
     """LU decomposition of a quantity.
 
@@ -3226,7 +3226,7 @@ def lu_p_q(x: ABCQ, /) -> tuple[ABCQ, Int[Array, "..."], Int[Array, "..."]]:
 # ==============================================================================
 
 
-@quax.register(lax.max_p)
+@register(lax.max_p)
 def max_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """Maximum of two quantities.
 
@@ -3249,7 +3249,7 @@ def max_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     return replace(x, value=qlax.max(ustrip(x), yv))
 
 
-@quax.register(lax.max_p)
+@register(lax.max_p)
 def max_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     """Maximum of an array and quantity.
 
@@ -3271,7 +3271,7 @@ def max_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     return replace(y, value=qlax.max(x, yv))
 
 
-@quax.register(lax.max_p)
+@register(lax.max_p)
 def max_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Maximum of an array and quantity.
 
@@ -3296,7 +3296,7 @@ def max_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.min_p)
+@register(lax.min_p)
 def min_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """Minimum of two quantities.
 
@@ -3325,7 +3325,7 @@ def min_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     return replace(x, value=qlax.min(ustrip(x), ustrip(x.unit, y)))
 
 
-@quax.register(lax.min_p)
+@register(lax.min_p)
 def min_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     """Minimum of an array and quantity.
 
@@ -3347,7 +3347,7 @@ def min_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     return replace(y, value=qlax.min(x, ustrip(one, y)))
 
 
-@quax.register(lax.min_p)
+@register(lax.min_p)
 def min_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Minimum of a quantity and an array.
 
@@ -3373,7 +3373,7 @@ def min_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 # Multiplication
 
 
-@quax.register(lax.mul_p)
+@register(lax.mul_p)
 def mul_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """Multiplication of two quantities.
 
@@ -3406,7 +3406,7 @@ def mul_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     return type_np(x)(ustrip(x) * ustrip(y), unit=u)
 
 
-@quax.register(lax.mul_p)
+@register(lax.mul_p)
 def mul_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     """Multiplication of an array-like and a quantity.
 
@@ -3440,7 +3440,7 @@ def mul_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     return replace(y, value=qlax.mul(x, ustrip(y)))
 
 
-@quax.register(lax.mul_p)
+@register(lax.mul_p)
 def mul_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Multiplication of a quantity and an array-like.
 
@@ -3478,7 +3478,7 @@ def mul_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.ne_p)
+@register(lax.ne_p)
 def ne_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     """Inequality of two quantities.
 
@@ -3520,7 +3520,7 @@ def ne_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     return qnp.not_equal(ustrip(x), ustrip(x.unit, y))  # re-dispatch on the values
 
 
-@quax.register(lax.ne_p)
+@register(lax.ne_p)
 def ne_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
     """Inequality of an array and a quantity.
 
@@ -3565,7 +3565,7 @@ def ne_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
     return qnp.not_equal(x, yv)  # re-dispatch on the value
 
 
-@quax.register(lax.ne_p)
+@register(lax.ne_p)
 def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
     """Inequality of a quantity and an array.
 
@@ -3610,7 +3610,7 @@ def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
     return qnp.not_equal(xv, y)  # re-dispatch on the value
 
 
-# @quax.register(lax.ne_p)
+# @register(lax.ne_p)
 # def ne_p_qv(x: ABCPQ, y: ArrayLike) -> ArrayLike:
 #     return lax.
 
@@ -3618,7 +3618,7 @@ def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
 # ==============================================================================
 
 
-@quax.register(lax.neg_p)
+@register(lax.neg_p)
 def neg_p(x: ABCQ, /) -> ABCQ:
     """Negation of a quantity.
 
@@ -3641,7 +3641,7 @@ def neg_p(x: ABCQ, /) -> ABCQ:
 # =============================================================================
 
 
-@quax.register(lax.nextafter_p)
+@register(lax.nextafter_p)
 def nextafter_p(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
     """Next representable value after a quantity.
 
@@ -3667,7 +3667,7 @@ def nextafter_p(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
 # =============================================================================
 
 
-@quax.register(lax.not_p)
+@register(lax.not_p)
 def not_p(x: ABCQ, /) -> ABCQ:
     """Logical negation of a quantity.
 
@@ -3690,7 +3690,7 @@ def not_p(x: ABCQ, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.or_p)
+@register(lax.or_p)
 def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """Logical or of two quantities.
 
@@ -3715,7 +3715,7 @@ def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.pad_p)
+@register(lax.pad_p)
 def pad_p(operand: ABCQ, padding_value: ABCQ, /, *, padding_config: Any) -> ABCQ:
     """Pad a quantity with another quantity.
 
@@ -3751,7 +3751,7 @@ def pad_p(operand: ABCQ, padding_value: ABCQ, /, *, padding_config: Any) -> ABCQ
     )
 
 
-@quax.register(lax.pad_p)
+@register(lax.pad_p)
 def pad_p_array_padding(
     operand: ABCQ, padding_value: ArrayLike, /, *, padding_config: Any
 ) -> ABCQ:
@@ -3802,7 +3802,7 @@ def pad_p_array_padding(
 # ==============================================================================
 
 
-@quax.register(lax.polygamma_p)
+@register(lax.polygamma_p)
 def polygamma_p(m: ArrayLike, x: ABCQ, /) -> ABCQ:
     """Polygamma function of a quantity.
 
@@ -3825,7 +3825,7 @@ def polygamma_p(m: ArrayLike, x: ABCQ, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.population_count_p)
+@register(lax.population_count_p)
 def population_count_p(x: ABCQ, /) -> ABCQ:
     r"""Return population count of a quantity.
 
@@ -3848,7 +3848,7 @@ def population_count_p(x: ABCQ, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.pow_p)
+@register(lax.pow_p)
 def pow_p_qq(x: ABCQ, y: ABCPQ["dimensionless"], /) -> ABCQ:
     """Power of a quantity.
 
@@ -3877,7 +3877,7 @@ def pow_p_qq(x: ABCQ, y: ABCPQ["dimensionless"], /) -> ABCQ:
     return type_np(x)(value=qlax.pow(ustrip(x), y0), unit=x.unit**y0)
 
 
-@quax.register(lax.pow_p)
+@register(lax.pow_p)
 def pow_p_qf(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Power of a quantity.
 
@@ -3903,7 +3903,7 @@ def pow_p_qf(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     return type_np(x)(value=qlax.pow(ustrip(x), y), unit=x.unit**y)
 
 
-@quax.register(lax.pow_p)
+@register(lax.pow_p)
 def pow_p_vq(x: ArrayLike, y: ABCPQ["dimensionless"], /) -> ABCQ:
     """Array raised to a quantity.
 
@@ -3921,7 +3921,7 @@ def pow_p_vq(x: ArrayLike, y: ABCPQ["dimensionless"], /) -> ABCQ:
     return replace(y, value=qlax.pow(x, ustrip(y)))
 
 
-@quax.register(lax.pow_p)
+@register(lax.pow_p)
 def pow_p_abstractangle_arraylike(x: AbstractAngle, y: ArrayLike, /) -> ABCQ:
     """Power of an Angle by redispatching to Quantity.
 
@@ -3942,7 +3942,7 @@ def pow_p_abstractangle_arraylike(x: AbstractAngle, y: ArrayLike, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.real_p)
+@register(lax.real_p)
 def real_p(x: ABCQ, /) -> ABCQ:
     """Real part of a quantity.
 
@@ -3970,7 +3970,7 @@ def real_p(x: ABCQ, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.reduce_and_p)
+@register(lax.reduce_and_p)
 def reduce_and_p(operand: ABCQ, /, *, axes: Sequence[int]) -> Any:
     return lax.reduce_and_p.bind(ustrip(operand), axes=tuple(axes))
 
@@ -3978,7 +3978,7 @@ def reduce_and_p(operand: ABCQ, /, *, axes: Sequence[int]) -> Any:
 # ==============================================================================
 
 
-@quax.register(lax.reduce_max_p)
+@register(lax.reduce_max_p)
 def reduce_max_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
     return replace(operand, value=lax.reduce_max_p.bind(ustrip(operand), axes=axes))
 
@@ -3986,7 +3986,7 @@ def reduce_max_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.reduce_min_p)
+@register(lax.reduce_min_p)
 def reduce_min_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
     return replace(operand, value=lax.reduce_min_p.bind(ustrip(operand), axes=axes))
 
@@ -3994,7 +3994,7 @@ def reduce_min_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.reduce_or_p)
+@register(lax.reduce_or_p)
 def reduce_or_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
     return type_np(operand)(lax.reduce_or_p.bind(ustrip(operand), axes=axes), unit=one)
 
@@ -4002,7 +4002,7 @@ def reduce_or_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.reduce_prod_p)
+@register(lax.reduce_prod_p)
 def reduce_prod_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
     value = lax.reduce_prod_p.bind(ustrip(operand), axes=axes)
     u = operand.unit ** prod(operand.shape[ax] for ax in axes)
@@ -4012,7 +4012,7 @@ def reduce_prod_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.reduce_sum_p)
+@register(lax.reduce_sum_p)
 def reduce_sum_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
     return replace(operand, value=lax.reduce_sum_p.bind(ustrip(operand), **kw))
 
@@ -4020,7 +4020,7 @@ def reduce_sum_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.regularized_incomplete_beta_p)
+@register(lax.regularized_incomplete_beta_p)
 def regularized_incomplete_beta_q(
     a: ArrayLike | ABCQ, b: ArrayLike | ABCQ, x: ArrayLike, /
 ) -> Array:
@@ -4048,7 +4048,7 @@ def regularized_incomplete_beta_q(
     return lax.regularized_incomplete_beta_p.bind(a, b, x)
 
 
-@quax.register(lax.regularized_incomplete_beta_p)
+@register(lax.regularized_incomplete_beta_p)
 def regularized_incomplete_beta_q(
     a: ArrayLike | ABCQ, b: ArrayLike | ABCQ, x: ABCQ, /
 ) -> ABCQ:
@@ -4086,7 +4086,7 @@ def regularized_incomplete_beta_q(
 # ==============================================================================
 
 
-@quax.register(lax.rem_p)
+@register(lax.rem_p)
 def rem_p_aa(x: AbstractAngle, y: ABCQ, /) -> AbstractAngle:
     """Remainder of an angle and a quantity.
 
@@ -4103,7 +4103,7 @@ def rem_p_aa(x: AbstractAngle, y: ABCQ, /) -> AbstractAngle:
     return replace(x, value=ustrip(x) % ustrip(x.unit, y))
 
 
-@quax.register(lax.rem_p)
+@register(lax.rem_p)
 def rem_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """Remainder of two quantities.
 
@@ -4127,7 +4127,7 @@ def rem_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     return replace(x, value=ustrip(x) % ustrip(x.unit, y))
 
 
-@quax.register(lax.rem_p)
+@register(lax.rem_p)
 def rem_p_uqv(
     x: Quantity["dimensionless"], y: ArrayLike, /
 ) -> Quantity["dimensionless"]:
@@ -4150,7 +4150,7 @@ def rem_p_uqv(
 # ==============================================================================
 
 
-@quax.register(lax.reshape_p)
+@register(lax.reshape_p)
 def reshape_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
     """Reshape a quantity.
 
@@ -4178,7 +4178,7 @@ def reshape_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.rev_p)
+@register(lax.rev_p)
 def rev_p(operand: ABCQ, /, *, dimensions: Any) -> ABCQ:
     """Reverse a quantity.
 
@@ -4202,7 +4202,7 @@ def rev_p(operand: ABCQ, /, *, dimensions: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.round_p)
+@register(lax.round_p)
 def round_p(x: ABCQ, /, *, rounding_method: Any) -> ABCQ:
     """Round a quantity.
 
@@ -4226,7 +4226,7 @@ def round_p(x: ABCQ, /, *, rounding_method: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.rsqrt_p)
+@register(lax.rsqrt_p)
 def rsqrt_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Reciprocal square root of a quantity.
 
@@ -4250,7 +4250,7 @@ def rsqrt_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.scan_p)
+@register(lax.scan_p)
 def scan_p(arg0: ABCQ, arg1: ABCQ, /, *args: ArrayLike, **kw: Any) -> list[Array]:
     """Scan operator, e.g. for ``numpy.digitize``.
 
@@ -4274,7 +4274,7 @@ def scan_p(arg0: ABCQ, arg1: ABCQ, /, *args: ArrayLike, **kw: Any) -> list[Array
 # ==============================================================================
 
 
-@quax.register(lax.scatter_add_p)
+@register(lax.scatter_add_p)
 def scatter_add_p_qvq(
     operand: ABCQ, scatter_indices: ArrayLike, updates: ABCQ, /, **kw: Any
 ) -> ABCQ:
@@ -4303,7 +4303,7 @@ def scatter_add_p_qvq(
     )
 
 
-@quax.register(lax.scatter_add_p)
+@register(lax.scatter_add_p)
 def scatter_add_p_vvq(
     operand: ArrayLike, scatter_indices: ArrayLike, updates: ABCQ, /, **kw: Any
 ) -> ABCQ:
@@ -4324,7 +4324,7 @@ def scatter_add_p_vvq(
 # ==============================================================================
 
 
-@quax.register(lax.select_n_p)
+@register(lax.select_n_p)
 def select_n_p(which: ABCQ, /, *cases: ABCQ) -> ABCQ:
     """Select from a list of quantities using a quantity selector.
 
@@ -4345,7 +4345,7 @@ def select_n_p(which: ABCQ, /, *cases: ABCQ) -> ABCQ:
     return type_np(which)(lax.select_n(ustrip(one, which), *cases_), unit=u)
 
 
-@quax.register(lax.select_n_p)
+@register(lax.select_n_p)
 def select_n_p_vq(which: ABCQ, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
     """Select from a quantity and array using a quantity selector."""
     # encountered from jnp.hypot
@@ -4355,14 +4355,14 @@ def select_n_p_vq(which: ABCQ, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
     )
 
 
-@quax.register(lax.select_n_p)
+@register(lax.select_n_p)
 def select_n_p_jjq(which: ArrayLike, case0: ArrayLike, case1: ABCQ, /) -> ABCQ:
     """Select from an array and quantity using a quantity selector."""
     # Used by a `jnp.linalg.trace`
     return replace(case1, value=qlax.select_n(which, case0, ustrip(case1)))
 
 
-@quax.register(lax.select_n_p)
+@register(lax.select_n_p)
 def select_n_p_jqj(which: ArrayLike, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
     """Select from a quantity and array using a non-quantity selector.
 
@@ -4385,7 +4385,7 @@ def select_n_p_jqj(which: ArrayLike, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
     return replace(case0, value=qlax.select_n(which, ustrip(case0), case1))
 
 
-@quax.register(lax.select_n_p)
+@register(lax.select_n_p)
 def select_n_p_jsqj(
     which: ArrayLike, case0: StaticQuantity, case1: ArrayLike, /
 ) -> Quantity:
@@ -4397,7 +4397,7 @@ def select_n_p_jsqj(
     return Quantity(qlax.select_n(which, ustrip(case0), case1), unit=unit_of(case0))
 
 
-@quax.register(lax.select_n_p)
+@register(lax.select_n_p)
 def select_n_p_jaq(
     which: ArrayLike, case0: AbstractAngle, /, *cases: ABCQ
 ) -> AbstractAngle:
@@ -4423,7 +4423,7 @@ def select_n_p_jaq(
     return replace(case0, value=qlax.select_n(which, *casesv))
 
 
-@quax.register(lax.select_n_p)
+@register(lax.select_n_p)
 def select_n_p_jsq(
     which: ArrayLike, case0: StaticQuantity, /, *cases: ABCQ
 ) -> Quantity:
@@ -4451,7 +4451,7 @@ def select_n_p_jsq(
     return Quantity(qlax.select_n(which, *casesv), unit=u)
 
 
-@quax.register(lax.select_n_p)
+@register(lax.select_n_p)
 def select_n_p_jqq(which: ArrayLike, /, *cases: ABCQ) -> ABCQ:
     """Select from a list of quantities using a non-quantity selector.
 
@@ -4488,7 +4488,7 @@ def select_n_p_jqq(which: ArrayLike, /, *cases: ABCQ) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.shift_right_arithmetic_p)
+@register(lax.shift_right_arithmetic_p)
 def shift_right_arithmetic_p(x: ABCQ, y: ABCQ | float | int, /) -> ABCQ:
     """Shift right arithmetic of a quantity.
 
@@ -4514,7 +4514,7 @@ def shift_right_arithmetic_p(x: ABCQ, y: ABCQ | float | int, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.sign_p)
+@register(lax.sign_p)
 def sign_p(x: ABCQ, /) -> ArrayLike:
     """Sign of a quantity.
 
@@ -4537,7 +4537,7 @@ def sign_p(x: ABCQ, /) -> ArrayLike:
 # ==============================================================================
 
 
-@quax.register(lax.sin_p)
+@register(lax.sin_p)
 def sin_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Sine of a quantity.
 
@@ -4566,7 +4566,7 @@ def sin_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     return type_np(x)(lax.sin_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
 
 
-@quax.register(lax.sin_p)
+@register(lax.sin_p)
 def sin_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
     """Sine of an Angle.
 
@@ -4586,7 +4586,7 @@ def sin_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.sinh_p)
+@register(lax.sinh_p)
 def sinh_p(x: ABCQ, /) -> ABCQ:
     """Sinh of a quantity.
 
@@ -4618,7 +4618,7 @@ def sinh_p(x: ABCQ, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.shift_left_p)
+@register(lax.shift_left_p)
 def shift_left_p(x: ABCQ, y: ABCQ | float | int, /, **kw: Any) -> ABCQ:
     """Shift left of a quantity.
 
@@ -4642,7 +4642,7 @@ def shift_left_p(x: ABCQ, y: ABCQ | float | int, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.slice_p)
+@register(lax.slice_p)
 def slice_p(
     operand: ABCQ, /, *, start_indices: Any, limit_indices: Any, strides: Any
 ) -> ABCQ:
@@ -4661,7 +4661,7 @@ def slice_p(
 
 
 # Called by `argsort`
-@quax.register(lax.sort_p)
+@register(lax.sort_p)
 def sort_p_two_operands(
     operand0: ABCQ,
     operand1: ArrayLike,
@@ -4682,7 +4682,7 @@ def sort_p_two_operands(
 
 
 # Called by `sort`
-@quax.register(lax.sort_p)
+@register(lax.sort_p)
 def sort_p_one_operand(
     operand: ABCQ, /, *, dimension: int, is_stable: bool, num_keys: int
 ) -> tuple[ABCQ]:
@@ -4695,7 +4695,7 @@ def sort_p_one_operand(
 # ==============================================================================
 
 
-@quax.register(lax.split_p)
+@register(lax.split_p)
 def split_p(x: ABCQ, /, **kw: Any) -> list[ABCQ]:
     cls, u = type(x), x.unit
     return [cls(arr, unit=u) for arr in lax.split_p.bind(x.value, **kw)]  # type: ignore[no-untyped-call]
@@ -4704,7 +4704,7 @@ def split_p(x: ABCQ, /, **kw: Any) -> list[ABCQ]:
 # ==============================================================================
 
 
-@quax.register(lax.square_p)
+@register(lax.square_p)
 def square_p(x: ABCQ, /) -> ABCQ:
     """Square of a quantity.
 
@@ -4728,7 +4728,7 @@ def square_p(x: ABCQ, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.sqrt_p)
+@register(lax.sqrt_p)
 def sqrt_p_q(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Square root of a quantity.
 
@@ -4749,7 +4749,7 @@ def sqrt_p_q(x: ABCQ, /, **kw: Any) -> ABCQ:
     return type_np(x)(lax.sqrt_p.bind(ustrip(x), **kw), unit=x.unit ** (1 / 2))
 
 
-@quax.register(lax.sqrt_p)
+@register(lax.sqrt_p)
 def sqrt_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
     """Square root of an Angle.
 
@@ -4769,7 +4769,7 @@ def sqrt_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.squeeze_p)
+@register(lax.squeeze_p)
 def squeeze_p(x: ABCQ, /, *, dimensions: Any) -> ABCQ:
     """Squeeze a quantity.
 
@@ -4793,7 +4793,7 @@ def squeeze_p(x: ABCQ, /, *, dimensions: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.stop_gradient_p)
+@register(lax.stop_gradient_p)
 def stop_gradient_p(x: ABCQ, /) -> ABCQ:
     """Stop gradient of a quantity.
 
@@ -4814,7 +4814,7 @@ def stop_gradient_p(x: ABCQ, /) -> ABCQ:
 # Subtraction
 
 
-@quax.register(lax.sub_p)
+@register(lax.sub_p)
 def sub_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """Subtract two quantities.
 
@@ -4848,7 +4848,7 @@ def sub_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     return replace(x, value=xv - yv)
 
 
-@quax.register(lax.sub_p)
+@register(lax.sub_p)
 def sub_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     """Subtract a quantity from an array.
 
@@ -4877,7 +4877,7 @@ def sub_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     return replace(y, value=x - ustrip(y))
 
 
-@quax.register(lax.sub_p)
+@register(lax.sub_p)
 def sub_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Subtract an array from a quantity.
 
@@ -4909,7 +4909,7 @@ def sub_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.tan_p)
+@register(lax.tan_p)
 def tan_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Tangent of a quantity.
 
@@ -4938,7 +4938,7 @@ def tan_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     return type_np(x)(lax.tan_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
 
 
-@quax.register(lax.tan_p)
+@register(lax.tan_p)
 def tan_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
     """Tangent of an Angle.
 
@@ -4958,7 +4958,7 @@ def tan_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.tanh_p)
+@register(lax.tanh_p)
 def tanh_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Hyperbolic tangent of a quantity.
 
@@ -4990,7 +4990,7 @@ def tanh_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.top_k_p)
+@register(lax.top_k_p)
 def top_k_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
     """Top k elements of a quantity.
 
@@ -5016,7 +5016,7 @@ def top_k_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.transpose_p)
+@register(lax.transpose_p)
 def transpose_p(operand: ABCQ, /, *, permutation: Any) -> ABCQ:
     """Transpose a quantity.
 
@@ -5044,7 +5044,7 @@ def transpose_p(operand: ABCQ, /, *, permutation: Any) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.xor_p)
+@register(lax.xor_p)
 def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """Logical or of two quantities.
 
@@ -5070,6 +5070,6 @@ def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 # ==============================================================================
 
 
-@quax.register(lax.zeta_p)
+@register(lax.zeta_p)
 def zeta_p(x: ABCQ, q: ArrayLike, /) -> ABCQ:
     return replace(x, value=lax.zeta_p.bind(ustrip(x), q))
