@@ -12,7 +12,7 @@ import unxt_api as uapi
 
 def test_dimension_is_abstract_dispatch() -> None:
     """Test that dimension is an abstract dispatch function."""
-    assert isinstance(uapi.dimension, plum.function.Function)
+    assert isinstance(uapi.dimension, plum.Function)
     assert hasattr(uapi.dimension, "methods")
 
 
@@ -32,7 +32,7 @@ def test_dimension_no_default_implementation() -> None:
     obj = NoDispatchType()
 
     # Should raise NotFoundLookupError since no dispatch is registered
-    with pytest.raises(plum.resolver.NotFoundLookupError):
+    with pytest.raises(plum.NotFoundLookupError):
         uapi.dimension(obj)
 
 
@@ -65,7 +65,7 @@ def test_dimension_multiple_dispatches_possible() -> None:
 
 def test_dimension_of_is_abstract_dispatch() -> None:
     """Test that dimension_of is an abstract dispatch function."""
-    assert isinstance(uapi.dimension_of, plum.function.Function)
+    assert isinstance(uapi.dimension_of, plum.Function)
     assert hasattr(uapi.dimension_of, "methods")
 
 
@@ -90,7 +90,7 @@ def test_dimension_of_no_default_implementation() -> None:
         result = uapi.dimension_of(obj)
         # If it doesn't raise, it should return None (unxt's default)
         assert result is None
-    except plum.resolver.NotFoundLookupError:
+    except plum.NotFoundLookupError:
         # This is also acceptable if unxt hasn't been imported
         pass
 

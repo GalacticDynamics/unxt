@@ -189,7 +189,7 @@ def test_is_unit_convertible_no_default() -> None:
     obj2 = UnknownType()
 
     # Should raise when no dispatch is registered
-    with pytest.raises(plum.resolver.NotFoundLookupError):
+    with pytest.raises(plum.NotFoundLookupError):
         uapi.is_unit_convertible(obj1, obj2)
 
 
@@ -201,10 +201,10 @@ def test_other_functions_raise_by_default() -> None:
 
     obj = UnknownType()
 
-    with pytest.raises(plum.resolver.NotFoundLookupError):
+    with pytest.raises(plum.NotFoundLookupError):
         uapi.dimension(obj)
 
-    with pytest.raises(plum.resolver.NotFoundLookupError):
+    with pytest.raises(plum.NotFoundLookupError):
         uapi.unit(obj)
 
 
@@ -350,7 +350,7 @@ def test_ambiguous_dispatch_error() -> None:
 
     # C inherits from both A and B - this is ambiguous
     c = C()
-    with pytest.raises(plum.resolver.AmbiguousLookupError):
+    with pytest.raises(plum.AmbiguousLookupError):
         dimension(c)
 
 

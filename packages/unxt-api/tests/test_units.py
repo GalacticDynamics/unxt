@@ -12,7 +12,7 @@ import unxt_api as uapi
 
 def test_unit_is_abstract_dispatch() -> None:
     """Test that unit is an abstract dispatch function."""
-    assert isinstance(uapi.unit, plum.function.Function)
+    assert isinstance(uapi.unit, plum.Function)
     assert hasattr(uapi.unit, "methods")
 
 
@@ -29,7 +29,7 @@ def test_unit_no_default_implementation() -> None:
 
     obj = NoDispatchType()
 
-    with pytest.raises(plum.resolver.NotFoundLookupError):
+    with pytest.raises(plum.NotFoundLookupError):
         uapi.unit(obj)
 
 
@@ -58,7 +58,7 @@ def test_unit_multiple_dispatches_possible() -> None:
 
 def test_unit_of_is_abstract_dispatch() -> None:
     """Test that unit_of is an abstract dispatch function."""
-    assert isinstance(uapi.unit_of, plum.function.Function)
+    assert isinstance(uapi.unit_of, plum.Function)
     assert hasattr(uapi.unit_of, "methods")
 
 
@@ -83,7 +83,7 @@ def test_unit_of_no_default_implementation() -> None:
         result = uapi.unit_of(obj)
         # If it doesn't raise, it should return None (unxt's default)
         assert result is None
-    except plum.resolver.NotFoundLookupError:
+    except plum.NotFoundLookupError:
         # This is also acceptable if unxt hasn't been imported
         pass
 

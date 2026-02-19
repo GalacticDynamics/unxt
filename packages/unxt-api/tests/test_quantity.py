@@ -15,7 +15,7 @@ import unxt_api as uapi
 
 def test_uconvert_value_is_abstract_dispatch() -> None:
     """Test that uconvert_value is an abstract dispatch function."""
-    assert isinstance(uapi.uconvert_value, plum.function.Function)
+    assert isinstance(uapi.uconvert_value, plum.Function)
     assert hasattr(uapi.uconvert_value, "methods")
 
 
@@ -34,7 +34,7 @@ def test_uconvert_value_no_default_implementation_raises() -> None:
     obj2 = NoDispatchType()
     obj3 = NoDispatchType()
 
-    with pytest.raises(plum.resolver.NotFoundLookupError):
+    with pytest.raises(plum.NotFoundLookupError):
         uapi.uconvert_value(obj1, obj2, obj3)
 
 
@@ -75,7 +75,7 @@ def test_uconvert_value_signature_order() -> None:
 
 def test_uconvert_is_abstract_dispatch() -> None:
     """Test that uconvert is an abstract dispatch function."""
-    assert isinstance(uapi.uconvert, plum.function.Function)
+    assert isinstance(uapi.uconvert, plum.Function)
     assert hasattr(uapi.uconvert, "methods")
 
 
@@ -93,7 +93,7 @@ def test_uconvert_no_default_implementation_raises() -> None:
     obj1 = NoDispatchType()
     obj2 = NoDispatchType()
 
-    with pytest.raises(plum.resolver.NotFoundLookupError):
+    with pytest.raises(plum.NotFoundLookupError):
         uapi.uconvert(obj1, obj2)
 
 
@@ -124,7 +124,7 @@ def test_uconvert_can_register_custom_dispatch(
 
 def test_ustrip_is_abstract_dispatch() -> None:
     """Test that ustrip is an abstract dispatch function."""
-    assert isinstance(uapi.ustrip, plum.function.Function)
+    assert isinstance(uapi.ustrip, plum.Function)
     assert hasattr(uapi.ustrip, "methods")
 
 
@@ -141,7 +141,7 @@ def test_ustrip_no_default_implementation_raises() -> None:
 
     obj = NoDispatchType()
 
-    with pytest.raises(plum.resolver.NotFoundLookupError):
+    with pytest.raises(plum.NotFoundLookupError):
         uapi.ustrip(obj)
 
 
@@ -170,7 +170,7 @@ def test_ustrip_varargs_signature() -> None:
 
 def test_is_unit_convertible_is_abstract_dispatch() -> None:
     """Test that is_unit_convertible is an abstract dispatch function."""
-    assert isinstance(uapi.is_unit_convertible, plum.function.Function)
+    assert isinstance(uapi.is_unit_convertible, plum.Function)
     assert hasattr(uapi.is_unit_convertible, "methods")
 
 
@@ -189,7 +189,7 @@ def test_is_unit_convertible_no_default_implementation() -> None:
     obj2 = NoDispatchType()
 
     # Should raise NotFoundLookupError when no dispatch is registered
-    with pytest.raises(plum.resolver.NotFoundLookupError):
+    with pytest.raises(plum.NotFoundLookupError):
         uapi.is_unit_convertible(obj1, obj2)
 
 
@@ -225,7 +225,7 @@ def test_is_unit_convertible_returns_bool() -> None:
 
 def test_wrap_to_is_abstract_dispatch() -> None:
     """Test that wrap_to is an abstract dispatch function."""
-    assert isinstance(uapi.wrap_to, plum.function.Function)
+    assert isinstance(uapi.wrap_to, plum.Function)
     assert hasattr(uapi.wrap_to, "methods")
 
 
@@ -242,7 +242,7 @@ def test_wrap_to_no_default_implementation_raises() -> None:
 
     obj = NoDispatchType()
 
-    with pytest.raises(plum.resolver.NotFoundLookupError):
+    with pytest.raises(plum.NotFoundLookupError):
         uapi.wrap_to(obj, obj, obj)
 
 
@@ -302,8 +302,8 @@ def test_all_quantity_functions_in_all() -> None:
 
 def test_all_quantity_functions_are_dispatch_functions() -> None:
     """Test that all quantity functions are dispatch functions."""
-    assert isinstance(uapi.uconvert_value, plum.function.Function)
-    assert isinstance(uapi.uconvert, plum.function.Function)
-    assert isinstance(uapi.ustrip, plum.function.Function)
-    assert isinstance(uapi.is_unit_convertible, plum.function.Function)
-    assert isinstance(uapi.wrap_to, plum.function.Function)
+    assert isinstance(uapi.uconvert_value, plum.Function)
+    assert isinstance(uapi.uconvert, plum.Function)
+    assert isinstance(uapi.ustrip, plum.Function)
+    assert isinstance(uapi.is_unit_convertible, plum.Function)
+    assert isinstance(uapi.wrap_to, plum.Function)
