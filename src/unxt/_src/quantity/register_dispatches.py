@@ -7,9 +7,8 @@ from typing import Any
 
 import jax
 import jax.numpy as jax_xp
+import plum
 from jaxtyping import ArrayLike
-from plum import dispatch
-from plum.parametric import type_unparametrized as type_np
 
 from .base import AbstractQuantity
 from .quantity import Quantity
@@ -18,7 +17,7 @@ from unxt_api import ustrip
 # -----------------------------------------------
 
 
-@dispatch
+@plum.dispatch
 def arange(
     start: AbstractQuantity,
     stop: AbstractQuantity | None = None,
@@ -43,7 +42,7 @@ def arange(
 
     """
     unit = start.unit
-    return type_np(start)(
+    return plum.type_unparametrized(start)(
         jax_xp.arange(
             start.value,
             stop=ustrip(unit, stop) if stop is not None else None,
@@ -57,7 +56,7 @@ def arange(
 # -----------------------------------------------
 
 
-@dispatch
+@plum.dispatch
 def empty_like(
     x: AbstractQuantity, /, *, device: Any = None, **kwargs: Any
 ) -> AbstractQuantity:
@@ -72,14 +71,14 @@ def empty_like(
     Quantity(Array(0, dtype=int32, ...), unit='m')
 
     """
-    out = type_np(x)(jax_xp.empty_like(x.value, **kwargs), unit=x.unit)
+    out = plum.type_unparametrized(x)(jax_xp.empty_like(x.value, **kwargs), unit=x.unit)
     return jax.device_put(out, device=device)
 
 
 # -----------------------------------------------
 
 
-@dispatch
+@plum.dispatch
 def full(
     shape: Any, fill_value: AbstractQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
@@ -101,7 +100,7 @@ def full(
 # -----------------------------------------------
 
 
-@dispatch
+@plum.dispatch
 def full_like(
     x: AbstractQuantity, /, *, fill_value: Any, **kwargs: Any
 ) -> AbstractQuantity:
@@ -120,7 +119,7 @@ def full_like(
     return full_like(x, fill_value, **kwargs)
 
 
-@dispatch
+@plum.dispatch
 def full_like(
     x: AbstractQuantity, fill_value: ArrayLike, /, **kwargs: Any
 ) -> AbstractQuantity:
@@ -135,10 +134,12 @@ def full_like(
     Quantity(Array(100, dtype=int32, ...), unit='m')
 
     """
-    return type_np(x)(jax_xp.full_like(x.value, fill_value, **kwargs), unit=x.unit)
+    return plum.type_unparametrized(x)(
+        jax_xp.full_like(x.value, fill_value, **kwargs), unit=x.unit
+    )
 
 
-@dispatch
+@plum.dispatch
 def full_like(
     x: AbstractQuantity, fill_value: AbstractQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
@@ -154,13 +155,15 @@ def full_like(
 
     """
     fill_val = ustrip(x.unit, fill_value)
-    return type_np(x)(jax_xp.full_like(x.value, fill_val, **kwargs), unit=x.unit)
+    return plum.type_unparametrized(x)(
+        jax_xp.full_like(x.value, fill_val, **kwargs), unit=x.unit
+    )
 
 
 # -----------------------------------------------
 
 
-@dispatch
+@plum.dispatch
 def linspace(
     start: AbstractQuantity, stop: AbstractQuantity, num: Any, /, **kwargs: Any
 ) -> AbstractQuantity:
@@ -176,13 +179,13 @@ def linspace(
 
     """
     unit = start.unit
-    return type_np(start)(
+    return plum.type_unparametrized(start)(
         jax_xp.linspace(ustrip(unit, start), ustrip(unit, stop), num, **kwargs),
         unit=unit,
     )
 
 
-@dispatch
+@plum.dispatch
 def linspace(
     start: AbstractQuantity, stop: AbstractQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
@@ -198,7 +201,7 @@ def linspace(
 
     """
     unit = start.unit
-    return type_np(start)(
+    return plum.type_unparametrized(start)(
         jax_xp.linspace(ustrip(unit, start), ustrip(unit, stop), **kwargs), unit=unit
     )
 
@@ -206,7 +209,7 @@ def linspace(
 # -----------------------------------------------
 
 
-@dispatch
+@plum.dispatch
 def ones_like(
     x: AbstractQuantity, /, *, device: Any = None, **kwargs: Any
 ) -> AbstractQuantity:
@@ -221,14 +224,15 @@ def ones_like(
     Quantity(Array(1, dtype=int32, ...), unit='m')
 
     """
-    out = type_np(x)(jax_xp.ones_like(x.value, **kwargs), unit=x.unit)
+    cls = plum.type_unparametrized(x)
+    out = cls(jax_xp.ones_like(x.value, **kwargs), unit=x.unit)
     return jax.device_put(out, device=device)
 
 
 # -----------------------------------------------
 
 
-@dispatch
+@plum.dispatch
 def zeros_like(
     x: AbstractQuantity, /, *, device: Any = None, **kwargs: Any
 ) -> AbstractQuantity:
@@ -243,5 +247,6 @@ def zeros_like(
     Quantity(Array(0, dtype=int32, ...), unit='m')
 
     """
-    out = type_np(x)(jax_xp.zeros_like(x.value, **kwargs), unit=x.unit)
+    cls = plum.type_unparametrized(x)
+    out = cls(jax_xp.zeros_like(x.value, **kwargs), unit=x.unit)
     return jax.device_put(out, device=device)

@@ -332,7 +332,7 @@ def test_no_matching_dispatch() -> None:
 
     obj = UnknownType()
 
-    with pytest.raises(plum.resolver.NotFoundLookupError):
+    with pytest.raises(plum.NotFoundLookupError):
         uapi.dimension(obj)
 
 
