@@ -8,7 +8,7 @@
     <a href="https://pypi.org/project/unxt/"><img alt="unxt license" src="https://img.shields.io/github/license/GalacticDynamics/unxt" /></a>
 </p>
 <p align="center">
-    <a href="https://scientific-python.org/specs/spec-0000/"><img alt="ruff" src="https://img.shields.io/badge/SPEC-0-green?labelColor=%23004811&color=%235CA038" /></a>
+    <a href="https://scientific-python.org/specs/spec-0000/"><img alt="Scientific Python SPEC-0" src="https://img.shields.io/badge/SPEC-0-green?labelColor=%23004811&color=%235CA038" /></a>
     <a href="https://docs.astral.sh/ruff/"><img alt="ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json" /></a>
     <a href="https://pre-commit.com"><img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit" /></a>
     <a href="https://codspeed.io/GalacticDynamics/unxt"><img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed Badge"/></a>
