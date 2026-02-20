@@ -1,0 +1,56 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: unxt
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Nathaniel
+    family-names: Starkman
+    email: nstarman@users.noreply.github.com
+    affiliation: MIT
+    orcid: 'https://orcid.org/0000-0003-3954-3291'
+  - given-names: Adrian
+    family-names: Price-Whelan
+    email: adrn@users.noreply.github.com
+    affiliation: Flatiron Institute
+    orcid: 'https://orcid.org/0000-0003-0872-7098'
+  - given-names: Jake
+    family-names: Nibauer
+    email: jnibauer@users.noreply.github.com
+    affiliation: Princeton
+    orcid: 'https://orcid.org/0000-0001-8042-5794'
+identifiers:
+  - type: doi
+    value: 10.21105/joss.07771
+    description: JOSS
+  - type: doi
+    value: 10.5281/zenodo.10850455
+    description: Zenodo
+repository-code: 'https://github.com/GalacticDynamics/unxt/'
+url: 'https://unxt.readthedocs.io'
+repository-artifact: 'https://pypi.org/project/unxt/'
+abstract: >-
+  unxt is a Python package for unit-aware computing with
+  JAX, which is a high-performance numerical computing
+  library that enables automatic differentiation and
+  just-in-time compilation to accelerate code execution on
+  multiple compute architectures. unxt is built on top of
+  quax, which provides a framework for building array-like
+  objects that can be used with JAX. unxt extends quax to
+  provide support for unit-aware computing using the
+  astropy.units package as a units backend. unxt provides
+  seamless integration of physical units into high
+  performance numerical computations, significantly
+  enhancing the capabilities of JAX for scientific
+  applications.
+keywords:
+  - units
+  - quantities
+  - dimensions
+  - jax
+  - scientific computing
+license: BSD-3-Clause
