@@ -2,24 +2,24 @@
 <h3 align="center">Unitful Quantities in JAX</h3>
 
 <p align="center">
-    <a href="https://pypi.org/project/unxt/"> <img alt="PyPI: unxt" src="https://img.shields.io/pypi/v/unxt?style=flat" /> </a>
-    <a href="https://pypi.org/project/unxt/"> <img alt="PyPI versions: unxt" src="https://img.shields.io/pypi/pyversions/unxt" /> </a>
-    <a href="https://unxt.readthedocs.io/en/"> <img alt="ReadTheDocs" src="https://img.shields.io/badge/read_docs-here-orange" /> </a>
-    <a href="https://pypi.org/project/unxt/"> <img alt="unxt license" src="https://img.shields.io/github/license/GalacticDynamics/unxt" /> </a>
+    <a href="https://pypi.org/project/unxt/"><img alt="PyPI: unxt" src="https://img.shields.io/pypi/v/unxt?style=flat" /></a>
+    <a href="https://pypi.org/project/unxt/"><img alt="PyPI versions: unxt" src="https://img.shields.io/pypi/pyversions/unxt" /></a>
+    <a href="https://unxt.readthedocs.io/en/"><img alt="ReadTheDocs" src="https://img.shields.io/badge/read_docs-here-orange" /></a>
+    <a href="https://pypi.org/project/unxt/"><img alt="unxt license" src="https://img.shields.io/github/license/GalacticDynamics/unxt" /></a>
 </p>
 <p align="center">
-    <a href="https://scientific-python.org/specs/spec-0000/"> <img alt="ruff" src="https://img.shields.io/badge/SPEC-0-green?labelColor=%23004811&color=%235CA038" /> </a>
-    <a href="https://docs.astral.sh/ruff/"> <img alt="ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json" /> </a>
-    <a href="https://pre-commit.com"> <img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit" /> </a>
+    <a href="https://scientific-python.org/specs/spec-0000/"><img alt="Scientific Python SPEC-0" src="https://img.shields.io/badge/SPEC-0-green?labelColor=%23004811&color=%235CA038" /></a>
+    <a href="https://docs.astral.sh/ruff/"><img alt="ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json" /></a>
+    <a href="https://pre-commit.com"><img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit" /></a>
     <a href="https://codspeed.io/GalacticDynamics/unxt"><img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed Badge"/></a>
 </p>
 <p align="center">
-    <a href="https://github.com/GalacticDynamics/unxt/actions"> <img alt="CI status" src="https://github.com/GalacticDynamics/unxt/actions/workflows/ci.yml/badge.svg?branch=main" /> </a>
-    <a href="https://unxt.readthedocs.io/en/"> <img alt="ReadTheDocs" src="https://readthedocs.org/projects/unxt/badge/?version=latest" /> </a>
-    <a href="https://codecov.io/gh/GalacticDynamics/unxt"> <img alt="codecov" src="https://codecov.io/gh/GalacticDynamics/unxt/graph/badge.svg" /> </a>
+    <a href="https://github.com/GalacticDynamics/unxt/actions"><img alt="CI status" src="https://github.com/GalacticDynamics/unxt/actions/workflows/ci.yml/badge.svg?branch=main" /></a>
+    <a href="https://unxt.readthedocs.io/en/"><img alt="ReadTheDocs" src="https://readthedocs.org/projects/unxt/badge/?version=latest" /></a>
+    <a href="https://codecov.io/gh/GalacticDynamics/unxt"><img alt="codecov" src="https://codecov.io/gh/GalacticDynamics/unxt/graph/badge.svg" /></a>
 </p>
 <p align="center">
-    <a style="border-width:0" href="https://doi.org/10.21105/joss.07771"> <img src="https://joss.theoj.org/papers/10.21105/joss.07771/status.svg" alt="DOI badge" > </a>
+    <a style="border-width:0" href="https://doi.org/10.21105/joss.07771"><img src="https://joss.theoj.org/papers/10.21105/joss.07771/status.svg" alt="DOI badge" /></a>
 </p>
 
 ---
