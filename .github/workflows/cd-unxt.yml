@@ -12,7 +12,8 @@ on:
     branches:
       - main
     tags:
-      - "unxt-v*"
+      - "v*" # Shared release tags (vX.Y.0)
+      - "unxt-v*" # Package-specific tags (unxt-vX.Y.Z)
     paths:
       - "src/**"
       - "pyproject.toml"
@@ -46,6 +47,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Validate git tag (for tagged releases)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          python scripts/validate_tag.py "$TAG" "unxt"
+        shell: bash
+
       - uses: hynek/build-and-inspect-python-package@efb823f52190ad02594531168b7a2d5790e66516 # v2.14.0
         with:
           path: .
@@ -65,6 +73,7 @@ jobs:
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/unxt-v')) ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
       (github.event_name == 'release' && github.event.action == 'published')
 
     steps:
@@ -90,7 +99,8 @@ jobs:
     if: |
       github.event_name == 'release' &&
       github.event.action == 'published' &&
-      startsWith(github.event.release.tag_name, 'unxt-v')
+      (startsWith(github.event.release.tag_name, 'unxt-v') ||
+       (startsWith(github.event.release.tag_name, 'v') && endsWith(github.event.release.tag_name, '.0')))
 
     steps:
       - name: Download built artifact to dist/
