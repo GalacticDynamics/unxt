@@ -1,102 +1,193 @@
 # Release Process for unxt Workspace
 
-This workspace contains three packages that can be released independently:
+This workspace contains three packages that can be released:
 
 - `unxt` - the main package
 - `unxt-api` - abstract dispatch API
 - `unxt-hypothesis` - hypothesis testing strategies
 
-## Versioning with hatch-vcs
+## Versioning Strategy
 
-All packages use **hatch-vcs** for automatic version detection from git tags.
+All packages use **hatch-vcs** for automatic version detection from git tags,
+with a custom validation system that enforces the following strategy:
 
-### Tag Format
+### Tag Format Rules
 
-- **unxt**: `unxt-vX.Y.Z` (e.g., `unxt-v1.8.0`)
-- **unxt-api**: `unxt-api-vX.Y.Z` (e.g., `unxt-api-v0.1.0`)
-- **unxt-hypothesis**: `unxt-hypothesis-vX.Y.Z` (e.g., `unxt-hypothesis-v0.1.0`)
+**Major/Minor Releases (all packages together):**
 
-The version must follow PEP 440 format: `X.Y.Z` with optional suffixes like
-`a1`, `b2`, `rc1`, `.post1`, `.dev0`, etc.
+- Use shared tags: `vX.Y.0` (e.g., `v1.8.0`)
+- Applies to **all** workspace packages simultaneously
+- Required format: `.0` (must be a `.0` release)
+- Example: Tag `v1.8.0` bumps unxt, unxt-api, and unxt-hypothesis all to 1.8.0
 
-**Note**: Each package uses `git describe` with tag pattern matching to find
-only its own tags. This allows independent versioning in the monorepo.
+**Bug-fix Releases (individual packages only):**
+
+- Use package-specific tags: `PACKAGE-vX.Y.Z` where Z > 0 (e.g.,
+  `unxt-api-v1.8.1`)
+- Applies to **only that package**
+- Required format: Must have patch version > 0 (bug-fix release)
+- Example: Tag `unxt-api-v1.8.1` bumps only unxt-api to 1.8.1
+- Other packages are unaffected
+
+### Validation Rules (Enforced)
+
+- ✅ `vX.Y.0` - **Allowed**: Shared tag bumps all packages
+- ❌ `vX.Y.0` (package-specific like `unxt-api-vX.Y.0`) - **Forbidden**: Use
+  shared tag instead
+- ✅ `unxt-api-vX.Y.Z` (Z > 0) - **Allowed**: Bug-fix for specific package
+- ❌ `vX.Y.Z` (Z > 0, shared) - **Forbidden**: Must be package-specific for
+  bug-fixes
+
+This ensures clear separation: major/minor synchronized across all packages,
+bug-fixes isolated per package.
 
 ## How Versioning Works
 
 When you tag a commit:
 
-- The package version matches the tag (e.g., tag `unxt-api-v0.1.0` → version
-  `0.1.0`)
-- After the tag, development versions are created automatically (e.g.,
-  `0.1.1.dev5+gabc1234`)
-- Each package only looks at tags matching its pattern, ignoring tags for other
-  packages
+1. The custom version determination script (`scripts/get_version.py`) validates
+   all tags
+2. Each package selects the latest applicable tag(s):
+   - For major/minor: Uses shared `vX.Y.0` or its own package-specific version
+     if newer
+   - For bug-fix: Only uses package-specific tags with Z > 0
+3. The version matches the selected tag (e.g., tag `v1.8.0` → all packages get
+   `1.8.0`)
+4. After the tag, development versions are created automatically (e.g.,
+   `1.8.1.dev5+gabc1234`)
+
+### Legacy Support
+
+Tags from v1.10.x and earlier (including pre-1.0 tags) are grandfathered in and
+allowed without validation. Strict enforcement begins at v1.11.0.
 
 ## Release Workflows
 
-### Release via Git Tags (Recommended)
+### Scenario 1: Major/Minor Release (Synchronized All Packages)
 
-1. **Create and push a tag:**
+Tag and release all packages together with version `X.Y.0`:
+
+```bash
+# Create shared tag
+git tag vX.Y.0 -m "Release all packages to X.Y.0"
+
+# Push the tag
+git push origin vX.Y.0
+
+# Verify version detection
+python scripts/get_version.py --main          # Should show X.Y.0
+python scripts/get_version.py unxt-api       # Should show X.Y.0
+python scripts/get_version.py unxt-hypothesis # Should show X.Y.0
+
+# Build and publish
+cd /path/to/unxt
+uv build && uv publish
+
+cd packages/unxt-api
+uv build && uv publish
+
+cd ../unxt-hypothesis
+uv build && uv publish
+```
+
+### Scenario 2: Bug-fix Release (Individual Package)
+
+Tag and release a specific package with version `X.Y.Z` (Z > 0):
+
+```bash
+# Create package-specific tag (e.g., for unxt-api)
+git tag unxt-api-vX.Y.Z -m "Release unxt-api X.Y.Z"
+
+# Push the tag
+git push origin unxt-api-vX.Y.Z
+
+# Verify version detection
+python scripts/get_version.py unxt-api       # Should show X.Y.Z
+
+# Build and publish
+cd packages/unxt-api
+uv build && uv publish
+
+# Other packages are unaffected and should not be released
+```
+
+### Creating a GitHub Release
+
+For shared releases:
+
+1. Go to <https://github.com/GalacticDynamics/unxt/releases/new>
+2. Choose the `vX.Y.0` tag
+3. Fill in release notes covering all packages
+4. Publish the release
+
+For package-specific releases:
+
+1. Go to <https://github.com/GalacticDynamics/unxt/releases/new>
+2. Choose the `package-vX.Y.Z` tag
+3. Fill in release notes for that package
+4. Publish the release
+
+### Release via Git Tags (Full Process)
+
+1. **Prepare the release commit**
+   - Review changes requiring release
+   - Update CHANGELOG if maintained
+   - Commit any final changes
+
+2. **Create and push the appropriate tag:**
+
+   For all packages (major/minor):
 
    ```bash
-   # For unxt (accepts either format)
-   git tag unxt-v1.8.0 -m "Release unxt 1.8.0"
-   # or
-   git tag v1.8.0 -m "Release unxt 1.8.0"
-
-   git push origin unxt-v1.8.0
-
-   # For unxt-api
-   git tag unxt-api-v0.2.0 -m "Release unxt-api 0.2.0"
-   git push origin unxt-api-v0.2.0
-
-   # For unxt-hypothesis
-   git tag unxt-hypothesis-v0.2.0 -m "Release unxt-hypothesis 0.2.0"
-   git push origin unxt-hypothesis-v0.2.0
+   git tag vX.Y.0 -m "Release all packages to X.Y.0"
+   git push origin vX.Y.0
    ```
 
-2. **Build and publish manually:**
+   For single package (bug-fix):
 
    ```bash
-   # Build the package (version will be detected from tags)
-   cd /path/to/package
-   uv build
+   git tag unxt-api-vX.Y.Z -m "Release unxt-api X.Y.Z"
+   git push origin unxt-api-vX.Y.Z
+   ```
 
-   # Publish to PyPI
+3. **Verify versioning is correct:**
+
+   ```bash
+   python scripts/get_version.py --main
+   python scripts/get_version.py unxt-api
+   python scripts/get_version.py unxt-hypothesis
+   ```
+
+4. **Build and publish**
+
+   ```bash
+   cd /package/path
+   uv build
    uv publish
    ```
 
-3. **Create a GitHub Release:**
-   - Go to https://github.com/GalacticDynamics/unxt/releases/new
-   - Choose or create a tag following the package-prefixed format
-   - Fill in release notes
-   - Publish the release
-
 ### Manual Build and Publish
 
-For all packages:
+For testing without tagging:
 
 ```bash
-# From repository root for unxt
+# Version detection uses tags, so build without a tag for dev versions
 uv build
-uv publish
-
-# From package directory for workspace packages
-cd packages/unxt-api
-uv build
-uv publish
-
-cd ../unxt-hypothesis
-uv build
-uv publish
+uv publish --repository testpypi  # Test first
+uv publish                         # Publish to production
 ```
 
-**Note**: Publishing requires PyPI credentials configured.
+## Version Validation
 
-## Release Scenarios
+To validate that tags follow the new strategy:
 
-### Independent Releases
+```bash
+# The script will show warnings for policy violations
+python scripts/get_version.py --main
+
+# For strict validation (useful in CI):
+# Check exit codes and stderr for policy violations
+```
 
 Packages can be released independently at different versions:
 
