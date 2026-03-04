@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import ClassVar, get_args, get_type_hints
 
+import jax.tree_util as jtu
 from astropy.units import PhysicalType, UnitBase as AstropyUnitBase
 from astropy.units.physical import _physical_unit_mapping
 
@@ -24,6 +25,9 @@ _UNITSYSTEMS_REGISTRY: dict[
 UNITSYSTEMS_REGISTRY = MappingProxyType(_UNITSYSTEMS_REGISTRY)
 
 
+# Register AbstractUnitSystem as a static PyTree node
+# This ensures unit systems are treated as constants in JAX transformations
+@jtu.register_static
 @dataclass(frozen=True, slots=True, eq=True)
 class AbstractUnitSystem:
     """Represents a system of units.
