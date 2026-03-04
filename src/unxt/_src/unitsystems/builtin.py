@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Annotated, TypeAlias, final
 from typing_extensions import override
 
+import jax.tree_util as jtu
 from astropy.units import UnitBase as AstropyUnitBase, dimensionless_unscaled
 
 from . import builtin_dimensions as ud
@@ -15,6 +16,7 @@ from unxt._src.utils import SingletonMixin
 Unit: TypeAlias = AstropyUnitBase
 
 
+@jtu.register_static
 @final
 @dataclass(frozen=True, slots=True)
 class DimensionlessUnitSystem(SingletonMixin, AbstractUnitSystem):
@@ -43,6 +45,7 @@ class DimensionlessUnitSystem(SingletonMixin, AbstractUnitSystem):
         return self.__repr__()
 
 
+@jtu.register_static
 @final
 @dataclass(frozen=True, slots=True, repr=False)
 class LTMAUnitSystem(AbstractUnitSystem):
@@ -65,6 +68,7 @@ class LTMAUnitSystem(AbstractUnitSystem):
         return f"unitsystem({fs})"
 
 
+@jtu.register_static
 @final
 @dataclass(frozen=True, slots=True)
 class SIUnitSystem(SingletonMixin, AbstractUnitSystem):
@@ -123,6 +127,7 @@ class SIUnitSystem(SingletonMixin, AbstractUnitSystem):
         return f"unitsystem({fs})"
 
 
+@jtu.register_static
 @final
 @dataclass(frozen=True, slots=True)
 class CGSUnitSystem(SingletonMixin, AbstractUnitSystem):
