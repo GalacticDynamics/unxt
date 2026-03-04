@@ -8,6 +8,7 @@ from dataclasses import field, make_dataclass
 from typing import Annotated, Any
 
 import equinox as eqx
+import jax.tree_util as jtu
 import numpy as np
 from astropy.constants import G as const_G  # noqa: N811, pylint: disable=E0611
 from astropy.units import UnitBase as AstropyUnitBase
@@ -136,6 +137,9 @@ def unitsystem(*args: Any) -> AbstractUnitSystem:
         repr=True,
         init=True,
     )
+
+    # Register the dynamically created unit system as a static PyTree node
+    jtu.register_static(unitsystem_cls)
 
     # Make the dataclass instance
     return unitsystem_cls(*args)
