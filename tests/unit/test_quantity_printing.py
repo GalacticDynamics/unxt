@@ -1,8 +1,67 @@
 """Tests for Quantity printing with wadler-lindig."""
 
+import equinox as eqx
+import jax
+import jax.numpy as jnp
 import wadler_lindig as wl
 
 import unxt as u
+from unxt.units import unit as parse_unit
+
+
+class FlaggedQuantity(u.AbstractQuantity):
+    """Test helper quantity with a default-valued extra field."""
+
+    value: jax.Array = eqx.field(converter=u.quantity.convert_to_quantity_value)
+    unit: object = eqx.field(static=True, converter=parse_unit)
+    flag: bool = eqx.field(static=True, kw_only=True, default=False)
+
+
+class QuantityWithNonSingletonDefaults(u.AbstractQuantity):
+    """Test helper quantity with non-singleton default values."""
+
+    value: jax.Array = eqx.field(converter=u.quantity.convert_to_quantity_value)
+    unit: object = eqx.field(static=True, converter=parse_unit)
+    scale: float = eqx.field(static=True, kw_only=True, default=1.0)
+    label: str = eqx.field(static=True, kw_only=True, default="default")
+
+
+def test_repr_hides_default_extra_field() -> None:
+    """Default-valued extra fields should be omitted from pretty reprs."""
+    q_default = FlaggedQuantity([1, 2, 3], "m")
+    q_nondefault = FlaggedQuantity([1, 2, 3], "m", flag=True)
+
+    default_repr = wl.pformat(q_default)
+    nondefault_repr = wl.pformat(q_nondefault)
+
+    assert "flag=" not in default_repr
+    assert "flag=True" in nondefault_repr
+
+
+def test_repr_hides_non_singleton_defaults() -> None:
+    """Non-singleton default values (float, str) should be omitted when equal."""
+    # Both fields have default values (not same object, but equal)
+    q_default = QuantityWithNonSingletonDefaults(
+        [1, 2, 3], "m", scale=1.0, label="default"
+    )
+    # One field has a non-default value
+    q_custom_scale = QuantityWithNonSingletonDefaults([1, 2, 3], "m", scale=2.0)
+    q_custom_label = QuantityWithNonSingletonDefaults([1, 2, 3], "m", label="custom")
+
+    default_repr = wl.pformat(q_default)
+    custom_scale_repr = wl.pformat(q_custom_scale)
+    custom_label_repr = wl.pformat(q_custom_label)
+
+    # Default values should be omitted (equality check, not identity)
+    assert "scale=" not in default_repr
+    assert "label=" not in default_repr
+
+    # Non-default values should appear
+    assert "scale=2.0" in custom_scale_repr
+    assert "label=" not in custom_scale_repr  # label is still default
+
+    assert "label='custom'" in custom_label_repr
+    assert "scale=" not in custom_label_repr  # scale is still default
 
 
 class TestShortName:
