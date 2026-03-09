@@ -20,6 +20,7 @@ unxt-hypothesis <packages/unxt-hypothesis/index>
 :caption: 📚 Guides
 
 guides/quantity
+guides/configuration
 guides/dimensions
 guides/units_and_systems
 guides/type-checking

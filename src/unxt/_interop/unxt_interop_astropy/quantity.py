@@ -243,7 +243,7 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
     >>> with apyu.add_enabled_equivalencies(apyu.temperature()):
     ...     y = x.uconvert("deg_C")
     >>> y
-    Quantity(Array([-272.15, -271.15, -270.15], dtype=float32, ...), unit='deg_C')
+    Quantity( Array([-272.15, -271.15, -270.15], dtype=float32, ...), unit='deg_C' )
 
     >>> x = Quantity([1, 2, 3], "radian")
     >>> with apyu.add_enabled_equivalencies(apyu.dimensionless_angles()):

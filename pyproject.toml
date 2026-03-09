@@ -32,6 +32,7 @@ dependencies = [
   "quax>=0.2.1",
   "quax-blocks>=0.4.0",
   "quaxed>=0.10.2",
+  "traitlets>=5.0.0",
   "unxt-api>=1.10.0",
   "wadler-lindig>=0.1.5",
   "xmmutablemap>=0.1",
@@ -322,7 +323,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"**tests/**"   = ["ANN", "E731", "INP001", "S101", "SLF001", "T20"]
+"**tests/**"   = ["ANN", "D401", "E731", "INP001", "S101", "SLF001", "T20"]
 "__init__.py"  = ["F403"]
 "docs/conf.py" = ["A001", "INP001"]
 "noxfile.py"   = ["T20"]

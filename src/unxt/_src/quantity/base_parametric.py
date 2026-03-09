@@ -8,7 +8,6 @@ from functools import partial
 from typing import Any
 
 import equinox as eqx
-import jax
 import wadler_lindig as wl
 from astropy.units import PhysicalType
 from jaxtyping import Array, Shaped
@@ -19,6 +18,7 @@ from dataclassish import field_items, fields
 from .base import AbstractQuantity
 from .value import StaticValue
 from unxt._src.dimensions import name_of
+from unxt.config import config
 from unxt.dims import AbstractDimension, dimension, dimension_of
 from unxt.units import AbstractUnit, unit as parse_unit
 
@@ -275,16 +275,20 @@ class AbstractParametricQuantity(AbstractQuantity):
 
     def __repr__(self) -> str:
         return wl.pformat(
-            self, include_params=False, named_unit=True, short_arrays=False, indent=4
+            self,
+            include_params=config.quantity_repr.include_params,
+            named_unit=config.quantity_repr.named_unit,
+            short_arrays=config.quantity_repr.short_arrays,
+            use_short_name=config.quantity_repr.use_short_name,
+            indent=config.quantity_repr.indent,
         )
 
     def __str__(self) -> str:
         return wl.pformat(
             self,
-            include_params=True,
-            named_unit=True,
-            short_arrays="compact"
-            if not isinstance(self.value, jax.core.Tracer)
-            else True,
-            indent=4,
+            include_params=config.quantity_str.include_params,
+            named_unit=config.quantity_str.named_unit,
+            short_arrays=config.quantity_str.short_arrays,
+            use_short_name=config.quantity_str.use_short_name,
+            indent=config.quantity_str.indent,
         )

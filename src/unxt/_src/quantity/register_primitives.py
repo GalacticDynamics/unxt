@@ -2413,13 +2413,15 @@ def fft_p(x: ABCQ, *, fft_type: Any, fft_lengths: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity([1, 2, 3], "")
     >>> jnp.fft.fft(q)
-    BareQuantity(Array([ 6. +0.j       , -1.5+0.8660254j, -1.5-0.8660254j],
-                       dtype=complex64), unit='')
+    BareQuantity(
+        Array([ 6. +0.j , -1.5+0.8660254j, -1.5-0.8660254j], dtype=complex64), unit=''
+    )
 
     >>> q = u.Q([1, 2, 3], "")
     >>> jnp.fft.fft(q)
-    Quantity(Array([ 6. +0.j       , -1.5+0.8660254j, -1.5-0.8660254j],
-                                    dtype=complex64), unit='')
+    Quantity(
+        Array([ 6. +0.j , -1.5+0.8660254j, -1.5-0.8660254j], dtype=complex64), unit=''
+    )
 
     """
     return type_np(x)(qlax.fft(ustrip(x), fft_type, fft_lengths), unit=x.unit**-1)
