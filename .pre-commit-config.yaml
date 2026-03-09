@@ -70,9 +70,7 @@ repos:
     rev: "v3.7.4"
     hooks:
       - id: prettier
-        types_or: [yaml, markdown, html, css, scss, javascript, json]
-        args: [--prose-wrap=always]
-        exclude: "^docs/.*\\.md$"
+        types_or: [yaml, html, css, scss, javascript, json, markdown]
 
   - repo: https://github.com/codespell-project/codespell
     rev: "v2.4.1"

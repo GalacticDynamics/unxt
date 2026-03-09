@@ -15,7 +15,7 @@ This guide demonstrates how `unxt` types work with the `dataclassish` library fo
 - **`asdict(obj)`**: Convert to a dictionary representation
 - **`astuple(obj)`**: Convert to a tuple of values
 - **`get_field(obj, name)`**: Access a specific field by name
-- **`replace(obj, **kwargs)`**: Create a copy with modified fields
+- **`replace(obj, **kwargs)`\*\*: Create a copy with modified fields
 
 All of these work seamlessly across:
 
@@ -25,7 +25,6 @@ All of these work seamlessly across:
 - Quantity types (Quantity, BareQuantity, Angle, Distance, etc.)
 
 This makes it easy to build generic code that works with unxt types without needing to know their internal structure.
-
 
 ## Setup
 
@@ -76,7 +75,6 @@ print(f"\nField keys: {list(dc.field_keys(meter))}")
 print(f"Field values: {list(dc.field_values(meter))}")
 print(f"Field items: {list(dc.field_items(meter))}")
 ```
-
 
 ## Unit Systems
 

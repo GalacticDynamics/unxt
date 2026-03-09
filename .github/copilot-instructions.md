@@ -2,13 +2,9 @@
 
 This is a UV workspace repository containing multiple packages:
 
-- **unxt**: Main library for unitful quantities in JAX with support for JIT
-  compilation, auto-differentiation, vectorization, and GPU/TPU acceleration
-- **unxt-api**: Abstract dispatch API that defines the multiple-dispatch
-  interfaces implemented by `unxt` and other packages. Minimal dependencies
-  (only `plum-dispatch`).
-- **unxt-hypothesis**: Hypothesis strategies for property-based testing with
-  `unxt`
+- **unxt**: Main library for unitful quantities in JAX with support for JIT compilation, auto-differentiation, vectorization, and GPU/TPU acceleration
+- **unxt-api**: Abstract dispatch API that defines the multiple-dispatch interfaces implemented by `unxt` and other packages. Minimal dependencies (only `plum-dispatch`).
+- **unxt-hypothesis**: Hypothesis strategies for property-based testing with `unxt`
 
 ## Main Package: unxt
 
@@ -17,26 +13,21 @@ This is a UV workspace repository containing multiple packages:
   - `Quantity`: Main parametric class with dimension checking
   - `Angle`: Specialized type with wrapping support
   - `unit()`, `dimension()`, unit systems
-- **Design goals**: JAX-compatible quantities, dimension checking, seamless
-  integration with existing JAX code via Quax
-- **JAX integration**: Objects are PyTrees via Equinox. Use `quaxed` for
-  pre-quaxified JAX functions. Performant with JIT, vmap, grad.
+- **Design goals**: JAX-compatible quantities, dimension checking, seamless integration with existing JAX code via Quax
+- **JAX integration**: Objects are PyTrees via Equinox. Use `quaxed` for pre-quaxified JAX functions. Performant with JIT, vmap, grad.
 
 ## Architecture & Core Components
 
 - **Quantity types** (hierarchical):
   - `AbstractQuantity`: Base class using Quax's `ArrayValue` for JAX integration
-  - `AbstractParametricQuantity`: Enables dimension parametrization
-    (`Quantity["length"]`)
+  - `AbstractParametricQuantity`: Enables dimension parametrization (`Quantity["length"]`)
   - `Quantity`: Main parametric class with runtime dimension checking
   - `BareQuantity`: Lightweight variants without dimension checks
   - `Angle`: Specialized type with wrapping support
-- **Units system**: Wraps Astropy units, provides `unit()`, `unit_of()`
-  constructors
+- **Units system**: Wraps Astropy units, provides `unit()`, `unit_of()` constructors
 - **Dimensions**: Physical type checking via `dimension()`, `dimension_of()`
 - **Unit systems**: `AbstractUnitSystem` for consistent unit sets
-- **Interop modules**: Optional integration with Astropy, Gala, Matplotlib (in
-  `_src/_interop/`)
+- **Interop modules**: Optional integration with Astropy, Gala, Matplotlib (in `_src/_interop/`)
 
 ## Folder Structure
 
@@ -46,10 +37,8 @@ This is a UV workspace repository containing multiple packages:
 - `/packages/`: Workspace packages
   - `unxt-api/`: Abstract dispatch API package
   - `unxt-hypothesis/`: Hypothesis strategies package
-- `/tests/`: Main package tests, organized into `unit/`, `integration/`,
-  `benchmark/`
-- `README.md`: Main package documentation, tested via Sybil (all Python code
-  blocks are doctests)
+- `/tests/`: Main package tests, organized into `unit/`, `integration/`, `benchmark/`
+- `README.md`: Main package documentation, tested via Sybil (all Python code blocks are doctests)
 - `conftest.py`: Pytest config, Sybil setup, optional dependency handling
 - `noxfile.py`: Task automation with dependency groups
 - `pyproject.toml`: Root workspace configuration with `[tool.uv.workspace]`
@@ -65,36 +54,24 @@ This is a UV workspace repository containing multiple packages:
 
 ## Coding Style
 
-- Always use type hints (standard typing, `jaxtyping.Array`, `ArrayLike`, shape
-  annotations)
-- Extensive use of Plum multiple dispatch - check `.methods` on any function to
-  see all dispatches
-- `@parametric` decorator enables dimension parametrization:
-  `Quantity["length"]`
-- Runtime type checking controlled by `UNXT_ENABLE_RUNTIME_TYPECHECKING` env var
-  (defaults to `False`, set to `"beartype.beartype"` in tests)
+- Always use type hints (standard typing, `jaxtyping.Array`, `ArrayLike`, shape annotations)
+- Extensive use of Plum multiple dispatch - check `.methods` on any function to see all dispatches
+- `@parametric` decorator enables dimension parametrization: `Quantity["length"]`
+- Runtime type checking controlled by `UNXT_ENABLE_RUNTIME_TYPECHECKING` env var (defaults to `False`, set to `"beartype.beartype"` in tests)
 - Immutability is a core constraint: methods return new objects, never mutate
-- Keep dependencies minimal; the core dependencies are listed in
-  `pyproject.toml`
+- Keep dependencies minimal; the core dependencies are listed in `pyproject.toml`
 - Docstrings should be concise and include testable usage examples
-- `__all__` should always be a tuple unless it needs to be modified (e.g., with
-  `+=`), in which case use a list - prefer immutable by default
+- `__all__` should always be a tuple unless it needs to be modified (e.g., with `+=`), in which case use a list - prefer immutable by default
 
 ### Multiple Dispatch with Plum
 
-This project heavily relies on `plum-dispatch` for multiple dispatch, which
-allows different implementations of the same function based on argument types.
-Understanding how plum works is critical for working with this codebase.
+This project heavily relies on `plum-dispatch` for multiple dispatch, which allows different implementations of the same function based on argument types. Understanding how plum works is critical for working with this codebase.
 
 #### Multiple Dispatch Mechanism
 
-- **Single-dispatch vs Multiple-dispatch**: Unlike single dispatch (e.g.,
-  `functools.singledispatch`), plum selects implementations based on ALL
-  argument types, not just the first one
-- **Type-based routing**: Plum examines the runtime types of all arguments and
-  selects the most specific matching implementation
-- **Dispatch decorator**: Use `@dispatch` to register multiple implementations
-  of the same function name
+- **Single-dispatch vs Multiple-dispatch**: Unlike single dispatch (e.g., `functools.singledispatch`), plum selects implementations based on ALL argument types, not just the first one
+- **Type-based routing**: Plum examines the runtime types of all arguments and selects the most specific matching implementation
+- **Dispatch decorator**: Use `@dispatch` to register multiple implementations of the same function name
 
 Example:
 
@@ -119,8 +96,7 @@ def process(x: int, y: int) -> str:
 
 #### Finding All Dispatches
 
-**CRITICAL**: When working with dispatched functions, you MUST check all
-registered implementations. A function may have dozens of overloads.
+**CRITICAL**: When working with dispatched functions, you MUST check all registered implementations. A function may have dozens of overloads.
 
 **Two methods to find all dispatches:**
 
@@ -146,8 +122,7 @@ registered implementations. A function may have dozens of overloads.
 
 #### Parametric Classes
 
-Plum's `@parametric` decorator enables type parametrization, creating distinct
-types for different parameters:
+Plum's `@parametric` decorator enables type parametrization, creating distinct types for different parameters:
 
 ```python
 from plum import parametric
@@ -166,8 +141,7 @@ FloatContainer = Container[float]
 
 **In this codebase:**
 
-- `Quantity` is parametric by dimension: `Quantity["length"]`,
-  `Quantity["mass"]`
+- `Quantity` is parametric by dimension: `Quantity["length"]`, `Quantity["mass"]`
 - Each parametrization creates a distinct type for dispatch
 - Enables dimension-aware multiple dispatch:
 
@@ -235,10 +209,8 @@ def add(x: promote(int, float), y: float) -> float:
 
 - Quantities are `ArrayValue` subclasses (Quax protocol)
 - PyTree registration handled automatically via Equinox
-- Use `quaxed` library (pre-quaxified JAX) for convenience, or manually apply
-  `quax.quaxify` decorator
-- Mixins from `quax-blocks` provide operator overloading (`NumpyBinaryOpsMixin`,
-  etc.)
+- Use `quaxed` library (pre-quaxified JAX) for convenience, or manually apply `quax.quaxify` decorator
+- Mixins from `quax-blocks` provide operator overloading (`NumpyBinaryOpsMixin`, etc.)
 
 ### Immutability
 
@@ -265,20 +237,15 @@ def add(x: promote(int, float), y: float) -> float:
   - `nox -s docs`: build documentation (add `--serve` to preview)
   - `nox -s pytest_benchmark`: run CodSpeed benchmarks
 
-**IMPORTANT**: Never write temporary files outside the repository (e.g., to
-`/tmp/` or other system directories). Always use paths within the repository for
-any file operations, including temporary or scratch files.
+**IMPORTANT**: Never write temporary files outside the repository (e.g., to `/tmp/` or other system directories). Always use paths within the repository for any file operations, including temporary or scratch files.
 
 ## Testing
 
 - Use `pytest` for all test suites with Sybil for doctests in code and markdown
 - Add unit tests for every new function or class
 - Test organization: `unit/`, `integration/`, `benchmark/`
-- **All tests must actually test something**: Every test function must include
-  `assert` statements or return values that pytest can validate. Empty test
-  bodies or tests that only call functions without verification are not valid.
-- Optional dependencies handled via
-  `optional_dependencies.OptionalDependencyEnum`
+- **All tests must actually test something**: Every test function must include `assert` statements or return values that pytest can validate. Empty test bodies or tests that only call functions without verification are not valid.
+- Optional dependencies handled via `optional_dependencies.OptionalDependencyEnum`
   - Tests requiring optional deps auto-skip if not installed
   - `conftest.py` manages `collect_ignore_glob` for missing deps
 - For JAX-related behavior:
@@ -300,9 +267,7 @@ Install with: `uv add unxt --extra all` or specific groups
 
 ## Workspace Packages
 
-This repository uses a UV workspace structure with multiple packages (e.g.,
-`unxt`, `unxt-api`, `unxt-hypothesis`). When creating new workspace packages,
-use this versioning setup pattern:
+This repository uses a UV workspace structure with multiple packages (e.g., `unxt`, `unxt-api`, `unxt-hypothesis`). When creating new workspace packages, use this versioning setup pattern:
 
 ```toml
 [build-system]
@@ -325,13 +290,8 @@ version_tuple = {version_tuple!r}
 unxt = { workspace = true }
 ```
 
-Replace `<package-name>` with the actual package name (e.g.,
-`unxt-hypothesis-v*`) and `<package_name>` with the Python module name (e.g.,
-`unxt_hypothesis`). This enables automatic versioning from git tags.
+Replace `<package-name>` with the actual package name (e.g., `unxt-hypothesis-v*`) and `<package_name>` with the Python module name (e.g., `unxt_hypothesis`). This enables automatic versioning from git tags.
 
 ## Final Notes
 
-Preserve JAX compatibility and immutability above all. When extending quantity
-operations, ensure dimension checking is correct and test with JAX
-transformations. Follow Equinox/Quax patterns for custom array types.
-Documentation examples must be executable (they're tested).
+Preserve JAX compatibility and immutability above all. When extending quantity operations, ensure dimension checking is correct and test with JAX transformations. Follow Equinox/Quax patterns for custom array types. Documentation examples must be executable (they're tested).

@@ -1,20 +1,12 @@
-See the [Scientific Python Developer Guide][spc-dev-intro] for a detailed
-description of best practices for developing scientific packages.
+See the [Scientific Python Developer Guide][spc-dev-intro] for a detailed description of best practices for developing scientific packages.
 
 [spc-dev-intro]: https://learn.scientific-python.org/development/
 
 # Quick development
 
-The fastest way to start with development is to use nox. If you don't have nox,
-you can use `pipx run nox` to run it without installing, or `pipx install nox`.
-If you don't have pipx (pip for applications), then you can install with
-`pip install pipx` (the only case were installing an application with regular
-pip is reasonable). If you use macOS, then pipx and nox are both in brew, use
-`brew install pipx nox`.
+The fastest way to start with development is to use nox. If you don't have nox, you can use `pipx run nox` to run it without installing, or `pipx install nox`. If you don't have pipx (pip for applications), then you can install with `pip install pipx` (the only case were installing an application with regular pip is reasonable). If you use macOS, then pipx and nox are both in brew, use `brew install pipx nox`.
 
-To use, run `nox`. This will lint and test using every installed version of
-Python on your system, skipping ones that are not installed. You can also run
-specific jobs:
+To use, run `nox`. This will lint and test using every installed version of Python on your system, skipping ones that are not installed. You can also run specific jobs:
 
 ```console
 $ nox -s lint  # Lint only
@@ -23,8 +15,7 @@ $ nox -s docs -- --serve  # Build and serve the docs
 $ nox -s build  # Make an SDist and wheel
 ```
 
-Nox handles everything for you, including setting up an temporary virtual
-environment for each run.
+Nox handles everything for you, including setting up an temporary virtual environment for each run.
 
 # Setting up a development environment manually
 
@@ -36,9 +27,7 @@ source ./.venv/bin/activate
 pip install -v -e .[dev]
 ```
 
-If you have the
-[Python Launcher for Unix](https://github.com/brettcannon/python-launcher), you
-can instead do:
+If you have the [Python Launcher for Unix](https://github.com/brettcannon/python-launcher), you can instead do:
 
 ```bash
 py -m venv .venv
@@ -47,16 +36,14 @@ py -m install -v -e .[dev]
 
 # Post setup
 
-You should prepare pre-commit, which will help you by checking that commits pass
-required checks:
+You should prepare pre-commit, which will help you by checking that commits pass required checks:
 
 ```bash
 pip install pre-commit # or brew install pre-commit on macOS
 pre-commit install # Will install a pre-commit hook into the git repo
 ```
 
-You can also/alternatively run `pre-commit run` (changes only) or
-`pre-commit run --all-files` to check even without installing the hook.
+You can also/alternatively run `pre-commit run` (changes only) or `pre-commit run --all-files` to check even without installing the hook.
 
 # Testing
 
@@ -90,9 +77,7 @@ nox -s docs -- --serve
 
 # Pre-commit
 
-This project uses pre-commit for all style checking. While you can run it with
-nox, this is such an important tool that it deserves to be installed on its own.
-Install pre-commit and run:
+This project uses pre-commit for all style checking. While you can run it with nox, this is such an important tool that it deserves to be installed on its own. Install pre-commit and run:
 
 ```bash
 pre-commit run -a

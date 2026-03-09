@@ -1,7 +1,6 @@
 # unxt-api Test Suite
 
-Comprehensive test suite for the `unxt-api` package, covering both unit tests
-and usage examples.
+Comprehensive test suite for the `unxt-api` package, covering both unit tests and usage examples.
 
 ## Test Structure
 
@@ -9,8 +8,7 @@ The test suite is organized into several modules:
 
 ### Unit Tests
 
-- **`test_dimensions.py`**: Tests for dimension-related functions (`dimension`,
-  `dimension_of`)
+- **`test_dimensions.py`**: Tests for dimension-related functions (`dimension`, `dimension_of`)
   - Abstract dispatch behavior
   - Custom dispatch registration
   - API consistency checks
@@ -20,8 +18,7 @@ The test suite is organized into several modules:
   - Custom dispatch registration
   - API consistency checks
 
-- **`test_quantity.py`**: Tests for quantity operations (`uconvert`, `ustrip`,
-  `is_unit_convertible`, `wrap_to`)
+- **`test_quantity.py`**: Tests for quantity operations (`uconvert`, `ustrip`, `is_unit_convertible`, `wrap_to`)
   - Abstract dispatch behavior
   - Custom dispatch registration
   - Varargs handling
@@ -127,17 +124,11 @@ The test suite covers:
 
 ## Notes for Test Maintainers
 
-- **Dispatch Registry Pollution**: Some tests account for the fact that when
-  `unxt` is imported (e.g., during doctest execution), it registers default
-  implementations for certain functions. Tests that check for "no default
-  implementation" are written to handle both scenarios.
+- **Dispatch Registry Pollution**: Some tests account for the fact that when `unxt` is imported (e.g., during doctest execution), it registers default implementations for certain functions. Tests that check for "no default implementation" are written to handle both scenarios.
 
-- **Custom Types in Fixtures**: The `conftest.py` file provides fixtures for
-  creating custom types used in tests. This keeps test code DRY and ensures
-  consistency.
+- **Custom Types in Fixtures**: The `conftest.py` file provides fixtures for creating custom types used in tests. This keeps test code DRY and ensures consistency.
 
-- **Plum Dispatch Testing**: Tests verify plum dispatch behavior without
-  depending on implementation details. They check that:
+- **Plum Dispatch Testing**: Tests verify plum dispatch behavior without depending on implementation details. They check that:
   - Functions are dispatch functions
   - Custom dispatches can be registered
   - Dispatch resolution works as expected
@@ -147,8 +138,7 @@ The test suite covers:
 
 When adding new API functions to `unxt-api`:
 
-1. Add unit tests in the appropriate file (e.g., `test_dimensions.py` for
-   dimension-related functions)
+1. Add unit tests in the appropriate file (e.g., `test_dimensions.py` for dimension-related functions)
 2. Add usage examples in `test_usage.py` showing real-world integration
 3. Update `test_package.py` to include the new function in export checks
 4. Consider edge cases and add them to `test_advanced.py` if needed
@@ -157,16 +147,12 @@ When adding new API functions to `unxt-api`:
 
 The tests follow these principles:
 
-1. **Test the interface, not the implementation**: Tests verify that the
-   dispatch system works correctly, not how it's implemented internally.
+1. **Test the interface, not the implementation**: Tests verify that the dispatch system works correctly, not how it's implemented internally.
 
-2. **Realistic usage patterns**: Usage tests show how third-party packages would
-   actually use the API.
+2. **Realistic usage patterns**: Usage tests show how third-party packages would actually use the API.
 
 3. **Comprehensive coverage**: Both happy paths and edge cases are tested.
 
-4. **Documentation through tests**: Tests serve as examples of how to use the
-   API correctly.
+4. **Documentation through tests**: Tests serve as examples of how to use the API correctly.
 
-5. **Isolation where possible**: Each test should be independent and not rely on
-   side effects from other tests.
+5. **Isolation where possible**: Each test should be independent and not rely on side effects from other tests.

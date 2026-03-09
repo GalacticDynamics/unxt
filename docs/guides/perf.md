@@ -176,7 +176,7 @@ Wow! Notice the dramatic speedup—we're nearly as fast as the raw JAX version!
 - The `jitted_quax_func` runs inside the trace as a compiled operation
 - The only overhead is JIT's normal pytree handling, which is minimal
 
-**Important caveat:** This is a *fixed* cost that only appears once per outermost function call. If your function is called once with a million-element array, this optimization is huge. If your function is called a million times with scalar inputs, the overhead per element is negligible.
+**Important caveat:** This is a _fixed_ cost that only appears once per outermost function call. If your function is called once with a million-element array, this optimization is huge. If your function is called a million times with scalar inputs, the overhead per element is negligible.
 
 ## Summary: How to Think About Performance
 
