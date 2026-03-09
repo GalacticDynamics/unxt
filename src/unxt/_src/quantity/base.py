@@ -1,8 +1,11 @@
+"""`AbstractQuantity` base class."""
+
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
 
 __all__ = ("AbstractQuantity", "is_any_quantity")
 
+import contextlib
 import functools as ft
 import warnings
 from collections.abc import Mapping
@@ -771,7 +774,21 @@ class AbstractQuantity(
             wl.TextDoc("unit=" if named_unit else "")
             + wl.pdoc(self.unit.to_string(), **kwargs),
         ]
-        extra_fields = wl.named_objs(tuple(fs.items()), **kwargs)
+        dataclass_fields = self.__dataclass_fields__
+        extra_fields = wl.named_objs(
+            [
+                (str(k), v)
+                for k, v in fs.items()
+                if (  # filter out repr=False and value=default fields
+                    k not in dataclass_fields
+                    or (
+                        dataclass_fields[k].repr
+                        and _is_different_from_default(v, dataclass_fields[k].default)
+                    )
+                )
+            ],
+            **kwargs,
+        )
 
         # Construct and return the Wadler-Lindig document.
         return (
@@ -790,6 +807,18 @@ class AbstractQuantity(
     def __str__(self) -> str:
         # TODO: make named_unit False?
         return wl.pformat(self, short_arrays=True, named_unit=True, indent=4)
+
+
+def _is_different_from_default(value: Any, default: Any) -> bool:
+    """Check if value differs from default using equality when safe."""
+    with contextlib.suppress(Exception):
+        eq_result = value == default
+        # If equality returns a bool, use it
+        if eq_result is True or eq_result is False:
+            return not eq_result
+
+    # Fall back to identity comparison
+    return value is not default
 
 
 # -----------------------------------------------
