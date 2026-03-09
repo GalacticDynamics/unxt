@@ -2,7 +2,6 @@
 
 import equinox as eqx
 import jax
-import jax.numpy as jnp
 import wadler_lindig as wl
 
 import unxt as u
