@@ -138,7 +138,7 @@ local_scheme         = "no-local-version"
 
 
 [tool.codespell]
-skip = ["uv.lock", "paper/paper.bib"]
+skip = ["uv.lock", "paper/paper.bib", "paper/joss-7771.preprint.tex"]
 
 [tool.jupytext]
 cell_metadata_filter     = "tags,-all"
