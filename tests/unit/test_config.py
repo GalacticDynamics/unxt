@@ -771,13 +771,11 @@ def test_nested_repr_config_override_invalid_key() -> None:
 
 def test_nested_repr_config_override_invalid_value() -> None:
     """QuantityReprConfig.override() rejects invalid values immediately."""
-    with (
-        pytest.raises(
-            ValueError, match="Invalid value for QuantityReprConfig override option"
-        ),
-        u.config.quantity_repr.override(indent="not-an-int"),
+    with pytest.raises(  # noqa: SIM117
+        ValueError, match="Invalid value for QuantityReprConfig override option"
     ):
-        pass
+        with u.config.quantity_repr.override(indent="not-an-int"):
+            pass
 
 
 def test_nested_repr_config_override_with_config_object() -> None:
@@ -807,13 +805,11 @@ def test_nested_repr_config_override_with_config_and_kwargs_raises() -> None:
     cfg = Config()
     cfg.QuantityReprConfig.short_arrays = "compact"
 
-    with (
-        pytest.raises(
-            ValueError, match="Cannot specify both cfg and keyword arguments"
-        ),
-        u.config.quantity_repr.override(cfg, short_arrays=True),
+    with pytest.raises(  # noqa: SIM117
+        ValueError, match="Cannot specify both cfg and keyword arguments"
     ):
-        pass
+        with u.config.quantity_repr.override(cfg, short_arrays=True):
+            pass
 
 
 def test_nested_str_config_override_invalid_key() -> None:
@@ -825,13 +821,11 @@ def test_nested_str_config_override_invalid_key() -> None:
 
 def test_nested_str_config_override_invalid_value() -> None:
     """QuantityStrConfig.override() rejects invalid values immediately."""
-    with (
-        pytest.raises(
-            ValueError, match="Invalid value for QuantityStrConfig override option"
-        ),
-        u.config.quantity_str.override(indent="not-an-int"),
+    with pytest.raises(  # noqa: SIM117
+        ValueError, match="Invalid value for QuantityStrConfig override option"
     ):
-        pass
+        with u.config.quantity_str.override(indent="not-an-int"):
+            pass
 
 
 def test_root_override_invalid_config_section() -> None:
@@ -850,13 +844,11 @@ def test_root_override_invalid_config_option() -> None:
 
 def test_root_override_invalid_config_value() -> None:
     """UnxtConfig.override() surfaces nested invalid values immediately."""
-    with (
-        pytest.raises(
-            ValueError, match="Invalid value for QuantityReprConfig override option"
-        ),
-        u.config.override(quantity_repr__indent="not-an-int"),
+    with pytest.raises(  # noqa: SIM117
+        ValueError, match="Invalid value for QuantityReprConfig override option"
     ):
-        pass
+        with u.config.override(quantity_repr__indent="not-an-int"):
+            pass
 
 
 def test_config_not_callable_for_context_override() -> None:
@@ -867,11 +859,9 @@ def test_config_not_callable_for_context_override() -> None:
 
 def test_root_override_requires_double_underscore() -> None:
     """UnxtConfig.override() requires double-underscore notation."""
-    with (
-        pytest.raises(ValueError, match="must use double-underscore notation"),
-        u.config.override(short_arrays="compact"),
-    ):
-        pass
+    with pytest.raises(ValueError, match="must use double-underscore notation"):  # noqa: SIM117
+        with u.config.override(short_arrays="compact"):
+            pass
 
 
 def test_auto_load_handles_oserror_gracefully(tmp_path: Path) -> None:
@@ -956,13 +946,11 @@ def test_nested_str_config_override_with_config_and_kwargs_raises() -> None:
     cfg = Config()
     cfg.QuantityStrConfig.short_arrays = True
 
-    with (
-        pytest.raises(
-            ValueError, match="Cannot specify both cfg and keyword arguments"
-        ),
-        u.config.quantity_str.override(cfg, short_arrays=False),
+    with pytest.raises(  # noqa: SIM117
+        ValueError, match="Cannot specify both cfg and keyword arguments"
     ):
-        pass
+        with u.config.quantity_str.override(cfg, short_arrays=False):
+            pass
 
 
 # =============================================================================
