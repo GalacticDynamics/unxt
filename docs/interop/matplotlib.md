@@ -1,10 +1,8 @@
 # 📊 Matplotlib
 
-If `matplotlib` is installed, `unxt` will automatically detect this and will
-register parsers with `matplotlib` to enable plotting `Quantity` objects.
+If `matplotlib` is installed, `unxt` will automatically detect this and will register parsers with `matplotlib` to enable plotting `Quantity` objects.
 
-To ensure that a compatible version of `matplotlib` is installed, you can
-install `unxt` with the `interop-mpl` extra:
+To ensure that a compatible version of `matplotlib` is installed, you can install `unxt` with the `interop-mpl` extra:
 
 ::::{tab-set}
 

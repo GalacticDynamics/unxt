@@ -70,16 +70,13 @@ Unxt supports JAX's compelling features:
 - auto-differentiation (`grad`, `jacobian`, `hessian`)
 - GPU/TPU/multi-host acceleration
 
-And best of all, `unxt` doesn't force you to use special unit-compatible
-re-exports of JAX libraries. You can use `unxt` with existing JAX code, and with
-one simple [decorator](#jax-functions), JAX will work with `unxt.Quantity`.
+And best of all, `unxt` doesn't force you to use special unit-compatible re-exports of JAX libraries. You can use `unxt` with existing JAX code, and with one simple [decorator](#jax-functions), JAX will work with `unxt.Quantity`.
 
 ---
 
 ## Installation
 
-[![PyPI version][pypi-version]][pypi-link]
-[![PyPI platforms][pypi-platforms]][pypi-link]
+[![PyPI version][pypi-version]][pypi-link] [![PyPI platforms][pypi-platforms]][pypi-link]
 
 ::::{tab-set}
 
@@ -124,8 +121,7 @@ pip install -e .  # editable mode
 
 ### Dimensions
 
-Dimensions represent the physical nature of quantities (length, time, velocity, etc.).
-They're independent of the units used to measure them.
+Dimensions represent the physical nature of quantities (length, time, velocity, etc.). They're independent of the units used to measure them.
 
 ```{code-block} python
 
@@ -161,8 +157,7 @@ For more details, see the [Dimensions Guide](guides/dimensions.md).
 
 ### Units
 
-Units specify the scale and dimension of measurements. The same dimension can be
-measured in many different units:
+Units specify the scale and dimension of measurements. The same dimension can be measured in many different units:
 
 ```{code-block} python
 
@@ -195,8 +190,7 @@ For more details, see the [Units and Systems Guide](guides/units_and_systems.md)
 
 ### Unit Systems
 
-Unit systems define consistent sets of base units for specific domains. `unxt`
-provides built-in unit systems and tools for creating custom ones.
+Unit systems define consistent sets of base units for specific domains. `unxt` provides built-in unit systems and tools for creating custom ones.
 
 #### Built-in Unit Systems
 
@@ -222,8 +216,7 @@ unitsystem(AU, yr, solMass, rad)
 
 #### Composing Units from a Unit System
 
-Once you have a unit system, you can get units for any physical dimension by
-indexing the system:
+Once you have a unit system, you can get units for any physical dimension by indexing the system:
 
 ```{code-block} python
 
@@ -267,8 +260,7 @@ Unit("km / h")
 
 #### Dynamical Unit Systems
 
-For domains like gravitational dynamics, use dynamical unit systems where
-$G = 1$:
+For domains like gravitational dynamics, use dynamical unit systems where $G = 1$:
 
 ```{code-block} python
 
@@ -282,12 +274,9 @@ unitsystem(kpc, Myr, ...)
 
 For more details, see the [Unit Systems Guide](guides/units_and_systems.md).
 
-
 ### Creating and Working with Quantity objects
 
-The primary API of {mod}`unxt` is the {class}`~unxt.Quantity` class. It combines a
-JAX array with unit information. We currently use [astropy.units][apyunits] for
-unit handling.
+The primary API of {mod}`unxt` is the {class}`~unxt.Quantity` class. It combines a JAX array with unit information. We currently use [astropy.units][apyunits] for unit handling.
 
 Create a `Quantity` by passing a JAX array-compatible object and a unit:
 
@@ -300,8 +289,7 @@ Create a `Quantity` by passing a JAX array-compatible object and a unit:
 Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 ```
 
-As a shorthand, we also support `u.Q` and specifying units as strings
-(parsed by `unxt.unit`, using Astropy as the backend):
+As a shorthand, we also support `u.Q` and specifying units as strings (parsed by `unxt.unit`, using Astropy as the backend):
 
 ```{code-block} python
 
@@ -321,9 +309,7 @@ Unit("m")
 
 ```
 
-`Quantity` objects obey the rules of unitful arithmetic. For example, adding,
-multiplying, or dividing two quantities produces a new `Quantity` with the
-correct units:
+`Quantity` objects obey the rules of unitful arithmetic. For example, adding, multiplying, or dividing two quantities produces a new `Quantity` with the correct units:
 
 ```{code-block} python
 
@@ -391,7 +377,6 @@ Quantity(Array([100., 200., 300.], dtype=float32), unit='cm')
 
 ::::
 
-
 ### JAX functions
 
 JAX functions normally only support pure JAX arrays.
@@ -406,20 +391,13 @@ not a pure JAX array
 
 ```
 
-We use `quax` to enable Quantity support across most of the JAX ecosystem! See
-the [quax docs](https://docs.kidger.site/quax/) for implementation details. The
-short explanation is that you can use `Quantity` in JAX functions so long they
-pass through a
-[`quax.quaxify`](https://docs.kidger.site/quax/api/quax/#quax.quaxify) call.
-Here are a few examples:
+We use `quax` to enable Quantity support across most of the JAX ecosystem! See the [quax docs](https://docs.kidger.site/quax/) for implementation details. The short explanation is that you can use `Quantity` in JAX functions so long they pass through a [`quax.quaxify`](https://docs.kidger.site/quax/api/quax/#quax.quaxify) call. Here are a few examples:
 
 ::::{tab-set}
 
 :::{tab-item} using `quaxify`
 
-This is the way to "quaxify" a JAX function. A powerful feature of `quaxify` is
-that it enables `Quantity` support through _all_ the JAX functions inside the
-top function. With `unxt` you can use normal JAX!
+This is the way to "quaxify" a JAX function. A powerful feature of `quaxify` is that it enables `Quantity` support through _all_ the JAX functions inside the top function. With `unxt` you can use normal JAX!
 
 ```{code-block} python
 :emphasize-lines: 4
@@ -440,8 +418,7 @@ Quantity(Array([ 5., 14., 27.], dtype=float32), unit='m2')
 
 :::{tab-item} convenience library
 
-[`quaxed`][quaxed] is a convenience library that pre-"quaxify"s JAX functions.
-It's a drop-in replacement for much of JAX.
+[`quaxed`][quaxed] is a convenience library that pre-"quaxify"s JAX functions. It's a drop-in replacement for much of JAX.
 
 ```{code-block} python
 
@@ -474,8 +451,7 @@ Quantity(Array([ 5., 14., 27.], dtype=float32), unit='m2')
 
 ```
 
-Static quantities are also available when you need JAX-static configuration or
-constants:
+Static quantities are also available when you need JAX-static configuration or constants:
 
 ```{code-block} python
 
@@ -497,9 +473,7 @@ Quantity(Array([2., 3.], dtype=float32), unit='m')
 
 ```
 
-You can also keep a static value inside a regular `Quantity` by wrapping it
-with `StaticValue`. Arithmetic behaves like the wrapped array, and
-`StaticValue + StaticValue` returns a `StaticValue`:
+You can also keep a static value inside a regular `Quantity` by wrapping it with `StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`:
 
 ```{code-block} python
 
@@ -609,9 +583,7 @@ Quantity(Array(0.5, dtype=float32, weak_type=True), unit='1 / s')
 
 [![JOSS][joss]][joss-link] [![DOI][zenodo-badge]][zenodo-link]
 
-If you found this library to be useful and want to support the development and
-maintenance of lower-level code libraries for the scientific community, please
-consider citing this work.
+If you found this library to be useful and want to support the development and maintenance of lower-level code libraries for the scientific community, please consider citing this work.
 
 ---
 
@@ -619,8 +591,7 @@ consider citing this work.
 
 ### `unxt`'s Dependencies
 
-- [Equinox][equinox]: one-stop JAX library, for everything that isn't already in
-  core JAX.
+- [Equinox][equinox]: one-stop JAX library, for everything that isn't already in core JAX.
 - [Quax][quax]: JAX + multiple dispatch + custom array-ish objects.
 - [Quaxed][quaxed]: pre-`quaxify`ed Jax.
 - [plum][plum]: multiple dispatch in python

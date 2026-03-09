@@ -24,8 +24,7 @@
 
 ---
 
-Unxt is unitful quantities and calculations in [JAX][jax], built on
-[Equinox][equinox] and [Quax][quax].
+Unxt is unitful quantities and calculations in [JAX][jax], built on [Equinox][equinox] and [Quax][quax].
 
 Unxt supports JAX's compelling features:
 
@@ -34,14 +33,11 @@ Unxt supports JAX's compelling features:
 - auto-differentiation (`grad`, `jacobian`, `hessian`)
 - GPU/TPU/multi-host acceleration
 
-And best of all, `unxt` doesn't force you to use special unit-compatible
-re-exports of JAX libraries. You can use `unxt` with existing JAX code, and with
-[quax][quax]'s simple decorator, JAX will work with `unxt.Quantity`.
+And best of all, `unxt` doesn't force you to use special unit-compatible re-exports of JAX libraries. You can use `unxt` with existing JAX code, and with [quax][quax]'s simple decorator, JAX will work with `unxt.Quantity`.
 
 ## Installation
 
-[![PyPI version][pypi-version]][pypi-link]
-[![PyPI platforms][pypi-platforms]][pypi-link]
+[![PyPI version][pypi-version]][pypi-link] [![PyPI platforms][pypi-platforms]][pypi-link]
 
 ```bash
 pip install unxt
@@ -79,14 +75,11 @@ pip install -e .  # editable mode
 
 [![Read The Docs](https://img.shields.io/badge/read_docs-here-orange)](https://unxt.readthedocs.io/en/)
 
-For full documentation, including installation instructions, tutorials, and API
-reference, please see the [unxt docs][rtd-link]. This README provides a brief
-overview and some quick examples.
+For full documentation, including installation instructions, tutorials, and API reference, please see the [unxt docs][rtd-link]. This README provides a brief overview and some quick examples.
 
 ### Dimensions
 
-Dimensions represent the physical type of a quantity, such as length, time, or
-mass.
+Dimensions represent the physical type of a quantity, such as length, time, or mass.
 
 ```python
 import unxt as u
@@ -147,8 +140,7 @@ print(u.dimension_of(meter))
 
 ## Unit Systems
 
-Unit systems define consistent sets of base units for specific domains. `unxt`
-provides built-in unit systems and tools for creating custom ones.
+Unit systems define consistent sets of base units for specific domains. `unxt` provides built-in unit systems and tools for creating custom ones.
 
 ### Built-in Unit Systems
 
@@ -171,8 +163,7 @@ print(galactic)
 
 ### Composing Units from a Unit System
 
-Once you have a unit system, you can get units for any physical dimension by
-indexing the system:
+Once you have a unit system, you can get units for any physical dimension by indexing the system:
 
 ```python
 usys = u.unitsystem("si")
@@ -201,8 +192,7 @@ print(custom_usys["velocity"])
 
 ### Dynamical Unit Systems
 
-For domains like gravitational dynamics, use dynamical unit systems where
-$G = 1$:
+For domains like gravitational dynamics, use dynamical unit systems where $G = 1$:
 
 ```python
 from unxt.unitsystems import DynamicalSimUSysFlag
@@ -296,8 +286,7 @@ except ValueError as e:
 
 #### BareQuantity
 
-For performance-critical code where you don't need dimension checking, use
-`BareQuantity`:
+For performance-critical code where you don't need dimension checking, use `BareQuantity`:
 
 ```python
 import unxt as u
@@ -335,8 +324,7 @@ print(wrapped)
 
 #### StaticQuantity
 
-For static configuration values (e.g., JAX static arguments), use
-`StaticQuantity`, which stores NumPy values and rejects JAX arrays:
+For static configuration values (e.g., JAX static arguments), use `StaticQuantity`, which stores NumPy values and rejects JAX arrays:
 
 ```python
 import numpy as np
@@ -358,11 +346,7 @@ print(add(1.0, cfg))
 
 #### StaticValue
 
-If you want a `Quantity` that keeps a static value but still participates in
-regular arithmetic, wrap the value with `StaticValue`. Arithmetic behaves like
-the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`.
-Comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) return NumPy boolean
-arrays for element-wise comparison:
+If you want a `Quantity` that keeps a static value but still participates in regular arithmetic, wrap the value with `StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`. Comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) return NumPy boolean arrays for element-wise comparison:
 
 ```python
 import numpy as np
@@ -383,14 +367,11 @@ print(sv == np.array([1.0, 2.0]))  # array([ True,  True])
 
 ### JAX Integration
 
-`unxt` is built on [`quax`][quax], which enables custom array-ish objects in
-JAX. For convenience we use the [`quaxed`][quaxed] library, which is just a
-`quax.quaxify` wrapper around `jax` to avoid boilerplate code.
+`unxt` is built on [`quax`][quax], which enables custom array-ish objects in JAX. For convenience we use the [`quaxed`][quaxed] library, which is just a `quax.quaxify` wrapper around `jax` to avoid boilerplate code.
 
 > [!NOTE]
 >
-> Using [`quaxed`][quaxed] is optional. You can directly use `quaxify`, and even
-> apply it to the top-level function instead of individual functions.
+> Using [`quaxed`][quaxed] is optional. You can directly use `quaxify`, and even apply it to the top-level function instead of individual functions.
 
 ```python
 from quaxed import grad, vmap
@@ -411,33 +392,19 @@ See the [documentation][rtd-link] for more examples and details of JIT and AD
 
 ## Citation
 
-[![JOSS][joss-badge]][joss-link] [![DOI][zenodo-badge]][zenodo-link]
+[![JOSS][joss-badge]][joss-link]
 
-If you found this library to be useful and want to support the development and
-maintenance of lower-level code libraries for the scientific community, please
-consider citing this work.
+If you found this library to be useful and want to support the development and maintenance of lower-level code libraries for the scientific community, please consider citing this work.
 
 ## Contributing and Development
 
-[![Actions Status][actions-badge]][actions-link]
-[![Documentation Status][rtd-badge]][rtd-link]
-[![codecov][codecov-badge]][codecov-link]
-[![SPEC 0 — Minimum Supported Dependencies][spec0-badge]][spec0-link]
-[![pre-commit][pre-commit-badge]][pre-commit-link]
-[![ruff][ruff-badge]][ruff-link]
-[![CodSpeed Badge](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/GalacticDynamics/unxt)
+[![Actions Status][actions-badge]][actions-link] [![Documentation Status][rtd-badge]][rtd-link] [![codecov][codecov-badge]][codecov-link] [![SPEC 0 — Minimum Supported Dependencies][spec0-badge]][spec0-link] [![pre-commit][pre-commit-badge]][pre-commit-link] [![ruff][ruff-badge]][ruff-link] [![CodSpeed Badge](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/GalacticDynamics/unxt)
 
-We welcome contributions! Contributions are how open source projects improve and
-grow.
+We welcome contributions! Contributions are how open source projects improve and grow.
 
-To contribute to `unxt`, please
-[fork](https://github.com/GalacticDynamics/unxt/fork) the repository, make a
-development branch, develop on that branch, then
-[open a pull request](https://github.com/GalacticDynamics/unxt/compare) from the
-branch in your fork to main.
+To contribute to `unxt`, please [fork](https://github.com/GalacticDynamics/unxt/fork) the repository, make a development branch, develop on that branch, then [open a pull request](https://github.com/GalacticDynamics/unxt/compare) from the branch in your fork to main.
 
-To report bugs, request features, or suggest other ideas, please
-[open an issue](https://github.com/GalacticDynamics/unxt/issues/new/choose).
+To report bugs, request features, or suggest other ideas, please [open an issue](https://github.com/GalacticDynamics/unxt/issues/new/choose).
 
 For more information, see [CONTRIBUTING.md](CONTRIBUTING.md).
 

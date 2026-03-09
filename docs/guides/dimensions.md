@@ -1,16 +1,12 @@
 # Dimensions
 
-A dimension refers to a measurable extent of a physical quantity, such as
-length, time, or mass. `unxt` has a sub-module for working with dimensions:
-`unxt.dims`. The dimensions module provides two functions: `dimension` and
-`dimension_of`.
+A dimension refers to a measurable extent of a physical quantity, such as length, time, or mass. `unxt` has a sub-module for working with dimensions: `unxt.dims`. The dimensions module provides two functions: `dimension` and `dimension_of`.
 
 ```{code-block} python
 >>> from unxt.dims import dimension, dimension_of
 ```
 
-The function `dimension` is for creating a dimension, while `dimension_of` is
-for getting the dimension of an object.
+The function `dimension` is for creating a dimension, while `dimension_of` is for getting the dimension of an object.
 
 Note that both functions are also available in the `unxt` namespace.
 
@@ -25,10 +21,7 @@ True
 
 ## Creating Dimensions
 
-The `dimension()` function can accept many types of inputs, and more
-types can be registered via multiple dispatch.
-A longer list of supported inputs can be found in the API documentation.
-The full list can be found dynamically by running:
+The `dimension()` function can accept many types of inputs, and more types can be registered via multiple dispatch. A longer list of supported inputs can be found in the API documentation. The full list can be found dynamically by running:
 
 ```{code-block} python
 >>> u.dimension.methods  # doctest: +SKIP
@@ -39,8 +32,7 @@ List of 2 method(s):
 
 ### 1. From Dimension Objects
 
-If you already have a dimension object (from {mod}`astropy`), you can pass it
-directly. The function will return the same object unchanged.
+If you already have a dimension object (from {mod}`astropy`), you can pass it directly. The function will return the same object unchanged.
 
 ```{code-block} python
 >>> import astropy.units as apyu
@@ -71,8 +63,7 @@ PhysicalType('mass')
 
 ```
 
-Some dimension names have spaces, such as "amount of substance" and
-"absement". You can use these names directly:
+Some dimension names have spaces, such as "amount of substance" and "absement". You can use these names directly:
 
 ```{code-block} python
 >>> u.dimension("amount of substance")
@@ -81,8 +72,7 @@ PhysicalType('amount of substance')
 
 #### Mathematical Expressions
 
-You can construct derived dimensions using mathematical expressions. Supported
-operators are:
+You can construct derived dimensions using mathematical expressions. Supported operators are:
 
 - `*` : Multiplication
 - `/` : Division
@@ -105,9 +95,7 @@ PhysicalType('force')
 
 ```
 
-Parentheses can be used to group operations or to disambiguate multi-word
-dimension names in expressions. When you have multi-word dimension names, you
-**must** use parentheses:
+Parentheses can be used to group operations or to disambiguate multi-word dimension names in expressions. When you have multi-word dimension names, you **must** use parentheses:
 
 ```{code-block} python
 >>> # Multi-word names require parentheses in expressions
@@ -124,8 +112,7 @@ PhysicalType({'speed', 'velocity'})
 
 ```
 
-You can freely mix parenthesized multi-word names with unparenthesized
-single-word names in the same expression:
+You can freely mix parenthesized multi-word names with unparenthesized single-word names in the same expression:
 
 ```{code-block} python
 >>> # Multi-word name with single-word names
@@ -188,18 +175,11 @@ PhysicalType('angle')
 
 ## Important Notes
 
-- **Unsupported operators**: The `+` and `-` symbols are **not** supported as
-  mathematical operators since dimensions are invariant under addition and subtraction.
-  Also, they're reserved for dimension names like "electric-dipole moment".
-  If you need to add or subtract dimensions, what are you even doing?
+- **Unsupported operators**: The `+` and `-` symbols are **not** supported as mathematical operators since dimensions are invariant under addition and subtraction. Also, they're reserved for dimension names like "electric-dipole moment". If you need to add or subtract dimensions, what are you even doing?
 
-- **Derived dimensions**: When you create a derived dimension via an expression,
-  Astropy will attempt to simplify it to a known dimension name if possible.
-  For example, "length / time" becomes "speed/velocity".
+- **Derived dimensions**: When you create a derived dimension via an expression, Astropy will attempt to simplify it to a known dimension name if possible. For example, "length / time" becomes "speed/velocity".
 
-- **Dimension names from Astropy**: All dimension names are drawn from Astropy's
-  physical type catalogue, which provides a comprehensive set of physical
-  dimensions used in science and engineering.
+- **Dimension names from Astropy**: All dimension names are drawn from Astropy's physical type catalogue, which provides a comprehensive set of physical dimensions used in science and engineering.
 
   ```{code-block} python
   >>> u.dimension("length**3")
@@ -208,7 +188,6 @@ PhysicalType('angle')
   >>> u.dimension("mass / length**3")
   PhysicalType('mass density')
   ```
-
 
 :::{seealso}
 

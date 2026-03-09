@@ -1,13 +1,8 @@
 # 🔭 Astropy
 
-[Astropy][astropy-link] is a widely-used Python library for astronomy. One of
-its many widely-used sub-packages is its [`astropy.units`][astropy-units]
-library, which provide objects and methods for working with physical quantities,
-units, and dimensions.
+[Astropy][astropy-link] is a widely-used Python library for astronomy. One of its many widely-used sub-packages is its [`astropy.units`][astropy-units] library, which provides objects and methods for working with physical quantities, units, and dimensions.
 
-`unxt` uses Astropy's units and dimensions objects as its backend, while
-providing a more function-oriented API and JAX support. Unsurprisingly, `unxt`
-has deep support for Astropy objects.
+`unxt` uses Astropy's units and dimensions objects as its backend, while providing a more function-oriented API and JAX support. Unsurprisingly, `unxt` has deep support for Astropy objects.
 
 ## Dimensions
 
@@ -55,11 +50,9 @@ Unit("m")
 
 ## Quantities
 
-`unxt` uses Astropy's units and dimensions objects as its backend, but has it's
-own `Quantity` class hierarchy.
+`unxt` uses Astropy's units and dimensions objects as its backend, but has its own `Quantity` class hierarchy.
 
-Converting an [Astropy Quantity][astropy-Quantity] to a [unxt
-Quantity][unxt-Quantity] is straightforward -- use `unxt.Quantity.from_`:
+Converting an [Astropy Quantity][astropy-Quantity] to a [unxt Quantity][unxt-Quantity] is straightforward -- use `unxt.Quantity.from_`:
 
 ```{code-block} python
 
@@ -75,8 +68,7 @@ Quantity][unxt-Quantity] is straightforward -- use `unxt.Quantity.from_`:
 Quantity(Array(1., dtype=float32), unit='m')
 ```
 
-Alternatively, the multiple-dispatch library on which `unxt` is built enables
-2-way conversion.
+Alternatively, the multiple-dispatch library on which `unxt` is built enables 2-way conversion.
 
 ```{code-block} python
 >>> from plum import convert
@@ -91,14 +83,11 @@ Quantity(Array(1., dtype=float32), unit='m')
 
 ## Unit Conversion with Astropy
 
-`unxt` provides full support for unit conversions using Astropy's units. The
-low-level `uconvert_value` function works seamlessly with Astropy unit objects,
-enabling high-performance conversions suitable for JAX transformations.
+`unxt` provides full support for unit conversions using Astropy's units. The low-level `uconvert_value` function works seamlessly with Astropy unit objects, enabling high-performance conversions suitable for JAX transformations.
 
 ### `uconvert_value` with Astropy Units
 
-The `uconvert_value` function accepts Astropy unit objects and performs efficient
-numerical conversions:
+The `uconvert_value` function accepts Astropy unit objects and performs efficient numerical conversions:
 
 ```{code-block} python
 
@@ -141,6 +130,7 @@ Support for composite units and unit equivalencies:
 ### Performance Considerations
 
 `uconvert_value` with Astropy units is optimized for performance:
+
 - **Hot-path**: When units are identical, the value is returned unchanged
 - **JAX compatible**: Works with JIT compilation, vmap, and autodiff
 - **Low overhead**: Direct Astropy unit conversion without Quantity wrapping
@@ -163,7 +153,5 @@ Array([ 1.,  5., 10.], dtype=float32)
 
 [astropy-link]: https://www.astropy.org/
 [astropy-units]: https://docs.astropy.org/en/stable/units/index.html
-[astropy-Quantity]:
-  https://docs.astropy.org/en/stable/api/astropy.units.Quantity.html
-[unxt-Quantity]:
-  https://unxt.readthedocs.io/en/latest/api/quantities/#unxt.quantity.AbstractQuantity
+[astropy-Quantity]: https://docs.astropy.org/en/stable/api/astropy.units.Quantity.html
+[unxt-Quantity]: https://unxt.readthedocs.io/en/latest/api/quantities/#unxt.quantity.AbstractQuantity

@@ -1,11 +1,8 @@
 # unxt-hypothesis
 
-Hypothesis strategies for property-based testing with
-[unxt](https://github.com/GalacticDynamics/unxt).
+Hypothesis strategies for property-based testing with [unxt](https://github.com/GalacticDynamics/unxt).
 
-This package provides [Hypothesis](https://hypothesis.readthedocs.io/)
-strategies for generating random `Quantity`, `Angle`, `Unit`, `Dimension`, and
-`UnitSystem` objects for property-based testing.
+This package provides [Hypothesis](https://hypothesis.readthedocs.io/) strategies for generating random `Quantity`, `Angle`, `Unit`, `Dimension`, and `UnitSystem` objects for property-based testing.
 
 ## Quick Start
 
@@ -53,9 +50,7 @@ def test_angle_property(angle):
 
 ### `named_dimensions()`
 
-Generate a named physical dimension from Astropy's physical type catalogue.
-Returns `u.AbstractDimension`. Useful for dimension-parameterized tests and for
-feeding into `units()` and `quantities()`.
+Generate a named physical dimension from Astropy's physical type catalogue. Returns `u.AbstractDimension`. Useful for dimension-parameterized tests and for feeding into `units()` and `quantities()`.
 
 **Examples:**
 
@@ -93,12 +88,9 @@ Generate units that are dimensionally equivalent to a given base unit.
 
 **Parameters:**
 
-- `base` (str | Unit | SearchStrategy): Base unit (e.g., "m", "s", "kg") or a
-  hypothesis strategy that generates such units.
-- `integer_powers` (bool): If True, only generate units with integer powers of
-  base units (default: True).
-- `max_complexity` (int): Maximum number of additional base unit factors to
-  combine (default: 3).
+- `base` (str | Unit | SearchStrategy): Base unit (e.g., "m", "s", "kg") or a hypothesis strategy that generates such units.
+- `integer_powers` (bool): If True, only generate units with integer powers of base units (default: True).
+- `max_complexity` (int): Maximum number of additional base unit factors to combine (default: 3).
 
 **Returns:** `unxt.AbstractUnit`
 
@@ -108,12 +100,9 @@ Generate random `Unit` objects from astropy.
 
 **Parameters:**
 
-- `dimension` (str | Dimension | SearchStrategy | None): The physical dimension
-  of the unit. If None, generates units from various dimensions. Examples:
-  `"length"`, `"velocity"`, `"energy"`.
+- `dimension` (str | Dimension | SearchStrategy | None): The physical dimension of the unit. If None, generates units from various dimensions. Examples: `"length"`, `"velocity"`, `"energy"`.
 - `max_complexity` (int): Maximum complexity of compound units (default: 2).
-- `allow_non_integer_powers` (bool): Whether to allow non-integer powers in
-  units (default: False).
+- `allow_non_integer_powers` (bool): Whether to allow non-integer powers in units (default: False).
 
 **Returns:** `unxt.AbstractUnit`
 
@@ -123,14 +112,12 @@ Generate random `Quantity` objects.
 
 **Parameters:**
 
-- `shape` (int | tuple[int, ...] | st.SearchStrategy | None): Shape of the
-  array. Can be:
+- `shape` (int | tuple[int, ...] | st.SearchStrategy | None): Shape of the array. Can be:
   - `None` (default): Generates small arrays with various shapes
   - `int`: Scalar shape specification (e.g., `3` for shape `(3,)`)
   - `tuple`: Explicit shape (e.g., `(3, 3)` for a 3×3 matrix)
   - Strategy: A Hypothesis strategy that generates shapes
-- `dtype` (np.dtype | st.SearchStrategy | None): Data type of the array.
-  Defaults to `float32`.
+- `dtype` (np.dtype | st.SearchStrategy | None): Data type of the array. Defaults to `float32`.
 - `unit` (str | Unit | st.SearchStrategy | None): Unit for the quantity. Can be:
   - `None` (default): Generates quantities with various common units
   - `str`: Specific unit string (e.g., `"m"`, `"km/s"`)
@@ -145,8 +132,7 @@ Generate random `UnitSystem` objects.
 
 **Parameters:**
 
-- `*units` (str | Unit | st.SearchStrategy[Unit]): Variable number of unit
-  specifications. Each can be:
+- `*units` (str | Unit | st.SearchStrategy[Unit]): Variable number of unit specifications. Each can be:
   - `str`: Fixed unit string (e.g., `"m"`, `"kg"`)
   - `Unit`: Fixed unit object
   - Strategy: A Hypothesis strategy that generates units
@@ -159,11 +145,8 @@ Generate random `Angle` objects with optional wrapping bounds.
 
 **Parameters:**
 
-- `wrap_to` (tuple | st.SearchStrategy | None): Wrapping bounds for the angle.
-  Can be `None` (no wrapping), a `(min, max)` tuple of quantities, or a
-  strategy.
-- `**kwargs`: Additional keyword arguments passed to `quantities()` (e.g.,
-  `dtype`, `shape`, `elements`, `unique`).
+- `wrap_to` (tuple | st.SearchStrategy | None): Wrapping bounds for the angle. Can be `None` (no wrapping), a `(min, max)` tuple of quantities, or a strategy.
+- `**kwargs`: Additional keyword arguments passed to `quantities()` (e.g., `dtype`, `shape`, `elements`, `unique`).
 
 **Returns:** `unxt.Angle`
 
@@ -193,8 +176,7 @@ Generate wrapped quantities by constraining values to a specified range.
 
 **Parameters:**
 
-- `quantity` (u.AbstractQuantity | st.SearchStrategy): Quantity or strategy that
-  generates the base quantity to wrap.
+- `quantity` (u.AbstractQuantity | st.SearchStrategy): Quantity or strategy that generates the base quantity to wrap.
 - `min` (u.AbstractQuantity | st.SearchStrategy): Minimum value (inclusive).
 - `max` (u.AbstractQuantity | st.SearchStrategy): Maximum value (exclusive).
 
@@ -219,14 +201,11 @@ def test_wrapped_angle(angle):
     assert 0 <= angle.value < 360
 ```
 
-Note: The `angles()` strategy provides a more convenient interface for
-generating wrapped angles.
+Note: The `angles()` strategy provides a more convenient interface for generating wrapped angles.
 
 ## Type Strategy Registration
 
-The package automatically registers type strategies for Hypothesis's
-`st.from_type()` function, enabling automatic strategy generation for unxt
-types:
+The package automatically registers type strategies for Hypothesis's `st.from_type()` function, enabling automatic strategy generation for unxt types:
 
 ```python
 from hypothesis import given, strategies as st
@@ -282,16 +261,12 @@ The following types are automatically registered:
 
 - `u.AbstractQuantity` → generates `Quantity` instances
 - `u.Quantity` → generates `Quantity` instances with dimension checking
-- `u.quantity.BareQuantity` → generates `BareQuantity` instances (no dimension
-  checking)
-- `u.quantity.StaticQuantity` → generates `StaticQuantity` instances with
-  `StaticValue` wrapper (for non-traced values)
+- `u.quantity.BareQuantity` → generates `BareQuantity` instances (no dimension checking)
+- `u.quantity.StaticQuantity` → generates `StaticQuantity` instances with `StaticValue` wrapper (for non-traced values)
 - `u.Angle` → generates `Angle` instances with angle dimension
 - `u.AbstractUnitSystem` → generates unit systems
 
-This integration allows you to use type annotations directly in your tests
-without explicitly importing the strategy functions, making tests more concise
-and easier to read.
+This integration allows you to use type annotations directly in your tests without explicitly importing the strategy functions, making tests more concise and easier to read.
 
 ## Examples
 
@@ -415,14 +390,11 @@ For full documentation and advanced examples, see:
 
 ## Contributing
 
-Contributions are welcome! Please see the main
-[unxt repository](https://github.com/GalacticDynamics/unxt) for contributing
-guidelines.
+Contributions are welcome! Please see the main [unxt repository](https://github.com/GalacticDynamics/unxt) for contributing guidelines.
 
 ## Documentation
 
-For comprehensive documentation, examples, and guides, see the
-[unxt documentation](https://unxt.readthedocs.io/en/latest/guides/testing.html).
+For comprehensive documentation, examples, and guides, see the [unxt documentation](https://unxt.readthedocs.io/en/latest/guides/testing.html).
 
 ## License
 
@@ -430,6 +402,4 @@ BSD 3-Clause License. See [LICENSE](../../LICENSE) for details.
 
 ## Contributing
 
-Contributions are welcome! Please see the main
-[unxt repository](https://github.com/GalacticDynamics/unxt) for contributing
-guidelines.
+Contributions are welcome! Please see the main [unxt repository](https://github.com/GalacticDynamics/unxt) for contributing guidelines.
