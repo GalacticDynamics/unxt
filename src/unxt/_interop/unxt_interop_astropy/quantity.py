@@ -2,7 +2,6 @@
 
 __all__: tuple[str, ...] = ()
 
-import dataclasses
 from typing import Any, NoReturn
 
 import plum
@@ -307,45 +306,3 @@ def ustrip(flag: type[AllowValue], u: Any, x: AstropyQuantity, /) -> Any:
 
     """
     return uapi.ustrip(u, x)
-
-
-# ============================================================================
-
-
-@plum.dispatch
-def fields(obj: AbstractQuantity, /) -> tuple[dataclasses.Field, ...]:
-    """Return the fields of a quantity.
-
-    Examples
-    --------
-    >>> import dataclassish as dc
-    >>> import unxt as u
-
-    >>> q = u.Quantity(1, "m")
-    >>> dc.fields(q)
-    (Field(name='value',...), Field(name='unit',...))
-
-    """
-    value_field = dataclasses.Field(
-        dataclasses.MISSING,
-        dataclasses.MISSING,
-        True,  # noqa: FBT003
-        False,  # noqa: FBT003
-        False,  # noqa: FBT003
-        False,  # noqa: FBT003
-        {},
-        False,  # noqa: FBT003
-    )
-    value_field.name = "value"
-    unit_field = dataclasses.Field(
-        dataclasses.MISSING,
-        dataclasses.MISSING,
-        True,  # noqa: FBT003
-        False,  # noqa: FBT003
-        False,  # noqa: FBT003
-        False,  # noqa: FBT003
-        {},
-        False,  # noqa: FBT003
-    )
-    unit_field.name = "unit"
-    return (value_field, unit_field)
