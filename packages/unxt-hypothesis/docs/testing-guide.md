@@ -1,13 +1,10 @@
 # Testing with `hypothesis`
 
-This guide shows how to use the `unxt-hypothesis` package for property-based
-testing of code that uses `unxt` quantities.
+This guide shows how to use the `unxt-hypothesis` package for property-based testing of code that uses `unxt` quantities.
 
 ## What is Property-Based Testing?
 
-Property-based testing is a testing methodology where you specify properties
-that should hold true for all inputs, and the testing framework (Hypothesis)
-generates random test cases to verify those properties.
+Property-based testing is a testing methodology where you specify properties that should hold true for all inputs, and the testing framework (Hypothesis) generates random test cases to verify those properties.
 
 Instead of writing:
 
@@ -33,8 +30,7 @@ def test_addition_commutative(q1, q2):
     assert q1 + q2 == q2 + q1
 ```
 
-Hypothesis will generate random test cases with different values, uncovering
-edge cases you might not have thought of.
+Hypothesis will generate random test cases with different values, uncovering edge cases you might not have thought of.
 
 ## Installation
 
@@ -168,13 +164,9 @@ def test_matrix_multiplication_shape(q1, q2):
 
 ## Using Type-Based Strategies with `st.from_type()`
 
-The `unxt-hypothesis` package automatically registers type strategies for
-Hypothesis's `st.from_type()` function. This allows you to use type annotations
-directly in your tests, and Hypothesis will automatically generate appropriate
-test data.
+The `unxt-hypothesis` package automatically registers type strategies for Hypothesis's `st.from_type()` function. This allows you to use type annotations directly in your tests, and Hypothesis will automatically generate appropriate test data.
 
-**Important:** You must import `unxt_hypothesis` to activate the type strategy
-registrations, even if you don't use it directly:
+**Important:** You must import `unxt_hypothesis` to activate the type strategy registrations, even if you don't use it directly:
 
 ```python
 from hypothesis import given, strategies as st
@@ -306,8 +298,7 @@ def test_simple_velocity_units(velocity_unit):
 
 ### Using Dimensions to Generate Units
 
-You can pass a dimension directly to `quantities()` to generate quantities with
-varying units of that dimension:
+You can pass a dimension directly to `quantities()` to generate quantities with varying units of that dimension:
 
 ```python
 @given(q=ust.quantities(u.dimension("length"), shape=3))
@@ -361,13 +352,9 @@ def test_kinematic_vectors(q):
 
 ### Constraining Value Ranges with Elements
 
-The `elements` parameter allows you to control the range of values in generated
-quantities. This is particularly useful for physical quantities with natural
-constraints.
+The `elements` parameter allows you to control the range of values in generated quantities. This is particularly useful for physical quantities with natural constraints.
 
-**Important:** When using custom `elements` strategies with `float32` dtype (the
-default), always specify `width=32` in `st.floats()` to ensure compatibility
-with JAX's array API.
+**Important:** When using custom `elements` strategies with `float32` dtype (the default), always specify `width=32` in `st.floats()` to ensure compatibility with JAX's array API.
 
 #### Positive Distances
 
@@ -452,8 +439,7 @@ def test_realistic_radius(radius):
 
 ### Using Dtype Strategies
 
-The `dtype` parameter can also be a strategy, allowing you to test across
-different numeric types:
+The `dtype` parameter can also be a strategy, allowing you to test across different numeric types:
 
 ```python
 @given(
@@ -536,9 +522,7 @@ def test_quantity_in_system_units(sys, q):
 
 ### Testing Angle Quantities
 
-Use the `quantities()` strategy with `quantity_cls=u.Angle` to generate angle
-quantities. For wrapping angles to a specific range, use the `wrap_to()`
-strategy.
+Use the `quantities()` strategy with `quantity_cls=u.Angle` to generate angle quantities. For wrapping angles to a specific range, use the `wrap_to()` strategy.
 
 ```python
 @given(angle=ust.quantities("rad", quantity_cls=u.Angle))
@@ -556,9 +540,7 @@ def test_angle_in_degrees(angle):
 
 #### Wrapping Quantities to a Range
 
-Use the `wrap_to()` strategy to wrap generated quantities to a specific [min,
-max) range. This is particularly useful for angular quantities like longitude
-and latitude:
+Use the `wrap_to()` strategy to wrap generated quantities to a specific [min, max) range. This is particularly useful for angular quantities like longitude and latitude:
 
 ```python
 @given(
@@ -603,9 +585,7 @@ def test_distance_range(distance):
 
 #### Using the quantity_cls Parameter
 
-The `quantity_cls` parameter controls the type of quantity object created. By
-default, it's `u.Quantity`, but you can specify `u.Angle` or other quantity
-subclasses:
+The `quantity_cls` parameter controls the type of quantity object created. By default, it's `u.Quantity`, but you can specify `u.Angle` or other quantity subclasses:
 
 ```python
 # Generate Angle objects
@@ -760,8 +740,7 @@ def test_quantity_repr(q):
 
 ### 2. Use Appropriate Assumptions
 
-Don't overuse `assume()` as it can slow down tests. Instead, generate
-appropriate data:
+Don't overuse `assume()` as it can slow down tests. Instead, generate appropriate data:
 
 ```python
 # Instead of this:
@@ -829,8 +808,7 @@ def test_sum_preserves_units(q):
 
 ## Debugging Failed Tests
 
-When Hypothesis finds a failing case, it will try to simplify it to a minimal
-example and provide you with a `@example` decorator to reproduce it:
+When Hypothesis finds a failing case, it will try to simplify it to a minimal example and provide you with a `@example` decorator to reproduce it:
 
 ```
 Falsifying example: test_addition_commutative(
@@ -844,9 +822,7 @@ as a decorator on top of @given.
 
 ### Using `@example` to Reproduce Failures
 
-The recommended approach is to use Hypothesis's `@example` decorator to force
-the specific failing case to be tested. This ensures the example runs every time
-and is compatible with Hypothesis's shrinking process:
+The recommended approach is to use Hypothesis's `@example` decorator to force the specific failing case to be tested. This ensures the example runs every time and is compatible with Hypothesis's shrinking process:
 
 ```python
 from hypothesis import given, example
@@ -896,10 +872,7 @@ This approach is useful when you need to:
 - Add extensive logging or inspection
 - Temporarily isolate the failing case
 
-For more on debugging strategies, see the Hypothesis documentation on
-[Reproducing Failures](https://hypothesis.readthedocs.io/en/latest/reproducing.html)
-and
-[Testing Your Tests](https://hypothesis.readthedocs.io/en/latest/details.html#making-assumptions).
+For more on debugging strategies, see the Hypothesis documentation on [Reproducing Failures](https://hypothesis.readthedocs.io/en/latest/reproducing.html) and [Testing Your Tests](https://hypothesis.readthedocs.io/en/latest/details.html#making-assumptions).
 
 ## See Also
 

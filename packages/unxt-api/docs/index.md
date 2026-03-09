@@ -10,21 +10,14 @@ extending
 
 Abstract dispatch API for [unxt](https://github.com/GalacticDynamics/unxt).
 
-{mod}`unxt-api` defines the abstract dispatch interfaces that {mod}`unxt` and
-other packages implement. It provides a minimal dependency foundation for
-packages that want to define or use {mod}`unxt`'s multiple-dispatch-based API
-without pulling in the full {mod}`unxt` implementation.
+{mod}`unxt-api` defines the abstract dispatch interfaces that {mod}`unxt` and other packages implement. It provides a minimal dependency foundation for packages that want to define or use {mod}`unxt`'s multiple-dispatch-based API without pulling in the full {mod}`unxt` implementation.
 
 The {mod}`unxt-api` package serves several important purposes:
 
-1. **Minimal Dependencies**: Depends only on {mod}`plum-dispatch`, not on
-   {mod}`jax`, {mod}`numpy`, or {mod}`astropy`
-2. **Extensibility**: Allows third-party packages to register their own
-   implementations
-3. **Type Safety**: Provides a clear contract for what functions exist and what
-   they should do
-4. **Separation of Concerns**: API definitions are separate from implementation
-   details
+1. **Minimal Dependencies**: Depends only on {mod}`plum-dispatch`, not on {mod}`jax`, {mod}`numpy`, or {mod}`astropy`
+2. **Extensibility**: Allows third-party packages to register their own implementations
+3. **Type Safety**: Provides a clear contract for what functions exist and what they should do
+4. **Separation of Concerns**: API definitions are separate from implementation details
 
 ## Installation
 
@@ -50,27 +43,20 @@ uv add unxt-api
 
 ## Core API
 
-The {mod}`unxt-api` package defines abstract dispatch functions organized by
-domain:
+The {mod}`unxt-api` package defines abstract dispatch functions organized by domain:
 
-- **Dimensions** ({func}`~unxt_api.dimension`, {func}`~unxt_api.dimension_of`) -
-  Working with physical dimensions
-- **Units** ({func}`~unxt_api.unit`, {func}`~unxt_api.unit_of`) - Constructing
-  and inspecting units
-- **Quantities** ({func}`~unxt_api.uconvert`, {func}`~unxt_api.uconvert_value`,
-  {func}`~unxt_api.ustrip`, {func}`~unxt_api.is_unit_convertible`,
-  {func}`~unxt_api.wrap_to`) - Unit conversion and quantity operations
+- **Dimensions** ({func}`~unxt_api.dimension`, {func}`~unxt_api.dimension_of`) - Working with physical dimensions
+- **Units** ({func}`~unxt_api.unit`, {func}`~unxt_api.unit_of`) - Constructing and inspecting units
+- **Quantities** ({func}`~unxt_api.uconvert`, {func}`~unxt_api.uconvert_value`, {func}`~unxt_api.ustrip`, {func}`~unxt_api.is_unit_convertible`, {func}`~unxt_api.wrap_to`) - Unit conversion and quantity operations
 - **Unit Systems** ({func}`~unxt_api.unitsystem_of`) - Inspecting unit systems
 
 ## Using Multiple Dispatch
 
-All functions in {mod}`unxt-api` use [plum](https://beartype.github.io/plum/)
-for multiple dispatch. This means:
+All functions in {mod}`unxt-api` use [plum](https://beartype.github.io/plum/) for multiple dispatch. This means:
 
 1. **Functions can have multiple implementations** based on argument types
 2. **You can register your own implementations** for custom types
-3. **Type annotations drive dispatch** - the runtime types of arguments
-   determine which implementation runs
+3. **Type annotations drive dispatch** - the runtime types of arguments determine which implementation runs
 
 ### Viewing All Implementations
 
@@ -145,8 +131,7 @@ This separation allows:
 
 ## Integration with `unxt`
 
-The {mod}`unxt` package provides the concrete implementations of all
-{mod}`unxt-api` functions. When you use:
+The {mod}`unxt` package provides the concrete implementations of all {mod}`unxt-api` functions. When you use:
 
 ```python
 import unxt as u
@@ -155,8 +140,7 @@ q = u.Q(5, "m")
 u.uconvert("km", q)
 ```
 
-The `u.uconvert` function is the implementation registered by {mod}`unxt` for
-the abstract `unxt_api.uconvert` function.
+The `u.uconvert` function is the implementation registered by {mod}`unxt` for the abstract `unxt_api.uconvert` function.
 
 ## For Package Authors
 
@@ -164,8 +148,7 @@ If you're writing a package that works with physical quantities:
 
 ### Minimal Dependency Approach
 
-Depend on {mod}`unxt-api` to use the dispatch system without pulling in
-{mod}`JAX`:
+Depend on {mod}`unxt-api` to use the dispatch system without pulling in {mod}`JAX`:
 
 ```toml
 # pyproject.toml
@@ -225,20 +208,14 @@ def your_function(q: u.Quantity, /):
 
 ## See Also
 
-- [unxt Documentation](https://unxt.readthedocs.io/) - Full implementation with
-  examples
-- [plum Documentation](https://beartype.github.io/plum/) - Multiple dispatch
-  library
+- [unxt Documentation](https://unxt.readthedocs.io/) - Full implementation with examples
+- [plum Documentation](https://beartype.github.io/plum/) - Multiple dispatch library
 - [unxt on GitHub](https://github.com/GalacticDynamics/unxt)
 
 ## License
 
-BSD 3-Clause License. See
-[LICENSE](https://github.com/GalacticDynamics/unxt/blob/main/LICENSE) for
-details.
+BSD 3-Clause License. See [LICENSE](https://github.com/GalacticDynamics/unxt/blob/main/LICENSE) for details.
 
 ## Contributing
 
-Contributions are welcome! Please see the main
-[unxt repository](https://github.com/GalacticDynamics/unxt) for contributing
-guidelines.
+Contributions are welcome! Please see the main [unxt repository](https://github.com/GalacticDynamics/unxt) for contributing guidelines.

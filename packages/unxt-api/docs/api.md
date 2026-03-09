@@ -131,10 +131,7 @@ u.unit_of(5)  # None
 
 Convert a numerical value from one set of units to another.
 
-This is a low-level unit conversion function that operates on raw numerical
-values (numbers, arrays, etc.) rather than `Quantity` objects. It performs the
-pure numerical conversion between units, without wrapping the result in a
-`Quantity`.
+This is a low-level unit conversion function that operates on raw numerical values (numbers, arrays, etc.) rather than `Quantity` objects. It performs the pure numerical conversion between units, without wrapping the result in a `Quantity`.
 
 **Abstract Signature:**
 
@@ -149,32 +146,22 @@ def uconvert_value(uto: Any, ufrom: Any, x: Any, /) -> Any:
 
 **Key Features:**
 
-- **Pure value conversion**: Converts raw numbers/arrays without `Quantity`
-  wrapping
-- **Flexible unit specification**: Accepts unit objects, strings, or unit
-  systems
+- **Pure value conversion**: Converts raw numbers/arrays without `Quantity` wrapping
+- **Flexible unit specification**: Accepts unit objects, strings, or unit systems
 - **Multiple implementations**: Dispatches on unit type combinations
 - **High performance**: Suitable for batch conversions and internal operations
 
 **Example Implementations** (in `unxt`):
 
-- `uconvert_value(to_unit: AbstractUnit, from_unit: AbstractUnit, value: ArrayLike)` -
-  Convert value between two unit objects
-- `uconvert_value(to_unit: str, from_unit: str, value: ArrayLike)` - Convert
-  value using unit strings
-- `uconvert_value(to_unitsys: AbstractUnitSystem, from_unit: AbstractUnit, value: ArrayLike)` -
-  Convert to the preferred units of a unit system
-- `uconvert_value(to_unitsys: AbstractUnitSystem, from_unit: str, value: ArrayLike)` -
-  Convert to unit system preferred units using string input
+- `uconvert_value(to_unit: AbstractUnit, from_unit: AbstractUnit, value: ArrayLike)` - Convert value between two unit objects
+- `uconvert_value(to_unit: str, from_unit: str, value: ArrayLike)` - Convert value using unit strings
+- `uconvert_value(to_unitsys: AbstractUnitSystem, from_unit: AbstractUnit, value: ArrayLike)` - Convert to the preferred units of a unit system
+- `uconvert_value(to_unitsys: AbstractUnitSystem, from_unit: str, value: ArrayLike)` - Convert to unit system preferred units using string input
 
 **Relationship to Other Functions:**
 
-- **vs `uconvert()`**: `uconvert_value()` operates on raw values; `uconvert()`
-  operates on `Quantity` objects and returns `Quantity` objects. Internally,
-  `uconvert()` often delegates to `uconvert_value()` to perform the numerical
-  conversion step.
-- **vs `ustrip()`**: `ustrip()` combines unit stripping with conversion in one
-  operation; `uconvert_value()` only performs the conversion.
+- **vs `uconvert()`**: `uconvert_value()` operates on raw values; `uconvert()` operates on `Quantity` objects and returns `Quantity` objects. Internally, `uconvert()` often delegates to `uconvert_value()` to perform the numerical conversion step.
+- **vs `ustrip()`**: `ustrip()` combines unit stripping with conversion in one operation; `uconvert_value()` only performs the conversion.
 
 **Examples:**
 
@@ -211,9 +198,7 @@ values_in_m = u.uconvert_value("m", "km", values_in_km)
 
 **Error Handling:**
 
-The function will raise a `plum.NotFoundLookupError` if no dispatch is
-registered for the given unit type combination. This ensures type safety and
-prevents silent failures.
+The function will raise a `plum.NotFoundLookupError` if no dispatch is registered for the given unit type combination. This ensures type safety and prevents silent failures.
 
 ```python
 import plum
@@ -243,8 +228,7 @@ def uconvert(u: Any, x: Any, /) -> Any:
 
 **Example Implementations** (in `unxt`):
 
-- `uconvert(to_unit: str | AbstractUnit, quantity: Quantity)` - Convert quantity
-  to new units
+- `uconvert(to_unit: str | AbstractUnit, quantity: Quantity)` - Convert quantity to new units
 
 **Examples:**
 
@@ -271,8 +255,7 @@ def ustrip(*args: Any) -> Any:
 **Example Implementations** (in `unxt`):
 
 - `ustrip(quantity: Quantity)` - Get value in current units
-- `ustrip(to_unit: str | AbstractUnit, quantity: Quantity)` - Convert then get
-  value.
+- `ustrip(to_unit: str | AbstractUnit, quantity: Quantity)` - Convert then get value.
 
 **Examples:**
 
@@ -301,10 +284,8 @@ def is_unit_convertible(to_unit: Any, from_: Any, /) -> bool:
 
 **Example Implementations** (in `unxt`):
 
-- `is_unit_convertible(to_unit: AbstractUnit, from_unit: AbstractUnit)` - Check
-  unit compatibility
-- `is_unit_convertible(to_unit: AbstractUnit, from_quantity: Quantity)` - Check
-  if quantity can convert
+- `is_unit_convertible(to_unit: AbstractUnit, from_unit: AbstractUnit)` - Check unit compatibility
+- `is_unit_convertible(to_unit: AbstractUnit, from_quantity: Quantity)` - Check if quantity can convert
 
 **Examples:**
 
@@ -335,8 +316,7 @@ def wrap_to(x: Any, min: Any, max: Any, /) -> Any:
 
 **Example Implementations** (in `unxt`):
 
-- `wrap_to(angle: Quantity, min: Quantity, max: Quantity)` - Wrap angles to
-  range
+- `wrap_to(angle: Quantity, min: Quantity, max: Quantity)` - Wrap angles to range
 
 **Examples:**
 

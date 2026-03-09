@@ -1,12 +1,10 @@
 # Extending `unxt`
 
-This guide shows how to extend `unxt` using the multiple dispatch system
-provided by `unxt-api`.
+This guide shows how to extend `unxt` using the multiple dispatch system provided by `unxt-api`.
 
 ## Understanding the Dispatch System
 
-`unxt` uses [plum](https://beartype.github.io/plum/) for multiple dispatch,
-which means:
+`unxt` uses [plum](https://beartype.github.io/plum/) for multiple dispatch, which means:
 
 - Functions can have **multiple implementations** for different argument types
 - The **runtime types** of arguments determine which implementation executes
@@ -14,8 +12,7 @@ which means:
 
 ## Quick Example
 
-Let's say you have a custom quantity type and want it to work with unxt's
-functions:
+Let's say you have a custom quantity type and want it to work with unxt's functions:
 
 ```python
 from plum import dispatch
@@ -337,8 +334,7 @@ u.uconvert.methods
 
 ### Understanding Dispatch Resolution
 
-When you call a dispatch function, plum selects the most specific
-implementation:
+When you call a dispatch function, plum selects the most specific implementation:
 
 ```python
 from plum import dispatch
