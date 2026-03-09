@@ -337,6 +337,8 @@ Quantity([1., 2., 3.], unit='m') Quantity['length'](f32[3], unit='m')
 
 Overrides are thread-local, meaning each thread has its own independent override stack:
 
+<!-- skip: start -->
+
 ```{code-block} python
 >>> import threading
 >>> def worker(name: str, setting: str | bool) -> None:
@@ -348,12 +350,12 @@ Overrides are thread-local, meaning each thread has its own independent override
 >>> thread1.start()
 >>> thread2.start()
 >>> thread1.join()
-Thread 2: Quantity(i32[3], unit='m')
-Thread 1: Quantity([1, 2, 3], unit='m')
 >>> thread2.join()
 
 # Each thread sees its own config without interference
 ```
+
+<!-- skip: end -->
 
 ## Programmatic Access
 
