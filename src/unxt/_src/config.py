@@ -220,6 +220,24 @@ class QuantityReprConfig(LocalConfigurable):
                 )
                 raise ValueError(msg)
 
+            # Validate and resolve values through traitlets immediately so
+            # override() fails fast with clear errors.
+            temp_instance = self.__class__()
+            validated_kwargs: dict[str, Any] = {}
+            for key, value in kwargs.items():
+                try:
+                    setattr(temp_instance, key, value)
+                except TraitError as e:
+                    msg = (
+                        "Invalid value for QuantityReprConfig override option "
+                        f"'{key}': {value!r}"
+                    )
+                    raise ValueError(msg) from e
+                # Bypass thread-local override lookup when reading back the
+                # resolved trait value from the temporary instance.
+                validated_kwargs[key] = object.__getattribute__(temp_instance, key)
+            kwargs = validated_kwargs
+
         if cfg is not None:
             # Create a temporary instance, apply the config to it, and read the
             # resolved trait values. This ensures LazyConfigValue objects are
@@ -227,7 +245,9 @@ class QuantityReprConfig(LocalConfigurable):
             temp_instance = self.__class__(config=cfg)
             overrides = {}
             for trait_name in self.trait_names():
-                overrides[trait_name] = getattr(temp_instance, trait_name)
+                overrides[trait_name] = object.__getattribute__(
+                    temp_instance, trait_name
+                )
             kwargs = overrides
 
         return _NestedConfigContext(self, kwargs)
@@ -373,6 +393,24 @@ class QuantityStrConfig(LocalConfigurable):
                 )
                 raise ValueError(msg)
 
+            # Validate and resolve values through traitlets immediately so
+            # override() fails fast with clear errors.
+            temp_instance = self.__class__()
+            validated_kwargs: dict[str, Any] = {}
+            for key, value in kwargs.items():
+                try:
+                    setattr(temp_instance, key, value)
+                except TraitError as e:
+                    msg = (
+                        "Invalid value for QuantityStrConfig override option "
+                        f"'{key}': {value!r}"
+                    )
+                    raise ValueError(msg) from e
+                # Bypass thread-local override lookup when reading back the
+                # resolved trait value from the temporary instance.
+                validated_kwargs[key] = object.__getattribute__(temp_instance, key)
+            kwargs = validated_kwargs
+
         if cfg is not None:
             # Create a temporary instance, apply the config to it, and read the
             # resolved trait values. This ensures LazyConfigValue objects are
@@ -380,7 +418,9 @@ class QuantityStrConfig(LocalConfigurable):
             temp_instance = self.__class__(config=cfg)
             overrides = {}
             for trait_name in self.trait_names():
-                overrides[trait_name] = getattr(temp_instance, trait_name)
+                overrides[trait_name] = object.__getattribute__(
+                    temp_instance, trait_name
+                )
             kwargs = overrides
 
         return _NestedConfigContext(self, kwargs)
@@ -400,7 +440,7 @@ class UnxtConfig(SingletonConfigurable):
     for different components:
 
     - ``quantity_repr``: Configuration for Quantity.__repr__()
-    - ``quantity_str``: Configuration for Quantity.__str__() (future)
+    - ``quantity_str``: Configuration for Quantity.__str__()
 
     The config can be used as a context manager for temporary, thread-local
     configuration changes that are automatically restored on exit.

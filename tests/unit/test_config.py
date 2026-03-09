@@ -168,23 +168,28 @@ def test_find_pyproject_prefers_nearest(tmp_path: Path) -> None:
 # Auto-loading Tests (run in subprocess)
 
 
-def _run_isolated_import(cwd: Path, extra_code: str = "") -> str:
+def _run_isolated_import(
+    cwd: Path, extra_code: str = "", pre_import_code: str = ""
+) -> str:
     """Import unxt in a subprocess and print config values as JSON."""
-    code = textwrap.dedent(
-        f"""
-        import json
-        import unxt as u
-
-        {extra_code}
-
-        payload = {{
-            "short_arrays": u.config.quantity_repr.short_arrays,
-            "use_short_name": u.config.quantity_repr.use_short_name,
-            "named_unit": u.config.quantity_repr.named_unit,
-            "include_params": u.config.quantity_repr.include_params,
-        }}
-        print(json.dumps(payload))
-        """
+    code = "\n".join(
+        [
+            textwrap.dedent(pre_import_code).strip(),
+            "import json",
+            "import unxt as u",
+            textwrap.dedent(extra_code).strip(),
+            textwrap.dedent(
+                """
+                payload = {
+                    "short_arrays": u.config.quantity_repr.short_arrays,
+                    "use_short_name": u.config.quantity_repr.use_short_name,
+                    "named_unit": u.config.quantity_repr.named_unit,
+                    "include_params": u.config.quantity_repr.include_params,
+                }
+                print(json.dumps(payload))
+                """
+            ).strip(),
+        ]
     )
     result = subprocess.run(  # noqa: S603
         [sys.executable, "-c", code],
@@ -764,6 +769,17 @@ def test_nested_repr_config_override_invalid_key() -> None:
             pass
 
 
+def test_nested_repr_config_override_invalid_value() -> None:
+    """QuantityReprConfig.override() rejects invalid values immediately."""
+    with (
+        pytest.raises(
+            ValueError, match="Invalid value for QuantityReprConfig override option"
+        ),
+        u.config.quantity_repr.override(indent="not-an-int"),
+    ):
+        pass
+
+
 def test_nested_repr_config_override_with_config_object() -> None:
     """Test QuantityReprConfig.override() with a traitlets Config object."""
     original_short_arrays = u.config.quantity_repr.short_arrays
@@ -807,6 +823,17 @@ def test_nested_str_config_override_invalid_key() -> None:
             pass
 
 
+def test_nested_str_config_override_invalid_value() -> None:
+    """QuantityStrConfig.override() rejects invalid values immediately."""
+    with (
+        pytest.raises(
+            ValueError, match="Invalid value for QuantityStrConfig override option"
+        ),
+        u.config.quantity_str.override(indent="not-an-int"),
+    ):
+        pass
+
+
 def test_root_override_invalid_config_section() -> None:
     """UnxtConfig.override() rejects unknown config sections."""
     with pytest.raises(ValueError, match="Unknown config section"):  # noqa: SIM117
@@ -819,6 +846,17 @@ def test_root_override_invalid_config_option() -> None:
     with pytest.raises(ValueError, match="Unknown option 'short_arrayz'"):  # noqa: SIM117
         with u.config.override(quantity_repr__short_arrayz="compact"):
             pass
+
+
+def test_root_override_invalid_config_value() -> None:
+    """UnxtConfig.override() surfaces nested invalid values immediately."""
+    with (
+        pytest.raises(
+            ValueError, match="Invalid value for QuantityReprConfig override option"
+        ),
+        u.config.override(quantity_repr__indent="not-an-int"),
+    ):
+        pass
 
 
 def test_config_not_callable_for_context_override() -> None:
@@ -836,7 +874,7 @@ def test_root_override_requires_double_underscore() -> None:
         pass
 
 
-def test_auto_load_handles_oserror_gracefully(tmp_path: Path, monkeypatch) -> None:
+def test_auto_load_handles_oserror_gracefully(tmp_path: Path) -> None:
     """Test that OSError during file read is handled gracefully."""
     project = tmp_path / "oserror_project"
     project.mkdir()
@@ -845,9 +883,30 @@ def test_auto_load_handles_oserror_gracefully(tmp_path: Path, monkeypatch) -> No
         "[tool.unxt.quantity.repr]\nuse_short_name = true\n", encoding="utf-8"
     )
 
-    # This test verifies the error handling works - the actual OSError is caught
-    # during auto-load at import time, so we can't easily trigger it in tests
-    # but the code path exists and is documented
+    # Patch pathlib.Path.open before importing unxt in the subprocess so
+    # reading pyproject.toml fails during auto-load.
+    pre_import_code = """
+import pathlib
+
+_orig_open = pathlib.Path.open
+
+
+def _open_raises_for_pyproject(self, *args, **kwargs):
+    if self.name == "pyproject.toml":
+        raise OSError("simulated read failure")
+    return _orig_open(self, *args, **kwargs)
+
+
+pathlib.Path.open = _open_raises_for_pyproject
+"""
+
+    payload = json.loads(_run_isolated_import(project, pre_import_code=pre_import_code))
+
+    # Import should not fail, and defaults should be preserved.
+    assert payload["short_arrays"] is False
+    assert payload["use_short_name"] is False
+    assert payload["named_unit"] is True
+    assert payload["include_params"] is False
 
 
 def test_auto_load_handles_keyerror_in_toml(tmp_path: Path) -> None:
