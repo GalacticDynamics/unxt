@@ -24,7 +24,7 @@ u.config.quantity_repr.use_short_name = True
 u.config.quantity_repr.named_unit = False
 
 q = u.Quantity([1, 2, 3], "m")
-print(repr(q))  # Q([1, 2, 3], unit='m')
+print(repr(q))  # Q([1, 2, 3], 'm')
 ```
 
 <!-- skip: end -->

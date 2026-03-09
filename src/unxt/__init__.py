@@ -55,7 +55,7 @@ __all__ = (
 from .setup_package import install_import_hook
 
 with install_import_hook("unxt"):
-    from . import config as config_module, dims, quantity, units, unitsystems
+    from . import dims, quantity, units, unitsystems
     from ._version import version as __version__
     from .config import config
     from .dims import AbstractDimension, dimension, dimension_of
@@ -80,4 +80,3 @@ from . import _interop  # noqa: F401  # register interop
 
 # Clean up the namespace
 del install_import_hook
-del config_module
