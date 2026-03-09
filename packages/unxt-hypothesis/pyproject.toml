@@ -46,8 +46,16 @@ test = [
 ]
 
 [tool.hatch.version]
-raw-options = { root = "../..", search_parent_directories = true, git_describe_command = "python {root}/scripts/get_version.py unxt-hypothesis", local_scheme = "no-local-version" }
-source      = "vcs"
+raw-options = { root = "../..", search_parent_directories = true, scm = { git = { describe_command = [
+  "git",
+  "describe",
+  "--dirty",
+  "--tags",
+  "--long",
+  "--match",
+  "unxt-hypothesis-v*",
+] } }, local_scheme = "no-local-version" }
+source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/unxt_hypothesis/_version.py"

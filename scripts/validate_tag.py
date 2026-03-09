@@ -1,19 +1,62 @@
 #!/usr/bin/env python3
 """Validate git tags for the new versioning strategy in CI/CD.
 
-Ensures:
-- vX.Y.0 (shared) tags are valid and triggers all packages
-- package-vX.Y.Z (Z > 0) tags trigger only that package
-- Invalid tags are rejected (e.g., package-vX.Y.0, vX.Y.Z with Z > 0)
+New strategy (post-refactoring):
+- Shared vX.Y.0 tags are coordinator tags (auto-create package-specific tags)
+- Only package-specific tags (package-vX.Y.Z) trigger builds
+- package-vX.Y.0 tags must have a corresponding vX.Y.0 coordinator tag
+- package-vX.Y.Z (Z > 0) tags are independent bug-fix releases
 
 """
 
 import logging
+import re
+import subprocess
 import sys
 
-from get_version import parse_version_tag
-
 logger = logging.getLogger(__name__)
+
+
+def parse_version_tag(tag: str) -> tuple[str, int, int, int] | None:
+    """Parse a version tag into (package, major, minor, patch).
+
+    Returns `None` if tag doesn't match expected format.
+    """
+    # Format: [package-]vX.Y.Z
+    match = re.match(r"^(?:([a-z-]+)-)?v(\d+)\.(\d+)\.(\d+)$", tag)
+    if match:
+        package = match.group(1) or ""
+        major, minor, patch = (
+            int(match.group(2)),
+            int(match.group(3)),
+            int(match.group(4)),
+        )
+        return (package, major, minor, patch)
+    return None
+
+
+def check_coordinator_tag_exists(version: str) -> bool:
+    """Check if a coordinator tag (vX.Y.Z) exists in the repo.
+
+    Parameters
+    ----------
+    version : str
+        Version without 'v' prefix (e.g., "1.8.0")
+
+    Returns
+    -------
+    bool
+        True if vX.Y.Z tag exists, False otherwise
+
+    """
+    coordinator_tag = f"v{version}"
+    result = subprocess.run(  # noqa: S603
+        ["git", "tag", "-l", coordinator_tag],  # noqa: S607
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return coordinator_tag in result.stdout.strip().split("\n")
 
 
 def validate_tag_for_package(tag: str, package: str | None = None) -> tuple[bool, str]:
@@ -22,7 +65,7 @@ def validate_tag_for_package(tag: str, package: str | None = None) -> tuple[bool
     Parameters
     ----------
     tag : str
-        The git tag to validate
+        The git tag to validate (should be package-specific: package-vX.Y.Z)
     package : str or None
         The package being validated ('unxt', 'unxt-api', 'unxt-hypothesis', or None)
         If None, validates for main unxt package.
@@ -49,33 +92,32 @@ def validate_tag_for_package(tag: str, package: str | None = None) -> tuple[bool
     if package is None:
         package = "unxt"
 
-    # RULE 1: .0 releases must be shared (no package prefix)
-    if patch == 0:
-        if tag_package:
-            return False, (
-                f"❌ Tag {tag}: .0 releases must use shared tags "
-                f"(vX.Y.0 format). Package-specific .0 tags are forbidden. "
-                f"Use v{major}.{minor}.0 instead."
-            )
-        # Shared .0 tag triggers all packages - valid for any package
-        return True, ""
-
-    # RULE 2: Bug-fix releases (Z > 0) must be package-specific
+    # RULE 1: Must be a package-specific tag
     if not tag_package:
         return False, (
-            f"❌ Tag {tag}: Bug-fix releases must be package-specific "
-            f"(package-vX.Y.Z). Cannot use shared tag v{major}.{minor}.{patch} "
-            f"for bug-fix release."
+            f"❌ Tag {tag}: Package CD workflows should only trigger on "
+            f"package-specific tags (e.g., {package}-v{major}.{minor}.{patch}). "
+            f"Shared vX.Y.Z tags are coordinator tags that auto-create package tags."
         )
 
-    # RULE 3: Package-specific tag must match current package
+    # RULE 2: Package-specific tag must match current package
     if tag_package != package:
         return False, (
             f"❌ Tag {tag}: This tag is for package '{tag_package}', "
             f"but this workflow is for package '{package}'. Skipping release."
         )
 
-    # Package-specific bug-fix tag is valid for its package
+    # RULE 3: For .0 releases, verify coordinator tag exists
+    if patch == 0:
+        version = f"{major}.{minor}.{patch}"
+        if not check_coordinator_tag_exists(version):
+            return False, (
+                f"❌ Tag {tag}: Package .0 releases must have a corresponding "
+                f"coordinator tag v{version}. This ensures synchronized releases. "
+                f"Create v{version} first, which will auto-create package tags."
+            )
+
+    # All checks passed
     return True, ""
 
 

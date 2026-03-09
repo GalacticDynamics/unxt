@@ -12,13 +12,19 @@ on:
     branches:
       - main
     tags:
-      - "v*" # Shared release tags (vX.Y.0)
       - "unxt-v*" # Package-specific tags (unxt-vX.Y.Z)
     paths:
       - "src/**"
       - "pyproject.toml"
       - "README.md"
       - ".github/workflows/cd-unxt.yml"
+  workflow_run:
+    workflows:
+      - "Create Package Tags"
+    types:
+      - completed
+    branches:
+      - main
   release:
     types:
       - published
@@ -38,6 +44,11 @@ jobs:
       contents: read
       id-token: write
       attestations: write
+    # Skip when triggered by coordinator tags (v*.0) via release events
+    # Package-specific tags (unxt-v*) should trigger normally
+    if: |
+      github.event_name != 'release' ||
+      startsWith(github.event.release.tag_name, 'unxt-v')
 
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v5.5.0
@@ -73,8 +84,7 @@ jobs:
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/unxt-v')) ||
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
-      (github.event_name == 'release' && github.event.action == 'published')
+      (github.event_name == 'release' && github.event.action == 'published' && startsWith(github.event.release.tag_name, 'unxt-v'))
 
     steps:
       - name: Download built artifact to dist/

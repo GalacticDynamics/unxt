@@ -1,0 +1,74 @@
+name: Create Package Tags
+
+# When a shared vX.Y.0 tag is pushed, automatically create
+# package-specific tags (unxt-vX.Y.0, unxt-api-vX.Y.0, unxt-hypothesis-vX.Y.0)
+# This allows coordinated releases while keeping each package with its own tag.
+
+on:
+  push:
+    tags:
+      - "v*" # Shared release tags (coordinator tags)
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FORCE_COLOR: 3
+
+jobs:
+  create-package-tags:
+    name: Create package-specific tags
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to create and push tags
+
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v5.5.0
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          # Remove 'v' prefix to get version
+          VERSION=${TAG#v}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Validate that this is a .0 release
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          VERSION="${{ steps.version.outputs.version }}"
+
+          # Extract patch version (third number)
+          PATCH=$(echo "$VERSION" | cut -d. -f3 | cut -d- -f1)
+
+          if [ "$PATCH" != "0" ]; then
+            echo "ERROR: Shared tags must be for .0 releases (vX.Y.0)"
+            echo "For bug-fix releases (X.Y.Z where Z > 0), use package-specific tags:"
+            echo "  - unxt-v${VERSION}"
+            echo "  - unxt-api-v${VERSION}"
+            echo "  - unxt-hypothesis-v${VERSION}"
+            exit 1
+          fi
+
+      - name: Create and push package-specific tags
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="${{ steps.version.outputs.tag }}"
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create package-specific tags
+          git tag "unxt-v${VERSION}" -m "Release unxt ${VERSION} (auto-created from ${TAG})"
+          git tag "unxt-api-v${VERSION}" -m "Release unxt-api ${VERSION} (auto-created from ${TAG})"
+          git tag "unxt-hypothesis-v${VERSION}" -m "Release unxt-hypothesis ${VERSION} (auto-created from ${TAG})"
+
+          # Push all tags at once
+          git push origin "unxt-v${VERSION}" "unxt-api-v${VERSION}" "unxt-hypothesis-v${VERSION}"
+
+          echo "✅ Created and pushed package-specific tags for version ${VERSION}"
