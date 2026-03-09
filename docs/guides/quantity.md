@@ -2,8 +2,7 @@
 
 ## Creating Quantity Instances
 
-`Quantity` objects are created by passing a value and a unit to the `Quantity`
-constructor (with `Q` as a shorthand).
+`Quantity` objects are created by passing a value and a unit to the `Quantity` constructor (with `Q` as a shorthand).
 
 ```{code-block} python
 >>> import unxt as u
@@ -12,13 +11,9 @@ constructor (with `Q` as a shorthand).
 Quantity(Array(5, dtype=int32, weak_type=True), unit='m')
 ```
 
-The constructor will automatically
-[convert](https://beartype.github.io/plum/conversion_promotion.html#conversion-with-convert)
-the value to a `jax.Array` (if it is not already one) and convert the unit to a
-`Unit` object.
+The constructor will automatically [convert](https://beartype.github.io/plum/conversion_promotion.html#conversion-with-convert) the value to a `jax.Array` (if it is not already one) and convert the unit to a `Unit` object.
 
-The value and unit of a `Quantity` object can be accessed using the `value` and
-`unit` attributes, respectively:
+The value and unit of a `Quantity` object can be accessed using the `value` and `unit` attributes, respectively:
 
 ```{code-block} python
 >>> q = u.Q([1, 2, 3, 5], "m")
@@ -30,9 +25,7 @@ Unit("m")
 
 ```
 
-If you want more flexible options to create a `Quantity`, you can use the
-`Quantity.from_` class method. This uses multiple dispatch to determine the
-appropriate constructor based on the input arguments.
+If you want more flexible options to create a `Quantity`, you can use the `Quantity.from_` class method. This uses multiple dispatch to determine the appropriate constructor based on the input arguments.
 
 ```{code-block} python
 >>> u.Q.from_(5, "m")  # same as Quantity(5, "m")
@@ -49,8 +42,7 @@ Quantity(Array(5., dtype=float32), unit='m')
 
 ```
 
-There are many more options available with `Quantity.from_`. For a complete list
-of options run `Quantity.from_.methods` in an IDE.
+There are many more options available with `Quantity.from_`. For a complete list of options run `Quantity.from_.methods` in an IDE.
 
 <!-- skip: next -->
 
@@ -63,13 +55,11 @@ List of 9 method(s):
     ...
 ```
 
-`Quantity.from_` assists with interfacing with other libraries, e.g. see
-[Interop with Astropy](../interop/astropy.md).
+`Quantity.from_` assists with interfacing with other libraries, e.g. see [Interop with Astropy](../interop/astropy.md).
 
 ## Converting to Different Units
 
-`Quantity` objects can be converted to different units and values in those
-units. If you prefer an object-oriented approach, use the `uconvert` method.
+`Quantity` objects can be converted to different units and values in those units. If you prefer an object-oriented approach, use the `uconvert` method.
 
 ```{code-block} python
 >>> q = u.Q(5, "m")
@@ -77,8 +67,10 @@ units. If you prefer an object-oriented approach, use the `uconvert` method.
 Quantity(Array(500., dtype=float32, ...), unit='cm')
 ```
 
+<!-- prettier-ignore-start -->
 :::{note}
 :class: dropdown
+<!-- prettier-ignore-end -->
 
 The Astropy API `.to` is also available for `Quantity` objects.
 
@@ -98,9 +90,7 @@ Quantity(Array(500., dtype=float32, ...), unit='cm')
 
 ### Low-Level Value Conversion with `uconvert_value`
 
-For operations on raw numerical values without `Quantity` wrapping, use the
-lower-level `uconvert_value` function. This is useful when you need to perform
-batch conversions or work with JAX transformations.
+For operations on raw numerical values without `Quantity` wrapping, use the lower-level `uconvert_value` function. This is useful when you need to perform batch conversions or work with JAX transformations.
 
 **Basic usage with unit strings:**
 
@@ -123,9 +113,7 @@ Array([1., 2., 5.], dtype=float32, ...)
 
 **Convenience dispatch for Quantity objects:**
 
-The `uconvert_value` function also provides a convenience dispatch that works
-directly with `Quantity` objects, allowing you to use the lower-level function
-without breaking compatibility:
+The `uconvert_value` function also provides a convenience dispatch that works directly with `Quantity` objects, allowing you to use the lower-level function without breaking compatibility:
 
 ```{code-block} python
 >>> u.uconvert_value("km", "m", q)
@@ -138,12 +126,12 @@ This dispatch just calls `uconvert` so you don't need to extract the value manua
 
 - `uconvert_value` operates on raw numerical values and returns raw values
 - `uconvert` operates on `Quantity` objects and returns `Quantity` objects
-- Internally, `uconvert` often delegates to `uconvert_value` for the numerical
-  conversion step
+- Internally, `uconvert` often delegates to `uconvert_value` for the numerical conversion step
 
 **Performance considerations:**
 
 Use `uconvert_value` directly when:
+
 - Performing batch conversions on arrays
 - Working inside JAX transformations (jit, vmap, grad)
 - Avoiding the overhead of `Quantity` objects
@@ -175,9 +163,7 @@ Alternatively the `ustrip` method can be used.
 Array(500., dtype=float32, ...)
 ```
 
-When working with either an array or a `Quantity` object, you can use the
-`ustrip` function with the `unxt.quantity.AllowValue` flag to allow arrays
-without units to be passed in, assuming them to be in the correct output units.
+When working with either an array or a `Quantity` object, you can use the `ustrip` function with the `unxt.quantity.AllowValue` flag to allow arrays without units to be passed in, assuming them to be in the correct output units.
 
 ```{code-block} python
 >>> import jax.numpy as jnp
@@ -185,8 +171,10 @@ without units to be passed in, assuming them to be in the correct output units.
 500
 ```
 
+<!-- prettier-ignore-start -->
 :::{note}
 :class: dropdown
+<!-- prettier-ignore-end -->
 
 The Astropy API `.to_value` is also available for `Quantity` objects.
 
@@ -199,18 +187,15 @@ Array(500., dtype=float32, ...)
 
 ## With reference to `jax.Array`
 
-`Quantity` objects are designed to mirror `jax.Array` and the
-[Array API](https://data-apis.org/array-api/latest/).
+`Quantity` objects are designed to mirror `jax.Array` and the [Array API](https://data-apis.org/array-api/latest/).
 
 :::{note}
 
-If you find that a method or property is missing, please open an issue on the
-[GitHub repository](https:://github.com/GalacticDynamics/unxt).
+If you find that a method or property is missing, please open an issue on the [GitHub repository](https://github.com/GalacticDynamics/unxt).
 
 :::
 
-This means you can operations on `Quantity` objects just like you would with
-`jax.Array`.
+This means you can perform operations on `Quantity` objects just like you would with `jax.Array`.
 
 ### Arithmetic Operations
 
@@ -263,9 +248,7 @@ Quantity(Array([2, 3, 4], dtype=int32), unit='m')
 
 ### Array Updates
 
-`unxt` supports JAX-style array updates. See
-[🔪 JAX - The Sharp Bits 🔪](https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html#array-updates-x-at-idx-set-y)
-for more details.
+`unxt` supports JAX-style array updates. See [🔪 JAX - The Sharp Bits 🔪](https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html#array-updates-x-at-idx-set-y) for more details.
 
 ```{code-block} python
 >>> q = u.Q([1., 2, 3, 4], "m")
@@ -290,15 +273,9 @@ not a pure JAX array
 
 ```
 
-We use `quax` to enable Quantity support across most of the JAX ecosystem! See
-the [quax docs](https://docs.kidger.site/quax/) for implementation details. The
-short version is that you can use `Quantity` in JAX functions so long they pass
-through a [`quax.quaxify`](https://docs.kidger.site/quax/api/quax/#quax.quaxify)
-call. Here are a few examples:
+We use `quax` to enable Quantity support across most of the JAX ecosystem! See the [quax docs](https://docs.kidger.site/quax/) for implementation details. The short version is that you can use `Quantity` in JAX functions so long they pass through a [`quax.quaxify`](https://docs.kidger.site/quax/api/quax/#quax.quaxify) call. Here are a few examples:
 
-This is the way to "quaxify" a JAX function. A powerful feature of `quaxify` is
-that it enables `Quantity` support through _all_ the JAX functions inside the
-top function. With `unxt` you can use normal JAX!
+This is the way to "quaxify" a JAX function. A powerful feature of `quaxify` is that it enables `Quantity` support through _all_ the JAX functions inside the top function. With `unxt` you can use normal JAX!
 
 ```{code-block} python
 :emphasize-lines: 4
@@ -316,8 +293,7 @@ Quantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
 
 ```
 
-[`quaxed`][quaxed] is a convenience library that pre-"quaxify"s JAX functions.
-It's a drop-in replacement for much of JAX.
+[`quaxed`][quaxed] is a convenience library that pre-"quaxify"s JAX functions. It's a drop-in replacement for much of JAX.
 
 ```{code-block} python
 :emphasize-lines: 1
@@ -329,23 +305,17 @@ Quantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
 
 ```
 
-`quaxed` is totally optional. You can
-[`quax.quaxify`](https://docs.kidger.site/quax/api/quax/#quax.quaxify) manually,
-to only decorate your top-level functions or to call 3rd party functions.
+`quaxed` is totally optional. You can [`quax.quaxify`](https://docs.kidger.site/quax/api/quax/#quax.quaxify) manually, to only decorate your top-level functions or to call 3rd party functions.
 
 :::{attention}
 
-`Quantity` should support **all** JAX functions. If you find a function that
-doesn't work, please open an issue on the
-[GitHub repository](https:://github.com/GalacticDynamics/unxt).
+`Quantity` should support **all** JAX functions. If you find a function that doesn't work, please open an issue on the [GitHub repository](https://github.com/GalacticDynamics/unxt).
 
 :::
 
 ## Pretty Printing
 
-`Quantity` objects support the
-[`wadler_lindig`](https://docs.kidger.site/wadler_lindig) library for pretty
-printing.
+`Quantity` objects support the [`wadler_lindig`](https://docs.kidger.site/wadler_lindig) library for pretty printing.
 
 ```{code-block} python
 
@@ -394,8 +364,7 @@ Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
 ```
 
-The units can be turned from a named argument to a positional argument by
-setting `named_unit=False`:
+The units can be turned from a named argument to a positional argument by setting `named_unit=False`:
 
 ```{code-block} python
 
@@ -413,8 +382,7 @@ Quantity([1, 2, 3], unit='m')
 
 ```
 
-For more compact output, the `Quantity` class has a short name `Q` that can be
-used by setting `use_short_name=True`:
+For more compact output, the `Quantity` class has a short name `Q` that can be used by setting `use_short_name=True`:
 
 ```{code-block} python
 
@@ -435,23 +403,17 @@ Q([1, 2, 3], unit='m')
 
 ```
 
-See the [`wadler_lindig` documentation](https://docs.kidger.site/wadler_lindig)
-for more details on the pretty printing options.
-
+See the [`wadler_lindig` documentation](https://docs.kidger.site/wadler_lindig) for more details on the pretty printing options.
 
 # Specialized Quantity Objects
 
 ## Working with `Angle` Objects
 
-The {class}`~unxt.quantity.Angle` class is a specialized quantity for
-representing angular measurements, similar to {class}`~unxt.quantity.Quantity`
-but with additional features and constraints tailored for angles.
+The {class}`~unxt.quantity.Angle` class is a specialized quantity for representing angular measurements, similar to {class}`~unxt.quantity.Quantity` but with additional features and constraints tailored for angles.
 
 ### Creating Angles
 
-You can create an {class}`~unxt.quantity.Angle` just like a
-{class}`~unxt.quantity.Quantity`, by specifying a value and a unit with angular
-dimensions:
+You can create an {class}`~unxt.quantity.Angle` just like a {class}`~unxt.quantity.Quantity`, by specifying a value and a unit with angular dimensions:
 
 ```{code-block} python
 >>> a = u.Angle(45, "deg")
@@ -459,9 +421,7 @@ dimensions:
 Angle(Array(45, dtype=int32, weak_type=True), unit='deg')
 ```
 
-Just like {class}`~unxt.quantity.Quantity`, you can flexibly create
-{class}`~unxt.quantity.Angle` objects using the
-{meth}`~unxt.quantity.Angle.from_` constructor:
+Just like {class}`~unxt.quantity.Quantity`, you can flexibly create {class}`~unxt.quantity.Angle` objects using the {meth}`~unxt.quantity.Angle.from_` constructor:
 
 ```{code-block} python
 >>> u.Angle.from_(45, "deg")
@@ -477,9 +437,7 @@ Angle(Array([10, 15, 20], dtype=int32), unit='deg')
 
 ### Mathematical Operations
 
-{class}`~unxt.quantity.Angle` objects support arithmetic operations,
-broadcasting, and most mathematical functions, just like
-{class}`~unxt.quantity.Quantity`:
+{class}`~unxt.quantity.Angle` objects support arithmetic operations, broadcasting, and most mathematical functions, just like {class}`~unxt.quantity.Quantity`:
 
 ```{code-block} python
 >>> b = u.Angle(30, "deg")
@@ -495,10 +453,7 @@ For more information on mathematical operations, see the unxt documentation.
 
 ### Enforced Dimensionality
 
-Unlike a generic {class}`~unxt.quantity.Quantity`, the
-{class}`~unxt.quantity.Angle` class enforces that the unit must be angular
-(e.g., degrees, radians). Attempting to use a non-angular unit will raise an
-error:
+Unlike a generic {class}`~unxt.quantity.Quantity`, the {class}`~unxt.quantity.Angle` class enforces that the unit must be angular (e.g., degrees, radians). Attempting to use a non-angular unit will raise an error:
 
 ```{code-block} python
 >>> try: u.Angle(1, "m")
@@ -508,8 +463,7 @@ Angle must have units with angular dimensions.
 
 ### Wrapping Angles
 
-A key feature of {class}`~unxt.quantity.Angle` is the ability to wrap values
-to a specified range, which is useful for keeping angles within a branch cut:
+A key feature of {class}`~unxt.quantity.Angle` is the ability to wrap values to a specified range, which is useful for keeping angles within a branch cut:
 
 ```{code-block} python
 >>> a = u.Angle(370, "deg")
@@ -526,10 +480,7 @@ Angle(Array(10, dtype=int32, weak_type=True), unit='deg')
 
 ## Working with `StaticQuantity` Objects
 
-The {class}`~unxt.quantity.StaticQuantity` class is a parametric quantity with a
-static value stored as a NumPy array. It accepts Python scalars and NumPy arrays
-only, rejecting JAX arrays. This makes it convenient for static arguments in
-`jax.jit` or `jax.vmap`.
+The {class}`~unxt.quantity.StaticQuantity` class is a parametric quantity with a static value stored as a NumPy array. It accepts Python scalars and NumPy arrays only, rejecting JAX arrays. This makes it convenient for static arguments in `jax.jit` or `jax.vmap`.
 
 ```{code-block} python
 >>> import numpy as np
@@ -551,10 +502,7 @@ Quantity(Array([2., 3.], dtype=float32), unit='m')
 
 ## Working with `StaticValue` in `Quantity`
 
-If you want a regular {class}`~unxt.quantity.Quantity` but need its value to be
-static (for hashing or static JAX arguments), wrap the value with
-{class}`~unxt.quantity.StaticValue`. Arithmetic behaves like the wrapped array,
-and `StaticValue + StaticValue` returns a `StaticValue`:
+If you want a regular {class}`~unxt.quantity.Quantity` but need its value to be static (for hashing or static JAX arguments), wrap the value with {class}`~unxt.quantity.StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`:
 
 ```{code-block} python
 >>> import numpy as np

@@ -2,21 +2,14 @@
 
 Abstract dispatch API for [unxt](https://github.com/GalacticDynamics/unxt).
 
-`unxt-api` defines the abstract dispatch interfaces that `unxt` and other
-packages implement. It provides a minimal dependency foundation for packages
-that want to define or use `unxt`'s multiple-dispatch-based API without pulling
-in the full `unxt` implementation.
+`unxt-api` defines the abstract dispatch interfaces that `unxt` and other packages implement. It provides a minimal dependency foundation for packages that want to define or use `unxt`'s multiple-dispatch-based API without pulling in the full `unxt` implementation.
 
 The `unxt-api` package serves several important purposes:
 
-1. **Minimal Dependencies**: Depends only on `plum-dispatch`, not on JAX, NumPy,
-   or Astropy
-2. **Extensibility**: Allows third-party packages to register their own
-   implementations
-3. **Type Safety**: Provides a clear contract for what functions exist and what
-   they should do
-4. **Separation of Concerns**: API definitions are separate from implementation
-   details
+1. **Minimal Dependencies**: Depends only on `plum-dispatch`, not on JAX, NumPy, or Astropy
+2. **Extensibility**: Allows third-party packages to register their own implementations
+3. **Type Safety**: Provides a clear contract for what functions exist and what they should do
+4. **Separation of Concerns**: API definitions are separate from implementation details
 
 ## Installation
 
@@ -34,22 +27,18 @@ uv add unxt-api
 
 The `unxt-api` package defines abstract dispatch functions organized by domain:
 
-- **Dimensions** (`dimension`, `dimension_of`) - Working with physical
-  dimensions
+- **Dimensions** (`dimension`, `dimension_of`) - Working with physical dimensions
 - **Units** (`unit`, `unit_of`) - Constructing and inspecting units
-- **Quantities** (`uconvert`, `ustrip`, `is_unit_convertible`, `wrap_to`) - Unit
-  conversion and quantity operations
+- **Quantities** (`uconvert`, `ustrip`, `is_unit_convertible`, `wrap_to`) - Unit conversion and quantity operations
 - **Unit Systems** (`unitsystem_of`) - Inspecting unit systems
 
 ## Using Multiple Dispatch
 
-All functions in `unxt-api` use [plum](https://beartype.github.io/plum/) for
-multiple dispatch. This means:
+All functions in `unxt-api` use [plum](https://beartype.github.io/plum/) for multiple dispatch. This means:
 
 1. **Functions can have multiple implementations** based on argument types
 2. **You can register your own implementations** for custom types
-3. **Type annotations drive dispatch** - the runtime types of arguments
-   determine which implementation runs
+3. **Type annotations drive dispatch** - the runtime types of arguments determine which implementation runs
 
 ### Viewing All Implementations
 
@@ -97,8 +86,7 @@ u.unit_of(my_q)  # Unit("m")
 
 ## Integration with `unxt`
 
-The `unxt` package provides the concrete implementations of all `unxt-api`
-functions. When you use:
+The `unxt` package provides the concrete implementations of all `unxt-api` functions. When you use:
 
 ```python
 import unxt as u
@@ -107,8 +95,7 @@ q = u.Q(5, "m")
 u.uconvert("km", q)
 ```
 
-The `u.uconvert` function is the implementation registered by `unxt` for the
-abstract `unxt_api.uconvert` function.
+The `u.uconvert` function is the implementation registered by `unxt` for the abstract `unxt_api.uconvert` function.
 
 ## Documentation
 
@@ -117,11 +104,8 @@ For comprehensive documentation, examples, and extension guides, see:
 - [unxt-api API Reference](https://unxt.readthedocs.io/en/latest/api/unxt-api.html)
 - [Extending unxt Guide](https://unxt.readthedocs.io/en/latest/guides/extending.html)
 - [Main unxt Documentation](https://unxt.readthedocs.io/)
-- [plum Documentation](https://beartype.github.io/plum/) - Multiple dispatch
-  library
+- [plum Documentation](https://beartype.github.io/plum/) - Multiple dispatch library
 
 ## Contributing
 
-Contributions are welcome! Please see the main
-[unxt repository](https://github.com/GalacticDynamics/unxt) for contributing
-guidelines.
+Contributions are welcome! Please see the main [unxt repository](https://github.com/GalacticDynamics/unxt) for contributing guidelines.

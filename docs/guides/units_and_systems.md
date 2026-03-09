@@ -1,7 +1,6 @@
 # Units
 
-Units are measures of dimensions. Some common units are meters for length or
-seconds for time or Joules for energy.
+Units are measures of dimensions. Some common units are meters for length or seconds for time or Joules for energy.
 
 `unxt` has two primary functions for working with units: `unit` and `unit_of`.
 
@@ -15,8 +14,7 @@ seconds for time or Joules for energy.
 <multiple-dispatch function unit_of (...)>
 ```
 
-The function `unit` is for creating a unit, while `unit_of` is for getting the
-unit of an object.
+The function `unit` is for creating a unit, while `unit_of` is for getting the unit of an object.
 
 First let's create some units:
 
@@ -55,20 +53,9 @@ Unit("m")
 
 # Unit Systems
 
-A unit system is a standardized collection of units used together, such as the
-International System of Units (SI), the Imperial system, and natural units like
-Planck or atomic units. Each system defines base units (e.g., meters, kilograms)
-and derived units (e.g., joules, newtons) for consistent expression of
-quantities.
+A unit system is a standardized collection of units used together, such as the International System of Units (SI), the Imperial system, and natural units like Planck or atomic units. Each system defines base units (e.g., meters, kilograms) and derived units (e.g., joules, newtons) for consistent expression of quantities.
 
-`unxt` provides a sub-module for working with unit systems: `unxt.unitsystems`.
-unit systems are implemented as subclasses of the base class
-`AbstractUnitSystem`, which can be used for statically defining unit systems.
-However this rarely needs to be used directly. Instead, `unxt` provides some
-built-in unit systems and their realizations, such as `galactic` and
-`solarsystem`. Also, `unxt` has the functions `unitsystem` and `unitsystem_of`
-for dynamically making the realization of a unit system or getting one from an
-object.
+`unxt` provides a sub-module for working with unit systems: `unxt.unitsystems`. Unit systems are implemented as subclasses of the base class `AbstractUnitSystem`, which can be used for statically defining unit systems. However this rarely needs to be used directly. Instead, `unxt` provides some built-in unit systems and their realizations, such as `galactic` and `solarsystem`. Also, `unxt` has the functions `unitsystem` and `unitsystem_of` for dynamically making the realization of a unit system or getting one from an object.
 
 :::{seealso}
 
@@ -127,8 +114,7 @@ unitsystem(AU, yr, solMass, rad)
 
 ## Functions for Unit Systems
 
-`unxt` has two primary functions for working with units: `unitsystem` and
-`unitsystem_of`.
+`unxt` has two primary functions for working with units: `unitsystem` and `unitsystem_of`.
 
 ```{code-block} python
 >>> from unxt.unitsystems import unitsystem, unitsystem_of
@@ -151,10 +137,7 @@ unitsystem(AU, yr, solMass, rad)
 
 ```
 
-Unit systems are statically defined, the "galactic" and "solarsystem" units are
-instances of `LTMAUnitSystem` (length-time-mass-angle). If passed a set of units
-with dimensions matching one of the pre-defined unit system classes `unitsystem`
-will recognize this and return an instance of that unit system.
+Unit systems are statically defined, the "galactic" and "solarsystem" units are instances of `LTMAUnitSystem` (length-time-mass-angle). If passed a set of units with dimensions matching one of the pre-defined unit system classes `unitsystem` will recognize this and return an instance of that unit system.
 
 ```{code-block} python
 
@@ -172,9 +155,7 @@ False
 
 ```
 
-If the set of units does not correspond to any pre-defined unit system class,
-`unitsystem` will dynamically define this class, cache it for reuse, and return
-an instance for the set of units.
+If the set of units does not correspond to any pre-defined unit system class, `unitsystem` will dynamically define this class, cache it for reuse, and return an instance for the set of units.
 
 ```{code-block} python
 
@@ -198,10 +179,7 @@ DimensionlessUnitSystem()
 
 ```
 
-The dimensionless unit system is not the only special unit system. `unxt` also
-supports creating dynamical unit systems, where $G = 1$ (or some other constant)
-and one of the "length", "time", "mass" dimensions is adjusted to make the units
-consistent.
+The dimensionless unit system is not the only special unit system. `unxt` also supports creating dynamical unit systems, where $G = 1$ (or some other constant) and one of the "length", "time", "mass" dimensions is adjusted to make the units consistent.
 
 ```{code-block} python
 
@@ -212,8 +190,7 @@ LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("kg"), time=Unit("122404 s"
 
 ```
 
-The construction of these constrained unit systems requires passing an
-`unxt.unitsystems.AbstractUSysFlag`.
+The construction of these constrained unit systems requires passing an `unxt.unitsystems.AbstractUSysFlag`.
 
 Also, `unitsystem` can replace a unit in a unit system or extend a unit system.
 
@@ -231,8 +208,6 @@ LengthMassTimeAngleUnitSystem(length=Unit("m"), mass=Unit("kg"), time=Unit("s"),
 
 :::{note}
 
-`unxt.unitsystem` supports a wide range of inputs, only some of which were
-covered here. To see the full range of options, execute `unxt.unitsystem` in an
-interactive Python session.
+`unxt.unitsystem` supports a wide range of inputs, only some of which were covered here. To see the full range of options, execute `unxt.unitsystem` in an interactive Python session.
 
 :::

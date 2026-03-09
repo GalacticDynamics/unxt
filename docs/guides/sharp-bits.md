@@ -1,15 +1,11 @@
 # Unxt: The Sharp Bits
 
-This guide covers common pitfalls and surprising behaviors when working with
-`unxt` quantities in JAX. Like JAX itself, `unxt` has some "sharp bits" —
-behaviors that might surprise you if you're coming from NumPy or non-JAX Python
-scientific computing.
+This guide covers common pitfalls and surprising behaviors when working with `unxt` quantities in JAX. Like JAX itself, `unxt` has some "sharp bits" — behaviors that might surprise you if you're coming from NumPy or non-JAX Python scientific computing.
 
 ```{tip}
 If you're new to `unxt`, start with the [Quantity guide](quantity.md) first.
 This guide assumes you're familiar with basic `unxt` usage.
 ```
-
 
 ## Pure Functions and Immutability
 
@@ -38,8 +34,7 @@ q = u.Q([1.0, 2.0, 3.0], "m")
 new_q = q.at[0].set(u.Q(5.0, "m"))
 ```
 
-Or use {func}`dataclasses.replace` (or {func}`dataclassish.replace`) for more
-complex updates:
+Or use {func}`dataclasses.replace` (or {func}`dataclassish.replace`) for more complex updates:
 
 ::::{tab-set}
 
@@ -65,9 +60,7 @@ new_q = replace(q, value=q.value.at[0].set(5.0))
 
 ::::
 
-**Why?** JAX requires pure functions for transformations like `jit` and `grad`.
-Immutability ensures your functions have no side effects.
-
+**Why?** JAX requires pure functions for transformations like `jit` and `grad`. Immutability ensures your functions have no side effects.
 
 ## JAX Control Flow
 
@@ -212,8 +205,7 @@ except Exception as e:
     print(e)
 ```
 
-**Why it works:** The units are static on the Quantity PyTree. {mod}`unxt` can
-catch dimension mismatches during tracing.
+**Why it works:** The units are static on the Quantity PyTree. {mod}`unxt` can catch dimension mismatches during tracing.
 
 ### ❌ Problem: Units Triggering Recompilation
 
@@ -253,8 +245,7 @@ length_m_input = length_km.uconvert("m")
 result = add_lengths_m(u.Q(5.0, "m"), length_m_input)
 ```
 
-**Key insight:** Dimensions are checked statically, but each unique combination
-of units creates a new compiled version.
+**Key insight:** Dimensions are checked statically, but each unique combination of units creates a new compiled version.
 
 ## Mixing Quantity Types
 
@@ -314,11 +305,11 @@ def function(x, *, constant=u.StaticQuantity(3.26, "lyr")):
 
 **When to use each:**
 
-| Type | Use Case | Dimension Checking | Performance |
-|------|----------|-------------------|-------------|
-| `Quantity` | Default choice | ✅ Full | Good |
-| `BareQuantity` | Trust your math | ❌ None | Better |
-| `StaticQuantity` | Constants | ✅ Full | Best (no tracer) |
+| Type             | Use Case        | Dimension Checking | Performance      |
+| ---------------- | --------------- | ------------------ | ---------------- |
+| `Quantity`       | Default choice  | ✅ Full            | Good             |
+| `BareQuantity`   | Trust your math | ❌ None            | Better           |
+| `StaticQuantity` | Constants       | ✅ Full            | Best (no tracer) |
 
 ## Dimension Checking Overhead
 
@@ -358,9 +349,7 @@ See the [Performance Guide](perf.md)
 
 ### ❌ Problem: Quantity is slower than Array
 
-For most functions, Quantity input is slower than an Array.
-This is because Quantities are PyTrees that combine a value and a unit.
-When a PyTree passes through a {func}`jax.jit` boundary it is de-structured then re-structured. This process has an associated overhead.
+For most functions, Quantity input is slower than an Array. This is because Quantities are PyTrees that combine a value and a unit. When a PyTree passes through a {func}`jax.jit` boundary it is de-structured then re-structured. This process has an associated overhead.
 
 ```python
 @jax.jit
@@ -379,9 +368,7 @@ func(qx, qy)
 
 ### ✅ Solution: Don't pass through the outermost `jax.jit` boundary
 
-If the PyTree is formed within the jit context then all the nodes
-of the PyTree (the static parts) are constant-folded by JAX and will
-not contribute to the run-time, only the time for first compilation.
+If the PyTree is formed within the jit context then all the nodes of the PyTree (the static parts) are constant-folded by JAX and will not contribute to the run-time, only the time for first compilation.
 
 ```python
 @ft.partial(jax.jit, static_argnames=("usys",))
@@ -395,10 +382,7 @@ x, y = jnp.asarray([1, 2, 3]), jnp.asarray([4, 5, 6])
 func(x, y, usys=u.unitsystems.si)
 ```
 
-This only applies to the outer-most function.
-Nesting jitted and quaxified functions are fine.
-The outermost jit boundary handles the constant-folding.
-
+This only applies to the outer-most function. Nesting jitted and quaxified functions are fine. The outermost jit boundary handles the constant-folding.
 
 ## See Also
 

@@ -8,8 +8,7 @@ This workspace contains three packages that can be released:
 
 ## Versioning Strategy
 
-All packages use **hatch-vcs** for automatic version detection from git tags,
-with a custom validation system that enforces the following strategy:
+All packages use **hatch-vcs** for automatic version detection from git tags, with a custom validation system that enforces the following strategy:
 
 ### Tag Format Rules
 
@@ -22,8 +21,7 @@ with a custom validation system that enforces the following strategy:
 
 **Bug-fix Releases (individual packages only):**
 
-- Use package-specific tags: `PACKAGE-vX.Y.Z` where Z > 0 (e.g.,
-  `unxt-api-v1.8.1`)
+- Use package-specific tags: `PACKAGE-vX.Y.Z` where Z > 0 (e.g., `unxt-api-v1.8.1`)
 - Applies to **only that package**
 - Required format: Must have patch version > 0 (bug-fix release)
 - Example: Tag `unxt-api-v1.8.1` bumps only unxt-api to 1.8.1
@@ -32,34 +30,26 @@ with a custom validation system that enforces the following strategy:
 ### Validation Rules (Enforced)
 
 - ✅ `vX.Y.0` - **Allowed**: Shared tag bumps all packages
-- ❌ `vX.Y.0` (package-specific like `unxt-api-vX.Y.0`) - **Forbidden**: Use
-  shared tag instead
+- ❌ `vX.Y.0` (package-specific like `unxt-api-vX.Y.0`) - **Forbidden**: Use shared tag instead
 - ✅ `unxt-api-vX.Y.Z` (Z > 0) - **Allowed**: Bug-fix for specific package
-- ❌ `vX.Y.Z` (Z > 0, shared) - **Forbidden**: Must be package-specific for
-  bug-fixes
+- ❌ `vX.Y.Z` (Z > 0, shared) - **Forbidden**: Must be package-specific for bug-fixes
 
-This ensures clear separation: major/minor synchronized across all packages,
-bug-fixes isolated per package.
+This ensures clear separation: major/minor synchronized across all packages, bug-fixes isolated per package.
 
 ## How Versioning Works
 
 When you tag a commit:
 
-1. The custom version determination script (`scripts/get_version.py`) validates
-   all tags
+1. The custom version determination script (`scripts/get_version.py`) validates all tags
 2. Each package selects the latest applicable tag(s):
-   - For major/minor: Uses shared `vX.Y.0` or its own package-specific version
-     if newer
+   - For major/minor: Uses shared `vX.Y.0` or its own package-specific version if newer
    - For bug-fix: Only uses package-specific tags with Z > 0
-3. The version matches the selected tag (e.g., tag `v1.8.0` → all packages get
-   `1.8.0`)
-4. After the tag, development versions are created automatically (e.g.,
-   `1.8.1.dev5+gabc1234`)
+3. The version matches the selected tag (e.g., tag `v1.8.0` → all packages get `1.8.0`)
+4. After the tag, development versions are created automatically (e.g., `1.8.1.dev5+gabc1234`)
 
 ### Legacy Support
 
-Tags from v1.10.x and earlier (including pre-1.0 tags) are grandfathered in and
-allowed without validation. Strict enforcement begins at v1.11.0.
+Tags from v1.10.x and earlier (including pre-1.0 tags) are grandfathered in and allowed without validation. Strict enforcement begins at v1.11.0.
 
 ## Release Workflows
 
@@ -264,8 +254,7 @@ Where `<pattern>` is:
 - `unxt-hypothesis-v*` for unxt-hypothesis
 - `v*` and `unxt-v*` for unxt (matches both formats)
 
-This ensures each package only considers its own tags when determining the
-version.
+This ensures each package only considers its own tags when determining the version.
 
 ## Testing Versions Locally
 
@@ -287,9 +276,7 @@ uv run python -c "import unxt; import unxt_api; print(f'unxt: {unxt.__version__}
 git tag -d unxt-api-v0.1.0 unxt-hypothesis-v0.1.0 unxt-v1.8.0
 ```
 
-The version will match the tag exactly (e.g., `0.1.0` for tag
-`unxt-api-v0.1.0`), and commits after the tag will show development versions
-like `0.1.1.dev1+gabc1234`.
+The version will match the tag exactly (e.g., `0.1.0` for tag `unxt-api-v0.1.0`), and commits after the tag will show development versions like `0.1.1.dev1+gabc1234`.
 
 ## CI/CD Workflow
 
@@ -298,12 +285,10 @@ The automated release workflow:
 1. **Detects the package(s) to release** based on:
    - Git tag name (e.g., `unxt-v*` or `unxt-hypothesis-v*`)
    - GitHub Release tag name
-   - For non-release events (PRs, pushes to main), builds all packages for
-     testing
+   - For non-release events (PRs, pushes to main), builds all packages for testing
 
 2. **Builds packages** using `hynek/build-and-inspect-python-package`:
-   - Artifacts are uploaded with package-specific names (`Packages-unxt`,
-     `Packages-unxt-hypothesis`)
+   - Artifacts are uploaded with package-specific names (`Packages-unxt`, `Packages-unxt-hypothesis`)
    - Each package is built from its directory in `packages/`
 
 3. **Publishes to TestPyPI first** (for releases only)
@@ -341,12 +326,9 @@ Without any matching tags, the `fallback-version = "0.0.0"` is used.
 
 3. **Write release notes** when creating GitHub Releases
 
-4. **Consider dependencies:** If `unxt-hypothesis` depends on a specific `unxt`
-   version, update `packages/unxt-hypothesis/pyproject.toml` accordingly before
-   release
+4. **Consider dependencies:** If `unxt-hypothesis` depends on a specific `unxt` version, update `packages/unxt-hypothesis/pyproject.toml` accordingly before release
 
-5. **Tag from the right commit:** Ensure you're on the correct commit before
-   creating tags
+5. **Tag from the right commit:** Ensure you're on the correct commit before creating tags
 
 ## Troubleshooting
 

@@ -1,7 +1,6 @@
 # Quick Release Reference for unxt Workspace
 
-`scripts/get_version.py` prints a git-describe-like version string (not bare
-`X.Y.Z`), e.g. `v1.8.0-0-gabc1234` or `unxt-api-v1.8.1-3-gdef5678-dirty`.
+`scripts/get_version.py` prints a git-describe-like version string (not bare `X.Y.Z`), e.g. `v1.8.0-0-gabc1234` or `unxt-api-v1.8.1-3-gdef5678-dirty`.
 
 ## Release Types
 
@@ -35,15 +34,15 @@ python scripts/get_version.py unxt-api # → unxt-api-v1.8.1-0-g<sha>
 
 ## Command Reference
 
-| Task                  | Command                                                                                       |
-| --------------------- | --------------------------------------------------------------------------------------------- |
-| Check package version | `python scripts/get_version.py PACKAGE`                                                       |
-| Check all versions    | `for p in "" unxt-api unxt-hypothesis; do python scripts/get_version.py ${p:-"--main"}; done` |
-| List all tags         | `git tag -l`                                                                                  |
-| Create shared tag     | `git tag vX.Y.0`                                                                              |
-| Create package tag    | `git tag PACKAGE-vX.Y.Z`                                                                      |
-| Build package         | `cd <path> && uv build`                                                                       |
-| Publish package       | `cd <path> && uv publish`                                                                     |
+| Task | Command |
+| --- | --- |
+| Check package version | `python scripts/get_version.py PACKAGE` |
+| Check all versions | `for p in "" unxt-api unxt-hypothesis; do python scripts/get_version.py ${p:-"--main"}; done` |
+| List all tags | `git tag -l` |
+| Create shared tag | `git tag vX.Y.0` |
+| Create package tag | `git tag PACKAGE-vX.Y.Z` |
+| Build package | `cd <path> && uv build` |
+| Publish package | `cd <path> && uv publish` |
 
 ## Tag Format Rules
 
@@ -150,14 +149,11 @@ uv publish --repository testpypi
 - "Is this a coordinated release affecting all packages?" → Use `vX.Y.0`
 - "Is this a bug-fix for one package only?" → Use `PACKAGE-vX.Y.Z` (Z > 0)
 
-**Q: Can I release unxt-api-v1.8.0?** A: No. Use the shared tag `v1.8.0`
-instead.
+**Q: Can I release unxt-api-v1.8.0?** A: No. Use the shared tag `v1.8.0` instead.
 
-**Q: Can I release v1.8.1 (without package prefix)?** A: No. Use
-package-specific tag `unxt-api-v1.8.1` instead.
+**Q: Can I release v1.8.1 (without package prefix)?** A: No. Use package-specific tag `unxt-api-v1.8.1` instead.
 
-**Q: What if I made a mistake with the tag?** A: Delete and recreate (only for
-tags not yet released):
+**Q: What if I made a mistake with the tag?** A: Delete and recreate (only for tags not yet released):
 
 ```bash
 git tag -d OLD_TAG
@@ -169,6 +165,5 @@ git push origin NEW_TAG
 ## References
 
 - Full documentation: See [RELEASING.md](../RELEASING.md)
-- Version system details: See
-  [Versioning Strategy](../RELEASING.md#versioning-strategy)
+- Version system details: See [Versioning Strategy](../RELEASING.md#versioning-strategy)
 - Main repo: <https://github.com/GalacticDynamics/unxt>
