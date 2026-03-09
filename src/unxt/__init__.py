@@ -22,6 +22,8 @@ documentation.
 
 __all__ = (
     "__version__",
+    # configuration
+    "config",
     # dimensions
     "dims",  # module
     "AbstractDimension",  # dimension type
@@ -55,6 +57,7 @@ from .setup_package import install_import_hook
 with install_import_hook("unxt"):
     from . import dims, quantity, units, unitsystems
     from ._version import version as __version__
+    from .config import config
     from .dims import AbstractDimension, dimension, dimension_of
     from .quantity import (
         AbstractQuantity,

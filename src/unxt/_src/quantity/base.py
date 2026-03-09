@@ -39,6 +39,7 @@ from dataclassish import field_items, replace
 import unxt_api as uapi
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
 from .value import StaticValue
+from unxt.config import config
 from unxt.units import AbstractUnit
 
 if TYPE_CHECKING:
@@ -759,6 +760,11 @@ class AbstractQuantity(
                 DeprecationWarning,
                 stacklevel=2,
             )
+        # If the value is a tracer, then we ALWAYS use the short array
+        # representation since we only have the dtype and shape at trace-time
+        # and trying to print out the values will error.
+        if isinstance(self.value, jax.core.Tracer):
+            short_arrays = True
         match short_arrays:
             case "compact":
                 kwargs["custom"] = custom_pdoc_noarray
@@ -791,28 +797,30 @@ class AbstractQuantity(
         )
 
         # Construct and return the Wadler-Lindig document.
-        return (
-            cls_name
-            + wl.TextDoc("(")
-            + wl.join(wl.comma, base_fields + extra_fields)
-            .group()
-            .nest(kwargs.get("indent", 4))
-            + wl.TextDoc(")")
+        return cls_name + wl.bracketed(
+            begin=wl.TextDoc("("),
+            docs=base_fields + extra_fields,
+            sep=wl.comma,
+            end=wl.TextDoc(")"),
+            indent=kwargs.get("indent", 4),
         )
 
     def __repr__(self) -> str:
-        # TODO: make named_unit False?
-        return wl.pformat(self, short_arrays=False, named_unit=True, indent=4)
-
-    def __str__(self) -> str:
-        # TODO: make named_unit False?
         return wl.pformat(
             self,
-            short_arrays="compact"
-            if not isinstance(self.value, jax.core.Tracer)
-            else True,
-            named_unit=True,
-            indent=4,
+            short_arrays=config.quantity_repr.short_arrays,
+            use_short_name=config.quantity_repr.use_short_name,
+            named_unit=config.quantity_repr.named_unit,
+            indent=config.quantity_repr.indent,
+        )
+
+    def __str__(self) -> str:
+        return wl.pformat(
+            self,
+            short_arrays=config.quantity_str.short_arrays,
+            use_short_name=config.quantity_str.use_short_name,
+            named_unit=config.quantity_str.named_unit,
+            indent=config.quantity_str.indent,
         )
 
 
