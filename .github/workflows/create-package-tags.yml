@@ -106,7 +106,7 @@ jobs:
               fi
             else
               echo "📝 Creating tag $PACKAGE_TAG"
-              git tag "$PACKAGE_TAG" -m "Release $PACKAGE ${VERSION} (auto-created from ${TAG})"
+              git tag "$PACKAGE_TAG" "$COORDINATOR_SHA" -m "Release $PACKAGE ${VERSION} (auto-created from ${TAG})"
               TAGS_TO_PUSH+=("$PACKAGE_TAG")
             fi
           done

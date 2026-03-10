@@ -303,10 +303,20 @@ Each package's `pyproject.toml` is configured with:
 source = "vcs"
 
 [tool.hatch.version.raw-options]
-git_describe_command = "git describe --dirty --tags --long --match 'PACKAGE-v*'"
-local_scheme = "no-local-version"
-root = "../.."
+local_scheme              = "no-local-version"
+root                      = "../.."
 search_parent_directories = true
+
+[tool.hatch.version.raw-options.scm.git]
+describe_command = [
+  "git",
+  "describe",
+  "--dirty",
+  "--tags",
+  "--long",
+  "--match",
+  "PACKAGE-v*",
+]
 ```
 
 Where `PACKAGE` is:
