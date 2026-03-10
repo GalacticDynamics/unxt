@@ -71,22 +71,43 @@ jobs:
           # Fetch all tags to check for existing package tags
           git fetch --tags
 
+          # Get the commit SHA of the coordinator tag
+          COORDINATOR_SHA=$(git rev-parse "$TAG")
+          echo "Coordinator tag $TAG points to commit: $COORDINATOR_SHA"
+
           # Define package tags to create
           PACKAGES=("unxt" "unxt-api" "unxt-hypothesis")
           TAGS_TO_PUSH=()
-          ALL_EXIST=true
 
           # Check and create each package tag
           for PACKAGE in "${PACKAGES[@]}"; do
             PACKAGE_TAG="${PACKAGE}-v${VERSION}"
 
             if git rev-parse "$PACKAGE_TAG" >/dev/null 2>&1; then
-              echo "⏭️  Tag $PACKAGE_TAG already exists, skipping"
+              # Tag exists - verify it points at the coordinator tag's commit
+              EXISTING_SHA=$(git rev-parse "$PACKAGE_TAG")
+
+              if [ "$EXISTING_SHA" = "$COORDINATOR_SHA" ]; then
+                echo "✅ Tag $PACKAGE_TAG already exists and points to correct commit ($EXISTING_SHA)"
+              else
+                echo "ERROR: Tag $PACKAGE_TAG already exists but points to wrong commit"
+                echo "  Expected (coordinator tag $TAG): $COORDINATOR_SHA"
+                echo "  Actual   ($PACKAGE_TAG):         $EXISTING_SHA"
+                echo ""
+                echo "This indicates a bad state - the coordinator tag was likely recreated"
+                echo "on a new commit, but old package tags still point to the old commit."
+                echo ""
+                echo "To fix this, manually delete and recreate the package tag:"
+                echo "  git tag -d $PACKAGE_TAG"
+                echo "  git push origin :refs/tags/$PACKAGE_TAG"
+                echo "  git tag $PACKAGE_TAG $COORDINATOR_SHA -m \"Release $PACKAGE ${VERSION}\""
+                echo "  git push origin $PACKAGE_TAG"
+                exit 1
+              fi
             else
               echo "📝 Creating tag $PACKAGE_TAG"
               git tag "$PACKAGE_TAG" -m "Release $PACKAGE ${VERSION} (auto-created from ${TAG})"
               TAGS_TO_PUSH+=("$PACKAGE_TAG")
-              ALL_EXIST=false
             fi
           done
 
