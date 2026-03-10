@@ -66,21 +66,24 @@ jobs:
 
           # Find tag(s) pointing at the exact commit from upstream workflow
           COMMIT_SHA="${{ github.event.workflow_run.head_sha }}"
-          TAGS=$(git tag --points-at "$COMMIT_SHA" | grep '^unxt-api-v' || true)
+          TAGS=$(git tag --points-at "$COMMIT_SHA" --list 'unxt-api-v*' || true)
 
-          # Count matching tags
-          TAG_COUNT=$(echo "$TAGS" | grep -c '^' || true)
-
-          if [ "$TAG_COUNT" -eq 0 ]; then
+          # Handle case where no matching tags are found
+          if [ -z "$TAGS" ]; then
             echo "ERROR: No unxt-api-v* tag found pointing at commit $COMMIT_SHA"
             exit 1
-          elif [ "$TAG_COUNT" -gt 1 ]; then
+          fi
+
+          # Count matching tags (TAGS is known to be non-empty here)
+          TAG_COUNT=$(printf '%s\n' "$TAGS" | wc -l)
+
+          if [ "$TAG_COUNT" -gt 1 ]; then
             echo "ERROR: Multiple unxt-api-v* tags found pointing at commit $COMMIT_SHA:"
             echo "$TAGS"
             exit 1
           fi
 
-          TAG=$(echo "$TAGS" | head -n 1)
+          TAG=$(printf '%s\n' "$TAGS" | head -n 1)
           echo "Found package tag: $TAG (at commit $COMMIT_SHA)"
           # Export for later steps
           echo "PACKAGE_TAG=$TAG" >> $GITHUB_ENV
