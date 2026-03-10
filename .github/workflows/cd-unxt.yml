@@ -56,12 +56,16 @@ jobs:
           # Can be removed if switching to hardcoded versions.
           fetch-depth: 0
           persist-credentials: false
+          # For workflow_run events, checkout the exact commit from upstream workflow
+          ref:
+            ${{ github.event_name == 'workflow_run' &&
+            github.event.workflow_run.head_sha || github.ref }}
 
-      # For workflow_run events, checkout the package-specific tag created by upstream
-      - name: Checkout package tag (workflow_run)
+      # For workflow_run events, find and export the package-specific tag
+      - name: Find package tag (workflow_run)
         if: github.event_name == 'workflow_run'
         run: |
-          # Fetch all tags
+          # Fetch all tags to locate the package-specific tag created upstream
           git fetch --tags
 
           # Find the most recent unxt-v* tag
@@ -72,9 +76,7 @@ jobs:
             exit 1
           fi
 
-          echo "Checking out tag: $TAG"
-          git checkout "$TAG"
-
+          echo "Found package tag: $TAG"
           # Export for later steps
           echo "PACKAGE_TAG=$TAG" >> $GITHUB_ENV
         shell: bash
