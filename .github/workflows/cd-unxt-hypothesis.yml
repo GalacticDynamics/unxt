@@ -66,16 +66,17 @@ jobs:
 
           # Find tag(s) pointing at the exact commit from upstream workflow
           COMMIT_SHA="${{ github.event.workflow_run.head_sha }}"
-          TAGS=$(git tag --points-at "$COMMIT_SHA" | grep '^unxt-hypothesis-v' || true)
+          COMMIT_SHA="${{ github.event.workflow_run.head_sha }}"
+          TAGS=$(git tag --points-at "$COMMIT_SHA" --list 'unxt-hypothesis-v*' || true)
 
-          # Check for empty result first (echo "" | grep -c '^' wrongly returns 1)
+          # Handle case where no matching tags are found
           if [ -z "$TAGS" ]; then
             echo "ERROR: No unxt-hypothesis-v* tag found pointing at commit $COMMIT_SHA"
             exit 1
           fi
 
-          # Count matching tags (only reached when TAGS is non-empty)
-          TAG_COUNT=$(echo "$TAGS" | wc -l | tr -d ' ')
+          # Count matching tags (TAGS is known to be non-empty here)
+          TAG_COUNT=$(printf '%s\n' "$TAGS" | wc -l)
 
           if [ "$TAG_COUNT" -gt 1 ]; then
             echo "ERROR: Multiple unxt-hypothesis-v* tags found pointing at commit $COMMIT_SHA:"
@@ -83,7 +84,7 @@ jobs:
             exit 1
           fi
 
-          TAG=$(echo "$TAGS" | head -n 1)
+          TAG=$(printf '%s\n' "$TAGS" | head -n 1)
           echo "Found package tag: $TAG (at commit $COMMIT_SHA)"
           # Export for later steps
           echo "PACKAGE_TAG=$TAG" >> $GITHUB_ENV
