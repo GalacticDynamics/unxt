@@ -60,34 +60,10 @@ jobs:
       # For workflow_run events, find and export the package-specific tag
       - name: Find package tag (workflow_run)
         if: github.event_name == 'workflow_run'
-        run: |
-          # Fetch all tags to locate the package-specific tag created upstream
-          git fetch --tags
-
-          # Find tag(s) pointing at the exact commit from upstream workflow
-          COMMIT_SHA="${{ github.event.workflow_run.head_sha }}"
-          TAGS=$(git tag --points-at "$COMMIT_SHA" --list 'unxt-hypothesis-v*' || true)
-
-          # Handle case where no matching tags are found
-          if [ -z "$TAGS" ]; then
-            echo "ERROR: No unxt-hypothesis-v* tag found pointing at commit $COMMIT_SHA"
-            exit 1
-          fi
-
-          # Count matching tags (TAGS is known to be non-empty here)
-          TAG_COUNT=$(printf '%s\n' "$TAGS" | wc -l)
-
-          if [ "$TAG_COUNT" -gt 1 ]; then
-            echo "ERROR: Multiple unxt-hypothesis-v* tags found pointing at commit $COMMIT_SHA:"
-            echo "$TAGS"
-            exit 1
-          fi
-
-          TAG=$(printf '%s\n' "$TAGS" | head -n 1)
-          echo "Found package tag: $TAG (at commit $COMMIT_SHA)"
-          # Export for later steps
-          echo "PACKAGE_TAG=$TAG" >> $GITHUB_ENV
-        shell: bash
+        uses: ./.github/actions/find-package-tag
+        with:
+          tag_glob: unxt-hypothesis-v*
+          commit_sha: ${{ github.event.workflow_run.head_sha }}
 
       - name: Validate git tag (for tagged releases)
         if: |
