@@ -42,7 +42,7 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'pull_request' ||
-      github.event_name == 'workflow_run' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
 
     steps:
@@ -64,15 +64,24 @@ jobs:
           # Fetch all tags to locate the package-specific tag created upstream
           git fetch --tags
 
-          # Find the most recent unxt-hypothesis-v* tag
-          TAG=$(git tag -l 'unxt-hypothesis-v*' --sort=-version:refname | head -n 1)
+          # Find tag(s) pointing at the exact commit from upstream workflow
+          COMMIT_SHA="${{ github.event.workflow_run.head_sha }}"
+          TAGS=$(git tag --points-at "$COMMIT_SHA" | grep '^unxt-hypothesis-v')
 
-          if [ -z "$TAG" ]; then
-            echo "ERROR: No unxt-hypothesis-v* tag found after upstream workflow"
+          # Count matching tags
+          TAG_COUNT=$(echo "$TAGS" | grep -c '^' || true)
+
+          if [ "$TAG_COUNT" -eq 0 ]; then
+            echo "ERROR: No unxt-hypothesis-v* tag found pointing at commit $COMMIT_SHA"
+            exit 1
+          elif [ "$TAG_COUNT" -gt 1 ]; then
+            echo "ERROR: Multiple unxt-hypothesis-v* tags found pointing at commit $COMMIT_SHA:"
+            echo "$TAGS"
             exit 1
           fi
 
-          echo "Found package tag: $TAG"
+          TAG=$(echo "$TAGS" | head -n 1)
+          echo "Found package tag: $TAG (at commit $COMMIT_SHA)"
           # Export for later steps
           echo "PACKAGE_TAG=$TAG" >> $GITHUB_ENV
         shell: bash
