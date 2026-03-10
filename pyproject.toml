@@ -133,8 +133,18 @@ version_tuple = {version_tuple!r}
 version.source = "vcs"
 
 [tool.hatch.version.raw-options]
-git_describe_command = "python {root}/scripts/get_version.py --main"
-local_scheme         = "no-local-version"
+local_scheme = "no-local-version"
+
+[tool.hatch.version.raw-options.scm.git]
+describe_command = [
+  "git",
+  "describe",
+  "--dirty",
+  "--tags",
+  "--long",
+  "--match",
+  "unxt-v*",
+]
 
 
 [tool.codespell]

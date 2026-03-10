@@ -275,8 +275,23 @@ build-backend = "hatchling.build"
 requires      = ["hatch-vcs", "hatchling"]
 
 [tool.hatch.version]
-raw-options = { root = "../..", search_parent_directories = true, git_describe_command = "git describe --dirty --tags --long --match '<package-name>-v*'", local_scheme = "no-local-version" }
-source      = "vcs"
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+local_scheme              = "no-local-version"
+root                      = "../.."
+search_parent_directories = true
+
+[tool.hatch.version.raw-options.scm.git]
+describe_command = [
+  "git",
+  "describe",
+  "--dirty",
+  "--tags",
+  "--long",
+  "--match",
+  "<package-name>-v*",
+]
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/<package_name>/_version.py"
