@@ -71,8 +71,8 @@ jobs:
           # Fetch all tags to check for existing package tags
           git fetch --tags
 
-          # Get the commit SHA of the coordinator tag
-          COORDINATOR_SHA=$(git rev-parse "$TAG")
+          # Get the commit SHA of the coordinator tag (works for annotated/lightweight tags)
+          COORDINATOR_SHA=$(git rev-list -n 1 "$TAG")
           echo "Coordinator tag $TAG points to commit: $COORDINATOR_SHA"
 
           # Define package tags to create
@@ -85,7 +85,7 @@ jobs:
 
             if git rev-parse "$PACKAGE_TAG" >/dev/null 2>&1; then
               # Tag exists - verify it points at the coordinator tag's commit
-              EXISTING_SHA=$(git rev-parse "$PACKAGE_TAG")
+              EXISTING_SHA=$(git rev-list -n 1 "$PACKAGE_TAG")
 
               if [ "$EXISTING_SHA" = "$COORDINATOR_SHA" ]; then
                 echo "✅ Tag $PACKAGE_TAG already exists and points to correct commit ($EXISTING_SHA)"

@@ -53,7 +53,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
           # For workflow_run events, checkout the exact commit from upstream workflow
-          ref:
+          ref: |
             ${{ github.event_name == 'workflow_run' &&
             github.event.workflow_run.head_sha || github.ref }}
 
@@ -65,7 +65,6 @@ jobs:
           git fetch --tags
 
           # Find tag(s) pointing at the exact commit from upstream workflow
-          COMMIT_SHA="${{ github.event.workflow_run.head_sha }}"
           COMMIT_SHA="${{ github.event.workflow_run.head_sha }}"
           TAGS=$(git tag --points-at "$COMMIT_SHA" --list 'unxt-hypothesis-v*' || true)
 
@@ -91,7 +90,7 @@ jobs:
         shell: bash
 
       - name: Validate git tag (for tagged releases)
-        if:
+        if: |
           startsWith(github.ref, 'refs/tags/') || github.event_name ==
           'workflow_run'
         run: |
