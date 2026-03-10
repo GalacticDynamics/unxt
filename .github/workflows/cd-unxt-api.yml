@@ -37,8 +37,8 @@ jobs:
       contents: read
       id-token: write
       attestations: write
-    # Build runs for direct tag pushes and workflow_run triggers
-    # Coordinator tag releases are not supported; use package-specific tags instead
+    # Build runs for direct tag pushes or via workflow_run from Create Package Tags
+    # (which handles coordinator tag releases)
     if: |
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'pull_request' ||
@@ -66,7 +66,7 @@ jobs:
 
           # Find tag(s) pointing at the exact commit from upstream workflow
           COMMIT_SHA="${{ github.event.workflow_run.head_sha }}"
-          TAGS=$(git tag --points-at "$COMMIT_SHA" | grep '^unxt-api-v')
+          TAGS=$(git tag --points-at "$COMMIT_SHA" | grep '^unxt-api-v' || true)
 
           # Count matching tags
           TAG_COUNT=$(echo "$TAGS" | grep -c '^' || true)

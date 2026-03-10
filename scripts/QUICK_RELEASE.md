@@ -91,7 +91,8 @@ git push origin unxt-api-v1.8.1
 - Go to <https://github.com/GalacticDynamics/unxt/releases/new>
 - Select the tag you just pushed
 - Add release notes
-- Click "Publish release" (triggers additional CD run)
+- Click "Publish release"
+- Note: CD workflows are already triggered by the tag push (step 3); the GitHub Release is purely informational
 
 ## Testing Before Release
 

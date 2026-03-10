@@ -102,14 +102,14 @@ For synchronized releases (vX.Y.0):
 1. Go to <https://github.com/GalacticDynamics/unxt/releases/new>
 2. Choose the `vX.Y.0` tag (the coordinator tag)
 3. Fill in release notes covering all packages
-4. Publish the release → triggers CD for all packages
+4. Publish the release (optional - CD was already triggered by the tag push)
 
 For package-specific bug-fix releases:
 
 1. Go to <https://github.com/GalacticDynamics/unxt/releases/new>
 2. Choose the `package-vX.Y.Z` tag
 3. Fill in release notes for that package only
-4. Publish the release → triggers CD for that package
+4. Publish the release (optional - CD was already triggered by the tag push)
 
 ### Manual Testing Before Release
 
