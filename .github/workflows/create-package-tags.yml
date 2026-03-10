@@ -1,0 +1,124 @@
+name: Create Package Tags
+
+# When a shared vX.Y.0 tag is pushed, automatically create
+# package-specific tags (unxt-vX.Y.0, unxt-api-vX.Y.0, unxt-hypothesis-vX.Y.0)
+# This allows coordinated releases while keeping each package with its own tag.
+
+on:
+  push:
+    tags:
+      - "v*" # Shared release tags (coordinator tags)
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FORCE_COLOR: 3
+
+jobs:
+  create-package-tags:
+    name: Create package-specific tags
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to create and push tags
+
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v5.5.0
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          # Remove 'v' prefix to get version
+          VERSION=${TAG#v}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Validate that this is a .0 release
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          VERSION="${{ steps.version.outputs.version }}"
+
+          # Validate coordinator tag format: must be exactly vX.Y.0 (no suffixes like -rc1)
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.0$ ]]; then
+            echo "ERROR: Coordinator tag must match pattern ^v[0-9]+\.[0-9]+\.0$ (e.g., v1.2.0)"
+            echo "Invalid tag: $TAG"
+            echo ""
+            echo "Coordinator tags must be for .0 releases only (vX.Y.0)."
+            echo "Pre-release tags (e.g., v1.2.0-rc1) are not supported."
+            echo ""
+            echo "For bug-fix releases (X.Y.Z where Z > 0) or pre-releases, use package-specific tags:"
+            echo "  - unxt-v${VERSION}"
+            echo "  - unxt-api-v${VERSION}"
+            echo "  - unxt-hypothesis-v${VERSION}"
+            exit 1
+          fi
+
+          echo "✅ Valid coordinator tag: $TAG"
+
+      - name: Create and push package-specific tags
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="${{ steps.version.outputs.tag }}"
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Fetch all tags to check for existing package tags
+          git fetch --tags
+
+          # Get the commit SHA of the coordinator tag (works for annotated/lightweight tags)
+          COORDINATOR_SHA=$(git rev-list -n 1 "$TAG")
+          echo "Coordinator tag $TAG points to commit: $COORDINATOR_SHA"
+
+          # Define package tags to create
+          PACKAGES=("unxt" "unxt-api" "unxt-hypothesis")
+          TAGS_TO_PUSH=()
+
+          # Check and create each package tag
+          for PACKAGE in "${PACKAGES[@]}"; do
+            PACKAGE_TAG="${PACKAGE}-v${VERSION}"
+
+            if git rev-parse "$PACKAGE_TAG" >/dev/null 2>&1; then
+              # Tag exists - verify it points at the coordinator tag's commit
+              EXISTING_SHA=$(git rev-list -n 1 "$PACKAGE_TAG")
+
+              if [ "$EXISTING_SHA" = "$COORDINATOR_SHA" ]; then
+                echo "✅ Tag $PACKAGE_TAG already exists and points to correct commit ($EXISTING_SHA)"
+              else
+                echo "ERROR: Tag $PACKAGE_TAG already exists but points to wrong commit"
+                echo "  Expected (coordinator tag $TAG): $COORDINATOR_SHA"
+                echo "  Actual   ($PACKAGE_TAG):         $EXISTING_SHA"
+                echo ""
+                echo "This indicates a bad state - the coordinator tag was likely recreated"
+                echo "on a new commit, but old package tags still point to the old commit."
+                echo ""
+                echo "To fix this, manually delete and recreate the package tag:"
+                echo "  git tag -d $PACKAGE_TAG"
+                echo "  git push origin :refs/tags/$PACKAGE_TAG"
+                echo "  git tag $PACKAGE_TAG $COORDINATOR_SHA -m \"Release $PACKAGE ${VERSION}\""
+                echo "  git push origin $PACKAGE_TAG"
+                exit 1
+              fi
+            else
+              echo "📝 Creating tag $PACKAGE_TAG"
+              git tag "$PACKAGE_TAG" "$COORDINATOR_SHA" -m "Release $PACKAGE ${VERSION} (auto-created from ${TAG})"
+              TAGS_TO_PUSH+=("$PACKAGE_TAG")
+            fi
+          done
+
+          # Push only newly created tags
+          if [ ${#TAGS_TO_PUSH[@]} -eq 0 ]; then
+            echo "✅ All package tags already exist for version ${VERSION}"
+            echo "   This is expected for workflow re-runs"
+            exit 0
+          fi
+
+          echo "📤 Pushing ${#TAGS_TO_PUSH[@]} new tag(s): ${TAGS_TO_PUSH[*]}"
+          git push origin "${TAGS_TO_PUSH[@]}"
+
+          echo "✅ Successfully created and pushed package-specific tags for version ${VERSION}"
