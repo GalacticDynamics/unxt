@@ -21,9 +21,6 @@ on:
       - completed
     branches:
       - main
-  release:
-    types:
-      - published
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -40,11 +37,13 @@ jobs:
       contents: read
       id-token: write
       attestations: write
-    # Skip when triggered by coordinator tags (v*.0) via release events
-    # Package-specific tags (unxt-hypothesis-v*) should trigger normally
+    # Build runs for direct tag pushes and workflow_run triggers
+    # Coordinator tag releases are not supported; use package-specific tags instead
     if: |
-      github.event_name != 'release' ||
-      startsWith(github.event.release.tag_name, 'unxt-hypothesis-v')
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_run' ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
 
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v5.5.0
@@ -54,10 +53,38 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Validate git tag (for tagged releases)
-        if: startsWith(github.ref, 'refs/tags/')
+      # For workflow_run events, checkout the package-specific tag created by upstream
+      - name: Checkout package tag (workflow_run)
+        if: github.event_name == 'workflow_run'
         run: |
-          TAG=${GITHUB_REF#refs/tags/}
+          # Fetch all tags
+          git fetch --tags
+
+          # Find the most recent unxt-hypothesis-v* tag
+          TAG=$(git tag -l 'unxt-hypothesis-v*' --sort=-version:refname | head -n 1)
+
+          if [ -z "$TAG" ]; then
+            echo "ERROR: No unxt-hypothesis-v* tag found after upstream workflow"
+            exit 1
+          fi
+
+          echo "Checking out tag: $TAG"
+          git checkout "$TAG"
+
+          # Export for later steps
+          echo "PACKAGE_TAG=$TAG" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Validate git tag (for tagged releases)
+        if:
+          startsWith(github.ref, 'refs/tags/') || github.event_name ==
+          'workflow_run'
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            TAG="$PACKAGE_TAG"
+          else
+            TAG=${GITHUB_REF#refs/tags/}
+          fi
           python scripts/validate_tag.py "$TAG" "unxt-hypothesis"
         shell: bash
 
@@ -80,7 +107,7 @@ jobs:
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/unxt-hypothesis-v')) ||
-      (github.event_name == 'release' && github.event.action == 'published' && startsWith(github.event.release.tag_name, 'unxt-hypothesis-v'))
+      github.event_name == 'workflow_run'
 
     steps:
       - name: Download built artifact to dist/
@@ -103,10 +130,8 @@ jobs:
     permissions:
       id-token: write
     if: |
-      github.event_name == 'release' &&
-      github.event.action == 'published' &&
-      (startsWith(github.event.release.tag_name, 'unxt-hypothesis-v') ||
-       (startsWith(github.event.release.tag_name, 'v') && endsWith(github.event.release.tag_name, '.0')))
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/unxt-hypothesis-v')) ||
+      github.event_name == 'workflow_run'
 
     steps:
       - name: Download built artifact to dist/

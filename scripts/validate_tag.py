@@ -48,6 +48,11 @@ def check_coordinator_tag_exists(version: str) -> bool:
     bool
         True if vX.Y.Z tag exists, False otherwise
 
+    Raises
+    ------
+    RuntimeError
+        If git command fails (e.g., tags not fetched, git not available)
+
     """
     coordinator_tag = f"v{version}"
     result = subprocess.run(  # noqa: S603
@@ -56,6 +61,21 @@ def check_coordinator_tag_exists(version: str) -> bool:
         capture_output=True,
         text=True,
     )
+
+    # Check for git command failure to avoid misleading "tag doesn't exist" errors
+    if result.returncode != 0:
+        error_msg = f"Failed to check for coordinator tag v{version}: git tag -l failed"
+        if result.stderr:
+            logger.error("%s\nStderr: %s", error_msg, result.stderr.strip())
+        else:
+            logger.error("%s (no stderr output)", error_msg)
+        msg = (
+            f"git tag -l failed with exit code {result.returncode}. "
+            "This usually means tags weren't fetched. "
+            "Ensure 'fetch-depth: 0' is set in actions/checkout."
+        )
+        raise RuntimeError(msg)
+
     return coordinator_tag in result.stdout.strip().split("\n")
 
 
