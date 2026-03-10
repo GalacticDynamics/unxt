@@ -23,8 +23,6 @@ on:
       - "Create Package Tags"
     types:
       - completed
-    branches:
-      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
