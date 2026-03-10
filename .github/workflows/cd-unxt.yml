@@ -72,13 +72,16 @@ jobs:
           COMMIT_SHA="${{ github.event.workflow_run.head_sha }}"
           TAGS=$(git tag --points-at "$COMMIT_SHA" | grep '^unxt-v' || true)
 
-          # Count matching tags
-          TAG_COUNT=$(echo "$TAGS" | grep -c '^' || true)
-
-          if [ "$TAG_COUNT" -eq 0 ]; then
+          # Check for empty result first (echo "" | grep -c '^' wrongly returns 1)
+          if [ -z "$TAGS" ]; then
             echo "ERROR: No unxt-v* tag found pointing at commit $COMMIT_SHA"
             exit 1
-          elif [ "$TAG_COUNT" -gt 1 ]; then
+          fi
+
+          # Count matching tags (only reached when TAGS is non-empty)
+          TAG_COUNT=$(echo "$TAGS" | wc -l | tr -d ' ')
+
+          if [ "$TAG_COUNT" -gt 1 ]; then
             echo "ERROR: Multiple unxt-v* tags found pointing at commit $COMMIT_SHA:"
             echo "$TAGS"
             exit 1
