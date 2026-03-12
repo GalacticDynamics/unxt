@@ -3296,7 +3296,7 @@ def max_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
 
 @quax.register(lax.max_p)
-def max_p_qq(x: StaticQuantity, y: StaticQuantity, /) -> StaticQuantity:
+def max_p_ss(x: StaticQuantity, y: StaticQuantity, /) -> StaticQuantity:
     """Maximum of two quantities.
 
     Examples
