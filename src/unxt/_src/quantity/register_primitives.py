@@ -3295,6 +3295,24 @@ def max_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     return replace(x, value=qlax.max(xv, y))
 
 
+@quax.register(lax.max_p)
+def max_p_qq(x: StaticQuantity, y: StaticQuantity, /) -> StaticQuantity:
+    """Maximum of two quantities.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+    >>> q1 = u.quantity.StaticQuantity(1, "m")
+    >>> q2 = u.quantity.StaticQuantity(2, "m")
+    >>> jnp.maximum(q1, q2)
+    StaticQuantity(array(2), unit='m')
+
+    """
+    yv = ustrip(x.unit, y)
+    return replace(x, value=np.maximum(ustrip(x), yv))
+
+
 # ==============================================================================
 
 
