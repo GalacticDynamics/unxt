@@ -580,6 +580,59 @@ Quantity(Array(0.5, dtype=float32, weak_type=True), unit='1 / s')
 
 ::::
 
+## Next Steps
+
+<!-- prettier-ignore-start -->
+
+::::{grid} 1 2 2 3
+:gutter: 2
+
+:::{grid-item-card} Quantities
+:link: guides/quantity
+:link-type: doc
+
+Create, convert, and manipulate unitful arrays with the core `Quantity` API.
+:::
+
+:::{grid-item-card} Dimensions
+:link: guides/dimensions
+:link-type: doc
+
+Work with physical dimensions and dimension-aware expressions.
+:::
+
+:::{grid-item-card} Units and Systems
+:link: guides/units_and_systems
+:link-type: doc
+
+Explore units, built-in systems, and custom unit-system construction.
+:::
+
+:::{grid-item-card} Configuration
+:link: guides/configuration
+:link-type: doc
+
+Configure `unxt` behavior, including runtime settings and import-time hooks.
+:::
+
+:::{grid-item-card} Type Checking
+:link: guides/type-checking
+:link-type: doc
+
+See how `unxt` uses runtime and static typing across its quantity system.
+:::
+
+:::{grid-item-card} API Reference
+:link: api/index
+:link-type: doc
+
+Jump directly into the public modules, classes, and functions.
+:::
+
+::::
+
+<!-- prettier-ignore-end -->
+
 ## Citation
 
 [![JOSS][joss]][joss-link] [![DOI][zenodo-badge]][zenodo-link]
