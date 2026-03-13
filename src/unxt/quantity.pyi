@@ -11,9 +11,10 @@ _T = TypeVar("_T", bound=LiteralString)
 
 class AbstractQuantity(ArrayValue):
     # Core public attributes
-    value: Any
-    unit: Any
+    value: Array | StaticValue
+    unit: AbstractUnit
 
+    def __init__(self, value: Any, unit: Any, **kw): ...
     # Core public methods
     def uconvert(self, unit: Any) -> Self: ...
     def ustrip(self) -> Any: ...
