@@ -1,6 +1,11 @@
-from typing import Any, Generic, LiteralString, Self, TypeVar
+from typing import Any, Generic, LiteralString, Self, TypeVar, overload
 
+import numpy as np
+from jaxtyping import Array
 from quax import ArrayValue
+
+from unxt.units import AbstractUnit
+from unxt.unitsystems import AbstractUnitSystem
 
 _T = TypeVar("_T", bound=LiteralString)
 
@@ -51,5 +56,12 @@ class BareQuantity(AbstractQuantity): ...
 class StaticQuantity(AbstractParametricQuantity[_T]): ...
 class Angle(Quantity[_T]): ...
 
-def ustrip(quantity: AbstractQuantity, unit: Any | None = ...) -> Any: ...
-def uconvert(quantity: AbstractQuantity, unit: Any) -> AbstractQuantity: ...
+@overload
+def ustrip(x: AbstractQuantity, /) -> Array | np.ndarray: ...
+@overload
+def ustrip(
+    u: str | AbstractUnit | AbstractUnitSystem, x: AbstractQuantity, /
+) -> Array | np.ndarray: ...
+def uconvert(
+    u: str | AbstractUnit | AbstractUnitSystem, x: AbstractQuantity, /
+) -> AbstractQuantity: ...
