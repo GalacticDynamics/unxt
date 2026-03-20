@@ -9,6 +9,7 @@ from typing import (
     overload,
 )
 
+import jax
 import numpy as np
 import optype as op
 from jaxtyping import Array, ArrayLike, Bool
@@ -63,6 +64,10 @@ class AbstractQuantity(ArrayValue):
     # Core public attributes
     value: Array | StaticValue
     unit: AbstractUnit
+
+    # Implements quax.ArrayValue abstract methods
+    def aval(self) -> jax.core.ShapedArray: ...
+    def materialise(self) -> Array: ...
 
     # Core public methods
     def uconvert(self, unit: Any) -> Self: ...
