@@ -2758,8 +2758,16 @@ def integer_pow_p(x: ABCQ, *, y: Any) -> ABCQ:
     >>> q**3
     Quantity(Array(8, dtype=int32, ...), unit='m3')
 
+    >>> q = u.StaticQuantity(2, "m")
+    >>> q**3
+    StaticQuantity(array(8), unit='m3')
+
     """
-    return type_np(x)(value=qlax.integer_pow(ustrip(x), y), unit=x.unit**y)
+    if isinstance(x, StaticQuantity):
+        value = np.power(ustrip(x), y)
+    else:
+        value = qlax.integer_pow(ustrip(x), y)
+    return type_np(x)(value=value, unit=x.unit**y)
 
 
 @register(lax.integer_pow_p)
