@@ -167,6 +167,32 @@ def test_static_quantity_multiplication_preserves_static() -> None:
     assert result.unit == u.unit("m * s")
 
 
+def test_static_quantity_integer_power_preserves_static_scalar() -> None:
+    """StaticQuantity integer power keeps StaticQuantity for scalar input."""
+    sq = u.StaticQuantity(2, "m")
+
+    result = sq**3
+    assert isinstance(result, u.StaticQuantity)
+    assert isinstance(result.value, u.quantity.StaticValue)
+    assert isinstance(result.value.array, np.ndarray)
+    assert not isinstance(result.value.array, jnp.ndarray)
+    assert np.array_equal(np.asarray(result.value), np.array(8))
+    assert result.unit == u.unit("m**3")
+
+
+def test_static_quantity_integer_power_preserves_static_array() -> None:
+    """StaticQuantity integer power keeps StaticQuantity for array input."""
+    sq = u.StaticQuantity(np.array([2, 3]), "m")
+
+    result = sq**3
+    assert isinstance(result, u.StaticQuantity)
+    assert isinstance(result.value, u.quantity.StaticValue)
+    assert isinstance(result.value.array, np.ndarray)
+    assert not isinstance(result.value.array, jnp.ndarray)
+    assert np.array_equal(np.asarray(result.value), np.array([8, 27]))
+    assert result.unit == u.unit("m**3")
+
+
 def test_static_quantity_division_with_quantity() -> None:
     """StaticQuantity division with Quantity promotes to Quantity."""
     sq = u.StaticQuantity(6.0, "m")
