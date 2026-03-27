@@ -21,7 +21,7 @@ class TestSentinelIsNone:
         da = xr.DataArray([1.0], dims=["x"], attrs={"units": "m"})
         units = extract_unit_attributes(da)
         assert None in units
-        assert units[None] == "m"
+        assert units[None] == u.unit("m")
 
     def test_extract_unit_attributes_no_sentinel_string(self):
         """Test that extract_unit_attributes does not use a magic string key."""
@@ -60,7 +60,7 @@ class TestExtractUnitAttributes:
         da = xr.DataArray([1.0, 2.0], dims=["x"], attrs={"units": "m"})
         units = extract_unit_attributes(da)
 
-        assert units[None] == "m"
+        assert units[None] == u.unit("m")
 
     def test_dataarray_with_coord_units(self):
         """Test extracting units from DataArray coordinates."""
@@ -72,8 +72,8 @@ class TestExtractUnitAttributes:
         )
         units = extract_unit_attributes(da)
 
-        assert units[None] == "m"
-        assert units["x"] == "s"
+        assert units[None] == u.unit("m")
+        assert units["x"] == u.unit("s")
 
     def test_dataarray_no_units(self):
         """Test DataArray without units returns empty dict."""
@@ -92,8 +92,8 @@ class TestExtractUnitAttributes:
         )
         units = extract_unit_attributes(ds)
 
-        assert units["a"] == "m"
-        assert units["b"] == "s"
+        assert units["a"] == u.unit("m")
+        assert units["b"] == u.unit("s")
 
     def test_dataset_mixed_units(self):
         """Test Dataset with some variables having units."""
@@ -105,7 +105,7 @@ class TestExtractUnitAttributes:
         )
         units = extract_unit_attributes(ds)
 
-        assert units["a"] == "m"
+        assert units["a"] == u.unit("m")
         assert "b" not in units
 
     def test_invalid_type(self):

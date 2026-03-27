@@ -1,7 +1,6 @@
 # `xarray` Integration Guide
 
-This guide shows how to use `unxt-xarray` to integrate JAX-based physical
-quantities with `xarray`'s labeled multi-dimensional arrays.
+This guide shows how to use `unxt-xarray` to integrate JAX-based physical quantities with `xarray`'s labeled multi-dimensional arrays.
 
 ## Overview
 
@@ -43,8 +42,7 @@ uv add unxt-xarray
 
 ### The `.unxt` Accessor
 
-After importing `unxt_xarray`, all DataArrays and Datasets gain a `.unxt`
-accessor with two main methods:
+After importing `unxt_xarray`, all DataArrays and Datasets gain a `.unxt` accessor with two main methods:
 
 - `quantify()`: Convert attrs to Quantities
 - `dequantify()`: Convert Quantities back to plain arrays with attrs
@@ -76,8 +74,7 @@ print(dequantified.attrs["units"])
 
 ### Quantifying from Attributes
 
-The most common workflow starts with `xarray` objects that have unit information
-stored in their `attrs`:
+The most common workflow starts with `xarray` objects that have unit information stored in their `attrs`:
 
 ```python
 import jax.numpy as jnp
@@ -117,6 +114,21 @@ print(quantified.data)
 
 Pass a string or `AbstractUnit` directly to apply it to the DataArray's data.
 
+### Inspecting Discovered Units
+
+You can inspect unit metadata discovered by the accessor before quantifying:
+
+```python
+import xarray as xr
+import unxt_xarray
+
+da = xr.DataArray([1.0, 2.0], dims=["x"], attrs={"units": "m"})
+print(da.unxt.units)
+# {None: Unit("m")}
+```
+
+For DataArrays, the `None` key refers to the DataArray's own data.
+
 ### Coordinates with Units
 
 Coordinates can also have units:
@@ -144,9 +156,7 @@ print(quantified.coords["time"].data)
 # Quantity['time'](Array([0., 1., 2.], dtype=float32), unit='s')
 ```
 
-**Important**: Use non-dimension coordinates (coordinates not marked with `*` in
-`xarray` output) to preserve Quantity objects. Dimension coordinates are
-automatically converted to plain arrays by `xarray`.
+**Important**: Use non-dimension coordinates (coordinates not marked with `*` in `xarray` output) to preserve Quantity objects. Dimension coordinates are automatically converted to plain arrays by `xarray`.
 
 ## Working with Datasets
 
@@ -267,7 +277,7 @@ def square(x):
 
 
 q = u.Quantity([[1.0, 2.0], [3.0, 4.0]], "m")
-da = xr.DataArray(q, dims=["time", "space"])
+da = xr.DataArray(q, dims=["x", "y"])
 
 # vmap over the data
 squared = square(da.data)
@@ -345,8 +355,7 @@ coords = {"x": u.Quantity([1.0, 2.0], "m")}  # x is marked as dimension
 
 ### 3. Consistent Unit Attributes
 
-Use consistent attribute names throughout your workflow. The default `"units"`
-is standard in many scientific data formats (CF conventions, NetCDF, etc.).
+Use consistent attribute names throughout your workflow. The default `"units"` is standard in many scientific data formats (CF conventions, NetCDF, etc.).
 
 ### 4. Preserve Other Metadata
 
@@ -454,9 +463,7 @@ da_cm = xr.DataArray(cm_data, dims=da.dims, coords=da.coords)
 
 ### Dimension Coordinates
 
-`xarray`'s dimension coordinates (those marked with `*` in the string
-representation) always extract the underlying array values, even for duck array
-types like Quantity. This is a limitation of `xarray` itself.
+`xarray`'s dimension coordinates (those marked with `*` in the string representation) always extract the underlying array values, even for duck array types like Quantity. This is a limitation of `xarray` itself.
 
 **Workaround**: Use non-dimension coordinates:
 

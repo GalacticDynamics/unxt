@@ -3,6 +3,7 @@
 import jax.numpy as jnp
 import pytest
 import xarray as xr
+from unxt_xarray._src.accessors import UnxtDataArrayAccessor
 
 import unxt as u
 
@@ -69,6 +70,41 @@ class TestDataArrayAccessor:
         da = xr.DataArray([1.0, 2.0], dims=["x"], attrs={"units": "m"})
         quantified = da.unxt.quantify("km")
 
+        assert quantified.data.unit == u.unit("km")
+
+    def test_units_property_from_attributes(self):
+        """Test unit property reads units from data and coordinate attributes."""
+        da = xr.DataArray(
+            [1.0, 2.0],
+            dims=["i"],
+            coords={"i": [0, 1], "x": ("i", [0.0, 1.0], {"units": "s"})},
+            attrs={"units": "m"},
+        )
+
+        units = da.unxt.units
+
+        assert units[None] == u.unit("m")
+        assert units["x"] == u.unit("s")
+
+    def test_units_property_no_units(self):
+        """Test unit property returns empty mapping when no units are present."""
+        da = xr.DataArray([1.0, 2.0], dims=["x"])
+
+        assert da.unxt.units == {}
+
+    def test_quantify_uses_units_property(self, monkeypatch: pytest.MonkeyPatch):
+        """Test quantify reads discovered units from the accessor unit property."""
+        monkeypatch.setattr(
+            UnxtDataArrayAccessor,
+            "units",
+            property(lambda _: {None: "km"}),
+            raising=False,
+        )
+
+        da = xr.DataArray([1.0, 2.0], dims=["x"], attrs={"units": "m"})
+        quantified = da.unxt.quantify()
+
+        assert isinstance(quantified.data, u.Quantity)
         assert quantified.data.unit == u.unit("km")
 
     def test_dequantify(self):

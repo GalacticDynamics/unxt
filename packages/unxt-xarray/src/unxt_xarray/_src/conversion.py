@@ -59,7 +59,7 @@ def _array_attach_units(
 
 
 @dispatch
-def extract_unit_attributes(obj: DataArray, /) -> dict[Hashable, str | None]:
+def extract_unit_attributes(obj: DataArray, /) -> dict[Hashable, u.AbstractUnit | None]:
     """Extract unit attributes from a DataArray.
 
     Parameters
@@ -69,8 +69,8 @@ def extract_unit_attributes(obj: DataArray, /) -> dict[Hashable, str | None]:
 
     Returns
     -------
-    dict[Hashable, str | None]
-        Mapping of variable names to their unit attribute values.
+    dict[Hashable, AbstractUnit | None]
+        Mapping of variable names to normalized unit objects.
         The DataArray's own data units are stored under the ``None`` key.
 
     Examples
@@ -80,25 +80,25 @@ def extract_unit_attributes(obj: DataArray, /) -> dict[Hashable, str | None]:
 
     >>> da = xr.DataArray([1.0, 2.0], dims=["x"], attrs={"units": "m"})
     >>> extract_unit_attributes(da)
-    {None: 'm'}
+    {None: Unit("m")}
 
     """
-    units: dict[Hashable, str | None] = {}
+    units: dict[Hashable, u.AbstractUnit | None] = {}
 
     # For DataArray, use None as the key for the data variable
     if (v := obj.attrs.get(UNIT_ATTR)) is not None:
-        units[None] = v
+        units[None] = u.unit(v)
 
     # Extract from coordinates
     for name, coord in obj.coords.items():
         if (v := coord.attrs.get(UNIT_ATTR)) is not None:
-            units[name] = v
+            units[name] = u.unit(v)
 
     return units
 
 
 @dispatch
-def extract_unit_attributes(obj: Dataset, /) -> dict[Hashable, str | None]:
+def extract_unit_attributes(obj: Dataset, /) -> dict[Hashable, u.AbstractUnit | None]:
     """Extract unit attributes from a Dataset.
 
     Parameters
@@ -108,8 +108,8 @@ def extract_unit_attributes(obj: Dataset, /) -> dict[Hashable, str | None]:
 
     Returns
     -------
-    dict[Hashable, str | None]
-        Mapping of variable names to their unit attribute values.
+    dict[Hashable, AbstractUnit | None]
+        Mapping of variable names to normalized unit objects.
 
     Examples
     --------
@@ -118,15 +118,15 @@ def extract_unit_attributes(obj: Dataset, /) -> dict[Hashable, str | None]:
 
     >>> ds = xr.Dataset({"a": ("x", [1, 2], {"units": "m"}), "b": ("y", [3, 4])})
     >>> extract_unit_attributes(ds)
-    {'a': 'm'}
+    {'a': Unit("m")}
 
     """
-    units: dict[Hashable, str | None] = {}
+    units: dict[Hashable, u.AbstractUnit | None] = {}
 
     # Extract from all variables (data and coords)
     for name, var in obj.variables.items():
         if (v := var.attrs.get(UNIT_ATTR)) is not None:
-            units[name] = v
+            units[name] = u.unit(v)
 
     return units
 
