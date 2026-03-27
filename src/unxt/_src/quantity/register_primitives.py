@@ -2797,35 +2797,24 @@ def is_finite_p(x: ABCQ) -> ArrayLike:
 
     Examples
     --------
-    .. invisible-code-block: python
-
-        import jax
-        from packaging.version import Version
-        jax_version_gte_0_8 = Version(jax.__version__) >= Version("0.8.0")
-
     >>> import quaxed.numpy as jnp
     >>> import unxt as u
+
     >>> q = u.quantity.BareQuantity(1, "m")
-
-    .. skip: next if(jax_version_gte_0_8, reason="jax >= 0.8 returns TypedNdArray")
-
-    >>> jnp.isfinite(q)
-    array(True)
+    >>> bool(jnp.isfinite(q))
+    True
 
     >>> q = u.quantity.BareQuantity(float("inf"), "m")
-    >>> jnp.isfinite(q)
-    Array(False, dtype=bool, ...)
+    >>> bool(jnp.isfinite(q))
+    False
 
     >>> q = u.Q(1, "m")
-
-    .. skip: next if(jax_version_gte_0_8, reason="jax >= 0.8 returns TypedNdArray")
-
-    >>> jnp.isfinite(q)
-    array(True)
+    >>> bool(jnp.isfinite(q))
+    True
 
     >>> q = u.Q(float("inf"), "m")
-    >>> jnp.isfinite(q)
-    Array(False, dtype=bool, ...)
+    >>> bool(jnp.isfinite(q))
+    False
 
     """
     return lax.is_finite(ustrip(x))
