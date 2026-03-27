@@ -207,8 +207,7 @@ def add(x: promote(int, float), y: float) -> float:
 
 ### Documentation
 
-- Always use `::::{tab-set}` format for installation instructions with pip and
-  uv options:
+- Always use `::::{tab-set}` format for installation instructions with pip and uv options:
 
   ````markdown
   ::::{tab-set}

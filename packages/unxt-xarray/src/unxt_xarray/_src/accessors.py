@@ -41,11 +41,26 @@ class UnxtDataArrayAccessor:
     >>> q = da.unxt.quantify()
     >>> q.data
     Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
+    >>> da.unxt.units
+    {None: Unit("m")}
 
     """
 
     def __init__(self, da: DataArray) -> None:
         self._da = da
+
+    @property
+    def units(self) -> dict[Hashable, u.AbstractUnit | None]:
+        """Units discovered from unit attributes on data and coordinates.
+
+        Returns
+        -------
+        dict[Hashable, AbstractUnit | None]
+            Mapping of names to normalized unit objects where the DataArray data
+            is under the `None` key.
+
+        """
+        return extract_unit_attributes(self._da)
 
     def quantify(
         self,
@@ -129,8 +144,8 @@ class UnxtDataArrayAccessor:
             msg = f"units must be a string, AbstractUnit, or Mapping, got {type(units)}"
             raise TypeError(msg)
 
-        # Extract unit attributes if no explicit units provided
-        unit_attrs = extract_unit_attributes(self._da)
+        # Discover unit attributes through the accessor property.
+        unit_attrs = self.units
 
         # Merge: explicit units override attributes
         final_units: dict[Hashable, str | u.AbstractUnit | None] = {}
@@ -292,7 +307,7 @@ class UnxtDatasetAccessor:
         unit_attrs = extract_unit_attributes(self._ds)
 
         # Merge: explicit units override attributes
-        final_units: dict[Hashable, str | u.AbstractUnit | None] = {}
+        final_units: dict[Hashable, u.AbstractUnit | None] = {}
         for name in set(list(unit_attrs.keys()) + list(units.keys())):
             if name in units:
                 final_units[name] = units[name]

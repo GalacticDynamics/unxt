@@ -2,8 +2,7 @@
 
 xarray integration for [unxt](https://github.com/GalacticDynamics/unxt).
 
-This package provides xarray accessors that enable seamless integration between
-unxt's JAX-based quantities and xarray's labeled multi-dimensional arrays.
+This package provides xarray accessors that enable seamless integration between unxt's JAX-based quantities and xarray's labeled multi-dimensional arrays.
 
 ## Installation
 
@@ -45,15 +44,12 @@ print(dequantified.attrs)
 
 ## Features
 
-- **`quantify()`**: Convert xarray objects with unit attributes to unxt
-  Quantities
-- **`dequantify()`**: Convert unxt Quantities back to plain arrays with unit
-  attributes
+- **`quantify()`**: Convert xarray objects with unit attributes to unxt Quantities
+- **`dequantify()`**: Convert unxt Quantities back to plain arrays with unit attributes
 - Supports both `DataArray` and `Dataset` objects
 - Preserves coordinates and their units
 - JAX-compatible for JIT compilation, vectorization, and differentiation
 
 ## Documentation
 
-For full documentation, see the
-[main unxt documentation](https://unxt.readthedocs.io/).
+For full documentation, see the [main unxt documentation](https://unxt.readthedocs.io/).

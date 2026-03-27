@@ -7,8 +7,7 @@
 xarray-guide
 ```
 
-`xarray` integration for unxt - JAX-based physical quantities with `xarray`'s
-labeled arrays.
+`xarray` integration for unxt - JAX-based physical quantities with `xarray`'s labeled arrays.
 
 ## Installation
 
@@ -188,14 +187,10 @@ q_ds = ds.unxt.quantify()
 
 ## Best Practices
 
-1. **Consistent Units**: Ensure unit attributes are consistent across your
-   workflow
-2. **Explicit is Better**: Use explicit units in `quantify()` when possible for
-   clarity
-3. **Preserve Attributes**: Other attributes (like `long_name`, `description`)
-   are preserved
-4. **JAX Compatibility**: Remember that quantified data is JAX arrays - use
-   `jax.numpy` operations
+1. **Consistent Units**: Ensure unit attributes are consistent across your workflow
+2. **Explicit is Better**: Use explicit units in `quantify()` when possible for clarity
+3. **Preserve Attributes**: Other attributes (like `long_name`, `description`) are preserved
+4. **JAX Compatibility**: Remember that quantified data is JAX arrays - use `jax.numpy` operations
 
 ## See Also
 
