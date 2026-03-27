@@ -3,29 +3,53 @@
 import jax.numpy as jnp
 import pytest
 import xarray as xr
-from unxt_xarray._src import conversion
+from unxt_xarray import (
+    attach_units,
+    extract_unit_attributes,
+    extract_units,
+    strip_units,
+)
 
 import unxt as u
 
 
-class TestArrayFunctions:
-    """Test array-level conversion functions."""
+class TestSentinelIsNone:
+    """Verify the data-array key is None, not a magic string."""
 
-    def test__array_attach_units_with_unit(self):
-        """Test attaching units to array data."""
-        data = jnp.array([1.0, 2.0, 3.0])
-        q = conversion._array_attach_units(data, "m")
+    def test_extract_unit_attributes_uses_none_key(self):
+        """Test that extract_unit_attributes uses None key for data array."""
+        da = xr.DataArray([1.0], dims=["x"], attrs={"units": "m"})
+        units = extract_unit_attributes(da)
+        assert None in units
+        assert units[None] == "m"
 
-        assert isinstance(q, u.Quantity)
-        assert q.unit == u.unit("m")
-        assert jnp.allclose(q.value, data)
+    def test_extract_unit_attributes_no_sentinel_string(self):
+        """Test that extract_unit_attributes does not use a magic string key."""
+        da = xr.DataArray([1.0], dims=["x"], attrs={"units": "m"})
+        units = extract_unit_attributes(da)
+        assert "<this-array>" not in units
 
-    def test__array_attach_units_none(self):
-        """Test that None unit returns data unchanged."""
-        data = jnp.array([1.0, 2.0, 3.0])
-        result = conversion._array_attach_units(data, None)
+    def test_extract_units_uses_none_key(self):
+        """Test that extract_units uses None key for data array."""
+        q = u.Quantity([1.0], "m")
+        da = xr.DataArray(q, dims=["x"])
+        units = extract_units(da)
+        assert None in units
+        assert units[None] == u.unit("m")
 
-        assert result is data
+    def test_extract_units_no_sentinel_string(self):
+        """Test that extract_units does not use a magic string key."""
+        q = u.Quantity([1.0], "m")
+        da = xr.DataArray(q, dims=["x"])
+        units = extract_units(da)
+        assert "<this-array>" not in units
+
+    def test_attach_units_accepts_none_key(self):
+        """Test that attach_units accepts None key for data array."""
+        da = xr.DataArray([1.0, 2.0], dims=["x"])
+        quantified = attach_units(da, {None: "m"})
+        assert isinstance(quantified.data, u.Quantity)
+        assert quantified.data.unit == u.unit("m")
 
 
 class TestExtractUnitAttributes:
@@ -34,9 +58,9 @@ class TestExtractUnitAttributes:
     def test_dataarray_with_units_attr(self):
         """Test extracting units attribute from DataArray."""
         da = xr.DataArray([1.0, 2.0], dims=["x"], attrs={"units": "m"})
-        units = conversion.extract_unit_attributes(da)
+        units = extract_unit_attributes(da)
 
-        assert units[conversion.TEMPORARY_NAME] == "m"
+        assert units[None] == "m"
 
     def test_dataarray_with_coord_units(self):
         """Test extracting units from DataArray coordinates."""
@@ -46,15 +70,15 @@ class TestExtractUnitAttributes:
             coords={"i": [0, 1], "x": ("i", [0.0, 1.0], {"units": "s"})},
             attrs={"units": "m"},
         )
-        units = conversion.extract_unit_attributes(da)
+        units = extract_unit_attributes(da)
 
-        assert units[conversion.TEMPORARY_NAME] == "m"
+        assert units[None] == "m"
         assert units["x"] == "s"
 
     def test_dataarray_no_units(self):
         """Test DataArray without units returns empty dict."""
         da = xr.DataArray([1.0, 2.0], dims=["x"])
-        units = conversion.extract_unit_attributes(da)
+        units = extract_unit_attributes(da)
 
         assert len(units) == 0
 
@@ -66,7 +90,7 @@ class TestExtractUnitAttributes:
                 "b": ("y", [3.0, 4.0], {"units": "s"}),
             }
         )
-        units = conversion.extract_unit_attributes(ds)
+        units = extract_unit_attributes(ds)
 
         assert units["a"] == "m"
         assert units["b"] == "s"
@@ -79,7 +103,7 @@ class TestExtractUnitAttributes:
                 "b": ("y", [3.0, 4.0]),  # No units
             }
         )
-        units = conversion.extract_unit_attributes(ds)
+        units = extract_unit_attributes(ds)
 
         assert units["a"] == "m"
         assert "b" not in units
@@ -87,7 +111,7 @@ class TestExtractUnitAttributes:
     def test_invalid_type(self):
         """Test that invalid type raises TypeError."""
         with pytest.raises(TypeError, match="Cannot extract unit attributes"):
-            conversion.extract_unit_attributes([1, 2, 3])  # type: ignore[arg-type]
+            extract_unit_attributes([1, 2, 3])  # type: ignore[arg-type]
 
 
 class TestExtractUnits:
@@ -97,9 +121,9 @@ class TestExtractUnits:
         """Test extracting units from Quantity in DataArray."""
         q = u.Quantity([1.0, 2.0], "m")
         da = xr.DataArray(q, dims=["x"])
-        units = conversion.extract_units(da)
+        units = extract_units(da)
 
-        assert units[conversion.TEMPORARY_NAME] == u.unit("m")
+        assert units[None] == u.unit("m")
 
     def test_dataarray_with_quantity_coords(self):
         """Test extracting units from Quantity coordinates."""
@@ -107,15 +131,15 @@ class TestExtractUnits:
         q_coord = u.Quantity([0.0, 1.0], "s")
         # Use non-dimension coordinate to preserve Quantity
         da = xr.DataArray(q_data, dims=["i"], coords={"i": [0, 1], "x": ("i", q_coord)})
-        units = conversion.extract_units(da)
+        units = extract_units(da)
 
-        assert units[conversion.TEMPORARY_NAME] == u.unit("m")
+        assert units[None] == u.unit("m")
         assert units["x"] == u.unit("s")
 
     def test_dataarray_no_quantities(self):
         """Test DataArray without Quantities returns empty dict."""
         da = xr.DataArray([1.0, 2.0], dims=["x"])
-        units = conversion.extract_units(da)
+        units = extract_units(da)
 
         assert len(units) == 0
 
@@ -124,10 +148,15 @@ class TestExtractUnits:
         q1 = u.Quantity([1.0, 2.0], "m")
         q2 = u.Quantity([3.0, 4.0], "s")
         ds = xr.Dataset({"a": ("x", q1), "b": ("y", q2)})
-        units = conversion.extract_units(ds)
+        units = extract_units(ds)
 
         assert units["a"] == u.unit("m")
         assert units["b"] == u.unit("s")
+
+    def test_invalid_type(self):
+        """Test that invalid type raises TypeError."""
+        with pytest.raises(TypeError, match="Cannot extract units"):
+            extract_units([1, 2, 3])  # type: ignore[arg-type]
 
 
 class TestAttachUnits:
@@ -136,7 +165,7 @@ class TestAttachUnits:
     def test_attach_to_dataarray(self):
         """Test attaching units to DataArray."""
         da = xr.DataArray([1.0, 2.0], dims=["x"])
-        quantified = conversion.attach_units(da, {conversion.TEMPORARY_NAME: "m"})
+        quantified = attach_units(da, {None: "m"})
 
         assert isinstance(quantified.data, u.Quantity)
         assert quantified.data.unit == u.unit("m")
@@ -146,9 +175,7 @@ class TestAttachUnits:
         da = xr.DataArray(
             [1.0, 2.0], dims=["i"], coords={"i": [0, 1], "x": ("i", [0.0, 1.0])}
         )
-        quantified = conversion.attach_units(
-            da, {conversion.TEMPORARY_NAME: "m", "x": "s"}
-        )
+        quantified = attach_units(da, {None: "m", "x": "s"})
 
         assert isinstance(quantified.data, u.Quantity)
         assert quantified.data.unit == u.unit("m")
@@ -158,7 +185,7 @@ class TestAttachUnits:
     def test_attach_to_dataset(self):
         """Test attaching units to Dataset."""
         ds = xr.Dataset({"a": ("x", [1.0, 2.0]), "b": ("y", [3.0, 4.0])})
-        quantified = conversion.attach_units(ds, {"a": "m", "b": "s"})
+        quantified = attach_units(ds, {"a": "m", "b": "s"})
 
         assert isinstance(quantified["a"].data, u.Quantity)
         assert quantified["a"].data.unit == u.unit("m")
@@ -168,10 +195,15 @@ class TestAttachUnits:
     def test_attach_partial_units(self):
         """Test attaching units to only some variables."""
         ds = xr.Dataset({"a": ("x", [1.0, 2.0]), "b": ("y", [3.0, 4.0])})
-        quantified = conversion.attach_units(ds, {"a": "m"})
+        quantified = attach_units(ds, {"a": "m"})
 
         assert isinstance(quantified["a"].data, u.Quantity)
         assert not isinstance(quantified["b"].data, u.Quantity)
+
+    def test_invalid_type_raises(self):
+        """Invalid type raises TypeError."""
+        with pytest.raises(TypeError):
+            attach_units("not xarray", {})  # type: ignore[arg-type]
 
 
 class TestStripUnits:
@@ -181,7 +213,7 @@ class TestStripUnits:
         """Test stripping units from DataArray."""
         q = u.Quantity([1.0, 2.0], "m")
         da = xr.DataArray(q, dims=["x"])
-        stripped = conversion.strip_units(da)
+        stripped = strip_units(da)
 
         assert not isinstance(stripped.data, u.Quantity)
         assert jnp.allclose(stripped.data, jnp.array([1.0, 2.0]))
@@ -191,7 +223,7 @@ class TestStripUnits:
         q_data = u.Quantity([1.0, 2.0], "m")
         q_coord = u.Quantity([0.0, 1.0], "s")
         da = xr.DataArray(q_data, dims=["x"], coords={"x": q_coord})
-        stripped = conversion.strip_units(da)
+        stripped = strip_units(da)
 
         assert not isinstance(stripped.data, u.Quantity)
         assert not isinstance(stripped.coords["x"].data, u.Quantity)
@@ -201,7 +233,12 @@ class TestStripUnits:
         q1 = u.Quantity([1.0, 2.0], "m")
         q2 = u.Quantity([3.0, 4.0], "s")
         ds = xr.Dataset({"a": ("x", q1), "b": ("y", q2)})
-        stripped = conversion.strip_units(ds)
+        stripped = strip_units(ds)
 
         assert not isinstance(stripped["a"].data, u.Quantity)
         assert not isinstance(stripped["b"].data, u.Quantity)
+
+    def test_invalid_type_raises(self):
+        """Invalid type raises TypeError."""
+        with pytest.raises(TypeError):
+            strip_units("not xarray")  # type: ignore[arg-type]

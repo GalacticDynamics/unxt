@@ -13,6 +13,7 @@ __all__ = (
 from collections.abc import Hashable, Mapping
 from typing import Any, Final
 
+from plum import dispatch
 from xarray import DataArray, Dataset, Variable
 
 import unxt as u
@@ -20,9 +21,6 @@ from unxt.quantity import AllowValue
 
 # Name of the attribute used to store units
 UNIT_ATTR: Final = "units"
-
-# Sentinel for temporary name in conversion
-TEMPORARY_NAME: Final = "<this-array>"
 
 
 def _array_attach_units(
@@ -60,13 +58,53 @@ def _array_attach_units(
     return data if unit is None else u.Q(data, u.unit(unit))
 
 
-def extract_unit_attributes(obj: DataArray | Dataset, /) -> dict[Hashable, str | None]:
-    """Extract unit attributes from xarray object.
+@dispatch
+def extract_unit_attributes(obj: DataArray, /) -> dict[Hashable, str | None]:
+    """Extract unit attributes from a DataArray.
 
     Parameters
     ----------
-    obj : DataArray | Dataset
-        The xarray object to extract unit attributes from.
+    obj : DataArray
+        The DataArray to extract unit attributes from.
+
+    Returns
+    -------
+    dict[Hashable, str | None]
+        Mapping of variable names to their unit attribute values.
+        The DataArray's own data units are stored under the ``None`` key.
+
+    Examples
+    --------
+    >>> import xarray as xr
+    >>> from unxt_xarray._src.conversion import extract_unit_attributes
+
+    >>> da = xr.DataArray([1.0, 2.0], dims=["x"], attrs={"units": "m"})
+    >>> extract_unit_attributes(da)
+    {None: 'm'}
+
+    """
+    units: dict[Hashable, str | None] = {}
+
+    # For DataArray, use None as the key for the data variable
+    if (v := obj.attrs.get(UNIT_ATTR)) is not None:
+        units[None] = v
+
+    # Extract from coordinates
+    for name, coord in obj.coords.items():
+        if (v := coord.attrs.get(UNIT_ATTR)) is not None:
+            units[name] = v
+
+    return units
+
+
+@dispatch
+def extract_unit_attributes(obj: Dataset, /) -> dict[Hashable, str | None]:
+    """Extract unit attributes from a Dataset.
+
+    Parameters
+    ----------
+    obj : Dataset
+        The Dataset to extract unit attributes from.
 
     Returns
     -------
@@ -78,10 +116,6 @@ def extract_unit_attributes(obj: DataArray | Dataset, /) -> dict[Hashable, str |
     >>> import xarray as xr
     >>> from unxt_xarray._src.conversion import extract_unit_attributes
 
-    >>> da = xr.DataArray([1.0, 2.0], dims=["x"], attrs={"units": "m"})
-    >>> extract_unit_attributes(da)
-    {'<this-array>': 'm'}
-
     >>> ds = xr.Dataset({"a": ("x", [1, 2], {"units": "m"}), "b": ("y", [3, 4])})
     >>> extract_unit_attributes(ds)
     {'a': 'm'}
@@ -89,41 +123,34 @@ def extract_unit_attributes(obj: DataArray | Dataset, /) -> dict[Hashable, str |
     """
     units: dict[Hashable, str | None] = {}
 
-    if isinstance(obj, DataArray):
-        # For DataArray, use temporary name for the data variable
-        if (v := obj.attrs.get(UNIT_ATTR)) is not None:
-            units[TEMPORARY_NAME] = v
-
-        # Extract from coordinates
-        for name, coord in obj.coords.items():
-            if (v := coord.attrs.get(UNIT_ATTR)) is not None:
-                units[name] = v
-
-    elif isinstance(obj, Dataset):
-        # Extract from all variables (data and coords)
-        for name, var in obj.variables.items():
-            if (v := var.attrs.get(UNIT_ATTR)) is not None:
-                units[name] = v
-
-    else:
-        msg = f"Cannot extract unit attributes from type: {type(obj)}"
-        raise TypeError(msg)
+    # Extract from all variables (data and coords)
+    for name, var in obj.variables.items():
+        if (v := var.attrs.get(UNIT_ATTR)) is not None:
+            units[name] = v
 
     return units
 
 
-def extract_units(obj: DataArray | Dataset, /) -> dict[Hashable, u.AbstractUnit | None]:
-    """Extract units from Quantities in xarray object.
+@dispatch
+def extract_unit_attributes(obj: object, /) -> dict:
+    msg = f"Cannot extract unit attributes from type: {type(obj)}"
+    raise TypeError(msg)
+
+
+@dispatch
+def extract_units(obj: DataArray, /) -> dict[Hashable, u.AbstractUnit | None]:
+    """Extract units from Quantities in a DataArray.
 
     Parameters
     ----------
-    obj : DataArray | Dataset
-        The xarray object to extract units from.
+    obj : DataArray
+        The DataArray to extract units from.
 
     Returns
     -------
     dict[Hashable, AbstractUnit | None]
         Mapping of variable names to their units.
+        The DataArray's own data units are stored under the ``None`` key.
 
     Examples
     --------
@@ -135,51 +162,73 @@ def extract_units(obj: DataArray | Dataset, /) -> dict[Hashable, u.AbstractUnit 
     >>> q = u.Quantity([1.0, 2.0], "m")
     >>> da = xr.DataArray(q, dims=["x"])
     >>> units = extract_units(da)
-    >>> units["<this-array>"]
+    >>> units[None]
     Unit("m")
 
     """
     units: dict[Hashable, u.AbstractUnit | None] = {}
 
-    if isinstance(obj, DataArray):
-        # Extract from data
-        if (unit := u.unit_of(obj.data)) is not None:
-            units[TEMPORARY_NAME] = unit
+    # Extract from data
+    if (unit := u.unit_of(obj.data)) is not None:
+        units[None] = unit
 
-        # Extract from coordinates
-        for name, coord in obj.coords.items():
-            if (unit := u.unit_of(coord.data)) is not None:
-                units[name] = unit
-
-    elif isinstance(obj, Dataset):
-        # Extract from all variables
-        for name, var in obj.variables.items():
-            if (unit := u.unit_of(var.data)) is not None:
-                units[name] = unit
-
-    else:
-        msg = f"Cannot extract units from type: {type(obj)}"
-        raise TypeError(msg)
+    # Extract from coordinates
+    for name, coord in obj.coords.items():
+        if (unit := u.unit_of(coord.data)) is not None:
+            units[name] = unit
 
     return units
 
 
-def attach_units(
-    obj: DataArray | Dataset, units: Mapping[Hashable, u.AbstractUnit | str | None]
-) -> DataArray | Dataset:
-    """Attach units to xarray object variables.
+@dispatch
+def extract_units(obj: Dataset, /) -> dict[Hashable, u.AbstractUnit | None]:
+    """Extract units from Quantities in a Dataset.
 
     Parameters
     ----------
-    obj : DataArray | Dataset
-        The xarray object to attach units to.
-    units : Mapping[Hashable, AbstractUnit | str | None]
-        Mapping of variable names to units.
+    obj : Dataset
+        The Dataset to extract units from.
 
     Returns
     -------
-    DataArray | Dataset
-        New xarray object with units attached as Quantities.
+    dict[Hashable, AbstractUnit | None]
+        Mapping of variable names to their units.
+
+    """
+    units: dict[Hashable, u.AbstractUnit | None] = {}
+
+    # Extract from all variables
+    for name, var in obj.variables.items():
+        if (unit := u.unit_of(var.data)) is not None:
+            units[name] = unit
+
+    return units
+
+
+@dispatch
+def extract_units(obj: object, /) -> dict:
+    msg = f"Cannot extract units from type: {type(obj)}"
+    raise TypeError(msg)
+
+
+@dispatch
+def attach_units(
+    obj: DataArray, units: Mapping[Hashable, u.AbstractUnit | str | None]
+) -> DataArray:
+    """Attach units to a DataArray's variables.
+
+    Parameters
+    ----------
+    obj : DataArray
+        The DataArray to attach units to.
+    units : Mapping[Hashable, AbstractUnit | str | None]
+        Mapping of variable names to units.
+        Use ``None`` as the key to attach units to the DataArray's own data.
+
+    Returns
+    -------
+    DataArray
+        New DataArray with units attached as Quantities.
 
     Examples
     --------
@@ -187,69 +236,91 @@ def attach_units(
     >>> from unxt_xarray._src.conversion import attach_units
 
     >>> da = xr.DataArray([1.0, 2.0], dims=["x"])
-    >>> quantified = attach_units(da, {"<this-array>": "m"})
+    >>> quantified = attach_units(da, {None: "m"})
     >>> quantified.data
     Quantity(Array([1., 2.], dtype=float32), unit='m')
 
     """
-    if isinstance(obj, DataArray):
-        # Handle the data array itself
-        data_unit = units.get(TEMPORARY_NAME)
-        new_data = _array_attach_units(obj.data, data_unit)
+    # Handle the data array itself (None key = the DataArray's own data)
+    data_unit = units.get(None)
+    new_data = _array_attach_units(obj.data, data_unit)
 
-        # Handle coordinates - need to preserve as Variable objects
-        new_coords = {}
-        for name, coord in obj.coords.items():
-            unit = units.get(name)
-            new_coords[name] = (
-                coord
-                if unit is None
-                else Variable(coord.dims, u.Q(coord.data, unit), coord.attrs)
-            )
-
-        return DataArray(
-            data=new_data,
-            coords=new_coords,
-            dims=obj.dims,
-            name=obj.name,
-            attrs=obj.attrs,
+    # Handle coordinates - need to preserve as Variable objects
+    new_coords = {}
+    for name, coord in obj.coords.items():
+        unit = units.get(name)
+        new_coords[name] = (
+            coord
+            if unit is None
+            else Variable(coord.dims, u.Q(coord.data, unit), coord.attrs)
         )
 
-    if isinstance(obj, Dataset):
-        # Handle all variables in dataset
-        new_vars = {}
-        for name, var in obj.data_vars.items():
-            new_data = _array_attach_units(var.data, units.get(name))
-            new_vars[name] = (var.dims, new_data, var.attrs)
+    return DataArray(
+        data=new_data,
+        coords=new_coords,
+        dims=obj.dims,
+        name=obj.name,
+        attrs=obj.attrs,
+    )
 
-        # Handle coordinates
-        new_coords = {}
-        for name, coord in obj.coords.items():
-            unit = units.get(name)
-            new_coords[name] = (
-                coord
-                if unit is None
-                else Variable(coord.dims, u.Q(coord.data, unit), coord.attrs)
-            )
 
-        return Dataset(data_vars=new_vars, coords=new_coords, attrs=obj.attrs)
+@dispatch
+def attach_units(
+    obj: Dataset, units: Mapping[Hashable, u.AbstractUnit | str | None]
+) -> Dataset:
+    """Attach units to a Dataset's variables.
 
+    Parameters
+    ----------
+    obj : Dataset
+        The Dataset to attach units to.
+    units : Mapping[Hashable, AbstractUnit | str | None]
+        Mapping of variable names to units.
+
+    Returns
+    -------
+    Dataset
+        New Dataset with units attached as Quantities.
+
+    """
+    # Handle all variables in dataset
+    new_vars = {}
+    for name, var in obj.data_vars.items():
+        new_data = _array_attach_units(var.data, units.get(name))
+        new_vars[name] = (var.dims, new_data, var.attrs)
+
+    # Handle coordinates
+    new_coords = {}
+    for name, coord in obj.coords.items():
+        unit = units.get(name)
+        new_coords[name] = (
+            coord
+            if unit is None
+            else Variable(coord.dims, u.Q(coord.data, unit), coord.attrs)
+        )
+
+    return Dataset(data_vars=new_vars, coords=new_coords, attrs=obj.attrs)
+
+
+@dispatch
+def attach_units(obj: object, units: Mapping) -> object:
     msg = f"Cannot attach units to type: {type(obj)}"
     raise TypeError(msg)
 
 
-def strip_units(obj: DataArray | Dataset) -> DataArray | Dataset:
-    """Strip units from xarray object, converting Quantities to plain arrays.
+@dispatch
+def strip_units(obj: DataArray) -> DataArray:
+    """Strip units from a DataArray, converting Quantities to plain arrays.
 
     Parameters
     ----------
-    obj : DataArray | Dataset
-        The xarray object to strip units from.
+    obj : DataArray
+        The DataArray to strip units from.
 
     Returns
     -------
-    DataArray | Dataset
-        New xarray object with plain arrays instead of Quantities.
+    DataArray
+        New DataArray with plain arrays instead of Quantities.
 
     Examples
     --------
@@ -264,38 +335,55 @@ def strip_units(obj: DataArray | Dataset) -> DataArray | Dataset:
     Array([1., 2.], dtype=float32)
 
     """
-    if isinstance(obj, DataArray):
-        # Strip units from data
-        new_data = u.ustrip(AllowValue, obj.data)
+    # Strip units from data
+    new_data = u.ustrip(AllowValue, obj.data)
 
-        # Strip units from coordinates
-        new_coords = {}
-        for name, coord in obj.coords.items():
-            new_coord_data = u.ustrip(AllowValue, coord.data)
-            new_coords[name] = Variable(coord.dims, new_coord_data, coord.attrs)
+    # Strip units from coordinates
+    new_coords = {}
+    for name, coord in obj.coords.items():
+        new_coord_data = u.ustrip(AllowValue, coord.data)
+        new_coords[name] = Variable(coord.dims, new_coord_data, coord.attrs)
 
-        return DataArray(
-            data=new_data,
-            coords=new_coords,
-            dims=obj.dims,
-            name=obj.name,
-            attrs=obj.attrs,
-        )
+    return DataArray(
+        data=new_data,
+        coords=new_coords,
+        dims=obj.dims,
+        name=obj.name,
+        attrs=obj.attrs,
+    )
 
-    if isinstance(obj, Dataset):
-        # Strip units from all variables
-        new_vars = {}
-        for name, var in obj.data_vars.items():
-            new_data = u.ustrip(AllowValue, var.data)
-            new_vars[name] = (var.dims, new_data, var.attrs)
 
-        # Strip units from coordinates
-        new_coords = {}
-        for name, coord in obj.coords.items():
-            new_coord_data = u.ustrip(AllowValue, coord.data)
-            new_coords[name] = Variable(coord.dims, new_coord_data, coord.attrs)
+@dispatch
+def strip_units(obj: Dataset) -> Dataset:
+    """Strip units from a Dataset, converting Quantities to plain arrays.
 
-        return Dataset(data_vars=new_vars, coords=new_coords, attrs=obj.attrs)
+    Parameters
+    ----------
+    obj : Dataset
+        The Dataset to strip units from.
 
+    Returns
+    -------
+    Dataset
+        New Dataset with plain arrays instead of Quantities.
+
+    """
+    # Strip units from all variables
+    new_vars = {}
+    for name, var in obj.data_vars.items():
+        new_data = u.ustrip(AllowValue, var.data)
+        new_vars[name] = (var.dims, new_data, var.attrs)
+
+    # Strip units from coordinates
+    new_coords = {}
+    for name, coord in obj.coords.items():
+        new_coord_data = u.ustrip(AllowValue, coord.data)
+        new_coords[name] = Variable(coord.dims, new_coord_data, coord.attrs)
+
+    return Dataset(data_vars=new_vars, coords=new_coords, attrs=obj.attrs)
+
+
+@dispatch
+def strip_units(obj: object) -> object:
     msg = f"Cannot strip units from type: {type(obj)}"
     raise TypeError(msg)
