@@ -1,7 +1,7 @@
 """Tests for xarray accessors."""
 
 import jax.numpy as jnp
-import unxt_xarray  # noqa: F401
+import pytest
 import xarray as xr
 
 import unxt as u
@@ -104,6 +104,20 @@ class TestDataArrayAccessor:
         assert "unit" in dequantified.attrs
         assert dequantified.attrs["unit"] == "m"
         assert "units" not in dequantified.attrs
+
+    def test_dequantify_format_spec_empty(self):
+        """dequantify(format='') uses format(unit, '') not ''.format(unit)."""
+        q = u.Quantity([1.0], "m")
+        da = xr.DataArray(q, dims=["x"])
+        result = da.unxt.dequantify(format="")
+        assert result.attrs["units"] == format(u.unit("m"), "")
+
+    def test_dequantify_format_spec_none_gives_str(self):
+        """dequantify() with no format gives str(unit)."""
+        q = u.Quantity([1.0], "m")
+        da = xr.DataArray(q, dims=["x"])
+        result = da.unxt.dequantify()
+        assert result.attrs["units"] == str(u.unit("m"))
 
     def test_roundtrip(self):
         """Test quantify -> dequantify roundtrip preserves data."""
@@ -219,6 +233,13 @@ class TestDatasetAccessor:
         assert dequantified["a"].attrs["units"] == "m"
         assert dequantified.coords["x"].attrs["units"] == "s"
 
+    def test_dequantify_format_spec_empty(self):
+        """dequantify(format='') uses format(unit, '') not ''.format(unit)."""
+        q = u.Quantity([1.0, 2.0], "m")
+        ds = xr.Dataset({"a": ("x", q)})
+        result = ds.unxt.dequantify(format="")
+        assert result["a"].attrs["units"] == format(u.unit("m"), "")
+
     def test_roundtrip(self):
         """Test quantify -> dequantify roundtrip."""
         # Use non-dimension coordinate to preserve attributes
@@ -285,3 +306,21 @@ class TestEdgeCases:
 
         assert quantified.name == "velocity"
         assert dequantified.name == "velocity"
+
+    def test_dataset_dequantify_custom_unit_attribute(self):
+        """Dataset dequantify respects the unit_attribute parameter."""
+        q = u.Quantity([1.0, 2.0], "m")
+        ds = xr.Dataset({"a": ("x", q)})
+        dequantified = ds.unxt.dequantify(unit_attribute="unit")
+        assert dequantified["a"].attrs.get("unit") == "m"
+        assert "units" not in dequantified["a"].attrs
+
+    def test_quantify_invalid_unit_string_raises(self):
+        """Quantifying with an invalid unit string should raise an exception."""
+        da = xr.DataArray(
+            [1.0, 2.0], dims=["x"], attrs={"units": "not_a_real_unit_xyz"}
+        )
+        with pytest.raises(
+            ValueError, match="'not_a_real_unit_xyz' did not parse as unit"
+        ):
+            da.unxt.quantify()

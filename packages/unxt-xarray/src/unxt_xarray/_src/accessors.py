@@ -5,6 +5,7 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 
 __all__ = ("UnxtDataArrayAccessor", "UnxtDatasetAccessor")
 
+import builtins
 from collections.abc import Hashable, Mapping
 
 from xarray import (
@@ -16,7 +17,6 @@ from xarray import (
 
 import unxt as u
 from .conversion import (
-    TEMPORARY_NAME,
     UNIT_ATTR,
     attach_units,
     extract_unit_attributes,
@@ -83,6 +83,9 @@ class UnxtDataArrayAccessor:
         Quantify using attribute:
 
         >>> da = xr.DataArray([1.0, 2.0], dims=["x"], attrs={"units": "m"})
+        >>> da.data
+        array([1., 2.])
+
         >>> q = da.unxt.quantify()
         >>> q.data
         Quantity(Array([1., 2.], dtype=float32), unit='m')
@@ -94,28 +97,28 @@ class UnxtDataArrayAccessor:
         >>> q.data
         Quantity(Array([1., 2.], dtype=float32), unit='km')
 
-        Quantify with coordinate units:
+        Quantify with coordinate units (use non-dimension coordinates to preserve
+        Quantity data on coordinates):
 
         >>> da = xr.DataArray(
         ...     [1.0, 2.0],
-        ...     dims=["x"],
-        ...     coords={"x": [0.0, 1.0]},
+        ...     dims=["i"],
+        ...     coords={"i": [0, 1], "x": ("i", [0.0, 1.0], {"units": "s"})},
         ...     attrs={"units": "m"},
         ... )
-        >>> da.coords["x"].attrs["units"] = "s"
         >>> q = da.unxt.quantify()
         >>> q.data
         Quantity(Array([1., 2.], dtype=float32), unit='m')
-        >>> q.coords["x"].data  # Note: dimension coordinates are unwrapped
-        array([0., 1.], dtype=float32)
+        >>> q.coords["x"].data
+        Quantity(Array([0., 1.], dtype=float32), unit='s')
 
         """
         # Combine explicit units with unit_kwargs
         if units is None:
             units = unit_kwargs
         elif isinstance(units, (str, u.AbstractUnit)):
-            # Single unit for the data array
-            combined_units = {TEMPORARY_NAME: units}
+            # Single unit for the data array (None key = the DataArray's own data)
+            combined_units = {None: units}
             combined_units.update(unit_kwargs)
             units = combined_units
         elif isinstance(units, Mapping):
@@ -148,7 +151,8 @@ class UnxtDataArrayAccessor:
         Parameters
         ----------
         format : str | None, optional
-            Format string for unit representation. If None, uses default string format.
+            Format spec for unit representation (passed to ``builtins.format``).
+            If None, uses ``str(unit)``.
         unit_attribute : str, optional
             Name of attribute to store units in. Default is "units".
 
@@ -183,16 +187,16 @@ class UnxtDataArrayAccessor:
         for name, unit in units.items():
             if unit is not None:
                 if format is not None:
-                    unit_strs[name] = format.format(unit)
+                    unit_strs[name] = builtins.format(unit, format)
                 else:
                     unit_strs[name] = str(unit)
 
         # Add unit attributes
-        if TEMPORARY_NAME in unit_strs:
-            stripped.attrs[unit_attribute] = unit_strs[TEMPORARY_NAME]
+        if None in unit_strs:
+            stripped.attrs[unit_attribute] = unit_strs[None]
 
         for name, unit_str in unit_strs.items():
-            if name == TEMPORARY_NAME:
+            if name is None:
                 continue
             if name in stripped.coords:
                 stripped.coords[name].attrs[unit_attribute] = unit_str
@@ -306,7 +310,8 @@ class UnxtDatasetAccessor:
         Parameters
         ----------
         format : str | None, optional
-            Format string for unit representation. If None, uses default string format.
+            Format spec for unit representation (passed to ``builtins.format``).
+            If None, uses ``str(unit)``.
         unit_attribute : str, optional
             Name of attribute to store units in. Default is "units".
 
@@ -342,7 +347,7 @@ class UnxtDatasetAccessor:
         for name, unit in units.items():
             if unit is not None:
                 if format is not None:
-                    unit_strs[name] = format.format(unit)
+                    unit_strs[name] = builtins.format(unit, format)
                 else:
                     unit_strs[name] = str(unit)
 

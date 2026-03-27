@@ -28,17 +28,14 @@ import unxt_xarray  # registers the .unxt accessor
 da = xr.DataArray(
     data=[1.0, 2.0, 3.0],
     dims=["x"],
-    coords={"x": [0.0, 1.0, 2.0]},
+    coords={"x": ("x", [0.0, 1.0, 2.0], {"units": "s"})},
     attrs={"units": "m"},
 )
 
 # Quantify: convert to unxt Quantities
 quantified = da.unxt.quantify()
-print(quantified)
-# <xarray.DataArray (x: 3)>
-# <Quantity([1. 2. 3.], 'm')>
-# Coordinates:
-#   * x        (x) <Quantity([0. 1. 2.], 's')>
+print(quantified.data)
+# Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
 # Dequantify: convert back to plain arrays with unit attributes
 dequantified = quantified.unxt.dequantify()

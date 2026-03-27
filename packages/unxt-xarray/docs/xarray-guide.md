@@ -110,12 +110,12 @@ You can override or set units explicitly:
 ```python
 # Override the units attribute
 da = xr.DataArray([100.0, 200.0], dims=["x"], attrs={"units": "cm"})
-quantified = da.unxt.quantify(units={"<this-array>": "m"})
+quantified = da.unxt.quantify("m")
 print(quantified.data)
 # Quantity['length'](Array([100., 200.], dtype=float32), unit='m')
 ```
 
-The special key `"<this-array>"` refers to the DataArray's data itself.
+Pass a string or `AbstractUnit` directly to apply it to the DataArray's data.
 
 ### Coordinates with Units
 
