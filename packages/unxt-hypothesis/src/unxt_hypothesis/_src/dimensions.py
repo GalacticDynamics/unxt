@@ -204,9 +204,8 @@ def named_dimensions(draw: st.DrawFn) -> u.AbstractDimension:
     ... def test_any_unit(unit):
     ...     # Generate units from any named physical dimension
     ...     assert isinstance(unit, u.AbstractUnit)
-    ...     assert u.dimension_of(unit) in [
-    ...         u.dimension(name) for name in ust.DIMENSION_NAMES
-    ...     ]
+    ...     expected_dims = [u.dimension(name) for name in ust.DIMENSION_NAMES]
+    ...     assert u.dimension_of(unit) in expected_dims
 
     Property-based testing across all 134 physical types:
 

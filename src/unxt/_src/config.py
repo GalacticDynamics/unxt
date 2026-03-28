@@ -608,7 +608,7 @@ _TOML_PATH_TO_CONFIG_CLASS: Final = {
 def _walk_toml_config(
     data: dict[str, Any], path: tuple[str, ...] = ()
 ) -> dict[str, Config]:
-    """Walk nested TOML dict and build Config objects for known paths.
+    r"""Walk nested TOML dict and build Config objects for known paths.
 
     This function recursively walks the parsed TOML structure and creates
     Config objects for recognized configuration paths.
@@ -630,9 +630,7 @@ def _walk_toml_config(
     --------
     >>> import tomllib
     >>> from pathlib import Path
-    >>> toml = '''[tool.unxt.quantity.repr]
-    ... short_arrays = "compact"
-    ... '''
+    >>> toml = '[tool.unxt.quantity.repr]\nshort_arrays = "compact"\n'
     >>> data = tomllib.loads(toml)["tool"]["unxt"]
     >>> configs = _walk_toml_config(data)
     >>> "QuantityReprConfig" in configs
