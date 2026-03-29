@@ -230,7 +230,7 @@ class NumPyCompatMixin:
 
         >>> np.stack([q, q])
         Quantity(Array([[1., 2., 3., 4.],
-                                  [1., 2., 3., 4.]], dtype=float32), unit='m')
+                        [1., 2., 3., 4.]], dtype=float32), unit='m')
 
         """
         xp = self.__array_namespace__()
