@@ -74,16 +74,16 @@ jobs:
               return;
             }
 
-            if (typeof headSha !== "string" || headSha.length === 0) {
+            if (typeof runSha !== "string" || runSha.length === 0) {
               core.setFailed(
-                `Invalid PR head SHA in artifact: expected non-empty string, got ${typeof headSha}.`
+                `Invalid workflow run SHA in artifact: expected non-empty string, got ${typeof runSha}.`
               );
               return;
             }
 
-            if (typeof runSha !== "string" || runSha.length === 0) {
+            if (typeof headSha !== "string" || headSha.length === 0) {
               core.setFailed(
-                `Invalid workflow run SHA in artifact: expected non-empty string, got ${typeof runSha}.`
+                `Invalid PR head SHA in artifact: expected non-empty string, got ${typeof headSha}.`
               );
               return;
             }
@@ -97,6 +97,9 @@ jobs:
             if (typeof runPRHeadSha === "string" && headSha !== runPRHeadSha) {
               core.setFailed("Artifact PR head SHA does not match workflow_run pull_request head SHA.");
               return;
+            }
+            if (typeof runPRHeadSha !== "string") {
+              core.warning("workflow_run pull_request head SHA unavailable; skipped PR head SHA consistency check.");
             }
 
             core.setOutput("pr_number", String(prNumber));
