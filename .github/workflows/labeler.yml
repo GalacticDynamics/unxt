@@ -30,13 +30,13 @@ jobs:
           script: |
             const prs = context.payload.workflow_run.pull_requests ?? [];
             if (prs.length !== 1) {
-              core.setFailed(`Expected exactly 1 pull_request on workflow_run, got ${prs.length}.`);
+              core.setFailed(`Expected exactly 1 pull_requests entry on workflow_run, got ${prs.length}.`);
               return;
             }
 
             const prNumber = prs[0].number;
             if (!Number.isInteger(prNumber) || prNumber <= 0) {
-              core.setFailed("Invalid pull_request number on workflow_run.");
+              core.setFailed("Invalid pull_requests[0].number on workflow_run.");
               return;
             }
 
