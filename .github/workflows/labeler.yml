@@ -55,28 +55,47 @@ jobs:
 
             const prNumber = Number(payload.pr_number);
             const headSha = payload.head_sha;
+            const runSha = payload.run_sha;
             const workflowRun = context.payload.workflow_run;
             const runPRs = workflowRun.pull_requests ?? [];
 
-            if (!Number.isInteger(prNumber)) {
+            if (
+              !Number.isFinite(prNumber) ||
+              !Number.isInteger(prNumber) ||
+              prNumber <= 0
+            ) {
               core.setFailed("Invalid PR number in artifact.");
               return;
             }
 
-            if (!runPRs.some((pr) => pr.number === prNumber)) {
+            const runPR = runPRs.find((pr) => pr.number === prNumber);
+            if (!runPR) {
               core.setFailed("PR number from artifact is not attached to workflow_run.");
               return;
             }
 
-            if (typeof headSha !== "string") {
+            if (typeof headSha !== "string" || headSha.length === 0) {
               core.setFailed(
-                `Invalid head SHA in artifact: expected string, got ${typeof headSha}.`
+                `Invalid PR head SHA in artifact: expected non-empty string, got ${typeof headSha}.`
               );
               return;
             }
 
-            if (headSha !== workflowRun.head_sha) {
-              core.setFailed("Artifact head SHA does not match workflow_run head SHA.");
+            if (typeof runSha !== "string" || runSha.length === 0) {
+              core.setFailed(
+                `Invalid workflow run SHA in artifact: expected non-empty string, got ${typeof runSha}.`
+              );
+              return;
+            }
+
+            if (runSha !== workflowRun.head_sha) {
+              core.setFailed("Artifact workflow run SHA does not match workflow_run head SHA.");
+              return;
+            }
+
+            const runPRHeadSha = runPR.head?.sha;
+            if (typeof runPRHeadSha === "string" && headSha !== runPRHeadSha) {
+              core.setFailed("Artifact PR head SHA does not match workflow_run pull_request head SHA.");
               return;
             }
 
@@ -93,7 +112,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const pull_number = Number("${{ steps.pr.outputs.pr_number }}");
-            if (!Number.isInteger(pull_number)) {
+            if (!Number.isInteger(pull_number) || pull_number <= 0) {
               core.setFailed("Invalid PR number.");
               return;
             }
