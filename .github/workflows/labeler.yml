@@ -59,11 +59,7 @@ jobs:
             const workflowRun = context.payload.workflow_run;
             const runPRs = workflowRun.pull_requests ?? [];
 
-            if (
-              !Number.isFinite(prNumber) ||
-              !Number.isInteger(prNumber) ||
-              prNumber <= 0
-            ) {
+            if (!Number.isInteger(prNumber) || prNumber <= 0) {
               core.setFailed("Invalid PR number in artifact.");
               return;
             }
@@ -94,11 +90,12 @@ jobs:
             }
 
             const runPRHeadSha = runPR.head?.sha;
-            if (typeof runPRHeadSha === "string" && headSha !== runPRHeadSha) {
-              core.setFailed("Artifact PR head SHA does not match workflow_run pull_request head SHA.");
-              return;
-            }
-            if (typeof runPRHeadSha !== "string") {
+            if (typeof runPRHeadSha === "string") {
+              if (headSha !== runPRHeadSha) {
+                core.setFailed("Artifact PR head SHA does not match workflow_run pull_request head SHA.");
+                return;
+              }
+            } else {
               core.warning("workflow_run pull_request head SHA unavailable; skipped PR head SHA consistency check.");
             }
 
