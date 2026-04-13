@@ -80,19 +80,19 @@ jobs:
               return;
             }
 
-            core.setOutput("pr-number", String(prNumber));
+            core.setOutput("pr_number", String(prNumber));
 
       - uses: actions/labeler@634933edcd8ababfe52f92936142cc22ac488b1b # v6
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           configuration-path: .github/labeler.yml
-          pr-number: ${{ steps.pr.outputs.pr-number }}
+          pr-number: ${{ steps.pr.outputs.pr_number }}
       - name: Label from commit emojis
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const pull_number = Number("${{ steps.pr.outputs.pr-number }}");
+            const pull_number = Number("${{ steps.pr.outputs.pr_number }}");
             if (!Number.isInteger(pull_number)) {
               core.setFailed("Invalid PR number.");
               return;
