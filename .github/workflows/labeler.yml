@@ -8,7 +8,7 @@ on:
 permissions:
   actions: read
   contents: read
-  pull-requests: read
+  pull-requests: write
   issues: write
 
 jobs:
@@ -120,7 +120,8 @@ jobs:
 
             core.setOutput("pr_number", String(prNumber));
 
-      - uses: actions/labeler@634933edcd8ababfe52f92936142cc22ac488b1b # v6
+      - name: Apply path-based labels
+        uses: actions/labeler@634933edcd8ababfe52f92936142cc22ac488b1b # v6
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           configuration-path: .github/labeler.yml
@@ -129,8 +130,10 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          env: |
+            PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
           script: |
-            const pull_number = Number("${{ steps.pr.outputs.pr_number }}");
+            const pull_number = Number(process.env.PR_NUMBER);
             if (!Number.isInteger(pull_number) || pull_number <= 0) {
               core.setFailed("Invalid PR number.");
               return;

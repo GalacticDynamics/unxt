@@ -45,4 +45,4 @@ jobs:
         with:
           name: pr-labeler-input-${{ github.event.pull_request.number }}
           path: labeler-input.json
-          retention-days: 1
+          retention-days: 3
