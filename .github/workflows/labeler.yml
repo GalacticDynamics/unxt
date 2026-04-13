@@ -68,7 +68,9 @@ jobs:
             }
 
             if (typeof headSha !== "string") {
-              core.setFailed("Invalid head SHA in artifact.");
+              core.setFailed(
+                `Invalid head SHA in artifact: expected string, got ${typeof headSha}.`
+              );
               return;
             }
 
