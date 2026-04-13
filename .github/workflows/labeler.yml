@@ -128,10 +128,10 @@ jobs:
           pr-number: ${{ steps.pr.outputs.pr_number }}
       - name: Label from commit emojis
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          env: |
-            PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
           script: |
             const pull_number = Number(process.env.PR_NUMBER);
             if (!Number.isInteger(pull_number) || pull_number <= 0) {
