@@ -1,0 +1,42 @@
+name: Collect PR labels
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Collect PR label input
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require("fs");
+            const pr = context.payload.pull_request;
+            if (!pr) {
+              core.setFailed("This workflow only supports pull_request events.");
+              return;
+            }
+
+            const payload = {
+              pr_number: pr.number,
+              head_sha: pr.head.sha
+            };
+
+            fs.writeFileSync(
+              "labeler-input.json",
+              JSON.stringify(payload),
+              { encoding: "utf8" }
+            );
+
+      - name: Upload PR label input artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-labeler-input-${{ github.event.pull_request.number }}
+          path: labeler-input.json
+          retention-days: 1
