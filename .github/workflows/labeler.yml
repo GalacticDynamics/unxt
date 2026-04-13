@@ -44,7 +44,14 @@ jobs:
               return;
             }
 
-            const payload = JSON.parse(fs.readFileSync(payloadPath, "utf8"));
+            let payload;
+            try {
+              payload = JSON.parse(fs.readFileSync(payloadPath, "utf8"));
+            } catch (error) {
+              core.setFailed(`Invalid labeler-input.json artifact: ${error.message}`);
+              return;
+            }
+
             const prNumber = Number(payload.pr_number);
             const headSha = payload.head_sha;
             const workflowRun = context.payload.workflow_run;
@@ -57,6 +64,11 @@ jobs:
 
             if (!runPRs.some((pr) => pr.number === prNumber)) {
               core.setFailed("PR number from artifact is not attached to workflow_run.");
+              return;
+            }
+
+            if (typeof headSha !== "string") {
+              core.setFailed("Invalid head SHA in artifact.");
               return;
             }
 
