@@ -30,7 +30,7 @@ jobs:
           script: |
             const prs = context.payload.workflow_run.pull_requests ?? [];
             if (prs.length !== 1) {
-              core.setFailed(`Expected exactly 1 pull_requests entry on workflow_run, got ${prs.length}.`);
+              core.setFailed("Expected exactly 1 pull_requests entry on workflow_run, got " + prs.length + ".");
               return;
             }
 
@@ -40,6 +40,7 @@ jobs:
               return;
             }
 
+            // Must match the artifact name used in collect-pr-label-data.yml.
             core.setOutput("artifact_name", `pr-labeler-input-${prNumber}`);
 
       - name: Download PR label input artifact
