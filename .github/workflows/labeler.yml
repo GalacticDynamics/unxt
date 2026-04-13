@@ -18,14 +18,14 @@ jobs:
       github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.5.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
 
       - name: Determine expected artifact name
         id: artifact
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const prs = context.payload.workflow_run.pull_requests ?? [];
@@ -53,7 +53,7 @@ jobs:
 
       - name: Validate artifact and extract PR number
         id: pr
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const fs = require("fs");
@@ -121,13 +121,13 @@ jobs:
             core.setOutput("pr_number", String(prNumber));
 
       - name: Apply path-based labels
-        uses: actions/labeler@634933edcd8ababfe52f92936142cc22ac488b1b # v6
+        uses: actions/labeler@634933edcd8ababfe52f92936142cc22ac488b1b # v6.0.1
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           configuration-path: .github/labeler.yml
           pr-number: ${{ steps.pr.outputs.pr_number }}
       - name: Label from commit emojis
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
         with:
