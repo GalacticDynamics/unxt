@@ -122,6 +122,8 @@ jobs:
             echo "✅ All package tags already exist for version ${VERSION}"
             echo "   This is expected for workflow re-runs"
             echo "trigger_unxt_cd=false" >> "$GITHUB_OUTPUT"
+            echo "unxt_tag=unxt-v${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "unxt_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -131,13 +133,47 @@ jobs:
           echo "✅ Successfully created and pushed package-specific tags for version ${VERSION}"
           echo "trigger_unxt_cd=${UNXT_TAG_CREATED}" >> "$GITHUB_OUTPUT"
           echo "unxt_tag=unxt-v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "unxt_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Trigger CD - unxt for auto-created unxt tag
-        if: steps.create_tags.outputs.trigger_unxt_cd == 'true'
+        if: steps.create_tags.outputs.unxt_tag != ''
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const tagRef = "${{ steps.create_tags.outputs.unxt_tag }}";
+            const tagSha = "${{ steps.create_tags.outputs.unxt_tag_sha }}";
+            const shouldDispatch = "${{ steps.create_tags.outputs.trigger_unxt_cd }}" === "true";
+
+            if (!shouldDispatch) {
+              const existingRuns = await github.paginate(
+                github.rest.actions.listWorkflowRuns,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  workflow_id: "cd-unxt.yml",
+                  per_page: 100,
+                },
+              );
+
+              const alreadySucceeded = existingRuns.some(
+                (run) =>
+                  run.conclusion === "success" &&
+                  run.head_branch === tagRef &&
+                  run.head_sha === tagSha,
+              );
+
+              if (alreadySucceeded) {
+                core.info(
+                  `Skipping CD dispatch for ${tagRef}: a successful CD - unxt run already exists for ${tagSha}.`,
+                );
+                return;
+              }
+
+              core.info(
+                `No successful CD - unxt run found for ${tagRef} at ${tagSha}; dispatching recovery run.`,
+              );
+            }
+
             try {
               await github.rest.actions.createWorkflowDispatch({
                 owner: context.repo.owner,
