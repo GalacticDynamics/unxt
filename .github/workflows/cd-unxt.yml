@@ -31,8 +31,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
-      attestations: write
     # Build runs for direct tag pushes or via workflow_run from Create Package Tags
     # (which handles coordinator tag releases)
     if: |
@@ -65,64 +63,56 @@ jobs:
         if: |
           startsWith(github.ref, 'refs/tags/') || github.event_name ==
           'workflow_run'
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          GITHUB_REF_VAR: ${{ github.ref }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+          if [ "$EVENT_NAME" = "workflow_run" ]; then
             TAG="$PACKAGE_TAG"
           else
-            TAG=${GITHUB_REF#refs/tags/}
+            TAG="${GITHUB_REF_VAR#refs/tags/}"
           fi
           python scripts/validate_tag.py "$TAG" "unxt"
+        shell: bash
+
+      - name: Emit release metadata
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          HEAD_SHA=$(git rev-parse HEAD)
+
+          if [ "$EVENT_NAME" = "workflow_run" ]; then
+            TAG="${PACKAGE_TAG:-}"
+            TRIGGER_EVENT="push"
+          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+            TRIGGER_EVENT="push"
+          else
+            TAG=""
+            TRIGGER_EVENT="${EVENT_NAME}"
+          fi
+
+          jq -n \
+            --arg package "unxt" \
+            --arg package_tag "${TAG}" \
+            --arg head_sha "${HEAD_SHA}" \
+            --arg trigger_event "${TRIGGER_EVENT}" \
+            '{"package": $package, "package_tag": $package_tag, "head_sha": $head_sha, "trigger_event": $trigger_event}' \
+            > release-metadata.json
+
+          echo "Release metadata:"
+          cat release-metadata.json
         shell: bash
 
       - uses: hynek/build-and-inspect-python-package@fe0a0fb1925ca263d076ca4f2c13e93a6e92a33e # v2.17.0
         with:
           path: .
           upload-name-suffix: -unxt
-          attest-build-provenance-github: true
+          attest-build-provenance-github: false
 
-  publish-testpypi:
-    name: Publish to TestPyPI
-    needs: [build]
-    runs-on: ubuntu-latest
-    environment:
-      name: testpypi
-      url: https://test.pypi.org/p/unxt
-    permissions:
-      id-token: write
-    if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/unxt-v')) ||
-      github.event_name == 'workflow_run'
-
-    steps:
-      - name: Download built artifact to dist/
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - name: Upload release metadata artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: Packages-unxt
-          path: dist
-
-      - uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
-        with:
-          repository-url: https://test.pypi.org/legacy/
-
-  publish-pypi:
-    name: Publish to PyPI
-    needs: [build]
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/unxt
-    permissions:
-      id-token: write
-    if: |
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/unxt-v')) ||
-      github.event_name == 'workflow_run'
-
-    steps:
-      - name: Download built artifact to dist/
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: Packages-unxt
-          path: dist
-
-      - uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+          name: release-metadata-unxt
+          path: release-metadata.json
+          retention-days: 7
