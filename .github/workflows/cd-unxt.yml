@@ -12,11 +12,6 @@ on:
       - "pyproject.toml"
       - "README.md"
       - ".github/workflows/cd-unxt.yml"
-  workflow_run:
-    workflows:
-      - "Create Package Tags"
-    types:
-      - completed
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -31,11 +26,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    # Build runs for direct tag pushes or via workflow_run from Create Package Tags
-    # (which handles coordinator tag releases)
+    # Build runs for manual dispatch, main pushes, and direct package tag pushes
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push') ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
 
@@ -46,32 +39,14 @@ jobs:
           # Can be removed if switching to hardcoded versions.
           fetch-depth: 0
           persist-credentials: false
-          # For workflow_run events, checkout the exact commit from upstream workflow
-          ref: |
-            ${{ github.event_name == 'workflow_run' &&
-            github.event.workflow_run.head_sha || github.ref }}
-
-      # For workflow_run events, find and export the package-specific tag
-      - name: Find package tag (workflow_run)
-        if: github.event_name == 'workflow_run'
-        uses: ./.github/actions/find-package-tag
-        with:
-          tag_glob: unxt-v*
-          commit_sha: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.ref }}
 
       - name: Validate git tag (for tagged releases)
-        if: |
-          startsWith(github.ref, 'refs/tags/') || github.event_name ==
-          'workflow_run'
+        if: startsWith(github.ref, 'refs/tags/')
         env:
-          EVENT_NAME: ${{ github.event_name }}
           GITHUB_REF_VAR: ${{ github.ref }}
         run: |
-          if [ "$EVENT_NAME" = "workflow_run" ]; then
-            TAG="$PACKAGE_TAG"
-          else
-            TAG="${GITHUB_REF_VAR#refs/tags/}"
-          fi
+          TAG="${GITHUB_REF_VAR#refs/tags/}"
           python scripts/validate_tag.py "$TAG" "unxt"
         shell: bash
 
@@ -81,16 +56,12 @@ jobs:
         run: |
           HEAD_SHA=$(git rev-parse HEAD)
 
-          if [ "$EVENT_NAME" = "workflow_run" ]; then
-            TAG="${PACKAGE_TAG:-}"
-            TRIGGER_EVENT="push"
-          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             TAG="${GITHUB_REF#refs/tags/}"
-            TRIGGER_EVENT="push"
           else
             TAG=""
-            TRIGGER_EVENT="${EVENT_NAME}"
           fi
+          TRIGGER_EVENT="${EVENT_NAME}"
 
           jq -n \
             --arg package "unxt" \
