@@ -121,7 +121,9 @@ jobs:
           if [ ${#TAGS_TO_PUSH[@]} -eq 0 ]; then
             echo "✅ All package tags already exist for version ${VERSION}"
             echo "   This is expected for workflow re-runs"
-            echo "trigger_unxt_cd=false" >> "$GITHUB_OUTPUT"
+            echo "   Re-dispatching CD for existing tag unxt-v${VERSION}"
+            echo "trigger_unxt_cd=true" >> "$GITHUB_OUTPUT"
+            echo "unxt_tag=unxt-v${VERSION}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
