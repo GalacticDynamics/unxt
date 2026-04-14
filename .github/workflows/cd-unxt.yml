@@ -39,12 +39,10 @@ jobs:
           # Can be removed if switching to hardcoded versions.
           fetch-depth: 0
           persist-credentials: false
-          # For manual runs, honor the selected ref. For push events, use the
-          # immutable triggering commit to keep builds and emitted metadata reproducible.
-          ref: ${{ github.event_name == 'workflow_dispatch' && github.ref || github.sha }}
+          ref: ${{ github.ref }}
 
       - name: Validate git tag (for tagged releases)
-        if: startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_REF_VAR: ${{ github.ref }}
         run: |
