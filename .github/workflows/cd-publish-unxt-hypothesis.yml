@@ -1,0 +1,217 @@
+name: CD Publish - unxt-hypothesis
+
+# Stage B: privileged publish workflow.
+# Triggered only after Stage A ("CD - unxt-hypothesis") completes successfully.
+# Downloads and validates the release-metadata artifact produced by Stage A before
+# publishing, so that no repository code ever executes in a privileged context.
+
+on:
+  workflow_run:
+    workflows:
+      - "CD - unxt-hypothesis"
+    types:
+      - completed
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: false
+
+env:
+  FORCE_COLOR: 3
+
+jobs:
+  validate:
+    name: Validate release metadata
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    if: github.event.workflow_run.conclusion == 'success'
+    outputs:
+      publish_testpypi: ${{ steps.validate.outputs.publish_testpypi }}
+      publish_pypi: ${{ steps.validate.outputs.publish_pypi }}
+
+    steps:
+      - name: Download release metadata artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          name: release-metadata-unxt-hypothesis
+          path: .
+
+      - name: Validate metadata and determine publish targets
+        id: validate
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require("fs");
+            const metadataPath = "release-metadata.json";
+
+            if (!fs.existsSync(metadataPath)) {
+              core.setFailed("Missing release-metadata.json artifact.");
+              return;
+            }
+
+            let metadata;
+            try {
+              metadata = JSON.parse(fs.readFileSync(metadataPath, "utf8"));
+            } catch (error) {
+              core.setFailed(`Invalid release-metadata.json: ${error.message}`);
+              return;
+            }
+
+            const { package: pkg, package_tag, head_sha, trigger_event } = metadata;
+            const workflowRun = context.payload.workflow_run;
+
+            // Validate package identity.
+            if (pkg !== "unxt-hypothesis") {
+              core.setFailed(`Unexpected package in artifact: ${pkg}`);
+              return;
+            }
+
+            // Validate head SHA integrity: artifact must match the triggering run.
+            if (typeof head_sha !== "string" || head_sha.length === 0) {
+              core.setFailed("Invalid head_sha in artifact.");
+              return;
+            }
+            if (head_sha !== workflowRun.head_sha) {
+              core.setFailed(
+                `Artifact head SHA ${head_sha} does not match workflow_run head SHA ${workflowRun.head_sha}.`
+              );
+              return;
+            }
+
+            // Validate trigger_event field (sanity check; gating uses trusted workflow_run context).
+            if (typeof trigger_event !== "string") {
+              core.setFailed("Invalid trigger_event in artifact.");
+              return;
+            }
+
+            // Determine which publish operations to perform.
+            const hasTag = typeof package_tag === "string" && package_tag.length > 0;
+            const isValidTag =
+              hasTag && /^unxt-hypothesis-v\d+\.\d+\.\d+$/.test(package_tag);
+            if (hasTag && !isValidTag) {
+              core.setFailed(
+                `Invalid package_tag in artifact: ${package_tag}. Expected exact format unxt-hypothesis-vX.Y.Z.`
+              );
+              return;
+            }
+
+            // Gate publish decisions on trusted GitHub event context, not artifact trigger_event.
+            const trustedEvent = workflowRun.event;
+            const trustedBranch = workflowRun.head_branch;
+
+            // For tagged releases, verify the tag exists and resolves to the triggering commit.
+            let verifiedTag = false;
+            if (hasTag) {
+              try {
+                const refData = await github.rest.git.getRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: `tags/${package_tag}`,
+                });
+                let tagTargetSha = refData.data.object.sha;
+                // Dereference annotated tags.
+                if (refData.data.object.type === "tag") {
+                  const tagObj = await github.rest.git.getTag({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    tag_sha: tagTargetSha,
+                  });
+                  tagTargetSha = tagObj.data.object.sha;
+                }
+                if (tagTargetSha !== workflowRun.head_sha) {
+                  core.setFailed(
+                    `Tag ${package_tag} resolves to commit ${tagTargetSha}, ` +
+                    `not workflow_run head SHA ${workflowRun.head_sha}.`
+                  );
+                  return;
+                }
+                verifiedTag = true;
+              } catch (error) {
+                if (error.status === 404) {
+                  core.setFailed(`Tag ${package_tag} does not exist in the repository.`);
+                } else {
+                  core.setFailed(`Failed to verify tag ${package_tag}: ${error.message}`);
+                }
+                return;
+              }
+            }
+
+            let publishTestPyPI = false;
+            let publishPyPI = false;
+
+            if (verifiedTag) {
+              // Tag verified via GitHub API: publish to both registries.
+              publishTestPyPI = true;
+              publishPyPI = true;
+            } else if (trustedEvent === "push" && trustedBranch === "main" && !hasTag) {
+              // Trusted push to main (no tag): publish to TestPyPI only.
+              publishTestPyPI = true;
+            }
+            // workflow_dispatch or other events: no publish.
+
+            core.info(`package_tag: ${package_tag || "(none)"}`);
+            core.info(`trigger_event (artifact): ${trigger_event}`);
+            core.info(`trusted_event: ${trustedEvent}, trusted_branch: ${trustedBranch}`);
+            core.info(`publish_testpypi: ${publishTestPyPI}`);
+            core.info(`publish_pypi: ${publishPyPI}`);
+
+            core.setOutput("publish_testpypi", String(publishTestPyPI));
+            core.setOutput("publish_pypi", String(publishPyPI));
+
+  publish-testpypi:
+    name: Publish to TestPyPI
+    needs: [validate]
+    if: needs.validate.outputs.publish_testpypi == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/unxt-hypothesis
+    permissions:
+      id-token: write
+      actions: read
+
+    steps:
+      - name: Download built artifact to dist/
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          name: Packages-unxt-hypothesis
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: [validate]
+    if: needs.validate.outputs.publish_pypi == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/unxt-hypothesis
+    permissions:
+      id-token: write
+      attestations: write
+      actions: read
+
+    steps:
+      - name: Download built artifact to dist/
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          name: Packages-unxt-hypothesis
+          path: dist
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: dist/*
+
+      - uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
