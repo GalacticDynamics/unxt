@@ -2,12 +2,6 @@ name: CD - unxt
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "src/**"
-      - "pyproject.toml"
-      - "README.md"
-      - ".github/workflows/cd-unxt.yml"
   push:
     branches:
       - main
@@ -43,7 +37,6 @@ jobs:
     # (which handles coordinator tag releases)
     if: |
       github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'pull_request' ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
@@ -85,8 +78,7 @@ jobs:
         with:
           path: .
           upload-name-suffix: -unxt
-          attest-build-provenance-github:
-            ${{ github.event_name != 'pull_request' }}
+          attest-build-provenance-github: true
 
   publish-testpypi:
     name: Publish to TestPyPI
