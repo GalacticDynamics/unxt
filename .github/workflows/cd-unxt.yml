@@ -45,7 +45,7 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Validate git tag (for tagged releases)
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_REF_VAR: ${{ github.ref }}
         run: |
