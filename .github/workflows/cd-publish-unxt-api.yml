@@ -89,7 +89,13 @@ jobs:
 
             // Determine which publish operations to perform.
             const hasTag = typeof package_tag === "string" && package_tag.length > 0;
-            const isValidTag = hasTag && /^unxt-api-v\d+\.\d+\.\d+/.test(package_tag);
+            const isValidTag = hasTag && /^unxt-api-v\d+\.\d+\.\d+$/.test(package_tag);
+            if (hasTag && !isValidTag) {
+              core.setFailed(
+                `Invalid package_tag in artifact: ${package_tag}. Expected exact format unxt-api-vX.Y.Z.`
+              );
+              return;
+            }
             const isPushEvent = trigger_event === "push";
 
             let publishTestPyPI = false;
