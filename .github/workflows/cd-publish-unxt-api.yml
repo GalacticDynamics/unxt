@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: read
+      contents: read
     if: github.event.workflow_run.conclusion == 'success'
     outputs:
       publish_testpypi: ${{ steps.validate.outputs.publish_testpypi }}
@@ -81,7 +82,7 @@ jobs:
               return;
             }
 
-            // Validate trigger_event field.
+            // Validate trigger_event field (sanity check; gating uses trusted workflow_run context).
             if (typeof trigger_event !== "string") {
               core.setFailed("Invalid trigger_event in artifact.");
               return;
@@ -96,23 +97,64 @@ jobs:
               );
               return;
             }
-            const isPushEvent = trigger_event === "push";
+
+            // Gate publish decisions on trusted GitHub event context, not artifact trigger_event.
+            const trustedEvent = workflowRun.event;
+            const trustedBranch = workflowRun.head_branch;
+
+            // For tagged releases, verify the tag exists and resolves to the triggering commit.
+            let verifiedTag = false;
+            if (hasTag) {
+              try {
+                const refData = await github.rest.git.getRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: `tags/${package_tag}`,
+                });
+                let tagTargetSha = refData.data.object.sha;
+                // Dereference annotated tags.
+                if (refData.data.object.type === "tag") {
+                  const tagObj = await github.rest.git.getTag({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    tag_sha: tagTargetSha,
+                  });
+                  tagTargetSha = tagObj.data.object.sha;
+                }
+                if (tagTargetSha !== workflowRun.head_sha) {
+                  core.setFailed(
+                    `Tag ${package_tag} resolves to commit ${tagTargetSha}, ` +
+                    `not workflow_run head SHA ${workflowRun.head_sha}.`
+                  );
+                  return;
+                }
+                verifiedTag = true;
+              } catch (error) {
+                if (error.status === 404) {
+                  core.setFailed(`Tag ${package_tag} does not exist in the repository.`);
+                } else {
+                  core.setFailed(`Failed to verify tag ${package_tag}: ${error.message}`);
+                }
+                return;
+              }
+            }
 
             let publishTestPyPI = false;
             let publishPyPI = false;
 
-            if (isValidTag) {
-              // Tagged release: publish to both registries.
+            if (verifiedTag) {
+              // Tag verified via GitHub API: publish to both registries.
               publishTestPyPI = true;
               publishPyPI = true;
-            } else if (isPushEvent && !hasTag) {
-              // Push to main branch (no tag): publish to TestPyPI only.
+            } else if (trustedEvent === "push" && trustedBranch === "main" && !hasTag) {
+              // Trusted push to main (no tag): publish to TestPyPI only.
               publishTestPyPI = true;
             }
             // workflow_dispatch or other events: no publish.
 
             core.info(`package_tag: ${package_tag || "(none)"}`);
-            core.info(`trigger_event: ${trigger_event}`);
+            core.info(`trigger_event (artifact): ${trigger_event}`);
+            core.info(`trusted_event: ${trustedEvent}, trusted_branch: ${trustedBranch}`);
             core.info(`publish_testpypi: ${publishTestPyPI}`);
             core.info(`publish_pypi: ${publishPyPI}`);
 
@@ -154,6 +196,7 @@ jobs:
       url: https://pypi.org/p/unxt-api
     permissions:
       id-token: write
+      attestations: write
       actions: read
 
     steps:
@@ -164,5 +207,10 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           name: Packages-unxt-api
           path: dist
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: dist/*
 
       - uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
