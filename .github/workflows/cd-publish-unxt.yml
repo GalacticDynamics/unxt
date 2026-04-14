@@ -142,16 +142,19 @@ jobs:
 
             let publishTestPyPI = false;
             let publishPyPI = false;
+            const trustedTagEvent =
+              trustedEvent === "push" || trustedEvent === "workflow_run";
 
-            if (verifiedTag) {
-              // Tag verified via GitHub API: publish to both registries.
+            if (verifiedTag && trustedTagEvent) {
+              // Tag verified via GitHub API and triggered by a trusted event:
+              // publish to both registries.
               publishTestPyPI = true;
               publishPyPI = true;
             } else if (trustedEvent === "push" && trustedBranch === "main" && !hasTag) {
               // Trusted push to main (no tag): publish to TestPyPI only.
               publishTestPyPI = true;
             }
-            // workflow_dispatch or other events: no publish.
+            // workflow_dispatch or other untrusted events: no publish, even if a tag verifies.
 
             core.info(`package_tag: ${package_tag || "(none)"}`);
             core.info(`trigger_event (artifact): ${trigger_event}`);
