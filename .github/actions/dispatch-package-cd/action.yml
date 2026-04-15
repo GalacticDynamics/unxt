@@ -8,7 +8,8 @@ inputs:
     description: The workflow file name to dispatch (e.g., cd-unxt.yml).
     required: true
   workflow_name:
-    description: Human-readable workflow name for log messages (e.g., CD - unxt).
+    description:
+      Human-readable workflow name for log messages (e.g., CD - unxt).
     required: true
   tag_ref:
     description: The tag ref to dispatch the workflow on (e.g., unxt-v1.2.0).
@@ -19,8 +20,8 @@ inputs:
   trigger_cd:
     description: >
       Whether a new tag was just created ('true') or all tags pre-existed
-      ('false', i.e. a re-run). When 'false', an idempotency check is
-      performed before dispatching.
+      ('false', i.e. a re-run). When 'false', an idempotency check is performed
+      before dispatching.
     required: true
 
 runs:
