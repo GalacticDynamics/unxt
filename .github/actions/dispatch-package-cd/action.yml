@@ -1,0 +1,86 @@
+name: Dispatch package CD workflow
+description: >
+  Dispatch a package CD workflow for a tag, with an idempotency check so that
+  re-running the coordinator workflow does not trigger duplicate CD runs.
+
+inputs:
+  workflow_id:
+    description: The workflow file name to dispatch (e.g., cd-unxt.yml).
+    required: true
+  workflow_name:
+    description: Human-readable workflow name for log messages (e.g., CD - unxt).
+    required: true
+  tag_ref:
+    description: The tag ref to dispatch the workflow on (e.g., unxt-v1.2.0).
+    required: true
+  tag_sha:
+    description: The commit SHA the tag points to.
+    required: true
+  trigger_cd:
+    description: >
+      Whether a new tag was just created ('true') or all tags pre-existed
+      ('false', i.e. a re-run). When 'false', an idempotency check is
+      performed before dispatching.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      with:
+        script: |
+          const workflowId = "${{ inputs.workflow_id }}";
+          const workflowName = "${{ inputs.workflow_name }}";
+          const tagRef = "${{ inputs.tag_ref }}";
+          const tagSha = "${{ inputs.tag_sha }}";
+          const shouldDispatch = "${{ inputs.trigger_cd }}" === "true";
+
+          if (!shouldDispatch) {
+            const existingRuns = await github.paginate(
+              github.rest.actions.listWorkflowRuns,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: workflowId,
+                branch: tagRef,
+                per_page: 100,
+              },
+            );
+
+            const hasMatchingRun = existingRuns.some(
+              (run) => {
+                const isMatchingTagSha =
+                  run.head_branch === tagRef && run.head_sha === tagSha;
+                const isBlockingRun =
+                  run.status !== "completed" ||
+                  (run.status === "completed" && run.conclusion === "success");
+
+                return isMatchingTagSha && isBlockingRun;
+              },
+            );
+
+            if (hasMatchingRun) {
+              core.info(
+                `Skipping CD dispatch for ${tagRef}: a queued/in-progress/successful ${workflowName} run already exists for ${tagSha}.`,
+              );
+              return;
+            }
+
+            core.info(
+              `No queued/in-progress/successful ${workflowName} run found for ${tagRef} at ${tagSha}; dispatching recovery run.`,
+            );
+          }
+
+          try {
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: workflowId,
+              ref: tagRef,
+            });
+            core.info(`Triggered ${workflowName} for tag ${tagRef}`);
+          } catch (error) {
+            core.setFailed(
+              `Failed to trigger ${workflowName} for tag ${tagRef}: ${error.message}`
+            );
+          }

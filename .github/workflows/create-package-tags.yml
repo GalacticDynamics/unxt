@@ -151,121 +151,23 @@ jobs:
           steps.create_tags.outputs.trigger_unxt_cd == 'true' ||
           (steps.create_tags.outputs.unxt_tag != '' &&
           steps.create_tags.outputs.trigger_unxt_cd == 'false')
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        uses: ./.github/actions/dispatch-package-cd
         with:
-          script: |
-            const tagRef = "${{ steps.create_tags.outputs.unxt_tag }}";
-            const tagSha = "${{ steps.create_tags.outputs.unxt_tag_sha }}";
-            const shouldDispatch = "${{ steps.create_tags.outputs.trigger_unxt_cd }}" === "true";
-
-            if (!shouldDispatch) {
-              const existingRuns = await github.paginate(
-                github.rest.actions.listWorkflowRuns,
-                {
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  workflow_id: "cd-unxt.yml",
-                  branch: tagRef,
-                  per_page: 100,
-                },
-              );
-
-              const hasMatchingRun = existingRuns.some(
-                (run) => {
-                  const isMatchingTagSha =
-                    run.head_branch === tagRef && run.head_sha === tagSha;
-                  const isBlockingRun =
-                    run.status !== "completed" ||
-                    (run.status === "completed" && run.conclusion === "success");
-
-                  return isMatchingTagSha && isBlockingRun;
-                },
-              );
-
-              if (hasMatchingRun) {
-                core.info(
-                  `Skipping CD dispatch for ${tagRef}: a queued/in-progress/successful CD - unxt run already exists for ${tagSha}.`,
-                );
-                return;
-              }
-
-              core.info(
-                `No queued/in-progress/successful CD - unxt run found for ${tagRef} at ${tagSha}; dispatching recovery run.`,
-              );
-            }
-
-            try {
-              await github.rest.actions.createWorkflowDispatch({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                workflow_id: "cd-unxt.yml",
-                ref: tagRef,
-              });
-              core.info(`Triggered CD - unxt for tag ${tagRef}`);
-            } catch (error) {
-              core.setFailed(
-                `Failed to trigger CD - unxt for tag ${tagRef}: ${error.message}`
-              );
-            }
+          workflow_id: cd-unxt.yml
+          workflow_name: CD - unxt
+          tag_ref: ${{ steps.create_tags.outputs.unxt_tag }}
+          tag_sha: ${{ steps.create_tags.outputs.unxt_tag_sha }}
+          trigger_cd: ${{ steps.create_tags.outputs.trigger_unxt_cd }}
 
       - name: Trigger CD - unxt-api for auto-created unxt-api tag
         if: |
           steps.create_tags.outputs.trigger_unxt_api_cd == 'true' ||
           (steps.create_tags.outputs.unxt_api_tag != '' &&
           steps.create_tags.outputs.trigger_unxt_api_cd == 'false')
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        uses: ./.github/actions/dispatch-package-cd
         with:
-          script: |
-            const tagRef = "${{ steps.create_tags.outputs.unxt_api_tag }}";
-            const tagSha = "${{ steps.create_tags.outputs.unxt_api_tag_sha }}";
-            const shouldDispatch = "${{ steps.create_tags.outputs.trigger_unxt_api_cd }}" === "true";
-
-            if (!shouldDispatch) {
-              const existingRuns = await github.paginate(
-                github.rest.actions.listWorkflowRuns,
-                {
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  workflow_id: "cd-unxt-api.yml",
-                  branch: tagRef,
-                  per_page: 100,
-                },
-              );
-
-              const hasMatchingRun = existingRuns.some(
-                (run) => {
-                  const isMatchingTagSha =
-                    run.head_branch === tagRef && run.head_sha === tagSha;
-                  const isBlockingRun =
-                    run.status !== "completed" ||
-                    (run.status === "completed" && run.conclusion === "success");
-
-                  return isMatchingTagSha && isBlockingRun;
-                },
-              );
-
-              if (hasMatchingRun) {
-                core.info(
-                  `Skipping CD dispatch for ${tagRef}: a queued/in-progress/successful CD - unxt-api run already exists for ${tagSha}.`,
-                );
-                return;
-              }
-
-              core.info(
-                `No queued/in-progress/successful CD - unxt-api run found for ${tagRef} at ${tagSha}; dispatching recovery run.`,
-              );
-            }
-
-            try {
-              await github.rest.actions.createWorkflowDispatch({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                workflow_id: "cd-unxt-api.yml",
-                ref: tagRef,
-              });
-              core.info(`Triggered CD - unxt-api for tag ${tagRef}`);
-            } catch (error) {
-              core.setFailed(
-                `Failed to trigger CD - unxt-api for tag ${tagRef}: ${error.message}`
-              );
-            }
+          workflow_id: cd-unxt-api.yml
+          workflow_name: CD - unxt-api
+          tag_ref: ${{ steps.create_tags.outputs.unxt_api_tag }}
+          tag_sha: ${{ steps.create_tags.outputs.unxt_api_tag_sha }}
+          trigger_cd: ${{ steps.create_tags.outputs.trigger_unxt_api_cd }}
