@@ -193,4 +193,5 @@ jobs:
           workflow_name: CD - unxt-hypothesis
           tag_ref: ${{ steps.create_tags.outputs.unxt_hypothesis_tag }}
           tag_sha: ${{ steps.create_tags.outputs.unxt_hypothesis_tag_sha }}
-          trigger_cd: ${{ steps.create_tags.outputs.trigger_unxt_hypothesis_cd }}
+          trigger_cd:
+            ${{ steps.create_tags.outputs.trigger_unxt_hypothesis_cd }}
