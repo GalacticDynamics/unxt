@@ -21,6 +21,7 @@ jobs:
     name: Create package-specific tags
     runs-on: ubuntu-latest
     permissions:
+      actions: write # Needed to dispatch package CD workflows for bot-created tags
       contents: write # Needed to create and push tags
 
     steps:
@@ -60,9 +61,11 @@ jobs:
           echo "✅ Valid coordinator tag: $TAG"
 
       - name: Create and push package-specific tags
+        id: create_tags
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           TAG="${{ steps.version.outputs.tag }}"
+          UNXT_TAG_CREATED="false"
 
           # Configure git
           git config user.name "github-actions[bot]"
@@ -108,6 +111,9 @@ jobs:
               echo "📝 Creating tag $PACKAGE_TAG"
               git tag "$PACKAGE_TAG" "$COORDINATOR_SHA" -m "Release $PACKAGE ${VERSION} (auto-created from ${TAG})"
               TAGS_TO_PUSH+=("$PACKAGE_TAG")
+              if [ "$PACKAGE" = "unxt" ]; then
+                UNXT_TAG_CREATED="true"
+              fi
             fi
           done
 
@@ -115,6 +121,9 @@ jobs:
           if [ ${#TAGS_TO_PUSH[@]} -eq 0 ]; then
             echo "✅ All package tags already exist for version ${VERSION}"
             echo "   This is expected for workflow re-runs"
+            echo "trigger_unxt_cd=false" >> "$GITHUB_OUTPUT"
+            echo "unxt_tag=unxt-v${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "unxt_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -122,3 +131,68 @@ jobs:
           git push origin "${TAGS_TO_PUSH[@]}"
 
           echo "✅ Successfully created and pushed package-specific tags for version ${VERSION}"
+          echo "trigger_unxt_cd=${UNXT_TAG_CREATED}" >> "$GITHUB_OUTPUT"
+          echo "unxt_tag=unxt-v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "unxt_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger CD - unxt for auto-created unxt tag
+        if: |
+          steps.create_tags.outputs.trigger_unxt_cd == 'true' ||
+          (steps.create_tags.outputs.unxt_tag != '' &&
+          steps.create_tags.outputs.trigger_unxt_cd == 'false')
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const tagRef = "${{ steps.create_tags.outputs.unxt_tag }}";
+            const tagSha = "${{ steps.create_tags.outputs.unxt_tag_sha }}";
+            const shouldDispatch = "${{ steps.create_tags.outputs.trigger_unxt_cd }}" === "true";
+
+            if (!shouldDispatch) {
+              const existingRuns = await github.paginate(
+                github.rest.actions.listWorkflowRuns,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  workflow_id: "cd-unxt.yml",
+                  branch: tagRef,
+                  per_page: 100,
+                },
+              );
+
+              const hasMatchingRun = existingRuns.some(
+                (run) => {
+                  const isMatchingTagSha =
+                    run.head_branch === tagRef && run.head_sha === tagSha;
+                  const isBlockingRun =
+                    run.status !== "completed" ||
+                    (run.status === "completed" && run.conclusion === "success");
+
+                  return isMatchingTagSha && isBlockingRun;
+                },
+              );
+
+              if (hasMatchingRun) {
+                core.info(
+                  `Skipping CD dispatch for ${tagRef}: a queued/in-progress/successful CD - unxt run already exists for ${tagSha}.`,
+                );
+                return;
+              }
+
+              core.info(
+                `No queued/in-progress/successful CD - unxt run found for ${tagRef} at ${tagSha}; dispatching recovery run.`,
+              );
+            }
+
+            try {
+              await github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: "cd-unxt.yml",
+                ref: tagRef,
+              });
+              core.info(`Triggered CD - unxt for tag ${tagRef}`);
+            } catch (error) {
+              core.setFailed(
+                `Failed to trigger CD - unxt for tag ${tagRef}: ${error.message}`
+              );
+            }
