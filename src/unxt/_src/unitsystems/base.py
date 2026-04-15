@@ -153,7 +153,7 @@ class AbstractUnitSystem:
         # IDK if it's possible to get here
         else:
             msg = f"Physical type {key!r} doesn't exist in unit registry."  # pragma: no cover  # noqa: E501
-            raise ValueError(msg)  # pragma: no cover
+            raise KeyError(msg)  # pragma: no cover
 
         out = out.decompose(self.base_units)
         out._scale = 1.0  # noqa: SLF001
