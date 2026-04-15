@@ -43,7 +43,9 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Validate git tag (for tagged releases)
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/'))
         env:
           GITHUB_REF_VAR: ${{ github.ref }}
         run: |
@@ -52,6 +54,8 @@ jobs:
         shell: bash
 
       - name: Emit release metadata
+        env:
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           HEAD_SHA=$(git rev-parse HEAD)
 
@@ -60,12 +64,13 @@ jobs:
           else
             TAG=""
           fi
+          TRIGGER_EVENT="${EVENT_NAME}"
 
           jq -n \
             --arg package "unxt-api" \
             --arg package_tag "${TAG}" \
             --arg head_sha "${HEAD_SHA}" \
-            --arg trigger_event "${GITHUB_EVENT_NAME}" \
+            --arg trigger_event "${TRIGGER_EVENT}" \
             '{"package": $package, "package_tag": $package_tag, "head_sha": $head_sha, "trigger_event": $trigger_event}' \
             > release-metadata.json
 
