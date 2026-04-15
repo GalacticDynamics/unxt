@@ -136,10 +136,7 @@ jobs:
           echo "unxt_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Trigger CD - unxt for auto-created unxt tag
-        if:
-          steps.create_tags.outputs.trigger_unxt_cd == 'true' ||
-          (steps.create_tags.outputs.unxt_tag != '' &&
-          steps.create_tags.outputs.trigger_unxt_cd == 'false')
+        if: steps.create_tags.outputs.trigger_unxt_cd == 'true' || (steps.create_tags.outputs.unxt_tag != '' && steps.create_tags.outputs.trigger_unxt_cd == 'false')
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
