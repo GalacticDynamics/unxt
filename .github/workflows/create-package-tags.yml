@@ -160,10 +160,15 @@ jobs:
               );
 
               const hasMatchingRun = existingRuns.some(
-                (run) =>
-                  run.head_branch === tagRef &&
-                  run.head_sha === tagSha &&
-                  (run.status !== "completed" || run.conclusion === "success"),
+                (run) => {
+                  const isMatchingTagSha =
+                    run.head_branch === tagRef && run.head_sha === tagSha;
+                  const isBlockingRun =
+                    run.status !== "completed" ||
+                    (run.status === "completed" && run.conclusion === "success");
+
+                  return isMatchingTagSha && isBlockingRun;
+                },
               );
 
               if (hasMatchingRun) {
