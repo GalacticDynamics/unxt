@@ -54,20 +54,18 @@ jobs:
       - name: Emit release metadata
         run: |
           HEAD_SHA=$(git rev-parse HEAD)
-          EVENT_NAME="${GITHUB_EVENT_NAME}"
 
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             TAG="${GITHUB_REF#refs/tags/}"
           else
             TAG=""
           fi
-          TRIGGER_EVENT="${EVENT_NAME}"
 
           jq -n \
             --arg package "unxt-api" \
             --arg package_tag "${TAG}" \
             --arg head_sha "${HEAD_SHA}" \
-            --arg trigger_event "${TRIGGER_EVENT}" \
+            --arg trigger_event "${GITHUB_EVENT_NAME}" \
             '{"package": $package, "package_tag": $package_tag, "head_sha": $head_sha, "trigger_event": $trigger_event}' \
             > release-metadata.json
 
