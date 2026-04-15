@@ -83,6 +83,7 @@ jobs:
           TAGS_TO_PUSH=()
 
           UNXT_API_TAG_CREATED="false"
+          UNXT_HYPOTHESIS_TAG_CREATED="false"
 
           # Check and create each package tag
           for PACKAGE in "${PACKAGES[@]}"; do
@@ -119,6 +120,9 @@ jobs:
               if [ "$PACKAGE" = "unxt-api" ]; then
                 UNXT_API_TAG_CREATED="true"
               fi
+              if [ "$PACKAGE" = "unxt-hypothesis" ]; then
+                UNXT_HYPOTHESIS_TAG_CREATED="true"
+              fi
             fi
           done
 
@@ -132,6 +136,9 @@ jobs:
             echo "trigger_unxt_api_cd=false" >> "$GITHUB_OUTPUT"
             echo "unxt_api_tag=unxt-api-v${VERSION}" >> "$GITHUB_OUTPUT"
             echo "unxt_api_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
+            echo "trigger_unxt_hypothesis_cd=false" >> "$GITHUB_OUTPUT"
+            echo "unxt_hypothesis_tag=unxt-hypothesis-v${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "unxt_hypothesis_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -145,6 +152,9 @@ jobs:
           echo "trigger_unxt_api_cd=${UNXT_API_TAG_CREATED}" >> "$GITHUB_OUTPUT"
           echo "unxt_api_tag=unxt-api-v${VERSION}" >> "$GITHUB_OUTPUT"
           echo "unxt_api_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
+          echo "trigger_unxt_hypothesis_cd=${UNXT_HYPOTHESIS_TAG_CREATED}" >> "$GITHUB_OUTPUT"
+          echo "unxt_hypothesis_tag=unxt-hypothesis-v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "unxt_hypothesis_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Trigger CD - unxt for auto-created unxt tag
         if: |
@@ -171,3 +181,16 @@ jobs:
           tag_ref: ${{ steps.create_tags.outputs.unxt_api_tag }}
           tag_sha: ${{ steps.create_tags.outputs.unxt_api_tag_sha }}
           trigger_cd: ${{ steps.create_tags.outputs.trigger_unxt_api_cd }}
+
+      - name: Trigger CD - unxt-hypothesis for auto-created unxt-hypothesis tag
+        if: |
+          steps.create_tags.outputs.trigger_unxt_hypothesis_cd == 'true' ||
+          (steps.create_tags.outputs.unxt_hypothesis_tag != '' &&
+          steps.create_tags.outputs.trigger_unxt_hypothesis_cd == 'false')
+        uses: ./.github/actions/dispatch-package-cd
+        with:
+          workflow_id: cd-unxt-hypothesis.yml
+          workflow_name: CD - unxt-hypothesis
+          tag_ref: ${{ steps.create_tags.outputs.unxt_hypothesis_tag }}
+          tag_sha: ${{ steps.create_tags.outputs.unxt_hypothesis_tag_sha }}
+          trigger_cd: ${{ steps.create_tags.outputs.trigger_unxt_hypothesis_cd }}
