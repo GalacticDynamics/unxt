@@ -52,10 +52,9 @@ jobs:
         shell: bash
 
       - name: Emit release metadata
-        env:
-          EVENT_NAME: ${{ github.event_name }}
         run: |
           HEAD_SHA=$(git rev-parse HEAD)
+          EVENT_NAME="${GITHUB_EVENT_NAME}"
 
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             TAG="${GITHUB_REF#refs/tags/}"
