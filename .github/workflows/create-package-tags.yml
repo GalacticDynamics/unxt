@@ -155,27 +155,26 @@ jobs:
                   repo: context.repo.repo,
                   workflow_id: "cd-unxt.yml",
                   branch: tagRef,
-                  status: "completed",
                   per_page: 100,
                 },
               );
 
-              const alreadySucceeded = existingRuns.some(
+              const hasMatchingRun = existingRuns.some(
                 (run) =>
-                  run.conclusion === "success" &&
                   run.head_branch === tagRef &&
-                  run.head_sha === tagSha,
+                  run.head_sha === tagSha &&
+                  (run.status !== "completed" || run.conclusion === "success"),
               );
 
-              if (alreadySucceeded) {
+              if (hasMatchingRun) {
                 core.info(
-                  `Skipping CD dispatch for ${tagRef}: a successful CD - unxt run already exists for ${tagSha}.`,
+                  `Skipping CD dispatch for ${tagRef}: a queued/in-progress/successful CD - unxt run already exists for ${tagSha}.`,
                 );
                 return;
               }
 
               core.info(
-                `No successful CD - unxt run found for ${tagRef} at ${tagSha}; dispatching recovery run.`,
+                `No queued/in-progress/successful CD - unxt run found for ${tagRef} at ${tagSha}; dispatching recovery run.`,
               );
             }
 
