@@ -2,6 +2,11 @@ name: CD - unxt-api
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows:
+      - "Create Package Tags"
+    types:
+      - completed
   push:
     branches:
       - main
@@ -24,9 +29,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    # Build runs for manual dispatch, main pushes, and direct package tag pushes
+    # Build runs for manual dispatch, successful package-tag workflow completions,
+    # main pushes, and direct package tag pushes.
     if: |
       github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
 
