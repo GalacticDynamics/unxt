@@ -127,7 +127,7 @@ jobs:
                 prData = response.data;
               } catch (error) {
                 core.setFailed(
-                  `Unable to fetch PR ${prNumber} for workflow_run validation: ${error.message}`
+                  `Unable to fetch PR ${prNumber} for workflow_run validation.`
                 );
                 return;
               }
