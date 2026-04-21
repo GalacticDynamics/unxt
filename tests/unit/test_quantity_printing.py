@@ -150,6 +150,7 @@ class TestShortName:
 
         doc = q.__pdoc__(use_short_name=True)
         formatted = wl.pformat(doc)
+        assert formatted.startswith("Q(")
 
 
 class TestStringConversionWithJIT:

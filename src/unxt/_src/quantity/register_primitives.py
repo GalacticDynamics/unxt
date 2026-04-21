@@ -3887,10 +3887,21 @@ def pow_p_qq(x: ABCQ, y: ABCPQ["dimensionless"], /) -> ABCQ:
     >>> q1**p
     Quantity(Array(8., dtype=float32, ...), unit='m3')
 
+    Non-scalar exponents raise a ValueError:
+
+    >>> p_arr = u.Q([3, 2], "")
+    >>> try:
+    ...     q1**p_arr
+    ... except ValueError as e:
+    ...     print(e)
+    Exponent must be a scalar.
+
     """
     yv = ustrip(one, y)
-    y0 = yv[(0,) * yv.ndim]
-    yv = eqx.error_if(yv, jnp.any(yv != y0), "power must be a scalar")
+    y0 = yv[()]
+    if y0.ndim != 0:
+        msg = "Exponent must be a scalar."
+        raise ValueError(msg)
     return type_np(x)(value=qlax.pow(ustrip(x), y0), unit=x.unit**y0)
 
 
