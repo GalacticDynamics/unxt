@@ -162,7 +162,7 @@ class TestDimensionlessUnitSystem:
         assert dimensionless["dimensionless"] == apyu.one
 
         with pytest.raises(apyu.UnitConversionError):
-            dimensionless["length"]
+            _ = dimensionless["length"]
 
     def test_decompose(self) -> None:
         """Test that dimensionless unitsystem can be decomposed."""
@@ -236,6 +236,6 @@ def test_simulation_usys():
         usys = unitsystem(DynamicalSimUSysFlag, u1, u2)
 
         # For now, just test retrieving all three base unit types:
-        usys["length"]
-        usys["mass"]
-        usys["time"]
+        _ = usys["length"]
+        _ = usys["mass"]
+        _ = usys["time"]

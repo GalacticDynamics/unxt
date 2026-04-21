@@ -440,10 +440,10 @@ def test_static_value_comparison_incompatible_types() -> None:
     # Ordering comparisons with incompatible types may raise errors
     # (this is expected NumPy behavior)
     with pytest.raises((TypeError, np.exceptions.DTypePromotionError)):
-        sv < "string"  # noqa: B015
+        _ = sv < "string"
 
     with pytest.raises((TypeError, np.exceptions.DTypePromotionError)):
-        sv <= object()  # noqa: B015
+        _ = sv <= object()
 
 
 def test_static_value_from_dispatch() -> None:
