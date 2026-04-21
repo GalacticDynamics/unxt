@@ -107,7 +107,7 @@ docs = [
   "jaxlib>=0.5.3",
   "quax>=0.2.1",
 ]
-lint = ["pre-commit>=4.1.0", "pylint>=3.3.8"]
+lint = ["prek>=0.3.9", "pylint>=3.3.8"]
 nox = ["nox>=2024.10.9", "nox-uv>=0.6.3"]
 pytest-benchmark-parallel = ["pytest-xdist>=3.6.1"]
 test = [
@@ -301,7 +301,7 @@ UNXT_ENABLE_RUNTIME_TYPECHECKING = "beartype.beartype"
 
 
 [tool.repo-review]
-ignore = ["PC140"]
+ignore = ["PC140", "PC901", "PC902", "PC903"]
 
 
 [tool.ruff]
