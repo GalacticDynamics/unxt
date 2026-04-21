@@ -773,7 +773,7 @@ wheels = [
 
 [[package]]
 name = "equinox"
-version = "0.13.2"
+version = "0.13.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jax" },
@@ -781,9 +781,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "wadler-lindig" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ae/17/96a3b61a80c63c75974bd84318cee2818a23d60628e77fb6ed00eb623a69/equinox-0.13.2.tar.gz", hash = "sha256:509ad744ff99b7c684d45230d6890f9e78eac1a556d7a06db1eff664a3cac74f", size = 139386, upload-time = "2025-10-09T10:15:39.595Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/05/54/9655a0546bbff95f93f6c81bdc6ecefecc7d92761b25fbbf4442d14491be/equinox-0.13.7.tar.gz", hash = "sha256:fcba83317fd53ee4505cfe32f919c13f9d4c3a68c266696dfa115129ed8c465f", size = 142098, upload-time = "2026-04-20T13:21:13.651Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c6/ce/c3bc53bdda6edb050859939a8e91e206123f96f50906e7ba7c027c6c535f/equinox-0.13.2-py3-none-any.whl", hash = "sha256:bc1ee687e4841945d8b776664403839639a05e2f2c02c1da353ff3386e0e43b0", size = 179235, upload-time = "2025-10-09T10:15:37.991Z" },
+    { url = "https://files.pythonhosted.org/packages/1b/5e/28df919a8d5741a96fe7f56ac19493389f7a3de9c819c7a1ec3b2c557852/equinox-0.13.7-py3-none-any.whl", hash = "sha256:f2c8f4713ccdb0db117937d27dc6572a643bd2a15a1213e379cc6065e38a1731", size = 182093, upload-time = "2026-04-20T13:21:12.302Z" },
 ]
 
 [[package]]
@@ -2658,17 +2658,18 @@ wheels = [
 
 [[package]]
 name = "quax"
-version = "0.2.1"
+version = "0.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "equinox" },
     { name = "jax" },
     { name = "jaxtyping" },
+    { name = "packaging" },
     { name = "plum-dispatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/35/e1/638586f89e19a0609b341581ec5d437cc3815823a9ddd22898136a732e40/quax-0.2.1.tar.gz", hash = "sha256:d527780dcfc539df6bca329f43d561870b872a691128eaea52007f9ff86c95f4", size = 26944, upload-time = "2025-10-12T18:58:27.323Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/94/b3/dc8a42d35ffb93278e128661f88f523e33e397496da815757d294af6afd9/quax-0.3.1.tar.gz", hash = "sha256:9c015dd515a359e18486f1bb2e7e18286170537a53680c9e1c2298bd5ec1d04d", size = 169992, upload-time = "2026-04-20T20:46:59.122Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/33/dc/502ea6cd427255ccd44fb4073dd687255f8d72066925ec440c239f6061d3/quax-0.2.1-py3-none-any.whl", hash = "sha256:1a55e66affcb7cef05cbad3170723220d8aebf9746d655bbe6ac1cd2501f2676", size = 38113, upload-time = "2025-10-12T18:58:26.091Z" },
+    { url = "https://files.pythonhosted.org/packages/a6/24/97fb01d5a7629d9c2858e1d4180fbc4f89df113952482f704dae55955597/quax-0.3.1-py3-none-any.whl", hash = "sha256:66f95879ccd0894419cbd68e9faf00a856b6112d7c7b978d486979d46aacfab4", size = 39286, upload-time = "2026-04-20T20:46:57.53Z" },
 ]
 
 [[package]]
@@ -3615,7 +3616,7 @@ requires-dist = [
     { name = "astropy", marker = "extra == 'all'", specifier = ">=6.0" },
     { name = "astropy", marker = "extra == 'backend-astropy'", specifier = ">=6.0" },
     { name = "dataclassish", specifier = ">=0.8.0" },
-    { name = "equinox", specifier = ">=0.13.2" },
+    { name = "equinox", specifier = ">=0.13.7" },
     { name = "gala", marker = "extra == 'all'", specifier = ">=1.8" },
     { name = "gala", marker = "extra == 'interop-gala'", specifier = ">=1.8" },
     { name = "is-annotated", specifier = ">=1.0" },
@@ -3631,7 +3632,7 @@ requires-dist = [
     { name = "matplotlib", marker = "extra == 'interop-mpl'", specifier = ">=3.8" },
     { name = "optional-dependencies", specifier = ">=0.3.2" },
     { name = "plum-dispatch", specifier = ">=2.7.0" },
-    { name = "quax", specifier = ">=0.2.1" },
+    { name = "quax", specifier = ">=0.3.1" },
     { name = "quax-blocks", specifier = ">=0.4.0" },
     { name = "quaxed", specifier = ">=0.10.2" },
     { name = "traitlets", specifier = ">=5.0.0" },
@@ -3673,7 +3674,7 @@ dev = [
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
     { name = "pytest-mpl", specifier = ">=0.17.0" },
     { name = "pytz", specifier = ">=2024.2" },
-    { name = "quax", specifier = ">=0.2.1" },
+    { name = "quax", specifier = ">=0.3.1" },
     { name = "sphinx", specifier = ">=7.0" },
     { name = "sphinx-autobuild", specifier = ">=2024.9.3" },
     { name = "sphinx-autodoc-typehints", specifier = ">=3.0.0" },
@@ -3696,7 +3697,7 @@ docs = [
     { name = "myst-nb", specifier = ">=1.1.2" },
     { name = "myst-parser", specifier = ">=0.13" },
     { name = "pytz", specifier = ">=2024.2" },
-    { name = "quax", specifier = ">=0.2.1" },
+    { name = "quax", specifier = ">=0.3.1" },
     { name = "sphinx", specifier = ">=7.0" },
     { name = "sphinx-autobuild", specifier = ">=2024.9.3" },
     { name = "sphinx-autodoc-typehints", specifier = ">=3.0.0" },
