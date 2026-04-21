@@ -142,31 +142,21 @@ __all__ = (
 from .setup_package import install_import_hook
 
 with install_import_hook("unxt.quantity"):
-    from ._src.quantity.angle import Angle
-    from ._src.quantity.base import AbstractQuantity, is_any_quantity
-    from ._src.quantity.base_angle import AbstractAngle
-    from ._src.quantity.base_parametric import AbstractParametricQuantity
-    from ._src.quantity.flag import AllowValue
-    from ._src.quantity.quantity import Q, Quantity
-    from ._src.quantity.static_quantity import StaticQuantity
-    from ._src.quantity.unchecked import BareQuantity
-    from ._src.quantity.value import StaticValue, convert_to_quantity_value
+    from ._src.quantity import (
+        AbstractAngle,
+        AbstractParametricQuantity,
+        AbstractQuantity,
+        AllowValue,
+        Angle,
+        BareQuantity,
+        Q,
+        Quantity,
+        StaticQuantity,
+        StaticValue,
+        convert_to_quantity_value,
+        is_any_quantity,
+    )
     from unxt_api import is_unit_convertible, uconvert, uconvert_value, ustrip, wrap_to
 
-    # isort: split
-    # Register dispatches and conversions
-    from ._src.quantity import (
-        register_api,
-        register_conversions,
-        register_dispatches,
-        register_primitives,
-    )
-
 # Clean up namespace
-del (
-    register_conversions,
-    register_api,
-    register_dispatches,
-    register_primitives,
-    install_import_hook,
-)
+del install_import_hook
