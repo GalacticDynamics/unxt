@@ -95,7 +95,7 @@ jobs:
               return;
             }
 
-            const runPR = runPRs.find((pr) => pr.number === prNumber);
+            let runPR = runPRs.find((pr) => pr.number === prNumber);
 
             if (typeof runSha !== "string" || runSha.length === 0) {
               core.setFailed(
@@ -117,24 +117,35 @@ jobs:
             }
 
             if (!runPR) {
-              const associatedPRs = await github.paginate(
-                github.rest.repos.listPullRequestsAssociatedWithCommit,
-                {
+              let prData;
+              try {
+                const response = await github.rest.pulls.get({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  commit_sha: runSha,
-                  per_page: 100,
-                }
-              );
-              const hasAssociatedPR = associatedPRs.some((pr) => pr.number === prNumber);
-              if (!hasAssociatedPR) {
+                  pull_number: prNumber,
+                });
+                prData = response.data;
+              } catch (error) {
                 core.setFailed(
-                  "PR number from artifact is not attached to workflow_run and is not associated with workflow_run head SHA."
+                  `Unable to fetch PR ${prNumber} for workflow_run validation: ${error.message}`
                 );
                 return;
               }
+
+              const prHeadSha = prData.head?.sha;
+              if (typeof prHeadSha !== "string" || prHeadSha.length === 0) {
+                core.setFailed("Fetched PR is missing a valid head SHA.");
+                return;
+              }
+              if (prHeadSha !== runSha) {
+                core.setFailed(
+                  "PR number from artifact does not match workflow_run head SHA."
+                );
+                return;
+              }
+              runPR = prData;
               core.warning(
-                "workflow_run pull_requests metadata did not include the PR; validated PR linkage via associated pull requests for workflow_run head SHA."
+                "workflow_run pull_requests metadata did not include the PR; validated PR linkage via direct PR lookup and matching head SHA."
               );
             }
 
