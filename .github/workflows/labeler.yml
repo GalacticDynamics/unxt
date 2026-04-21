@@ -23,7 +23,7 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
 
-      - name: Determine expected artifact name
+      - name: Discover PR label input artifact
         id: artifact
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
@@ -41,13 +41,14 @@ jobs:
               }
             );
 
-            const matches = artifacts
-              .map((artifact) => artifact.name)
-              .filter((name) => /^pr-labeler-input-\d+$/.test(name));
+            const artifactNames = artifacts.map((artifact) => artifact.name);
+            const matches = artifactNames.filter((name) =>
+              /^pr-labeler-input-\d+$/.test(name)
+            );
 
             if (matches.length !== 1) {
               core.setFailed(
-                `Expected exactly 1 PR label input artifact on workflow_run ${runId}, got ${matches.length}.`
+                `Expected exactly 1 PR label input artifact on workflow_run ${runId}, got ${matches.length}. Matching artifacts: ${matches.length > 0 ? matches.join(", ") : "(none)"}. All artifacts: ${artifactNames.length > 0 ? artifactNames.join(", ") : "(none)"}.`
               );
               return;
             }
