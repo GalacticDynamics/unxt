@@ -95,9 +95,6 @@ jobs:
             }
 
             const runPR = runPRs.find((pr) => pr.number === prNumber);
-            if (!runPR) {
-              core.warning("PR number from artifact is not attached to workflow_run; continuing with artifact validation only.");
-            }
 
             if (typeof runSha !== "string" || runSha.length === 0) {
               core.setFailed(
@@ -116,6 +113,28 @@ jobs:
             if (runSha !== workflowRun.head_sha) {
               core.setFailed("Artifact workflow run SHA does not match workflow_run head SHA.");
               return;
+            }
+
+            if (!runPR) {
+              const associatedPRs = await github.paginate(
+                github.rest.repos.listPullRequestsAssociatedWithCommit,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  commit_sha: runSha,
+                  per_page: 100,
+                }
+              );
+              const hasAssociatedPR = associatedPRs.some((pr) => pr.number === prNumber);
+              if (!hasAssociatedPR) {
+                core.setFailed(
+                  "PR number from artifact is not attached to workflow_run and is not associated with workflow_run head SHA."
+                );
+                return;
+              }
+              core.warning(
+                "workflow_run pull_requests metadata did not include the PR; validated PR linkage via associated pull requests for workflow_run head SHA."
+              );
             }
 
             if (runPR) {
