@@ -934,7 +934,7 @@ def test_positive():
 def test_pow_quantity_power():
     """Test `pow`."""
     x = u.Q(jnp.asarray([1, 2, 3], dtype=float), "m")
-    y = u.Q(jnp.asarray([4], dtype=float), "")
+    y = u.Q(jnp.asarray(4, dtype=float), "")
     got = jnp.pow(x, y)
     exp = u.Q(jnp.pow(x.value, y.value), "m4")
 

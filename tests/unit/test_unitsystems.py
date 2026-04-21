@@ -235,7 +235,10 @@ def test_simulation_usys():
 
         usys = unitsystem(DynamicalSimUSysFlag, u1, u2)
 
-        # For now, just test retrieving all three base unit types:
-        usys["length"]
-        usys["mass"]
-        usys["time"]
+        # Verify each base dimension returns a valid unit.
+        for dim in ("length", "mass", "time"):
+            result = usys[dim]
+            assert isinstance(result, apyu.UnitBase), (
+                f"usys[{dim!r}] for ({u1!r}, {u2!r}) returned {result!r}, "
+                f"expected an astropy UnitBase"
+            )
