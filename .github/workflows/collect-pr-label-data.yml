@@ -22,16 +22,16 @@ jobs:
               core.setFailed("This workflow only supports pull_request events.");
               return;
             }
-            const runSha = pr.head.sha;
-            if (typeof runSha !== "string" || runSha.length === 0) {
-              core.setFailed("Missing workflow run SHA.");
+            const prHeadSha = pr.head.sha;
+            if (typeof prHeadSha !== "string" || prHeadSha.length === 0) {
+              core.setFailed("Missing PR head SHA.");
               return;
             }
 
             const payload = {
               pr_number: pr.number,
-              head_sha: pr.head.sha,
-              run_sha: runSha
+              head_sha: prHeadSha,
+              run_sha: prHeadSha
             };
 
             fs.writeFileSync(
