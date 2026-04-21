@@ -23,25 +23,37 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
 
-      - name: Determine expected artifact name
+      - name: Discover PR label input artifact
         id: artifact
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const prs = context.payload.workflow_run.pull_requests ?? [];
-            if (prs.length !== 1) {
-              core.setFailed("Expected exactly 1 pull_requests entry on workflow_run, got " + prs.length + ".");
+            const { owner, repo } = context.repo;
+            const runId = context.payload.workflow_run.id;
+
+            const artifacts = await github.paginate(
+              github.rest.actions.listWorkflowRunArtifacts,
+              {
+                owner,
+                repo,
+                run_id: runId,
+                per_page: 100,
+              }
+            );
+
+            const artifactNames = artifacts.map((artifact) => artifact.name);
+            const matches = artifactNames.filter((name) =>
+              /^pr-labeler-input-\d+$/.test(name)
+            );
+
+            if (matches.length !== 1) {
+              core.setFailed(
+                `Expected exactly 1 PR label input artifact on workflow_run ${runId}, got ${matches.length}. Matching artifacts: ${matches.length > 0 ? matches.join(", ") : "(none)"}. All artifacts: ${artifactNames.length > 0 ? artifactNames.join(", ") : "(none)"}.`
+              );
               return;
             }
 
-            const prNumber = prs[0].number;
-            if (!Number.isInteger(prNumber) || prNumber <= 0) {
-              core.setFailed("Invalid pull_requests[0].number on workflow_run.");
-              return;
-            }
-
-            // Must match the artifact name used in collect-pr-label-data.yml.
-            core.setOutput("artifact_name", `pr-labeler-input-${prNumber}`);
+            core.setOutput("artifact_name", matches[0]);
 
       - name: Download PR label input artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -84,10 +96,6 @@ jobs:
             }
 
             const runPR = runPRs.find((pr) => pr.number === prNumber);
-            if (!runPR) {
-              core.setFailed("PR number from artifact is not attached to workflow_run.");
-              return;
-            }
 
             if (typeof runSha !== "string" || runSha.length === 0) {
               core.setFailed(
@@ -108,14 +116,38 @@ jobs:
               return;
             }
 
-            const runPRHeadSha = runPR.head?.sha;
-            if (typeof runPRHeadSha === "string") {
-              if (headSha !== runPRHeadSha) {
-                core.setFailed("Artifact PR head SHA does not match workflow_run pull_request head SHA.");
+            if (!runPR) {
+              const associatedPRs = await github.paginate(
+                github.rest.repos.listPullRequestsAssociatedWithCommit,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  commit_sha: runSha,
+                  per_page: 100,
+                }
+              );
+              const hasAssociatedPR = associatedPRs.some((pr) => pr.number === prNumber);
+              if (!hasAssociatedPR) {
+                core.setFailed(
+                  "PR number from artifact is not attached to workflow_run and is not associated with workflow_run head SHA."
+                );
                 return;
               }
-            } else {
-              core.warning("workflow_run pull_request head SHA unavailable; skipped PR head SHA consistency check.");
+              core.warning(
+                "workflow_run pull_requests metadata did not include the PR; validated PR linkage via associated pull requests for workflow_run head SHA."
+              );
+            }
+
+            if (runPR) {
+              const runPRHeadSha = runPR.head?.sha;
+              if (typeof runPRHeadSha === "string") {
+                if (headSha !== runPRHeadSha) {
+                  core.setFailed("Artifact PR head SHA does not match workflow_run pull_request head SHA.");
+                  return;
+                }
+              } else {
+                core.warning("workflow_run pull_request head SHA unavailable; skipped PR head SHA consistency check.");
+              }
             }
 
             core.setOutput("pr_number", String(prNumber));
