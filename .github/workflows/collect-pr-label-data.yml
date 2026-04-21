@@ -22,7 +22,7 @@ jobs:
               core.setFailed("This workflow only supports pull_request events.");
               return;
             }
-            const runSha = process.env.GITHUB_SHA;
+            const runSha = pr.head.sha;
             if (typeof runSha !== "string" || runSha.length === 0) {
               core.setFailed("Missing workflow run SHA.");
               return;
