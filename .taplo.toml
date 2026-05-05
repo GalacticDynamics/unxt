@@ -25,3 +25,7 @@ indent_entries        = false
 indent_string         = "  "
 indent_tables         = false
 trailing_newline      = true
+
+[schema]
+# Disable remote schema catalog fetching to avoid network-related failures
+enabled = false

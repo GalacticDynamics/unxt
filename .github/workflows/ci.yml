@@ -16,16 +16,34 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  PYTHON_VERSIONS: '["3.11", "3.12", "3.13", "3.14"]'
   # Many color libraries just need this to be set to any value, but at least
   # one distinguishes color depth, where "3" -> "256-bit color".
   FORCE_COLOR: 3
 
 jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    outputs:
+      python-versions: ${{ env.PYTHON_VERSIONS }}
+      oldest-python: ${{ steps.versions.outputs.oldest }}
+      newest-python: ${{ steps.versions.outputs.newest }}
+    steps:
+      - id: versions
+        run: |
+          versions='${{ env.PYTHON_VERSIONS }}'
+          oldest=$(echo "$versions" | jq -r '.[0]')
+          newest=$(echo "$versions" | jq -r '.[-1]')
+          echo "oldest=$oldest" >> $GITHUB_OUTPUT
+          echo "newest=$newest" >> $GITHUB_OUTPUT
+
   format:
     name: Format
     runs-on: ubuntu-latest
+    needs: [setup]
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.5.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Install uv
         uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
@@ -40,15 +58,15 @@ jobs:
   tests-unxt:
     name: unxt Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
-    needs: [format]
+    needs: [setup, format]
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
         runs-on: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.5.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Install uv
         uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
@@ -72,7 +90,7 @@ jobs:
   tests-unxt-api:
     name: unxt-api Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
-    needs: [format]
+    needs: [setup, format]
     if: |
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
@@ -81,11 +99,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
         runs-on: [ubuntu-latest]
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.5.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Install uv
         uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
@@ -111,7 +129,7 @@ jobs:
       unxt-hypothesis Python ${{ matrix.python-version }} on ${{ matrix.runs-on
       }}
     runs-on: ${{ matrix.runs-on }}
-    needs: [format]
+    needs: [setup, format]
     if: |
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
@@ -120,11 +138,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
         runs-on: [ubuntu-latest]
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.5.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Install uv
         uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
@@ -144,18 +162,18 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  test_oldest:
+  test-oldest:
     name: Check Oldest Dependencies
     runs-on: ${{ matrix.runs-on }}
-    needs: [format]
+    needs: [setup, format]
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11"]
+        python-version: ${{ needs.setup.outputs.oldest-python }}
         runs-on: [ubuntu-latest]
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.5.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Install uv
         uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
@@ -171,18 +189,36 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  test_interop:
+  test-newest:
+    name: Newest supported deps
+    runs-on: ubuntu-latest
+    needs: [setup, format]
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        with:
+          python-version: ${{ needs.setup.outputs.newest-python }}
+
+      - name: Install the project
+        run: uv sync --no-default-groups --extra all --group test-all --upgrade
+
+      - name: Test package
+        run: uv run --no-sync pytest
+
+  test-interoperability:
     name: Check Interoperability
     runs-on: ${{ matrix.runs-on }}
-    needs: [format]
+    needs: [setup, format]
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
         runs-on: [ubuntu-latest]
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.5.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Install uv
         uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
@@ -201,14 +237,14 @@ jobs:
   benchmark:
     name: Run Benchmarks
     runs-on: ubuntu-24.04
-    needs: [format]
+    needs: [setup, format]
     if:
       github.event_name == 'workflow_dispatch' || (github.event_name ==
       'pull_request' && contains(github.event.pull_request.labels.*.name, '⏱️
       Run benchmarks')) || (github.event_name == 'push' && github.ref ==
       'refs/heads/main')
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.5.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Install uv
         uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
@@ -223,10 +259,20 @@ jobs:
   status:
     name: CI Pass
     runs-on: ubuntu-latest
-    needs: [format, tests-unxt, test_oldest, test_interop]
+    needs:
+      [
+        setup,
+        format,
+        tests-unxt,
+        tests-unxt-api,
+        tests-unxt-hypothesis,
+        test-oldest,
+        test-newest,
+        test-interoperability,
+      ]
     if: always()
     steps:
       - name: All required jobs passed
-        uses: re-actors/alls-green@release/v1
+        uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # v1.2.2
         with:
           jobs: ${{ toJSON(needs) }}
