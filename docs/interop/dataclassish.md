@@ -15,7 +15,7 @@ This guide demonstrates how `unxt` types work with the `dataclassish` library fo
 - **`asdict(obj)`**: Convert to a dictionary representation
 - **`astuple(obj)`**: Convert to a tuple of values
 - **`get_field(obj, name)`**: Access a specific field by name
-- **`replace(obj, **kwargs)`\*\*: Create a copy with modified fields
+- **`replace(obj, **kwargs)`**: Create a copy with modified fields
 
 All of these work seamlessly across:
 
