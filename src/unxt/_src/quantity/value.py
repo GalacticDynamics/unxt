@@ -30,12 +30,48 @@ class StaticValue:
     Note that since the array is immutable, hashing is supported.
     The hash is computed from the array's dtype, shape, and bytes.
 
+    .. rubric:: Equality semantics
+
+    `StaticValue` equality returns a **scalar** `bool`, not an element-wise
+    array.  This is intentional: it mirrors Python's structural-equality
+    contract (like ``tuple.__eq__``) and is a prerequisite for using a
+    ``Quantity(StaticValue, ...)`` as a ``static_argnames`` argument in
+    :func:`jax.jit`.  JAX needs a scalar ``bool`` to decide whether a cached
+    compilation can be reused.
+
+    This is fundamentally different from a normal :class:`~unxt.Quantity`
+    (backed by a JAX array), whose ``==`` operator follows NumPy broadcasting
+    rules and returns an element-wise boolean array.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from unxt.quantity import StaticValue
+
+    Equality between two `StaticValue` objects returns a plain `bool`:
+
+    >>> StaticValue(np.array([1.0, 2.0])) == StaticValue(np.array([1.0, 2.0]))
+    True
+    >>> StaticValue(np.array([1.0, 2.0])) == StaticValue(np.array([9.0, 9.0]))
+    False
+
+    Equality with a NumPy array returns an element-wise boolean array
+    (same as NumPy):
+
+    >>> StaticValue(np.array([1.0, 2.0])) == np.array([1.0, 9.0])
+    array([ True, False])
+
     """
 
     __slots__ = ("_array",)
 
-    def __init__(self, array: np.ndarray, /) -> None:
-        value = np.asarray(array).copy()
+    def __init__(self, array: object, /) -> None:
+        value = np.asarray(array)
+        # Copy only when np.asarray returned a view of the caller's buffer so
+        # that (a) we don't make the caller's array read-only as a side-effect
+        # and (b) the caller cannot later mutate our internal data.
+        if isinstance(array, np.ndarray) and np.shares_memory(value, array):
+            value = value.copy()
         value.setflags(write=False)
         self._array = value
 
@@ -98,16 +134,20 @@ class StaticValue:
     @override
     def __eq__(self, other: object, /) -> bool | NDArray[np.bool_]:  # type: ignore[override]
         if isinstance(other, StaticValue):
-            return bool(np.array_equal(self._array, other._array))
-        if isinstance(other, (np.ndarray, Array, list, tuple)):
+            return np.array_equal(self._array, other._array)
+        if isinstance(other, Array):
             return self._array == other
+        if isinstance(other, (np.ndarray, list, tuple)):
+            return np.equal(self._array, other)
         return NotImplemented
 
     def __ne__(self, other: object, /) -> bool | NDArray[np.bool_]:  # type: ignore[override]
         if isinstance(other, StaticValue):
             return not bool(np.array_equal(self._array, other._array))
-        if isinstance(other, (np.ndarray, Array, list, tuple)):
+        if isinstance(other, Array):
             return self._array != other
+        if isinstance(other, (np.ndarray, list, tuple)):
+            return np.not_equal(self._array, other)
         return NotImplemented
 
     def __lt__(self, other: Any, /) -> NDArray[np.bool_]:
