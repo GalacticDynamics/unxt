@@ -384,6 +384,58 @@ func(x, y, usys=u.unitsystems.si)
 
 This only applies to the outer-most function. Nesting jitted and quaxified functions are fine. The outermost jit boundary handles the constant-folding.
 
+## `Quantity` Equality: Arrays vs. `StaticValue`
+
+### ❌ Problem: `==` on a normal `Quantity` is not a scalar `bool`
+
+A normal `Quantity` (backed by a JAX array) follows NumPy broadcasting: `==` returns an **element-wise boolean array**, not a scalar `bool`. This means you cannot use it as a `static_argnames` argument in `jax.jit`, and it will raise an error if JAX tries to check cache validity:
+
+```python
+from functools import partial
+import jax
+import unxt as u
+
+
+@partial(jax.jit, static_argnames=("scale",))
+def rescale(x, *, scale):
+    return x * scale.value
+
+
+# ❌ Fails — JAX cannot convert Array([True, True]) to a scalar bool
+try:
+    rescale(x, scale=u.Q([2.0, 3.0], "m"))
+except Exception as e:
+    print(f"Error: {e}")
+```
+
+### ✅ Solution: Wrap the value with `StaticValue`
+
+When a `Quantity` is backed by a `StaticValue`, its `==` operator returns a **scalar `bool`** (structural equality, like a tuple) instead of an element-wise array. This makes the whole `Quantity` hashable and safe for `static_argnames`:
+
+```python
+import numpy as np
+
+scale = u.Q(u.quantity.StaticValue(np.array([2.0, 3.0])), "m")
+
+
+@partial(jax.jit, static_argnames=("scale",))
+def rescale(x, *, scale):
+    return x * jnp.asarray(scale.value)
+
+
+x2 = jnp.ones(2)
+rescale(x2, scale=scale)  # ✅ compiles; equality is a scalar bool
+```
+
+Unit conversion is applied before comparing, so quantities in compatible but different units still compare correctly:
+
+```python
+sv_km = u.quantity.StaticValue(np.array([0.001, 0.003]))
+u.Q(scale.value, "m") == u.Q(sv_km, "km")  # True — same physical value
+```
+
+See [Working with StaticValue in Quantity](quantity.md#working-with-staticvalue-in-quantity) for more details.
+
 ## See Also
 
 - [JAX Common Gotchas](https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html)

@@ -97,15 +97,6 @@ def fields(obj: APYUnits, /) -> tuple[dataclasses.Field, ...]:
     (Field(name='_names',...)
 
     """
-    st_field = dataclasses.Field(
-        dataclasses.MISSING,
-        dataclasses.MISSING,
-        True,  # noqa: FBT003
-        True,  # noqa: FBT003
-        True,  # noqa: FBT003
-        True,  # noqa: FBT003
-        {},
-        False,  # noqa: FBT003
-    )
+    st_field = dataclasses.field(init=True, repr=True, hash=True, compare=True)  # pylint: disable=invalid-field-call
     st_field.name = "_names"
     return (st_field,)

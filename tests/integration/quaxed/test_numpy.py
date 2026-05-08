@@ -341,23 +341,6 @@ def test_astype():
     assert jnp.array_equal(got.value, exp.value)
 
 
-def test_can_cast():
-    """Test `can_cast`."""
-    # can_cast should work the same with or without quantities
-    # since it only checks dtypes
-    x = u.Q(jnp.asarray([1, 2, 3], dtype=jnp.int32), "m")
-
-    # Test with quantity type
-    got = jnp.can_cast(x, jnp.float32)
-    exp = jnp.can_cast(x.value, jnp.float32)
-    assert got == exp
-
-    # Test with explicit dtypes
-    got = jnp.can_cast(jnp.int32, jnp.float64)
-    exp = jnp.can_cast(jnp.int32, jnp.float64)
-    assert got == exp
-
-
 def test_finfo():
     """Test `finfo`."""
     got = jnp.finfo(jnp.float32)

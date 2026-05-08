@@ -3,7 +3,7 @@
 __all__: tuple[str, ...] = ()
 
 
-from dataclasses import MISSING, Field
+import dataclasses
 
 import astropy.units as apyu
 import plum
@@ -33,7 +33,7 @@ def dimension_of(obj: apyu.Quantity, /) -> AbstractDimension:
 
 
 @plum.dispatch
-def fields(obj: AbstractDimension, /) -> tuple[Field, ...]:
+def fields(obj: AbstractDimension, /) -> tuple[dataclasses.Field, ...]:
     """Return the fields of a dimension.
 
     Examples
@@ -46,8 +46,10 @@ def fields(obj: AbstractDimension, /) -> tuple[Field, ...]:
     (Field(name='_unit',...), Field(name='_physical_type',...))
 
     """
-    unit_field = Field(MISSING, MISSING, True, False, False, False, {}, False)  # noqa: FBT003
+    unit_field = dataclasses.field(init=True, repr=False, hash=False, compare=False)  # pylint: disable=invalid-field-call
     unit_field.name = "_unit"
-    physical_type_field = Field(MISSING, MISSING, True, False, False, False, {}, False)  # noqa: FBT003
+    physical_type_field = dataclasses.field(  # pylint: disable=invalid-field-call
+        init=True, repr=False, hash=False, compare=False
+    )
     physical_type_field.name = "_physical_type"
     return (unit_field, physical_type_field)
