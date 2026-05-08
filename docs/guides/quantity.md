@@ -517,6 +517,65 @@ If you want a regular {class}`~unxt.quantity.Quantity` but need its value to be 
 Quantity(Array([4., 6.], dtype=float32), unit='m')
 ```
 
+### Equality returns a scalar `bool`
+
+The equality operator on a `Quantity` backed by a `StaticValue` returns a **scalar `bool`**, not an element-wise array. This is the key property that makes it usable as a `static_argnames` argument in {func}`jax.jit`.
+
+```{code-block} python
+>>> sv1 = u.quantity.StaticValue(np.array([1.0, 2.0]))
+>>> sv2 = u.quantity.StaticValue(np.array([1.0, 2.0]))
+>>> sv3 = u.quantity.StaticValue(np.array([9.0, 9.0]))
+
+>>> u.Q(sv1, "m") == u.Q(sv2, "m")   # same value, same unit → True
+True
+>>> u.Q(sv1, "m") == u.Q(sv3, "m")   # different value → False
+False
+```
+
+Unit conversion is applied before comparison, so equivalent quantities in different units compare equal:
+
+```{code-block} python
+>>> sv_km = u.quantity.StaticValue(np.array([0.001, 0.002]))
+>>> u.Q(sv1, "m") == u.Q(sv_km, "km")  # 0.001 km == 1 m → True
+True
+```
+
+This contrasts with a regular `Quantity` (JAX array value), where `==` follows NumPy broadcasting and returns a per-element boolean array:
+
+```{code-block} python
+>>> q1 = u.Q([1.0, 2.0], "m")
+>>> q2 = u.Q([1.0, 9.0], "m")
+>>> q1 == q2
+Array([ True, False], dtype=bool)
+```
+
+### Using `Quantity(StaticValue)` as a `jax.jit` static argument
+
+Because equality returns `bool` and `StaticValue` is hashable, the whole `Quantity` is hashable, which lets JAX use it as a compile-time constant:
+
+```{code-block} python
+from functools import partial
+import jax
+import jax.numpy as jnp
+
+@partial(jax.jit, static_argnames=("scale",))
+def rescale(x, *, scale):
+    return x * jnp.asarray(scale.value)
+
+scale = u.Q(u.quantity.StaticValue(np.array([2.0, 3.0])), "m")
+rescale(jnp.ones(2), scale=scale)   # compiles once
+rescale(jnp.ones(2), scale=scale)   # cache hit — no recompilation
+
+new_scale = u.Q(u.quantity.StaticValue(np.array([5.0, 7.0])), "m")
+rescale(jnp.ones(2), scale=new_scale)  # different value → recompiles
+```
+
+```{tip}
+Prefer {class}`~unxt.quantity.StaticQuantity` when the entire quantity is
+static.  Use `Quantity(StaticValue, ...)` when you need the dynamic/static
+distinction to live at the *value* level while keeping the `Quantity` type.
+```
+
 ---
 
 :::{seealso}

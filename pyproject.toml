@@ -15,6 +15,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python",
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
@@ -30,9 +31,10 @@ dependencies = [
   "optional-dependencies>=0.3.2",
   "packaging>=20.0",
   "plum-dispatch>=2.7.0",
-  "quax>=0.3.1",
-  "quax-blocks>=0.4.0",
-  "quaxed>=0.10.2",
+  "plum-dispatch>=2.9.0; python_version>='3.14'",
+  "quax>=0.3.2",
+  "quax-blocks>=0.4.1",
+  "quaxed>=0.10.5",
   "traitlets>=5.0.0",
   "unxt-api>=1.10.0",
   "wadler-lindig>=0.1.5",
@@ -122,7 +124,7 @@ test = [
   "sybil[pytest]>=9.2.0",
 ]
 test-all = [{ include-group = "test" }, { include-group = "test-mpl" }]
-test-mpl = ["pytest-mpl>=0.17.0", "matplotlib>=3.8,<3.10"]
+test-mpl = ["pytest-mpl>=0.17.0", "matplotlib>=3.8"]
 
 
 [tool.hatch]
@@ -364,6 +366,7 @@ docstring-code-format = true
 
 
 [tool.uv]
+constraint-dependencies = ["matplotlib>=3.10.8; python_version>='3.14'"]
 # Require that `unxt[<jax-extras>]` requirements are resolved in different forks
 # so that they cannot conflict with one another.
 conflicts = [
@@ -377,11 +380,9 @@ conflicts = [
   ],
 ]
 
-
 [tool.uv.sources]
 unxt-api        = { workspace = true }
 unxt-hypothesis = { workspace = true }
-
 
 [tool.uv.workspace]
 members = ["packages/*"]

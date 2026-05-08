@@ -40,6 +40,8 @@ T = TypeVar("T")
 
 Axes: TypeAlias = tuple[int, ...]
 
+mul_qbind = quax.quaxify(lax.mul_p.bind)
+
 
 def _to_val_rad_or_one(q: ABCQ) -> ArrayLike:
     return ustrip(radian if is_unit_convertible(q.unit, radian) else one, q)
@@ -3391,7 +3393,7 @@ def min_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
 
 @quax.register(lax.mul_p)
-def mul_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
+def mul_p_qq(x: ABCQ, y: ABCQ, /, **kw: Any) -> ABCQ:
     """Multiplication of two quantities.
 
     Examples
@@ -3420,11 +3422,11 @@ def mul_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     # Multiply the units
     u = unit(x.unit * y.unit)
     # Multiply the values (use * to preserve numpy arrays for StaticQuantity)
-    return type_np(x)(ustrip(x) * ustrip(y), unit=u)
+    return type_np(x)(mul_qbind(ustrip(x), ustrip(y), **kw), unit=u)
 
 
 @quax.register(lax.mul_p)
-def mul_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
+def mul_p_vq(x: ArrayLike, y: ABCQ, /, **kw: Any) -> ABCQ:
     """Multiplication of an array-like and a quantity.
 
     Examples
@@ -3454,11 +3456,11 @@ def mul_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     Quantity(Array([4, 6], dtype=int32), unit='m')
 
     """
-    return replace(y, value=qlax.mul(x, ustrip(y)))
+    return replace(y, value=mul_qbind(x, ustrip(y), **kw))
 
 
 @quax.register(lax.mul_p)
-def mul_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
+def mul_p_qv(x: ABCQ, y: ArrayLike, /, **kw: Any) -> ABCQ:
     """Multiplication of a quantity and an array-like.
 
     Examples
@@ -3489,7 +3491,28 @@ def mul_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     Quantity(Array([4, 6], dtype=int32), unit='m')
 
     """
-    return replace(x, value=qlax.mul(ustrip(x), y))
+    return replace(x, value=mul_qbind(ustrip(x), y, **kw))
+
+
+@quax.register(lax.mul_p)
+def mul_p_qq(x: StaticQuantity, y: StaticQuantity, /, **kw: Any) -> ABCQ:
+    """Multiplication of two quantities.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> q1 = u.quantity.StaticQuantity(2, "m")
+    >>> q2 = u.quantity.StaticQuantity(3, "m")
+    >>> jnp.multiply(q1, q2)
+    StaticQuantity(array(6), unit='m2')
+
+    """
+    # Multiply the units
+    u = unit(x.unit * y.unit)
+    # Multiply the values (use * to preserve numpy arrays for StaticQuantity)
+    return type_np(x)(ustrip(x) * ustrip(y), unit=u)
 
 
 # ==============================================================================
