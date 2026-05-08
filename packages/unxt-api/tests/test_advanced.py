@@ -156,7 +156,7 @@ def test_multiple_inheritance() -> None:
     class HasDimension:
         pass
 
-    class Quantity(HasUnit, HasDimension):
+    class Quantiful(HasUnit, HasDimension):
         pass
 
     # Register for each parent
@@ -169,7 +169,7 @@ def test_multiple_inheritance() -> None:
         return "has_dimension"
 
     # Test
-    q = Quantity()
+    q = Quantiful()
     assert unit_of(q) == "has_unit"
     assert dimension_of(q) == "has_dimension"
 

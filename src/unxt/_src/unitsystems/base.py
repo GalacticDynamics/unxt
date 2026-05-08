@@ -88,6 +88,20 @@ class AbstractUnitSystem:
     _base_dimensions: ClassVar[tuple[AbstractDimension, ...]]
 
     def __init_subclass__(cls) -> None:
+        # In Python 3.14+, annotations are stored via __annotate_func__ (PEP
+        # 749) rather than __annotations__. make_dataclass(slots=True) triggers
+        # __init_subclass__ via types.new_class() *before* cls.__annotate__ is
+        # set, so that first call has neither __annotations__ nor
+        # __annotate_func__ in the class's own dict. Skip it; the second call
+        # (after _add_slots copies __annotate_func__) has the correct
+        # annotations.
+        has_own_annotations = (
+            "__annotations__" in cls.__dict__  # Python <=3.13
+            or "__annotate_func__" in cls.__dict__  # Python 3.14+
+        )
+        if not has_own_annotations:
+            return
+
         # Register class with a tuple of it's dimensions.
         # This requires processing the type hints, not the dataclass fields
         # since those are made after the original class is defined.
