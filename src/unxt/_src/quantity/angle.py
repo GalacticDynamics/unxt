@@ -25,13 +25,13 @@ class Angle(AbstractAngle):
 
     >>> q = u.Angle(1, "rad")
     >>> q
-    Angle(Array(1, dtype=int32, ...), unit='rad')
+    Angle(Array(1, dtype=int32...), unit='rad')
 
     Wrap an Angle to a range:
 
     >>> q = u.Angle(370, "deg")
     >>> q.wrap_to(u.Q(0, "deg"), u.Q(360, "deg"))
-    Angle(Array(10, dtype=int32, ...), unit='deg')
+    Angle(Array(10, dtype=int32...), unit='deg')
 
     Create an Angle array:
 

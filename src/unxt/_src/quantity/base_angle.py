@@ -32,7 +32,7 @@ class AbstractAngle(AbstractQuantity):
     >>> from unxt import Angle
 
     >>> Angle(90, "deg")
-    Angle(Array(90, dtype=int32, ...), unit='deg')
+    Angle(Array(90, dtype=int32...), unit='deg')
 
     Angles have to have dimensions of angle.
 
@@ -75,7 +75,7 @@ class AbstractAngle(AbstractQuantity):
         >>> import unxt as u
         >>> angle = u.Angle(370, "deg")
         >>> angle.wrap_to(min=u.Q(0, "deg"), max=u.Q(360, "deg"))
-        Angle(Array(10, dtype=int32, ...), unit='deg')
+        Angle(Array(10, dtype=int32...), unit='deg')
 
         """
         return uapi.wrap_to(self, min, max)

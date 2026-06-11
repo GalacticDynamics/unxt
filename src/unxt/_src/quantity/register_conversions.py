@@ -22,7 +22,7 @@ def quantity_to_unchecked(q: AbstractQuantity, /) -> BareQuantity:
 
     >>> q = Quantity(1, "m")
     >>> convert(q, BareQuantity)
-    BareQuantity(Array(1, dtype=int32, weak_type=True), unit='m')
+    BareQuantity(Array(1, dtype=int32...), unit='m')
 
     The self-conversion doesn't copy the object:
 
@@ -48,10 +48,10 @@ def quantity_to_checked(q: AbstractQuantity, /) -> Quantity:
 
     >>> q = BareQuantity(1, "m")
     >>> q
-    BareQuantity(Array(1, dtype=int32, ...), unit='m')
+    BareQuantity(Array(1, dtype=int32...), unit='m')
 
     >>> convert(q, Quantity)
-    Quantity(Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     The self-conversion doesn't copy the object:
 
@@ -76,10 +76,10 @@ def convert_quantity_to_angle(q: AbstractQuantity, /) -> Angle:
     >>> from unxt.quantity import Angle, BareQuantity
     >>> q = BareQuantity(1, "rad")
     >>> q
-    BareQuantity(Array(1, dtype=int32, ...), unit='rad')
+    BareQuantity(Array(1, dtype=int32...), unit='rad')
 
     >>> convert(q, Angle)
-    Angle(Array(1, dtype=int32, ...), unit='rad')
+    Angle(Array(1, dtype=int32...), unit='rad')
 
     The self-conversion doesn't copy the object:
 

@@ -177,7 +177,7 @@ def uconvert_value(uto: Any, ufrom: Any, x: AbstractQuantity, /) -> AbstractQuan
 
     >>> q = u.Q(1, "km")
     >>> u.uconvert_value("m", "km", q)
-    Quantity(Array(1000., dtype=float32, ...), unit='m')
+    Quantity(Array(1000., dtype=float32...), unit='m')
 
     """
     x = eqx.error_if(
@@ -202,7 +202,7 @@ def uconvert(ustr: str, x: AbstractQuantity, /) -> AbstractQuantity:
 
     >>> x = Quantity(1000, "m")
     >>> uconvert("km", x)
-    Quantity(Array(1., dtype=float32, ...), unit='km')
+    Quantity(Array(1., dtype=float32...), unit='km')
 
     """
     return uconvert(uapi.unit(ustr), x)
@@ -219,7 +219,7 @@ def uconvert(usys: AbstractUnitSystem, x: AbstractQuantity, /) -> AbstractQuanti
 
     >>> q = Quantity(1e17, "km")
     >>> uconvert(galactic, q)
-    Quantity(Array(3.2407792, dtype=float32, ...), unit='kpc')
+    Quantity(Array(3.2407792, dtype=float32...), unit='kpc')
 
     """
     return uconvert(usys[uapi.dimension_of(x)], x)
@@ -245,7 +245,7 @@ def ustrip(x: AbstractQuantity, /) -> Array | np.ndarray:
 
     >>> q = u.Q(1000, "m")
     >>> u.ustrip(q)
-    Array(1000, dtype=int32, weak_type=True)
+    Array(1000, dtype=int32...)
 
     >>> u.ustrip(q) is q.value
     True
@@ -265,7 +265,7 @@ def ustrip(u: AbstractUnit, x: AbstractQuantity, /) -> Array | np.ndarray:
 
     >>> q = u.Q(1000, "m")
     >>> u.ustrip(u.unit("km"), q)
-    Array(1., dtype=float32, ...)
+    Array(1., dtype=float32...)
 
     """
     return uapi.ustrip(uapi.uconvert(u, x))
@@ -281,7 +281,7 @@ def ustrip(u: str, x: AbstractQuantity, /) -> Array | np.ndarray:
 
     >>> q = u.Q(1000, "m")
     >>> u.ustrip("km", q)
-    Array(1., dtype=float32, ...)
+    Array(1., dtype=float32...)
 
     """
     return uapi.ustrip(uapi.unit(u), x)
@@ -298,7 +298,7 @@ def ustrip(u: AbstractUnitSystem, x: AbstractQuantity, /) -> Array | np.ndarray:
 
     >>> q = u.Q(1e17, "km")
     >>> u.ustrip(galactic, q)
-    Array(3.2407792, dtype=float32, weak_type=True)
+    Array(3.2407792, dtype=float32...)
 
     """
     return uapi.ustrip(u[uapi.dimension_of(x)], x)
@@ -375,7 +375,7 @@ def wrap_to(
 
     >>> angle = u.Angle(370, "deg")
     >>> u.quantity.wrap_to(angle, min=u.Q(0, "deg"), max=u.Q(360, "deg"))
-    Angle(Array(10, dtype=int32, ...), unit='deg')
+    Angle(Array(10, dtype=int32...), unit='deg')
 
     """
     minv, maxv = min.ustrip(angle.unit), max.ustrip(angle.unit)
