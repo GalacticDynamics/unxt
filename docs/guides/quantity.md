@@ -8,7 +8,7 @@
 >>> import unxt as u
 
 >>> u.Quantity(5, "m")
-Quantity(Array(5, dtype=int32, weak_type=True), unit='m')
+Quantity(Array(5, dtype=int32...), unit='m')
 ```
 
 The constructor will automatically [convert](https://beartype.github.io/plum/conversion_promotion.html#conversion-with-convert) the value to a `jax.Array` (if it is not already one) and convert the unit to a `Unit` object.
@@ -29,7 +29,7 @@ If you want more flexible options to create a `Quantity`, you can use the `Quant
 
 ```{code-block} python
 >>> u.Q.from_(5, "m")  # same as Quantity(5, "m")
-Quantity(Array(5, dtype=int32, ...), unit='m')
+Quantity(Array(5, dtype=int32...), unit='m')
 
 >>> u.Q.from_({"value": [1, 2, 3], "unit": "m"})
 Quantity(Array([1, 2, 3], dtype=int32), unit='m')
@@ -206,16 +206,16 @@ You can perform standard mathematical operations on `Quantity` objects:
 >>> q2 = u.Q(10, "m")
 
 >>> q1 + q2
-Quantity(Array(15, dtype=int32, ...), unit='m')
+Quantity(Array(15, dtype=int32...), unit='m')
 
 >>> q1 * 1.5
 Quantity(Array(7.5, dtype=float32, ...), unit='m')
 
 >>> q1 / q2
-Quantity(Array(0.5, dtype=float32, ...), unit='')
+Quantity(Array(0.5, dtype=float32...), unit='')
 
 >>> q1 ** 2
-Quantity(Array(25, dtype=int32, ...), unit='m2')
+Quantity(Array(25, dtype=int32...), unit='m2')
 
 ```
 
@@ -418,14 +418,14 @@ You can create an {class}`~unxt.quantity.Angle` just like a {class}`~unxt.quanti
 ```{code-block} python
 >>> a = u.Angle(45, "deg")
 >>> a
-Angle(Array(45, dtype=int32, weak_type=True), unit='deg')
+Angle(Array(45, dtype=int32...), unit='deg')
 ```
 
 Just like {class}`~unxt.quantity.Quantity`, you can flexibly create {class}`~unxt.quantity.Angle` objects using the {meth}`~unxt.quantity.Angle.from_` constructor:
 
 ```{code-block} python
 >>> u.Angle.from_(45, "deg")
-Angle(Array(45, dtype=int32, weak_type=True), unit='deg')
+Angle(Array(45, dtype=int32...), unit='deg')
 
 >>> u.Angle.from_([45, 90], "deg")
 Angle(Array([45, 90], dtype=int32), unit='deg')
@@ -442,9 +442,9 @@ Angle(Array([10, 15, 20], dtype=int32), unit='deg')
 ```{code-block} python
 >>> b = u.Angle(30, "deg")
 >>> a + b
-Angle(Array(75, dtype=int32, weak_type=True), unit='deg')
+Angle(Array(75, dtype=int32...), unit='deg')
 >>> 2 * a
-Angle(Array(90, dtype=int32, weak_type=True), unit='deg')
+Angle(Array(90, dtype=int32...), unit='deg')
 >>> a.to("rad")
 Angle(Array(0.7853982, dtype=float32, weak_type=True), unit='rad')
 ```
@@ -468,14 +468,14 @@ A key feature of {class}`~unxt.quantity.Angle` is the ability to wrap values to 
 ```{code-block} python
 >>> a = u.Angle(370, "deg")
 >>> a.wrap_to(u.Q(0, "deg"), u.Q(360, "deg"))
-Angle(Array(10, dtype=int32, weak_type=True), unit='deg')
+Angle(Array(10, dtype=int32...), unit='deg')
 ```
 
 The {meth}`~unxt.quantity.Angle.wrap_to` method has a function counterpart
 
 ```{code-block} python
 >>> u.quantity.wrap_to(a, u.Q(0, "deg"), u.Q(360, "deg"))
-Angle(Array(10, dtype=int32, weak_type=True), unit='deg')
+Angle(Array(10, dtype=int32...), unit='deg')
 ```
 
 ## Working with `StaticQuantity` Objects

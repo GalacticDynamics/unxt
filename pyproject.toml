@@ -31,7 +31,7 @@ dependencies = [
   "optional-dependencies>=0.3.2",
   "plum-dispatch>=2.7.0",
   "plum-dispatch>=2.9.0; python_version>='3.14'",
-  "quax>=0.3.2",
+  "quax>=0.3.4",
   "quax-blocks>=0.4.1",
   "quaxed>=0.10.5",
   "traitlets>=5.0.0",

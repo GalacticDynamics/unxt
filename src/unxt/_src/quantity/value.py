@@ -9,11 +9,11 @@ from typing_extensions import override
 
 import jax
 import numpy as np
+import plum
 import quax
 import wadler_lindig as wl
 from jaxtyping import Array, ArrayLike
 from numpy.typing import NDArray
-from plum import dispatch
 
 import quaxed.numpy as jnp
 
@@ -82,12 +82,20 @@ class StaticValue:
 
     @property
     def _jnparray(self) -> Array:
-        """Return the contained array as a JAX array."""
-        return jnp.asarray(self._array)
+        """Return the contained array as a JAX array.
+
+        JAX 0.7.2+ introduces TypedNdArray for type-preserving operations.
+        These are not jax.Array instances but carry dtype information.
+        We need to explicitly convert them to proper arrays while preserving dtype.
+        """
+        out = jnp.asarray(self._array)
+        if not isinstance(out, jax.Array):
+            out = jnp.asarray(out, dtype=out.dtype)
+        return out
 
     # Constructor
     @classmethod
-    @dispatch.abstract
+    @plum.dispatch.abstract
     def from_(cls: type["StaticValue"], *args: Any, **kwargs: Any) -> "StaticValue":
         """Create a `StaticValue` from given arguments."""
         raise NotImplementedError  # pragma: no cover
@@ -266,19 +274,19 @@ def from_(cls: type[StaticValue], value: jax.Array | jax.core.Tracer, /) -> Stat
 # Converters for quantity value field
 
 
-@dispatch.abstract
+@plum.dispatch.abstract
 def convert_to_quantity_value(obj: Any, /) -> Any:
     """Convert for the value field of an `AbstractQuantity` subclass."""
     raise NotImplementedError  # pragma: no cover
 
 
-@dispatch
+@plum.dispatch
 def convert_to_quantity_value(obj: StaticValue, /) -> StaticValue:
     """Allow static values in `Quantity`-like classes."""
     return obj
 
 
-@dispatch
+@plum.dispatch
 def convert_to_quantity_value(obj: quax.ArrayValue, /) -> Any:
     """Convert a `quax.ArrayValue` for the value field.
 
@@ -315,7 +323,7 @@ def convert_to_quantity_value(obj: quax.ArrayValue, /) -> Any:
     return obj
 
 
-@dispatch
+@plum.dispatch
 def convert_to_quantity_value(obj: ArrayLike | list[Any] | tuple[Any, ...], /) -> Array:
     """Convert an array-like object to a `jax.numpy.ndarray`.
 
@@ -326,4 +334,13 @@ def convert_to_quantity_value(obj: ArrayLike | list[Any] | tuple[Any, ...], /) -
     Array([1, 2, 3], dtype=int32)
 
     """
-    return jnp.asarray(obj)
+    out = jnp.asarray(obj)
+
+    # JAX 0.7.2+ introduces TypedInt, TypedFloat, TypedComplex for
+    # type-preserving operations. These are not jax.Array instances but carry
+    # dtype information. We need to explicitly convert them to proper arrays
+    # while preserving dtype.
+    if not isinstance(out, jax.Array):
+        out = jnp.asarray(out, dtype=out.dtype)
+
+    return out

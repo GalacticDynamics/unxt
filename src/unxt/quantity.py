@@ -31,7 +31,7 @@ correctness.
 
 >>> distance = u.Quantity(100, "m")
 >>> distance
-Quantity(Array(100, dtype=int32, ...), unit='m')
+Quantity(Array(100, dtype=int32...), unit='m')
 
 Create from arrays
 
@@ -45,19 +45,19 @@ Convert units
 
 >>> distance_km = u.uconvert("km", distance)
 >>> distance_km
-Quantity(Array(0.1, dtype=float32, ...), unit='km')
+Quantity(Array(0.1, dtype=float32...), unit='km')
 
 Arithmetic preserves units.
 
 >>> time = u.Q(5, "s")  # use Quantity alias
 >>> velocity = distance / time
 >>> velocity
-Quantity(Array(20., dtype=float32, ...), unit='m / s')
+Quantity(Array(20., dtype=float32...), unit='m / s')
 
 Strip units for numerical operations
 
 >>> u.ustrip("m", distance)
-Array(100, dtype=int32, ...)
+Array(100, dtype=int32...)
 
 
 ### Working with angles:
@@ -66,20 +66,20 @@ Create angle quantities
 
 >>> theta = u.Angle(180, "deg")
 >>> theta
-Angle(Array(180, dtype=int32, ...), unit='deg')
+Angle(Array(180, dtype=int32...), unit='deg')
 
 Convert to radians
 
 >>> theta_rad = u.uconvert("rad", theta)
 >>> theta_rad
-Angle(Array(3.1415927, dtype=float32, ...), unit='rad')
+Angle(Array(3.1415927, dtype=float32...), unit='rad')
 
 Wrap angles to a range
 
 >>> angle = u.Angle(450, "deg")
 >>> wrapped = u.quantity.wrap_to(angle, u.Angle(0, "deg"), u.Angle(360, "deg"))
 >>> wrapped
-Angle(Array(90, dtype=int32, ...), unit='deg')
+Angle(Array(90, dtype=int32...), unit='deg')
 
 
 ### Advanced usage with JAX transformations:
@@ -93,12 +93,12 @@ Quantities work with JAX transformations
 >>> vel = u.Q(10.0, "m/s")
 >>> energy = kinetic_energy(mass, vel)
 >>> energy
-Quantity(Array(100., dtype=float32, ...), unit='m2 kg / s2')
+Quantity(Array(100., dtype=float32...), unit='m2 kg / s2')
 
 Convert to standard energy units
 
 >>> u.uconvert("J", energy)
-Quantity(Array(100., dtype=float32, ...), unit='m2 kg / s2')
+Quantity(Array(100., dtype=float32...), unit='m2 kg / s2')
 
 JIT compilation works seamlessly
 
@@ -107,7 +107,7 @@ JIT compilation works seamlessly
 ...     return mass * accel
 >>> force = compute_force(u.Q(5.0, "kg"), u.Q(9.8, "m/s^2"))
 >>> force
-Quantity(Array(49., dtype=float32, ...), unit='kg m / s2')
+Quantity(Array(49., dtype=float32...), unit='kg m / s2')
 
 """
 # pylint: disable=duplicate-code

@@ -1260,6 +1260,57 @@ def test_stack():
     assert jnp.array_equal(got.value, exp.value)
 
 
+def test_stack_axis():
+    """Test `stack` with different axis values."""
+    x = u.Q(jnp.asarray([1, 2, 3], dtype=float), "m")
+    y = u.Q(jnp.asarray([4, 5, 6], dtype=float), "m")
+
+    # Stack along axis=1
+    got = jnp.stack((x, y), axis=1)
+    exp = u.Q(jnp.stack((x.value, y.value), axis=1), "m")
+
+    assert isinstance(got, u.Q)
+    assert got.unit == exp.unit
+    assert jnp.array_equal(got.value, exp.value)
+    assert got.value.shape == (3, 2)
+
+
+def test_stack_unit_conversion():
+    """Test `stack` with unit conversion."""
+    x = u.Q(jnp.asarray([1, 2, 3], dtype=float), "km")
+    y = u.Q(jnp.asarray([4000, 5000, 6000], dtype=float), "m")
+    got = jnp.stack((x, y))
+    exp = u.Q(jnp.asarray([[1, 2, 3], [4, 5, 6]], dtype=float), "km")
+
+    assert isinstance(got, u.Q)
+    assert got.unit == exp.unit
+    assert jnp.allclose(got.value, exp.value)
+
+
+def test_stack_dimensionless_with_array():
+    """Test `stack` with dimensionless quantities and arrays."""
+    x = u.Q(jnp.asarray([1, 2, 3], dtype=float), "")
+    y = jnp.asarray([4, 5, 6], dtype=float)
+    got = jnp.stack((x, y))
+    exp = u.Q(jnp.stack((x.value, y)), "")
+
+    assert isinstance(got, u.Q)
+    assert str(got.unit) == ""
+    assert jnp.array_equal(got.value, exp.value)
+
+
+def test_stack_array_with_dimensionless():
+    """Test `stack` with arrays and dimensionless quantities."""
+    x = jnp.asarray([1, 2, 3], dtype=float)
+    y = u.Q(jnp.asarray([4, 5, 6], dtype=float), "")
+    got = jnp.stack((x, y))
+    exp = u.Q(jnp.stack((x, y.value)), "")
+
+    assert isinstance(got, u.Q)
+    assert str(got.unit) == ""
+    assert jnp.array_equal(got.value, exp.value)
+
+
 # =============================================================================
 # Searching functions
 

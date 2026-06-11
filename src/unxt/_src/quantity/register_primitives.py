@@ -64,15 +64,15 @@ def abs_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(-1, "m")
     >>> jnp.abs(q)
-    Quantity(Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
     >>> abs(q)
-    Quantity(Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     >>> q = u.quantity.BareQuantity(-1, "m")
     >>> jnp.abs(q)
-    BareQuantity(Array(1, dtype=int32, ...), unit='m')
+    BareQuantity(Array(1, dtype=int32...), unit='m')
     >>> abs(q)
-    BareQuantity(Array(1, dtype=int32, ...), unit='m')
+    BareQuantity(Array(1, dtype=int32...), unit='m')
 
     """
     return replace(x, value=qlax.abs(ustrip(x)))
@@ -92,11 +92,11 @@ def acos_p_aq(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(-1, "")
     >>> jnp.acos(q).round(4)
-    BareQuantity(Array(3.1416, dtype=float32, weak_type=True), unit='rad')
+    BareQuantity(Array(3.1416, dtype=float32...), unit='rad')
 
     >>> q = u.Q(-1, "")
     >>> jnp.acos(q).round(4)
-    Quantity(Array(3.1416, dtype=float32, ...), unit='rad')
+    Quantity(Array(3.1416, dtype=float32...), unit='rad')
 
     """
     x_ = ustrip(one, x)
@@ -117,11 +117,11 @@ def acosh_p_aq(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(2.0, "")
     >>> jnp.acosh(q)
-    BareQuantity(Array(1.316958, dtype=float32, ...), unit='rad')
+    BareQuantity(Array(1.316958, dtype=float32...), unit='rad')
 
     >>> q = u.Q(2.0, "")
     >>> jnp.acosh(q)
-    Quantity(Array(1.316958, dtype=float32, ...), unit='rad')
+    Quantity(Array(1.316958, dtype=float32...), unit='rad')
 
     """
     x_ = ustrip(one, x)
@@ -144,23 +144,23 @@ def add_p_aqaq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.quantity.BareQuantity(1, "km")
     >>> q2 = u.quantity.BareQuantity(500.0, "m")
     >>> jnp.add(q1, q2)
-    BareQuantity(Array(1.5, dtype=float32, ...), unit='km')
+    BareQuantity(Array(1.5, dtype=float32...), unit='km')
     >>> q1 + q2
-    BareQuantity(Array(1.5, dtype=float32, ...), unit='km')
+    BareQuantity(Array(1.5, dtype=float32...), unit='km')
 
     >>> q1 = u.Q(1, "km")
     >>> q2 = u.Q(500.0, "m")
     >>> jnp.add(q1, q2)
-    Quantity(Array(1.5, dtype=float32, ...), unit='km')
+    Quantity(Array(1.5, dtype=float32...), unit='km')
     >>> q1 + q2
-    Quantity(Array(1.5, dtype=float32, ...), unit='km')
+    Quantity(Array(1.5, dtype=float32...), unit='km')
 
     >>> q1 = u.quantity.BareQuantity(1, "km")
     >>> q2 = u.Q(500.0, "m")
     >>> jnp.add(q1, q2)
-    Quantity(Array(1.5, dtype=float32, weak_type=True), unit='km')
+    Quantity(Array(1.5, dtype=float32...), unit='km')
     >>> q1 + q2
-    Quantity(Array(1.5, dtype=float32, weak_type=True), unit='km')
+    Quantity(Array(1.5, dtype=float32...), unit='km')
 
     """
     x, y = promote(x, y)
@@ -202,15 +202,15 @@ def add_p_vaq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     >>> y = u.quantity.BareQuantity(100.0, "")
     >>> jnp.add(x, y)
-    BareQuantity(Array(600., dtype=float32, ...), unit='')
+    BareQuantity(Array(600., dtype=float32...), unit='')
 
     >>> x + y
-    BareQuantity(Array(600., dtype=float32, ...), unit='')
+    BareQuantity(Array(600., dtype=float32...), unit='')
 
     >>> q2 = u.quantity.BareQuantity(1.0, "km")
     >>> q3 = u.quantity.BareQuantity(1_000.0, "m")
     >>> jnp.add(x, q2 / q3)
-    BareQuantity(Array(501., dtype=float32, weak_type=True), unit='')
+    BareQuantity(Array(501., dtype=float32...), unit='')
 
     `unxt.Quantity`:
 
@@ -224,15 +224,15 @@ def add_p_vaq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     >>> q2 = u.Q(100.0, "")
     >>> jnp.add(x, q2)
-    Quantity(Array(600., dtype=float32, ...), unit='')
+    Quantity(Array(600., dtype=float32...), unit='')
 
     >>> x + q2
-    Quantity(Array(600., dtype=float32, ...), unit='')
+    Quantity(Array(600., dtype=float32...), unit='')
 
     >>> q2 = u.Q(1.0, "km")
     >>> q3 = u.Q(1_000.0, "m")
     >>> jnp.add(x, q2 / q3)
-    Quantity(Array(501., dtype=float32, weak_type=True), unit='')
+    Quantity(Array(501., dtype=float32...), unit='')
 
     """
     y = uconvert(one, y)
@@ -268,15 +268,15 @@ def add_p_aqv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q1 = u.quantity.BareQuantity(100.0, "")
     >>> jnp.add(q1, y)
-    BareQuantity(Array(600., dtype=float32, ...), unit='')
+    BareQuantity(Array(600., dtype=float32...), unit='')
 
     >>> q1 + y
-    BareQuantity(Array(600., dtype=float32, ...), unit='')
+    BareQuantity(Array(600., dtype=float32...), unit='')
 
     >>> q2 = u.quantity.BareQuantity(1.0, "km")
     >>> q3 = u.quantity.BareQuantity(1_000.0, "m")
     >>> jnp.add(q2 / q3, y)
-    BareQuantity(Array(501., dtype=float32, weak_type=True), unit='')
+    BareQuantity(Array(501., dtype=float32...), unit='')
 
     `unxt.Quantity`:
 
@@ -296,15 +296,15 @@ def add_p_aqv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q1 = u.Q(100.0, "")
     >>> jnp.add(q1, y)
-    Quantity(Array(600., dtype=float32, ...), unit='')
+    Quantity(Array(600., dtype=float32...), unit='')
 
     >>> q1 + y
-    Quantity(Array(600., dtype=float32, ...), unit='')
+    Quantity(Array(600., dtype=float32...), unit='')
 
     >>> q2 = u.Q(1.0, "km")
     >>> q3 = u.Q(1_000.0, "m")
     >>> jnp.add(q2 / q3, y)
-    Quantity(Array(501., dtype=float32, weak_type=True), unit='')
+    Quantity(Array(501., dtype=float32...), unit='')
 
     """
     x = uconvert(one, x)
@@ -355,12 +355,12 @@ def and_p_aq(x1: ABCQ, x2: ABCQ, /) -> ArrayLike:
     >>> x1 = u.quantity.BareQuantity(1, "")
     >>> x2 = u.quantity.BareQuantity(2, "")
     >>> jnp.bitwise_and(x1, x2)
-    Array(0, dtype=int32, ...)
+    Array(0, dtype=int32...)
 
     >>> x1 = u.Q(1, "")
     >>> x2 = u.Q(2, "")
     >>> jnp.bitwise_and(x1, x2)
-    Array(0, dtype=int32, ...)
+    Array(0, dtype=int32...)
 
     """
     return lax.and_p.bind(ustrip(one, x1), ustrip(one, x2))
@@ -453,7 +453,7 @@ def asin_p_aq(x: ABCQ) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1, "")
     >>> jnp.asin(q)
-    BareQuantity(Array(1.5707964, dtype=float32, ...), unit='rad')
+    BareQuantity(Array(1.5707964, dtype=float32...), unit='rad')
 
     """
     return type_np(x)(lax.asin(ustrip(one, x)), unit=radian)
@@ -470,7 +470,7 @@ def asin_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
 
     >>> q = u.Q(1, "")
     >>> jnp.asin(q)
-    Quantity(Array(1.5707964, dtype=float32, ...), unit='rad')
+    Quantity(Array(1.5707964, dtype=float32...), unit='rad')
 
     """
     return type_np(x)(lax.asin(ustrip(one, x)), unit=radian)
@@ -490,7 +490,7 @@ def asinh_p_aq(x: ABCQ) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(2, "")
     >>> jnp.asinh(q)
-    BareQuantity(Array(1.4436355, dtype=float32, ...), unit='rad')
+    BareQuantity(Array(1.4436355, dtype=float32...), unit='rad')
 
     """
     return type_np(x)(lax.asinh(ustrip(one, x)), unit=radian)
@@ -507,7 +507,7 @@ def asinh_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
 
     >>> q = u.Q(2, "")
     >>> jnp.asinh(q)
-    Quantity(Array(1.4436355, dtype=float32, ...), unit='rad')
+    Quantity(Array(1.4436355, dtype=float32...), unit='rad')
 
     """
     return type_np(x)(lax.asinh(ustrip(one, x)), unit=radian)
@@ -527,7 +527,7 @@ def atan2_p_aqaq(x: ABCQ, y: ABCQ) -> ABCQ:
     >>> q1 = u.quantity.BareQuantity(1, "m")
     >>> q2 = u.quantity.BareQuantity(3.0, "m")
     >>> jnp.atan2(q1, q2)
-    BareQuantity(Array(0.32175055, dtype=float32, ...), unit='rad')
+    BareQuantity(Array(0.32175055, dtype=float32...), unit='rad')
 
     """
     x, y = promote(x, y)  # e.g. Distance -> Quantity
@@ -545,7 +545,7 @@ def atan2_p_qq(x: ABCPQ, y: ABCPQ) -> ABCPQ["radian"]:
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(3.0, "m")
     >>> jnp.atan2(q1, q2)
-    Quantity(Array(0.32175055, dtype=float32, ...), unit='rad')
+    Quantity(Array(0.32175055, dtype=float32...), unit='rad')
 
     """
     x, y = promote(x, y)  # e.g. Distance -> Quantity
@@ -567,7 +567,7 @@ def atan2_p_vaq(x: ArrayLike, y: ABCQ) -> ABCQ:
     >>> x1 = jnp.asarray(1.0)
     >>> q2 = u.quantity.BareQuantity(3, "")
     >>> jnp.atan2(x1, q2)
-    BareQuantity(Array(0.32175055, dtype=float32, ...), unit='rad')
+    BareQuantity(Array(0.32175055, dtype=float32...), unit='rad')
 
     """
     yv = ustrip(one, y)
@@ -584,7 +584,7 @@ def atan2_p_vq(x: ArrayLike, y: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
     >>> x1 = jnp.asarray(1.0)
     >>> q2 = u.Q(3, "")
     >>> jnp.atan2(x1, q2)
-    Quantity(Array(0.32175055, dtype=float32, ...), unit='rad')
+    Quantity(Array(0.32175055, dtype=float32...), unit='rad')
 
     """
     yv = ustrip(one, y)
@@ -605,7 +605,7 @@ def atan2_p_aqv(x: ABCQ, y: ArrayLike) -> ABCQ:
     >>> q1 = u.quantity.BareQuantity(1.0, "")
     >>> x2 = jnp.asarray(3)
     >>> jnp.atan2(q1, x2)
-    BareQuantity(Array(0.32175055, dtype=float32, ...), unit='rad')
+    BareQuantity(Array(0.32175055, dtype=float32...), unit='rad')
 
     """
     xv = ustrip(one, x)
@@ -622,7 +622,7 @@ def atan2_p_qv(x: ABCPQ["dimensionless"], y: ArrayLike) -> ABCPQ["angle"]:
     >>> q1 = u.Q(1.0, "")
     >>> x2 = jnp.asarray(3)
     >>> jnp.atan2(q1, x2)
-    Quantity(Array(0.32175055, dtype=float32, ...), unit='rad')
+    Quantity(Array(0.32175055, dtype=float32...), unit='rad')
 
     """
     xv = ustrip(one, x)
@@ -642,7 +642,7 @@ def atan_p_aq(x: ABCQ) -> ABCQ:
     >>> import unxt as u
     >>> q = u.quantity.BareQuantity(1, "")
     >>> jnp.atan(q)
-    BareQuantity(Array(0.7853982, dtype=float32, ...), unit='rad')
+    BareQuantity(Array(0.7853982, dtype=float32...), unit='rad')
 
     """
     return type_np(x)(lax.atan(ustrip(one, x)), unit=radian)
@@ -657,7 +657,7 @@ def atan_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
     >>> import quaxed.numpy as jnp
     >>> q = u.Q(1, "")
     >>> jnp.atan(q)
-    Quantity(Array(0.7853982, dtype=float32, ...), unit='rad')
+    Quantity(Array(0.7853982, dtype=float32...), unit='rad')
 
     """
     return Quantity(lax.atan(ustrip(one, x)), unit=radian)
@@ -676,7 +676,7 @@ def atanh_p_aq(x: ABCQ) -> ABCQ:
     >>> import unxt as u
     >>> q = u.quantity.BareQuantity(2, "")
     >>> jnp.atanh(q)
-    BareQuantity(Array(nan, dtype=float32, ...), unit='rad')
+    BareQuantity(Array(nan, dtype=float32...), unit='rad')
 
     """
     return type_np(x)(lax.atanh(ustrip(one, x)), unit=radian)
@@ -691,7 +691,7 @@ def atanh_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
     >>> import quaxed.numpy as jnp
     >>> q = u.Q(2, "")
     >>> jnp.atanh(q)
-    Quantity(Array(nan, dtype=float32, ...), unit='rad')
+    Quantity(Array(nan, dtype=float32...), unit='rad')
 
     """
     return type_np(x)(lax.atanh(ustrip(one, x)), unit=radian)
@@ -710,11 +710,11 @@ def bessel_i0e_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
 
     >>> x = u.quantity.BareQuantity(1.0, "")
     >>> qlax.bessel_i0e(x)
-    BareQuantity(Array(0.46575963, dtype=float32, weak_type=True), unit='')
+    BareQuantity(Array(0.46575963, dtype=float32...), unit='')
 
     >>> x = u.Q(1.0, "")
     >>> qlax.bessel_i0e(x)
-    Quantity(Array(0.46575963, dtype=float32, weak_type=True), unit='')
+    Quantity(Array(0.46575963, dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.bessel_i0e_p.bind(ustrip(one, x), **kwargs))
@@ -730,11 +730,11 @@ def bessel_i1e_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
 
     >>> x = u.quantity.BareQuantity(1.0, "")
     >>> qlax.bessel_i1e(x)
-    BareQuantity(Array(0.20791042, dtype=float32, ...), unit='')
+    BareQuantity(Array(0.20791042, dtype=float32...), unit='')
 
     >>> x = u.Q(1.0, "")
     >>> qlax.bessel_i1e(x)
-    Quantity(Array(0.20791042, dtype=float32, ...), unit='')
+    Quantity(Array(0.20791042, dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.bessel_i1e_p.bind(ustrip(one, x), **kwargs))
@@ -788,11 +788,11 @@ def cbrt_p_q(x: ABCQ, /, **kw: Any) -> ABCQ:
     >>> import unxt as u
     >>> q = u.quantity.BareQuantity(8, "m3")
     >>> jnp.cbrt(q)
-    BareQuantity(Array(2., dtype=float32, ...), unit='m')
+    BareQuantity(Array(2., dtype=float32...), unit='m')
 
     >>> q = u.Q(8, "m3")
     >>> jnp.cbrt(q)
-    Quantity(Array(2., dtype=float32, ...), unit='m')
+    Quantity(Array(2., dtype=float32...), unit='m')
 
     """
     return type_np(x)(lax.cbrt_p.bind(ustrip(x), **kw), unit=x.unit ** (1 / 3))
@@ -810,7 +810,7 @@ def cbrt_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Angle(8, "rad")
     >>> jnp.cbrt(q)
-    Quantity(Array(2., dtype=float32, ...), unit='rad(1/3)')
+    Quantity(Array(2., dtype=float32...), unit='rad(1/3)')
 
     """
     return cbrt_p_q(convert(x, Quantity), **kw)
@@ -829,11 +829,11 @@ def ceil_p(x: ABCQ, /) -> ABCQ:
     >>> import unxt as u
     >>> q = u.quantity.BareQuantity(1.5, "m")
     >>> jnp.ceil(q)
-    BareQuantity(Array(2., dtype=float32, ...), unit='m')
+    BareQuantity(Array(2., dtype=float32...), unit='m')
 
     >>> q = u.Q(1.5, "m")
     >>> jnp.ceil(q)
-    Quantity(Array(2., dtype=float32, ...), unit='m')
+    Quantity(Array(2., dtype=float32...), unit='m')
 
     """
     return replace(x, value=qlax.ceil(ustrip(x)))
@@ -1007,11 +1007,11 @@ def clz_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1, "")
     >>> qlax.clz(q)
-    BareQuantity(Array(31, dtype=int32, ...), unit='')
+    BareQuantity(Array(31, dtype=int32...), unit='')
 
     >>> q = u.Q(1, "")
     >>> qlax.clz(q)
-    Quantity(Array(31, dtype=int32, ...), unit='')
+    Quantity(Array(31, dtype=int32...), unit='')
 
     """
     return replace(x, value=lax.clz_p.bind(ustrip(x)))
@@ -1032,12 +1032,12 @@ def complex_p(x: ABCQ, y: ABCQ) -> ABCQ:
     >>> x = u.quantity.BareQuantity(1.0, "m")
     >>> y = u.quantity.BareQuantity(2.0, "m")
     >>> lax.complex(x, y)
-    BareQuantity(Array(1.+2.j, dtype=complex64, ...), unit='m')
+    BareQuantity(Array(1.+2.j, dtype=complex64...), unit='m')
 
     >>> x = u.Q(1.0, "m")
     >>> y = u.Q(2.0, "m")
     >>> lax.complex(x, y)
-    Quantity(Array(1.+2.j, dtype=complex64, ...), unit='m')
+    Quantity(Array(1.+2.j, dtype=complex64...), unit='m')
 
     """
     x, y = promote(x, y)  # e.g. Distance -> Quantity
@@ -1144,6 +1144,88 @@ def concatenate_p_vqnd(operand0: ArrayLike, *operands: ABCQ, dimension: Any) -> 
 
 
 # ==============================================================================
+# Stack
+
+if hasattr(lax, "stack_p"):
+
+    @quax.register(lax.stack_p)
+    def stack_p_aq(*operands: ABCQ, axis: int) -> ABCQ:
+        """Stack quantities along a new axis.
+
+        Examples
+        --------
+        >>> import quaxed.numpy as jnp
+        >>> import unxt as u
+        >>> q1 = u.quantity.BareQuantity([1.0, 2.0], "km")
+        >>> q2 = u.quantity.BareQuantity([3_000.0, 4_000.0], "m")
+        >>> jnp.stack([q1, q2]).round(2)
+        BareQuantity(Array([[1., 2.],
+                            [3., 4.]], dtype=float32), unit='km')
+
+        >>> q1 = u.Q([1.0, 2.0], "km")
+        >>> q2 = u.Q([3_000.0, 4_000.0], "m")
+        >>> jnp.stack([q1, q2]).round(2)
+        Quantity(Array([[1., 2.],
+                        [3., 4.]], dtype=float32), unit='km')
+
+        """
+        operand0 = operands[0]
+        u = operand0.unit
+        return replace(
+            operand0,
+            value=lax.stack([ustrip(u, op) for op in operands], axis=axis),
+        )
+
+    # ---------------------------
+
+    @quax.register(lax.stack_p, precedence=1)
+    def stack_p_qnd(
+        operand0: ABCPQ["dimensionless"],
+        *operands: ABCPQ["dimensionless"] | ArrayLike,
+        axis: int,
+    ) -> ABCPQ["dimensionless"]:
+        """Stack dimensionless quantities and arrays along a new axis.
+
+        Examples
+        --------
+        >>> import quaxed.numpy as jnp
+        >>> import unxt as u
+        >>> q1 = u.Q([0.5, 0.5], "")
+        >>> q2 = jnp.asarray([1.0, 2.0])
+        >>> jnp.stack([q1, q2])
+        Quantity(Array([[0.5, 0.5],
+                        [1. , 2. ]], dtype=float32), unit='')
+
+        """
+        value = lax.stack(
+            [
+                (ustrip(one, op) if hasattr(op, "unit") else op)
+                for op in (operand0, *operands)
+            ],
+            axis=axis,
+        )
+        return type_np(operand0)(value, unit=one)
+
+    @quax.register(lax.stack_p)
+    def stack_p_vqnd(operand0: ArrayLike, *operands: ABCQ, axis: int) -> ABCQ:
+        """Stack arrays and dimensionless quantities along a new axis.
+
+        Examples
+        --------
+        >>> import quaxed.numpy as jnp
+        >>> import unxt as u
+        >>> arr = jnp.asarray([1.0, 2.0])
+        >>> q = u.Q([0.5, 0.5], "")
+        >>> jnp.stack([arr, q])
+        Quantity(Array([[1. , 2. ],
+                        [0.5, 0.5]], dtype=float32), unit='')
+
+        """
+        arrs = [operand0, *(ustrip(one, op) for op in operands)]
+        return Quantity(lax.stack(arrs, axis=axis), unit=one)
+
+
+# ==============================================================================
 
 
 @quax.register(lax.cond_p)  # TODO: implement
@@ -1178,11 +1260,11 @@ def conj_p(x: ABCQ, *, input_dtype: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1 + 2j, "m")
     >>> jnp.conj(q)
-    BareQuantity(Array(1.-2.j, dtype=complex64, ...), unit='m')
+    BareQuantity(Array(1.-2.j, dtype=complex64...), unit='m')
 
     >>> q = u.Q(1 + 2j, "m")
     >>> jnp.conj(q)
-    Quantity(Array(1.-2.j, dtype=complex64, ...), unit='m')
+    Quantity(Array(1.-2.j, dtype=complex64...), unit='m')
 
     """
     del input_dtype  # TODO: use this?
@@ -1220,11 +1302,11 @@ def copy_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1, "m")
     >>> jnp.copy(q)
-    BareQuantity(Array(1, dtype=int32, ...), unit='m')
+    BareQuantity(Array(1, dtype=int32...), unit='m')
 
     >>> q = u.Q(1, "m")
     >>> jnp.copy(q)
-    Quantity(Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     """
     return replace(x, value=lax.copy_p.bind(ustrip(x)))  # type: ignore[no-untyped-call]
@@ -1244,11 +1326,11 @@ def cos_p_aq(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1, "rad")
     >>> jnp.cos(q)
-    BareQuantity(Array(0.5403023, dtype=float32, ...), unit='')
+    BareQuantity(Array(0.5403023, dtype=float32...), unit='')
 
     >>> q = u.quantity.BareQuantity(1, "")
     >>> jnp.cos(q)
-    BareQuantity(Array(0.5403023, dtype=float32, ...), unit='')
+    BareQuantity(Array(0.5403023, dtype=float32...), unit='')
 
     """
     return type_np(x)(lax.cos_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
@@ -1265,11 +1347,11 @@ def cos_p_q(x: ABCPQ["angle"] | Q["dimensionless"], /, **kw: Any) -> Q["dimensio
 
     >>> q = u.Q(1, "rad")
     >>> jnp.cos(q)
-    Quantity(Array(0.5403023, dtype=float32, ...), unit='')
+    Quantity(Array(0.5403023, dtype=float32...), unit='')
 
     >>> q = u.Q(1, "")
     >>> jnp.cos(q)
-    Quantity(Array(0.5403023, dtype=float32, ...), unit='')
+    Quantity(Array(0.5403023, dtype=float32...), unit='')
 
     """
     return Quantity(lax.cos_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
@@ -1286,7 +1368,7 @@ def cos_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> Quantity:
 
     >>> q = u.Angle(0, "deg")
     >>> jnp.cos(q)
-    Quantity(Array(1., dtype=float32, ...), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     """
     return cos_p_q(convert(x, Quantity), **kw)
@@ -1306,11 +1388,11 @@ def cosh_p_aq(x: ABCQ) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1, "rad")
     >>> jnp.cosh(q)
-    BareQuantity(Array(1.5430806, dtype=float32, ...), unit='')
+    BareQuantity(Array(1.5430806, dtype=float32...), unit='')
 
     >>> q = u.quantity.BareQuantity(1, "")
     >>> jnp.cosh(q)
-    BareQuantity(Array(1.5430806, dtype=float32, ...), unit='')
+    BareQuantity(Array(1.5430806, dtype=float32...), unit='')
 
     """
     return type_np(x)(lax.cosh(_to_val_rad_or_one(x)), unit=one)
@@ -1327,11 +1409,11 @@ def cosh_p_q(x: ABCPQ["angle"] | Q["dimensionless"]) -> ABCPQ["dimensionless"]:
 
     >>> q = u.Q(1, "rad")
     >>> jnp.cosh(q)
-    Quantity(Array(1.5430806, dtype=float32, ...), unit='')
+    Quantity(Array(1.5430806, dtype=float32...), unit='')
 
     >>> q = u.Q(1, "")
     >>> jnp.cosh(q)
-    Quantity(Array(1.5430806, dtype=float32, ...), unit='')
+    Quantity(Array(1.5430806, dtype=float32...), unit='')
 
     """
     return type_np(x)(lax.cosh(_to_val_rad_or_one(x)), unit=one)
@@ -1724,11 +1806,11 @@ def device_put_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1, "m")
     >>> device_put(q)
-    BareQuantity(Array(1, dtype=int32, ...), unit='m')
+    BareQuantity(Array(1, dtype=int32...), unit='m')
 
     >>> q = u.Q(1, "m")
     >>> device_put(q)
-    Quantity(Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     """
     return jt.map(lambda y: lax.device_put_p.bind(y, **kw), x)  # type: ignore[no-untyped-call]
@@ -1748,11 +1830,11 @@ def digamma_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1.0, "")
     >>> lax.digamma(q)
-    BareQuantity(Array(-0.5772154, dtype=float32, ...), unit='')
+    BareQuantity(Array(-0.5772154, dtype=float32...), unit='')
 
     >>> q = u.Q(1.0, "")
     >>> lax.digamma(q)
-    Quantity(Array(-0.5772154, dtype=float32, ...), unit='')
+    Quantity(Array(-0.5772154, dtype=float32...), unit='')
 
     """
     return replace(x, value=qlax.digamma(ustrip(one, x)))
@@ -1810,16 +1892,16 @@ def div_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.quantity.BareQuantity(1, "m")
     >>> q2 = u.quantity.BareQuantity(2, "s")
     >>> jnp.divide(q1, q2)
-    BareQuantity(Array(0.5, dtype=float32, ...), unit='m / s')
+    BareQuantity(Array(0.5, dtype=float32...), unit='m / s')
     >>> q1 / q2
-    BareQuantity(Array(0.5, dtype=float32, ...), unit='m / s')
+    BareQuantity(Array(0.5, dtype=float32...), unit='m / s')
 
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(2, "s")
     >>> jnp.divide(q1, q2)
-    Quantity(Array(0.5, dtype=float32, ...), unit='m / s')
+    Quantity(Array(0.5, dtype=float32...), unit='m / s')
     >>> q1 / q2
-    Quantity(Array(0.5, dtype=float32, ...), unit='m / s')
+    Quantity(Array(0.5, dtype=float32...), unit='m / s')
 
     """
     x, y = promote(x, y)
@@ -1870,15 +1952,15 @@ def div_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(6.0, "m")
     >>> jnp.divide(q, y)
-    BareQuantity(Array([6., 3., 2.], dtype=float32, ...), unit='m')
+    BareQuantity(Array([6., 3., 2.], dtype=float32...), unit='m')
     >>> q / y
-    BareQuantity(Array([6., 3., 2.], dtype=float32, ...), unit='m')
+    BareQuantity(Array([6., 3., 2.], dtype=float32...), unit='m')
 
     >>> q = u.Q(6.0, "m")
     >>> jnp.divide(q, y)
-    Quantity(Array([6., 3., 2.], dtype=float32, ...), unit='m')
+    Quantity(Array([6., 3., 2.], dtype=float32...), unit='m')
     >>> q / y
-    Quantity(Array([6., 3., 2.], dtype=float32, ...), unit='m')
+    Quantity(Array([6., 3., 2.], dtype=float32...), unit='m')
 
     """
     return replace(x, value=ustrip(x) / y)
@@ -1897,7 +1979,7 @@ def div_p_a(x: AbstractAngle, y: AbstractAngle, /) -> ABCQ:
     >>> angle = u.Angle(1, "deg")
     >>> q = u.Q(2, "km")
     >>> jnp.divide(q, angle)
-    Quantity(Array(2., dtype=float32, ...), unit='km / deg')
+    Quantity(Array(2., dtype=float32...), unit='km / deg')
 
     """
     x, y = promote(x, y)
@@ -2129,16 +2211,16 @@ def eq_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
     >>> q1 = u.quantity.BareQuantity(1, "m")
     >>> q2 = u.quantity.BareQuantity(1, "m")
     >>> jnp.equal(q1, q2)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
     >>> q1 == q2
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(1, "m")
     >>> jnp.equal(q1, q2)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
     >>> q1 == q2
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     """
     xv = ustrip(x)
@@ -2260,11 +2342,11 @@ def erf_inv_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(0.5, "")
     >>> lax.erf_inv(q)
-    BareQuantity(Array(0.47693628, dtype=float32, ...), unit='')
+    BareQuantity(Array(0.47693628, dtype=float32...), unit='')
 
     >>> q = u.Q(0.5, "")
     >>> lax.erf_inv(q)
-    Quantity(Array(0.47693628, dtype=float32, ...), unit='')
+    Quantity(Array(0.47693628, dtype=float32...), unit='')
 
     """
     # TODO: can this support non-dimensionless quantities?
@@ -2285,11 +2367,11 @@ def erf_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(0.5, "")
     >>> lax.erf(q)
-    BareQuantity(Array(0.5204999, dtype=float32, ...), unit='')
+    BareQuantity(Array(0.5204999, dtype=float32...), unit='')
 
     >>> q = u.Q(0.5, "")
     >>> lax.erf(q)
-    Quantity(Array(0.5204999, dtype=float32, ...), unit='')
+    Quantity(Array(0.5204999, dtype=float32...), unit='')
 
     """
     # TODO: can this support non-dimensionless quantities?
@@ -2310,11 +2392,11 @@ def erfc_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(0.5, "")
     >>> lax.erfc(q)
-    BareQuantity(Array(0.47950017, dtype=float32, ...), unit='')
+    BareQuantity(Array(0.47950017, dtype=float32...), unit='')
 
     >>> q = u.Q(0.5, "")
     >>> lax.erfc(q)
-    Quantity(Array(0.47950017, dtype=float32, ...), unit='')
+    Quantity(Array(0.47950017, dtype=float32...), unit='')
 
     """
     # TODO: can this support non-dimensionless quantities?
@@ -2335,11 +2417,11 @@ def exp2_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(3, "")
     >>> jnp.exp2(q)
-    BareQuantity(Array(8., dtype=float32, ...), unit='')
+    BareQuantity(Array(8., dtype=float32...), unit='')
 
     >>> q = u.Q(3, "")
     >>> jnp.exp2(q)
-    Quantity(Array(8., dtype=float32, ...), unit='')
+    Quantity(Array(8., dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.exp2_p.bind(ustrip(one, x), **kw))
@@ -2359,16 +2441,16 @@ def exp_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1, "")
     >>> jnp.exp(q)
-    BareQuantity(Array(2.7182817, dtype=float32, ...), unit='')
+    BareQuantity(Array(2.7182817, dtype=float32...), unit='')
 
     >>> q = u.Q(1, "")
     >>> jnp.exp(q)
-    Quantity(Array(2.7182817, dtype=float32, ...), unit='')
+    Quantity(Array(2.7182817, dtype=float32...), unit='')
 
     Euler's crown jewel:
 
     >>> jnp.exp(u.Q(jnp.pi * 1j, "")) + 1
-    Quantity(Array(0.-8.742278e-08j, dtype=complex64, ...), unit='')
+    Quantity(Array(0.-8.742278e-08j, dtype=complex64...), unit='')
 
     Pretty close to zero!
 
@@ -2391,11 +2473,11 @@ def expm1_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(0, "")
     >>> jnp.expm1(q)
-    BareQuantity(Array(0., dtype=float32, ...), unit='')
+    BareQuantity(Array(0., dtype=float32...), unit='')
 
     >>> q = u.Q(0, "")
     >>> jnp.expm1(q)
-    Quantity(Array(0., dtype=float32, ...), unit='')
+    Quantity(Array(0., dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.expm1_p.bind(ustrip(one, x), **kw))
@@ -2442,11 +2524,11 @@ def floor_p(x: ABCQ) -> ABCQ:
     >>> import unxt as u
     >>> q = u.quantity.BareQuantity(1.5, "")
     >>> jnp.floor(q)
-    BareQuantity(Array(1., dtype=float32, ...), unit='')
+    BareQuantity(Array(1., dtype=float32...), unit='')
 
     >>> q = u.Q(1.5, "")
     >>> jnp.floor(q)
-    Quantity(Array(1., dtype=float32, ...), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     """
     return replace(x, value=qlax.floor(ustrip(x)))
@@ -2479,16 +2561,16 @@ def ge_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
     >>> q1 = u.quantity.BareQuantity(1_001.0, "m")
     >>> q2 = u.quantity.BareQuantity(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
     >>> q1 >= q2
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
     >>> q1 >= q2
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     """
     xv = ustrip(x)
@@ -2513,11 +2595,11 @@ def ge_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
 
     >>> q2 = u.quantity.BareQuantity(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q2 = u.Q(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
@@ -2549,11 +2631,11 @@ def ge_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
 
     >>> q1 = u.quantity.BareQuantity(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q1 = u.Q(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
@@ -2586,12 +2668,12 @@ def gt_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
     >>> q1 = u.quantity.BareQuantity(1_001.0, "m")
     >>> q2 = u.quantity.BareQuantity(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     """
     xv = ustrip(x)
@@ -2618,11 +2700,11 @@ def gt_p_vq(x: ArrayLike, y: ABCQ) -> ArrayLike:
 
     >>> q2 = u.quantity.BareQuantity(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q2 = u.Q(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
@@ -2654,11 +2736,11 @@ def gt_p_qv(x: ABCQ, y: ArrayLike) -> ArrayLike:
 
     >>> q1 = u.quantity.BareQuantity(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q1 = u.Q(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
@@ -2692,16 +2774,16 @@ def igamma_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
 
     >>> x = u.quantity.BareQuantity(1.0, "")
     >>> lax.igamma(1.0, x)
-    BareQuantity(Array(0.6321202, dtype=float32, ...), unit='')
+    BareQuantity(Array(0.6321202, dtype=float32...), unit='')
 
     >>> a = u.quantity.BareQuantity(1.0, "")
     >>> lax.igamma(a, x)
-    BareQuantity(Array(0.6321202, dtype=float32, ...), unit='')
+    BareQuantity(Array(0.6321202, dtype=float32...), unit='')
 
     >>> a = u.Q(1.0, "")
     >>> x = u.Q(1.0, "")
     >>> lax.igamma(a, x)
-    Quantity(Array(0.6321202, dtype=float32, ...), unit='')
+    Quantity(Array(0.6321202, dtype=float32...), unit='')
 
     """
     return replace(x, value=qlax.igamma(ustrip(AllowValue, one, a), ustrip(one, x)))
@@ -2721,16 +2803,16 @@ def igammac_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
 
     >>> x = u.quantity.BareQuantity(1.0, "")
     >>> qlax.igammac(1.0, x)
-    BareQuantity(Array(0.36787927, dtype=float32, ...), unit='')
+    BareQuantity(Array(0.36787927, dtype=float32...), unit='')
 
     >>> a = u.quantity.BareQuantity(1.0, "")
     >>> qlax.igammac(a, x)
-    BareQuantity(Array(0.36787927, dtype=float32, ...), unit='')
+    BareQuantity(Array(0.36787927, dtype=float32...), unit='')
 
     >>> a = u.Q(1.0, "")
     >>> x = u.Q(1.0, "")
     >>> qlax.igammac(a, x)
-    Quantity(Array(0.36787927, dtype=float32, ...), unit='')
+    Quantity(Array(0.36787927, dtype=float32...), unit='')
 
     """
     return replace(x, value=qlax.igammac(ustrip(AllowValue, one, a), ustrip(one, x)))
@@ -2756,11 +2838,11 @@ def integer_pow_p(x: ABCQ, *, y: Any) -> ABCQ:
     >>> import unxt as u
     >>> q = u.quantity.BareQuantity(2, "m")
     >>> q**3
-    BareQuantity(Array(8, dtype=int32, ...), unit='m3')
+    BareQuantity(Array(8, dtype=int32...), unit='m3')
 
     >>> q = u.Q(2, "m")
     >>> q**3
-    Quantity(Array(8, dtype=int32, ...), unit='m3')
+    Quantity(Array(8, dtype=int32...), unit='m3')
 
     >>> q = u.StaticQuantity(2, "m")
     >>> q**3
@@ -2784,7 +2866,7 @@ def integer_pow_p_abstractangle(x: AbstractAngle, /, *, y: Any) -> ABCQ:
     >>> q = u.Angle(2, "deg")
 
     >>> q**3
-    Quantity(Array(8, dtype=int32, ...), unit='deg3')
+    Quantity(Array(8, dtype=int32...), unit='deg3')
 
     """
     return integer_pow_p(convert(x, Quantity), y=y)
@@ -2836,12 +2918,12 @@ def le_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     >>> q1 = u.quantity.BareQuantity(1_001.0, "m")
     >>> q2 = u.quantity.BareQuantity(1.0, "km")
     >>> jnp.less_equal(q1, q2)
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
 
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
     >>> jnp.less_equal(q1, q2)
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
 
     """
     xv = ustrip(x)
@@ -2866,11 +2948,11 @@ def le_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
 
     >>> q2 = u.quantity.BareQuantity(1.0, "")
     >>> jnp.less_equal(x1, q2)
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
 
     >>> q2 = u.Q(1.0, "")
     >>> jnp.less_equal(x1, q2)
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
@@ -2902,11 +2984,11 @@ def le_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
 
     >>> q1 = u.quantity.BareQuantity(1.0, "")
     >>> jnp.less_equal(q1, y1)
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
 
     >>> q1 = u.Q(1.0, "")
     >>> jnp.less_equal(q1, y1)
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
@@ -2938,11 +3020,11 @@ def lgamma_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(3, "")
     >>> jsp.special.gammaln(q)
-    BareQuantity(Array(0.6931474, dtype=float32, ...), unit='')
+    BareQuantity(Array(0.6931474, dtype=float32...), unit='')
 
     >>> q = u.Q(3, "")
     >>> jsp.special.gammaln(q)
-    Quantity(Array(0.6931474, dtype=float32, ...), unit='')
+    Quantity(Array(0.6931474, dtype=float32...), unit='')
 
     """
     # TODO: are there any units that this can support?
@@ -2963,11 +3045,11 @@ def log1p_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(-1, "")
     >>> jnp.log1p(q)
-    BareQuantity(Array(-inf, dtype=float32, ...), unit='')
+    BareQuantity(Array(-inf, dtype=float32...), unit='')
 
     >>> q = u.Q(-1, "")
     >>> jnp.log1p(q)
-    Quantity(Array(-inf, dtype=float32, weak_type=True), unit='')
+    Quantity(Array(-inf, dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.log1p_p.bind(ustrip(one, x), **kw))
@@ -2987,11 +3069,11 @@ def log_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1, "")
     >>> jnp.log(q)
-    BareQuantity(Array(0., dtype=float32, ...), unit='')
+    BareQuantity(Array(0., dtype=float32...), unit='')
 
     >>> q = u.Q(1, "")
     >>> jnp.log(q)
-    Quantity(Array(0., dtype=float32, weak_type=True), unit='')
+    Quantity(Array(0., dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.log_p.bind(ustrip(one, x), **kw))
@@ -3011,11 +3093,11 @@ def logistic_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1.0, "")
     >>> qlax.logistic(q)
-    BareQuantity(Array(0.7310586, dtype=float32, ...), unit='')
+    BareQuantity(Array(0.7310586, dtype=float32...), unit='')
 
     >>> q = u.Q(1.0, "")
     >>> qlax.logistic(q)
-    Quantity(Array(0.7310586, dtype=float32, ...), unit='')
+    Quantity(Array(0.7310586, dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.logistic_p.bind(ustrip(one, x), **kw))
@@ -3038,10 +3120,10 @@ def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     >>> x = u.quantity.BareQuantity(1.0, "km")
     >>> y = u.quantity.BareQuantity(2000.0, "m")
     >>> x < y
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> jnp.less(x, y)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> x = u.quantity.BareQuantity([1.0, 2, 3], "km")
     >>> x < y
@@ -3055,10 +3137,10 @@ def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     >>> x = u.Q(1.0, "km")
     >>> y = u.Q(2000.0, "m")
     >>> x < y
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> jnp.less(x, y)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> x = u.Q([1.0, 2, 3], "km")
     >>> x < y
@@ -3152,10 +3234,10 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
     >>> x = u.quantity.BareQuantity(1, "")
     >>> y = 2
     >>> x < y
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> jnp.less(x, y)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> x = u.quantity.BareQuantity([1, 2, 3], "")
     >>> x < y
@@ -3169,10 +3251,10 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
     >>> x = u.Q(1, "")
     >>> y = 2
     >>> x < y
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> jnp.less(x, y)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> x = u.Q([1, 2, 3], "")
     >>> x < y
@@ -3238,12 +3320,12 @@ def max_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.quantity.BareQuantity(1, "m")
     >>> q2 = u.quantity.BareQuantity(2, "m")
     >>> jnp.maximum(q1, q2)
-    BareQuantity(Array(2, dtype=int32, ...), unit='m')
+    BareQuantity(Array(2, dtype=int32...), unit='m')
 
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(2, "m")
     >>> jnp.maximum(q1, q2)
-    Quantity(Array(2, dtype=int32, ...), unit='m')
+    Quantity(Array(2, dtype=int32...), unit='m')
 
     """
     yv = ustrip(x.unit, y)
@@ -3404,17 +3486,17 @@ def mul_p_qq(x: ABCQ, y: ABCQ, /, **kw: Any) -> ABCQ:
     >>> q1 = u.quantity.BareQuantity(2, "m")
     >>> q2 = u.quantity.BareQuantity(3, "m")
     >>> jnp.multiply(q1, q2)
-    BareQuantity(Array(6, dtype=int32, ...), unit='m2')
+    BareQuantity(Array(6, dtype=int32...), unit='m2')
 
     >>> q1 = u.Q(2, "m")
     >>> q2 = u.Q(3, "m")
     >>> jnp.multiply(q1, q2)
-    Quantity(Array(6, dtype=int32, ...), unit='m2')
+    Quantity(Array(6, dtype=int32...), unit='m2')
 
     >>> q1 = u.quantity.BareQuantity(2, "m")
     >>> q2 = u.Q(3, "m")
     >>> jnp.multiply(q1, q2)
-    Quantity(Array(6, dtype=int32, weak_type=True), unit='m2')
+    Quantity(Array(6, dtype=int32...), unit='m2')
 
     """
     # Promote to a common type
@@ -3436,10 +3518,10 @@ def mul_p_vq(x: ArrayLike, y: ABCQ, /, **kw: Any) -> ABCQ:
     >>> q = u.quantity.BareQuantity(2, "m")
 
     >>> 2.0 * q
-    BareQuantity(Array(4., dtype=float32, ...), unit='m')
+    BareQuantity(Array(4., dtype=float32...), unit='m')
 
     >>> jnp.asarray(2) * q
-    BareQuantity(Array(4, dtype=int32, ...), unit='m')
+    BareQuantity(Array(4, dtype=int32...), unit='m')
 
     >>> jnp.asarray([2, 3]) * q
     BareQuantity(Array([4, 6], dtype=int32), unit='m')
@@ -3447,10 +3529,10 @@ def mul_p_vq(x: ArrayLike, y: ABCQ, /, **kw: Any) -> ABCQ:
     >>> q = u.Q(2, "m")
 
     >>> 2.0 * q
-    Quantity(Array(4., dtype=float32, ...), unit='m')
+    Quantity(Array(4., dtype=float32...), unit='m')
 
     >>> jnp.asarray(2) * q
-    Quantity(Array(4, dtype=int32, ...), unit='m')
+    Quantity(Array(4, dtype=int32...), unit='m')
 
     >>> jnp.asarray([2, 3]) * q
     Quantity(Array([4, 6], dtype=int32), unit='m')
@@ -3471,10 +3553,10 @@ def mul_p_qv(x: ABCQ, y: ArrayLike, /, **kw: Any) -> ABCQ:
     >>> q = u.quantity.BareQuantity(2, "m")
 
     >>> q * 2.0
-    BareQuantity(Array(4., dtype=float32, ...), unit='m')
+    BareQuantity(Array(4., dtype=float32...), unit='m')
 
     >>> q * jnp.asarray(2)
-    BareQuantity(Array(4, dtype=int32, ...), unit='m')
+    BareQuantity(Array(4, dtype=int32...), unit='m')
 
     >>> q * jnp.asarray([2, 3])
     BareQuantity(Array([4, 6], dtype=int32), unit='m')
@@ -3482,10 +3564,10 @@ def mul_p_qv(x: ABCQ, y: ArrayLike, /, **kw: Any) -> ABCQ:
     >>> q = u.Q(2, "m")
 
     >>> q * 2.0
-    Quantity(Array(4., dtype=float32, ...), unit='m')
+    Quantity(Array(4., dtype=float32...), unit='m')
 
     >>> q * jnp.asarray(2)
-    Quantity(Array(4, dtype=int32, weak_type=True), unit='m')
+    Quantity(Array(4, dtype=int32...), unit='m')
 
     >>> q * jnp.asarray([2, 3])
     Quantity(Array([4, 6], dtype=int32), unit='m')
@@ -3530,28 +3612,28 @@ def ne_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     >>> q1 = u.quantity.BareQuantity(1, "m")
     >>> q2 = u.quantity.BareQuantity(2, "m")
     >>> jnp.not_equal(q1, q2)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
     >>> q1 != q2
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q2 = u.quantity.BareQuantity(1, "m")
     >>> jnp.not_equal(q1, q2)
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
     >>> q1 != q2
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
 
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(2, "m")
     >>> jnp.not_equal(q1, q2)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
     >>> q1 != q2
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q2 = u.Q(1, "m")
     >>> jnp.not_equal(q1, q2)
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
     >>> q1 != q2
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
 
     """
     if not is_unit_convertible(x.unit, y.unit):
@@ -3572,28 +3654,28 @@ def ne_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
     >>> x = 1
     >>> q2 = u.quantity.BareQuantity(2, "")
     >>> jnp.not_equal(x, q2)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
     >>> x != q2
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q2 = u.quantity.BareQuantity(1, "")
     >>> jnp.not_equal(x, q2)
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
     >>> x != q2
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
 
     >>> x = u.Q(1, "")
     >>> q2 = u.Q(2, "")
     >>> jnp.not_equal(x, q2)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
     >>> x != q2
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q2 = u.Q(1, "")
     >>> jnp.not_equal(x, q2)
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
     >>> x != q2
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
 
     """
     yv = ustrip(y)
@@ -3617,28 +3699,28 @@ def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
     >>> x = 1
     >>> q1 = u.quantity.BareQuantity(2, "")
     >>> jnp.not_equal(q1, x)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
     >>> q1 != x
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q1 = u.quantity.BareQuantity(1, "")
     >>> jnp.not_equal(q1, x)
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
     >>> q1 != x
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
 
     >>> x = u.Q(1, "")
     >>> q1 = u.Q(2, "")
     >>> jnp.not_equal(q1, x)
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
     >>> q1 != x
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool...)
 
     >>> q1 = u.Q(1, "")
     >>> jnp.not_equal(q1, x)
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
     >>> q1 != x
-    Array(False, dtype=bool, ...)
+    Array(False, dtype=bool...)
 
     """
     xv = ustrip(x)
@@ -3668,11 +3750,11 @@ def neg_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1, "m")
     >>> -q
-    BareQuantity(Array(-1, dtype=int32, ...), unit='m')
+    BareQuantity(Array(-1, dtype=int32...), unit='m')
 
     >>> q = u.Q(1, "m")
     >>> -q
-    Quantity(Array(-1, dtype=int32, weak_type=True), unit='m')
+    Quantity(Array(-1, dtype=int32...), unit='m')
 
     """
     return replace(x, value=qlax.neg(ustrip(x)))
@@ -3692,12 +3774,12 @@ def nextafter_p(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
     >>> q1 = u.quantity.BareQuantity(1, "")
     >>> q2 = u.quantity.BareQuantity(2, "")
     >>> jnp.nextafter(q1, q2)
-    BareQuantity(Array(1.0000001, dtype=float32, ...), unit='')
+    BareQuantity(Array(1.0000001, dtype=float32...), unit='')
 
     >>> q1 = u.Q(1, "")
     >>> q2 = u.Q(2, "")
     >>> jnp.nextafter(q1, q2)
-    Quantity(Array(1.0000001, dtype=float32, ...), unit='')
+    Quantity(Array(1.0000001, dtype=float32...), unit='')
 
     """
     u = unit_of(x1)
@@ -3717,11 +3799,11 @@ def not_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1, "")
     >>> ~q
-    BareQuantity(Array(-2, dtype=int32, weak_type=True), unit='')
+    BareQuantity(Array(-2, dtype=int32...), unit='')
 
     >>> q = u.Q(1, "")
     >>> ~q
-    Quantity(Array(-2, dtype=int32, weak_type=True), unit='')
+    Quantity(Array(-2, dtype=int32...), unit='')
 
     """
     return replace(x, value=qlax.bitwise_not(ustrip(one, x)))
@@ -3741,12 +3823,12 @@ def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.quantity.BareQuantity(1, "")
     >>> q2 = u.quantity.BareQuantity(2, "")
     >>> jnp.bitwise_or(q1, q2)
-    BareQuantity(Array(3, dtype=int32, ...), unit='')
+    BareQuantity(Array(3, dtype=int32...), unit='')
 
     >>> q1 = u.Q(1, "")
     >>> q2 = u.Q(2, "")
     >>> jnp.bitwise_or(q1, q2)
-    Quantity(Array(3, dtype=int32, weak_type=True), unit='')
+    Quantity(Array(3, dtype=int32...), unit='')
 
     """
     return replace(x, value=qlax.bitwise_or(ustrip(one, x), ustrip(one, y)))
@@ -3852,11 +3934,11 @@ def polygamma_p(m: ArrayLike, x: ABCQ, /) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(3.0, "")
     >>> qlax.polygamma(1.0, q)
-    BareQuantity(Array(0.39493403, dtype=float32, ...), unit='')
+    BareQuantity(Array(0.39493403, dtype=float32...), unit='')
 
     >>> q = u.Q(3.0, "")
     >>> qlax.polygamma(1.0, q)
-    Quantity(Array(0.39493403, dtype=float32, ...), unit='')
+    Quantity(Array(0.39493403, dtype=float32...), unit='')
 
     """
     return replace(x, value=qlax.polygamma(m, ustrip(one, x)))
@@ -3875,11 +3957,11 @@ def population_count_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(3, "")
     >>> qlax.population_count(q)
-    BareQuantity(Array(2, dtype=int32, ...), unit='')
+    BareQuantity(Array(2, dtype=int32...), unit='')
 
     >>> q = u.Q(3, "")
     >>> qlax.population_count(q)
-    Quantity(Array(2, dtype=int32, weak_type=True), unit='')
+    Quantity(Array(2, dtype=int32...), unit='')
 
     """
     return replace(x, value=lax.population_count(ustrip(one, x)))
@@ -3900,15 +3982,15 @@ def pow_p_qq(x: ABCQ, y: ABCPQ["dimensionless"], /) -> ABCQ:
     >>> q1 = u.quantity.BareQuantity(2.0, "m")
     >>> p = u.Q(3, "")
     >>> jnp.power(q1, p)
-    BareQuantity(Array(8., dtype=float32, ...), unit='m3')
+    BareQuantity(Array(8., dtype=float32...), unit='m3')
     >>> q1**p
-    BareQuantity(Array(8., dtype=float32, ...), unit='m3')
+    BareQuantity(Array(8., dtype=float32...), unit='m3')
 
     >>> q1 = u.Q(2.0, "m")
     >>> jnp.power(q1, p)
-    Quantity(Array(8., dtype=float32, ...), unit='m3')
+    Quantity(Array(8., dtype=float32...), unit='m3')
     >>> q1**p
-    Quantity(Array(8., dtype=float32, ...), unit='m3')
+    Quantity(Array(8., dtype=float32...), unit='m3')
 
     Non-scalar exponents raise a ValueError:
 
@@ -3940,15 +4022,15 @@ def pow_p_qf(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> q1 = u.quantity.BareQuantity(2.0, "m")
     >>> y = jnp.array(3)
     >>> jnp.power(q1, y)
-    BareQuantity(Array(8., dtype=float32, weak_type=True), unit='m3')
+    BareQuantity(Array(8., dtype=float32...), unit='m3')
     >>> q1**y
-    BareQuantity(Array(8., dtype=float32, weak_type=True), unit='m3')
+    BareQuantity(Array(8., dtype=float32...), unit='m3')
 
     >>> q1 = u.Q(2.0, "m")
     >>> jnp.power(q1, y)
-    Quantity(Array(8., dtype=float32, weak_type=True), unit='m3')
+    Quantity(Array(8., dtype=float32...), unit='m3')
     >>> q1**y
-    Quantity(Array(8., dtype=float32, weak_type=True), unit='m3')
+    Quantity(Array(8., dtype=float32...), unit='m3')
 
     """
     return type_np(x)(value=qlax.pow(ustrip(x), y), unit=x.unit**y)
@@ -3984,7 +4066,7 @@ def pow_p_abstractangle_arraylike(x: AbstractAngle, y: ArrayLike, /) -> ABCQ:
     >>> q1 = u.Angle(10.0, "deg")
     >>> y = 3.0
     >>> q1**y
-    Quantity(Array(1000., dtype=float32, ...), unit='deg3')
+    Quantity(Array(1000., dtype=float32...), unit='deg3')
 
     """
     return pow_p_qf(convert(x, Quantity), y)
@@ -4003,16 +4085,16 @@ def real_p(x: ABCQ, /) -> ABCQ:
     >>> import unxt as u
 
     >>> jnp.real(u.quantity.BareQuantity(1.0, "m"))
-    BareQuantity(Array(1., dtype=float32, ...), unit='m')
+    BareQuantity(Array(1., dtype=float32...), unit='m')
 
     >>> jnp.real(u.quantity.BareQuantity(1 + 2j, "m"))
-    BareQuantity(Array(1., dtype=float32, ...), unit='m')
+    BareQuantity(Array(1., dtype=float32...), unit='m')
 
     >>> jnp.real(u.Q(1.0, "m"))
-    Quantity(Array(1., dtype=float32, ...), unit='m')
+    Quantity(Array(1., dtype=float32...), unit='m')
 
     >>> jnp.real(u.Q(1 + 2j, "m"))
-    Quantity(Array(1., dtype=float32, weak_type=True), unit='m')
+    Quantity(Array(1., dtype=float32...), unit='m')
 
     """
     return replace(x, value=qlax.real(ustrip(x)))
@@ -4086,12 +4168,12 @@ def regularized_incomplete_beta_q(
     >>> b = u.quantity.BareQuantity(3.0, "")
     >>> x = 0.5
     >>> jsp.betainc(a, b, x).round(7)
-    Array(0.6874998, dtype=float32, weak_type=True)
+    Array(0.6874998, dtype=float32...)
 
     >>> a = u.Q(2.0, "")
     >>> b = u.Q(3.0, "")
     >>> jsp.betainc(a, b, x).round(7)
-    Array(0.6874998, dtype=float32, weak_type=True)
+    Array(0.6874998, dtype=float32...)
 
     """
     a = ustrip(AllowValue, one, a)
@@ -4114,11 +4196,11 @@ def regularized_incomplete_beta_q(
     >>> b = 3.0
     >>> x = u.quantity.BareQuantity(0.5, "")
     >>> jsp.betainc(a, b, x).round(7)
-    BareQuantity(Array(0.6874998, dtype=float32, weak_type=True), unit='')
+    BareQuantity(Array(0.6874998, dtype=float32...), unit='')
 
     >>> x = u.Q(0.5, "")
     >>> jsp.betainc(a, b, x).round(7)
-    Quantity(Array(0.6874998, dtype=float32, weak_type=True), unit='')
+    Quantity(Array(0.6874998, dtype=float32...), unit='')
 
     >>> x = u.Q(0.5, "m")
     >>> try:
@@ -4165,12 +4247,12 @@ def rem_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.quantity.BareQuantity(10, "m")
     >>> q2 = u.quantity.BareQuantity(3, "m")
     >>> q1 % q2
-    BareQuantity(Array(1, dtype=int32, ...), unit='m')
+    BareQuantity(Array(1, dtype=int32...), unit='m')
 
     >>> q1 = u.Q(10, "m")
     >>> q2 = u.Q(3, "m")
     >>> q1 % q2
-    Quantity(Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     """
     x, y = promote(x, y)
@@ -4192,7 +4274,7 @@ def rem_p_uqv(
     >>> q1 = u.Q(10, "")
     >>> q2 = jnp.array(3)
     >>> q1 % q2
-    Quantity(Array(1, dtype=int32, ...), unit='')
+    Quantity(Array(1, dtype=int32...), unit='')
 
     """
     return replace(x, value=ustrip(x) % y)
@@ -4264,11 +4346,11 @@ def round_p(x: ABCQ, /, *, rounding_method: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1.234, "m")
     >>> jnp.round(q, 2)
-    BareQuantity(Array(1.23, dtype=float32, ...), unit='m')
+    BareQuantity(Array(1.23, dtype=float32...), unit='m')
 
     >>> q = u.Q(1.234, "m")
     >>> jnp.round(q, 2)
-    Quantity(Array(1.23, dtype=float32, ...), unit='m')
+    Quantity(Array(1.23, dtype=float32...), unit='m')
 
     """
     return replace(x, value=qlax.round(ustrip(x), rounding_method))
@@ -4288,11 +4370,11 @@ def rsqrt_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1 / 4, "m")
     >>> qlax.rsqrt(q)
-    BareQuantity(Array(2., dtype=float32, ...), unit='1 / m(1/2)')
+    BareQuantity(Array(2., dtype=float32...), unit='1 / m(1/2)')
 
     >>> q = u.Q(1 / 4, "m")
     >>> qlax.rsqrt(q)
-    Quantity(Array(2., dtype=float32, ...), unit='1 / m(1/2)')
+    Quantity(Array(2., dtype=float32...), unit='1 / m(1/2)')
 
     """
     return type_np(x)(lax.rsqrt_p.bind(ustrip(x), **kw), unit=x.unit ** (-1 / 2))
@@ -4550,11 +4632,11 @@ def shift_right_arithmetic_p(x: ABCQ, y: ABCQ | float | int, /) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1, "")
     >>> qlax.shift_right_arithmetic(q, 2)
-    BareQuantity(Array(0, dtype=int32, ...), unit='')
+    BareQuantity(Array(0, dtype=int32...), unit='')
 
     >>> q = u.Q(1, "")
     >>> qlax.shift_right_arithmetic(q, 2)
-    Quantity(Array(0, dtype=int32, weak_type=True), unit='')
+    Quantity(Array(0, dtype=int32...), unit='')
 
     """
     return replace(
@@ -4575,11 +4657,11 @@ def sign_p(x: ABCQ, /) -> ArrayLike:
     >>> import unxt as u
     >>> q = u.quantity.BareQuantity(10, "m")
     >>> jnp.sign(q)
-    Array(1, dtype=int32, ...)
+    Array(1, dtype=int32...)
 
     >>> q = u.Q(10, "m")
     >>> jnp.sign(q)
-    Array(1, dtype=int32, ...)
+    Array(1, dtype=int32...)
 
     """
     return lax.sign(ustrip(x))
@@ -4599,19 +4681,19 @@ def sin_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(90, "deg")
     >>> jnp.sin(q)
-    BareQuantity(Array(1., dtype=float32, ...), unit='')
+    BareQuantity(Array(1., dtype=float32...), unit='')
 
     >>> q = u.quantity.BareQuantity(jnp.pi / 2, "")
     >>> jnp.sin(q)
-    BareQuantity(Array(1., dtype=float32, ...), unit='')
+    BareQuantity(Array(1., dtype=float32...), unit='')
 
     >>> q = u.Q(90, "deg")
     >>> jnp.sin(q)
-    Quantity(Array(1., dtype=float32, ...), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     >>> q = u.Q(jnp.pi / 2, "")
     >>> jnp.sin(q)
-    Quantity(Array(1., dtype=float32, ...), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     """
     return type_np(x)(lax.sin_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
@@ -4628,7 +4710,7 @@ def sin_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Angle(90, "deg")
     >>> jnp.sin(q)
-    Quantity(Array(1., dtype=float32, ...), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     """
     return sin_p(convert(x, Quantity), **kw)
@@ -4648,19 +4730,19 @@ def sinh_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(90, "deg")
     >>> jnp.sinh(q)
-    BareQuantity(Array(2.301299, dtype=float32, ...), unit='')
+    BareQuantity(Array(2.301299, dtype=float32...), unit='')
 
     >>> q = u.quantity.BareQuantity(jnp.pi / 2, "")
     >>> jnp.sinh(q)
-    BareQuantity(Array(2.301299, dtype=float32, ...), unit='')
+    BareQuantity(Array(2.301299, dtype=float32...), unit='')
 
     >>> q = u.Q(90, "deg")
     >>> jnp.sinh(q)
-    Quantity(Array(2.301299, dtype=float32, ...), unit='')
+    Quantity(Array(2.301299, dtype=float32...), unit='')
 
     >>> q = u.Q(jnp.pi / 2, "")
     >>> jnp.sinh(q)
-    Quantity(Array(2.301299, dtype=float32, ...), unit='')
+    Quantity(Array(2.301299, dtype=float32...), unit='')
 
     """
     return type_np(x)(lax.sinh(_to_val_rad_or_one(x)), unit=one)
@@ -4680,11 +4762,11 @@ def shift_left_p(x: ABCQ, y: ABCQ | float | int, /, **kw: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1, "")
     >>> qlax.shift_left(q, 2)
-    BareQuantity(Array(4, dtype=int32, ...), unit='')
+    BareQuantity(Array(4, dtype=int32...), unit='')
 
     >>> q = u.Q(1, "")
     >>> qlax.shift_left(q, 2)
-    Quantity(Array(4, dtype=int32, weak_type=True), unit='')
+    Quantity(Array(4, dtype=int32...), unit='')
 
     """
     return replace(x, value=qlax.shift_left(ustrip(x), ustrip(AllowValue, one, y)))
@@ -4766,11 +4848,11 @@ def square_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(3, "m")
     >>> jnp.square(q)
-    BareQuantity(Array(9, dtype=int32, ...), unit='m2')
+    BareQuantity(Array(9, dtype=int32...), unit='m2')
 
     >>> q = u.Q(3, "m")
     >>> jnp.square(q)
-    Quantity(Array(9, dtype=int32, ...), unit='m2')
+    Quantity(Array(9, dtype=int32...), unit='m2')
 
     """
     return type_np(x)(lax.square(ustrip(x)), unit=x.unit**2)
@@ -4789,11 +4871,11 @@ def sqrt_p_q(x: ABCQ, /, **kw: Any) -> ABCQ:
     >>> import unxt as u
     >>> q = u.quantity.BareQuantity(9, "m")
     >>> jnp.sqrt(q)
-    BareQuantity(Array(3., dtype=float32, ...), unit='m(1/2)')
+    BareQuantity(Array(3., dtype=float32...), unit='m(1/2)')
 
     >>> q = u.Q(9, "m")
     >>> jnp.sqrt(q)
-    Quantity(Array(3., dtype=float32, ...), unit='m(1/2)')
+    Quantity(Array(3., dtype=float32...), unit='m(1/2)')
 
     """
     # Apply sqrt to the value and adjust the unit
@@ -4811,7 +4893,7 @@ def sqrt_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Angle(9, "deg")
     >>> jnp.sqrt(q)
-    Quantity(Array(3., dtype=float32, ...), unit='deg(1/2)')
+    Quantity(Array(3., dtype=float32...), unit='deg(1/2)')
 
     """
     return sqrt_p_q(convert(x, Quantity), **kw)
@@ -4855,7 +4937,7 @@ def stop_gradient_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(1.0, "m")
     >>> qlax.stop_gradient(q)
-    BareQuantity(Array(1., dtype=float32, ...), unit='m')
+    BareQuantity(Array(1., dtype=float32...), unit='m')
 
     """
     return replace(x, value=qlax.stop_gradient(ustrip(x)))
@@ -4877,16 +4959,16 @@ def sub_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.quantity.BareQuantity(1.0, "km")
     >>> q2 = u.quantity.BareQuantity(500.0, "m")
     >>> jnp.subtract(q1, q2)
-    BareQuantity(Array(0.5, dtype=float32, ...), unit='km')
+    BareQuantity(Array(0.5, dtype=float32...), unit='km')
     >>> q1 - q2
-    BareQuantity(Array(0.5, dtype=float32, ...), unit='km')
+    BareQuantity(Array(0.5, dtype=float32...), unit='km')
 
     >>> q1 = u.Q(1.0, "km")
     >>> q2 = u.Q(500.0, "m")
     >>> jnp.subtract(q1, q2)
-    Quantity(Array(0.5, dtype=float32, ...), unit='km')
+    Quantity(Array(0.5, dtype=float32...), unit='km')
     >>> q1 - q2
-    Quantity(Array(0.5, dtype=float32, ...), unit='km')
+    Quantity(Array(0.5, dtype=float32...), unit='km')
 
     """
     x, y = promote(x, y)
@@ -4911,17 +4993,17 @@ def sub_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     >>> x = 1_000
     >>> q = u.quantity.BareQuantity(500.0, "")
     >>> jnp.subtract(x, q)
-    BareQuantity(Array(500., dtype=float32, ...), unit='')
+    BareQuantity(Array(500., dtype=float32...), unit='')
 
     >>> x - q
-    BareQuantity(Array(500., dtype=float32, ...), unit='')
+    BareQuantity(Array(500., dtype=float32...), unit='')
 
     >>> q = u.Q(500.0, "")
     >>> jnp.subtract(x, q)
-    Quantity(Array(500., dtype=float32, ...), unit='')
+    Quantity(Array(500., dtype=float32...), unit='')
 
     >>> x - q
-    Quantity(Array(500., dtype=float32, ...), unit='')
+    Quantity(Array(500., dtype=float32...), unit='')
 
     """
     y = uconvert(one, y)
@@ -4940,17 +5022,17 @@ def sub_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> q = u.quantity.BareQuantity(500.0, "")
     >>> y = 1_000
     >>> jnp.subtract(q, y)
-    BareQuantity(Array(-500., dtype=float32, ...), unit='')
+    BareQuantity(Array(-500., dtype=float32...), unit='')
 
     >>> q - y
-    BareQuantity(Array(-500., dtype=float32, ...), unit='')
+    BareQuantity(Array(-500., dtype=float32...), unit='')
 
     >>> q = u.Q(500.0, "")
     >>> jnp.subtract(q, y)
-    Quantity(Array(-500., dtype=float32, ...), unit='')
+    Quantity(Array(-500., dtype=float32...), unit='')
 
     >>> q - y
-    Quantity(Array(-500., dtype=float32, ...), unit='')
+    Quantity(Array(-500., dtype=float32...), unit='')
 
     """
     x = uconvert(one, x)
@@ -4971,19 +5053,19 @@ def tan_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(45, "deg")
     >>> jnp.tan(q)
-    BareQuantity(Array(1., dtype=float32, weak_type=True), unit='')
+    BareQuantity(Array(1., dtype=float32...), unit='')
 
     >>> q = u.quantity.BareQuantity(jnp.pi / 4, "")
     >>> jnp.tan(q)
-    BareQuantity(Array(1., dtype=float32, weak_type=True), unit='')
+    BareQuantity(Array(1., dtype=float32...), unit='')
 
     >>> q = u.Q(45, "deg")
     >>> jnp.tan(q)
-    Quantity(Array(1., dtype=float32, weak_type=True), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     >>> q = u.Q(jnp.pi / 4, "")
     >>> jnp.tan(q)
-    Quantity(Array(1., dtype=float32, weak_type=True), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     """
     return type_np(x)(lax.tan_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
@@ -5000,7 +5082,7 @@ def tan_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Angle(45, "deg")
     >>> jnp.tan(q)
-    Quantity(Array(1., dtype=float32, ...), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     """
     return tan_p(convert(x, Quantity), **kw)
@@ -5020,19 +5102,19 @@ def tanh_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.quantity.BareQuantity(45, "deg")
     >>> jnp.tanh(q)
-    BareQuantity(Array(0.65579426, dtype=float32, weak_type=True), unit='')
+    BareQuantity(Array(0.65579426, dtype=float32...), unit='')
 
     >>> q = u.quantity.BareQuantity(jnp.pi / 4, "")
     >>> jnp.tanh(q)
-    BareQuantity(Array(0.65579426, dtype=float32, weak_type=True), unit='')
+    BareQuantity(Array(0.65579426, dtype=float32...), unit='')
 
     >>> q = u.Q(45, "deg")
     >>> jnp.tanh(q)
-    Quantity(Array(0.65579426, dtype=float32, weak_type=True), unit='')
+    Quantity(Array(0.65579426, dtype=float32...), unit='')
 
     >>> q = u.Q(jnp.pi / 4, "")
     >>> jnp.tanh(q)
-    Quantity(Array(0.65579426, dtype=float32, weak_type=True), unit='')
+    Quantity(Array(0.65579426, dtype=float32...), unit='')
 
     """
     return type_np(x)(lax.tanh_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
@@ -5107,12 +5189,12 @@ def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.quantity.BareQuantity(1, "")
     >>> q2 = u.quantity.BareQuantity(2, "")
     >>> jnp.bitwise_xor(q1, q2)
-    BareQuantity(Array(3, dtype=int32, ...), unit='')
+    BareQuantity(Array(3, dtype=int32...), unit='')
 
     >>> q1 = u.Q(1, "")
     >>> q2 = u.Q(2, "")
     >>> jnp.bitwise_xor(q1, q2)
-    Quantity(Array(3, dtype=int32, weak_type=True), unit='')
+    Quantity(Array(3, dtype=int32...), unit='')
 
     """
     return replace(x, value=qlax.bitwise_xor(ustrip(one, x), ustrip(one, y)))
@@ -5123,4 +5205,22 @@ def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 
 @quax.register(lax.zeta_p)
 def zeta_p(x: ABCQ, q: ArrayLike, /) -> ABCQ:
+    """Hurwitz zeta function of a quantity.
+
+    Computes the Hurwitz zeta function ζ(x, q) = Σ(k=0 to ∞) 1/(q+k)^x.
+
+    Examples
+    --------
+    >>> import quaxed.lax as qlax
+    >>> import unxt as u
+
+    >>> x = u.quantity.BareQuantity(2.0, "")
+    >>> qlax.zeta(x, 1.0).round(4)
+    BareQuantity(Array(1.6449, dtype=float32...), unit='')
+
+    >>> x = u.Q(2.0, "")
+    >>> qlax.zeta(x, 1.0).round(4)
+    Quantity(Array(1.6449, dtype=float32...), unit='')
+
+    """
     return replace(x, value=lax.zeta_p.bind(ustrip(x), q))
