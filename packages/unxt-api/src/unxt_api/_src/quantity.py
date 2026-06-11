@@ -125,10 +125,10 @@ def wrap_to(x: Any, min: Any, max: Any, /) -> Any:
     >>> min, max = u.Q(0, "deg"), u.Q(360, "deg")
     >>>
     >>> u.quantity.wrap_to(angle, min, max)
-    Angle(Array(10, dtype=int32, ...), unit='deg')
+    Angle(Array(10, dtype=int32...), unit='deg')
     >>>
     >>> u.quantity.wrap_to(angle, min=min, max=max)
-    Angle(Array(10, dtype=int32, ...), unit='deg')
+    Angle(Array(10, dtype=int32...), unit='deg')
 
     """
     raise NotImplementedError  # pragma: no cover
