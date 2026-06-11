@@ -38,7 +38,7 @@ class Quantity(AbstractParametricQuantity):
     From an integer:
 
     >>> u.Quantity(1, "m")
-    Quantity(Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32,...), unit='m')
 
     From a float:
 

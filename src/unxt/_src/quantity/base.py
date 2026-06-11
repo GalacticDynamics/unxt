@@ -79,12 +79,12 @@ class AbstractQuantity(
     From an integer:
 
     >>> u.Quantity(1, "m")
-    Quantity(Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32,...), unit='m')
 
     From a float:
 
     >>> u.Quantity(1.0, "m")
-    Quantity(Array(1., dtype=float32, ...), unit='m')
+    Quantity(Array(1., dtype=float32,...), unit='m')
 
     From a list:
 
@@ -112,7 +112,7 @@ class AbstractQuantity(
 
     >>> import astropy.units as apyu
     >>> u.Quantity(1, apyu.m)
-    Quantity(Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32,...), unit='m')
 
     """
 
@@ -420,7 +420,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Quantity(1, "m")
         >>> q.to_device(None)
-        Quantity(Array(1, dtype=int32, weak_type=True), unit='m')
+        Quantity(Array(1, dtype=int32,...), unit='m')
 
         """
         return replace(self, value=self.value.to_device(device))
@@ -995,7 +995,7 @@ def from_(
 
     >>> q = u.Quantity(1, "m")
     >>> u.Quantity.from_(q, None)
-    Quantity(Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32,...), unit='m')
 
     """
     value = jnp.asarray(value, dtype=dtype)

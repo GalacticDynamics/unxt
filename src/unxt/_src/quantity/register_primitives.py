@@ -1144,6 +1144,88 @@ def concatenate_p_vqnd(operand0: ArrayLike, *operands: ABCQ, dimension: Any) -> 
 
 
 # ==============================================================================
+# Stack
+
+if hasattr(lax, "stack_p"):
+
+    @quax.register(lax.stack_p)
+    def stack_p_aq(*operands: ABCQ, axis: int) -> ABCQ:
+        """Stack quantities along a new axis.
+
+        Examples
+        --------
+        >>> import quaxed.numpy as jnp
+        >>> import unxt as u
+        >>> q1 = u.quantity.BareQuantity([1.0, 2.0], "km")
+        >>> q2 = u.quantity.BareQuantity([3_000.0, 4_000.0], "m")
+        >>> jnp.stack([q1, q2]).round(2)
+        BareQuantity(Array([[1., 2.],
+                            [3., 4.]], dtype=float32), unit='km')
+
+        >>> q1 = u.Q([1.0, 2.0], "km")
+        >>> q2 = u.Q([3_000.0, 4_000.0], "m")
+        >>> jnp.stack([q1, q2]).round(2)
+        Quantity(Array([[1., 2.],
+                        [3., 4.]], dtype=float32), unit='km')
+
+        """
+        operand0 = operands[0]
+        u = operand0.unit
+        return replace(
+            operand0,
+            value=lax.stack([ustrip(u, op) for op in operands], axis=axis),
+        )
+
+    # ---------------------------
+
+    @quax.register(lax.stack_p, precedence=1)
+    def stack_p_qnd(
+        operand0: ABCPQ["dimensionless"],
+        *operands: ABCPQ["dimensionless"] | ArrayLike,
+        axis: int,
+    ) -> ABCPQ["dimensionless"]:
+        """Stack dimensionless quantities and arrays along a new axis.
+
+        Examples
+        --------
+        >>> import quaxed.numpy as jnp
+        >>> import unxt as u
+        >>> q1 = u.Q([0.5, 0.5], "")
+        >>> q2 = jnp.asarray([1.0, 2.0])
+        >>> jnp.stack([q1, q2])
+        Quantity(Array([[0.5, 0.5],
+                        [1. , 2. ]], dtype=float32), unit='')
+
+        """
+        value = lax.stack(
+            [
+                (ustrip(one, op) if hasattr(op, "unit") else op)
+                for op in (operand0, *operands)
+            ],
+            axis=axis,
+        )
+        return type_np(operand0)(value, unit=one)
+
+    @quax.register(lax.stack_p)
+    def stack_p_vqnd(operand0: ArrayLike, *operands: ABCQ, axis: int) -> ABCQ:
+        """Stack arrays and dimensionless quantities along a new axis.
+
+        Examples
+        --------
+        >>> import quaxed.numpy as jnp
+        >>> import unxt as u
+        >>> arr = jnp.asarray([1.0, 2.0])
+        >>> q = u.Q([0.5, 0.5], "")
+        >>> jnp.stack([arr, q])
+        Quantity(Array([[1. , 2. ],
+                        [0.5, 0.5]], dtype=float32), unit='')
+
+        """
+        arrs = [operand0, *(ustrip(one, op) for op in operands)]
+        return Quantity(lax.stack(arrs, axis=axis), unit=one)
+
+
+# ==============================================================================
 
 
 @quax.register(lax.cond_p)  # TODO: implement

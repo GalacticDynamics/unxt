@@ -131,7 +131,7 @@ def ustrip(flag: type[AllowValue], x: AbstractQuantity, /) -> Any:
     >>> not isinstance(y, u.Quantity)
     True
     >>> y == 1
-    Array(True, dtype=bool, ...)
+    Array(True, dtype=bool,...)
 
     """
     return uapi.ustrip(x)

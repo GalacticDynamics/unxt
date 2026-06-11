@@ -82,8 +82,16 @@ class StaticValue:
 
     @property
     def _jnparray(self) -> Array:
-        """Return the contained array as a JAX array."""
-        return jnp.asarray(self._array)
+        """Return the contained array as a JAX array.
+
+        JAX 0.7.2+ introduces TypedNdArray for type-preserving operations.
+        These are not jax.Array instances but carry dtype information.
+        We need to explicitly convert them to proper arrays while preserving dtype.
+        """
+        out = jnp.asarray(self._array)
+        if not isinstance(out, jax.Array):
+            out = jnp.asarray(out, dtype=out.dtype)
+        return out
 
     # Constructor
     @classmethod
@@ -326,4 +334,13 @@ def convert_to_quantity_value(obj: ArrayLike | list[Any] | tuple[Any, ...], /) -
     Array([1, 2, 3], dtype=int32)
 
     """
-    return jnp.asarray(obj)
+    out = jnp.asarray(obj)
+
+    # JAX 0.7.2+ introduces TypedInt, TypedFloat, TypedComplex for
+    # type-preserving operations. These are not jax.Array instances but carry
+    # dtype information. We need to explicitly convert them to proper arrays
+    # while preserving dtype.
+    if not isinstance(out, jax.Array):
+        out = jnp.asarray(out, dtype=out.dtype)
+
+    return out

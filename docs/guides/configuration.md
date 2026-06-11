@@ -124,12 +124,12 @@ Display units as `unit='m'` instead of positional `'m'`.
 >>> # Default behavior (named_unit=True)
 >>> with u.config.quantity_repr.override(named_unit=False):
 ...     print(repr(q))
-Quantity(Array(1., dtype=float32, ...), 'm')
+Quantity(Array(1., dtype=float32,...), 'm')
 
 >>> # With named_unit=True
 >>> with u.config.quantity_repr.override(named_unit=True):
 ...     print(repr(q))
-Quantity(Array(1., dtype=float32, ...), unit='m')
+Quantity(Array(1., dtype=float32,...), unit='m')
 ```
 
 ### `include_params`
@@ -144,11 +144,11 @@ Include type parameters in `repr()` for parametric quantities.
 
 >>> with u.config.quantity_repr.override(include_params=False):
 ...     print(repr(q))
-Quantity(Array(1., dtype=float32, weak_type=True), unit='m')
+Quantity(Array(1., dtype=float32,...), unit='m')
 
 >>> with u.config.quantity_repr.override(include_params=True):
 ...     print(repr(q))
-Quantity['length'](Array(1., dtype=float32, weak_type=True), unit='m')
+Quantity['length'](Array(1., dtype=float32,...), unit='m')
 ```
 
 ### `indent`

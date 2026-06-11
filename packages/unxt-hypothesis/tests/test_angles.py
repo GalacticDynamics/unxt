@@ -20,7 +20,7 @@ def test_basic_angle(angle: u.Angle) -> None:
 def test_angle_with_bounds(angle: u.Angle) -> None:
     """Test angle generation with value bounds."""
     assert isinstance(angle, u.Angle)
-    assert -180 <= angle.to("deg").value <= 180
+    assert -180 <= angle.ustrip("deg") <= 180
 
 
 @given(angle=angles(unit="rad"))
@@ -38,7 +38,7 @@ def test_angle_with_wrapping(angle: u.Angle) -> None:
     assert isinstance(angle, u.Angle)
     # The wrap_to strategy wraps values to [min, max) range
     # but floating point can give us exactly max
-    angle_deg = angle.to("deg").value
+    angle_deg = angle.ustrip("deg")
     assert 0 <= angle_deg <= 360
 
 
@@ -49,7 +49,7 @@ def test_angle_with_symmetric_wrapping(angle: u.Angle) -> None:
     assert isinstance(angle, u.Angle)
     # The wrap_to strategy wraps values to [min, max) range
     # but floating point can give us exactly max
-    angle_deg = angle.to("deg").value
+    angle_deg = angle.ustrip("deg")
     assert -180 <= angle_deg <= 180
 
 
