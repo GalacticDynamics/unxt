@@ -9,11 +9,11 @@ from typing_extensions import override
 
 import jax
 import numpy as np
+import plum
 import quax
 import wadler_lindig as wl
 from jaxtyping import Array, ArrayLike
 from numpy.typing import NDArray
-from plum import dispatch
 
 import quaxed.numpy as jnp
 
@@ -87,7 +87,7 @@ class StaticValue:
 
     # Constructor
     @classmethod
-    @dispatch.abstract
+    @plum.dispatch.abstract
     def from_(cls: type["StaticValue"], *args: Any, **kwargs: Any) -> "StaticValue":
         """Create a `StaticValue` from given arguments."""
         raise NotImplementedError  # pragma: no cover
@@ -266,19 +266,19 @@ def from_(cls: type[StaticValue], value: jax.Array | jax.core.Tracer, /) -> Stat
 # Converters for quantity value field
 
 
-@dispatch.abstract
+@plum.dispatch.abstract
 def convert_to_quantity_value(obj: Any, /) -> Any:
     """Convert for the value field of an `AbstractQuantity` subclass."""
     raise NotImplementedError  # pragma: no cover
 
 
-@dispatch
+@plum.dispatch
 def convert_to_quantity_value(obj: StaticValue, /) -> StaticValue:
     """Allow static values in `Quantity`-like classes."""
     return obj
 
 
-@dispatch
+@plum.dispatch
 def convert_to_quantity_value(obj: quax.ArrayValue, /) -> Any:
     """Convert a `quax.ArrayValue` for the value field.
 
@@ -315,7 +315,7 @@ def convert_to_quantity_value(obj: quax.ArrayValue, /) -> Any:
     return obj
 
 
-@dispatch
+@plum.dispatch
 def convert_to_quantity_value(obj: ArrayLike | list[Any] | tuple[Any, ...], /) -> Array:
     """Convert an array-like object to a `jax.numpy.ndarray`.
 
