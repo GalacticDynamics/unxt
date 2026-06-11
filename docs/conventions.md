@@ -20,7 +20,7 @@ As an example, consider the following code snippets:
 
 >>> q = u.Q(1, 'm')
 >>> q
-Quantity(Array(1, dtype=int32,...), unit='m')
+Quantity(Array(1, dtype=int32...), unit='m')
 ```
 
 First we'll show the object-oriented API:

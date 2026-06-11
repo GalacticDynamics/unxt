@@ -38,12 +38,12 @@ class Quantity(AbstractParametricQuantity):
     From an integer:
 
     >>> u.Quantity(1, "m")
-    Quantity(Array(1, dtype=int32,...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     From a float:
 
     >>> u.Q(1.0, "m")
-    Quantity(Array(1., dtype=float32, ...), unit='m')
+    Quantity(Array(1., dtype=float32...), unit='m')
 
     From a list:
 
@@ -70,13 +70,13 @@ class Quantity(AbstractParametricQuantity):
     The unit can also be given as a units object:
 
     >>> u.Quantity(1, u.unit("m"))
-    Quantity(Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     In the previous examples, the dimension parameter was inferred from the
     values. It can also be given explicitly:
 
     >>> u.Quantity["length"](1, "m")
-    Quantity(Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     This can be used for runtime checking of the input dimension!
 
@@ -92,12 +92,12 @@ class Quantity(AbstractParametricQuantity):
     >>> dims
     PhysicalType('length')
     >>> u.Quantity[dims](1.0, "m")
-    Quantity(Array(1., dtype=float32, ...), unit='m')
+    Quantity(Array(1., dtype=float32...), unit='m')
 
     Or as a unit:
 
     >>> u.Quantity[u.unit("m")](1.0, "m")
-    Quantity(Array(1., dtype=float32, ...), unit='m')
+    Quantity(Array(1., dtype=float32...), unit='m')
 
     Some tricky cases are when the physical type is unknown:
 

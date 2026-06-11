@@ -68,7 +68,7 @@ def empty_like(
     >>> from unxt import Quantity
 
     >>> jnp.empty_like(Quantity(5, "m"))
-    Quantity(Array(0, dtype=int32, ...), unit='m')
+    Quantity(Array(0, dtype=int32...), unit='m')
 
     """
     out = plum.type_unparametrized(x)(jax_xp.empty_like(x.value, **kwargs), unit=x.unit)
@@ -90,7 +90,7 @@ def full(
     >>> from unxt import Quantity
 
     >>> jnp.full((2, 2), Quantity(5, "m"))
-    Quantity(Array([[5, 5], [5, 5]], dtype=int32, ...), unit='m')
+    Quantity(Array([[5, 5], [5, 5]], dtype=int32...), unit='m')
 
     """
     fill_val = ustrip(fill_value.unit, fill_value)
@@ -112,7 +112,7 @@ def full_like(
     >>> from unxt import Quantity
 
     >>> jnp.full_like(Quantity(5, "m"), fill_value=Quantity(10, "m"))
-    Quantity(Array(10, dtype=int32, ...), unit='m')
+    Quantity(Array(10, dtype=int32...), unit='m')
 
     """
     # re-dispatch to the correct implementation
@@ -131,7 +131,7 @@ def full_like(
     >>> from unxt import Quantity
 
     >>> jnp.full_like(Quantity(5, "m"), 100.0)
-    Quantity(Array(100, dtype=int32, ...), unit='m')
+    Quantity(Array(100, dtype=int32...), unit='m')
 
     """
     return plum.type_unparametrized(x)(
@@ -151,7 +151,7 @@ def full_like(
     >>> from unxt import Quantity
 
     >>> jnp.full_like(Quantity(5, "m"), Quantity(10, "m"))
-    Quantity(Array(10, dtype=int32, ...), unit='m')
+    Quantity(Array(10, dtype=int32...), unit='m')
 
     """
     fill_val = ustrip(x.unit, fill_value)
@@ -221,7 +221,7 @@ def ones_like(
     >>> from unxt import Quantity
 
     >>> jnp.ones_like(Quantity(5, "m"))
-    Quantity(Array(1, dtype=int32, ...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     """
     cls = plum.type_unparametrized(x)
@@ -244,7 +244,7 @@ def zeros_like(
     >>> from unxt import Quantity
 
     >>> jnp.zeros_like(Quantity(5, "m"))
-    Quantity(Array(0, dtype=int32, ...), unit='m')
+    Quantity(Array(0, dtype=int32...), unit='m')
 
     """
     cls = plum.type_unparametrized(x)

@@ -240,7 +240,7 @@ You can use unit system units to create quantities:
 
 >>> q = u.Quantity(10, usys["velocity"])
 >>> q
-Quantity(Array(10, dtype=int32,...), unit='m / s')
+Quantity(Array(10, dtype=int32...), unit='m / s')
 
 ```
 
@@ -516,7 +516,7 @@ JAX Auto-Differentiation (AD) is supported:
 
 >>> grad_f = quaxify(jax.grad(f))
 >>> grad_f(x, y)
-Quantity(Array(0.5, dtype=float32,...), unit='m / s')
+Quantity(Array(0.5, dtype=float32...), unit='m / s')
 
 ```
 
@@ -528,7 +528,7 @@ or using the convenience library
 
 >>> grad_f = qjax.grad(f)
 >>> grad_f(x, y)
-Quantity(Array(0.5, dtype=float32,...), unit='m / s')
+Quantity(Array(0.5, dtype=float32...), unit='m / s')
 
 ```
 
@@ -540,7 +540,7 @@ Quantity(Array(0.5, dtype=float32,...), unit='m / s')
 
 >>> jac_f = quaxify(jax.jacfwd(f))
 >>> jac_f(x, y)
-Quantity(Array(0.5, dtype=float32,...), unit='m / s')
+Quantity(Array(0.5, dtype=float32...), unit='m / s')
 
 ```
 
@@ -550,7 +550,7 @@ or using the convenience library
 
 >>> jac_f = qjax.jacfwd(f)
 >>> jac_f(x, y)
-Quantity(Array(0.5, dtype=float32,...), unit='m / s')
+Quantity(Array(0.5, dtype=float32...), unit='m / s')
 
 ```
 
@@ -562,7 +562,7 @@ Quantity(Array(0.5, dtype=float32,...), unit='m / s')
 
 >>> hess_f = quaxify(jax.hessian(f))
 >>> hess_f(x, y)
-Quantity(Array(0.5, dtype=float32,...), unit='1 / s')
+Quantity(Array(0.5, dtype=float32...), unit='1 / s')
 
 ```
 
@@ -572,7 +572,7 @@ or using the convenience library
 
 >>> hess_f = qjax.hessian(f)
 >>> hess_f(x, y)
-Quantity(Array(0.5, dtype=float32,...), unit='1 / s')
+Quantity(Array(0.5, dtype=float32...), unit='1 / s')
 
 ```
 

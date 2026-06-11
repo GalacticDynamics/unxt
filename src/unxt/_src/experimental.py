@@ -73,7 +73,7 @@ def grad(
 
     >>> grad_cube_volume = u.experimental.grad(cube_volume, units=("m",))
     >>> grad_cube_volume(u.Q(2.0, "m"))
-    Quantity(Array(12., dtype=float32,...), unit='m2')
+    Quantity(Array(12., dtype=float32...), unit='m2')
 
     """
     theunits: tuple[AbstractUnit | None, ...] = tuple(map(unit_or_none, units))
@@ -135,7 +135,7 @@ def jacfwd(
 
     >>> jacfwd_cubbe_volume = u.experimental.jacfwd(cubbe_volume, units=("m",))
     >>> jacfwd_cubbe_volume(u.Q(2.0, "m"))
-    BareQuantity(Array(12., dtype=float32,...), unit='m2')
+    BareQuantity(Array(12., dtype=float32...), unit='m2')
 
     """
     argnums = eqx.error_if(
@@ -202,7 +202,7 @@ def hessian(
 
     >>> hessian_cubbe_volume = u.experimental.hessian(cubbe_volume, units=("m",))
     >>> hessian_cubbe_volume(u.Q(2.0, "m"))
-    BareQuantity(Array(12., dtype=float32,...), unit='m')
+    BareQuantity(Array(12., dtype=float32...), unit='m')
 
     """
     theunits: tuple[AbstractUnit, ...] = tuple(map(unit_or_none, units))
