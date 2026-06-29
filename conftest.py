@@ -16,18 +16,24 @@ from sybil.parsers.abstract.doctest import DocTestStringParser
 from optional_dependencies import OptionalDependencyEnum, auto
 
 optionflags = ELLIPSIS | NORMALIZE_WHITESPACE
-_JAX_ARRAY_ELLIPSIS_RE = re.compile(r"(Array\([^()\n]*dtype=[^,\n)]+), \.\.\.(\))")
+_JAX_SCALAR_ARRAY_ELLIPSIS_RE = re.compile(
+    r"(Array\(.*?dtype=[^,\n)]+), \.\.\.(\))"
+)
 
 
 def _normalize_jax_repr(text: str) -> str:
     """Normalize unstable JAX ``Array(...)`` repr metadata for doctests.
 
     JAX may optionally include ``weak_type=True`` for scalar arrays, and some
-    examples use ``...,`` after the dtype to allow for extra repr metadata. Both
-    details vary across JAX and Python versions but do not affect behavior.
+    scalar examples use ``...,`` after the dtype to allow for extra repr
+    metadata. Both details vary across JAX and Python versions but do not
+    affect behavior.
     """
     text = text.replace(", weak_type=True", "")
-    return _JAX_ARRAY_ELLIPSIS_RE.sub(r"\1...\2", text)
+    # Normalize ``dtype=float32, ...)`` to ``dtype=float32...)`` so doctest
+    # ellipsis matching works whether extra scalar repr metadata is present or
+    # absent in a given JAX/Python combination.
+    return _JAX_SCALAR_ARRAY_ELLIPSIS_RE.sub(r"\1...\2", text)
 
 
 class JaxAwareOutputChecker(OutputChecker):

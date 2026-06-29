@@ -7,7 +7,8 @@ from pathlib import Path
 
 def _load_root_conftest():
     """Load the repository-root ``conftest.py`` for direct unit testing."""
-    root = Path(__file__).resolve().parents[2] / "conftest.py"
+    current = Path(__file__).resolve()
+    root = next(parent / "conftest.py" for parent in current.parents if (parent / "conftest.py").exists())
     spec = importlib.util.spec_from_file_location("root_conftest", root)
     assert spec is not None
     assert spec.loader is not None
@@ -48,5 +49,16 @@ def test_jax_output_checker_accepts_optional_scalar_repr_metadata() -> None:
     assert checker.check_output(
         "Quantity(Array(100., dtype=float32, ...), unit='cm')\n",
         "Quantity(Array(100., dtype=float32), unit='cm')\n",
+        ELLIPSIS,
+    )
+
+
+def test_jax_output_checker_accepts_added_scalar_repr_metadata() -> None:
+    """Doctest output checker should allow additional scalar repr metadata."""
+    checker = ROOT_CONFTEST.JaxAwareOutputChecker()
+
+    assert checker.check_output(
+        "Quantity(Array(2.7182817, dtype=float32), unit='')\n",
+        "Quantity(Array(2.7182817, dtype=float32, weak_type=True), unit='')\n",
         ELLIPSIS,
     )
