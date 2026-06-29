@@ -8,8 +8,8 @@ __all__ = ("StaticQuantity",)
 from typing import Any, final
 
 import equinox as eqx
+import numpy as np
 import wadler_lindig as wl
-from numpy.typing import NDArray
 from plum import add_promotion_rule, parametric
 
 from .base_parametric import AbstractParametricQuantity
@@ -74,7 +74,7 @@ class StaticQuantity(AbstractParametricQuantity):
         """Return the hash of the quantity."""
         return hash((self.value, self.unit))
 
-    def __eq__(self, other: Any, /) -> bool | NDArray[bool]:  # type: ignore[override]
+    def __eq__(self, other: Any, /) -> bool | np.ndarray:  # type: ignore[override]
         """Return structural equality for static quantities."""
         if isinstance(other, StaticQuantity):
             return self.unit == other.unit and self.value == other.value
