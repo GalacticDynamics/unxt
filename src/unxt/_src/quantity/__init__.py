@@ -15,3 +15,4 @@ from .register_api import *
 from .register_conversions import *
 from .register_dispatches import *
 from .register_primitives import *
+from .register_ufuncs import *
