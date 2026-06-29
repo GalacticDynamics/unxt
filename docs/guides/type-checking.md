@@ -20,9 +20,9 @@ from jaxtyping import Float
 import unxt as u
 
 def function(
-    x: Float[u.Quantity["length"], "N"],
-    t: Float[u.Quantity["time"], "N"],
-) -> Float[u.Quantity["speed"], "N"]:
+    x: Float[u.Q["length"], "N"],
+    t: Float[u.Q["time"], "N"],
+) -> Float[u.Q["speed"], "N"]:
     return x / t
 
 ```
@@ -83,9 +83,9 @@ Here's an example:
 
 >>> @jaxtyped(typechecker=typechecker)
 ... def velocity(
-...     x: Shaped[u.Quantity["length"], "N"],
-...     t: Shaped[u.Quantity["time"], "N"],
-... ) -> Shaped[u.Quantity["speed"], "N"]:
+...     x: Shaped[u.Q["length"], "N"],
+...     t: Shaped[u.Q["time"], "N"],
+... ) -> Shaped[u.Q["speed"], "N"]:
 ...     return x / t
 
 >>> x = u.Q([2.], "m")
@@ -111,7 +111,7 @@ Now for some examples.
 When a `Quantity` is constructed it is parametrized by the unit's dimension. This can be specified explicitly
 
 ```{code-block}
->>> u.Quantity["length"](1, "m")
+>>> u.Q["length"](1, "m")
 Quantity['length'](Array(1, dtype=int32, ...), unit='m')
 ```
 
@@ -126,7 +126,7 @@ When given explicitly Quantity will check the input dimensions. Here a length-pa
 
 ```{code-block} python
 >>> try:
-...     u.Quantity["length"](1, "s")
+...     u.Q["length"](1, "s")
 ... except Exception as e:
 ...     print(e)
 Physical type mismatch.
@@ -137,7 +137,7 @@ That should catch some bugs!
 The act of filling a `Quantity`'s parameters and its construction may be separated
 
 ```{code-block} python
->>> LengthQuantity = u.Quantity["length"]
+>>> LengthQuantity = u.Q["length"]
 >>> LengthQuantity
 <class 'unxt...Quantity[PhysicalType('length')]'>
 ```

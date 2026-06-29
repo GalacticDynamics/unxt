@@ -87,7 +87,7 @@ def test_static_quantity_promotes_to_quantity() -> None:
 def test_static_quantity_subtraction_with_quantity() -> None:
     """StaticQuantity subtraction with Quantity promotes to Quantity."""
     sq = u.StaticQuantity(np.array(1.0), "s")
-    q = u.Quantity(0.5, "s")
+    q = u.Q(0.5, "s")
 
     # Quantity - StaticQuantity -> Quantity
     result1 = q - sq
@@ -114,7 +114,7 @@ def test_static_quantity_subtraction_preserves_static() -> None:
 def test_static_quantity_addition_with_quantity() -> None:
     """StaticQuantity addition with Quantity promotes to Quantity."""
     sq = u.StaticQuantity(np.array(1.0), "s")
-    q = u.Quantity(0.5, "s")
+    q = u.Q(0.5, "s")
 
     # Quantity + StaticQuantity -> Quantity
     result1 = q + sq
@@ -141,7 +141,7 @@ def test_static_quantity_addition_preserves_static() -> None:
 def test_static_quantity_multiplication_with_quantity() -> None:
     """StaticQuantity multiplication with Quantity promotes to Quantity."""
     sq = u.StaticQuantity(2.0, "m")
-    q = u.Quantity(3.0, "s")
+    q = u.Q(3.0, "s")
 
     # Quantity * StaticQuantity -> Quantity
     result1 = q * sq
@@ -196,7 +196,7 @@ def test_static_quantity_integer_power_preserves_static_array() -> None:
 def test_static_quantity_division_with_quantity() -> None:
     """StaticQuantity division with Quantity promotes to Quantity."""
     sq = u.StaticQuantity(6.0, "m")
-    q = u.Quantity(2.0, "s")
+    q = u.Q(2.0, "s")
 
     # Quantity / StaticQuantity -> Quantity
     result1 = q / sq
@@ -238,7 +238,7 @@ def test_static_quantity_division_integer_inputs() -> None:
 def test_static_quantity_modulo_with_quantity() -> None:
     """StaticQuantity modulo with Quantity promotes to Quantity."""
     sq = u.StaticQuantity(7.0, "m")
-    q = u.Quantity(3.0, "m")
+    q = u.Q(3.0, "m")
 
     # Quantity % StaticQuantity -> Quantity (via promotion)
     result1 = q % sq

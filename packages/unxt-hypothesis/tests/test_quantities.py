@@ -11,45 +11,45 @@ import unxt_hypothesis as ust
 
 @given(q=ust.quantities(unit="m"))
 @settings(max_examples=50)
-def test_scalar_length(q: u.Quantity) -> None:
+def test_scalar_length(q: u.Q) -> None:
     """Test scalar length quantity generation."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == ()
     assert u.dimension_of(q) == u.dimension("length")
 
 
 @given(q=ust.quantities(unit="m/s", shape=3))
 @settings(max_examples=50)
-def test_vector_velocity(q: u.Quantity) -> None:
+def test_vector_velocity(q: u.Q) -> None:
     """Test 1D velocity quantity generation."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (3,)
     assert u.dimension_of(q) == u.dimension("velocity")
 
 
 @given(q=ust.quantities(unit="kg", shape=(2, 3)))
 @settings(max_examples=50)
-def test_2d_mass(q: u.Quantity) -> None:
+def test_2d_mass(q: u.Q) -> None:
     """Test 2D mass quantity generation."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (2, 3)
     assert u.dimension_of(q) == u.dimension("mass")
 
 
 @given(q=ust.quantities(unit="J", dtype=jnp.float32))
 @settings(max_examples=30)
-def test_float32_energy_dtype(q: u.Quantity) -> None:
+def test_float32_energy_dtype(q: u.Q) -> None:
     """Test float32 dtype for energy."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.dtype == jnp.float32
     assert u.dimension_of(q) == u.dimension("energy")
 
 
 @given(q=ust.quantities(unit="s", dtype=jnp.float32, shape=5))
 @settings(max_examples=30)
-def test_float32_time_dtype(q: u.Quantity) -> None:
+def test_float32_time_dtype(q: u.Q) -> None:
     """Test float32 dtype for time."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.dtype == jnp.float32
     assert q.shape == (5,)
     assert u.dimension_of(q) == u.dimension("time")
@@ -59,9 +59,9 @@ def test_float32_time_dtype(q: u.Quantity) -> None:
     q=ust.quantities(unit="m", shape=st.tuples(st.integers(1, 5), st.integers(1, 5)))
 )
 @settings(max_examples=30)
-def test_variable_shape_strategy(q: u.Quantity) -> None:
+def test_variable_shape_strategy(q: u.Q) -> None:
     """Test with a shape strategy."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert len(q.shape) == 2
     assert all(1 <= s <= 5 for s in q.shape)
     assert u.dimension_of(q) == u.dimension("length")
@@ -75,9 +75,9 @@ def test_variable_shape_strategy(q: u.Quantity) -> None:
     )
 )
 @settings(max_examples=30, deadline=None)
-def test_custom_elements(q: u.Quantity) -> None:
+def test_custom_elements(q: u.Q) -> None:
     """Test with custom element strategy."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (3,)
     # All values should be between 0 and 100
     assert jnp.all((q.value >= 0) & (q.value <= 100))
@@ -85,9 +85,9 @@ def test_custom_elements(q: u.Quantity) -> None:
 
 @given(q=ust.quantities(unit="m", shape=10, unique=True))
 @settings(max_examples=20, deadline=None)
-def test_unique_elements(q: u.Quantity) -> None:
+def test_unique_elements(q: u.Q) -> None:
     """Test unique elements constraint."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (10,)
     # All elements should be unique
     assert len(jnp.unique(q.value)) == 10
@@ -95,49 +95,49 @@ def test_unique_elements(q: u.Quantity) -> None:
 
 @given(q=ust.quantities(unit="m", static_value=True))
 @settings(max_examples=30)
-def test_static_value_generation(q: u.Quantity) -> None:
+def test_static_value_generation(q: u.Q) -> None:
     """Test StaticValue wrapping for generated quantities."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert isinstance(q.value, u.quantity.StaticValue)
 
 
 @given(q=ust.quantities(unit="rad"))
 @settings(max_examples=30)
-def test_angle_unit(q: u.Quantity) -> None:
+def test_angle_unit(q: u.Q) -> None:
     """Test with angle unit."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert u.dimension_of(q) == u.dimension("angle")
 
 
 @given(q=ust.quantities(unit="N"))
 @settings(max_examples=30)
-def test_force_unit(q: u.Quantity) -> None:
+def test_force_unit(q: u.Q) -> None:
     """Test with force unit."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert u.dimension_of(q) == u.dimension("force")
 
 
 @given(q=ust.quantities(unit="Pa"))
 @settings(max_examples=30)
-def test_pressure_unit(q: u.Quantity) -> None:
+def test_pressure_unit(q: u.Q) -> None:
     """Test with pressure unit."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert u.dimension_of(q) == u.dimension("pressure")
 
 
 @given(q=ust.quantities(unit="kpc"))
 @settings(max_examples=30)
-def test_astronomical_unit(q: u.Quantity) -> None:
+def test_astronomical_unit(q: u.Q) -> None:
     """Test with astronomical unit."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert u.dimension_of(q) == u.dimension("length")
 
 
 @given(q=ust.quantities(unit="km/s", shape=(3,)))
 @settings(max_examples=30)
-def test_compound_unit(q: u.Quantity) -> None:
+def test_compound_unit(q: u.Q) -> None:
     """Test with compound unit."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (3,)
     assert u.dimension_of(q) == u.dimension("velocity")
 
@@ -162,9 +162,9 @@ def test_accepts_shape_tuple() -> None:
 
 @given(q=ust.quantities(unit="eV", shape=()))
 @settings(max_examples=20)
-def test_explicit_scalar_shape(q: u.Quantity) -> None:
+def test_explicit_scalar_shape(q: u.Q) -> None:
     """Test explicit scalar shape ()."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == ()
     assert u.dimension_of(q) == u.dimension("energy")
 
@@ -174,9 +174,9 @@ def test_explicit_scalar_shape(q: u.Quantity) -> None:
 
 @given(q=ust.quantities(unit=ust.units("length"), shape=3))
 @settings(max_examples=50)
-def test_length_varying_units(q: u.Quantity) -> None:
+def test_length_varying_units(q: u.Q) -> None:
     """Test length quantity with varying units from units strategy."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (3,)
     # Should always have length dimension
     assert u.dimension_of(q) == u.dimension("length")
@@ -184,27 +184,27 @@ def test_length_varying_units(q: u.Quantity) -> None:
 
 @given(q=ust.quantities(unit=ust.units("velocity"), shape=()))
 @settings(max_examples=50)
-def test_scalar_velocity_varying_units(q: u.Quantity) -> None:
+def test_scalar_velocity_varying_units(q: u.Q) -> None:
     """Test scalar velocity with varying units."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == ()
     assert u.dimension_of(q) == u.dimension("velocity")
 
 
 @given(q=ust.quantities(unit=ust.units("mass"), shape=(2, 3)))
 @settings(max_examples=30)
-def test_2d_mass_varying_units(q: u.Quantity) -> None:
+def test_2d_mass_varying_units(q: u.Q) -> None:
     """Test 2D mass quantity with varying units."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (2, 3)
     assert u.dimension_of(q) == u.dimension("mass")
 
 
 @given(q=ust.quantities(unit=ust.units("energy", max_complexity=3), dtype=jnp.float32))
 @settings(max_examples=30)
-def test_energy_complex_units(q: u.Quantity) -> None:
+def test_energy_complex_units(q: u.Q) -> None:
     """Test energy with complex compound units."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.dtype == jnp.float32
     assert u.dimension_of(q) == u.dimension("energy")
 
@@ -217,9 +217,9 @@ def test_energy_complex_units(q: u.Quantity) -> None:
     )
 )
 @settings(max_examples=30)
-def test_length_non_integer_powers(q: u.Quantity) -> None:
+def test_length_non_integer_powers(q: u.Q) -> None:
     """Test length with non-integer power units."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (5,)
     assert q.dtype == jnp.float32
     assert u.dimension_of(q) == u.dimension("length")
@@ -232,9 +232,9 @@ def test_length_non_integer_powers(q: u.Quantity) -> None:
 
 @given(q=ust.quantities("m", dtype=st.sampled_from([jnp.float32, jnp.int32])))
 @settings(max_examples=50)
-def test_dtype_strategy_float_types(q: u.Quantity) -> None:
+def test_dtype_strategy_float_types(q: u.Q) -> None:
     """Test dtype as a strategy with different types."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.dtype in (jnp.float32, jnp.int32)
     assert u.dimension_of(q) == u.dimension("length")
 
@@ -247,9 +247,9 @@ def test_dtype_strategy_float_types(q: u.Quantity) -> None:
     )
 )
 @settings(max_examples=30)
-def test_dtype_strategy_with_complex(q: u.Quantity) -> None:
+def test_dtype_strategy_with_complex(q: u.Q) -> None:
     """Test dtype strategy including complex types."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (3,)
     assert q.dtype in (jnp.float32, jnp.complex64)
 
@@ -262,9 +262,9 @@ def test_dtype_strategy_with_complex(q: u.Quantity) -> None:
     )
 )
 @settings(max_examples=20)
-def test_dtype_strategy_just_float32(q: u.Quantity) -> None:
+def test_dtype_strategy_just_float32(q: u.Q) -> None:
     """Test using st.just for a single dtype via strategy."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.dtype == jnp.float32
     assert q.shape == (2, 3)
 
@@ -276,27 +276,27 @@ def test_dtype_strategy_just_float32(q: u.Quantity) -> None:
 
 @given(q=ust.quantities(unit=u.dimension("length"), shape=3))
 @settings(max_examples=50)
-def test_unit_from_length_dimension(q: u.Quantity) -> None:
+def test_unit_from_length_dimension(q: u.Q) -> None:
     """Test generating units from length dimension."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (3,)
     assert u.dimension_of(q) == u.dimension("length")
 
 
 @given(q=ust.quantities(unit=u.dimension("velocity"), shape=()))
 @settings(max_examples=50)
-def test_unit_from_velocity_dimension(q: u.Quantity) -> None:
+def test_unit_from_velocity_dimension(q: u.Q) -> None:
     """Test generating units from velocity dimension."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == ()
     assert u.dimension_of(q) == u.dimension("velocity")
 
 
 @given(q=ust.quantities(unit=u.dimension("mass"), shape=(2, 3), dtype=jnp.float32))
 @settings(max_examples=30)
-def test_unit_from_mass_dimension_with_dtype(q: u.Quantity) -> None:
+def test_unit_from_mass_dimension_with_dtype(q: u.Q) -> None:
     """Test dimension with explicit dtype."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (2, 3)
     assert q.dtype == jnp.float32
     assert u.dimension_of(q) == u.dimension("mass")
@@ -304,9 +304,9 @@ def test_unit_from_mass_dimension_with_dtype(q: u.Quantity) -> None:
 
 @given(q=ust.quantities(unit=u.dimension("energy"), shape=5))
 @settings(max_examples=30)
-def test_unit_from_energy_dimension(q: u.Quantity) -> None:
+def test_unit_from_energy_dimension(q: u.Q) -> None:
     """Test generating units from energy dimension."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (5,)
     assert u.dimension_of(q) == u.dimension("energy")
 
@@ -323,9 +323,9 @@ def test_unit_from_energy_dimension(q: u.Quantity) -> None:
     )
 )
 @settings(max_examples=50)
-def test_unit_from_dimension_strategy(q: u.Quantity) -> None:
+def test_unit_from_dimension_strategy(q: u.Q) -> None:
     """Test generating units from a strategy of dimensions."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == ()
     dim = u.dimension_of(q)
     assert dim in (u.dimension("length"), u.dimension("mass"))
@@ -339,9 +339,9 @@ def test_unit_from_dimension_strategy(q: u.Quantity) -> None:
     )
 )
 @settings(max_examples=40)
-def test_dimension_strategy_kinematic_quantities(q: u.Quantity) -> None:
+def test_dimension_strategy_kinematic_quantities(q: u.Q) -> None:
     """Test dimension strategy for kinematic quantities."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (3,)
     assert q.dtype == jnp.float32
     dim = u.dimension_of(q)
@@ -355,9 +355,9 @@ def test_dimension_strategy_kinematic_quantities(q: u.Quantity) -> None:
     )
 )
 @settings(max_examples=30)
-def test_dimension_strategy_angle_dimensionless(q: u.Quantity) -> None:
+def test_dimension_strategy_angle_dimensionless(q: u.Q) -> None:
     """Test dimension strategy with angle and dimensionless."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (2, 2)
     dim = u.dimension_of(q)
     assert dim in (u.dimension("angle"), u.dimension("dimensionless"))
@@ -376,9 +376,9 @@ def test_dimension_strategy_angle_dimensionless(q: u.Quantity) -> None:
     )
 )
 @settings(max_examples=40)
-def test_combined_dimension_and_dtype_strategies(q: u.Quantity) -> None:
+def test_combined_dimension_and_dtype_strategies(q: u.Q) -> None:
     """Test combining dimension and dtype strategies."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == ()
     assert q.dtype in (jnp.float32, jnp.int32)
     dim = u.dimension_of(q)
@@ -393,9 +393,9 @@ def test_combined_dimension_and_dtype_strategies(q: u.Quantity) -> None:
     )
 )
 @settings(max_examples=30)
-def test_force_dimension_with_dtype_strategy(q: u.Quantity) -> None:
+def test_force_dimension_with_dtype_strategy(q: u.Q) -> None:
     """Test force dimension with varying dtype."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (3, 3)
     assert q.dtype in (jnp.float32, jnp.complex64)
     assert u.dimension_of(q) == u.dimension("force")
@@ -412,9 +412,9 @@ def test_force_dimension_with_dtype_strategy(q: u.Quantity) -> None:
     )
 )
 @settings(max_examples=50)
-def test_positive_distance_elements(q: u.Quantity) -> None:
+def test_positive_distance_elements(q: u.Q) -> None:
     """Test elements parameter for positive distances."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.unit == u.unit("kpc")
     assert q.shape == (3,)
     # All values should be non-negative (suitable for distances)
@@ -430,9 +430,9 @@ def test_positive_distance_elements(q: u.Quantity) -> None:
     )
 )
 @settings(max_examples=50)
-def test_longitude_angle_range(q: u.Quantity) -> None:
+def test_longitude_angle_range(q: u.Q) -> None:
     """Test elements for longitude angles (0-360 degrees)."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.unit == u.unit("deg")
     assert 0 <= q.value <= 360
 
@@ -445,9 +445,9 @@ def test_longitude_angle_range(q: u.Quantity) -> None:
     )
 )
 @settings(max_examples=30)
-def test_latitude_angle_range(q: u.Quantity) -> None:
+def test_latitude_angle_range(q: u.Q) -> None:
     """Test elements for latitude angles (-90 to 90 degrees)."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.unit == u.unit("deg")
     assert q.shape == (100,)
     assert jnp.all(q.value >= -90)
@@ -462,9 +462,9 @@ def test_latitude_angle_range(q: u.Quantity) -> None:
     )
 )
 @settings(max_examples=30)
-def test_azimuthal_angle_radians(q: u.Quantity) -> None:
+def test_azimuthal_angle_radians(q: u.Q) -> None:
     """Test elements for azimuthal angles in radians (0 to 2π)."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.unit == u.unit("rad")
     assert q.shape == (5, 5)
     assert jnp.all(q.value >= 0)
@@ -479,9 +479,9 @@ def test_azimuthal_angle_radians(q: u.Quantity) -> None:
     )
 )
 @settings(max_examples=30)
-def test_physical_length_scale(q: u.Quantity) -> None:
+def test_physical_length_scale(q: u.Q) -> None:
     """Test elements for physical lengths with realistic bounds."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert q.shape == (10,)
     # All values in reasonable range (1 meter to 1 kilometer)
     assert jnp.all(q.value >= 1.0)
@@ -559,10 +559,10 @@ def test_quantities_angle_class(angle: u.Angle) -> None:
     assert angle.shape == (3,)
 
 
-@given(quantity=ust.quantities("m", quantity_cls=u.Quantity, shape=()))
+@given(quantity=ust.quantities("m", quantity_cls=u.Q, shape=()))
 @settings(max_examples=30)
-def test_quantities_quantity_class(quantity: u.Quantity) -> None:
+def test_quantities_quantity_class(quantity: u.Q) -> None:
     """Test creating Quantity instances via quantity_cls parameter."""
-    assert isinstance(quantity, u.Quantity)
+    assert isinstance(quantity, u.Q)
     assert quantity.unit == u.unit("m")
     assert quantity.shape == ()

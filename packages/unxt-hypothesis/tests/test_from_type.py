@@ -26,11 +26,11 @@ def test_from_type_angle(a: u.Angle) -> None:
     assert u.dimension_of(a) == u.dimension("angle")
 
 
-@given(q=st.from_type(u.Quantity))
+@given(q=st.from_type(u.Q))
 @settings(max_examples=20)
-def test_from_type_quantity(q: u.Quantity) -> None:
+def test_from_type_quantity(q: u.Q) -> None:
     """Test st.from_type() with Quantity."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     # Should have a dimension
     assert u.dimension_of(q) is not None
 

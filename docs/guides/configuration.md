@@ -23,7 +23,7 @@ u.config.quantity_repr.short_arrays = "compact"
 u.config.quantity_repr.use_short_name = True
 u.config.quantity_repr.named_unit = False
 
-q = u.Quantity([1, 2, 3], "m")
+q = u.Q([1, 2, 3], "m")
 print(repr(q))  # Q([1, 2, 3], 'm')
 ```
 
@@ -34,7 +34,7 @@ For temporary changes, use the context manager API with either the root config o
 ```{code-block} python
 >>> # Option 1: Use root config with double-underscore notation
 >>> with u.config.override(quantity_repr__short_arrays="compact", quantity_repr__use_short_name=True):
-...     q = u.Quantity([1.0, 2.0, 3.0], "m")
+...     q = u.Q([1.0, 2.0, 3.0], "m")
 ...     print(repr(q))
 Q([1., 2., 3.], unit='m')
 ```
@@ -42,7 +42,7 @@ Q([1., 2., 3.], unit='m')
 ```{code-block} python
 >>> # Option 2: Use nested config directly (cleaner for many options)
 >>> with u.config.quantity_repr.override(short_arrays="compact", use_short_name=True):
-...     q = u.Quantity([1.0, 2.0, 3.0], "m")
+...     q = u.Q([1.0, 2.0, 3.0], "m")
 ...     print(repr(q))
 Q([1., 2., 3.], unit='m')
 ```
@@ -76,7 +76,7 @@ Options:
 <!-- skip: start -->
 
 ```{code-block} python
->>> q = u.Quantity([1.0, 2.0, 3.0], "m")
+>>> q = u.Q([1.0, 2.0, 3.0], "m")
 
 >>> u.config.quantity_repr.short_arrays = False
 >>> print(repr(q))  # Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
@@ -98,7 +98,7 @@ Use class short names where available (for example, `Quantity` -> `Q`).
 - **Default**: `False`
 
 ```{code-block} python
->>> q = u.Quantity(1.0, "m")
+>>> q = u.Q(1.0, "m")
 
 >>> # Default behavior (use_short_name=False)
 >>> with u.config.quantity_repr.override(use_short_name=False):
@@ -119,7 +119,7 @@ Display units as `unit='m'` instead of positional `'m'`.
 - **Default**: `True`
 
 ```{code-block} python
->>> q = u.Quantity(1.0, "m")
+>>> q = u.Q(1.0, "m")
 
 >>> # Default behavior (named_unit=True)
 >>> with u.config.quantity_repr.override(named_unit=False):
@@ -140,7 +140,7 @@ Include type parameters in `repr()` for parametric quantities.
 - **Default**: `False`
 
 ```{code-block} python
->>> q = u.Quantity["length"](1.0, "m")
+>>> q = u.Q["length"](1.0, "m")
 
 >>> with u.config.quantity_repr.override(include_params=False):
 ...     print(repr(q))
@@ -159,7 +159,7 @@ Indentation width for nested structures in `repr()`.
 - **Default**: `4`
 
 ```{code-block} python
->>> q = u.Quantity([[1.0, 2.0], [3.0, 4.0]], "m")
+>>> q = u.Q([[1.0, 2.0], [3.0, 4.0]], "m")
 >>> print(repr(q))  # Default indentation (4 spaces)
 Quantity(Array([[1., 2.],
                 [3., 4.]], dtype=float32), unit='m')
@@ -177,7 +177,7 @@ Controls how arrays are displayed in `str()`.
 - **Default**: `"compact"`
 
 ```{code-block} python
->>> q = u.Quantity([1.0, 2.0, 3.0], "m")
+>>> q = u.Q([1.0, 2.0, 3.0], "m")
 >>> print(str(q))  # Default behavior (compact)
 Quantity['length']([1., 2., 3.], unit='m')
 
@@ -198,7 +198,7 @@ Display units as named keyword in `str()`.
 - **Default**: `True`
 
 ```{code-block} python
->>> q = u.Quantity(1.0, "m")
+>>> q = u.Q(1.0, "m")
 >>> print(str(q))  # Default behavior (named)
 Quantity['length'](1., unit='m')
 
@@ -215,7 +215,7 @@ Use short class names in `str()` representation.
 - **Default**: `False`
 
 ```{code-block} python
->>> q = u.Quantity(1.0, "m")
+>>> q = u.Q(1.0, "m")
 >>> print(str(q))
 Quantity['length'](1., unit='m')
 
@@ -279,7 +279,7 @@ Use context managers for temporary changes that are automatically restored. Ther
 print(f"Original: {u.config.quantity_repr.short_arrays}")
 
 with u.config.override(quantity_repr__short_arrays="compact", quantity_repr__use_short_name=True):
-    q = u.Quantity([1.0, 2.0, 3.0], "m")
+    q = u.Q([1.0, 2.0, 3.0], "m")
     print(repr(q))  # Q([1., 2., 3.], unit='m')
     print(f"Inside context: {u.config.quantity_repr.short_arrays}")
 
@@ -291,7 +291,7 @@ print(f"After context: {u.config.quantity_repr.short_arrays}")
 ```{code-block} python
 # Cleaner syntax when configuring multiple options for one display method
 with u.config.quantity_repr.override(short_arrays="compact", use_short_name=True, named_unit=False):
-    q = u.Quantity([1.0, 2.0, 3.0], "m")
+    q = u.Q([1.0, 2.0, 3.0], "m")
     print(repr(q))  # Q([1., 2., 3.], 'm')
 ```
 
@@ -319,7 +319,7 @@ You can override both repr and str configs simultaneously:
 ...     quantity_repr__short_arrays="compact",
 ...     quantity_str__short_arrays=True
 ... ):
-...     q = u.Quantity([1.0, 2.0, 3.0], "m")
+...     q = u.Q([1.0, 2.0, 3.0], "m")
 ...     print(repr(q), str(q))
 Quantity([1., 2., 3.], unit='m') Quantity['length'](f32[3], unit='m')
 >>>
@@ -328,7 +328,7 @@ Quantity([1., 2., 3.], unit='m') Quantity['length'](f32[3], unit='m')
 ...     u.config.quantity_repr.override(short_arrays="compact"),
 ...     u.config.quantity_str.override(short_arrays=True)
 ... ):
-...         q = u.Quantity([1.0, 2.0, 3.0], "m")
+...         q = u.Q([1.0, 2.0, 3.0], "m")
 ...         print(repr(q), str(q))
 Quantity([1., 2., 3.], unit='m') Quantity['length'](f32[3], unit='m')
 ```
@@ -343,7 +343,7 @@ Overrides are thread-local, meaning each thread has its own independent override
 >>> import threading
 >>> def worker(name: str, setting: str | bool) -> None:
 ...     with u.config.quantity_repr.override(short_arrays=setting):
-...         q = u.Quantity([1, 2, 3], "m")
+...         q = u.Q([1, 2, 3], "m")
 ...         print(f"{name}: {repr(q)}")
 >>> thread1 = threading.Thread(target=worker, args=("Thread 1", "compact"))
 >>> thread2 = threading.Thread(target=worker, args=("Thread 2", True))
@@ -405,7 +405,7 @@ Apply to the nested config instances:
 <!-- skip: end -->
 
 ```{code-block} python
->>> q = u.Quantity([1.0, 2.0, 3.0], "m")
+>>> q = u.Q([1.0, 2.0, 3.0], "m")
 >>> with u.config.quantity_repr.override(cfg):
 ...     print(repr(q))
 Q([1., 2., 3.], unit='m')

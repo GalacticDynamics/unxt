@@ -7,7 +7,7 @@
 ```{code-block} python
 >>> import unxt as u
 
->>> u.Quantity(5, "m")
+>>> u.Q(5, "m")
 Quantity(Array(5, dtype=int32...), unit='m')
 ```
 
@@ -47,7 +47,7 @@ There are many more options available with `Quantity.from_`. For a complete list
 <!-- skip: next -->
 
 ```{code-block} python
->>> u.Quantity.from_.methods
+>>> u.Q.from_.methods
 List of 9 method(s):
     [0] from_(cls: type, value: typing.Union[ArrayLike, ...], unit: typing.Any, *,
     dtype) -> unxt...quantity...AbstractQuantity

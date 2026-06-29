@@ -115,7 +115,7 @@ The `Quantity` type includes dimension parametrization and dimension checking.
 
 ```python
 # Create a quantity with dimension checking
-distance = u.Quantity(10.0, "m")
+distance = u.Q(10.0, "m")
 print(f"Quantity: {distance}")
 print(f"Type: {type(distance)}")
 

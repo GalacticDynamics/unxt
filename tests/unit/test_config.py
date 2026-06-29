@@ -699,7 +699,7 @@ def test_config_context_manager_with_quantity() -> None:
         u.config.quantity_repr.short_arrays = False
         u.config.quantity_repr.use_short_name = False
 
-        q = u.Quantity([1, 2, 3], "m")
+        q = u.Q([1, 2, 3], "m")
 
         # Default repr (with short_arrays=False, use_short_name=False)
         default_repr = repr(q)

@@ -104,7 +104,7 @@ class TestUconvertValueWithAstropyQuantity:
         q = u.Q(5000, "m")
         result = u.uconvert_value("km", "m", q)
 
-        assert isinstance(result, u.Quantity)
+        assert isinstance(result, u.Q)
         assert jnp.isclose(result.value, 5.0)
         assert result.unit == u.unit("km")
 
@@ -118,7 +118,7 @@ class TestUconvertValueWithAstropyQuantity:
         q = u.Q([1000, 2000, 5000], "m")
         result = u.uconvert_value("km", "m", q)
 
-        assert isinstance(result, u.Quantity)
+        assert isinstance(result, u.Q)
         assert np.allclose(result.value, [1.0, 2.0, 5.0])
         assert result.unit == u.unit("km")
 

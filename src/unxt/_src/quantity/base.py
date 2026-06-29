@@ -78,40 +78,40 @@ class AbstractQuantity(
 
     From an integer:
 
-    >>> u.Quantity(1, "m")
+    >>> u.Q(1, "m")
     Quantity(Array(1, dtype=int32...), unit='m')
 
     From a float:
 
-    >>> u.Quantity(1.0, "m")
+    >>> u.Q(1.0, "m")
     Quantity(Array(1., dtype=float32...), unit='m')
 
     From a list:
 
-    >>> u.Quantity([1, 2, 3], "m")
+    >>> u.Q([1, 2, 3], "m")
     Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a tuple:
 
-    >>> u.Quantity((1, 2, 3), "m")
+    >>> u.Q((1, 2, 3), "m")
     Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a `numpy.ndarray`:
 
     >>> import numpy as np
-    >>> u.Quantity(np.array([1, 2, 3]), "m")
+    >>> u.Q(np.array([1, 2, 3]), "m")
     Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a `jax.Array`:
 
     >>> import jax.numpy as jnp
-    >>> u.Quantity(jnp.array([1, 2, 3]), "m")
+    >>> u.Q(jnp.array([1, 2, 3]), "m")
     Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     The unit can also be given as a `astropy.units.Unit`:
 
     >>> import astropy.units as apyu
-    >>> u.Quantity(1, apyu.m)
+    >>> u.Q(1, apyu.m)
     Quantity(Array(1, dtype=int32...), unit='m')
 
     """
@@ -150,7 +150,7 @@ class AbstractQuantity(
         --------
         >>> import unxt as u
 
-        >>> q = u.Quantity(1, "m")
+        >>> q = u.Q(1, "m")
         >>> q.uconvert("cm")
         Quantity(Array(100., dtype=float32, ...), unit='cm')
 
@@ -168,7 +168,7 @@ class AbstractQuantity(
         --------
         >>> import unxt as u
 
-        >>> q = u.Quantity(1, "m")
+        >>> q = u.Q(1, "m")
         >>> q.ustrip("cm")
         Array(100., dtype=float32, weak_type=True)
 
@@ -225,7 +225,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> u.Quantity(1, "m").dtype
+        >>> u.Q(1, "m").dtype
         dtype('int32')
 
         """
@@ -238,7 +238,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> u.Quantity(1, "m").device
+        >>> u.Q(1, "m").device
         CpuDevice(id=0)
 
         """
@@ -251,7 +251,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([[0, 1], [1, 2]], "m")
+        >>> q = u.Q([[0, 1], [1, 2]], "m")
         >>> q.mT
         Quantity(Array([[0, 1],
                                   [1, 2]], dtype=int32), unit='m')
@@ -266,7 +266,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([[1]], "m")
+        >>> q = u.Q([[1]], "m")
         >>> q.ndim
         2
 
@@ -280,7 +280,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([1, 2, 3], "m")
+        >>> q = u.Q([1, 2, 3], "m")
         >>> q.size
         3
 
@@ -294,7 +294,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([[0, 1], [1, 2]], "m")
+        >>> q = u.Q([[0, 1], [1, 2]], "m")
         >>> q.T
         Quantity(Array([[0, 1],
                                   [1, 2]], dtype=int32), unit='m')
@@ -314,7 +314,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([0, 1], "m")
+        >>> q = u.Q([0, 1], "m")
 
         >>> bool(q[0])
         False
@@ -331,7 +331,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity(1, "")
+        >>> q = u.Q(1, "")
         >>> complex(q)
         (1+0j)
 
@@ -352,7 +352,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity(1, "")
+        >>> q = u.Q(1, "")
         >>> float(q)
         1.0
 
@@ -374,7 +374,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity(1, "")
+        >>> q = u.Q(1, "")
         >>> q.__index__()
         1
 
@@ -387,7 +387,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity(1, "")
+        >>> q = u.Q(1, "")
         >>> int(q)
         1
 
@@ -402,7 +402,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([1, 2, 3], "m")
+        >>> q = u.Q([1, 2, 3], "m")
         >>> try:
         ...     q[0] = 2
         ... except Exception as e:
@@ -418,7 +418,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity(1, "m")
+        >>> q = u.Q(1, "m")
         >>> q.to_device(None)
         Quantity(Array(1, dtype=int32...), unit='m')
 
@@ -434,7 +434,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([1, 2, 3], "m")
+        >>> q = u.Q([1, 2, 3], "m")
         >>> [x for x in q]
         [Quantity(Array(1, dtype=int32), unit='m'),
          Quantity(Array(2, dtype=int32), unit='m'),
@@ -449,7 +449,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([1, 2, 3], "m")
+        >>> q = u.Q([1, 2, 3], "m")
         >>> q.argmax()
         Array(2, dtype=int32)
 
@@ -462,7 +462,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([1, 2, 3], "m")
+        >>> q = u.Q([1, 2, 3], "m")
         >>> q.argmin()
         Array(0, dtype=int32)
 
@@ -475,7 +475,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([1, 2, 3], "m")
+        >>> q = u.Q([1, 2, 3], "m")
         >>> q.dtype
         dtype('int32')
 
@@ -495,7 +495,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity(1, "m")
+        >>> q = u.Q(1, "m")
         >>> q.block_until_ready() is q
         True
 
@@ -509,7 +509,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity(1, "m")
+        >>> q = u.Q(1, "m")
         >>> q.devices()
         {CpuDevice(id=0)}
 
@@ -522,7 +522,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([[1, 2], [3, 4]], "m")
+        >>> q = u.Q([[1, 2], [3, 4]], "m")
         >>> q.flatten()
         Quantity(Array([1, 2, 3, 4], dtype=int32), unit='m')
 
@@ -535,7 +535,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([1, 2, 3], "m")
+        >>> q = u.Q([1, 2, 3], "m")
         >>> q.max()
         Quantity(Array(3, dtype=int32), unit='m')
 
@@ -548,7 +548,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([1, 2, 3], "m")
+        >>> q = u.Q([1, 2, 3], "m")
         >>> q.mean()
         Quantity(Array(2., dtype=float32), unit='m')
 
@@ -561,7 +561,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([1, 2, 3], "m")
+        >>> q = u.Q([1, 2, 3], "m")
         >>> q.min()
         Quantity(Array(1, dtype=int32), unit='m')
 
@@ -574,7 +574,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([[1, 2], [3, 4]], "m")
+        >>> q = u.Q([[1, 2], [3, 4]], "m")
         >>> q.ravel()
         Quantity(Array([1, 2, 3, 4], dtype=int32), unit='m')
 
@@ -587,7 +587,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([1, 2, 3, 4], "m")
+        >>> q = u.Q([1, 2, 3, 4], "m")
         >>> q.reshape(2, 2)
         Quantity(Array([[1, 2],
                                   [3, 4]], dtype=int32), unit='m')
@@ -602,7 +602,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([1.1, 2.2, 3.3], "m")
+        >>> q = u.Q([1.1, 2.2, 3.3], "m")
         >>> q.round(0)
         Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
@@ -616,7 +616,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([1, 2, 3], "m")
+        >>> q = u.Q([1, 2, 3], "m")
         >>> q.sharding
         SingleDeviceSharding(device=..., memory_kind=...)
 
@@ -629,7 +629,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([[[1], [2], [3]]], "m")
+        >>> q = u.Q([[[1], [2], [3]]], "m")
         >>> q.squeeze()
         Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
@@ -650,7 +650,7 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity(1, "m")
+        >>> q = u.Q(1, "m")
         >>> try:
         ...     hash(q)
         ... except TypeError as e:
@@ -864,13 +864,13 @@ def from_(
     >>> import unxt as u
 
     >>> x = jnp.array([1.0, 2, 3])
-    >>> u.Quantity.from_(x, "m")
+    >>> u.Q.from_(x, "m")
     Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
-    >>> u.Quantity.from_([1.0, 2, 3], "m")
+    >>> u.Q.from_([1.0, 2, 3], "m")
     Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
-    >>> u.Quantity.from_((1.0, 2, 3), "m")
+    >>> u.Q.from_((1.0, 2, 3), "m")
     Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     """
@@ -896,7 +896,7 @@ def from_(
     to any subclass of `unxt.AbstractQuantity`.
 
     >>> import unxt as u
-    >>> u.Quantity.from_([1.0, 2, 3], unit="m")
+    >>> u.Q.from_([1.0, 2, 3], unit="m")
     Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     """
@@ -916,7 +916,7 @@ def from_(
     any subclass of `AbstractQuantity`.
 
     >>> import unxt as u
-    >>> u.Quantity.from_(value=[1.0, 2, 3], unit="m")
+    >>> u.Q.from_(value=[1.0, 2, 3], unit="m")
     Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     """
@@ -937,11 +937,11 @@ def from_(cls: type[AbstractQuantity], mapping: Mapping[str, Any]) -> AbstractQu
     >>> import unxt as u
 
     >>> x = jnp.array([1.0, 2, 3])
-    >>> q = u.Quantity.from_({"value": x, "unit": "m"})
+    >>> q = u.Q.from_({"value": x, "unit": "m"})
     >>> q
     Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
-    >>> u.Quantity.from_({"value": q, "unit": "km"})
+    >>> u.Q.from_({"value": q, "unit": "km"})
     Quantity(Array([0.001, 0.002, 0.003], dtype=float32), unit='km')
 
     """
@@ -967,8 +967,8 @@ def from_(
     --------
     >>> import unxt as u
 
-    >>> q = u.Quantity(1, "m")
-    >>> u.Quantity.from_(q, "cm")
+    >>> q = u.Q(1, "m")
+    >>> u.Q.from_(q, "cm")
     Quantity(Array(100., dtype=float32, ...), unit='cm')
 
     """
@@ -993,8 +993,8 @@ def from_(
     --------
     >>> import unxt as u
 
-    >>> q = u.Quantity(1, "m")
-    >>> u.Quantity.from_(q, None)
+    >>> q = u.Q(1, "m")
+    >>> u.Q.from_(q, None)
     Quantity(Array(1, dtype=int32...), unit='m')
 
     """
@@ -1042,7 +1042,7 @@ class _QuantityIndexUpdateHelper(_IndexUpdateHelper):
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Quantity([1, 2, 3, 4], "m")
+        >>> q = u.Q([1, 2, 3, 4], "m")
         >>> q.at
         _QuantityIndexUpdateHelper(Quantity(Array([1, 2, 3, 4], dtype=int32), unit='m'))
 
@@ -1145,7 +1145,7 @@ def is_any_quantity(obj: Any, /) -> TypeGuard[AbstractQuantity]:
     --------
     >>> import unxt as u
 
-    >>> q = u.Quantity(1, "m")
+    >>> q = u.Q(1, "m")
     >>> is_any_quantity(q)
     True
 
@@ -1190,7 +1190,7 @@ def convert_to_quantity_value(obj: AbstractQuantity, /) -> NoReturn:
     >>> from unxt.quantity import convert_to_quantity_value
 
     >>> try:
-    ...     convert_to_quantity_value(u.Quantity(1, "m"))
+    ...     convert_to_quantity_value(u.Q(1, "m"))
     ... except TypeError as e:
     ...     print(e)
     Cannot convert 'Quantity[PhysicalType('length')]' to a value.

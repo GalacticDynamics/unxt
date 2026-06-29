@@ -238,7 +238,7 @@ You can use unit system units to create quantities:
 
 ```{code-block} python
 
->>> q = u.Quantity(10, usys["velocity"])
+>>> q = u.Q(10, usys["velocity"])
 >>> q
 Quantity(Array(10, dtype=int32...), unit='m / s')
 
@@ -285,7 +285,7 @@ Create a `Quantity` by passing a JAX array-compatible object and a unit:
 
 >>> import unxt as u
 
->>> x = u.Quantity([1.0, 2.0, 3.0], unit="m")  # or u.Q(...) for short
+>>> x = u.Q([1.0, 2.0, 3.0], unit="m")  # or u.Q(...) for short
 >>> x
 Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 ```

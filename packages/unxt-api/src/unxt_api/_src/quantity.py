@@ -50,7 +50,7 @@ def uconvert(u: Any, x: Any, /) -> Any:
     --------
     >>> import unxt as u  # implements `unxt_api.uconvert`
 
-    >>> q = u.Quantity(1, "km")
+    >>> q = u.Q(1, "km")
     >>> u.uconvert(u.unit("m"), q)
     Quantity(Array(1000., dtype=float32, ...), unit='m')
 
@@ -75,7 +75,7 @@ def ustrip(*args: Any) -> Any:
     --------
     >>> import unxt as u  # implements `unxt_api.ustrip`
 
-    >>> q = u.Quantity(1, "km")
+    >>> q = u.Q(1, "km")
     >>> ustrip(u.unit("m"), q)
     Array(1000., dtype=float32, ...)
 

@@ -267,7 +267,7 @@ import functools as ft
 
 
 @ft.partial(jax.jit, static_argnames=("constant",))
-def function(x, *, constant=u.Quantity(3.26, "lyr")):
+def function(x, *, constant=u.Q(3.26, "lyr")):
     ...
 ```
 

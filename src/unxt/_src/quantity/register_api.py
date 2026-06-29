@@ -49,12 +49,12 @@ def dimension_of(obj: type[AbstractParametricQuantity], /) -> AbstractDimension:
     >>> import unxt as u
 
     >>> try:
-    ...     u.dimension_of(u.Quantity)
+    ...     u.dimension_of(u.Q)
     ... except Exception as e:
     ...     print(e)
     can only get dimensions from parametrized Quantity -- Quantity[dim].
 
-    >>> u.dimension_of(u.Quantity["length"])
+    >>> u.dimension_of(u.Q["length"])
     PhysicalType('length')
 
     """

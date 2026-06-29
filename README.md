@@ -217,7 +217,7 @@ Quantities combine values with units, providing type-safe unitful arithmetic.
 ```python
 import jax.numpy as jnp
 
-x = u.Quantity(jnp.arange(1, 5, dtype=float), "km")
+x = u.Q(jnp.arange(1, 5, dtype=float), "km")
 print(x)
 # Quantity['length']([1., 2., 3., 4.], unit='km')
 ```
@@ -243,7 +243,7 @@ print(x + x)
 print(2 * x)
 # Quantity["length"]([2.0, 4.0, 6.0, 8.0], unit="km")
 
-y = u.Quantity(jnp.arange(4, 8, dtype=float), "yr")
+y = u.Q(jnp.arange(4, 8, dtype=float), "yr")
 
 print(x / y)
 # Quantity['speed']([0.25, 0.4 , 0.5 , 0.57142857], unit='km / yr')
@@ -273,7 +273,7 @@ print(x.uconvert("m"))  # via method
 Since `Quantity` is parametric, it can do runtime dimension checking!
 
 ```python
-LengthQuantity = u.Quantity["length"]
+LengthQuantity = u.Q["length"]
 print(LengthQuantity(2, "km"))
 # Quantity['length'](2, unit='km')
 

@@ -69,8 +69,8 @@ class TestShortName:
 
     def test_quantity_has_short_name(self):
         """Test that Quantity has a short_name class variable."""
-        assert hasattr(u.Quantity, "short_name")
-        assert u.Quantity.short_name == "Q"
+        assert hasattr(u.Q, "short_name")
+        assert u.Q.short_name == "Q"
 
     def test_barequantity_no_short_name(self):
         """Test that BareQuantity doesn't have a short_name or it's None."""
@@ -165,7 +165,7 @@ class TestStringConversionWithJIT:
         """
 
         @jax.jit
-        def process_with_str(q: u.Quantity) -> u.Quantity:
+        def process_with_str(q: u.Q) -> u.Q:
             # Call str() on the tracer to verify it doesn't raise
             _ = str(q)
             # Return the quantity multiplied by 2
@@ -198,7 +198,7 @@ class TestStringConversionWithJIT:
         """Test that str(Quantity) works reliably in multiple JIT calls."""
 
         @jax.jit
-        def process_and_stringify(q: u.Quantity) -> u.Quantity:
+        def process_and_stringify(q: u.Q) -> u.Q:
             # Multiple str() calls shouldn't affect the computation
             _ = str(q)
             q_doubled = q * 2

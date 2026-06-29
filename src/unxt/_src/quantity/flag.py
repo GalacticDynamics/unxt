@@ -128,7 +128,7 @@ def ustrip(flag: type[AllowValue], x: AbstractQuantity, /) -> Any:
 
     >>> x = u.Q(1, "kpc")
     >>> y = u.ustrip(AllowValue, x)
-    >>> not isinstance(y, u.Quantity)
+    >>> not isinstance(y, u.Q)
     True
     >>> y == 1
     Array(True, dtype=bool...)

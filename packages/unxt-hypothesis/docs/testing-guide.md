@@ -189,10 +189,10 @@ def test_any_quantity(q):
 
 
 # Quantity generates Quantity instances with dimension checking
-@given(q=st.from_type(u.Quantity))
+@given(q=st.from_type(u.Q))
 def test_regular_quantity(q):
     """Test with standard Quantity instances."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
 
 
 # BareQuantity generates instances without dimension checking
@@ -254,7 +254,7 @@ Example combining both approaches:
 
 ```python
 # Generic test using st.from_type()
-@given(q1=st.from_type(u.Quantity), q2=st.from_type(u.Quantity))
+@given(q1=st.from_type(u.Q), q2=st.from_type(u.Q))
 def test_quantity_equality_reflexive(q1, q2):
     """Quantity equality is reflexive."""
     assert q1 == q1
@@ -585,7 +585,7 @@ def test_distance_range(distance):
 
 #### Using the quantity_cls Parameter
 
-The `quantity_cls` parameter controls the type of quantity object created. By default, it's `u.Quantity`, but you can specify `u.Angle` or other quantity subclasses:
+The `quantity_cls` parameter controls the type of quantity object created. By default, it's `u.Q`, but you can specify `u.Angle` or other quantity subclasses:
 
 ```python
 # Generate Angle objects
@@ -601,7 +601,7 @@ def test_angle_generation(angle):
 @given(distance=ust.quantities("kpc", shape=()))
 def test_distance_generation(distance):
     """Generate Quantity instances (default quantity_cls)."""
-    assert isinstance(distance, u.Quantity)
+    assert isinstance(distance, u.Q)
     assert distance.unit == u.unit("kpc")
 
 

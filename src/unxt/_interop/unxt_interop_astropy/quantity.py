@@ -63,7 +63,7 @@ def from_(
     >>> import unxt as u
     >>> import astropy.units as apyu
 
-    >>> u.Quantity.from_(apyu.Quantity(1, "m"))
+    >>> u.Q.from_(apyu.Quantity(1, "m"))
     Quantity(Array(1., dtype=float32), unit='m')
 
     """
@@ -85,7 +85,7 @@ def from_(
     >>> import unxt as u
     >>> import astropy.units as apyu
 
-    >>> u.Quantity.from_(apyu.Quantity(1, "m"), "cm")
+    >>> u.Q.from_(apyu.Quantity(1, "m"), "cm")
     Quantity(Array(100., dtype=float32), unit='cm')
 
     """
@@ -235,11 +235,11 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
     >>> import astropy.units as apyu
     >>> import unxt as u
 
-    >>> x = u.Quantity(1000, "m")
+    >>> x = u.Q(1000, "m")
     >>> u.uconvert(u.unit("km"), x)
     Quantity(Array(1., dtype=float32, ...), unit='km')
 
-    >>> x = u.Quantity([1, 2, 3], "Kelvin")
+    >>> x = u.Q([1, 2, 3], "Kelvin")
     >>> with apyu.add_enabled_equivalencies(apyu.temperature()):
     ...     y = x.uconvert("deg_C")
     >>> y
@@ -300,7 +300,7 @@ def ustrip(flag: type[AllowValue], u: Any, x: AstropyQuantity, /) -> Any:
     Examples
     --------
     >>> import unxt as u
-    >>> q = u.Quantity(1000, "m")
+    >>> q = u.Q(1000, "m")
     >>> u.ustrip(AllowValue, "km", q)
     Array(1., dtype=float32, ...)
 

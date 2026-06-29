@@ -107,7 +107,7 @@ def test_units_any_dimension(unit):
 # Quantities from any dimension
 @given(q=ust.quantities(unit=ust.units(ust.named_dimensions())))
 def test_quantities_any_dimension(q):
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
 ```
 
 See also: `ust.DIMENSION_NAMES` for the full set of names, and `unxt.dimension` to construct dimensions directly from names. You can use `st.sampled_from(ust.DIMENSION_NAMES)` to create custom strategies using these names.
@@ -484,7 +484,7 @@ from hypothesis import given, strategies as st
 import unxt as u
 
 
-def calculate_momentum(mass: u.Quantity, velocity: u.Quantity) -> u.Quantity:
+def calculate_momentum(mass: u.Q, velocity: u.Q) -> u.Q:
     """Calculate momentum: p = m * v"""
     return mass * velocity
 

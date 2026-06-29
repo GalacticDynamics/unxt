@@ -178,13 +178,13 @@ def test_uconvert_value_with_quantity():
     # Convert a Quantity object using uconvert_value
     q = u.Q(1, "km")
     result = u.uconvert_value("m", "km", q)
-    assert isinstance(result, u.Quantity)
+    assert isinstance(result, u.Q)
     assert jnp.isclose(result.value, 1000.0)
     assert result.unit == u.unit("m")
 
     # With unit objects
     result = u.uconvert_value(u.unit("m"), u.unit("km"), q)
-    assert isinstance(result, u.Quantity)
+    assert isinstance(result, u.Q)
     assert jnp.isclose(result.value, 1000.0)
     assert result.unit == u.unit("m")
 
@@ -233,7 +233,7 @@ def test_uconvert_value_with_array_quantities():
     q = u.Q([1, 2, 3], "km")
     result = u.uconvert_value("m", "km", q)
 
-    assert isinstance(result, u.Quantity)
+    assert isinstance(result, u.Q)
     assert np.allclose(result.value, [1000.0, 2000.0, 3000.0])
     assert result.unit == u.unit("m")
 
