@@ -76,7 +76,7 @@ def test_any_unit(unit):
 # Use with quantities for generic physics tests
 @given(q=ust.quantities(unit=ust.units(ust.named_dimensions())))
 def test_quantity_any_dimension(q):
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
     assert u.dimension_of(q) in [u.dimension(name) for name in ust.DIMENSION_NAMES]
 ```
 
@@ -222,10 +222,10 @@ def test_quantity_via_from_type(q):
     assert u.dimension_of(q) is not None
 
 
-@given(q=st.from_type(u.Quantity))
+@given(q=st.from_type(u.Q))
 def test_quantity_class_via_from_type(q):
     """Test Quantity instances generated via st.from_type()."""
-    assert isinstance(q, u.Quantity)
+    assert isinstance(q, u.Q)
 
 
 @given(bq=st.from_type(u.quantity.BareQuantity))
@@ -260,7 +260,7 @@ def test_unitsystem_via_from_type(usys):
 The following types are automatically registered:
 
 - `u.AbstractQuantity` → generates `Quantity` instances
-- `u.Quantity` → generates `Quantity` instances with dimension checking
+- `u.Q` → generates `Quantity` instances with dimension checking
 - `u.quantity.BareQuantity` → generates `BareQuantity` instances (no dimension checking)
 - `u.quantity.StaticQuantity` → generates `StaticQuantity` instances with `StaticValue` wrapper (for non-traced values)
 - `u.Angle` → generates `Angle` instances with angle dimension

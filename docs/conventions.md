@@ -68,7 +68,7 @@ For example, `unxt` provides a `Quantity.from_` method that can convert an `astr
 >>> aq
 <Quantity 1. m>
 
->>> xq = u.Quantity.from_(aq)  # unxt Quantity
+>>> xq = u.Q.from_(aq)  # unxt Quantity
 >>> xq
 Quantity(Array(1., dtype=float32), unit='m')
 

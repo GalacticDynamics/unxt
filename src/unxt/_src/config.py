@@ -101,7 +101,7 @@ class QuantityReprConfig(LocalConfigurable):
     >>> with u.config.quantity_repr.override(
     ...     short_arrays="compact", use_short_name=True
     ... ):
-    ...     q = u.Quantity([1, 2, 3], "m")
+    ...     q = u.Q([1, 2, 3], "m")
     ...     print(repr(q))
     Q([1, 2, 3], unit='m')
 
@@ -186,7 +186,7 @@ class QuantityReprConfig(LocalConfigurable):
         >>> with u.config.quantity_repr.override(
         ...     short_arrays="compact", use_short_name=True
         ... ):
-        ...     q = u.Quantity([1, 2, 3], "m")
+        ...     q = u.Q([1, 2, 3], "m")
         ...     print(repr(q))
         Q([1, 2, 3], unit='m')
 
@@ -197,7 +197,7 @@ class QuantityReprConfig(LocalConfigurable):
         >>> cfg.QuantityReprConfig.short_arrays = "compact"
         >>> cfg.QuantityReprConfig.use_short_name = True
         >>> with u.config.quantity_repr.override(cfg):
-        ...     q = u.Quantity([1, 2, 3], "m")
+        ...     q = u.Q([1, 2, 3], "m")
         ...     print(repr(q))
         Q([1, 2, 3], unit='m')
 
@@ -299,7 +299,7 @@ class QuantityStrConfig(LocalConfigurable):
     >>> with u.config.quantity_str.override(
     ...     short_arrays=True, use_short_name=True, include_params=False
     ... ):
-    ...     q = u.Quantity([1, 2, 3], "m")
+    ...     q = u.Q([1, 2, 3], "m")
     ...     print(str(q))
     Q(i32[3], unit='m')
 
@@ -464,7 +464,7 @@ class UnxtConfig(SingletonConfigurable):
     >>> with u.config.override(
     ...     quantity_repr__short_arrays="compact", quantity_repr__use_short_name=True
     ... ):
-    ...     q = u.Quantity([1, 2, 3], "m")
+    ...     q = u.Q([1, 2, 3], "m")
     ...     print(repr(q))
     Q([1, 2, 3], unit='m')
 
@@ -509,7 +509,7 @@ class UnxtConfig(SingletonConfigurable):
         --------
         >>> import unxt as u
         >>> with u.config.override(quantity_repr__short_arrays=True):
-        ...     q = u.Quantity([1.0, 2.0, 3.0], "m")
+        ...     q = u.Q([1.0, 2.0, 3.0], "m")
         ...     print(repr(q))  # Uses compact display
         Quantity(f32[3], unit='m')
 

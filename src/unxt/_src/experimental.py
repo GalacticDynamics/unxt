@@ -68,7 +68,7 @@ def grad(
     >>> import jax.numpy as jnp
     >>> import unxt as u
 
-    >>> def cube_volume(x: u.Quantity["length"]) -> u.Quantity["volume"]:
+    >>> def cube_volume(x: u.Q["length"]) -> u.Q["volume"]:
     ...     return x**3
 
     >>> grad_cube_volume = u.experimental.grad(cube_volume, units=("m",))
@@ -130,7 +130,7 @@ def jacfwd(
     >>> import jax.numpy as jnp
     >>> import unxt as u
 
-    >>> def cubbe_volume(x: u.Quantity["length"]) -> u.Quantity["volume"]:
+    >>> def cubbe_volume(x: u.Q["length"]) -> u.Q["volume"]:
     ...     return x**3
 
     >>> jacfwd_cubbe_volume = u.experimental.jacfwd(cubbe_volume, units=("m",))
@@ -197,7 +197,7 @@ def hessian(
     >>> import jax.numpy as jnp
     >>> import unxt as u
 
-    >>> def cubbe_volume(x: u.Quantity["length"]) -> u.Quantity["volume"]:
+    >>> def cubbe_volume(x: u.Q["length"]) -> u.Q["volume"]:
     ...     return x**3
 
     >>> hessian_cubbe_volume = u.experimental.hessian(cubbe_volume, units=("m",))

@@ -29,13 +29,13 @@ correctness.
 >>> import jax
 >>> import jax.numpy as jnp
 
->>> distance = u.Quantity(100, "m")
+>>> distance = u.Q(100, "m")
 >>> distance
 Quantity(Array(100, dtype=int32...), unit='m')
 
 Create from arrays
 
->>> velocities = u.Quantity([10, 20, 30], "m/s")
+>>> velocities = u.Q([10, 20, 30], "m/s")
 >>> velocities
 Quantity(Array([10, 20, 30], dtype=int32), unit='m / s')
 

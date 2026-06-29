@@ -201,7 +201,7 @@ import unxt as u
 
 
 @dispatch
-def your_function(q: u.Quantity, /):
+def your_function(q: u.Q, /):
     """Work with unxt quantities."""
     return q * 2
 ```

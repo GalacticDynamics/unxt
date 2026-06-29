@@ -37,7 +37,7 @@ class Quantity(AbstractParametricQuantity):
 
     From an integer:
 
-    >>> u.Quantity(1, "m")
+    >>> u.Q(1, "m")
     Quantity(Array(1, dtype=int32...), unit='m')
 
     From a float:
@@ -47,41 +47,41 @@ class Quantity(AbstractParametricQuantity):
 
     From a list:
 
-    >>> u.Quantity([1, 2, 3], "m")
+    >>> u.Q([1, 2, 3], "m")
     Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a tuple:
 
-    >>> u.Quantity((1, 2, 3), "m")
+    >>> u.Q((1, 2, 3), "m")
     Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a `numpy.ndarray`:
 
     >>> import numpy as np
-    >>> u.Quantity(np.array([1, 2, 3]), "m")
+    >>> u.Q(np.array([1, 2, 3]), "m")
     Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a `jax.Array`:
 
     >>> import jax.numpy as jnp
-    >>> u.Quantity(jnp.array([1, 2, 3]), "m")
+    >>> u.Q(jnp.array([1, 2, 3]), "m")
     Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     The unit can also be given as a units object:
 
-    >>> u.Quantity(1, u.unit("m"))
+    >>> u.Q(1, u.unit("m"))
     Quantity(Array(1, dtype=int32...), unit='m')
 
     In the previous examples, the dimension parameter was inferred from the
     values. It can also be given explicitly:
 
-    >>> u.Quantity["length"](1, "m")
+    >>> u.Q["length"](1, "m")
     Quantity(Array(1, dtype=int32...), unit='m')
 
     This can be used for runtime checking of the input dimension!
 
     >>> try:
-    ...     u.Quantity["length"](1, "s")
+    ...     u.Q["length"](1, "s")
     ... except Exception as e:
     ...     print(e)
     Physical type mismatch.
@@ -91,12 +91,12 @@ class Quantity(AbstractParametricQuantity):
     >>> dims = u.dimension("length")
     >>> dims
     PhysicalType('length')
-    >>> u.Quantity[dims](1.0, "m")
+    >>> u.Q[dims](1.0, "m")
     Quantity(Array(1., dtype=float32...), unit='m')
 
     Or as a unit:
 
-    >>> u.Quantity[u.unit("m")](1.0, "m")
+    >>> u.Q[u.unit("m")](1.0, "m")
     Quantity(Array(1., dtype=float32...), unit='m')
 
     Some tricky cases are when the physical type is unknown:
@@ -108,7 +108,7 @@ class Quantity(AbstractParametricQuantity):
     The dimension can be given as a string in all cases, but is necessary when
     the physical type is unknown:
 
-    >>> print(u.Quantity["m2 kg-1 s-2"](1.0, unit))  # to show the [dim]
+    >>> print(u.Q["m2 kg-1 s-2"](1.0, unit))  # to show the [dim]
     Quantity['m2 kg-1 s-2'](1., unit='m2 / (kg s2)')
 
     """
@@ -142,8 +142,8 @@ class Quantity(AbstractParametricQuantity):
 
         Normal array quantities return element-wise boolean arrays:
 
-        >>> q1 = u.Quantity([1, 2, 3], "m")
-        >>> q2 = u.Quantity([1, 0, 3], "m")
+        >>> q1 = u.Q([1, 2, 3], "m")
+        >>> q2 = u.Q([1, 0, 3], "m")
         >>> q1 == q2
         Array([ True, False,  True], dtype=bool)
 

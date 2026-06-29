@@ -32,7 +32,7 @@ def quantities(
     | st.SearchStrategy[u.AbstractUnit | u.AbstractDimension]
     | u.AbstractDimension = units(),  # noqa: B008
     *,
-    quantity_cls: type[u.AbstractQuantity] = u.Quantity,
+    quantity_cls: type[u.AbstractQuantity] = u.Q,
     dtype: Any | st.SearchStrategy[np.dtype] = jnp.float32,
     shape: int | tuple[int, ...] | st.SearchStrategy[int | tuple[int, ...]] = (),
     elements: st.SearchStrategy[float] | None = None,
@@ -351,10 +351,8 @@ def angles(
 
 # Register type strategy for Hypothesis's st.from_type()
 # Note: Pass the callable, not an invoked strategy
-st.register_type_strategy(
-    u.AbstractQuantity, lambda _: quantities(quantity_cls=u.Quantity)
-)
-st.register_type_strategy(u.Quantity, lambda typ: quantities(quantity_cls=typ))
+st.register_type_strategy(u.AbstractQuantity, lambda _: quantities(quantity_cls=u.Q))
+st.register_type_strategy(u.Q, lambda typ: quantities(quantity_cls=typ))
 st.register_type_strategy(
     u.quantity.BareQuantity, lambda typ: quantities(quantity_cls=typ)
 )

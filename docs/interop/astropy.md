@@ -63,7 +63,7 @@ Converting an [Astropy Quantity][astropy-Quantity] to a [unxt Quantity][unxt-Qua
 >>> aq
 <Quantity 1. m>
 
->>> xq = u.Quantity.from_(aq)  # unxt Quantity
+>>> xq = u.Q.from_(aq)  # unxt Quantity
 >>> xq
 Quantity(Array(1., dtype=float32), unit='m')
 ```
@@ -73,7 +73,7 @@ Alternatively, the multiple-dispatch library on which `unxt` is built enables 2-
 ```{code-block} python
 >>> from plum import convert
 
->>> convert(aq, u.Quantity)
+>>> convert(aq, u.Q)
 Quantity(Array(1., dtype=float32), unit='m')
 
 >>> convert(xq, apyu.Quantity)
