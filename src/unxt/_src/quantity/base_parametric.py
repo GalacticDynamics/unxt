@@ -4,7 +4,7 @@
 __all__ = ("AbstractParametricQuantity",)
 
 from collections.abc import Callable
-from functools import partial
+from functools import lru_cache, partial
 from typing import Any
 
 import equinox as eqx
@@ -21,6 +21,22 @@ from unxt._src.dimensions import name_of
 from unxt.config import config
 from unxt.dims import AbstractDimension, dimension, dimension_of
 from unxt.units import AbstractUnit, unit as parse_unit
+
+
+@lru_cache(maxsize=256)
+def _dimension_of_unit(unit: AbstractUnit) -> AbstractDimension:
+    """Return the dimension of a unit, memoized for the construction hot path.
+
+    `dimension_of` is a `plum`-dispatched function whose resolver is non-faithful
+    (it carries `type[...]` class overloads, e.g. ``dimension_of(Quantity["length"])``),
+    so `plum` cannot cache its method resolution and re-resolves on every call
+    (~60us). `__check_init__` runs on every `AbstractParametricQuantity`
+    construction -- including every arithmetic result -- so we memoize the
+    unit -> dimension lookup here. Units are hashable and the mapping is
+    immutable, so the cache is sound; this mirrors the `dimension_of(AbstractUnit)`
+    implementation (``dimension(unit.physical_type)``) while bypassing dispatch.
+    """
+    return dimension(unit.physical_type)
 
 
 @parametric
@@ -44,7 +60,7 @@ class AbstractParametricQuantity(AbstractQuantity):
     def __check_init__(self) -> None:
         """Check whether the arguments are valid."""
         expected_dimensions = self._type_parameter
-        got_dimensions = dimension_of(self.unit)
+        got_dimensions = _dimension_of_unit(self.unit)
         if got_dimensions != expected_dimensions:  # pylint: disable=unreachable
             msg = "Physical type mismatch."  # TODO: better error message
             raise ValueError(msg)
