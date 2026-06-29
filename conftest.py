@@ -20,7 +20,7 @@ optionflags = ELLIPSIS | NORMALIZE_WHITESPACE
 # ``, ...`` placeholder in doctest expectations. The non-greedy prefix keeps the
 # match within a single Array repr, and the dtype tail stops before any actual
 # metadata or the closing parenthesis.
-_JAX_SCALAR_ARRAY_ELLIPSIS_RE = re.compile(
+_JAX_SCALAR_ARRAY_DOCTEST_ELLIPSIS_RE = re.compile(
     r"(Array\(.*?dtype=[^,\n)]+), \.\.\.(\))"
 )
 
@@ -34,10 +34,10 @@ def _normalize_jax_repr(text: str) -> str:
     affect behavior.
     """
     text = text.replace(", weak_type=True", "")
-    # Normalize ``dtype=float32, ...)`` to ``dtype=float32...)`` so doctest
-    # ellipsis matching can cover both forms: no extra scalar repr metadata,
-    # or additional metadata such as ``, weak_type=True`` before ``)``.
-    return _JAX_SCALAR_ARRAY_ELLIPSIS_RE.sub(r"\1...\2", text)
+    # Convert doctest placeholders like ``dtype=float32, ...)`` into
+    # ``dtype=float32...)`` so ellipsis matching can absorb optional trailing
+    # scalar metadata such as ``, weak_type=True`` before ``)``.
+    return _JAX_SCALAR_ARRAY_DOCTEST_ELLIPSIS_RE.sub(r"\1...\2", text)
 
 
 class JaxAwareOutputChecker(OutputChecker):

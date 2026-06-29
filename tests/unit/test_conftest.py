@@ -9,7 +9,7 @@ def _load_root_conftest():
     """Load the repository-root ``conftest.py`` for direct unit testing."""
     current = Path(__file__).resolve()
     root = next(
-        ((parent / "conftest.py") for parent in current.parents if (parent / "conftest.py").exists()),
+        (parent / "conftest.py" for parent in current.parents if (parent / "conftest.py").exists()),
         None,
     )
     if root is None:
