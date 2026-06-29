@@ -6,6 +6,7 @@ from pathlib import Path
 
 
 def _load_root_conftest():
+    """Load the repository-root ``conftest.py`` for direct unit testing."""
     root = Path(__file__).resolve().parents[2] / "conftest.py"
     spec = importlib.util.spec_from_file_location("root_conftest", root)
     assert spec is not None

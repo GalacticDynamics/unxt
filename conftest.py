@@ -1,10 +1,10 @@
 """Doctest configuration."""
 
 import os
-from doctest import ELLIPSIS, NORMALIZE_WHITESPACE, DocTestRunner, Example, OutputChecker
-from functools import wraps
-from typing import Any
+import re
 from collections.abc import Callable, Iterable, Sequence
+from doctest import ELLIPSIS, NORMALIZE_WHITESPACE, DocTestRunner, Example, OutputChecker
+from typing import Any
 
 from sybil import Document, Region, Sybil
 from sybil.evaluators.doctest import DocTestEvaluator
@@ -16,23 +16,28 @@ from sybil.parsers.abstract.doctest import DocTestStringParser
 from optional_dependencies import OptionalDependencyEnum, auto
 
 optionflags = ELLIPSIS | NORMALIZE_WHITESPACE
+_JAX_ARRAY_ELLIPSIS_RE = re.compile(r"(Array\([^()\n]*dtype=[^,\n)]+), \.\.\.(\))")
 
 
 def _normalize_jax_repr(text: str) -> str:
-    """Normalize JAX repr details that vary across versions."""
-    return text.replace(", weak_type=True", "").replace(", ...)", "...)")
+    """Normalize unstable JAX ``Array(...)`` repr metadata for doctests.
+
+    JAX may optionally include ``weak_type=True`` for scalar arrays, and some
+    examples use ``...,`` after the dtype to allow for extra repr metadata. Both
+    details vary across JAX and Python versions but do not affect behavior.
+    """
+    text = text.replace(", weak_type=True", "")
+    return _JAX_ARRAY_ELLIPSIS_RE.sub(r"\1...\2", text)
 
 
 class JaxAwareOutputChecker(OutputChecker):
     """Output checker that ignores unstable JAX repr metadata."""
 
-    @wraps(OutputChecker.check_output)
     def check_output(self, want: str, got: str, optionflags: int) -> bool:
         return super().check_output(
             _normalize_jax_repr(want), _normalize_jax_repr(got), optionflags
         )
 
-    @wraps(OutputChecker.output_difference)
     def output_difference(self, example: Example, got: str, optionflags: int) -> str:
         return super().output_difference(
             Example(
