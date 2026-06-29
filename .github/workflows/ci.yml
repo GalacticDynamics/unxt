@@ -169,7 +169,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ${{ needs.setup.outputs.oldest-python }}
+        # Wrap the scalar `oldest-python` (e.g. "3.11") in a single-element list:
+        # a matrix axis must be a sequence, otherwise it never expands and the
+        # job silently never runs (making the required `CI Pass` gate fail).
+        # Quotes keep it a string so e.g. "3.10" isn't parsed as the float 3.1.
+        python-version: ["${{ needs.setup.outputs.oldest-python }}"]
         runs-on: [ubuntu-latest]
 
     steps:
