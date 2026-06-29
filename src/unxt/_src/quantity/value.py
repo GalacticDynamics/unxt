@@ -13,7 +13,6 @@ import plum
 import quax
 import wadler_lindig as wl
 from jaxtyping import Array, ArrayLike
-from numpy.typing import NDArray
 
 import quaxed.numpy as jnp
 
@@ -140,7 +139,7 @@ class StaticValue:
         return wl.pformat(self, short_arrays=False, max_width=80)
 
     @override
-    def __eq__(self, other: object, /) -> bool | NDArray[np.bool_]:  # type: ignore[override]
+    def __eq__(self, other: object, /) -> bool | np.ndarray:  # type: ignore[override]
         if isinstance(other, StaticValue):
             return np.array_equal(self._array, other._array)
         if isinstance(other, Array):
@@ -149,7 +148,7 @@ class StaticValue:
             return np.equal(self._array, other)
         return NotImplemented
 
-    def __ne__(self, other: object, /) -> bool | NDArray[np.bool_]:  # type: ignore[override]
+    def __ne__(self, other: object, /) -> bool | np.ndarray:  # type: ignore[override]
         if isinstance(other, StaticValue):
             return not bool(np.array_equal(self._array, other._array))
         if isinstance(other, Array):
@@ -158,22 +157,22 @@ class StaticValue:
             return np.not_equal(self._array, other)
         return NotImplemented
 
-    def __lt__(self, other: Any, /) -> NDArray[np.bool_]:
+    def __lt__(self, other: Any, /) -> np.ndarray:
         if isinstance(other, StaticValue):
             other = other._array
         return self._array < other
 
-    def __le__(self, other: Any, /) -> NDArray[np.bool_]:
+    def __le__(self, other: Any, /) -> np.ndarray:
         if isinstance(other, StaticValue):
             other = other._array
         return self._array <= other
 
-    def __gt__(self, other: Any, /) -> NDArray[np.bool_]:
+    def __gt__(self, other: Any, /) -> np.ndarray:
         if isinstance(other, StaticValue):
             other = other._array
         return self._array > other
 
-    def __ge__(self, other: Any, /) -> NDArray[np.bool_]:
+    def __ge__(self, other: Any, /) -> np.ndarray:
         if isinstance(other, StaticValue):
             other = other._array
         return self._array >= other
