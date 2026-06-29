@@ -23,9 +23,6 @@ from jax.extend.core.primitives import add_jaxvals_p
 from jaxtyping import Array, ArrayLike, DTypeLike, Int
 from plum import convert, promote, type_unparametrized as type_np
 
-import quaxed.numpy as qnp
-from quaxed import lax as qlax
-
 from .base import AbstractQuantity as ABCQ  # noqa: N814
 from .base_angle import AbstractAngle
 from .base_parametric import AbstractParametricQuantity as ABCPQ  # noqa: N814
@@ -75,7 +72,7 @@ def abs_p(x: ABCQ, /) -> ABCQ:
     BareQuantity(Array(1, dtype=int32...), unit='m')
 
     """
-    return replace(x, value=qlax.abs(ustrip(x)))
+    return replace(x, value=lax.abs(ustrip(x)))
 
 
 # ==============================================================================
@@ -100,7 +97,7 @@ def acos_p_aq(x: ABCQ, /) -> ABCQ:
 
     """
     x_ = ustrip(one, x)
-    return type_np(x)(value=qlax.acos(x_), unit=radian)
+    return type_np(x)(value=lax.acos(x_), unit=radian)
 
 
 # ==============================================================================
@@ -125,7 +122,7 @@ def acosh_p_aq(x: ABCQ, /) -> ABCQ:
 
     """
     x_ = ustrip(one, x)
-    return type_np(x)(value=qlax.acosh(x_), unit=radian)
+    return type_np(x)(value=lax.acosh(x_), unit=radian)
 
 
 # ==============================================================================
@@ -236,7 +233,7 @@ def add_p_vaq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     """
     y = uconvert(one, y)
-    return replace(y, value=qlax.add(x, ustrip(y)))
+    return replace(y, value=lax.add(x, ustrip(y)))
 
 
 @quax.register(lax.add_p)
@@ -308,7 +305,7 @@ def add_p_aqv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     """
     x = uconvert(one, x)
-    return replace(x, value=qlax.add(ustrip(x), y))
+    return replace(x, value=lax.add(ustrip(x), y))
 
 
 # ==============================================================================
@@ -836,7 +833,7 @@ def ceil_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(2., dtype=float32...), unit='m')
 
     """
-    return replace(x, value=qlax.ceil(ustrip(x)))
+    return replace(x, value=lax.ceil(ustrip(x)))
 
 
 # ==============================================================================
@@ -872,7 +869,7 @@ def clamp_p(min: ABCQ, x: ABCQ, max: ABCQ) -> ABCQ:
 
     """
     return replace(
-        x, value=qlax.clamp(ustrip(x.unit, min), ustrip(x), ustrip(x.unit, max))
+        x, value=lax.clamp(ustrip(x.unit, min), ustrip(x), ustrip(x.unit, max))
     )
 
 
@@ -902,7 +899,7 @@ def clamp_p_vaqaq(min: ArrayLike, x: ABCQ, max: ABCQ) -> ABCQ:
     Quantity(Array([0, 1, 2], dtype=int32), unit='')
 
     """
-    return replace(x, value=qlax.clamp(min, ustrip(one, x), ustrip(one, max)))
+    return replace(x, value=lax.clamp(min, ustrip(one, x), ustrip(one, max)))
 
 
 # ---------------------------
@@ -969,7 +966,7 @@ def clamp_p_aqaqv(min: ABCQ, x: ABCQ, max: ArrayLike) -> ABCQ:
     BareQuantity(Array([0, 1, 2], dtype=int32), unit='')
 
     """
-    return replace(x, value=qlax.clamp(ustrip(one, min), ustrip(one, x), max))
+    return replace(x, value=lax.clamp(ustrip(one, min), ustrip(one, x), max))
 
 
 @quax.register(lax.clamp_p)
@@ -990,7 +987,7 @@ def clamp_p_qqv(
     Quantity(Array([0, 1, 2], dtype=int32), unit='')
 
     """
-    return replace(x, value=qlax.clamp(ustrip(one, min), ustrip(one, x), max))
+    return replace(x, value=lax.clamp(ustrip(one, min), ustrip(one, x), max))
 
 
 # ==============================================================================
@@ -1042,7 +1039,7 @@ def complex_p(x: ABCQ, y: ABCQ) -> ABCQ:
     """
     x, y = promote(x, y)  # e.g. Distance -> Quantity
     y_ = ustrip(x.unit, y)
-    return replace(x, value=qlax.complex(ustrip(x), y_))
+    return replace(x, value=lax.complex(ustrip(x), y_))
 
 
 # ==============================================================================
@@ -1072,7 +1069,7 @@ def concatenate_p_aq(*operands: ABCQ, dimension: Any) -> ABCQ:
     u = operand0.unit
     return replace(
         operand0,
-        value=qlax.concatenate([ustrip(u, op) for op in operands], dimension=dimension),
+        value=lax.concatenate([ustrip(u, op) for op in operands], dimension=dimension),
     )
 
 
@@ -1268,7 +1265,7 @@ def conj_p(x: ABCQ, *, input_dtype: Any) -> ABCQ:
 
     """
     del input_dtype  # TODO: use this?
-    return replace(x, value=qlax.conj(ustrip(x)))
+    return replace(x, value=lax.conj(ustrip(x)))
 
 
 # ==============================================================================
@@ -1443,7 +1440,7 @@ def cumlogsumexp_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
     """
     # TODO: double check units make sense here.
     return replace(
-        operand, value=qlax.cumlogsumexp(ustrip(operand), axis=axis, reverse=reverse)
+        operand, value=lax.cumlogsumexp(ustrip(operand), axis=axis, reverse=reverse)
     )
 
 
@@ -1469,7 +1466,7 @@ def cummax_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
 
     """
     return replace(
-        operand, value=qlax.cummax(ustrip(operand), axis=axis, reverse=reverse)
+        operand, value=lax.cummax(ustrip(operand), axis=axis, reverse=reverse)
     )
 
 
@@ -1495,7 +1492,7 @@ def cummin_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
 
     """
     return replace(
-        operand, value=qlax.cummin(ustrip(operand), axis=axis, reverse=reverse)
+        operand, value=lax.cummin(ustrip(operand), axis=axis, reverse=reverse)
     )
 
 
@@ -1521,7 +1518,7 @@ def cumprod_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
 
     """
     return replace(
-        operand, value=qlax.cumprod(ustrip(one, operand), axis=axis, reverse=reverse)
+        operand, value=lax.cumprod(ustrip(one, operand), axis=axis, reverse=reverse)
     )
 
 
@@ -1547,7 +1544,7 @@ def cumsum_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
 
     """
     return replace(
-        operand, value=qlax.cumsum(ustrip(operand), axis=axis, reverse=reverse)
+        operand, value=lax.cumsum(ustrip(operand), axis=axis, reverse=reverse)
     )
 
 
@@ -1837,7 +1834,7 @@ def digamma_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(-0.5772154, dtype=float32...), unit='')
 
     """
-    return replace(x, value=qlax.digamma(ustrip(one, x)))
+    return replace(x, value=lax.digamma(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -1908,7 +1905,7 @@ def div_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     u = unit(x.unit / y.unit)
     xv, yv = ustrip(x), ustrip(y)
     xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
-    return type_np(x)(qlax.div(xv, yv), unit=u)
+    return type_np(x)(lax.div(xv, yv), unit=u)
 
 
 @quax.register(lax.div_p)
@@ -2229,7 +2226,7 @@ def eq_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) == Q(y, {y.unit}).",
     )
-    return qlax.eq(xv, ustrip(x.unit, y))  # re-dispatch on the values
+    return lax.eq(xv, ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @quax.register(lax.eq_p)
@@ -2265,7 +2262,7 @@ def eq_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x == Q(y, {y.unit}) (except for x=0).",
     )
-    return qlax.eq(x, yv)  # re-dispatch on the value
+    return lax.eq(x, yv)  # re-dispatch on the value
 
 
 @quax.register(lax.eq_p)
@@ -2325,7 +2322,7 @@ def eq_p_aqv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(special_vals),
         f"Cannot compare Q(x, {x.unit}) == y (except for y=0,infinity).",
     )
-    return qlax.eq(xv, y)  # re-dispatch on the value
+    return lax.eq(xv, y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -2350,7 +2347,7 @@ def erf_inv_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return replace(x, value=qlax.erf_inv(ustrip(one, x)))
+    return replace(x, value=lax.erf_inv(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2375,7 +2372,7 @@ def erf_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return replace(x, value=qlax.erf(ustrip(one, x)))
+    return replace(x, value=lax.erf(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2400,7 +2397,7 @@ def erfc_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return replace(x, value=qlax.erfc(ustrip(one, x)))
+    return replace(x, value=lax.erfc(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2508,7 +2505,7 @@ def fft_p(x: ABCQ, *, fft_type: Any, fft_lengths: Any) -> ABCQ:
     )
 
     """
-    return type_np(x)(qlax.fft(ustrip(x), fft_type, fft_lengths), unit=x.unit**-1)
+    return type_np(x)(lax.fft(ustrip(x), fft_type, fft_lengths), unit=x.unit**-1)
 
 
 # ==============================================================================
@@ -2531,7 +2528,7 @@ def floor_p(x: ABCQ) -> ABCQ:
     Quantity(Array(1., dtype=float32...), unit='')
 
     """
-    return replace(x, value=qlax.floor(ustrip(x)))
+    return replace(x, value=lax.floor(ustrip(x)))
 
 
 # ==============================================================================
@@ -2579,7 +2576,7 @@ def ge_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) >= Q(y, {y.unit}).",
     )
-    return qlax.ge(xv, ustrip(x.unit, y))  # re-dispatch on the values
+    return lax.ge(xv, ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @quax.register(lax.ge_p)
@@ -2615,7 +2612,7 @@ def ge_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x >= Q(y, {y.unit}) (except for x=0).",
     )
-    return qlax.ge(x, yv)  # re-dispatch on the value
+    return lax.ge(x, yv)  # re-dispatch on the value
 
 
 @quax.register(lax.ge_p)
@@ -2651,7 +2648,7 @@ def ge_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) >= y (except for y=0).",
     )
-    return qlax.ge(xv, y)  # re-dispatch on the value
+    return lax.ge(xv, y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -2684,7 +2681,7 @@ def gt_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
     )
     yv = ustrip(x.unit, y)
     xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
-    return qlax.gt(xv, yv)  # re-dispatch on the values
+    return lax.gt(xv, yv)  # re-dispatch on the values
 
 
 @quax.register(lax.gt_p)
@@ -2720,7 +2717,7 @@ def gt_p_vq(x: ArrayLike, y: ABCQ) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x > Q(y, {y.unit}) (except for x=0).",
     )
-    return qlax.gt(x, yv)  # re-dispatch on the value
+    return lax.gt(x, yv)  # re-dispatch on the value
 
 
 @quax.register(lax.gt_p)
@@ -2756,7 +2753,7 @@ def gt_p_qv(x: ABCQ, y: ArrayLike) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) > y (except for y=0).",
     )
-    return qlax.gt(xv, y)  # re-dispatch on the value
+    return lax.gt(xv, y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -2786,7 +2783,7 @@ def igamma_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
     Quantity(Array(0.6321202, dtype=float32...), unit='')
 
     """
-    return replace(x, value=qlax.igamma(ustrip(AllowValue, one, a), ustrip(one, x)))
+    return replace(x, value=lax.igamma(ustrip(AllowValue, one, a), ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2815,7 +2812,7 @@ def igammac_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
     Quantity(Array(0.36787927, dtype=float32...), unit='')
 
     """
-    return replace(x, value=qlax.igammac(ustrip(AllowValue, one, a), ustrip(one, x)))
+    return replace(x, value=lax.igammac(ustrip(AllowValue, one, a), ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2823,7 +2820,7 @@ def igammac_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
 
 @quax.register(lax.imag_p)
 def imag_p(x: ABCQ) -> ABCQ:
-    return replace(x, value=qlax.imag(ustrip(x)))
+    return replace(x, value=lax.imag(ustrip(x)))
 
 
 # ==============================================================================
@@ -2852,7 +2849,7 @@ def integer_pow_p(x: ABCQ, *, y: Any) -> ABCQ:
     if isinstance(x, StaticQuantity):
         value = np.power(ustrip(x), y)
     else:
-        value = qlax.integer_pow(ustrip(x), y)
+        value = lax.integer_pow(ustrip(x), y)
     return type_np(x)(value=value, unit=x.unit**y)
 
 
@@ -2932,7 +2929,7 @@ def le_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) <= Q(y, {y.unit}).",
     )
-    return qlax.le(xv, ustrip(x.unit, y))  # re-dispatch on the values
+    return lax.le(xv, ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @quax.register(lax.le_p)
@@ -2968,7 +2965,7 @@ def le_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x <= Q(y, {y.unit}) (except for x=0).",
     )
-    return qlax.le(x, yv)  # re-dispatch on the value
+    return lax.le(x, yv)  # re-dispatch on the value
 
 
 @quax.register(lax.le_p)
@@ -3004,7 +3001,7 @@ def le_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) <= y (except for y=0).",
     )
-    return qlax.le(xv, y)  # re-dispatch on the value
+    return lax.le(xv, y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -3028,7 +3025,7 @@ def lgamma_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: are there any units that this can support?
-    return replace(x, value=qlax.lgamma(ustrip(one, x)))
+    return replace(x, value=lax.lgamma(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -3161,7 +3158,7 @@ def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     yv = ustrip(x.unit, y)  # this can change the dtype
     xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
 
-    return qnp.less(xv, yv)  # re-dispatch on the values
+    return jnp.less(xv, yv)  # re-dispatch on the values
 
 
 @quax.register(lax.lt_p)
@@ -3217,7 +3214,7 @@ def lt_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x < Q(y, {y.unit}) (except for x=0).",
     )
-    return qnp.less(x, yv)  # re-dispatch on the value
+    return jnp.less(x, yv)  # re-dispatch on the value
 
 
 @quax.register(lax.lt_p)
@@ -3277,7 +3274,7 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) < y (except for y=0).",
     )
-    return qnp.less(xv, y)  # re-dispatch on the value
+    return jnp.less(xv, y)  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -3329,7 +3326,7 @@ def max_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 
     """
     yv = ustrip(x.unit, y)
-    return replace(x, value=qlax.max(ustrip(x), yv))
+    return replace(x, value=lax.max(ustrip(x), yv))
 
 
 @quax.register(lax.max_p)
@@ -3351,7 +3348,7 @@ def max_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     """
     yv = ustrip(one, y)
-    return replace(y, value=qlax.max(x, yv))
+    return replace(y, value=lax.max(x, yv))
 
 
 @quax.register(lax.max_p)
@@ -3373,7 +3370,7 @@ def max_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     """
     xv = ustrip(one, x)
-    return replace(x, value=qlax.max(xv, y))
+    return replace(x, value=lax.max(xv, y))
 
 
 @quax.register(lax.max_p)
@@ -3423,7 +3420,7 @@ def min_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     Quantity(Array([1, 1, 3], dtype=int32), unit='m')
 
     """
-    return replace(x, value=qlax.min(ustrip(x), ustrip(x.unit, y)))
+    return replace(x, value=lax.min(ustrip(x), ustrip(x.unit, y)))
 
 
 @quax.register(lax.min_p)
@@ -3445,7 +3442,7 @@ def min_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     Quantity(Array([1, 2, 2], dtype=int32), unit='')
 
     """
-    return replace(y, value=qlax.min(x, ustrip(one, y)))
+    return replace(y, value=lax.min(x, ustrip(one, y)))
 
 
 @quax.register(lax.min_p)
@@ -3467,7 +3464,7 @@ def min_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     Quantity(Array([1, 2, 2], dtype=int32), unit='')
 
     """
-    return replace(x, value=qlax.min(ustrip(one, x), y))
+    return replace(x, value=lax.min(ustrip(one, x), y))
 
 
 # ==============================================================================
@@ -3639,7 +3636,7 @@ def ne_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     if not is_unit_convertible(x.unit, y.unit):
         msg = f"Cannot compare Q(x, {x.unit}) != Q(y, {y.unit})."
         raise UnitConversionError(msg)
-    return qnp.not_equal(ustrip(x), ustrip(x.unit, y))  # re-dispatch on the values
+    return jnp.not_equal(ustrip(x), ustrip(x.unit, y))  # re-dispatch on the values
 
 
 @quax.register(lax.ne_p)
@@ -3684,7 +3681,7 @@ def ne_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x != Q(y, {y.unit}) (except for x=0).",
     )
-    return qnp.not_equal(x, yv)  # re-dispatch on the value
+    return jnp.not_equal(x, yv)  # re-dispatch on the value
 
 
 @quax.register(lax.ne_p)
@@ -3729,7 +3726,7 @@ def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) != y (except for y=0).",
     )
-    return qnp.not_equal(xv, y)  # re-dispatch on the value
+    return jnp.not_equal(xv, y)  # re-dispatch on the value
 
 
 # @quax.register(lax.ne_p)
@@ -3757,7 +3754,7 @@ def neg_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(-1, dtype=int32...), unit='m')
 
     """
-    return replace(x, value=qlax.neg(ustrip(x)))
+    return replace(x, value=lax.neg(ustrip(x)))
 
 
 # =============================================================================
@@ -3783,7 +3780,7 @@ def nextafter_p(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
 
     """
     u = unit_of(x1)
-    return replace(x1, value=qlax.nextafter(ustrip(u, x1), ustrip(u, x2)))
+    return replace(x1, value=lax.nextafter(ustrip(u, x1), ustrip(u, x2)))
 
 
 # =============================================================================
@@ -3806,7 +3803,7 @@ def not_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(-2, dtype=int32...), unit='')
 
     """
-    return replace(x, value=qlax.bitwise_not(ustrip(one, x)))
+    return replace(x, value=lax.bitwise_not(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -3831,7 +3828,7 @@ def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     Quantity(Array(3, dtype=int32...), unit='')
 
     """
-    return replace(x, value=qlax.bitwise_or(ustrip(one, x), ustrip(one, y)))
+    return replace(x, value=lax.bitwise_or(ustrip(one, x), ustrip(one, y)))
 
 
 # ==============================================================================
@@ -3941,7 +3938,7 @@ def polygamma_p(m: ArrayLike, x: ABCQ, /) -> ABCQ:
     Quantity(Array(0.39493403, dtype=float32...), unit='')
 
     """
-    return replace(x, value=qlax.polygamma(m, ustrip(one, x)))
+    return replace(x, value=lax.polygamma(m, ustrip(one, x)))
 
 
 # ==============================================================================
@@ -4007,7 +4004,7 @@ def pow_p_qq(x: ABCQ, y: ABCPQ["dimensionless"], /) -> ABCQ:
     if y0.ndim != 0:
         msg = "Exponent must be a scalar."
         raise ValueError(msg)
-    return type_np(x)(value=qlax.pow(ustrip(x), y0), unit=x.unit**y0)
+    return type_np(x)(value=lax.pow(ustrip(x), y0), unit=x.unit**y0)
 
 
 @quax.register(lax.pow_p)
@@ -4033,7 +4030,7 @@ def pow_p_qf(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     Quantity(Array(8., dtype=float32...), unit='m3')
 
     """
-    return type_np(x)(value=qlax.pow(ustrip(x), y), unit=x.unit**y)
+    return type_np(x)(value=lax.pow(ustrip(x), y), unit=x.unit**y)
 
 
 @quax.register(lax.pow_p)
@@ -4051,7 +4048,7 @@ def pow_p_vq(x: ArrayLike, y: ABCPQ["dimensionless"], /) -> ABCQ:
     Quantity(Array([8.], dtype=float32), unit='')
 
     """
-    return replace(y, value=qlax.pow(x, ustrip(y)))
+    return replace(y, value=lax.pow(x, ustrip(y)))
 
 
 @quax.register(lax.pow_p)
@@ -4097,7 +4094,7 @@ def real_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(1., dtype=float32...), unit='m')
 
     """
-    return replace(x, value=qlax.real(ustrip(x)))
+    return replace(x, value=lax.real(ustrip(x)))
 
 
 # ==============================================================================
@@ -4329,7 +4326,7 @@ def rev_p(operand: ABCQ, /, *, dimensions: Any) -> ABCQ:
     Quantity(Array([3, 2, 1, 0], dtype=int32), unit='m')
 
     """
-    return replace(operand, value=qlax.rev(ustrip(operand), dimensions))
+    return replace(operand, value=lax.rev(ustrip(operand), dimensions))
 
 
 # ==============================================================================
@@ -4353,7 +4350,7 @@ def round_p(x: ABCQ, /, *, rounding_method: Any) -> ABCQ:
     Quantity(Array(1.23, dtype=float32...), unit='m')
 
     """
-    return replace(x, value=qlax.round(ustrip(x), rounding_method))
+    return replace(x, value=lax.round(ustrip(x), rounding_method))
 
 
 # ==============================================================================
@@ -4492,7 +4489,7 @@ def select_n_p_vq(which: ABCQ, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
 def select_n_p_jjq(which: ArrayLike, case0: ArrayLike, case1: ABCQ, /) -> ABCQ:
     """Select from an array and quantity using a quantity selector."""
     # Used by a `jnp.linalg.trace`
-    return replace(case1, value=qlax.select_n(which, case0, ustrip(case1)))
+    return replace(case1, value=lax.select_n(which, case0, ustrip(case1)))
 
 
 @quax.register(lax.select_n_p)
@@ -4515,7 +4512,7 @@ def select_n_p_jqj(which: ArrayLike, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
                               [0, 4]], dtype=int32), unit='km')
 
     """
-    return replace(case0, value=qlax.select_n(which, ustrip(case0), case1))
+    return replace(case0, value=lax.select_n(which, ustrip(case0), case1))
 
 
 @quax.register(lax.select_n_p)
@@ -4527,7 +4524,7 @@ def select_n_p_jsqj(
     StaticQuantity operations that go through JAX's select_n produce JAX arrays,
     so we return a Quantity instead.
     """
-    return Quantity(qlax.select_n(which, ustrip(case0), case1), unit=unit_of(case0))
+    return Quantity(lax.select_n(which, ustrip(case0), case1), unit=unit_of(case0))
 
 
 @quax.register(lax.select_n_p)
@@ -4553,7 +4550,7 @@ def select_n_p_jaq(
     dtypes = tuple(case.dtype for case in all_cases)
     casesv = promote_dtypes_if_needed(dtypes, *(ustrip(u, case) for case in all_cases))
 
-    return replace(case0, value=qlax.select_n(which, *casesv))
+    return replace(case0, value=lax.select_n(which, *casesv))
 
 
 @quax.register(lax.select_n_p)
@@ -4581,7 +4578,7 @@ def select_n_p_jsq(
     dtypes = tuple(case.dtype for case in all_cases)
     casesv = promote_dtypes_if_needed(dtypes, *(ustrip(u, case) for case in all_cases))
 
-    return Quantity(qlax.select_n(which, *casesv), unit=u)
+    return Quantity(lax.select_n(which, *casesv), unit=u)
 
 
 @quax.register(lax.select_n_p)
@@ -4615,7 +4612,7 @@ def select_n_p_jqq(which: ArrayLike, /, *cases: ABCQ) -> ABCQ:
     casesv = promote_dtypes_if_needed(dtypes, *(ustrip(u, case) for case in cases))
 
     # If result is a JAX array but promoted type is StaticQuantity, use Quantity
-    return replace(cases[0], value=qlax.select_n(which, *casesv))
+    return replace(cases[0], value=lax.select_n(which, *casesv))
 
 
 # ==============================================================================
@@ -4640,7 +4637,7 @@ def shift_right_arithmetic_p(x: ABCQ, y: ABCQ | float | int, /) -> ABCQ:
 
     """
     return replace(
-        x, value=qlax.shift_right_arithmetic(ustrip(one, x), ustrip(AllowValue, one, y))
+        x, value=lax.shift_right_arithmetic(ustrip(one, x), ustrip(AllowValue, one, y))
     )
 
 
@@ -4769,7 +4766,7 @@ def shift_left_p(x: ABCQ, y: ABCQ | float | int, /, **kw: Any) -> ABCQ:
     Quantity(Array(4, dtype=int32...), unit='')
 
     """
-    return replace(x, value=qlax.shift_left(ustrip(x), ustrip(AllowValue, one, y)))
+    return replace(x, value=lax.shift_left(ustrip(x), ustrip(AllowValue, one, y)))
 
 
 # ==============================================================================
@@ -4940,7 +4937,7 @@ def stop_gradient_p(x: ABCQ, /) -> ABCQ:
     BareQuantity(Array(1., dtype=float32...), unit='m')
 
     """
-    return replace(x, value=qlax.stop_gradient(ustrip(x)))
+    return replace(x, value=lax.stop_gradient(ustrip(x)))
 
 
 # ==============================================================================
@@ -5197,7 +5194,7 @@ def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     Quantity(Array(3, dtype=int32...), unit='')
 
     """
-    return replace(x, value=qlax.bitwise_xor(ustrip(one, x), ustrip(one, y)))
+    return replace(x, value=lax.bitwise_xor(ustrip(one, x), ustrip(one, y)))
 
 
 # ==============================================================================
