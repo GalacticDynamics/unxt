@@ -136,6 +136,8 @@ __all__ = (
     "is_any_quantity",
     "convert_to_quantity_value",
     "AllowValue",
+    # NumPy ufunc registry
+    "register_ufunc",
 )
 
 
@@ -155,6 +157,7 @@ with install_import_hook("unxt.quantity"):
         StaticValue,
         convert_to_quantity_value,
         is_any_quantity,
+        register_ufunc,
     )
     from unxt_api import is_unit_convertible, uconvert, uconvert_value, ustrip, wrap_to
 

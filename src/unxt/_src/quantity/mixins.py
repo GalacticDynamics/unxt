@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any, cast
 
 import equinox as eqx
 import numpy as np
-import numpy.typing as npt
 from astropy.units import CompositeUnit
 from jax.typing import ArrayLike
 from jaxtyping import Array
@@ -15,6 +14,7 @@ from jaxtyping import Array
 from dataclassish import replace
 
 import unxt_api as uapi
+from .register_ufuncs import apply_ufunc
 from unxt.units import AbstractUnit, unit as parse_unit
 
 if TYPE_CHECKING:
@@ -194,7 +194,7 @@ class NumPyCompatMixin:
 
     __array_namespace__: Callable[[], Any]
 
-    def __array__(self, *args: object, **kw: object) -> npt.NDArray[Any]:
+    def __array__(self, *args: object, **kw: object) -> np.ndarray:
         """Return the array as a numpy array, stripping the units.
 
         Examples
@@ -224,7 +224,7 @@ class NumPyCompatMixin:
         >>> import numpy as np
         >>> import unxt as u
 
-        >>> q = u.Quantity([1.0, 2, 3, 4], "m")
+        >>> q = u.Q([1.0, 2, 3, 4], "m")
         >>> np.sum(q)
         Quantity(Array(10., dtype=float32), unit='m')
 
@@ -236,3 +236,32 @@ class NumPyCompatMixin:
         xp = self.__array_namespace__()
         xfunc = getattr(xp, func.__name__)
         return xfunc(*args, **kwargs)
+
+    def __array_ufunc__(
+        self,
+        ufunc: np.ufunc,
+        method: str,
+        *inputs: Any,
+        **kwargs: Any,
+    ) -> Any:
+        """Dispatch a NumPy ufunc to a unit-aware handler.
+
+        Built-in ufuncs delegate to `quaxed.numpy`, which propagates units via
+        quax. Custom ufuncs may be registered with
+        `unxt.quantity.register_ufunc`; unhandled ufuncs or methods return
+        ``NotImplemented`` so NumPy raises a loud ``TypeError`` rather than
+        silently dropping units.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import unxt as u
+
+        >>> np.multiply(u.Q(5.0, "m"), u.Q(3.0, "m"))
+        Quantity(Array(15., dtype=float32...), unit='m2')
+
+        >>> np.sqrt(u.Q(4.0, "m2"))
+        Quantity(Array(2., dtype=float32...), unit='m')
+
+        """
+        return apply_ufunc(ufunc, method, inputs, kwargs)
