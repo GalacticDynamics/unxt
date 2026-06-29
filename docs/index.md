@@ -285,7 +285,7 @@ Create a `Quantity` by passing a JAX array-compatible object and a unit:
 
 >>> import unxt as u
 
->>> x = u.Q([1.0, 2.0, 3.0], unit="m")  # or u.Q(...) for short
+>>> x = u.Q([1.0, 2.0, 3.0], unit="m")  # same as u.Quantity(...)
 >>> x
 Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 ```
