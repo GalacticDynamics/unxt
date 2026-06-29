@@ -16,6 +16,10 @@ from sybil.parsers.abstract.doctest import DocTestStringParser
 from optional_dependencies import OptionalDependencyEnum, auto
 
 optionflags = ELLIPSIS | NORMALIZE_WHITESPACE
+# Match scalar ``Array(...)`` reprs where the dtype is followed by an explicit
+# ``, ...`` placeholder in doctest expectations. The non-greedy prefix keeps the
+# match within a single Array repr, and the dtype tail stops before any actual
+# metadata or the closing parenthesis.
 _JAX_SCALAR_ARRAY_ELLIPSIS_RE = re.compile(
     r"(Array\(.*?dtype=[^,\n)]+), \.\.\.(\))"
 )
@@ -31,8 +35,8 @@ def _normalize_jax_repr(text: str) -> str:
     """
     text = text.replace(", weak_type=True", "")
     # Normalize ``dtype=float32, ...)`` to ``dtype=float32...)`` so doctest
-    # ellipsis matching works whether extra scalar repr metadata is present or
-    # absent in a given JAX/Python combination.
+    # ellipsis matching can cover both forms: no extra scalar repr metadata,
+    # or additional metadata such as ``, weak_type=True`` before ``)``.
     return _JAX_SCALAR_ARRAY_ELLIPSIS_RE.sub(r"\1...\2", text)
 
 

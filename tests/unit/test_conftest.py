@@ -8,7 +8,13 @@ from pathlib import Path
 def _load_root_conftest():
     """Load the repository-root ``conftest.py`` for direct unit testing."""
     current = Path(__file__).resolve()
-    root = next(parent / "conftest.py" for parent in current.parents if (parent / "conftest.py").exists())
+    root = next(
+        ((parent / "conftest.py") for parent in current.parents if (parent / "conftest.py").exists()),
+        None,
+    )
+    if root is None:
+        msg = "Could not locate repository-root conftest.py"
+        raise RuntimeError(msg)
     spec = importlib.util.spec_from_file_location("root_conftest", root)
     assert spec is not None
     assert spec.loader is not None
