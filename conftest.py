@@ -1,9 +1,10 @@
 """Doctest configuration."""
 
 import os
-from collections.abc import Callable, Iterable, Sequence
-from doctest import ELLIPSIS, NORMALIZE_WHITESPACE
+from doctest import ELLIPSIS, NORMALIZE_WHITESPACE, DocTestRunner, Example, OutputChecker
+from functools import wraps
 from typing import Any
+from collections.abc import Callable, Iterable, Sequence
 
 from sybil import Document, Region, Sybil
 from sybil.evaluators.doctest import DocTestEvaluator
@@ -17,11 +18,52 @@ from optional_dependencies import OptionalDependencyEnum, auto
 optionflags = ELLIPSIS | NORMALIZE_WHITESPACE
 
 
+def _normalize_jax_repr(text: str) -> str:
+    """Normalize JAX repr details that vary across versions."""
+    return text.replace(", weak_type=True", "").replace(", ...)", "...)")
+
+
+class JaxAwareOutputChecker(OutputChecker):
+    """Output checker that ignores unstable JAX repr metadata."""
+
+    @wraps(OutputChecker.check_output)
+    def check_output(self, want: str, got: str, optionflags: int) -> bool:
+        return super().check_output(
+            _normalize_jax_repr(want), _normalize_jax_repr(got), optionflags
+        )
+
+    @wraps(OutputChecker.output_difference)
+    def output_difference(self, example: Example, got: str, optionflags: int) -> str:
+        return super().output_difference(
+            Example(
+                source=example.source,
+                want=_normalize_jax_repr(example.want),
+                exc_msg=example.exc_msg,
+                lineno=example.lineno,
+                indent=example.indent,
+                options=example.options,
+            ),
+            _normalize_jax_repr(got),
+            optionflags,
+        )
+
+
+class JaxAwareDocTestEvaluator(DocTestEvaluator):
+    """Sybil doctest evaluator with JAX-aware output normalization."""
+
+    def __init__(self, optionflags: int = 0) -> None:
+        self.runner = DocTestRunner(
+            optionflags=optionflags, checker=JaxAwareOutputChecker()
+        )
+
+
 class PlainDocTestParser:
     """Parser for plain >>> doctests in Python docstrings."""
 
     def __init__(self, doctest_optionflags: int = 0) -> None:
-        self.doctest_parser = DocTestStringParser(DocTestEvaluator(doctest_optionflags))
+        self.doctest_parser = DocTestStringParser(
+            JaxAwareDocTestEvaluator(doctest_optionflags)
+        )
 
     def __call__(self, document: Document) -> Iterable[Region]:
         """Parse plain doctest prompts from Python docstring text."""
@@ -37,7 +79,9 @@ class PyconCodeBlockParser(PythonDocTestOrCodeBlockParser):
         doctest_optionflags: int = 0,
     ) -> None:
         """Initialize parser state."""
-        self.doctest_parser = DocTestStringParser(DocTestEvaluator(doctest_optionflags))
+        self.doctest_parser = DocTestStringParser(
+            JaxAwareDocTestEvaluator(doctest_optionflags)
+        )
         self.codeblock_parser = myst.CodeBlockParser(
             language="pycon",
             evaluator=PythonEvaluator(future_imports),
