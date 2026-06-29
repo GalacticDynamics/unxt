@@ -3266,7 +3266,7 @@ wheels = [
 
 [[package]]
 name = "quax"
-version = "0.3.4"
+version = "0.3.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "equinox" },
@@ -3275,9 +3275,9 @@ dependencies = [
     { name = "packaging" },
     { name = "plum-dispatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/76/62/2a192104624d45203fea6fdc6ab89d0e05fc1aae28634a16772680ffb0bf/quax-0.3.4.tar.gz", hash = "sha256:4735e7649543aefa8ca8c024afd03b43392e23f06ffce4942cf3ed037b5483d0", size = 173857, upload-time = "2026-06-10T22:15:36.876Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bb/09/7d59f59e558f2fb573abef5a15d107f845d59f2b42cf9c40d7d92f7b13cf/quax-0.3.6.tar.gz", hash = "sha256:f879f9c9945393281cf219b76d4e531ef3b50e88b864041ab159c95305eef451", size = 175831, upload-time = "2026-06-29T20:22:28.982Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1a/1e/1ce20a1193ae3fa19d71fe627802af5762736423f92f9848f3a593304136/quax-0.3.4-py3-none-any.whl", hash = "sha256:716ee1aece3127365852e50392997b4b049b81c04519fe21b881fe5ed7801c00", size = 40129, upload-time = "2026-06-10T22:15:35.563Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/8d/c3fd4c78ba0a128b79053a279bc5de4db6b81bcf8476726d45c64ff46b8b/quax-0.3.6-py3-none-any.whl", hash = "sha256:dbe08ddca8d6df4383feffa5943f7bceaa4d273fd588901d2a5819e36ffce815", size = 40887, upload-time = "2026-06-29T20:22:27.473Z" },
 ]
 
 [[package]]
@@ -4347,7 +4347,7 @@ requires-dist = [
     { name = "packaging", specifier = ">=20.0" },
     { name = "plum-dispatch", specifier = ">=2.7.0" },
     { name = "plum-dispatch", marker = "python_full_version >= '3.14'", specifier = ">=2.9.0" },
-    { name = "quax", specifier = ">=0.3.4" },
+    { name = "quax", specifier = ">=0.3.6" },
     { name = "quax-blocks", specifier = ">=0.4.1" },
     { name = "quaxed", specifier = ">=0.10.5" },
     { name = "traitlets", specifier = ">=5.0.0" },
