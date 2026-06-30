@@ -1220,6 +1220,21 @@ def test_concat():
     assert jnp.array_equal(got.value, exp.value)
 
 
+def test_concat_no_type_piracy():
+    """`concat` of only raw arrays must NOT be claimed by unxt.
+
+    The quantity registrations must never match an all-array call (no type
+    piracy): the result stays a plain ``jax.Array``, in any arity.
+    """
+    r1 = jnp.asarray([1.0, 2.0])
+    r2 = jnp.asarray([3.0, 4.0])
+    r3 = jnp.asarray([5.0, 6.0])
+    for args in [(r1,), (r1, r2), (r1, r2, r3)]:
+        got = jnp.concat(args)
+        assert isinstance(got, Array)
+        assert not isinstance(got, u.quantity.AbstractQuantity)
+
+
 def test_expand_dims():
     """Test `expand_dims`."""
     x = u.Q(jnp.asarray([1, 2, 3], dtype=float), "m")
@@ -1296,6 +1311,17 @@ def test_stack():
     assert isinstance(got, u.Q)
     assert got.unit == exp.unit
     assert jnp.array_equal(got.value, exp.value)
+
+
+def test_stack_no_type_piracy():
+    """`stack` of only raw arrays must NOT be claimed by unxt (no type piracy)."""
+    r1 = jnp.asarray([1.0, 2.0])
+    r2 = jnp.asarray([3.0, 4.0])
+    r3 = jnp.asarray([5.0, 6.0])
+    for args in [(r1,), (r1, r2), (r1, r2, r3)]:
+        got = jnp.stack(args)
+        assert isinstance(got, Array)
+        assert not isinstance(got, u.quantity.AbstractQuantity)
 
 
 def test_stack_axis():
@@ -1554,6 +1580,18 @@ def test_sort_multiple_quantity_operands():
     assert isinstance(sorted_vel, u.Q)
     assert sorted_vel.unit == u.unit("km/s")
     assert jnp.array_equal(sorted_vel.value, jnp.asarray([10.0, 20.0, 30.0]))
+
+
+def test_sort_no_type_piracy():
+    """`sort`/`argsort` of a raw array must NOT be claimed by unxt.
+
+    The quantity sort registration requires the first operand to be a quantity,
+    so an all-array sort is never pirated.
+    """
+    r = jnp.asarray([3.0, 1.0, 2.0])
+    for got in (jnp.sort(r), jnp.argsort(r)):
+        assert isinstance(got, Array)
+        assert not isinstance(got, u.quantity.AbstractQuantity)
 
 
 # =============================================================================
