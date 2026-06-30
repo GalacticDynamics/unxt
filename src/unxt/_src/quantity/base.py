@@ -363,9 +363,22 @@ class AbstractQuantity(
         """Get an item from the array.
 
         This is a simple wrapper around the `__getitem__` method of the array,
-        calling `replace` to only update the value.
+        calling `replace` to only update the value. A `AbstractQuantity` key
+        (e.g. a boolean mask produced by `isfinite`) is stripped to its
+        dimensionless array before indexing.
+
+        Examples
+        --------
+        >>> import quaxed.numpy as jnp
+        >>> import unxt as u
+
+        >>> q = u.Q([1.0, 2.0, jnp.inf, 4.0], "m")
+        >>> q[jnp.isfinite(q)]
+        Quantity(Array([1., 2., 4.], dtype=float32), unit='m')
 
         """
+        if isinstance(key, AbstractQuantity):
+            key = uapi.ustrip("", key)
         return replace(self, value=self.value[key])
 
     def __index__(self) -> int:

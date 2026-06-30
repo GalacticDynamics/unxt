@@ -14,6 +14,7 @@ from jax._src.numpy.setops import (
 from jax.numpy import iinfo as IInfo  # noqa: N812
 from numpy import finfo as FInfo  # noqa: N812
 
+import quaxed.lax as qlax
 import quaxed.numpy as jnp
 
 import unxt as u
@@ -507,8 +508,9 @@ def test_bitwise_and():
     got = jnp.bitwise_and(x, y)
     exp = jnp.bitwise_and(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_bitwise_left_shift():
@@ -633,8 +635,9 @@ def test_equal():
     got = jnp.equal(x, y)
     exp = jnp.equal(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_exp():
@@ -689,8 +692,9 @@ def test_greater():
     got = jnp.greater(x, y)
     exp = jnp.greater(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_greater_equal():
@@ -700,8 +704,9 @@ def test_greater_equal():
     got = jnp.greater_equal(x, y)
     exp = jnp.greater_equal(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_imag():
@@ -716,13 +721,18 @@ def test_imag():
 
 
 def test_isfinite():
-    """Test `isfinite`."""
+    """Test `isfinite`.
+
+    The result is a dimensionless Quantity of the same type as the input, so
+    that the output shares a namespace with the input (per the Array API).
+    """
     x = u.Q(jnp.asarray([1, 2, 3], dtype=float), "m")
     got = jnp.isfinite(x)
     exp = jnp.isfinite(x.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_isinf():
@@ -731,8 +741,9 @@ def test_isinf():
     got = jnp.isinf(x)
     exp = jnp.isinf(x.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_isnan():
@@ -741,8 +752,9 @@ def test_isnan():
     got = jnp.isnan(x)
     exp = jnp.isnan(x.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_less():
@@ -752,8 +764,9 @@ def test_less():
     got = jnp.less(x, y)
     exp = jnp.less(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_less_equal():
@@ -763,8 +776,9 @@ def test_less_equal():
     got = jnp.less_equal(x, y)
     exp = jnp.less_equal(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_log():
@@ -830,8 +844,31 @@ def test_logical_and():
     got = jnp.logical_and(x, y)
     exp = jnp.logical_and(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
+
+
+def test_logical_and_quantity_array():
+    """Test `logical_and` mixing a dimensionless Quantity and a raw array.
+
+    A Quantity operand keeps the result in the Quantity namespace: the result
+    is a dimensionless Quantity (per the Array API), regardless of operand
+    order.
+    """
+    x = u.Q([True, False, True], "")
+    y = jnp.asarray([True, True, False])
+    exp = jnp.logical_and(x.value, y)
+
+    got = jnp.logical_and(x, y)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
+
+    got = jnp.logical_and(y, x)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_logical_not():
@@ -899,8 +936,9 @@ def test_not_equal():
     got = jnp.not_equal(x, y)
     exp = jnp.not_equal(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_positive():
@@ -1182,6 +1220,21 @@ def test_concat():
     assert jnp.array_equal(got.value, exp.value)
 
 
+def test_concat_no_type_piracy():
+    """`concat` of only raw arrays must NOT be claimed by unxt.
+
+    The quantity registrations must never match an all-array call (no type
+    piracy): the result stays a plain ``jax.Array``, in any arity.
+    """
+    r1 = jnp.asarray([1.0, 2.0])
+    r2 = jnp.asarray([3.0, 4.0])
+    r3 = jnp.asarray([5.0, 6.0])
+    for args in [(r1,), (r1, r2), (r1, r2, r3)]:
+        got = jnp.concat(args)
+        assert isinstance(got, Array)
+        assert not isinstance(got, u.quantity.AbstractQuantity)
+
+
 def test_expand_dims():
     """Test `expand_dims`."""
     x = u.Q(jnp.asarray([1, 2, 3], dtype=float), "m")
@@ -1258,6 +1311,17 @@ def test_stack():
     assert isinstance(got, u.Q)
     assert got.unit == exp.unit
     assert jnp.array_equal(got.value, exp.value)
+
+
+def test_stack_no_type_piracy():
+    """`stack` of only raw arrays must NOT be claimed by unxt (no type piracy)."""
+    r1 = jnp.asarray([1.0, 2.0])
+    r2 = jnp.asarray([3.0, 4.0])
+    r3 = jnp.asarray([5.0, 6.0])
+    for args in [(r1,), (r1, r2), (r1, r2, r3)]:
+        got = jnp.stack(args)
+        assert isinstance(got, Array)
+        assert not isinstance(got, u.quantity.AbstractQuantity)
 
 
 def test_stack_axis():
@@ -1371,6 +1435,38 @@ def test_where():
     assert jnp.array_equal(got.value, exp.value)
 
 
+def test_where_with_predicate_condition():
+    """Test `where` driven directly by a predicate / comparison result.
+
+    Predicates (``isfinite``) and comparisons (``>``) now return dimensionless
+    Quantities, so feeding them straight into ``where`` must select between the
+    value branches while preserving their namespace (per the Array API).
+    """
+    y = u.Q(jnp.asarray([1.0, 2.0, jnp.inf], dtype=float), "m")
+    z = u.Q(jnp.asarray([4.0, 5.0, 6.0], dtype=float), "m")
+
+    # comparison result as the condition
+    got = jnp.where(y > z, y, z)
+    exp = jnp.where((y.value > z.value), y.value, z.value)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("m")
+    assert jnp.array_equal(got.value, exp)
+
+    # predicate result as the condition
+    got = jnp.where(jnp.isfinite(y), y, z)
+    exp = jnp.where(jnp.isfinite(y.value), y.value, z.value)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("m")
+    assert jnp.array_equal(got.value, exp)
+
+    # BareQuantity end-to-end stays a BareQuantity
+    by = u.quantity.BareQuantity(y.value, "m")
+    bz = u.quantity.BareQuantity(z.value, "m")
+    got = jnp.where(by > bz, by, bz)
+    assert isinstance(got, u.quantity.BareQuantity)
+    assert got.unit == u.unit("m")
+
+
 # =============================================================================
 # Set functions
 
@@ -1464,6 +1560,40 @@ def test_sort():
     assert jnp.array_equal(got.value, jnp.sort(q.value))
 
 
+def test_sort_multiple_quantity_operands():
+    """Test sorting a key Quantity while carrying along a second Quantity.
+
+    Sorting by one key Quantity while reordering a payload Quantity of a
+    *different* unit must preserve each operand's own unit.
+    """
+    pos = u.Q(jnp.asarray([3.0, 1.0, 2.0]), "km")
+    vel = u.Q(jnp.asarray([30.0, 10.0, 20.0]), "km/s")
+
+    sorted_pos, sorted_vel = qlax.sort(
+        (pos, vel), dimension=0, is_stable=True, num_keys=1
+    )
+
+    assert isinstance(sorted_pos, u.Q)
+    assert sorted_pos.unit == u.unit("km")
+    assert jnp.array_equal(sorted_pos.value, jnp.asarray([1.0, 2.0, 3.0]))
+
+    assert isinstance(sorted_vel, u.Q)
+    assert sorted_vel.unit == u.unit("km/s")
+    assert jnp.array_equal(sorted_vel.value, jnp.asarray([10.0, 20.0, 30.0]))
+
+
+def test_sort_no_type_piracy():
+    """`sort`/`argsort` of a raw array must NOT be claimed by unxt.
+
+    The quantity sort registration requires the first operand to be a quantity,
+    so an all-array sort is never pirated.
+    """
+    r = jnp.asarray([3.0, 1.0, 2.0])
+    for got in (jnp.sort(r), jnp.argsort(r)):
+        assert isinstance(got, Array)
+        assert not isinstance(got, u.quantity.AbstractQuantity)
+
+
 # =============================================================================
 # Statistical functions
 
@@ -1551,7 +1681,6 @@ def test_var():
 # Utility functions
 
 
-@pytest.mark.xfail(reason="returns a jax.Array")
 def test_all():
     """Test `all`."""
     x = u.Q(jnp.asarray([True, False, True], dtype=bool), "")

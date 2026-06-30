@@ -145,7 +145,7 @@ class Quantity(AbstractParametricQuantity):
         >>> q1 = u.Q([1, 2, 3], "m")
         >>> q2 = u.Q([1, 0, 3], "m")
         >>> q1 == q2
-        Array([ True, False,  True], dtype=bool)
+        Quantity(Array([ True, False,  True], dtype=bool), unit='')
 
         When both quantities carry a `StaticValue`, a scalar `bool` is returned,
         which is required for use as ``static_argnames`` in `jax.jit`:
