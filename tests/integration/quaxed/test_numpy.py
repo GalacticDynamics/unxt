@@ -14,6 +14,7 @@ from jax._src.numpy.setops import (
 from jax.numpy import iinfo as IInfo  # noqa: N812
 from numpy import finfo as FInfo  # noqa: N812
 
+import quaxed.lax as qlax
 import quaxed.numpy as jnp
 
 import unxt as u
@@ -1531,6 +1532,28 @@ def test_sort():
     assert isinstance(got, u.Q)
     assert got.unit == u.unit("m")
     assert jnp.array_equal(got.value, jnp.sort(q.value))
+
+
+def test_sort_multiple_quantity_operands():
+    """Test sorting a key Quantity while carrying along a second Quantity.
+
+    Sorting by one key Quantity while reordering a payload Quantity of a
+    *different* unit must preserve each operand's own unit.
+    """
+    pos = u.Q(jnp.asarray([3.0, 1.0, 2.0]), "km")
+    vel = u.Q(jnp.asarray([30.0, 10.0, 20.0]), "km/s")
+
+    sorted_pos, sorted_vel = qlax.sort(
+        (pos, vel), dimension=0, is_stable=True, num_keys=1
+    )
+
+    assert isinstance(sorted_pos, u.Q)
+    assert sorted_pos.unit == u.unit("km")
+    assert jnp.array_equal(sorted_pos.value, jnp.asarray([1.0, 2.0, 3.0]))
+
+    assert isinstance(sorted_vel, u.Q)
+    assert sorted_vel.unit == u.unit("km/s")
+    assert jnp.array_equal(sorted_vel.value, jnp.asarray([10.0, 20.0, 30.0]))
 
 
 # =============================================================================

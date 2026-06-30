@@ -4938,36 +4938,57 @@ def slice_p(
 # ==============================================================================
 
 
-# Called by `argsort`
+# Called by `sort` (one operand), `argsort` (key + iota payload), and
+# multi-operand `lax.sort` (sort by keys, reorder payloads alongside).
 @quax.register(lax.sort_p)
-def sort_p_two_operands(
-    operand0: ABCQ,
-    operand1: ArrayLike,
-    /,
-    *,
+def sort_p(
+    *operands: ABCQ | ArrayLike,
     dimension: int,
     is_stable: bool,
     num_keys: int,
-) -> tuple[ABCQ, ArrayLike]:
-    out0, out1 = lax.sort_p.bind(  # type: ignore[no-untyped-call]
-        ustrip(operand0),
-        operand1,
-        dimension=dimension,
-        is_stable=is_stable,
-        num_keys=num_keys,
-    )
-    return (replace(operand0, value=out0), out1)
+) -> tuple[ABCQ | ArrayLike, ...]:
+    """Sort one or more operands, at least one of which is a quantity.
 
+    All operands are reordered together by the first ``num_keys`` keys. Each
+    quantity operand is stripped to its array value for the underlying sort and
+    re-wrapped afterwards, so every output keeps its own unit -- including when
+    keys and payloads carry different units. Plain-array operands (e.g. the
+    ``iota`` payload that ``argsort`` adds) pass through unwrapped.
 
-# Called by `sort`
-@quax.register(lax.sort_p)
-def sort_p_one_operand(
-    operand: ABCQ, /, *, dimension: int, is_stable: bool, num_keys: int
-) -> tuple[ABCQ]:
-    (out,) = lax.sort_p.bind(  # type: ignore[no-untyped-call]
-        ustrip(operand), dimension=dimension, is_stable=is_stable, num_keys=num_keys
+    Examples
+    --------
+    >>> import quaxed.lax as qlax
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    Sorting a single quantity preserves its unit:
+
+    >>> q = u.Q([3.0, 1.0, 2.0], "m")
+    >>> jnp.sort(q)
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
+
+    Sorting by a key quantity while carrying along a payload quantity of a
+    *different* unit preserves each operand's unit:
+
+    >>> pos = u.Q([3.0, 1.0, 2.0], "km")
+    >>> vel = u.Q([30.0, 10.0, 20.0], "km/s")
+    >>> sorted_pos, sorted_vel = qlax.sort(
+    ...     (pos, vel), dimension=0, is_stable=True, num_keys=1
+    ... )
+    >>> sorted_pos
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='km')
+    >>> sorted_vel
+    Quantity(Array([10., 20., 30.], dtype=float32), unit='km / s')
+
+    """
+    stripped = [ustrip(op) if isinstance(op, ABCQ) else op for op in operands]
+    outs = lax.sort_p.bind(  # type: ignore[no-untyped-call]
+        *stripped, dimension=dimension, is_stable=is_stable, num_keys=num_keys
     )
-    return (type_np(operand)(out, unit=operand.unit),)
+    return tuple(
+        replace(op, value=out) if isinstance(op, ABCQ) else out
+        for op, out in zip(operands, outs, strict=True)
+    )
 
 
 # ==============================================================================
