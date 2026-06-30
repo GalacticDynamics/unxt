@@ -296,6 +296,8 @@ testpaths = [
   "packages/unxt-api/tests/",
   # unxt-hypothesis
   "packages/unxt-hypothesis/",
+  # unxt-xarray
+  "packages/unxt-xarray/",
 ]
 xfail_strict = true
 

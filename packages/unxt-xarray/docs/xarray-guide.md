@@ -204,6 +204,36 @@ q_ds = ds.unxt.quantify(
 )
 ```
 
+## Operations Preserve Units
+
+Because the `Quantity` is stored as the DataArray's underlying (duck) array, units propagate through `xarray` operations directly — you operate on the labeled object, not on `.data`:
+
+```python
+import jax.numpy as jnp
+import xarray as xr
+import unxt as u
+import unxt_xarray
+
+da = xr.DataArray(u.Quantity(jnp.array([1.0, 2.0, 3.0]), "m"), dims=["x"])
+
+# Arithmetic combines units dimensionally
+print((da * da).data)
+# Quantity['area'](Array([1., 4., 9.], dtype=float32), unit='m2')
+
+# Reductions keep the unit
+print(da.sum().data)
+# Quantity['length'](Array(6., dtype=float32), unit='m')
+print(da.prod().data)
+# Quantity['volume'](Array(6., dtype=float32), unit='m3')
+
+# Masking is unit-aware
+masked = da.where(da > u.Quantity(1.0, "m"))
+print(masked.fillna(u.Quantity(0.0, "m")).data)
+# Quantity['length'](Array([0., 2., 3.], dtype=float32), unit='m')
+```
+
+`mean`, `std`, `min`, `max`, `median`, `quantile`, `dot`, `clip`, `cumsum`, `diff`, `integrate`, `concat`, `groupby`, and `weighted` likewise preserve units. This works through `unxt`'s Array-API-conformant `quaxed.numpy` namespace — `unxt_xarray` does **not** monkeypatch `xarray` or its array namespace machinery.
+
 ## Dequantification
 
 Converting back to plain arrays with unit metadata:
@@ -461,11 +491,11 @@ da_cm = xr.DataArray(cm_data, dims=da.dims, coords=da.coords)
 
 ## Limitations
 
-### Dimension Coordinates
+### Dimension Coordinates Cannot Hold Quantities
 
-`xarray`'s dimension coordinates (those marked with `*` in the string representation) always extract the underlying array values, even for duck array types like Quantity. This is a limitation of `xarray` itself.
+`xarray` backs every _dimension coordinate_ (one named like its dimension, shown with a `*` in the repr) with a `pandas.Index`. Building that index coerces the data to a plain `numpy` array, so a `Quantity` assigned to a dimension coordinate is silently unwrapped — its unit is lost. This is inherent to `xarray`'s indexing model, not something `unxt_xarray` can override, and it affects every duck-array unit library (including `pint-xarray`) the same way.
 
-**Workaround**: Use non-dimension coordinates:
+**Workaround**: store the unitful values on a _non-dimension_ coordinate, keeping a plain index on the dimension itself:
 
 ```python
 import unxt as u
@@ -474,12 +504,25 @@ import xarray as xr
 data = [10.0, 20.0, 30.0]
 quantities = u.Quantity([1.0, 2.0, 3.0], "m")
 
-# Instead of this (dimension coordinate):
-# da = xr.DataArray(data, dims=["x"], coords={"x": quantities})
+# Dimension coordinate: ``x`` is unwrapped to a plain array, unit lost
+da = xr.DataArray(data, dims=["x"], coords={"x": quantities})
+print(type(da.coords["x"].data).__name__)
+# ndarray
 
-# Do this (non-dimension coordinate):
+# Non-dimension coordinate: the Quantity (and its unit) is preserved
 da = xr.DataArray(data, dims=["i"], coords={"i": [0, 1, 2], "x": ("i", quantities)})
+print(da.coords["x"].data)
+# Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
 ```
+
+### Operations That Drop Units
+
+A few `xarray` operations route through code paths that cannot preserve a `Quantity`:
+
+- **`rolling` / sliding-window reductions** use `numpy.lib.stride_tricks`, which has no Array API (or `jax.numpy`) equivalent, so they are unsupported on JAX-backed data generally — not specific to units.
+- **`interp`** delegates to `scipy`/`numpy` interpolation internally and returns a plain array (the same behavior as `pint-xarray`).
+
+For these, `dequantify`, operate, then re-`quantify`, or work on `.data` with `unxt`/`quaxed` directly.
 
 ## See Also
 
