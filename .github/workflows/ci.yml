@@ -169,7 +169,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ${{ needs.setup.outputs.oldest-python }}
+        # Wrap the scalar `oldest-python` (e.g. "3.11") in a single-element list:
+        # a matrix axis must be a sequence, otherwise it never expands and the
+        # job silently never runs (making the required `CI Pass` gate fail).
+        # Quotes keep it a string so e.g. "3.10" isn't parsed as the float 3.1.
+        python-version: ["${{ needs.setup.outputs.oldest-python }}"]
         runs-on: [ubuntu-latest]
 
     steps:
@@ -276,3 +280,8 @@ jobs:
         uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # v1.2.2
         with:
           jobs: ${{ toJSON(needs) }}
+          # These per-package jobs only run on push / workflow_dispatch / a
+          # package label / `unxt-api|unxt-hypothesis/*` branches (see their
+          # `if:`), so on a normal PR they are intentionally skipped. Allow the
+          # skip instead of treating it as a failure.
+          allowed-skips: tests-unxt-api, tests-unxt-hypothesis
