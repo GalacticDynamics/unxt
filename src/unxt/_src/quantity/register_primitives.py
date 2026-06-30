@@ -363,6 +363,49 @@ def and_p_aq(x1: ABCQ, x2: ABCQ, /) -> ArrayLike:
     return lax.and_p.bind(ustrip(one, x1), ustrip(one, x2))
 
 
+@quax.register(lax.and_p)
+def and_p_qv(x1: ABCQ, x2: ArrayLike, /) -> ArrayLike:
+    """Bitwise AND of a dimensionless quantity and an array.
+
+    A raw-array operand degrades the result to a raw array. This keeps the
+    boolean quantities produced by predicates (e.g. ``isfinite``) usable inside
+    JAX's composite functions (``isclose``, ``allclose``, ...), which combine
+    them with raw boolean arrays.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> q = u.Q([True, False, True], "")
+    >>> arr = jnp.asarray([True, True, False])
+    >>> jnp.logical_and(q, arr)
+    Array([ True, False, False], dtype=bool)
+
+    """
+    return lax.and_p.bind(ustrip(one, x1), x2)
+
+
+@quax.register(lax.and_p)
+def and_p_vq(x1: ArrayLike, x2: ABCQ, /) -> ArrayLike:
+    """Bitwise AND of an array and a dimensionless quantity.
+
+    See :func:`and_p_qv` for why a raw-array operand degrades the result.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> arr = jnp.asarray([True, True, False])
+    >>> q = u.Q([True, False, True], "")
+    >>> jnp.logical_and(arr, q)
+    Array([ True, False, False], dtype=bool)
+
+    """
+    return lax.and_p.bind(x1, ustrip(one, x2))
+
+
 # ==============================================================================
 
 
@@ -2873,15 +2916,20 @@ def integer_pow_p_abstractangle(x: AbstractAngle, /, *, y: Any) -> ABCQ:
 
 
 @quax.register(lax.is_finite_p)
-def is_finite_p(x: ABCQ) -> ArrayLike:
+def is_finite_p(x: ABCQ) -> ABCQ:
     """Check if a quantity is finite.
+
+    The result is a dimensionless quantity of the same type as the input, so
+    that it shares a namespace with the input (per the Array API).
 
     Examples
     --------
     >>> import quaxed.numpy as jnp
     >>> import unxt as u
 
-    >>> q = u.quantity.BareQuantity(1, "m")
+    >>> q = u.quantity.BareQuantity(1.0, "m")
+    >>> jnp.isfinite(q)
+    BareQuantity(Array(True, dtype=bool), unit='')
     >>> bool(jnp.isfinite(q))
     True
 
@@ -2889,7 +2937,9 @@ def is_finite_p(x: ABCQ) -> ArrayLike:
     >>> bool(jnp.isfinite(q))
     False
 
-    >>> q = u.Q(1, "m")
+    >>> q = u.Q(1.0, "m")
+    >>> jnp.isfinite(q)
+    Quantity(Array(True, dtype=bool), unit='')
     >>> bool(jnp.isfinite(q))
     True
 
@@ -2898,7 +2948,7 @@ def is_finite_p(x: ABCQ) -> ArrayLike:
     False
 
     """
-    return lax.is_finite(ustrip(x))
+    return type_np(x)(lax.is_finite(ustrip(x)), unit=one)
 
 
 # ==============================================================================

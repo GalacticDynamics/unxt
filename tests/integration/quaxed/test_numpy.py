@@ -716,13 +716,18 @@ def test_imag():
 
 
 def test_isfinite():
-    """Test `isfinite`."""
+    """Test `isfinite`.
+
+    The result is a dimensionless Quantity of the same type as the input, so
+    that the output shares a namespace with the input (per the Array API).
+    """
     x = u.Q(jnp.asarray([1, 2, 3], dtype=float), "m")
     got = jnp.isfinite(x)
     exp = jnp.isfinite(x.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_isinf():
@@ -830,6 +835,27 @@ def test_logical_and():
     got = jnp.logical_and(x, y)
     exp = jnp.logical_and(x.value, y.value)
 
+    assert isinstance(got, Array)
+    assert jnp.array_equal(got, exp)
+
+
+def test_logical_and_quantity_array():
+    """Test `logical_and` mixing a dimensionless Quantity and a raw array.
+
+    A raw-array operand degrades the result to a raw array. This keeps the
+    boolean Quantities produced by predicates (e.g. ``isfinite``) usable inside
+    JAX's composite functions (``isclose``, ``allclose``, ...), which combine
+    them with raw boolean arrays.
+    """
+    x = u.Q([True, False, True], "")
+    y = jnp.asarray([True, True, False])
+    exp = jnp.logical_and(x.value, y)
+
+    got = jnp.logical_and(x, y)
+    assert isinstance(got, Array)
+    assert jnp.array_equal(got, exp)
+
+    got = jnp.logical_and(y, x)
     assert isinstance(got, Array)
     assert jnp.array_equal(got, exp)
 

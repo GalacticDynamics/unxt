@@ -266,7 +266,7 @@ xround = u.Q(xround_val, unit="m")
         pytest.param("index_take", (), {}, True, marks=mark_todo),
         ("integer_pow", (x_L, 2), {}, u.Q(lax.integer_pow(x_val, 2), unit="m2")),
         pytest.param("iota", (), {}, True, marks=mark_todo),
-        ("is_finite", (x_L,), {}, lax.is_finite(x_val)),
+        ("is_finite", (x_L,), {}, u.Q(lax.is_finite(x_val), unit="")),
         ("le", (x_L, y_L), {}, lax.le(x_val, y_val)),
         ("lgamma", (x_ND,), {}, u.Q(lax.lgamma(x_val), unit="")),
         ("log", (x_ND,), {}, u.Q(lax.log(x_val), unit="")),

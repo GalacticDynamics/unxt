@@ -305,6 +305,11 @@ def test_getitem():
     mask = jnp.array([True, False, True, False])
     assert np.array_equal(q[mask], u.Q([1, 3], "m"))
 
+    # Boolean indexing with a dimensionless-Quantity mask, as produced by
+    # predicates such as ``isfinite``.
+    qmask = u.Q(mask, "")
+    assert np.array_equal(q[qmask], u.Q([1, 3], "m"))
+
     # Advanced indexing
     indices = jnp.array([0, 2])
     assert np.array_equal(q[indices], u.Q([1, 3], "m"))
