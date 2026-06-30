@@ -280,3 +280,8 @@ jobs:
         uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # v1.2.2
         with:
           jobs: ${{ toJSON(needs) }}
+          # These per-package jobs only run on push / workflow_dispatch / a
+          # package label / `unxt-api|unxt-hypothesis/*` branches (see their
+          # `if:`), so on a normal PR they are intentionally skipped. Allow the
+          # skip instead of treating it as a failure.
+          allowed-skips: tests-unxt-api, tests-unxt-hypothesis
