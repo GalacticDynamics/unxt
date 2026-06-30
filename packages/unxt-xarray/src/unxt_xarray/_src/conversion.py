@@ -346,14 +346,14 @@ def strip_units(obj: DataArray) -> DataArray:
     new_coords = {}
     for name, coord in obj.coords.items():
         new_coord_data = u.ustrip(AllowValue, coord.data)
-        new_coords[name] = Variable(coord.dims, new_coord_data, coord.attrs)
+        new_coords[name] = Variable(coord.dims, new_coord_data, dict(coord.attrs))
 
     return DataArray(
         data=new_data,
         coords=new_coords,
         dims=obj.dims,
         name=obj.name,
-        attrs=obj.attrs,
+        attrs=dict(obj.attrs),
     )
 
 
@@ -376,15 +376,15 @@ def strip_units(obj: Dataset) -> Dataset:
     new_vars = {}
     for name, var in obj.data_vars.items():
         new_data = u.ustrip(AllowValue, var.data)
-        new_vars[name] = (var.dims, new_data, var.attrs)
+        new_vars[name] = (var.dims, new_data, dict(var.attrs))
 
     # Strip units from coordinates
     new_coords = {}
     for name, coord in obj.coords.items():
         new_coord_data = u.ustrip(AllowValue, coord.data)
-        new_coords[name] = Variable(coord.dims, new_coord_data, coord.attrs)
+        new_coords[name] = Variable(coord.dims, new_coord_data, dict(coord.attrs))
 
-    return Dataset(data_vars=new_vars, coords=new_coords, attrs=obj.attrs)
+    return Dataset(data_vars=new_vars, coords=new_coords, attrs=dict(obj.attrs))
 
 
 @dispatch

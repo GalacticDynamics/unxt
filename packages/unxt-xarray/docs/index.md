@@ -41,19 +41,14 @@ import unxt_xarray  # This registers the .unxt accessor
 # Create DataArray with unit attributes
 da = xr.DataArray(
     [1.0, 2.0, 3.0],
-    dims=["time"],
-    coords={"time": [0.0, 1.0, 2.0]},
+    dims=["x"],
     attrs={"units": "m"},
 )
-da.coords["time"].attrs["units"] = "s"
 
 # Convert to unxt Quantities
 quantified = da.unxt.quantify()
 print(quantified.data)
 # Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
-
-print(quantified.coords["time"].data)
-# Quantity['time'](Array([0., 1., 2.], dtype=float32), unit='s')
 
 # Convert back to plain arrays with unit attributes
 dequantified = quantified.unxt.dequantify()

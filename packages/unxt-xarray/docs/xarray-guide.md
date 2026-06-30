@@ -135,20 +135,19 @@ Coordinates can also have units:
 
 ```python
 import xarray as xr
-from xarray import Variable
 import unxt as u
+import unxt_xarray
 
-# Create coordinate with units using Variable
-time_coord = Variable(dims=["time"], data=[0.0, 1.0, 2.0], attrs={"units": "s"})
-
+# Use a non-dimension coordinate to preserve units after quantify().
+# (Dimension coordinates are coerced to plain arrays by xarray's indexing.)
 da = xr.DataArray(
     [10.0, 20.0, 30.0],
-    dims=["time"],
-    coords={"time": time_coord},
+    dims=["i"],
+    coords={"i": [0, 1, 2], "time": ("i", [0.0, 1.0, 2.0], {"units": "s"})},
     attrs={"units": "m"},
 )
 
-# Quantify both data and coordinates
+# Quantify both data and the non-dimension coordinate
 quantified = da.unxt.quantify()
 print(quantified.data)
 # Quantity['length'](Array([10., 20., 30.], dtype=float32), unit='m')
@@ -343,6 +342,7 @@ dKE_dv = grad_fn(da.data)
 The quantify/dequantify operations are designed to roundtrip:
 
 ```python
+import jax.numpy as jnp
 import xarray as xr
 import unxt as u
 import unxt_xarray

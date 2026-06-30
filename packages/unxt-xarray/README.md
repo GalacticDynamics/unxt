@@ -27,7 +27,6 @@ import unxt_xarray  # registers the .unxt accessor
 da = xr.DataArray(
     data=[1.0, 2.0, 3.0],
     dims=["x"],
-    coords={"x": ("x", [0.0, 1.0, 2.0], {"units": "s"})},
     attrs={"units": "m"},
 )
 
