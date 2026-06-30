@@ -307,7 +307,7 @@ class UnxtDatasetAccessor:
         unit_attrs = extract_unit_attributes(self._ds)
 
         # Merge: explicit units override attributes
-        final_units: dict[Hashable, u.AbstractUnit | None] = {}
+        final_units: dict[Hashable, u.AbstractUnit | str | None] = {}
         for name in set(list(unit_attrs.keys()) + list(units.keys())):
             if name in units:
                 final_units[name] = units[name]

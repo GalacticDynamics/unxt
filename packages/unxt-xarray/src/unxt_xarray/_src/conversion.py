@@ -289,7 +289,7 @@ def attach_units(
     new_vars = {}
     for name, var in obj.data_vars.items():
         new_data = _array_attach_units(var.data, units.get(name))
-        new_vars[name] = (var.dims, new_data, var.attrs)
+        new_vars[name] = (var.dims, new_data, dict(var.attrs))
 
     # Handle coordinates
     new_coords = {}

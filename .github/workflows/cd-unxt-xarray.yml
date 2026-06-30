@@ -3,6 +3,9 @@ name: CD - unxt-xarray
 on:
   workflow_dispatch:
   pull_request:
+    paths:
+      - "packages/unxt-xarray/**"
+      - ".github/workflows/cd-unxt-xarray.yml"
   push:
     branches:
       - main
