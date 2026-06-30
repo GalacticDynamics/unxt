@@ -60,7 +60,7 @@ all             = ["unxt[backend-astropy,interop-gala,interop-mpl,workspace]"]
 backend-astropy = ["astropy>=6.0"]
 interop-gala    = ["gala>=1.8"]
 interop-mpl     = ["matplotlib>=3.8"]
-workspace       = ["unxt-api", "unxt-hypothesis"]
+workspace       = ["unxt-api", "unxt-hypothesis", "unxt-xarray"]
 
 [project.urls]
 "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"

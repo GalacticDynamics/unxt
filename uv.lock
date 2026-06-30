@@ -2325,7 +2325,7 @@ name = "nvidia-cublas-cu12"
 version = "12.9.2.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cuda-nvrtc-cu12" },
+    { name = "nvidia-cuda-nvrtc-cu12", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f7/a2/c96163a0fff1839c0c9548bbdeae7b853b867009e33b9b9264adc238b1cf/nvidia_cublas_cu12-12.9.2.10-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:5572131a59c3eebeeb1c4c8144f772d49372c20124916e072a0e3fc30df421d5", size = 575012079, upload-time = "2026-04-08T18:51:47.303Z" },
@@ -2388,7 +2388,7 @@ name = "nvidia-cudnn-cu12"
 version = "9.23.1.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas-cu12" },
+    { name = "nvidia-cublas-cu12", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/10/30/ecca1c8194c8077c4b57a3d96b56d96f15852551b01b919bae6429d92218/nvidia_cudnn_cu12-9.23.1.3-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:6dbc18f05aab2a323a4ffd43d985410608f7db7db9a8596e189cddbd3e527441", size = 778220760, upload-time = "2026-06-09T19:38:19.281Z" },
@@ -2401,7 +2401,7 @@ name = "nvidia-cufft-cu12"
 version = "11.4.1.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12" },
+    { name = "nvidia-nvjitlink-cu12", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9b/2b/76445b0af890da61b501fde30650a1a4bd910607261b209cccb5235d3daa/nvidia_cufft_cu12-11.4.1.4-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:1a28c9b12260a1aa7a8fd12f5ebd82d027963d635ba82ff39a1acfa7c4c0fbcf", size = 200822453, upload-time = "2025-06-05T20:05:27.889Z" },
@@ -2414,9 +2414,9 @@ name = "nvidia-cusolver-cu12"
 version = "11.7.5.82"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas-cu12" },
-    { name = "nvidia-cusparse-cu12" },
-    { name = "nvidia-nvjitlink-cu12" },
+    { name = "nvidia-cublas-cu12", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "nvidia-cusparse-cu12", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "nvidia-nvjitlink-cu12", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/03/99/686ff9bf3a82a531c62b1a5c614476e8dfa24a9d89067aeedf3592ee4538/nvidia_cusolver_cu12-11.7.5.82-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:62efa83e4ace59a4c734d052bb72158e888aa7b770e1a5f601682f16fe5b4fd2", size = 337869834, upload-time = "2025-06-05T20:06:53.125Z" },
@@ -2429,7 +2429,7 @@ name = "nvidia-cusparse-cu12"
 version = "12.5.10.65"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12" },
+    { name = "nvidia-nvjitlink-cu12", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5e/6f/8710fbd17cdd1d0fc3fea7d36d5b65ce1933611c31e1861da330206b253a/nvidia_cusparse_cu12-12.5.10.65-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:221c73e7482dd93eda44e65ce567c031c07e2f93f6fa0ecd3ba876a195023e83", size = 366359408, upload-time = "2025-06-05T20:07:42.501Z" },
@@ -2461,7 +2461,7 @@ name = "nvidia-nvshmem-cu12"
 version = "3.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cuda-cccl-cu12" },
+    { name = "nvidia-cuda-cccl-cu12", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/29/4f/2d705ab9a090fe946dc2be0a3c30f9241e99c49058d2f9c269459b445edc/nvidia_nvshmem_cu12-3.7.0-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:06426cd421093a63529d90a95e57ddf884c9ca43f93016d7a27b903f0a0acaed", size = 230116748, upload-time = "2026-06-11T12:40:27.683Z" },
@@ -2621,7 +2621,7 @@ name = "pexpect"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ptyprocess" },
+    { name = "ptyprocess", marker = "(sys_platform != 'emscripten' and sys_platform != 'win32') or (sys_platform == 'emscripten' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (sys_platform == 'emscripten' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (sys_platform == 'emscripten' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (sys_platform == 'emscripten' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (sys_platform == 'emscripten' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (sys_platform == 'emscripten' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (sys_platform == 'emscripten' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (sys_platform == 'emscripten' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (sys_platform == 'emscripten' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (sys_platform == 'emscripten' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (sys_platform == 'emscripten' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (sys_platform == 'emscripten' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (sys_platform == 'emscripten' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (sys_platform == 'emscripten' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (sys_platform == 'emscripten' and extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (sys_platform == 'win32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (sys_platform == 'win32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (sys_platform == 'win32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (sys_platform == 'win32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-k8s') or (sys_platform == 'win32' and extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-rocm') or (sys_platform == 'win32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (sys_platform == 'win32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (sys_platform == 'win32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-k8s') or (sys_platform == 'win32' and extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-rocm') or (sys_platform == 'win32' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (sys_platform == 'win32' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (sys_platform == 'win32' and extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (sys_platform == 'win32' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (sys_platform == 'win32' and extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (sys_platform == 'win32' and extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450, upload-time = "2023-11-25T09:07:26.339Z" }
 wheels = [
@@ -4293,6 +4293,7 @@ all = [
     { name = "matplotlib" },
     { name = "unxt-api" },
     { name = "unxt-hypothesis" },
+    { name = "unxt-xarray" },
 ]
 backend-astropy = [
     { name = "astropy" },
@@ -4321,6 +4322,7 @@ k8s = [
 workspace = [
     { name = "unxt-api" },
     { name = "unxt-hypothesis" },
+    { name = "unxt-xarray" },
 ]
 
 [package.dev-dependencies]
@@ -4474,6 +4476,8 @@ requires-dist = [
     { name = "unxt-api", marker = "extra == 'workspace'", editable = "packages/unxt-api" },
     { name = "unxt-hypothesis", marker = "extra == 'all'", editable = "packages/unxt-hypothesis" },
     { name = "unxt-hypothesis", marker = "extra == 'workspace'", editable = "packages/unxt-hypothesis" },
+    { name = "unxt-xarray", marker = "extra == 'all'", editable = "packages/unxt-xarray" },
+    { name = "unxt-xarray", marker = "extra == 'workspace'", editable = "packages/unxt-xarray" },
     { name = "wadler-lindig", specifier = ">=0.1.5" },
     { name = "xmmutablemap", specifier = ">=0.1" },
     { name = "zeroth", specifier = ">=1.0.0" },
