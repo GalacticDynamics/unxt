@@ -231,10 +231,6 @@ def add(x: promote(int, float), y: float) -> float:
   ::::
   ````
 
-  ```
-
-  ```
-
 ### JAX Integration via Quax
 
 - Quantities are `ArrayValue` subclasses (Quax protocol)
