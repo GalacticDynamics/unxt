@@ -3274,7 +3274,7 @@ def lu_p_q(x: ABCQ, /) -> tuple[ABCQ, Int[Array, "..."], Int[Array, "..."]]:
 
     """
     lu, pivots, permutation = lax.linalg.lu_p.bind(ustrip(x))
-    return Quantity(lu, unit=x.unit), pivots, permutation
+    return Q(lu, unit=x.unit), pivots, permutation
 
 
 # ==============================================================================
@@ -4543,15 +4543,13 @@ def select_n_p_jqj(which: ArrayLike, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
 
 
 @quax.register(lax.select_n_p)
-def select_n_p_jsqj(
-    which: ArrayLike, case0: StaticQuantity, case1: ArrayLike, /
-) -> Quantity:
+def select_n_p_jsqj(which: ArrayLike, case0: StaticQuantity, case1: ArrayLike, /) -> Q:
     """Select from a StaticQuantity and array using a non-quantity selector.
 
     StaticQuantity operations that go through JAX's select_n produce JAX arrays,
     so we return a Quantity instead.
     """
-    return Quantity(lax.select_n(which, ustrip(case0), case1), unit=unit_of(case0))
+    return Q(lax.select_n(which, ustrip(case0), case1), unit=unit_of(case0))
 
 
 @quax.register(lax.select_n_p)
@@ -4605,7 +4603,7 @@ def select_n_p_jsq(
     dtypes = tuple(case.dtype for case in all_cases)
     casesv = promote_dtypes_if_needed(dtypes, *(ustrip(u, case) for case in all_cases))
 
-    return Quantity(lax.select_n(which, *casesv), unit=u)
+    return Q(lax.select_n(which, *casesv), unit=u)
 
 
 @quax.register(lax.select_n_p)
@@ -4738,7 +4736,7 @@ def sin_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
     Quantity(Array(1., dtype=float32...), unit='')
 
     """
-    return sin_p(convert(x, Quantity), **kw)
+    return sin_p(convert(x, Q), **kw)
 
 
 # ==============================================================================
