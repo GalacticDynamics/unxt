@@ -252,7 +252,9 @@ def attach_units(
         new_coords[name] = (
             coord
             if unit is None
-            else Variable(coord.dims, u.Q(coord.data, unit), coord.attrs)
+            else Variable(
+                coord.dims, _array_attach_units(coord.data, unit), dict(coord.attrs)
+            )
         )
 
     return DataArray(
@@ -260,7 +262,7 @@ def attach_units(
         coords=new_coords,
         dims=obj.dims,
         name=obj.name,
-        attrs=obj.attrs,
+        attrs=dict(obj.attrs),
     )
 
 
@@ -296,10 +298,12 @@ def attach_units(
         new_coords[name] = (
             coord
             if unit is None
-            else Variable(coord.dims, u.Q(coord.data, unit), coord.attrs)
+            else Variable(
+                coord.dims, _array_attach_units(coord.data, unit), dict(coord.attrs)
+            )
         )
 
-    return Dataset(data_vars=new_vars, coords=new_coords, attrs=obj.attrs)
+    return Dataset(data_vars=new_vars, coords=new_coords, attrs=dict(obj.attrs))
 
 
 @dispatch

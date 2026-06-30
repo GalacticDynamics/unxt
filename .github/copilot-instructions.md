@@ -217,21 +217,19 @@ def add(x: promote(int, float), y: float) -> float:
   ```bash
   pip install unxt
   ```
-  ````
 
   :::
 
   :::{tab-item} uv
 
-  ````bash
-
   ```bash
   uv add unxt
-  ````
+  ```
 
   :::
 
   ::::
+  ````
 
   ```
 

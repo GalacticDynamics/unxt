@@ -23,11 +23,9 @@ pip install unxt-xarray
 
 :::{tab-item} uv
 
-````bash
-
 ```bash
 uv add unxt-xarray
-````
+```
 
 :::
 
