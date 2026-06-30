@@ -23,6 +23,8 @@ from jax.extend.core.primitives import add_jaxvals_p
 from jaxtyping import Array, ArrayLike, DTypeLike, Int
 from plum import convert, promote, type_unparametrized as type_np
 
+import quaxed.lax as qlax
+
 from .base import AbstractQuantity as ABCQ  # noqa: N814
 from .base_angle import AbstractAngle
 from .base_parametric import AbstractParametricQuantity as ABCPQ  # noqa: N814
