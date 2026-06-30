@@ -4543,60 +4543,32 @@ def scatter_add_p_vvq(
 
 
 @quax.register(lax.select_n_p)
-def select_n_p(which: ABCQ, /, *cases: ABCQ) -> ABCQ:
-    """Select from a list of quantities using a quantity selector.
+def select_n_p_q(which: ABCQ, /, *cases: ABCQ | ArrayLike) -> ABCQ | ArrayLike:
+    """Select from cases using a dimensionless-quantity selector.
+
+    Comparison/predicate primitives now return a dimensionless boolean quantity
+    (per the Array API). Such a selector must behave exactly like a raw-array
+    one, so strip it and re-dispatch through ``qlax.select_n``: this single
+    registration covers every combination of quantity / raw-array cases, and
+    the result follows the *cases'* namespace (``Quantity``, ``Angle``,
+    ``StaticQuantity``, or a raw array when all cases are arrays) -- handled
+    uniformly by the array-selector registrations below. Requiring ``which`` to
+    be a quantity keeps this from pirating an all-array ``select_n``.
 
     Examples
     --------
     >>> import quaxed.numpy as jnp
     >>> import unxt as u
+
+    Selecting between quantities (e.g. ``jnp.where`` with a comparison mask):
 
     >>> a = u.Q([1.0, 5.0, 9.0], "km")
     >>> b = u.Q([2.0, 4.0, 10.0], "km")
-    >>> which = a > b
-    >>> jnp.where(which, a, b)
+    >>> jnp.where(a > b, a, b)
     Quantity(Array([ 2.,  5., 10.], dtype=float32), unit='km')
 
-    """
-    # Comparison/predicate primitives now return a dimensionless boolean
-    # quantity (per the Array API). A dimensionless-quantity selector must
-    # behave exactly like a raw-array one, so strip it and re-dispatch: the
-    # result then follows the *cases'* namespace (handling `Angle`,
-    # `StaticQuantity`, ... uniformly via the array-selector registrations).
-    return qlax.select_n(ustrip(one, which), *cases)
-
-
-@quax.register(lax.select_n_p)
-def select_n_p_vq(which: ABCQ, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
-    """Select from a quantity and array using a quantity selector."""
-    # encountered from jnp.hypot. Strip the selector and re-dispatch (see
-    # `select_n_p`); the result follows the case's namespace.
-    return qlax.select_n(ustrip(one, which), case0, case1)
-
-
-@quax.register(lax.select_n_p)
-def select_n_p_qjq(which: ABCQ, case0: ArrayLike, case1: ABCQ, /) -> ABCQ:
-    """Select from an array and quantity using a dimensionless-quantity selector.
-
-    Mirror of :func:`select_n_p_vq` for the reversed case ordering. Arises from
-    composite functions (e.g. ``jnp.linalg.pinv``) where a comparison predicate
-    (now a dimensionless quantity) selects between a raw array and a quantity.
-    """
-    return qlax.select_n(ustrip(one, which), case0, case1)
-
-
-@quax.register(lax.select_n_p)
-def select_n_p_qjj(which: ABCQ, /, *cases: ArrayLike) -> ArrayLike:
-    """Select from raw arrays using a dimensionless-quantity selector.
-
-    When a predicate selects between raw arrays (e.g. inside ``jnp.digitize``
-    or integer floor-division), strip the selector and re-dispatch; with only
-    raw cases the result is a raw array.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-    >>> import unxt as u
+    Selecting between raw arrays (e.g. inside ``jnp.digitize``) stays a raw
+    array:
 
     >>> x = u.Q(jnp.arange(0, 10), "deg")
     >>> x_bins = u.Q(jnp.linspace(0, 10, 4), "deg")
