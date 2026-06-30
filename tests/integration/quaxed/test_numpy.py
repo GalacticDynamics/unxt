@@ -1405,6 +1405,38 @@ def test_where():
     assert jnp.array_equal(got.value, exp.value)
 
 
+def test_where_with_predicate_condition():
+    """Test `where` driven directly by a predicate / comparison result.
+
+    Predicates (``isfinite``) and comparisons (``>``) now return dimensionless
+    Quantities, so feeding them straight into ``where`` must select between the
+    value branches while preserving their namespace (per the Array API).
+    """
+    y = u.Q(jnp.asarray([1.0, 2.0, jnp.inf], dtype=float), "m")
+    z = u.Q(jnp.asarray([4.0, 5.0, 6.0], dtype=float), "m")
+
+    # comparison result as the condition
+    got = jnp.where(y > z, y, z)
+    exp = jnp.where((y.value > z.value), y.value, z.value)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("m")
+    assert jnp.array_equal(got.value, exp)
+
+    # predicate result as the condition
+    got = jnp.where(jnp.isfinite(y), y, z)
+    exp = jnp.where(jnp.isfinite(y.value), y.value, z.value)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("m")
+    assert jnp.array_equal(got.value, exp)
+
+    # BareQuantity end-to-end stays a BareQuantity
+    by = u.quantity.BareQuantity(y.value, "m")
+    bz = u.quantity.BareQuantity(z.value, "m")
+    got = jnp.where(by > bz, by, bz)
+    assert isinstance(got, u.quantity.BareQuantity)
+    assert got.unit == u.unit("m")
+
+
 # =============================================================================
 # Set functions
 
