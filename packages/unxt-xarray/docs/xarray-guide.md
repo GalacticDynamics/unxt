@@ -157,6 +157,10 @@ print(quantified.coords["time"].data)
 
 **Important**: Use non-dimension coordinates (coordinates not marked with `*` in `xarray` output) to preserve Quantity objects. Dimension coordinates are automatically converted to plain arrays by `xarray`.
 
+:::{warning} **Dimension coordinates cannot hold Quantities.** xarray automatically coerces dimension coordinates (those named after their dimension, shown with `*` in the repr) to plain NumPy arrays via `pandas.Index`. This silently drops the Quantity wrapper and its unit — there is no error or warning.
+
+The workaround is to use _non-dimension_ coordinates: give the coordinate a name different from its dimension (e.g., `"time"` attached to dimension `"i"`). See [Limitations: Dimension Coordinates Cannot Hold Quantities](#dimension-coordinates-cannot-hold-quantities) for the full explanation and workaround. :::
+
 ## Working with Datasets
 
 Datasets work similarly but handle multiple data variables:
@@ -475,19 +479,118 @@ print(plain_ds["distance"].attrs["units"])
 
 ### Unit Conversion
 
-Use `unxt`'s conversion functions:
+Use `u.uconvert()` on the underlying `Quantity`, then wrap the result back into a DataArray:
 
 ```python
-import unxt as u
 import xarray as xr
+import unxt as u
+import unxt_xarray
 
+# Quantified DataArray in metres
 q = u.Quantity([1.0, 2.0, 3.0], "m")
 da = xr.DataArray(q, dims=["x"])
 
-# Convert to centimeters
-cm_data = u.uconvert(u.unit("cm"), da.data)
-da_cm = xr.DataArray(cm_data, dims=da.dims, coords=da.coords)
+# Convert to centimetres
+da_cm = xr.DataArray(u.uconvert(u.unit("cm"), da.data), dims=da.dims, coords=da.coords)
+print(da_cm.data)
+# Quantity['length'](Array([100., 200., 300.], dtype=float32), unit='cm')
 ```
+
+For DataArrays that start with unit attrs, quantify first, convert, then dequantify:
+
+```python
+import xarray as xr
+import unxt as u
+import unxt_xarray
+
+plain = xr.DataArray([1.0, 2.0, 3.0], dims=["x"], attrs={"units": "m"})
+quantified = plain.unxt.quantify()
+
+converted = u.uconvert(u.unit("km"), quantified.data)
+da_km = xr.DataArray(converted, dims=plain.dims).unxt.dequantify()
+print(da_km.attrs["units"])
+# 'km'
+```
+
+## Lower-Level API
+
+The `.unxt` accessor covers most workflows, but the four underlying functions are also exported for use in pipelines, custom integrations, or cases where you need direct control.
+
+### `extract_unit_attributes`
+
+Reads `"units"` attrs from each variable and coordinate — without converting anything to a Quantity. Use this to inspect declared units before committing to a conversion.
+
+```python
+import xarray as xr
+from unxt_xarray import extract_unit_attributes
+
+ds = xr.Dataset(
+    {
+        "temperature": ("time", [273.0, 293.0], {"units": "K"}),
+        "pressure": ("time", [101325.0, 102000.0]),
+    }
+)
+print(extract_unit_attributes(ds))
+# {'temperature': Unit("K")}
+```
+
+### `attach_units`
+
+Attaches units to a DataArray or Dataset, converting plain array data into Quantities. Use `None` as the key for a DataArray's own data (as opposed to a named coordinate).
+
+```python
+import xarray as xr
+from unxt_xarray import attach_units
+
+da = xr.DataArray([1.0, 2.0, 3.0], dims=["x"])
+quantified = attach_units(da, {None: "m"})
+print(quantified.data)
+# Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+```
+
+Use `attach_units` directly when you already have a units mapping (e.g., from a file header or a prior `extract_unit_attributes` call) and want to skip the attribute-reading step.
+
+### `extract_units`
+
+Reads the units from **existing Quantities** in a DataArray or Dataset. This is the inverse of `attach_units` — use it when you need the units for computation before stripping them.
+
+```python
+import xarray as xr
+import unxt as u
+from unxt_xarray import extract_units
+
+q = u.Quantity([1.0, 2.0], "m")
+da = xr.DataArray(q, dims=["x"])
+print(extract_units(da))
+# {None: Unit("m")}
+```
+
+### `strip_units`
+
+Removes Quantity wrappers, returning plain arrays. The unit information is discarded unless you capture it with `extract_units` first.
+
+```python
+import xarray as xr
+import unxt as u
+from unxt_xarray import strip_units
+
+q = u.Quantity([1.0, 2.0], "m")
+da = xr.DataArray(q, dims=["x"])
+stripped = strip_units(da)
+print(stripped.data)
+# Array([1., 2.], dtype=float32)
+```
+
+### When to use the low-level API
+
+| Task | Use |
+| --- | --- |
+| Interactive quantify/dequantify | `.unxt.quantify()` / `.unxt.dequantify()` |
+| Inspect declared units without converting | `extract_unit_attributes` |
+| Attach a pre-built units mapping | `attach_units` |
+| Read units from already-quantified data | `extract_units` |
+| Strip Quantities to plain arrays | `strip_units` |
+| Build a custom quantify/dequantify pipeline | All four, composed manually |
 
 ## Limitations
 
