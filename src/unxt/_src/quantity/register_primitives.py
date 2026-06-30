@@ -57,7 +57,7 @@ def _as_dimensionless_like(q: ABCQ, value: ArrayLike) -> ABCQ:
     try:
         return type_np(q)(value, unit=one)
     except (ValueError, TypeError):
-        return Quantity(value, unit=one)
+        return Q(value, unit=one)
 
 
 ################################################################################
@@ -503,6 +503,10 @@ def argmin_p(
 def asin_p_aq(x: ABCQ) -> ABCQ:
     """Inverse sine of a quantity.
 
+    The result shares the input's namespace (a parametric ``Quantity`` input
+    yields a ``Quantity``), so a separate parametric registration is
+    unnecessary.
+
     Examples
     --------
     >>> import quaxed.numpy as jnp
@@ -511,19 +515,6 @@ def asin_p_aq(x: ABCQ) -> ABCQ:
     >>> q = u.quantity.BareQuantity(1, "")
     >>> jnp.asin(q)
     BareQuantity(Array(1.5707964, dtype=float32...), unit='rad')
-
-    """
-    return type_np(x)(lax.asin(ustrip(one, x)), unit=radian)
-
-
-@quax.register(lax.asin_p)
-def asin_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
-    """Inverse sine of a quantity.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-    >>> import unxt as u
 
     >>> q = u.Q(1, "")
     >>> jnp.asin(q)
@@ -540,6 +531,9 @@ def asin_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
 def asinh_p_aq(x: ABCQ) -> ABCQ:
     """Inverse hyperbolic sine of a quantity.
 
+    The result shares the input's namespace, so a separate parametric
+    ``Quantity`` registration is unnecessary.
+
     Examples
     --------
     >>> import quaxed.numpy as jnp
@@ -548,19 +542,6 @@ def asinh_p_aq(x: ABCQ) -> ABCQ:
     >>> q = u.quantity.BareQuantity(2, "")
     >>> jnp.asinh(q)
     BareQuantity(Array(1.4436355, dtype=float32...), unit='rad')
-
-    """
-    return type_np(x)(lax.asinh(ustrip(one, x)), unit=radian)
-
-
-@quax.register(lax.asinh_p)
-def asinh_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
-    """Inverse hyperbolic sine of a quantity.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-    >>> import unxt as u
 
     >>> q = u.Q(2, "")
     >>> jnp.asinh(q)
@@ -667,6 +648,9 @@ def atan2_p_aqv(x: ABCQ, y: ArrayLike) -> ABCQ:
 def atan_p_aq(x: ABCQ) -> ABCQ:
     """Arctangent of a quantity.
 
+    The result shares the input's namespace, so a separate parametric
+    ``Quantity`` registration is unnecessary.
+
     Examples
     --------
     >>> import quaxed.numpy as jnp
@@ -675,23 +659,12 @@ def atan_p_aq(x: ABCQ) -> ABCQ:
     >>> jnp.atan(q)
     BareQuantity(Array(0.7853982, dtype=float32...), unit='rad')
 
-    """
-    return type_np(x)(lax.atan(ustrip(one, x)), unit=radian)
-
-
-@quax.register(lax.atan_p)
-def atan_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
-    """Arctangent of a quantity.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
     >>> q = u.Q(1, "")
     >>> jnp.atan(q)
     Quantity(Array(0.7853982, dtype=float32...), unit='rad')
 
     """
-    return Quantity(lax.atan(ustrip(one, x)), unit=radian)
+    return type_np(x)(lax.atan(ustrip(one, x)), unit=radian)
 
 
 # ==============================================================================
@@ -701,6 +674,9 @@ def atan_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
 def atanh_p_aq(x: ABCQ) -> ABCQ:
     """Inverse hyperbolic tangent of a quantity.
 
+    The result shares the input's namespace, so a separate parametric
+    ``Quantity`` registration is unnecessary.
+
     Examples
     --------
     >>> import quaxed.numpy as jnp
@@ -709,17 +685,6 @@ def atanh_p_aq(x: ABCQ) -> ABCQ:
     >>> jnp.atanh(q)
     BareQuantity(Array(nan, dtype=float32...), unit='rad')
 
-    """
-    return type_np(x)(lax.atanh(ustrip(one, x)), unit=radian)
-
-
-@quax.register(lax.atanh_p)
-def atanh_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
-    """Inverse hyperbolic tangent of a quantity.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
     >>> q = u.Q(2, "")
     >>> jnp.atanh(q)
     Quantity(Array(nan, dtype=float32...), unit='rad')
@@ -1350,6 +1315,9 @@ def copy_p(x: ABCQ) -> ABCQ:
 def cos_p_aq(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Cosine of a quantity.
 
+    The result shares the input's namespace, so a separate parametric
+    ``Quantity`` registration is unnecessary.
+
     Examples
     --------
     >>> import quaxed.numpy as jnp
@@ -1358,23 +1326,6 @@ def cos_p_aq(x: ABCQ, /, **kw: Any) -> ABCQ:
     >>> q = u.quantity.BareQuantity(1, "rad")
     >>> jnp.cos(q)
     BareQuantity(Array(0.5403023, dtype=float32...), unit='')
-
-    >>> q = u.quantity.BareQuantity(1, "")
-    >>> jnp.cos(q)
-    BareQuantity(Array(0.5403023, dtype=float32...), unit='')
-
-    """
-    return type_np(x)(lax.cos_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
-
-
-@quax.register(lax.cos_p)
-def cos_p_q(x: ABCPQ["angle"] | Q["dimensionless"], /, **kw: Any) -> Q["dimensionless"]:
-    """Cosine of a quantity.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-    >>> import unxt as u
 
     >>> q = u.Q(1, "rad")
     >>> jnp.cos(q)
@@ -1385,7 +1336,7 @@ def cos_p_q(x: ABCPQ["angle"] | Q["dimensionless"], /, **kw: Any) -> Q["dimensio
     Quantity(Array(0.5403023, dtype=float32...), unit='')
 
     """
-    return Quantity(lax.cos_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
+    return type_np(x)(lax.cos_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
 
 
 @quax.register(lax.cos_p)
@@ -1402,7 +1353,7 @@ def cos_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> Quantity:
     Quantity(Array(1., dtype=float32...), unit='')
 
     """
-    return cos_p_q(convert(x, Quantity), **kw)
+    return cos_p_aq(convert(x, Quantity), **kw)
 
 
 # ==============================================================================
@@ -1410,7 +1361,10 @@ def cos_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> Quantity:
 
 @quax.register(lax.cosh_p)
 def cosh_p_aq(x: ABCQ) -> ABCQ:
-    """Cosine of a quantity.
+    """Hyperbolic cosine of a quantity.
+
+    The result shares the input's namespace, so a separate parametric
+    ``Quantity`` registration is unnecessary.
 
     Examples
     --------
@@ -1420,27 +1374,6 @@ def cosh_p_aq(x: ABCQ) -> ABCQ:
     >>> q = u.quantity.BareQuantity(1, "rad")
     >>> jnp.cosh(q)
     BareQuantity(Array(1.5430806, dtype=float32...), unit='')
-
-    >>> q = u.quantity.BareQuantity(1, "")
-    >>> jnp.cosh(q)
-    BareQuantity(Array(1.5430806, dtype=float32...), unit='')
-
-    """
-    return type_np(x)(lax.cosh(_to_val_rad_or_one(x)), unit=one)
-
-
-@quax.register(lax.cosh_p)
-def cosh_p_q(x: ABCPQ["angle"] | Q["dimensionless"]) -> ABCPQ["dimensionless"]:
-    """Cosine of a quantity.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-    >>> import unxt as u
-
-    >>> q = u.Q(1, "rad")
-    >>> jnp.cosh(q)
-    Quantity(Array(1.5430806, dtype=float32...), unit='')
 
     >>> q = u.Q(1, "")
     >>> jnp.cosh(q)
@@ -4688,7 +4621,8 @@ def select_n_p_jqq(which: ArrayLike, /, *cases: ABCQ) -> ABCQ:
 
     >>> a = u.Q([1.0, 5.0, 9.0], "kpc")
     >>> b = u.Q([2.0, 6.0, 10.0], "kpc")
-    >>> jnp.select(([a > Q(4, "kpc"), b < Q(8, "kpc")]), [a, b], default=Q(0, "kpc"))
+    >>> mask = [a > u.Q(4, "kpc"), b < u.Q(8, "kpc")]
+    >>> jnp.select(mask, [a, b], default=u.Q(0, "kpc"))
     Quantity(Array([2., 5., 9.], dtype=float32), unit='kpc')
 
     This selection dispatch also happens when using ``jnp.hypot``.
@@ -5013,7 +4947,7 @@ def sqrt_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
     Quantity(Array(3., dtype=float32...), unit='deg(1/2)')
 
     """
-    return sqrt_p_q(convert(x, Quantity), **kw)
+    return sqrt_p_q(convert(x, Q), **kw)
 
 
 # ==============================================================================
