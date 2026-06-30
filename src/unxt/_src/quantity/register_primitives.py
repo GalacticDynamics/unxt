@@ -44,6 +44,22 @@ def _to_val_rad_or_one(q: ABCQ) -> ArrayLike:
     return ustrip(radian if is_unit_convertible(q.unit, radian) else one, q)
 
 
+def _as_dimensionless_like(q: ABCQ, value: ArrayLike) -> ABCQ:
+    """Wrap a comparison result as a dimensionless quantity like ``q``.
+
+    Comparison primitives return a dimensionless quantity sharing the namespace
+    of the quantity operand (per the Array API). Some quantity subtypes (e.g.
+    ``Angle``, ``StaticQuantity``) constrain their units and cannot be
+    dimensionless; for those — which only arise from internal, value-level
+    comparisons inside composite functions (``mod``, ``floor_divide``, ...) — we
+    fall back to a plain dimensionless :class:`Quantity`.
+    """
+    try:
+        return type_np(q)(value, unit=one)
+    except (ValueError, TypeError):
+        return Quantity(value, unit=one)
+
+
 ################################################################################
 # Registering Primitives
 
@@ -2240,7 +2256,7 @@ def eigh_p(x: ABCQ, /, **kw: Any) -> tuple[Array, ABCQ]:
 
 
 @quax.register(lax.eq_p)
-def eq_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
+def eq_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
     """Equality of two quantities.
 
     Examples
@@ -2251,16 +2267,16 @@ def eq_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
     >>> q1 = u.quantity.BareQuantity(1, "m")
     >>> q2 = u.quantity.BareQuantity(1, "m")
     >>> jnp.equal(q1, q2)
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
     >>> q1 == q2
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
 
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(1, "m")
     >>> jnp.equal(q1, q2)
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
     >>> q1 == q2
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
 
     """
     xv = ustrip(x)
@@ -2269,11 +2285,11 @@ def eq_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) == Q(y, {y.unit}).",
     )
-    return lax.eq(xv, ustrip(x.unit, y))  # re-dispatch on the values
+    return _as_dimensionless_like(x, lax.eq(xv, ustrip(x.unit, y)))  # re-dispatch
 
 
 @quax.register(lax.eq_p)
-def eq_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
+def eq_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     """Equality of an array and a quantity.
 
     Examples
@@ -2285,11 +2301,11 @@ def eq_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
 
     >>> q = u.quantity.BareQuantity(2.0, "")
     >>> jnp.equal(x, q)
-    Array([False,  True, False], dtype=bool)
+    BareQuantity(Array([False,  True, False], dtype=bool), unit='')
 
     >>> q = u.Q(2.0, "")
     >>> jnp.equal(x, q)
-    Array([False,  True, False], dtype=bool)
+    Quantity(Array([False,  True, False], dtype=bool), unit='')
 
     >>> q = u.Q(2.0, "m")
     >>> try:
@@ -2305,11 +2321,11 @@ def eq_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x == Q(y, {y.unit}) (except for x=0).",
     )
-    return lax.eq(x, yv)  # re-dispatch on the value
+    return _as_dimensionless_like(y, lax.eq(x, yv))  # re-dispatch on the value
 
 
 @quax.register(lax.eq_p)
-def eq_p_aqv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
+def eq_p_aqv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Equality of an array and a quantity.
 
     Examples
@@ -2321,11 +2337,11 @@ def eq_p_aqv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
 
     >>> q = u.quantity.BareQuantity(2.0, "")
     >>> jnp.equal(q, y)
-    Array([False,  True, False], dtype=bool)
+    BareQuantity(Array([False,  True, False], dtype=bool), unit='')
 
     >>> q = u.quantity.BareQuantity([3.0, 2, 1], "")
     >>> jnp.equal(q, y)
-    Array([False,  True, False], dtype=bool)
+    BareQuantity(Array([False,  True, False], dtype=bool), unit='')
 
     >>> q = u.quantity.BareQuantity([3.0, 2, 1], "m")
     >>> try:
@@ -2336,11 +2352,11 @@ def eq_p_aqv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
 
     >>> q = u.Q(2.0, "")
     >>> jnp.equal(q, y)
-    Array([False,  True, False], dtype=bool)
+    Quantity(Array([False,  True, False], dtype=bool), unit='')
 
     >>> q = u.Q([3.0, 2, 1], "")
     >>> jnp.equal(q, y)
-    Array([False,  True, False], dtype=bool)
+    Quantity(Array([False,  True, False], dtype=bool), unit='')
 
     >>> q = u.Q([3.0, 2, 1], "m")
     >>> try:
@@ -2352,10 +2368,10 @@ def eq_p_aqv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
     Check against the special cases:
 
     >>> q == 0
-    Array([False, False, False], dtype=bool)
+    Quantity(Array([False, False, False], dtype=bool), unit='')
 
     >>> q == jnp.inf
-    Array([False, False, False], dtype=bool)
+    Quantity(Array([False, False, False], dtype=bool), unit='')
 
     """
     special_vals = jnp.logical_or(jnp.all(y == 0), jnp.all(jnp.isinf(y)))
@@ -2365,7 +2381,7 @@ def eq_p_aqv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(special_vals),
         f"Cannot compare Q(x, {x.unit}) == y (except for y=0,infinity).",
     )
-    return lax.eq(xv, y)  # re-dispatch on the value
+    return _as_dimensionless_like(x, lax.eq(xv, y))  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -2590,7 +2606,7 @@ def gather_p(operand: ABCQ, start_indices: ArrayLike, /, **kw: Any) -> ABCQ:
 
 
 @quax.register(lax.ge_p)
-def ge_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
+def ge_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
     """Greater than or equal to of two quantities.
 
     Examples
@@ -2601,16 +2617,16 @@ def ge_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
     >>> q1 = u.quantity.BareQuantity(1_001.0, "m")
     >>> q2 = u.quantity.BareQuantity(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
     >>> q1 >= q2
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
 
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
     >>> q1 >= q2
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
 
     """
     xv = ustrip(x)
@@ -2619,11 +2635,11 @@ def ge_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) >= Q(y, {y.unit}).",
     )
-    return lax.ge(xv, ustrip(x.unit, y))  # re-dispatch on the values
+    return _as_dimensionless_like(x, lax.ge(xv, ustrip(x.unit, y)))  # re-dispatch
 
 
 @quax.register(lax.ge_p)
-def ge_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
+def ge_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     """Greater than or equal to of an array and a quantity.
 
     Examples
@@ -2635,11 +2651,11 @@ def ge_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
 
     >>> q2 = u.quantity.BareQuantity(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
 
     >>> q2 = u.Q(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
@@ -2655,11 +2671,11 @@ def ge_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x >= Q(y, {y.unit}) (except for x=0).",
     )
-    return lax.ge(x, yv)  # re-dispatch on the value
+    return _as_dimensionless_like(y, lax.ge(x, yv))  # re-dispatch on the value
 
 
 @quax.register(lax.ge_p)
-def ge_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
+def ge_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Greater than or equal to of a quantity and an array.
 
     Examples
@@ -2671,11 +2687,11 @@ def ge_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
 
     >>> q1 = u.quantity.BareQuantity(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
 
     >>> q1 = u.Q(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
@@ -2691,14 +2707,14 @@ def ge_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) >= y (except for y=0).",
     )
-    return lax.ge(xv, y)  # re-dispatch on the value
+    return _as_dimensionless_like(x, lax.ge(xv, y))  # re-dispatch on the value
 
 
 # ==============================================================================
 
 
 @quax.register(lax.gt_p)
-def gt_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
+def gt_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
     """Greater than of two quantities.
 
     Examples
@@ -2708,12 +2724,12 @@ def gt_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
     >>> q1 = u.quantity.BareQuantity(1_001.0, "m")
     >>> q2 = u.quantity.BareQuantity(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
 
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
 
     """
     xv = ustrip(x)
@@ -2724,11 +2740,11 @@ def gt_p_qq(x: ABCQ, y: ABCQ) -> ArrayLike:
     )
     yv = ustrip(x.unit, y)
     xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
-    return lax.gt(xv, yv)  # re-dispatch on the values
+    return _as_dimensionless_like(x, lax.gt(xv, yv))  # re-dispatch on the values
 
 
 @quax.register(lax.gt_p)
-def gt_p_vq(x: ArrayLike, y: ABCQ) -> ArrayLike:
+def gt_p_vq(x: ArrayLike, y: ABCQ) -> ABCQ:
     """Greater than of an array and a quantity.
 
     Examples
@@ -2740,11 +2756,11 @@ def gt_p_vq(x: ArrayLike, y: ABCQ) -> ArrayLike:
 
     >>> q2 = u.quantity.BareQuantity(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
 
     >>> q2 = u.Q(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
@@ -2760,11 +2776,11 @@ def gt_p_vq(x: ArrayLike, y: ABCQ) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x > Q(y, {y.unit}) (except for x=0).",
     )
-    return lax.gt(x, yv)  # re-dispatch on the value
+    return _as_dimensionless_like(y, lax.gt(x, yv))  # re-dispatch on the value
 
 
 @quax.register(lax.gt_p)
-def gt_p_qv(x: ABCQ, y: ArrayLike) -> ArrayLike:
+def gt_p_qv(x: ABCQ, y: ArrayLike) -> ABCQ:
     """Greater than comparison between a quantity and an array.
 
     Examples
@@ -2776,11 +2792,11 @@ def gt_p_qv(x: ABCQ, y: ArrayLike) -> ArrayLike:
 
     >>> q1 = u.quantity.BareQuantity(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
 
     >>> q1 = u.Q(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
@@ -2796,7 +2812,7 @@ def gt_p_qv(x: ABCQ, y: ArrayLike) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) > y (except for y=0).",
     )
-    return lax.gt(xv, y)  # re-dispatch on the value
+    return _as_dimensionless_like(x, lax.gt(xv, y))  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -2955,7 +2971,7 @@ def is_finite_p(x: ABCQ) -> ABCQ:
 
 
 @quax.register(lax.le_p)
-def le_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
+def le_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """Less than or equal to of two quantities.
 
     Examples
@@ -2965,12 +2981,12 @@ def le_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     >>> q1 = u.quantity.BareQuantity(1_001.0, "m")
     >>> q2 = u.quantity.BareQuantity(1.0, "km")
     >>> jnp.less_equal(q1, q2)
-    Array(False, dtype=bool...)
+    BareQuantity(Array(False, dtype=bool), unit='')
 
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
     >>> jnp.less_equal(q1, q2)
-    Array(False, dtype=bool...)
+    Quantity(Array(False, dtype=bool), unit='')
 
     """
     xv = ustrip(x)
@@ -2979,11 +2995,11 @@ def le_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) <= Q(y, {y.unit}).",
     )
-    return lax.le(xv, ustrip(x.unit, y))  # re-dispatch on the values
+    return _as_dimensionless_like(x, lax.le(xv, ustrip(x.unit, y)))  # re-dispatch
 
 
 @quax.register(lax.le_p)
-def le_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
+def le_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     """Less than or equal to of an array and a quantity.
 
     Examples
@@ -2995,11 +3011,11 @@ def le_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
 
     >>> q2 = u.quantity.BareQuantity(1.0, "")
     >>> jnp.less_equal(x1, q2)
-    Array(False, dtype=bool...)
+    BareQuantity(Array(False, dtype=bool), unit='')
 
     >>> q2 = u.Q(1.0, "")
     >>> jnp.less_equal(x1, q2)
-    Array(False, dtype=bool...)
+    Quantity(Array(False, dtype=bool), unit='')
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
@@ -3015,11 +3031,11 @@ def le_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x <= Q(y, {y.unit}) (except for x=0).",
     )
-    return lax.le(x, yv)  # re-dispatch on the value
+    return _as_dimensionless_like(y, lax.le(x, yv))  # re-dispatch on the value
 
 
 @quax.register(lax.le_p)
-def le_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
+def le_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Less than or equal to of a quantity and an array.
 
     Examples
@@ -3031,11 +3047,11 @@ def le_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
 
     >>> q1 = u.quantity.BareQuantity(1.0, "")
     >>> jnp.less_equal(q1, y1)
-    Array(False, dtype=bool...)
+    BareQuantity(Array(False, dtype=bool), unit='')
 
     >>> q1 = u.Q(1.0, "")
     >>> jnp.less_equal(q1, y1)
-    Array(False, dtype=bool...)
+    Quantity(Array(False, dtype=bool), unit='')
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
@@ -3051,7 +3067,7 @@ def le_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) <= y (except for y=0).",
     )
-    return lax.le(xv, y)  # re-dispatch on the value
+    return _as_dimensionless_like(x, lax.le(xv, y))  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -3154,7 +3170,7 @@ def logistic_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
 
 @quax.register(lax.lt_p)
-def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
+def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """Less than of two quantities.
 
     Examples
@@ -3167,34 +3183,34 @@ def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     >>> x = u.quantity.BareQuantity(1.0, "km")
     >>> y = u.quantity.BareQuantity(2000.0, "m")
     >>> x < y
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
 
     >>> jnp.less(x, y)
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
 
     >>> x = u.quantity.BareQuantity([1.0, 2, 3], "km")
     >>> x < y
-    Array([ True, False, False], dtype=bool)
+    BareQuantity(Array([ True, False, False], dtype=bool), unit='')
 
     >>> jnp.less(x, y)
-    Array([ True, False, False], dtype=bool)
+    BareQuantity(Array([ True, False, False], dtype=bool), unit='')
 
     `Quantity`:
 
     >>> x = u.Q(1.0, "km")
     >>> y = u.Q(2000.0, "m")
     >>> x < y
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> jnp.less(x, y)
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> x = u.Q([1.0, 2, 3], "km")
     >>> x < y
-    Array([ True, False, False], dtype=bool)
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     >>> jnp.less(x, y)
-    Array([ True, False, False], dtype=bool)
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     """
     # Check if the units are convertible.
@@ -3208,11 +3224,11 @@ def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     yv = ustrip(x.unit, y)  # this can change the dtype
     xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
 
-    return jnp.less(xv, yv)  # re-dispatch on the values
+    return _as_dimensionless_like(x, jnp.less(xv, yv))  # re-dispatch on the values
 
 
 @quax.register(lax.lt_p)
-def lt_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
+def lt_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     """Less than of an array and a quantity.
 
     Examples
@@ -3229,26 +3245,26 @@ def lt_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
     a different class.
 
     >>> x < y
-    Array([ True], dtype=bool)
+    BareQuantity(Array([ True], dtype=bool), unit='')
 
     But we can always use the `jnp.less` function.
 
     >>> jnp.less(x, y)
-    Array([ True], dtype=bool)
+    BareQuantity(Array([ True], dtype=bool), unit='')
 
     >>> x = jnp.asarray([1.0, 2, 3])
     >>> jnp.less(x, y)
-    Array([ True, False, False], dtype=bool)
+    BareQuantity(Array([ True, False, False], dtype=bool), unit='')
 
     `Quantity`:
 
     >>> y = u.Q(2.0, "")
     >>> jnp.less(x, y)
-    Array([ True, False, False], dtype=bool)
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     >>> x = jnp.asarray([1.0, 2, 3])
     >>> jnp.less(x, y)
-    Array([ True, False, False], dtype=bool)
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     >>> y = u.Q(2.0, "m")
     >>> try:
@@ -3264,11 +3280,11 @@ def lt_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x < Q(y, {y.unit}) (except for x=0).",
     )
-    return jnp.less(x, yv)  # re-dispatch on the value
+    return _as_dimensionless_like(y, jnp.less(x, yv))  # re-dispatch on the value
 
 
 @quax.register(lax.lt_p)
-def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
+def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Compare a unitless Quantity to a value.
 
     Examples
@@ -3281,34 +3297,34 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
     >>> x = u.quantity.BareQuantity(1, "")
     >>> y = 2
     >>> x < y
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
 
     >>> jnp.less(x, y)
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
 
     >>> x = u.quantity.BareQuantity([1, 2, 3], "")
     >>> x < y
-    Array([ True, False, False], dtype=bool)
+    BareQuantity(Array([ True, False, False], dtype=bool), unit='')
 
     >>> jnp.less(x, y)
-    Array([ True, False, False], dtype=bool)
+    BareQuantity(Array([ True, False, False], dtype=bool), unit='')
 
     `Quantity`:
 
     >>> x = u.Q(1, "")
     >>> y = 2
     >>> x < y
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> jnp.less(x, y)
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> x = u.Q([1, 2, 3], "")
     >>> x < y
-    Array([ True, False, False], dtype=bool)
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     >>> jnp.less(x, y)
-    Array([ True, False, False], dtype=bool)
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     >>> x = u.Q([1, 2], "m")
     >>> try:
@@ -3324,7 +3340,7 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) < y (except for y=0).",
     )
-    return jnp.less(xv, y)  # re-dispatch on the value
+    return _as_dimensionless_like(x, jnp.less(xv, y))  # re-dispatch on the value
 
 
 # ==============================================================================
@@ -3648,7 +3664,7 @@ def mul_p_qq(x: StaticQuantity, y: StaticQuantity, /, **kw: Any) -> ABCQ:
 
 
 @quax.register(lax.ne_p)
-def ne_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
+def ne_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """Inequality of two quantities.
 
     Examples
@@ -3659,38 +3675,40 @@ def ne_p_qq(x: ABCQ, y: ABCQ, /) -> ArrayLike:
     >>> q1 = u.quantity.BareQuantity(1, "m")
     >>> q2 = u.quantity.BareQuantity(2, "m")
     >>> jnp.not_equal(q1, q2)
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
     >>> q1 != q2
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
 
     >>> q2 = u.quantity.BareQuantity(1, "m")
     >>> jnp.not_equal(q1, q2)
-    Array(False, dtype=bool...)
+    BareQuantity(Array(False, dtype=bool), unit='')
     >>> q1 != q2
-    Array(False, dtype=bool...)
+    BareQuantity(Array(False, dtype=bool), unit='')
 
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(2, "m")
     >>> jnp.not_equal(q1, q2)
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
     >>> q1 != q2
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> q2 = u.Q(1, "m")
     >>> jnp.not_equal(q1, q2)
-    Array(False, dtype=bool...)
+    Quantity(Array(False, dtype=bool), unit='')
     >>> q1 != q2
-    Array(False, dtype=bool...)
+    Quantity(Array(False, dtype=bool), unit='')
 
     """
     if not is_unit_convertible(x.unit, y.unit):
         msg = f"Cannot compare Q(x, {x.unit}) != Q(y, {y.unit})."
         raise UnitConversionError(msg)
-    return jnp.not_equal(ustrip(x), ustrip(x.unit, y))  # re-dispatch on the values
+    return _as_dimensionless_like(
+        x, jnp.not_equal(ustrip(x), ustrip(x.unit, y))
+    )  # re-dispatch on the values
 
 
 @quax.register(lax.ne_p)
-def ne_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
+def ne_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     """Inequality of an array and a quantity.
 
     Examples
@@ -3701,28 +3719,28 @@ def ne_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
     >>> x = 1
     >>> q2 = u.quantity.BareQuantity(2, "")
     >>> jnp.not_equal(x, q2)
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
     >>> x != q2
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
 
     >>> q2 = u.quantity.BareQuantity(1, "")
     >>> jnp.not_equal(x, q2)
-    Array(False, dtype=bool...)
+    BareQuantity(Array(False, dtype=bool), unit='')
     >>> x != q2
-    Array(False, dtype=bool...)
+    BareQuantity(Array(False, dtype=bool), unit='')
 
     >>> x = u.Q(1, "")
     >>> q2 = u.Q(2, "")
     >>> jnp.not_equal(x, q2)
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
     >>> x != q2
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> q2 = u.Q(1, "")
     >>> jnp.not_equal(x, q2)
-    Array(False, dtype=bool...)
+    Quantity(Array(False, dtype=bool), unit='')
     >>> x != q2
-    Array(False, dtype=bool...)
+    Quantity(Array(False, dtype=bool), unit='')
 
     """
     yv = ustrip(y)
@@ -3731,11 +3749,11 @@ def ne_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
         f"Cannot compare x != Q(y, {y.unit}) (except for x=0).",
     )
-    return jnp.not_equal(x, yv)  # re-dispatch on the value
+    return _as_dimensionless_like(y, jnp.not_equal(x, yv))  # re-dispatch on the value
 
 
 @quax.register(lax.ne_p)
-def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
+def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Inequality of a quantity and an array.
 
     Examples
@@ -3746,28 +3764,28 @@ def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
     >>> x = 1
     >>> q1 = u.quantity.BareQuantity(2, "")
     >>> jnp.not_equal(q1, x)
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
     >>> q1 != x
-    Array(True, dtype=bool...)
+    BareQuantity(Array(True, dtype=bool), unit='')
 
     >>> q1 = u.quantity.BareQuantity(1, "")
     >>> jnp.not_equal(q1, x)
-    Array(False, dtype=bool...)
+    BareQuantity(Array(False, dtype=bool), unit='')
     >>> q1 != x
-    Array(False, dtype=bool...)
+    BareQuantity(Array(False, dtype=bool), unit='')
 
     >>> x = u.Q(1, "")
     >>> q1 = u.Q(2, "")
     >>> jnp.not_equal(q1, x)
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
     >>> q1 != x
-    Array(True, dtype=bool...)
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> q1 = u.Q(1, "")
     >>> jnp.not_equal(q1, x)
-    Array(False, dtype=bool...)
+    Quantity(Array(False, dtype=bool), unit='')
     >>> q1 != x
-    Array(False, dtype=bool...)
+    Quantity(Array(False, dtype=bool), unit='')
 
     """
     xv = ustrip(x)
@@ -3776,7 +3794,7 @@ def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
         f"Cannot compare Q(x, {x.unit}) != y (except for y=0).",
     )
-    return jnp.not_equal(xv, y)  # re-dispatch on the value
+    return _as_dimensionless_like(x, jnp.not_equal(xv, y))  # re-dispatch on the value
 
 
 # @quax.register(lax.ne_p)
@@ -3879,6 +3897,48 @@ def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 
     """
     return replace(x, value=lax.bitwise_or(ustrip(one, x), ustrip(one, y)))
+
+
+@quax.register(lax.or_p)
+def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
+    """Logical OR of a dimensionless quantity and an array.
+
+    A raw-array operand degrades the result to a raw array, mirroring
+    :func:`and_p_qv`. This keeps boolean quantities (from predicates /
+    comparisons) usable inside JAX composite functions.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> q = u.Q([True, False, False], "")
+    >>> arr = jnp.asarray([False, False, True])
+    >>> jnp.logical_or(q, arr)
+    Array([ True, False,  True], dtype=bool)
+
+    """
+    return lax.or_p.bind(ustrip(one, x), y)
+
+
+@quax.register(lax.or_p)
+def or_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
+    """Logical OR of an array and a dimensionless quantity.
+
+    See :func:`or_p_qv` for why a raw-array operand degrades the result.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> arr = jnp.asarray([False, False, True])
+    >>> q = u.Q([True, False, False], "")
+    >>> jnp.logical_or(arr, q)
+    Array([ True, False,  True], dtype=bool)
+
+    """
+    return lax.or_p.bind(x, ustrip(one, y))
 
 
 # ==============================================================================
@@ -4515,7 +4575,7 @@ def select_n_p(which: ABCQ, /, *cases: ABCQ) -> ABCQ:
 
     >>> a = u.Q([1.0, 5.0, 9.0], "km")
     >>> b = u.Q([2.0, 4.0, 10.0], "km")
-    >>> which = u.Q(a > b, "")
+    >>> which = a > b
     >>> jnp.where(which, a, b)
     Quantity(Array([ 2.,  5., 10.], dtype=float32), unit='km')
 
@@ -4533,6 +4593,44 @@ def select_n_p_vq(which: ABCQ, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
     return type_np(which)(
         lax.select_n(ustrip(one, which), ustrip(u, case0), case1), unit=u
     )
+
+
+@quax.register(lax.select_n_p)
+def select_n_p_qjq(which: ABCQ, case0: ArrayLike, case1: ABCQ, /) -> ABCQ:
+    """Select from an array and quantity using a dimensionless-quantity selector.
+
+    Mirror of :func:`select_n_p_vq` for the reversed case ordering. Arises from
+    composite functions (e.g. ``jnp.linalg.pinv``) where a comparison predicate
+    (now a dimensionless quantity) selects between a raw array and a quantity.
+    """
+    u = case1.unit
+    return type_np(which)(
+        lax.select_n(ustrip(one, which), case0, ustrip(u, case1)), unit=u
+    )
+
+
+@quax.register(lax.select_n_p)
+def select_n_p_qjj(which: ABCQ, /, *cases: ArrayLike) -> ArrayLike:
+    """Select from raw arrays using a dimensionless-quantity selector.
+
+    Comparison primitives now return a dimensionless boolean quantity (per the
+    Array API). When such a predicate is used as the ``which`` of a ``select_n``
+    whose cases are raw arrays (e.g. inside ``jnp.digitize`` or integer
+    floor-division), strip it back to a raw boolean and bind the raw primitive,
+    mirroring :func:`and_p_qv`.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> x = u.Q(jnp.arange(0, 10), "deg")
+    >>> x_bins = u.Q(jnp.linspace(0, 10, 4), "deg")
+    >>> jnp.digitize(x, x_bins)
+    Array([1, 1, 1, 1, 2, 2, 2, 3, 3, 3], dtype=int32)
+
+    """
+    return lax.select_n_p.bind(ustrip(one, which), *cases)
 
 
 @quax.register(lax.select_n_p)

@@ -633,8 +633,9 @@ def test_equal():
     got = jnp.equal(x, y)
     exp = jnp.equal(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_exp():
@@ -689,8 +690,9 @@ def test_greater():
     got = jnp.greater(x, y)
     exp = jnp.greater(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_greater_equal():
@@ -700,8 +702,9 @@ def test_greater_equal():
     got = jnp.greater_equal(x, y)
     exp = jnp.greater_equal(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_imag():
@@ -736,8 +739,9 @@ def test_isinf():
     got = jnp.isinf(x)
     exp = jnp.isinf(x.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_isnan():
@@ -746,8 +750,9 @@ def test_isnan():
     got = jnp.isnan(x)
     exp = jnp.isnan(x.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_less():
@@ -757,8 +762,9 @@ def test_less():
     got = jnp.less(x, y)
     exp = jnp.less(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_less_equal():
@@ -768,8 +774,9 @@ def test_less_equal():
     got = jnp.less_equal(x, y)
     exp = jnp.less_equal(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_log():
@@ -925,8 +932,9 @@ def test_not_equal():
     got = jnp.not_equal(x, y)
     exp = jnp.not_equal(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_positive():

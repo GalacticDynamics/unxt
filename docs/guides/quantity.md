@@ -226,10 +226,10 @@ Quantity(Array(25, dtype=int32...), unit='m2')
 >>> q2 = u.Q([100., 201, 300], "cm")
 
 >>> q1 < q2
-Array([False,  True, False], dtype=bool)
+Quantity(Array([False,  True, False], dtype=bool), unit='')
 
 >>> q1 == q2
-Array([ True, False,  True], dtype=bool)
+Quantity(Array([ True, False,  True], dtype=bool), unit='')
 
 ```
 
@@ -540,13 +540,13 @@ Unit conversion is applied before comparison, so equivalent quantities in differ
 True
 ```
 
-This contrasts with a regular `Quantity` (JAX array value), where `==` follows NumPy broadcasting and returns a per-element boolean array:
+This contrasts with a regular `Quantity` (JAX array value), where `==` follows NumPy broadcasting and returns a per-element boolean array wrapped in a dimensionless `Quantity` (so the result shares a namespace with the input, per the Array API):
 
 ```{code-block} python
 >>> q1 = u.Q([1.0, 2.0], "m")
 >>> q2 = u.Q([1.0, 9.0], "m")
 >>> q1 == q2
-Array([ True, False], dtype=bool)
+Quantity(Array([ True, False], dtype=bool), unit='')
 ```
 
 ### Using `Quantity(StaticValue)` as a `jax.jit` static argument
