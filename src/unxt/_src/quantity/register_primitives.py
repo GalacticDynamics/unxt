@@ -575,30 +575,22 @@ def asinh_p_q(x: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
 
 @quax.register(lax.atan2_p)
 def atan2_p_aqaq(x: ABCQ, y: ABCQ) -> ABCQ:
-    """Arctangent2 of two abstract quantities.
+    """Arctangent2 of two quantities.
+
+    The result shares the (promoted) first operand's namespace; a parametric
+    ``Quantity`` input yields a ``Quantity``, so a separate parametric
+    registration is unnecessary.
 
     Examples
     --------
     >>> import quaxed.numpy as jnp
     >>> import unxt as u
+
     >>> q1 = u.quantity.BareQuantity(1, "m")
     >>> q2 = u.quantity.BareQuantity(3.0, "m")
     >>> jnp.atan2(q1, q2)
     BareQuantity(Array(0.32175055, dtype=float32...), unit='rad')
 
-    """
-    x, y = promote(x, y)  # e.g. Distance -> Quantity
-    yv = ustrip(x.unit, y)
-    return type_np(x)(lax.atan2(ustrip(x), yv), unit=radian)
-
-
-@quax.register(lax.atan2_p)
-def atan2_p_qq(x: ABCPQ, y: ABCPQ) -> ABCPQ["radian"]:
-    """Arctangent2 of two quantities.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(3.0, "m")
     >>> jnp.atan2(q1, q2)
@@ -615,37 +607,28 @@ def atan2_p_qq(x: ABCPQ, y: ABCPQ) -> ABCPQ["radian"]:
 
 @quax.register(lax.atan2_p)
 def atan2_p_vaq(x: ArrayLike, y: ABCQ) -> ABCQ:
-    """Arctangent2 of a value and a quantity.
+    """Arctangent2 of a value and a (dimensionless) quantity.
+
+    The result shares ``y``'s namespace, so a parametric ``Quantity``
+    registration is unnecessary.
 
     Examples
     --------
     >>> import quaxed.numpy as jnp
     >>> import unxt as u
     >>> x1 = jnp.asarray(1.0)
+
     >>> q2 = u.quantity.BareQuantity(3, "")
     >>> jnp.atan2(x1, q2)
     BareQuantity(Array(0.32175055, dtype=float32...), unit='rad')
 
-    """
-    yv = ustrip(one, y)
-    return type_np(y)(lax.atan2(x, yv), unit=radian)
-
-
-@quax.register(lax.atan2_p)
-def atan2_p_vq(x: ArrayLike, y: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
-    """Arctangent2 of a value and a quantity.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-    >>> x1 = jnp.asarray(1.0)
     >>> q2 = u.Q(3, "")
     >>> jnp.atan2(x1, q2)
     Quantity(Array(0.32175055, dtype=float32...), unit='rad')
 
     """
     yv = ustrip(one, y)
-    return Quantity(lax.atan2(x, yv), unit=radian)
+    return type_np(y)(lax.atan2(x, yv), unit=radian)
 
 
 # ---------------------------
@@ -653,31 +636,22 @@ def atan2_p_vq(x: ArrayLike, y: ABCPQ["dimensionless"]) -> ABCPQ["angle"]:
 
 @quax.register(lax.atan2_p)
 def atan2_p_aqv(x: ABCQ, y: ArrayLike) -> ABCQ:
-    """Arctangent2 of a quantity and a value.
+    """Arctangent2 of a (dimensionless) quantity and a value.
+
+    The result shares ``x``'s namespace, so a parametric ``Quantity``
+    registration is unnecessary.
 
     Examples
     --------
     >>> import quaxed.numpy as jnp
     >>> import unxt as u
-    >>> q1 = u.quantity.BareQuantity(1.0, "")
     >>> x2 = jnp.asarray(3)
+
+    >>> q1 = u.quantity.BareQuantity(1.0, "")
     >>> jnp.atan2(q1, x2)
     BareQuantity(Array(0.32175055, dtype=float32...), unit='rad')
 
-    """
-    xv = ustrip(one, x)
-    return type_np(x)(lax.atan2(xv, y), unit=radian)
-
-
-@quax.register(lax.atan2_p)
-def atan2_p_qv(x: ABCPQ["dimensionless"], y: ArrayLike) -> ABCPQ["angle"]:
-    """Arctangent2 of a quantity and a value.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
     >>> q1 = u.Q(1.0, "")
-    >>> x2 = jnp.asarray(3)
     >>> jnp.atan2(q1, x2)
     Quantity(Array(0.32175055, dtype=float32...), unit='rad')
 
@@ -1106,14 +1080,46 @@ def complex_p(x: ABCQ, y: ABCQ) -> ABCQ:
 # Concatenation
 
 
+def _combine_quantities(operands: tuple[Any, ...], combine: Any) -> ABCQ:
+    """Shared ``concatenate``/``stack`` logic over a list of operands.
+
+    ``combine`` maps a list of raw arrays to the combined raw array. At least
+    one operand is a quantity (the registrations guarantee this -- they never
+    match an all-array call, which would be type piracy). Two regimes, by unit:
+
+    - **All quantities:** the result is in the first operand's unit (and shares
+      its namespace), converting the others to it.
+    - **Mixed with raw arrays:** the quantities must be dimensionless (raw
+      arrays carry no unit), and the result is a dimensionless quantity sharing
+      the first quantity operand's namespace (or a plain ``Quantity`` when the
+      sequence starts with a raw array).
+    """
+    if all(isinstance(op, ABCQ) for op in operands):
+        target = operands[0]
+        arrs = [ustrip(target.unit, op) for op in operands]
+        return replace(target, value=combine(arrs))
+
+    arrs = [ustrip(one, op) if isinstance(op, ABCQ) else op for op in operands]
+    out = combine(arrs)
+    first = operands[0]
+    if isinstance(first, ABCQ):
+        return type_np(first)(out, unit=one)
+    return Quantity(out, unit=one)
+
+
 @quax.register(lax.concatenate_p)
-def concatenate_p_aq(*operands: ABCQ, dimension: Any) -> ABCQ:
-    """Concatenate quantities.
+def concatenate_p(operand0: ABCQ, *operands: ABCQ | ArrayLike, dimension: Any) -> ABCQ:
+    """Concatenate operands, the first of which is a quantity.
+
+    See :func:`_combine_quantities` for the unit semantics.
 
     Examples
     --------
     >>> import quaxed.numpy as jnp
     >>> import unxt as u
+
+    Concatenating quantities converts to the first operand's unit:
+
     >>> q1 = u.quantity.BareQuantity([1.0], "km")
     >>> q2 = u.quantity.BareQuantity([2_000.0], "m")
     >>> jnp.concat([q1, q2])
@@ -1124,29 +1130,9 @@ def concatenate_p_aq(*operands: ABCQ, dimension: Any) -> ABCQ:
     >>> jnp.concat([q1, q2])
     Quantity(Array([1., 2.], dtype=float32), unit='km')
 
-    """
-    operand0 = operands[0]
-    u = operand0.unit
-    return replace(
-        operand0,
-        value=lax.concatenate([ustrip(u, op) for op in operands], dimension=dimension),
-    )
+    Mixing dimensionless quantities and raw arrays yields a dimensionless
+    quantity -- e.g. when building a rotation matrix:
 
-
-# ---------------------------
-
-
-@quax.register(lax.concatenate_p, precedence=1)
-def concatenate_p_qnd(
-    operand0: ABCPQ["dimensionless"],
-    *operands: ABCPQ["dimensionless"] | ArrayLike,
-    dimension: Any,
-) -> ABCPQ["dimensionless"]:
-    """Concatenate quantities and arrays with dimensionless units.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
     >>> theta = u.Q(45, "deg")
     >>> Rz = jnp.asarray(
     ...     [
@@ -1162,21 +1148,20 @@ def concatenate_p_qnd(
                   unit='')
 
     """
-    return type_np(operand0)(
-        lax.concatenate(
-            [
-                (ustrip(one, op) if hasattr(op, "unit") else op)
-                for op in (operand0, *operands)
-            ],
-            dimension=dimension,
-        ),
-        unit=one,
+    return _combine_quantities(
+        (operand0, *operands), lambda arrs: lax.concatenate(arrs, dimension=dimension)
     )
 
 
 @quax.register(lax.concatenate_p)
-def concatenate_p_vqnd(operand0: ArrayLike, *operands: ABCQ, dimension: Any) -> ABCQ:
-    """Concatenate quantities and arrays with dimensionless units.
+def concatenate_p_v(
+    operand0: ArrayLike, operand1: ABCQ, *operands: ABCQ | ArrayLike, dimension: Any
+) -> ABCQ:
+    """Concatenate operands starting with a raw array followed by a quantity.
+
+    The leading raw array forces the dimensionless regime (see
+    :func:`_combine_quantities`); e.g. building a rotation matrix whose first
+    row entry is a plain number.
 
     Examples
     --------
@@ -1196,8 +1181,10 @@ def concatenate_p_vqnd(operand0: ArrayLike, *operands: ABCQ, dimension: Any) -> 
                   unit='')
 
     """
-    arrs = [operand0, *(ustrip(one, op) for op in operands)]
-    return Quantity(lax.concatenate(arrs, dimension=dimension), unit=one)
+    return _combine_quantities(
+        (operand0, operand1, *operands),
+        lambda arrs: lax.concatenate(arrs, dimension=dimension),
+    )
 
 
 # ==============================================================================
@@ -1206,13 +1193,21 @@ def concatenate_p_vqnd(operand0: ArrayLike, *operands: ABCQ, dimension: Any) -> 
 if hasattr(lax, "stack_p"):
 
     @quax.register(lax.stack_p)
-    def stack_p_aq(*operands: ABCQ, axis: int) -> ABCQ:
-        """Stack quantities along a new axis.
+    def stack_p(operand0: ABCQ, *operands: ABCQ | ArrayLike, axis: int) -> ABCQ:
+        """Stack operands along a new axis, the first being a quantity.
+
+        Like :func:`concatenate_p`, there are two regimes (see
+        :func:`_combine_quantities`): all quantities keep the first operand's
+        unit and namespace, while mixing dimensionless quantities and raw arrays
+        yields a dimensionless quantity.
 
         Examples
         --------
         >>> import quaxed.numpy as jnp
         >>> import unxt as u
+
+        Stacking quantities converts to the first operand's unit:
+
         >>> q1 = u.quantity.BareQuantity([1.0, 2.0], "km")
         >>> q2 = u.quantity.BareQuantity([3_000.0, 4_000.0], "m")
         >>> jnp.stack([q1, q2]).round(2)
@@ -1225,47 +1220,25 @@ if hasattr(lax, "stack_p"):
         Quantity(Array([[1., 2.],
                         [3., 4.]], dtype=float32), unit='km')
 
-        """
-        operand0 = operands[0]
-        u = operand0.unit
-        return replace(
-            operand0,
-            value=lax.stack([ustrip(u, op) for op in operands], axis=axis),
-        )
+        Mixing a leading dimensionless quantity with raw arrays yields a
+        dimensionless quantity:
 
-    # ---------------------------
-
-    @quax.register(lax.stack_p, precedence=1)
-    def stack_p_qnd(
-        operand0: ABCPQ["dimensionless"],
-        *operands: ABCPQ["dimensionless"] | ArrayLike,
-        axis: int,
-    ) -> ABCPQ["dimensionless"]:
-        """Stack dimensionless quantities and arrays along a new axis.
-
-        Examples
-        --------
-        >>> import quaxed.numpy as jnp
-        >>> import unxt as u
         >>> q1 = u.Q([0.5, 0.5], "")
-        >>> q2 = jnp.asarray([1.0, 2.0])
-        >>> jnp.stack([q1, q2])
+        >>> arr = jnp.asarray([1.0, 2.0])
+        >>> jnp.stack([q1, arr])
         Quantity(Array([[0.5, 0.5],
                         [1. , 2. ]], dtype=float32), unit='')
 
         """
-        value = lax.stack(
-            [
-                (ustrip(one, op) if hasattr(op, "unit") else op)
-                for op in (operand0, *operands)
-            ],
-            axis=axis,
+        return _combine_quantities(
+            (operand0, *operands), lambda arrs: lax.stack(arrs, axis=axis)
         )
-        return type_np(operand0)(value, unit=one)
 
     @quax.register(lax.stack_p)
-    def stack_p_vqnd(operand0: ArrayLike, *operands: ABCQ, axis: int) -> ABCQ:
-        """Stack arrays and dimensionless quantities along a new axis.
+    def stack_p_v(
+        operand0: ArrayLike, operand1: ABCQ, *operands: ABCQ | ArrayLike, axis: int
+    ) -> ABCQ:
+        """Stack a leading raw array followed by a quantity along a new axis.
 
         Examples
         --------
@@ -1278,8 +1251,9 @@ if hasattr(lax, "stack_p"):
                         [0.5, 0.5]], dtype=float32), unit='')
 
         """
-        arrs = [operand0, *(ustrip(one, op) for op in operands)]
-        return Quantity(lax.stack(arrs, axis=axis), unit=one)
+        return _combine_quantities(
+            (operand0, operand1, *operands), lambda arrs: lax.stack(arrs, axis=axis)
+        )
 
 
 # ==============================================================================
@@ -4942,18 +4916,22 @@ def slice_p(
 # multi-operand `lax.sort` (sort by keys, reorder payloads alongside).
 @quax.register(lax.sort_p)
 def sort_p(
+    operand0: ABCQ,
     *operands: ABCQ | ArrayLike,
     dimension: int,
     is_stable: bool,
     num_keys: int,
 ) -> tuple[ABCQ | ArrayLike, ...]:
-    """Sort one or more operands, at least one of which is a quantity.
+    """Sort one or more operands, the first (a sort key) being a quantity.
 
     All operands are reordered together by the first ``num_keys`` keys. Each
     quantity operand is stripped to its array value for the underlying sort and
     re-wrapped afterwards, so every output keeps its own unit -- including when
     keys and payloads carry different units. Plain-array operands (e.g. the
     ``iota`` payload that ``argsort`` adds) pass through unwrapped.
+
+    Requiring the first operand to be a quantity keeps this from matching (and
+    pirating) an all-array sort.
 
     Examples
     --------
@@ -4981,13 +4959,14 @@ def sort_p(
     Quantity(Array([10., 20., 30.], dtype=float32), unit='km / s')
 
     """
-    stripped = [ustrip(op) if isinstance(op, ABCQ) else op for op in operands]
+    all_operands = (operand0, *operands)
+    stripped = [ustrip(op) if isinstance(op, ABCQ) else op for op in all_operands]
     outs = lax.sort_p.bind(  # type: ignore[no-untyped-call]
         *stripped, dimension=dimension, is_stable=is_stable, num_keys=num_keys
     )
     return tuple(
         replace(op, value=out) if isinstance(op, ABCQ) else out
-        for op, out in zip(operands, outs, strict=True)
+        for op, out in zip(all_operands, outs, strict=True)
     )
 
 
