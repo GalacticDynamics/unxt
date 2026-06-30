@@ -757,6 +757,29 @@ def test_isnan():
     assert jnp.array_equal(got.value, exp)
 
 
+def test_nanmedian():
+    """Test `nanmedian`.
+
+    The nan-aware quantile path builds a dimensionless-Quantity nan mask (per
+    the Array API boolean ops) and uses it to index the data via the ``gather``
+    / ``dynamic_slice`` primitives, so those must accept a Quantity index.
+    """
+    x = u.Q(jnp.asarray([1, 2, 3, 4, 5], dtype=float), "m")
+    got = jnp.nanmedian(x)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("m")
+    assert jnp.array_equal(got.value, jnp.nanmedian(x.value))
+
+
+def test_nanquantile():
+    """Test `nanquantile` (gather with a dimensionless-Quantity index)."""
+    x = u.Q(jnp.asarray([1, 2, 3, 4, 5], dtype=float), "m")
+    got = jnp.nanquantile(x, 0.5)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("m")
+    assert jnp.array_equal(got.value, jnp.nanquantile(x.value, 0.5))
+
+
 def test_less():
     """Test `less`."""
     x = u.Q([1, 5, 3], "m")

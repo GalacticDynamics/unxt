@@ -314,6 +314,13 @@ def test_getitem():
     indices = jnp.array([0, 2])
     assert np.array_equal(q[indices], u.Q([1, 3], "m"))
 
+    # Integer indexing with a dimensionless-Quantity index, as produced
+    # internally by e.g. jax's quantile (``median``). These lower to the
+    # ``gather`` / ``dynamic_slice`` primitives.
+    qindices = u.Q(indices, "")
+    assert np.array_equal(q[qindices], u.Q([1, 3], "m"))  # gather
+    assert q[u.Q(0, "")] == u.Q(1, "m")  # dynamic_slice (scalar)
+
 
 def test_len():
     """Test the ``len(Quantity)`` method."""

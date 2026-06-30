@@ -205,6 +205,91 @@ def add(x: promote(int, float), y: float) -> float:
 - Prefer concrete dispatches over heavy promotion use
 - Document promotion behavior when it's non-obvious
 
+### Documentation
+
+#### Docstrings
+
+Use NumPy-style docstrings. Every public function and class must have a docstring with an `Examples` section containing at least one executable snippet. Sybil runs all `Examples` blocks as doctests, so every example must be self-contained and produce the printed output exactly:
+
+```python
+def ustrip(flag, x, /):
+    """Strip the unit from a Quantity.
+
+    Parameters
+    ----------
+    flag : AllowValue
+        Controls whether dimensionless quantities are allowed.
+    x : AbstractQuantity
+        The quantity to strip.
+
+    Returns
+    -------
+    Array
+        The raw JAX array.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> q = u.Quantity(1.0, "m")
+    >>> u.ustrip(u.quantity.AllowValue, q)
+    Array(1., dtype=float32)
+
+    """
+```
+
+Rules for examples:
+
+- Import everything the snippet needs — no implicit state.
+- Match output exactly, including dtype (`dtype=float32` not `dtype=float`).
+- Prefer `u.Q(...)` over `u.Quantity(...)` (shorter, house style).
+- Avoid ellipsis (`...`) for output unless the value is genuinely non-deterministic.
+
+#### Markdown / Sphinx docs
+
+Docs live in `docs/` and are built with Sphinx + MyST-Parser. All Python code blocks in `.md` files are also executed by Sybil, so the same rules apply: every `python` block must run and produce the shown output.
+
+- Use `::::{tab-set}` / `:::{tab-item}` for multi-option blocks (e.g., pip vs uv):
+
+  ````markdown
+  ::::{tab-set}
+
+  :::{tab-item} pip
+
+  ```bash
+  pip install unxt
+  ```
+
+  :::
+
+  :::{tab-item} uv
+
+  ```bash
+  uv add unxt
+  ```
+
+  :::
+
+  ::::
+  ````
+
+- Build and preview: `uv run nox -s docs -- --serve`
+- Check links: `uv run nox -s docs -- -b linkcheck`
+
+#### What makes a good example
+
+Show real physics, not toy `x = 1`. Prefer:
+
+```pycon
+>>> import unxt as u
+>>> velocity = u.Q(30.0, "m/s")
+>>> time = u.Q(2.0, "s")
+>>> distance = velocity * time
+>>> distance
+Quantity['length'](Array(60., dtype=float32), unit='m')
+```
+
+Over `u.Q(1.0, "m") + u.Q(2.0, "m")`. Dimension errors are also worth showing when they're the point of the API.
+
 ### JAX Integration via Quax
 
 - Quantities are `ArrayValue` subclasses (Quax protocol)

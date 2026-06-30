@@ -2087,8 +2087,11 @@ def dot_general_abstractangle_abstractangle(
 
 
 @quax.register(lax.dynamic_slice_p)
-def dynamic_slice_q(operand: ABCQ, /, *indices: ArrayLike, **kw: Any) -> ABCQ:
+def dynamic_slice_q(operand: ABCQ, /, *indices: ArrayLike | ABCQ, **kw: Any) -> ABCQ:
     """Dynamic slice of a quantity.
+
+    The indices may be dimensionless quantities, as produced internally by e.g.
+    jax's nan-aware quantile (``nanmedian``); they are stripped to their values.
 
     Examples
     --------
@@ -2100,8 +2103,9 @@ def dynamic_slice_q(operand: ABCQ, /, *indices: ArrayLike, **kw: Any) -> ABCQ:
     Quantity(Array([2, 3, 4], dtype=int32), unit='m')
 
     """
+    idxs = [ustrip(AllowValue, i) for i in indices]
     return replace(
-        operand, value=lax.dynamic_slice_p.bind(ustrip(operand), *indices, **kw)
+        operand, value=lax.dynamic_slice_p.bind(ustrip(operand), *idxs, **kw)
     )
 
 
@@ -2505,11 +2509,12 @@ def floor_p(x: ABCQ) -> ABCQ:
 
 # used in `jnp.cross`
 @quax.register(lax.gather_p)
-def gather_p(operand: ABCQ, start_indices: ArrayLike, /, **kw: Any) -> ABCQ:
+def gather_p(operand: ABCQ, start_indices: ArrayLike | ABCQ, /, **kw: Any) -> ABCQ:
+    # ``start_indices`` may be a dimensionless quantity, as produced internally
+    # by e.g. jax's nan-aware quantile (``nanmedian``); strip it to its value.
     # TODO: examples
-    return replace(
-        operand, value=lax.gather_p.bind(ustrip(operand), start_indices, **kw)
-    )
+    idx = ustrip(AllowValue, start_indices)
+    return replace(operand, value=lax.gather_p.bind(ustrip(operand), idx, **kw))
 
 
 # ==============================================================================
