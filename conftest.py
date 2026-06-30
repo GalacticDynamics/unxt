@@ -1,8 +1,9 @@
 """Doctest configuration."""
 
 import os
+import re
 from collections.abc import Callable, Iterable, Sequence
-from doctest import ELLIPSIS, NORMALIZE_WHITESPACE
+from doctest import ELLIPSIS, NORMALIZE_WHITESPACE, DocTestRunner, Example, OutputChecker
 from typing import Any
 
 from sybil import Document, Region, Sybil
@@ -15,13 +16,69 @@ from sybil.parsers.abstract.doctest import DocTestStringParser
 from optional_dependencies import OptionalDependencyEnum, auto
 
 optionflags = ELLIPSIS | NORMALIZE_WHITESPACE
+# Match scalar ``Array(...)`` reprs where the dtype is followed by an explicit
+# ``, ...`` placeholder in doctest expectations. The non-greedy prefix keeps the
+# match within a single Array repr, and the dtype tail stops before any actual
+# metadata or the closing parenthesis.
+_JAX_SCALAR_ARRAY_DOCTEST_ELLIPSIS_RE = re.compile(
+    r"(Array\(.*?dtype=[^,\n)]+), \.\.\.(\))"
+)
+
+
+def _normalize_jax_repr(text: str) -> str:
+    """Normalize unstable JAX ``Array(...)`` repr metadata for doctests.
+
+    JAX may optionally include ``weak_type=True`` for scalar arrays, and some
+    scalar examples use ``...,`` after the dtype to allow for extra repr
+    metadata. Both details vary across JAX and Python versions but do not
+    affect behavior.
+    """
+    text = text.replace(", weak_type=True", "")
+    # Convert doctest placeholders like ``dtype=float32, ...)`` into
+    # ``dtype=float32...)`` so ellipsis matching can absorb optional trailing
+    # scalar metadata such as ``, weak_type=True`` before ``)``.
+    return _JAX_SCALAR_ARRAY_DOCTEST_ELLIPSIS_RE.sub(r"\1...\2", text)
+
+
+class JaxAwareOutputChecker(OutputChecker):
+    """Output checker that ignores unstable JAX repr metadata."""
+
+    def check_output(self, want: str, got: str, optionflags: int) -> bool:
+        return super().check_output(
+            _normalize_jax_repr(want), _normalize_jax_repr(got), optionflags
+        )
+
+    def output_difference(self, example: Example, got: str, optionflags: int) -> str:
+        return super().output_difference(
+            Example(
+                source=example.source,
+                want=_normalize_jax_repr(example.want),
+                exc_msg=example.exc_msg,
+                lineno=example.lineno,
+                indent=example.indent,
+                options=example.options,
+            ),
+            _normalize_jax_repr(got),
+            optionflags,
+        )
+
+
+class JaxAwareDocTestEvaluator(DocTestEvaluator):
+    """Sybil doctest evaluator with JAX-aware output normalization."""
+
+    def __init__(self, optionflags: int = 0) -> None:
+        self.runner = DocTestRunner(
+            optionflags=optionflags, checker=JaxAwareOutputChecker()
+        )
 
 
 class PlainDocTestParser:
     """Parser for plain >>> doctests in Python docstrings."""
 
     def __init__(self, doctest_optionflags: int = 0) -> None:
-        self.doctest_parser = DocTestStringParser(DocTestEvaluator(doctest_optionflags))
+        self.doctest_parser = DocTestStringParser(
+            JaxAwareDocTestEvaluator(doctest_optionflags)
+        )
 
     def __call__(self, document: Document) -> Iterable[Region]:
         """Parse plain doctest prompts from Python docstring text."""
@@ -37,7 +94,9 @@ class PyconCodeBlockParser(PythonDocTestOrCodeBlockParser):
         doctest_optionflags: int = 0,
     ) -> None:
         """Initialize parser state."""
-        self.doctest_parser = DocTestStringParser(DocTestEvaluator(doctest_optionflags))
+        self.doctest_parser = DocTestStringParser(
+            JaxAwareDocTestEvaluator(doctest_optionflags)
+        )
         self.codeblock_parser = myst.CodeBlockParser(
             language="pycon",
             evaluator=PythonEvaluator(future_imports),
