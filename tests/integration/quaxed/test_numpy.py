@@ -507,8 +507,9 @@ def test_bitwise_and():
     got = jnp.bitwise_and(x, y)
     exp = jnp.bitwise_and(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_bitwise_left_shift():
@@ -842,29 +843,31 @@ def test_logical_and():
     got = jnp.logical_and(x, y)
     exp = jnp.logical_and(x.value, y.value)
 
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_logical_and_quantity_array():
     """Test `logical_and` mixing a dimensionless Quantity and a raw array.
 
-    A raw-array operand degrades the result to a raw array. This keeps the
-    boolean Quantities produced by predicates (e.g. ``isfinite``) usable inside
-    JAX's composite functions (``isclose``, ``allclose``, ...), which combine
-    them with raw boolean arrays.
+    A Quantity operand keeps the result in the Quantity namespace: the result
+    is a dimensionless Quantity (per the Array API), regardless of operand
+    order.
     """
     x = u.Q([True, False, True], "")
     y = jnp.asarray([True, True, False])
     exp = jnp.logical_and(x.value, y)
 
     got = jnp.logical_and(x, y)
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
     got = jnp.logical_and(y, x)
-    assert isinstance(got, Array)
-    assert jnp.array_equal(got, exp)
+    assert isinstance(got, u.Q)
+    assert got.unit == u.unit("")
+    assert jnp.array_equal(got.value, exp)
 
 
 def test_logical_not():
@@ -1617,7 +1620,6 @@ def test_var():
 # Utility functions
 
 
-@pytest.mark.xfail(reason="returns a jax.Array")
 def test_all():
     """Test `all`."""
     x = u.Q(jnp.asarray([True, False, True], dtype=bool), "")

@@ -109,7 +109,7 @@ xround = u.Q(xround_val, unit="m")
             {},
             u.Q(lax.bitcast_convert_type(x_val, jnp.float16), unit="m"),
         ),
-        ("bitwise_and", (xbit, xbit), {}, lax.bitwise_and(xbit_val, xbit_val)),
+        ("bitwise_and", (xbit, xbit), {}, u.Q(lax.bitwise_and(xbit_val, xbit_val), "")),
         ("bitwise_not", (xbit,), {}, u.Q(lax.bitwise_not(xbit_val), unit="")),
         ("bitwise_or", (xbit, xbit), {}, u.Q(lax.bitwise_or(xbit_val, xbit_val), "")),
         ("bitwise_xor", (xbit, xbit), {}, u.Q(lax.bitwise_xor(xbit_val, xbit_val), "")),

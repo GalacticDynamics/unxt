@@ -357,8 +357,11 @@ def add_jaxvals_p_qq(x: ABCPQ, y: ABCPQ, /) -> ABCPQ:
 
 
 @quax.register(lax.and_p)
-def and_p_aq(x1: ABCQ, x2: ABCQ, /) -> ArrayLike:
+def and_p_aq(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
     """Bitwise AND of two quantities.
+
+    The result is a dimensionless quantity sharing the namespace of the inputs
+    (per the Array API).
 
     Examples
     --------
@@ -368,25 +371,23 @@ def and_p_aq(x1: ABCQ, x2: ABCQ, /) -> ArrayLike:
     >>> x1 = u.quantity.BareQuantity(1, "")
     >>> x2 = u.quantity.BareQuantity(2, "")
     >>> jnp.bitwise_and(x1, x2)
-    Array(0, dtype=int32...)
+    BareQuantity(Array(0, dtype=int32...), unit='')
 
     >>> x1 = u.Q(1, "")
     >>> x2 = u.Q(2, "")
     >>> jnp.bitwise_and(x1, x2)
-    Array(0, dtype=int32...)
+    Quantity(Array(0, dtype=int32...), unit='')
 
     """
-    return lax.and_p.bind(ustrip(one, x1), ustrip(one, x2))
+    return _as_dimensionless_like(x1, lax.and_p.bind(ustrip(one, x1), ustrip(one, x2)))
 
 
 @quax.register(lax.and_p)
-def and_p_qv(x1: ABCQ, x2: ArrayLike, /) -> ArrayLike:
+def and_p_qv(x1: ABCQ, x2: ArrayLike, /) -> ABCQ:
     """Bitwise AND of a dimensionless quantity and an array.
 
-    A raw-array operand degrades the result to a raw array. This keeps the
-    boolean quantities produced by predicates (e.g. ``isfinite``) usable inside
-    JAX's composite functions (``isclose``, ``allclose``, ...), which combine
-    them with raw boolean arrays.
+    A Quantity operand keeps the result in the Quantity namespace: the result
+    is a dimensionless quantity (per the Array API).
 
     Examples
     --------
@@ -396,17 +397,17 @@ def and_p_qv(x1: ABCQ, x2: ArrayLike, /) -> ArrayLike:
     >>> q = u.Q([True, False, True], "")
     >>> arr = jnp.asarray([True, True, False])
     >>> jnp.logical_and(q, arr)
-    Array([ True, False, False], dtype=bool)
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     """
-    return lax.and_p.bind(ustrip(one, x1), x2)
+    return _as_dimensionless_like(x1, lax.and_p.bind(ustrip(one, x1), x2))
 
 
 @quax.register(lax.and_p)
-def and_p_vq(x1: ArrayLike, x2: ABCQ, /) -> ArrayLike:
+def and_p_vq(x1: ArrayLike, x2: ABCQ, /) -> ABCQ:
     """Bitwise AND of an array and a dimensionless quantity.
 
-    See :func:`and_p_qv` for why a raw-array operand degrades the result.
+    See :func:`and_p_qv`: a Quantity operand keeps the result dimensionless.
 
     Examples
     --------
@@ -416,10 +417,10 @@ def and_p_vq(x1: ArrayLike, x2: ABCQ, /) -> ArrayLike:
     >>> arr = jnp.asarray([True, True, False])
     >>> q = u.Q([True, False, True], "")
     >>> jnp.logical_and(arr, q)
-    Array([ True, False, False], dtype=bool)
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     """
-    return lax.and_p.bind(x1, ustrip(one, x2))
+    return _as_dimensionless_like(x2, lax.and_p.bind(x1, ustrip(one, x2)))
 
 
 # ==============================================================================
@@ -3900,12 +3901,11 @@ def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 
 
 @quax.register(lax.or_p)
-def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
+def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Logical OR of a dimensionless quantity and an array.
 
-    A raw-array operand degrades the result to a raw array, mirroring
-    :func:`and_p_qv`. This keeps boolean quantities (from predicates /
-    comparisons) usable inside JAX composite functions.
+    A Quantity operand keeps the result in the Quantity namespace: the result
+    is a dimensionless quantity (per the Array API), mirroring :func:`and_p_qv`.
 
     Examples
     --------
@@ -3915,17 +3915,17 @@ def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ArrayLike:
     >>> q = u.Q([True, False, False], "")
     >>> arr = jnp.asarray([False, False, True])
     >>> jnp.logical_or(q, arr)
-    Array([ True, False,  True], dtype=bool)
+    Quantity(Array([ True, False,  True], dtype=bool), unit='')
 
     """
-    return lax.or_p.bind(ustrip(one, x), y)
+    return _as_dimensionless_like(x, lax.or_p.bind(ustrip(one, x), y))
 
 
 @quax.register(lax.or_p)
-def or_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
+def or_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     """Logical OR of an array and a dimensionless quantity.
 
-    See :func:`or_p_qv` for why a raw-array operand degrades the result.
+    See :func:`or_p_qv`: a Quantity operand keeps the result dimensionless.
 
     Examples
     --------
@@ -3935,10 +3935,10 @@ def or_p_vq(x: ArrayLike, y: ABCQ, /) -> ArrayLike:
     >>> arr = jnp.asarray([False, False, True])
     >>> q = u.Q([True, False, False], "")
     >>> jnp.logical_or(arr, q)
-    Array([ True, False,  True], dtype=bool)
+    Quantity(Array([ True, False,  True], dtype=bool), unit='')
 
     """
-    return lax.or_p.bind(x, ustrip(one, y))
+    return _as_dimensionless_like(y, lax.or_p.bind(x, ustrip(one, y)))
 
 
 # ==============================================================================
@@ -4211,8 +4211,12 @@ def real_p(x: ABCQ, /) -> ABCQ:
 
 
 @quax.register(lax.reduce_and_p)
-def reduce_and_p(operand: ABCQ, /, *, axes: Sequence[int]) -> Any:
-    return lax.reduce_and_p.bind(ustrip(operand), axes=tuple(axes))
+def reduce_and_p(operand: ABCQ, /, *, axes: Sequence[int]) -> ABCQ:
+    # `all` returns a dimensionless quantity sharing the operand's namespace
+    # (per the Array API), matching `reduce_or_p` (`any`).
+    return _as_dimensionless_like(
+        operand, lax.reduce_and_p.bind(ustrip(operand), axes=tuple(axes))
+    )
 
 
 # ==============================================================================
@@ -4580,19 +4584,20 @@ def select_n_p(which: ABCQ, /, *cases: ABCQ) -> ABCQ:
     Quantity(Array([ 2.,  5., 10.], dtype=float32), unit='km')
 
     """
-    u = cases[0].unit
-    cases_ = (ustrip(u, case) for case in cases)
-    return type_np(which)(lax.select_n(ustrip(one, which), *cases_), unit=u)
+    # Comparison/predicate primitives now return a dimensionless boolean
+    # quantity (per the Array API). A dimensionless-quantity selector must
+    # behave exactly like a raw-array one, so strip it and re-dispatch: the
+    # result then follows the *cases'* namespace (handling `Angle`,
+    # `StaticQuantity`, ... uniformly via the array-selector registrations).
+    return qlax.select_n(ustrip(one, which), *cases)
 
 
 @quax.register(lax.select_n_p)
 def select_n_p_vq(which: ABCQ, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
     """Select from a quantity and array using a quantity selector."""
-    # encountered from jnp.hypot
-    u = case0.unit
-    return type_np(which)(
-        lax.select_n(ustrip(one, which), ustrip(u, case0), case1), unit=u
-    )
+    # encountered from jnp.hypot. Strip the selector and re-dispatch (see
+    # `select_n_p`); the result follows the case's namespace.
+    return qlax.select_n(ustrip(one, which), case0, case1)
 
 
 @quax.register(lax.select_n_p)
@@ -4603,21 +4608,16 @@ def select_n_p_qjq(which: ABCQ, case0: ArrayLike, case1: ABCQ, /) -> ABCQ:
     composite functions (e.g. ``jnp.linalg.pinv``) where a comparison predicate
     (now a dimensionless quantity) selects between a raw array and a quantity.
     """
-    u = case1.unit
-    return type_np(which)(
-        lax.select_n(ustrip(one, which), case0, ustrip(u, case1)), unit=u
-    )
+    return qlax.select_n(ustrip(one, which), case0, case1)
 
 
 @quax.register(lax.select_n_p)
 def select_n_p_qjj(which: ABCQ, /, *cases: ArrayLike) -> ArrayLike:
     """Select from raw arrays using a dimensionless-quantity selector.
 
-    Comparison primitives now return a dimensionless boolean quantity (per the
-    Array API). When such a predicate is used as the ``which`` of a ``select_n``
-    whose cases are raw arrays (e.g. inside ``jnp.digitize`` or integer
-    floor-division), strip it back to a raw boolean and bind the raw primitive,
-    mirroring :func:`and_p_qv`.
+    When a predicate selects between raw arrays (e.g. inside ``jnp.digitize``
+    or integer floor-division), strip the selector and re-dispatch; with only
+    raw cases the result is a raw array.
 
     Examples
     --------
@@ -4630,7 +4630,7 @@ def select_n_p_qjj(which: ABCQ, /, *cases: ArrayLike) -> ArrayLike:
     Array([1, 1, 1, 1, 2, 2, 2, 3, 3, 3], dtype=int32)
 
     """
-    return lax.select_n_p.bind(ustrip(one, which), *cases)
+    return qlax.select_n(ustrip(one, which), *cases)
 
 
 @quax.register(lax.select_n_p)
@@ -5343,6 +5343,47 @@ def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 
     """
     return replace(x, value=lax.bitwise_xor(ustrip(one, x), ustrip(one, y)))
+
+
+@quax.register(lax.xor_p)
+def xor_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
+    """Logical XOR of a dimensionless quantity and an array.
+
+    A Quantity operand keeps the result in the Quantity namespace: the result
+    is a dimensionless quantity (per the Array API), mirroring :func:`and_p_qv`.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> q = u.Q([True, False, True], "")
+    >>> arr = jnp.asarray([True, True, False])
+    >>> jnp.logical_xor(q, arr)
+    Quantity(Array([False,  True,  True], dtype=bool), unit='')
+
+    """
+    return _as_dimensionless_like(x, lax.xor_p.bind(ustrip(one, x), y))
+
+
+@quax.register(lax.xor_p)
+def xor_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
+    """Logical XOR of an array and a dimensionless quantity.
+
+    See :func:`xor_p_qv`: a Quantity operand keeps the result dimensionless.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> arr = jnp.asarray([True, True, False])
+    >>> q = u.Q([True, False, True], "")
+    >>> jnp.logical_xor(arr, q)
+    Quantity(Array([False,  True,  True], dtype=bool), unit='')
+
+    """
+    return _as_dimensionless_like(y, lax.xor_p.bind(x, ustrip(one, y)))
 
 
 # ==============================================================================
