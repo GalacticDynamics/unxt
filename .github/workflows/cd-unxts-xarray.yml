@@ -1,0 +1,92 @@
+name: CD - unxts-xarray
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - "unxts-xarray-v*" # Package-specific tags (unxts-xarray-vX.Y.Z)
+    paths:
+      - "packages/unxts.xarray/**"
+      - ".github/workflows/cd-unxts-xarray.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: 3
+
+jobs:
+  build:
+    name: Build & inspect package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    # Build runs for manual dispatch, main pushes, and direct package tag pushes
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
+
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          # Required for hatch-vcs to determine version from git tags.
+          # Can be removed if switching to hardcoded versions.
+          fetch-depth: 0
+          persist-credentials: false
+          # This workflow only runs on trusted `push` and `workflow_dispatch` events.
+          # `github.ref` is therefore constrained to repository refs (main/tag or a
+          # manually selected ref) and does not accept untrusted PR fork heads.
+          ref: ${{ github.ref }}
+
+      - name: Validate git tag (for tagged releases)
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/'))
+        env:
+          GITHUB_REF_VAR: ${{ github.ref }}
+        run: |
+          TAG="${GITHUB_REF_VAR#refs/tags/}"
+          python scripts/validate_tag.py "$TAG" "unxts-xarray"
+        shell: bash
+
+      - name: Emit release metadata
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          HEAD_SHA=$(git rev-parse HEAD)
+
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          else
+            TAG=""
+          fi
+          TRIGGER_EVENT="${EVENT_NAME}"
+
+          jq -n \
+            --arg package "unxts-xarray" \
+            --arg package_tag "${TAG}" \
+            --arg head_sha "${HEAD_SHA}" \
+            --arg trigger_event "${TRIGGER_EVENT}" \
+            '{"package": $package, "package_tag": $package_tag, "head_sha": $head_sha, "trigger_event": $trigger_event}' \
+            > release-metadata.json
+
+          echo "Release metadata:"
+          cat release-metadata.json
+        shell: bash
+
+      - uses: hynek/build-and-inspect-python-package@fe0a0fb1925ca263d076ca4f2c13e93a6e92a33e # v2.17.0
+        with:
+          path: packages/unxts.xarray
+          upload-name-suffix: -unxts-xarray
+          attest-build-provenance-github: false
+
+      - name: Upload release metadata artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-metadata-unxts-xarray
+          path: release-metadata.json
+          retention-days: 7
