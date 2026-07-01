@@ -316,3 +316,15 @@
 - name: "🧩 unxt-hypothesis"
   color: "0366d6"
   description: "Issues/PRs affecting the unxt-hypothesis workspace package"
+
+- name: "🧩 unxts-api"
+  color: "0366d6"
+  description: "Issues/PRs affecting the unxts.api namespace package"
+
+- name: "🧩 unxts-hypothesis"
+  color: "0366d6"
+  description: "Issues/PRs affecting the unxts.hypothesis namespace package"
+
+- name: "🧩 unxts-xarray"
+  color: "0366d6"
+  description: "Issues/PRs affecting the unxts.xarray namespace package"

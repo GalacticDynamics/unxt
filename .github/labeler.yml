@@ -38,3 +38,27 @@
 "⏱️ Run benchmarks":
   - changed-files:
       - any-glob-to-any-file: "tests/benchmark/**"
+
+"🧩 unxts-api":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/unxts.api/**"
+          - ".github/workflows/cd-unxts-api.yml"
+          - ".github/workflows/cd-publish-unxts-api.yml"
+          - ".github/workflows/cd-pr-unxts-api.yml"
+
+"🧩 unxts-hypothesis":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/unxts.hypothesis/**"
+          - ".github/workflows/cd-unxts-hypothesis.yml"
+          - ".github/workflows/cd-publish-unxts-hypothesis.yml"
+          - ".github/workflows/cd-pr-unxts-hypothesis.yml"
+
+"🧩 unxts-xarray":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/unxts.xarray/**"
+          - ".github/workflows/cd-unxts-xarray.yml"
+          - ".github/workflows/cd-publish-unxts-xarray.yml"
+          - ".github/workflows/cd-pr-unxts-xarray.yml"
