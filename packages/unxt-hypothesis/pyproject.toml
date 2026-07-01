@@ -19,7 +19,7 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
 ]
-dependencies = ["unxts.hypothesis>=1.11.0"]
+dependencies = ["unxts.hypothesis>=2.0.0"]
 description = "Hypothesis strategies for unxt"
 dynamic = ["version"]
 license.text = "BSD-3-Clause"

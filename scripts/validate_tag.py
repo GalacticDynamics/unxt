@@ -103,9 +103,9 @@ def validate_tag_for_package(tag: str, package: str | None = None) -> tuple[bool
 
     tag_package, major, minor, patch = parsed
 
-    # Legacy tags (1.10.x and lower) are grandfathered in to support
-    # maintenance releases.
-    if (major, minor) < (1, 11):
+    # Legacy tags (1.x and below) are grandfathered in to support
+    # maintenance releases. v2.0.0 is the first coordinated release.
+    if major < 2:
         return True, ""
 
     # Normalize package name (None means main unxt package)

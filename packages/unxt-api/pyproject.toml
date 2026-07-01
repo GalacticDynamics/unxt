@@ -19,7 +19,7 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
 ]
-dependencies = ["unxts.api>=0.1.dev0"]
+dependencies = ["unxts.api>=2.0.0"]
 description = "Abstract dispatch API definitions for unxt"
 dynamic = ["version"]
 license.text = "BSD-3-Clause"
