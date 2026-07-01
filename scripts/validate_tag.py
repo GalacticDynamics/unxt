@@ -153,7 +153,10 @@ def main() -> int:
     if len(sys.argv) < 2:
         logger.error("Usage: validate_tag.py TAG [PACKAGE]")
         logger.error("  TAG: The git tag to validate")
-        logger.error("  PACKAGE: Package name ('unxt', 'unxt-api', 'unxt-hypothesis')")
+        logger.error(
+            "  PACKAGE: Package name ('unxt', 'unxt-api', 'unxt-hypothesis', "
+            "'unxts-api', 'unxts-hypothesis', 'unxts-xarray')"
+        )
         sys.exit(1)
 
     tag = sys.argv[1]

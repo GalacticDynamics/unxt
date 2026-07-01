@@ -55,6 +55,9 @@ jobs:
             echo "  - unxt-v${VERSION}"
             echo "  - unxt-api-v${VERSION}"
             echo "  - unxt-hypothesis-v${VERSION}"
+            echo "  - unxts-api-v${VERSION}"
+            echo "  - unxts-hypothesis-v${VERSION}"
+            echo "  - unxts-xarray-v${VERSION}"
             exit 1
           fi
 
@@ -79,11 +82,14 @@ jobs:
           echo "Coordinator tag $TAG points to commit: $COORDINATOR_SHA"
 
           # Define package tags to create
-          PACKAGES=("unxt" "unxt-api" "unxt-hypothesis")
+          PACKAGES=("unxt" "unxt-api" "unxt-hypothesis" "unxts-api" "unxts-hypothesis" "unxts-xarray")
           TAGS_TO_PUSH=()
 
           UNXT_API_TAG_CREATED="false"
           UNXT_HYPOTHESIS_TAG_CREATED="false"
+          UNXTS_API_TAG_CREATED="false"
+          UNXTS_HYPOTHESIS_TAG_CREATED="false"
+          UNXTS_XARRAY_TAG_CREATED="false"
 
           # Check and create each package tag
           for PACKAGE in "${PACKAGES[@]}"; do
@@ -123,6 +129,15 @@ jobs:
               if [ "$PACKAGE" = "unxt-hypothesis" ]; then
                 UNXT_HYPOTHESIS_TAG_CREATED="true"
               fi
+              if [ "$PACKAGE" = "unxts-api" ]; then
+                UNXTS_API_TAG_CREATED="true"
+              fi
+              if [ "$PACKAGE" = "unxts-hypothesis" ]; then
+                UNXTS_HYPOTHESIS_TAG_CREATED="true"
+              fi
+              if [ "$PACKAGE" = "unxts-xarray" ]; then
+                UNXTS_XARRAY_TAG_CREATED="true"
+              fi
             fi
           done
 
@@ -139,6 +154,15 @@ jobs:
             echo "trigger_unxt_hypothesis_cd=false" >> "$GITHUB_OUTPUT"
             echo "unxt_hypothesis_tag=unxt-hypothesis-v${VERSION}" >> "$GITHUB_OUTPUT"
             echo "unxt_hypothesis_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
+            echo "trigger_unxts_api_cd=false" >> "$GITHUB_OUTPUT"
+            echo "unxts_api_tag=unxts-api-v${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "unxts_api_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
+            echo "trigger_unxts_hypothesis_cd=false" >> "$GITHUB_OUTPUT"
+            echo "unxts_hypothesis_tag=unxts-hypothesis-v${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "unxts_hypothesis_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
+            echo "trigger_unxts_xarray_cd=false" >> "$GITHUB_OUTPUT"
+            echo "unxts_xarray_tag=unxts-xarray-v${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "unxts_xarray_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -155,6 +179,15 @@ jobs:
           echo "trigger_unxt_hypothesis_cd=${UNXT_HYPOTHESIS_TAG_CREATED}" >> "$GITHUB_OUTPUT"
           echo "unxt_hypothesis_tag=unxt-hypothesis-v${VERSION}" >> "$GITHUB_OUTPUT"
           echo "unxt_hypothesis_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
+          echo "trigger_unxts_api_cd=${UNXTS_API_TAG_CREATED}" >> "$GITHUB_OUTPUT"
+          echo "unxts_api_tag=unxts-api-v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "unxts_api_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
+          echo "trigger_unxts_hypothesis_cd=${UNXTS_HYPOTHESIS_TAG_CREATED}" >> "$GITHUB_OUTPUT"
+          echo "unxts_hypothesis_tag=unxts-hypothesis-v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "unxts_hypothesis_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
+          echo "trigger_unxts_xarray_cd=${UNXTS_XARRAY_TAG_CREATED}" >> "$GITHUB_OUTPUT"
+          echo "unxts_xarray_tag=unxts-xarray-v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "unxts_xarray_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Trigger CD - unxt for auto-created unxt tag
         if: |
@@ -195,3 +228,43 @@ jobs:
           tag_sha: ${{ steps.create_tags.outputs.unxt_hypothesis_tag_sha }}
           trigger_cd:
             ${{ steps.create_tags.outputs.trigger_unxt_hypothesis_cd }}
+
+      - name: Trigger CD - unxts-api
+        if: |
+          steps.create_tags.outputs.trigger_unxts_api_cd == 'true' ||
+          (steps.create_tags.outputs.unxts_api_tag != '' &&
+          steps.create_tags.outputs.trigger_unxts_api_cd == 'false')
+        uses: ./.github/actions/dispatch-package-cd
+        with:
+          workflow_id: cd-unxts-api.yml
+          workflow_name: CD - unxts-api
+          tag_ref: ${{ steps.create_tags.outputs.unxts_api_tag }}
+          tag_sha: ${{ steps.create_tags.outputs.unxts_api_tag_sha }}
+          trigger_cd: ${{ steps.create_tags.outputs.trigger_unxts_api_cd }}
+
+      - name: Trigger CD - unxts-hypothesis
+        if: |
+          steps.create_tags.outputs.trigger_unxts_hypothesis_cd == 'true' ||
+          (steps.create_tags.outputs.unxts_hypothesis_tag != '' &&
+          steps.create_tags.outputs.trigger_unxts_hypothesis_cd == 'false')
+        uses: ./.github/actions/dispatch-package-cd
+        with:
+          workflow_id: cd-unxts-hypothesis.yml
+          workflow_name: CD - unxts-hypothesis
+          tag_ref: ${{ steps.create_tags.outputs.unxts_hypothesis_tag }}
+          tag_sha: ${{ steps.create_tags.outputs.unxts_hypothesis_tag_sha }}
+          trigger_cd:
+            ${{ steps.create_tags.outputs.trigger_unxts_hypothesis_cd }}
+
+      - name: Trigger CD - unxts-xarray
+        if: |
+          steps.create_tags.outputs.trigger_unxts_xarray_cd == 'true' ||
+          (steps.create_tags.outputs.unxts_xarray_tag != '' &&
+          steps.create_tags.outputs.trigger_unxts_xarray_cd == 'false')
+        uses: ./.github/actions/dispatch-package-cd
+        with:
+          workflow_id: cd-unxts-xarray.yml
+          workflow_name: CD - unxts-xarray
+          tag_ref: ${{ steps.create_tags.outputs.unxts_xarray_tag }}
+          tag_sha: ${{ steps.create_tags.outputs.unxts_xarray_tag_sha }}
+          trigger_cd: ${{ steps.create_tags.outputs.trigger_unxts_xarray_cd }}
