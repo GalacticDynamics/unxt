@@ -1,3 +1,5 @@
+> **Deprecated:** This package has been superseded by [`unxts.xarray`](https://pypi.org/p/unxts.xarray). Please migrate: `pip install unxts.xarray` and change `import unxt_xarray` to `import unxts.xarray`. No new releases of `unxt-xarray` are planned.
+
 # unxt-xarray
 
 xarray integration for [unxt](https://github.com/GalacticDynamics/unxt).
