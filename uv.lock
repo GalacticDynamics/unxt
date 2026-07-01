@@ -30,6 +30,9 @@ members = [
     "unxt-api",
     "unxt-hypothesis",
     "unxt-xarray",
+    "unxts-api",
+    "unxts-hypothesis",
+    "unxts-xarray",
 ]
 constraints = [{ name = "matplotlib", marker = "python_full_version >= '3.14'", specifier = ">=3.10.8" }]
 
@@ -4598,7 +4601,7 @@ workspace = [
 name = "unxt-api"
 source = { editable = "packages/unxt-api" }
 dependencies = [
-    { name = "plum-dispatch" },
+    { name = "unxts-api" },
 ]
 
 [package.dev-dependencies]
@@ -4613,7 +4616,7 @@ test = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "plum-dispatch", specifier = ">=2.5.7" }]
+requires-dist = [{ name = "unxts-api", editable = "packages/unxts.api" }]
 
 [package.metadata.requires-dev]
 test = [
@@ -4676,6 +4679,110 @@ dependencies = [
 requires-dist = [
     { name = "unxt", editable = "." },
     { name = "xarray", specifier = ">=2024.1.0" },
+]
+
+[[package]]
+name = "unxts-api"
+source = { editable = "packages/unxts.api" }
+dependencies = [
+    { name = "plum-dispatch" },
+]
+
+[package.dev-dependencies]
+test = [
+    { name = "optional-dependencies" },
+    { name = "pytest" },
+    { name = "pytest-arraydiff" },
+    { name = "pytest-cov" },
+    { name = "pytest-env" },
+    { name = "pytest-github-actions-annotate-failures" },
+    { name = "sybil", extra = ["pytest"] },
+]
+
+[package.metadata]
+requires-dist = [{ name = "plum-dispatch", specifier = ">=2.5.7" }]
+
+[package.metadata.requires-dev]
+test = [
+    { name = "optional-dependencies", specifier = ">=0.3.2" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-arraydiff", specifier = ">=0.6.1" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
+    { name = "pytest-env", specifier = ">=1.1.5" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
+]
+
+[[package]]
+name = "unxts-hypothesis"
+source = { editable = "packages/unxts.hypothesis" }
+dependencies = [
+    { name = "hypothesis", extra = ["numpy"] },
+    { name = "jax" },
+    { name = "unxt" },
+]
+
+[package.dev-dependencies]
+test = [
+    { name = "hypothesis", extra = ["numpy"] },
+    { name = "pytest" },
+    { name = "pytest-arraydiff" },
+    { name = "pytest-cov" },
+    { name = "pytest-env" },
+    { name = "pytest-github-actions-annotate-failures" },
+    { name = "sybil", extra = ["pytest"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "hypothesis", extras = ["numpy"], specifier = ">=6.138.14" },
+    { name = "jax", specifier = ">=0.5.3" },
+    { name = "unxt", editable = "." },
+]
+
+[package.metadata.requires-dev]
+test = [
+    { name = "hypothesis", extras = ["numpy"], specifier = ">=6.138.14" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-arraydiff", specifier = ">=0.6.1" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
+    { name = "pytest-env", specifier = ">=1.1.5" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
+]
+
+[[package]]
+name = "unxts-xarray"
+source = { editable = "packages/unxts.xarray" }
+dependencies = [
+    { name = "unxt" },
+    { name = "xarray" },
+]
+
+[package.dev-dependencies]
+test = [
+    { name = "pytest" },
+    { name = "pytest-arraydiff" },
+    { name = "pytest-cov" },
+    { name = "pytest-env" },
+    { name = "pytest-github-actions-annotate-failures" },
+    { name = "sybil", extra = ["pytest"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "unxt", editable = "." },
+    { name = "xarray", specifier = ">=2024.1.0" },
+]
+
+[package.metadata.requires-dev]
+test = [
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-arraydiff", specifier = ">=0.6.1" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
+    { name = "pytest-env", specifier = ">=1.1.5" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
 
 [[package]]

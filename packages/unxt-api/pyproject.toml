@@ -19,7 +19,7 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
 ]
-dependencies = ["plum-dispatch>=2.5.7"]
+dependencies = ["unxts.api>=0.1.dev0"]
 description = "Abstract dispatch API definitions for unxt"
 dynamic = ["version"]
 license.text = "BSD-3-Clause"
@@ -67,3 +67,6 @@ describe_command = [
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/unxt_api/_version.py"
+
+[tool.uv.sources]
+"unxts.api" = { workspace = true }
