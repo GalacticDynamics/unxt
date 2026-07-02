@@ -31,7 +31,7 @@ jobs:
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
 
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           # Required for hatch-vcs to determine version from git tags.
           # Can be removed if switching to hardcoded versions.
@@ -78,7 +78,7 @@ jobs:
           cat release-metadata.json
         shell: bash
 
-      - uses: hynek/build-and-inspect-python-package@fe0a0fb1925ca263d076ca4f2c13e93a6e92a33e # v2.17.0
+      - uses: hynek/build-and-inspect-python-package@d44ca7d91762de7a7d5436ddae667c6da6d1c3df # v2.18.0
         with:
           path: packages/unxts.api
           upload-name-suffix: -unxts-api
