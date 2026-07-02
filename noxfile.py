@@ -30,8 +30,13 @@ class PackageEnum(StrEnum):
         return f"{self.value!r}"
 
     unxt = auto()
+    unxt_api = auto()
+    unxt_hypothesis = auto()
+    api = auto()
     hypothesis = auto()
-    xarray = auto()
+    interop_gala = auto()
+    interop_matplotlib = auto()
+    interop_xarray = auto()
 
 
 # =============================================================================
@@ -59,9 +64,8 @@ def all(s: nox.Session, /) -> None:  # noqa: A001
 def lint(s: nox.Session, /) -> None:
     """Run the linter."""
     s.notify("precommit")
-    s.notify("pylint(package='unxt')")
-    s.notify("pylint(package='hypothesis')")
-    s.notify("pylint(package='xarray')")
+    for package in PackageEnum:
+        s.notify(f"pylint(package={package.value!r})")
 
 
 @session(uv_groups=["lint"], reuse_venv=True)
@@ -70,23 +74,35 @@ def precommit(s: nox.Session, /) -> None:
     s.run("prek", "run", "--all-files", *s.posargs)
 
 
-@session(uv_groups=["lint"], reuse_venv=True)
-@nox.parametrize("package", list(PackageEnum))
-def pylint(s: nox.Session, /, package: PackageEnum) -> None:
-    """Run PyLint."""
+def _parse_pylint_paths(package: PackageEnum, /) -> list[str]:
+    # Lint each package in isolation so the ``duplicate-code`` checker does not
+    # flag the intentional similarity between a shim and its canonical package.
     match package:
         case PackageEnum.unxt:
-            package_paths = ["packages/unxt-api/src", "src/unxt"]
+            return ["src/unxt"]
+        case PackageEnum.unxt_api:
+            return ["packages/unxt-api/src"]
+        case PackageEnum.unxt_hypothesis:
+            return ["packages/unxt-hypothesis/src"]
+        case PackageEnum.api:
+            return ["packages/unxts.api/src"]
         case PackageEnum.hypothesis:
-            package_paths = ["packages/unxt-hypothesis/src"]
-            s.install("-e", "packages/unxt-hypothesis")
-        case PackageEnum.xarray:
-            package_paths = ["packages/unxt-xarray/src"]
-            s.install("-e", "packages/unxt-xarray")
+            return ["packages/unxts.hypothesis/src"]
+        case PackageEnum.interop_gala:
+            return ["packages/unxts.interop.gala/src"]
+        case PackageEnum.interop_matplotlib:
+            return ["packages/unxts.interop.matplotlib/src"]
+        case PackageEnum.interop_xarray:
+            return ["packages/unxts.interop.xarray/src"]
         case _:
             assert_never(package)
 
-    s.run("pylint", *package_paths, *s.posargs)
+
+@session(uv_groups=["lint"], uv_extras=["workspace"], reuse_venv=True)
+@nox.parametrize("package", list(PackageEnum))
+def pylint(s: nox.Session, /, package: PackageEnum) -> None:
+    """Run PyLint."""
+    s.run("pylint", *_parse_pylint_paths(package), *s.posargs)
 
 
 # =============================================================================
@@ -96,30 +112,35 @@ def pylint(s: nox.Session, /, package: PackageEnum) -> None:
 @session(uv_groups=["test"], uv_extras=["workspace"], reuse_venv=True)
 def test(s: nox.Session, /) -> None:
     """Run the unit and regular tests."""
-    s.notify("pytest(package='unxt')", posargs=s.posargs)
-    s.notify("pytest(package='hypothesis')", posargs=s.posargs)
-    s.notify("pytest(package='xarray')", posargs=s.posargs)
+    for package in PackageEnum:
+        s.notify(f"pytest(package={package.value!r})", posargs=s.posargs)
     # s.notify("pytest_benchmark", posargs=s.posargs)
 
 
 def _parse_pytest_paths(package: PackageEnum, /) -> list[str]:
+    # The canonical ``unxts.*`` namespace packages point only at their ``tests``
+    # directory: pytest's namespace-package path insertion would otherwise let a
+    # leaf like ``unxts/interop/xarray`` shadow the real ``xarray`` when it
+    # collects the src doctests. Those doctests are exercised via the docs pages.
     match package:
         case PackageEnum.unxt:
-            package_paths = [
-                "README.md",
-                "docs",
-                "src/",
-                "tests/",
-                "packages/unxt-api/",
-            ]
+            return ["README.md", "docs", "src/", "tests/"]
+        case PackageEnum.unxt_api:
+            return ["packages/unxt-api/"]
+        case PackageEnum.unxt_hypothesis:
+            return ["packages/unxt-hypothesis/"]
+        case PackageEnum.api:
+            return ["packages/unxts.api/tests"]
         case PackageEnum.hypothesis:
-            package_paths = ["packages/unxt-hypothesis/"]
-        case PackageEnum.xarray:
-            package_paths = ["packages/unxt-xarray/"]
+            return ["packages/unxts.hypothesis/tests"]
+        case PackageEnum.interop_gala:
+            return ["packages/unxts.interop.gala/tests"]
+        case PackageEnum.interop_matplotlib:
+            return ["packages/unxts.interop.matplotlib/tests"]
+        case PackageEnum.interop_xarray:
+            return ["packages/unxts.interop.xarray/tests"]
         case _:
             assert_never(package)
-
-    return package_paths
 
 
 @session(uv_groups=["test"], uv_extras=["workspace"], reuse_venv=True)
