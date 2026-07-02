@@ -1,4 +1,4 @@
-name: CD - unxts-xarray
+name: CD - unxts-interop-xarray
 
 on:
   workflow_dispatch:
@@ -6,10 +6,10 @@ on:
     branches:
       - main
     tags:
-      - "unxts-xarray-v*" # Package-specific tags (unxts-xarray-vX.Y.Z)
+      - "unxts-interop-xarray-v*" # Package-specific tags (unxts-interop-xarray-vX.Y.Z)
     paths:
-      - "packages/unxts.xarray/**"
-      - ".github/workflows/cd-unxts-xarray.yml"
+      - "packages/unxts.interop.xarray/**"
+      - ".github/workflows/cd-unxts-interop-xarray.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -50,7 +50,7 @@ jobs:
           GITHUB_REF_VAR: ${{ github.ref }}
         run: |
           TAG="${GITHUB_REF_VAR#refs/tags/}"
-          python scripts/validate_tag.py "$TAG" "unxts-xarray"
+          python scripts/validate_tag.py "$TAG" "unxts-interop-xarray"
         shell: bash
 
       - name: Emit release metadata
@@ -67,7 +67,7 @@ jobs:
           TRIGGER_EVENT="${EVENT_NAME}"
 
           jq -n \
-            --arg package "unxts-xarray" \
+            --arg package "unxts-interop-xarray" \
             --arg package_tag "${TAG}" \
             --arg head_sha "${HEAD_SHA}" \
             --arg trigger_event "${TRIGGER_EVENT}" \
@@ -80,13 +80,13 @@ jobs:
 
       - uses: hynek/build-and-inspect-python-package@fe0a0fb1925ca263d076ca4f2c13e93a6e92a33e # v2.17.0
         with:
-          path: packages/unxts.xarray
-          upload-name-suffix: -unxts-xarray
+          path: packages/unxts.interop.xarray
+          upload-name-suffix: -unxts-interop-xarray
           attest-build-provenance-github: false
 
       - name: Upload release metadata artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: release-metadata-unxts-xarray
+          name: release-metadata-unxts-interop-xarray
           path: release-metadata.json
           retention-days: 7

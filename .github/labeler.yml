@@ -55,10 +55,10 @@
           - ".github/workflows/cd-publish-unxts-hypothesis.yml"
           - ".github/workflows/cd-pr-unxts-hypothesis.yml"
 
-"🧩 unxts-xarray":
+"🧩 unxts-interop-xarray":
   - changed-files:
       - any-glob-to-any-file:
-          - "packages/unxts.xarray/**"
-          - ".github/workflows/cd-unxts-xarray.yml"
-          - ".github/workflows/cd-publish-unxts-xarray.yml"
-          - ".github/workflows/cd-pr-unxts-xarray.yml"
+          - "packages/unxts.interop.xarray/**"
+          - ".github/workflows/cd-unxts-interop-xarray.yml"
+          - ".github/workflows/cd-publish-unxts-interop-xarray.yml"
+          - ".github/workflows/cd-pr-unxts-interop-xarray.yml"

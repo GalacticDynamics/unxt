@@ -31,7 +31,7 @@ members = [
     "unxt-hypothesis",
     "unxts-api",
     "unxts-hypothesis",
-    "unxts-xarray",
+    "unxts-interop-xarray",
 ]
 constraints = [{ name = "matplotlib", marker = "python_full_version >= '3.14'", specifier = ">=3.10.8" }]
 
@@ -4297,7 +4297,7 @@ all = [
     { name = "unxt-hypothesis" },
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
-    { name = "unxts-xarray" },
+    { name = "unxts-interop-xarray" },
 ]
 backend-astropy = [
     { name = "astropy" },
@@ -4328,7 +4328,7 @@ workspace = [
     { name = "unxt-hypothesis" },
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
-    { name = "unxts-xarray" },
+    { name = "unxts-interop-xarray" },
 ]
 
 [package.dev-dependencies]
@@ -4380,7 +4380,7 @@ dev = [
     { name = "unxt-hypothesis" },
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
-    { name = "unxts-xarray" },
+    { name = "unxts-interop-xarray" },
 ]
 docs = [
     { name = "jax" },
@@ -4450,7 +4450,7 @@ workspace = [
     { name = "unxt-hypothesis" },
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
-    { name = "unxts-xarray" },
+    { name = "unxts-interop-xarray" },
 ]
 
 [package.metadata]
@@ -4490,8 +4490,8 @@ requires-dist = [
     { name = "unxts-api", marker = "extra == 'workspace'", editable = "packages/unxts.api" },
     { name = "unxts-hypothesis", marker = "extra == 'all'", editable = "packages/unxts.hypothesis" },
     { name = "unxts-hypothesis", marker = "extra == 'workspace'", editable = "packages/unxts.hypothesis" },
-    { name = "unxts-xarray", marker = "extra == 'all'", editable = "packages/unxts.xarray" },
-    { name = "unxts-xarray", marker = "extra == 'workspace'", editable = "packages/unxts.xarray" },
+    { name = "unxts-interop-xarray", marker = "extra == 'all'", editable = "packages/unxts.interop.xarray" },
+    { name = "unxts-interop-xarray", marker = "extra == 'workspace'", editable = "packages/unxts.interop.xarray" },
     { name = "wadler-lindig", specifier = ">=0.1.5" },
     { name = "xmmutablemap", specifier = ">=0.1" },
     { name = "zeroth", specifier = ">=1.0.0" },
@@ -4543,7 +4543,7 @@ dev = [
     { name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" },
     { name = "unxts-api", editable = "packages/unxts.api" },
     { name = "unxts-hypothesis", editable = "packages/unxts.hypothesis" },
-    { name = "unxts-xarray", editable = "packages/unxts.xarray" },
+    { name = "unxts-interop-xarray", editable = "packages/unxts.interop.xarray" },
 ]
 docs = [
     { name = "jax", extras = ["cpu"], specifier = ">=0.5.3" },
@@ -4609,7 +4609,7 @@ workspace = [
     { name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" },
     { name = "unxts-api", editable = "packages/unxts.api" },
     { name = "unxts-hypothesis", editable = "packages/unxts.hypothesis" },
-    { name = "unxts-xarray", editable = "packages/unxts.xarray" },
+    { name = "unxts-interop-xarray", editable = "packages/unxts.interop.xarray" },
 ]
 
 [[package]]
@@ -4747,8 +4747,8 @@ test = [
 ]
 
 [[package]]
-name = "unxts-xarray"
-source = { editable = "packages/unxts.xarray" }
+name = "unxts-interop-xarray"
+source = { editable = "packages/unxts.interop.xarray" }
 dependencies = [
     { name = "unxt" },
     { name = "xarray" },

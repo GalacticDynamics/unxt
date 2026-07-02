@@ -1,11 +1,11 @@
-name: CD PR - unxts-xarray
+name: CD PR - unxts-interop-xarray
 
 on:
   pull_request:
     paths:
-      - "packages/unxts.xarray/**"
-      - ".github/workflows/cd-unxts-xarray.yml"
-      - ".github/workflows/cd-pr-unxts-xarray.yml"
+      - "packages/unxts.interop.xarray/**"
+      - ".github/workflows/cd-unxts-interop-xarray.yml"
+      - ".github/workflows/cd-pr-unxts-interop-xarray.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -32,6 +32,6 @@ jobs:
 
       - uses: hynek/build-and-inspect-python-package@fe0a0fb1925ca263d076ca4f2c13e93a6e92a33e # v2.17.0
         with:
-          path: packages/unxts.xarray
-          upload-name-suffix: -unxts-xarray
+          path: packages/unxts.interop.xarray
+          upload-name-suffix: -unxts-interop-xarray
           attest-build-provenance-github: false

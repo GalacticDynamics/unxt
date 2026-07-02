@@ -1,7 +1,8 @@
 """xarray integration for unxt.
 
-This is the canonical package (unxts.xarray).
-The legacy ``unxt-xarray`` package is deprecated; migrate to ``unxts.xarray``.
+This is the canonical package (unxts.interop.xarray).
+The legacy ``unxt-xarray`` package is deprecated; migrate to
+``unxts.interop.xarray``.
 """
 
 __all__ = (

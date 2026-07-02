@@ -12,10 +12,9 @@ sd_hide_title: true
 unxt-api <packages/unxt-api/index>
 unxt <self>
 unxt-hypothesis <packages/unxt-hypothesis/index>
-unxt-xarray <packages/unxt-xarray/index>
 unxts.api <packages/unxts.api/index>
 unxts.hypothesis <packages/unxts.hypothesis/index>
-unxts.xarray <packages/unxts.xarray/index>
+unxts.interop.xarray <packages/unxts.interop.xarray/index>
 ```
 
 ```{toctree}

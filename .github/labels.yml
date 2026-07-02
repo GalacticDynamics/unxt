@@ -325,6 +325,6 @@
   color: "0366d6"
   description: "Issues/PRs affecting the unxts.hypothesis namespace package"
 
-- name: "🧩 unxts-xarray"
+- name: "🧩 unxts-interop-xarray"
   color: "0366d6"
-  description: "Issues/PRs affecting the unxts.xarray namespace package"
+  description: "Issues/PRs affecting the unxts.interop.xarray namespace package"

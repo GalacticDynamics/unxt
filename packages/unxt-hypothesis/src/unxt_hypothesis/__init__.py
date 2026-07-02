@@ -8,6 +8,7 @@ No changes are required in code that imports ``unxt_hypothesis``.
 
 from unxts.hypothesis import (
     DIMENSION_NAMES,
+    __version__,
     angles,
     derived_units,
     named_dimensions,
@@ -19,6 +20,7 @@ from unxts.hypothesis import (
 
 __all__ = (
     "DIMENSION_NAMES",
+    "__version__",
     "derived_units",
     "units",
     "unitsystems",

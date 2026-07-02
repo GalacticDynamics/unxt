@@ -1,14 +1,14 @@
-name: CD Publish - unxts-xarray
+name: CD Publish - unxts-interop-xarray
 
 # Stage B: privileged publish workflow.
-# Triggered only after Stage A ("CD - unxts-xarray") completes successfully.
+# Triggered only after Stage A ("CD - unxts-interop-xarray") completes successfully.
 # Downloads and validates the release-metadata artifact produced by Stage A before
 # publishing, so that no repository code ever executes in a privileged context.
 
 on:
   workflow_run:
     workflows:
-      - "CD - unxts-xarray"
+      - "CD - unxts-interop-xarray"
     types:
       - completed
 
@@ -37,7 +37,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
-          name: release-metadata-unxts-xarray
+          name: release-metadata-unxts-interop-xarray
           path: .
 
       - name: Validate metadata and determine publish targets
@@ -65,7 +65,7 @@ jobs:
             const workflowRun = context.payload.workflow_run;
 
             // Validate package identity.
-            if (pkg !== "unxts-xarray") {
+            if (pkg !== "unxts-interop-xarray") {
               core.setFailed(`Unexpected package in artifact: ${pkg}`);
               return;
             }
@@ -93,7 +93,7 @@ jobs:
             const isValidTag = hasTag && /^unxt-api-v\d+\.\d+\.\d+$/.test(package_tag);
             if (hasTag && !isValidTag) {
               core.setFailed(
-                `Invalid package_tag in artifact: ${package_tag}. Expected exact format unxts-xarray-vX.Y.Z.`
+                `Invalid package_tag in artifact: ${package_tag}. Expected exact format unxts-interop-xarray-vX.Y.Z.`
               );
               return;
             }
@@ -168,7 +168,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/unxts.xarray
+      url: https://test.pypi.org/p/unxts.interop.xarray
     permissions:
       id-token: write
       actions: read
@@ -179,7 +179,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
-          name: Packages-unxts-xarray
+          name: Packages-unxts-interop-xarray
           path: dist
 
       - uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
@@ -193,7 +193,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/unxts.xarray
+      url: https://pypi.org/p/unxts.interop.xarray
     permissions:
       id-token: write
       attestations: write
@@ -205,7 +205,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
-          name: Packages-unxts-xarray
+          name: Packages-unxts-interop-xarray
           path: dist
 
       - name: Attest build provenance

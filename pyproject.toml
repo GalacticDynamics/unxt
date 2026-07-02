@@ -65,7 +65,7 @@ workspace = [
   "unxt-hypothesis",
   "unxts.api",
   "unxts.hypothesis",
-  "unxts.xarray",
+  "unxts.interop.xarray",
 ]
 
 [project.urls]
@@ -137,7 +137,7 @@ workspace = [
   "unxt-hypothesis",
   "unxts.api",
   "unxts.hypothesis",
-  "unxts.xarray",
+  "unxts.interop.xarray",
 ]
 
 
@@ -325,7 +325,8 @@ ignore = ["PC140", "PC901", "PC902", "PC903"]
 namespace-packages = [
   "packages/unxts.api/src/unxts",
   "packages/unxts.hypothesis/src/unxts",
-  "packages/unxts.xarray/src/unxts",
+  "packages/unxts.interop.xarray/src/unxts",
+  "packages/unxts.interop.xarray/src/unxts/interop",
 ]
 
 [tool.ruff.lint]
@@ -402,11 +403,11 @@ conflicts = [
 ]
 
 [tool.uv.sources]
-unxt-api           = { workspace = true }
-unxt-hypothesis    = { workspace = true }
-"unxts.api"        = { workspace = true }
-"unxts.hypothesis" = { workspace = true }
-"unxts.xarray"     = { workspace = true }
+unxt-api               = { workspace = true }
+unxt-hypothesis        = { workspace = true }
+"unxts.api"            = { workspace = true }
+"unxts.hypothesis"     = { workspace = true }
+"unxts.interop.xarray" = { workspace = true }
 
 [tool.uv.workspace]
 members = ["packages/*"]
