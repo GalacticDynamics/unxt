@@ -1,10 +1,10 @@
 """Unit tests for dimension construction and parsing."""
 
 import pytest
+import unxts.hypothesis as ust
 from hypothesis import example, given, strategies as st
 
 import unxt as u
-import unxt_hypothesis as ust
 
 
 class TestDimensionSimple:

@@ -12,7 +12,11 @@ sd_hide_title: true
 unxt-api <packages/unxt-api/index>
 unxt <self>
 unxt-hypothesis <packages/unxt-hypothesis/index>
-unxt-xarray <packages/unxt-xarray/index>
+unxts.api <packages/unxts.api/index>
+unxts.hypothesis <packages/unxts.hypothesis/index>
+unxts.interop.gala <packages/unxts.interop.gala/index>
+unxts.interop.matplotlib <packages/unxts.interop.matplotlib/index>
+unxts.interop.xarray <packages/unxts.interop.xarray/index>
 ```
 
 ```{toctree}
@@ -27,9 +31,6 @@ guides/units_and_systems
 guides/type-checking
 guides/sharp-bits
 Performance Optimization <guides/perf.ipynb>
-packages/unxt-api/extending
-packages/unxt-hypothesis/testing-guide
-packages/unxt-xarray/xarray-guide
 ```
 
 ```{toctree}
@@ -46,9 +47,7 @@ interop/*
 :hidden:
 :caption: 🔌 API Reference
 
-packages/unxt-api/api
 api/index
-packages/unxt-hypothesis/api
 ```
 
 ```{toctree}

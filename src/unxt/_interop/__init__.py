@@ -9,10 +9,13 @@ from .optional_deps import OptDeps
 if OptDeps.ASTROPY.installed:
     from . import unxt_interop_astropy
 
-if OptDeps.GALA.installed:
-    from . import unxt_interop_gala
+# gala itself must also be importable: unxts.interop.gala is installed on every
+# platform, but its gala dependency is skipped where gala cannot build (Windows).
+if OptDeps.UNXTS_INTEROP_GALA.installed and OptDeps.GALA.installed:
+    import unxts.interop.gala  # registers gala <-> unxt unitsystem conversions
 
-if OptDeps.MATPLOTLIB.installed:
-    from . import unxt_interop_mpl as interop_mpl
+if OptDeps.UNXTS_INTEROP_MATPLOTLIB.installed:
+    import unxts.interop.matplotlib  # registers the matplotlib unit converter
 
-    interop_mpl.setup_matplotlib_support_for_unxt(enable=True)
+if OptDeps.UNXTS_INTEROP_XARRAY.installed:
+    import unxts.interop.xarray  # registers the `.unxt` xarray accessor

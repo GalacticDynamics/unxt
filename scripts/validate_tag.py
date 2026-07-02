@@ -103,9 +103,9 @@ def validate_tag_for_package(tag: str, package: str | None = None) -> tuple[bool
 
     tag_package, major, minor, patch = parsed
 
-    # Legacy tags (1.10.x and lower) are grandfathered in to support
-    # maintenance releases.
-    if (major, minor) < (1, 11):
+    # Legacy tags (1.x and below) are grandfathered in to support
+    # maintenance releases. v2.0.0 is the first coordinated release.
+    if major < 2:
         return True, ""
 
     # Normalize package name (None means main unxt package)
@@ -153,7 +153,11 @@ def main() -> int:
     if len(sys.argv) < 2:
         logger.error("Usage: validate_tag.py TAG [PACKAGE]")
         logger.error("  TAG: The git tag to validate")
-        logger.error("  PACKAGE: Package name ('unxt', 'unxt-api', 'unxt-hypothesis')")
+        logger.error(
+            "  PACKAGE: Package name ('unxt', 'unxt-api', 'unxt-hypothesis', "
+            "'unxts-api', 'unxts-hypothesis', 'unxts-interop-gala', "
+            "'unxts-interop-matplotlib', 'unxts-interop-xarray')"
+        )
         sys.exit(1)
 
     tag = sys.argv[1]

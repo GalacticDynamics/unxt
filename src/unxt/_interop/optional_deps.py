@@ -10,4 +10,6 @@ class OptDeps(OptionalDependencyEnum):  # type: ignore[misc]  # pylint: disable=
 
     ASTROPY = auto()
     GALA = auto()
-    MATPLOTLIB = auto()
+    UNXTS_INTEROP_GALA = auto()
+    UNXTS_INTEROP_MATPLOTLIB = auto()
+    UNXTS_INTEROP_XARRAY = auto()

@@ -1,0 +1,31 @@
+"""Abstract dispatch API for unxt.
+
+This is the canonical package (unxts.api). The legacy ``unxt_api`` package
+continues to work via a thin backward-compatible shim.
+"""
+
+__all__ = (
+    "__version__",
+    "dimension",
+    "dimension_of",
+    "uconvert_value",
+    "uconvert",
+    "ustrip",
+    "is_unit_convertible",
+    "wrap_to",
+    "unit",
+    "unit_of",
+    "unitsystem_of",
+)
+
+from ._src.dimensions import dimension, dimension_of
+from ._src.quantity import (
+    is_unit_convertible,
+    uconvert,
+    uconvert_value,
+    ustrip,
+    wrap_to,
+)
+from ._src.units import unit, unit_of
+from ._src.unitsystems import unitsystem_of
+from ._version import version as __version__
