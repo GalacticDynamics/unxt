@@ -30,7 +30,7 @@ from .base_angle import AbstractAngle
 from .base_parametric import AbstractParametricQuantity as ABCPQ  # noqa: N814
 from .flag import AllowValue
 from .parametric import ParametricQuantity
-from .quantity import Q
+from .quantity import Q, Quantity
 from .static_quantity import StaticQuantity
 from .value import StaticValue
 from unxt._src.utils import promote_dtypes, promote_dtypes_if_needed
@@ -4304,6 +4304,25 @@ def rem_p_uqv(
 
     """
     return replace(x, value=ustrip(x) % y)
+
+
+@quax.register(lax.rem_p)
+def rem_p_qv(x: Quantity, y: ArrayLike, /) -> Quantity:
+    """Remainder for a non-parametric dimensionless quantity and an array.
+
+    The input quantity must be dimensionless; a dimensionful input raises
+    ``UnitConversionError`` at trace time via ``ustrip("", x)``.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> import quaxed.numpy as jnp
+    >>> q = u.Quantity(10, "")
+    >>> jnp.remainder(q, 3)
+    Quantity(Array(1, dtype=int32), unit='')
+
+    """
+    return Quantity(lax.rem(ustrip("", x), y), unit=one)
 
 
 # ==============================================================================

@@ -12,6 +12,7 @@ import jax.numpy as jax_xp
 import numpy as np
 import pytest
 import unxts.hypothesis as ust
+from astropy.units import UnitConversionError
 from hypothesis import example, given, settings, strategies as st
 from hypothesis.extra.array_api import make_strategies_namespace
 from hypothesis.extra.numpy import array_shapes as np_array_shapes, arrays as np_arrays
@@ -1382,3 +1383,23 @@ class TestQuantityUsageExamples:
         min_val = jnp.min(values)
         assert max_val.value == 5.0
         assert min_val.value == 1.0
+
+
+# ==============================================================================
+# Task 4: lax.rem_p support for the default (non-parametric) Quantity
+# ==============================================================================
+
+
+def test_remainder_bare_quantity_dimensionless():
+    """jnp.remainder works on the (non-parametric) default Quantity."""
+    q = u.Quantity(jnp.asarray([5.0, 7.0]), "")
+    got = jnp.remainder(q, jnp.asarray(3.0))
+    assert isinstance(got, u.Quantity)
+    assert jnp.array_equal(got.value, jnp.asarray([2.0, 1.0]))
+
+
+def test_remainder_bare_quantity_dimensionful_raises():
+    """jnp.remainder raises for a dimensionful (non-parametric) Quantity."""
+    q = u.Quantity(jnp.asarray([5.0, 7.0]), "m")
+    with pytest.raises(UnitConversionError):
+        _ = jnp.remainder(q, jnp.asarray(3.0))
