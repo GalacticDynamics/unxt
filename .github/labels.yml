@@ -329,6 +329,11 @@
   color: "0366d6"
   description: "Issues/PRs affecting the unxts.interop.gala namespace package"
 
+- name: "🧩 unxts-interop-matplotlib"
+  color: "0366d6"
+  description:
+    "Issues/PRs affecting the unxts.interop.matplotlib namespace package"
+
 - name: "🧩 unxts-interop-xarray"
   color: "0366d6"
   description: "Issues/PRs affecting the unxts.interop.xarray namespace package"

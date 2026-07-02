@@ -5,18 +5,15 @@ __all__: tuple[str, ...] = ()
 
 from typing import Any
 
+import gala.units
 from astropy.units import UnitBase as AstropyUnit
-from gala.units import (  # pylint: disable=import-error
-    DimensionlessUnitSystem as GalaDimensionlessUnitSystem,
-    UnitSystem as GalaUnitSystem,
-)
 from plum import conversion_method, convert, dispatch
 
 from unxt.unitsystems import AbstractUnitSystem, DimensionlessUnitSystem, dimensionless
 
 
 @dispatch
-def unitsystem(value: GalaUnitSystem, /) -> AbstractUnitSystem:
+def unitsystem(value: gala.units.UnitSystem, /) -> AbstractUnitSystem:
     """Return a `gala.units.UnitSystem` as a `unxt.AbstractUnitSystem`.
 
     Examples
@@ -36,7 +33,7 @@ def unitsystem(value: GalaUnitSystem, /) -> AbstractUnitSystem:
 
 
 @dispatch
-def unitsystem(_: GalaDimensionlessUnitSystem, /) -> DimensionlessUnitSystem:
+def unitsystem(_: gala.units.DimensionlessUnitSystem, /) -> DimensionlessUnitSystem:
     """Return a `gala.units.DimensionlessUnitSystem` as a `unxt.DimensionlessUnitSystem`.
 
     Examples
@@ -57,9 +54,9 @@ def unitsystem(_: GalaDimensionlessUnitSystem, /) -> DimensionlessUnitSystem:
 # Convert
 
 
-@conversion_method(type_from=GalaUnitSystem, type_to=AbstractUnitSystem)  # type: ignore[arg-type]
+@conversion_method(type_from=gala.units.UnitSystem, type_to=AbstractUnitSystem)  # type: ignore[arg-type]
 def convert_gala_unitsystem_to_unxt_unitsystem(
-    usys: GalaUnitSystem, /
+    usys: gala.units.UnitSystem, /
 ) -> AbstractUnitSystem:
     """Convert a `gala.units.UnitSystem` to a `unxt.AbstractUnitSystem`.
 
@@ -80,10 +77,10 @@ def convert_gala_unitsystem_to_unxt_unitsystem(
     return unitsystem(usys)
 
 
-@conversion_method(type_from=AbstractUnitSystem, type_to=GalaUnitSystem)  # type: ignore[arg-type]
+@conversion_method(type_from=AbstractUnitSystem, type_to=gala.units.UnitSystem)  # type: ignore[arg-type]
 def convert_unxt_unitsystem_to_gala_unitsystem(
     usys: AbstractUnitSystem, /
-) -> GalaUnitSystem:
+) -> gala.units.UnitSystem:
     """Convert a `unxt.AbstractUnitSystem` to a `gala.units.UnitSystem`.
 
     Examples
@@ -105,4 +102,4 @@ def convert_unxt_unitsystem_to_gala_unitsystem(
     def convert_unit_to_apyu(u: Any) -> AstropyUnit:
         return convert(u, AstropyUnit)
 
-    return GalaUnitSystem(*map(convert_unit_to_apyu, usys.base_units))
+    return gala.units.UnitSystem(*map(convert_unit_to_apyu, usys.base_units))

@@ -69,18 +69,17 @@ class OptDeps(OptionalDependencyEnum):
     """Optional dependencies for ``unxt``."""
 
     ASTROPY = auto()
-    MATPLOTLIB = auto()
     UNXTS_INTEROP_GALA = auto()
+    UNXTS_INTEROP_MATPLOTLIB = auto()
 
 
 collect_ignore_glob = []
 if not OptDeps.ASTROPY.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_astropy/*")
 if not OptDeps.UNXTS_INTEROP_GALA.installed:
-    collect_ignore_glob.append("docs/interop/gala.md")
-if not OptDeps.MATPLOTLIB.installed:
-    collect_ignore_glob.append("src/unxt/_interop/unxt_interop_mpl/*")
-    collect_ignore_glob.append("docs/interop/matplotlib.md")
+    collect_ignore_glob.append("packages/unxts.interop.gala/docs/*")
+if not OptDeps.UNXTS_INTEROP_MATPLOTLIB.installed:
+    collect_ignore_glob.append("packages/unxts.interop.matplotlib/docs/*")
 
 
 def pytest_generate_tests(metafunc: Any) -> None:

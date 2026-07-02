@@ -32,6 +32,7 @@ members = [
     "unxts-api",
     "unxts-hypothesis",
     "unxts-interop-gala",
+    "unxts-interop-matplotlib",
     "unxts-interop-xarray",
 ]
 constraints = [{ name = "matplotlib", marker = "python_full_version >= '3.14'", specifier = ">=3.10.8" }]
@@ -4292,10 +4293,10 @@ dependencies = [
 [package.optional-dependencies]
 all = [
     { name = "astropy" },
-    { name = "matplotlib" },
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
     { name = "unxts-interop-gala" },
+    { name = "unxts-interop-matplotlib" },
     { name = "unxts-interop-xarray" },
 ]
 backend-astropy = [
@@ -4317,7 +4318,7 @@ interop-gala = [
     { name = "unxts-interop-gala" },
 ]
 interop-mpl = [
-    { name = "matplotlib" },
+    { name = "unxts-interop-matplotlib" },
 ]
 interop-xarray = [
     { name = "unxts-interop-xarray" },
@@ -4329,6 +4330,7 @@ workspace = [
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
     { name = "unxts-interop-gala" },
+    { name = "unxts-interop-matplotlib" },
     { name = "unxts-interop-xarray" },
 ]
 
@@ -4382,6 +4384,7 @@ dev = [
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
     { name = "unxts-interop-gala" },
+    { name = "unxts-interop-matplotlib" },
     { name = "unxts-interop-xarray" },
 ]
 docs = [
@@ -4453,6 +4456,7 @@ workspace = [
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
     { name = "unxts-interop-gala" },
+    { name = "unxts-interop-matplotlib" },
     { name = "unxts-interop-xarray" },
 ]
 
@@ -4472,8 +4476,6 @@ requires-dist = [
     { name = "jax", extras = ["k8s"], marker = "extra == 'k8s'", specifier = ">=0.5.3" },
     { name = "jaxlib", specifier = ">=0.5.3" },
     { name = "jaxtyping", specifier = ">=0.3.3" },
-    { name = "matplotlib", marker = "extra == 'all'", specifier = ">=3.8" },
-    { name = "matplotlib", marker = "extra == 'interop-mpl'", specifier = ">=3.8" },
     { name = "optional-dependencies", specifier = ">=0.3.2" },
     { name = "packaging", specifier = ">=20.0" },
     { name = "plum-dispatch", specifier = ">=2.7.0" },
@@ -4490,6 +4492,9 @@ requires-dist = [
     { name = "unxts-interop-gala", marker = "extra == 'all'", editable = "packages/unxts.interop.gala" },
     { name = "unxts-interop-gala", marker = "extra == 'interop-gala'", editable = "packages/unxts.interop.gala" },
     { name = "unxts-interop-gala", marker = "extra == 'workspace'", editable = "packages/unxts.interop.gala" },
+    { name = "unxts-interop-matplotlib", marker = "extra == 'all'", editable = "packages/unxts.interop.matplotlib" },
+    { name = "unxts-interop-matplotlib", marker = "extra == 'interop-mpl'", editable = "packages/unxts.interop.matplotlib" },
+    { name = "unxts-interop-matplotlib", marker = "extra == 'workspace'", editable = "packages/unxts.interop.matplotlib" },
     { name = "unxts-interop-xarray", marker = "extra == 'all'", editable = "packages/unxts.interop.xarray" },
     { name = "unxts-interop-xarray", marker = "extra == 'interop-xarray'", editable = "packages/unxts.interop.xarray" },
     { name = "unxts-interop-xarray", marker = "extra == 'workspace'", editable = "packages/unxts.interop.xarray" },
@@ -4545,6 +4550,7 @@ dev = [
     { name = "unxts-api", editable = "packages/unxts.api" },
     { name = "unxts-hypothesis", editable = "packages/unxts.hypothesis" },
     { name = "unxts-interop-gala", editable = "packages/unxts.interop.gala" },
+    { name = "unxts-interop-matplotlib", editable = "packages/unxts.interop.matplotlib" },
     { name = "unxts-interop-xarray", editable = "packages/unxts.interop.xarray" },
 ]
 docs = [
@@ -4612,6 +4618,7 @@ workspace = [
     { name = "unxts-api", editable = "packages/unxts.api" },
     { name = "unxts-hypothesis", editable = "packages/unxts.hypothesis" },
     { name = "unxts-interop-gala", editable = "packages/unxts.interop.gala" },
+    { name = "unxts-interop-matplotlib", editable = "packages/unxts.interop.matplotlib" },
     { name = "unxts-interop-xarray", editable = "packages/unxts.interop.xarray" },
 ]
 
@@ -4773,6 +4780,42 @@ requires-dist = [
     { name = "astropy", specifier = ">=6.0" },
     { name = "gala", specifier = ">=1.8" },
     { name = "unxt", editable = "." },
+]
+
+[package.metadata.requires-dev]
+test = [
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-arraydiff", specifier = ">=0.6.1" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
+    { name = "pytest-env", specifier = ">=1.1.5" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
+]
+
+[[package]]
+name = "unxts-interop-matplotlib"
+source = { editable = "packages/unxts.interop.matplotlib" }
+dependencies = [
+    { name = "matplotlib" },
+    { name = "unxt" },
+    { name = "zeroth" },
+]
+
+[package.dev-dependencies]
+test = [
+    { name = "pytest" },
+    { name = "pytest-arraydiff" },
+    { name = "pytest-cov" },
+    { name = "pytest-env" },
+    { name = "pytest-github-actions-annotate-failures" },
+    { name = "sybil", extra = ["pytest"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "matplotlib", specifier = ">=3.8" },
+    { name = "unxt", editable = "." },
+    { name = "zeroth", specifier = ">=1.0.0" },
 ]
 
 [package.metadata.requires-dev]

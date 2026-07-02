@@ -12,10 +12,8 @@ if OptDeps.ASTROPY.installed:
 if OptDeps.UNXTS_INTEROP_GALA.installed:
     import unxts.interop.gala  # registers gala <-> unxt unitsystem conversions
 
-if OptDeps.MATPLOTLIB.installed:
-    from . import unxt_interop_mpl as interop_mpl
-
-    interop_mpl.setup_matplotlib_support_for_unxt(enable=True)
+if OptDeps.UNXTS_INTEROP_MATPLOTLIB.installed:
+    import unxts.interop.matplotlib  # registers the matplotlib unit converter
 
 if OptDeps.UNXTS_INTEROP_XARRAY.installed:
     import unxts.interop.xarray  # registers the `.unxt` xarray accessor

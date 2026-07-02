@@ -1,6 +1,11 @@
-# 📊 Matplotlib
+# `unxts.interop.matplotlib`
 
-If `matplotlib` is installed, `unxt` will automatically detect this and will register parsers with `matplotlib` to enable plotting `Quantity` objects.
+```{toctree}
+:maxdepth: 1
+:hidden:
+```
+
+`unxts.interop.matplotlib` is the canonical location for [matplotlib](https://matplotlib.org/) integration. If installed, `unxt` will automatically detect this and register a converter with `matplotlib` to enable plotting `Quantity` objects.
 
 To ensure that a compatible version of `matplotlib` is installed, you can install `unxt` with the `interop-mpl` extra:
 
@@ -19,6 +24,8 @@ uv add "unxt[interop-mpl]"
 ```bash
 pip install unxt[interop-mpl]
 ```
+
+:::
 
 ::::
 
@@ -55,3 +62,7 @@ plt.plot(x, y)
 ```
 
 :::
+
+::::
+
+Install: `pip install unxts.interop.matplotlib`

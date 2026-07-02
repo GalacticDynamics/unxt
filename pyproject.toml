@@ -56,13 +56,13 @@ cuda12       = ["jax[cuda12]>=0.5.3"]
 cuda12_local = ["jax[cuda12_local]>=0.5.3"]
 k8s          = ["jax[k8s]>=0.5.3"]
 # extra extras
-all = ["unxt[backend-astropy,interop-mpl,workspace]"]
+all = ["unxt[backend-astropy,workspace]"]
 backend-astropy = ["astropy>=6.0"]
 interop-gala = ["unxts.interop.gala"]
-interop-mpl = ["matplotlib>=3.8"]
+interop-mpl = ["unxts.interop.matplotlib"]
 interop-xarray = ["unxts.interop.xarray"]
 workspace = [
-  "unxt[interop-gala,interop-xarray]",
+  "unxt[interop-gala,interop-mpl,interop-xarray]",
   "unxts.api",
   "unxts.hypothesis",
 ]
@@ -137,6 +137,7 @@ workspace = [
   "unxts.api",
   "unxts.hypothesis",
   "unxts.interop.gala",
+  "unxts.interop.matplotlib",
   "unxts.interop.xarray",
 ]
 
@@ -326,6 +327,8 @@ namespace-packages = [
   "packages/unxts.hypothesis/src/unxts",
   "packages/unxts.interop.gala/src/unxts",
   "packages/unxts.interop.gala/src/unxts/interop",
+  "packages/unxts.interop.matplotlib/src/unxts",
+  "packages/unxts.interop.matplotlib/src/unxts/interop",
   "packages/unxts.interop.xarray/src/unxts",
   "packages/unxts.interop.xarray/src/unxts/interop",
 ]
@@ -404,12 +407,13 @@ conflicts = [
 ]
 
 [tool.uv.sources]
-unxt-api               = { workspace = true }
-unxt-hypothesis        = { workspace = true }
-"unxts.api"            = { workspace = true }
-"unxts.hypothesis"     = { workspace = true }
-"unxts.interop.gala"   = { workspace = true }
-"unxts.interop.xarray" = { workspace = true }
+unxt-api                   = { workspace = true }
+unxt-hypothesis            = { workspace = true }
+"unxts.api"                = { workspace = true }
+"unxts.hypothesis"         = { workspace = true }
+"unxts.interop.gala"       = { workspace = true }
+"unxts.interop.matplotlib" = { workspace = true }
+"unxts.interop.xarray"     = { workspace = true }
 
 [tool.uv.workspace]
 members = ["packages/*"]
