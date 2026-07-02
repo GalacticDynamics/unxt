@@ -5,7 +5,6 @@ __all__ = ("derived_units", "units")
 from typing import Any
 
 import astropy.units as apyu
-
 from hypothesis import strategies as st
 
 import unxt as u

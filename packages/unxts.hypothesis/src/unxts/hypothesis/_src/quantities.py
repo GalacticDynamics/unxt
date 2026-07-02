@@ -6,7 +6,6 @@ from typing import Any, T, TypeAlias, TypeVar
 
 import jax.numpy as jnp
 import numpy as np
-
 from hypothesis import strategies as st
 from hypothesis.extra.array_api import make_strategies_namespace
 
