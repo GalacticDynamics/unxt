@@ -29,7 +29,6 @@ members = [
     "unxt",
     "unxt-api",
     "unxt-hypothesis",
-    "unxt-xarray",
     "unxts-api",
     "unxts-hypothesis",
     "unxts-xarray",
@@ -4296,7 +4295,6 @@ all = [
     { name = "matplotlib" },
     { name = "unxt-api" },
     { name = "unxt-hypothesis" },
-    { name = "unxt-xarray" },
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
     { name = "unxts-xarray" },
@@ -4328,7 +4326,6 @@ k8s = [
 workspace = [
     { name = "unxt-api" },
     { name = "unxt-hypothesis" },
-    { name = "unxt-xarray" },
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
     { name = "unxts-xarray" },
@@ -4381,7 +4378,6 @@ dev = [
     { name = "sybil", extra = ["pytest"] },
     { name = "unxt-api" },
     { name = "unxt-hypothesis" },
-    { name = "unxt-xarray" },
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
     { name = "unxts-xarray" },
@@ -4452,7 +4448,6 @@ test-mpl = [
 workspace = [
     { name = "unxt-api" },
     { name = "unxt-hypothesis" },
-    { name = "unxt-xarray" },
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
     { name = "unxts-xarray" },
@@ -4491,8 +4486,6 @@ requires-dist = [
     { name = "unxt-api", marker = "extra == 'workspace'", editable = "packages/unxt-api" },
     { name = "unxt-hypothesis", marker = "extra == 'all'", editable = "packages/unxt-hypothesis" },
     { name = "unxt-hypothesis", marker = "extra == 'workspace'", editable = "packages/unxt-hypothesis" },
-    { name = "unxt-xarray", marker = "extra == 'all'", editable = "packages/unxt-xarray" },
-    { name = "unxt-xarray", marker = "extra == 'workspace'", editable = "packages/unxt-xarray" },
     { name = "unxts-api", marker = "extra == 'all'", editable = "packages/unxts.api" },
     { name = "unxts-api", marker = "extra == 'workspace'", editable = "packages/unxts.api" },
     { name = "unxts-hypothesis", marker = "extra == 'all'", editable = "packages/unxts.hypothesis" },
@@ -4548,7 +4541,6 @@ dev = [
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
     { name = "unxt-api", editable = "packages/unxt-api" },
     { name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" },
-    { name = "unxt-xarray", editable = "packages/unxt-xarray" },
     { name = "unxts-api", editable = "packages/unxts.api" },
     { name = "unxts-hypothesis", editable = "packages/unxts.hypothesis" },
     { name = "unxts-xarray", editable = "packages/unxts.xarray" },
@@ -4615,7 +4607,6 @@ test-mpl = [
 workspace = [
     { name = "unxt-api", editable = "packages/unxt-api" },
     { name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" },
-    { name = "unxt-xarray", editable = "packages/unxt-xarray" },
     { name = "unxts-api", editable = "packages/unxts.api" },
     { name = "unxts-hypothesis", editable = "packages/unxts.hypothesis" },
     { name = "unxts-xarray", editable = "packages/unxts.xarray" },
@@ -4683,20 +4674,6 @@ test = [
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
-]
-
-[[package]]
-name = "unxt-xarray"
-source = { editable = "packages/unxt-xarray" }
-dependencies = [
-    { name = "unxt" },
-    { name = "xarray" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "unxt", editable = "." },
-    { name = "xarray", specifier = ">=2024.1.0" },
 ]
 
 [[package]]

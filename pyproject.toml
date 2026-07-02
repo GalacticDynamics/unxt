@@ -63,7 +63,6 @@ interop-mpl = ["matplotlib>=3.8"]
 workspace = [
   "unxt-api",
   "unxt-hypothesis",
-  "unxt-xarray",
   "unxts.api",
   "unxts.hypothesis",
   "unxts.xarray",
@@ -136,7 +135,6 @@ test-mpl = ["pytest-mpl>=0.17.0", "matplotlib>=3.8"]
 workspace = [
   "unxt-api",
   "unxt-hypothesis",
-  "unxt-xarray",
   "unxts.api",
   "unxts.hypothesis",
   "unxts.xarray",
@@ -311,8 +309,6 @@ testpaths = [
   "packages/unxt-api/tests/",
   # unxt-hypothesis
   "packages/unxt-hypothesis/",
-  # unxt-xarray
-  "packages/unxt-xarray/",
 ]
 xfail_strict = true
 
@@ -408,7 +404,6 @@ conflicts = [
 [tool.uv.sources]
 unxt-api           = { workspace = true }
 unxt-hypothesis    = { workspace = true }
-unxt-xarray        = { workspace = true }
 "unxts.api"        = { workspace = true }
 "unxts.hypothesis" = { workspace = true }
 "unxts.xarray"     = { workspace = true }
