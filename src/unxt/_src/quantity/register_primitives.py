@@ -4606,13 +4606,12 @@ def select_n_p_jaq(
 
 
 @quax.register(lax.select_n_p)
-def select_n_p_jsq(
-    which: ArrayLike, case0: StaticQuantity, /, *cases: ABCQ
-) -> ParametricQuantity:
+def select_n_p_jsq(which: ArrayLike, case0: StaticQuantity, /, *cases: ABCQ) -> Q:
     """Select from StaticQuantity and quantities using a non-quantity selector.
 
     StaticQuantity operations that go through JAX's select_n produce JAX arrays,
-    so we return a ParametricQuantity instead of trying to put a JAX array into a StaticQuantity.
+    so we return the (lightweight) default ``Quantity`` instead of trying to
+    put a JAX array into a StaticQuantity.
 
     Examples
     --------
@@ -4622,7 +4621,7 @@ def select_n_p_jsq(
     >>> sq1 = u.StaticQuantity(10, "s")
     >>> sq2 = u.StaticQuantity(3, "s")
     >>> sq1 // sq2
-    ParametricQuantity(Array(3, dtype=int32), unit='')
+    Quantity(Array(3, dtype=int32), unit='')
 
     """
     u = unit_of(case0)

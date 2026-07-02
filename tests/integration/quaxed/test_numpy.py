@@ -976,9 +976,13 @@ def test_positive():
 
 
 def test_pow_quantity_power():
-    """Test `pow`."""
+    """Test `pow` with a Quantity exponent.
+
+    A Quantity exponent must be a *parametric* dimensionless quantity
+    (``u.PQ``): that is the signature the ``pow`` primitive registers.
+    """
     x = u.Q(jnp.asarray([1, 2, 3], dtype=float), "m")
-    y = u.Q(jnp.asarray(4, dtype=float), "")
+    y = u.PQ(jnp.asarray(4, dtype=float), "")
     got = jnp.pow(x, y)
     exp = u.Q(jnp.pow(x.value, y.value), "m4")
 
@@ -1387,13 +1391,17 @@ def test_stack_dimensionless_with_array():
 
 
 def test_stack_array_with_dimensionless():
-    """Test `stack` with arrays and dimensionless quantities."""
+    """Test `stack` with arrays and dimensionless quantities.
+
+    Stacking a leading raw array with a dimensionless quantity promotes the
+    result to a ``ParametricQuantity`` (``u.PQ``); see ``stack_p_v``.
+    """
     x = jnp.asarray([1, 2, 3], dtype=float)
     y = u.Q(jnp.asarray([4, 5, 6], dtype=float), "")
     got = jnp.stack((x, y))
     exp = u.Q(jnp.stack((x, y.value)), "")
 
-    assert isinstance(got, u.Q)
+    assert isinstance(got, u.PQ)
     assert str(got.unit) == ""
     assert jnp.array_equal(got.value, exp.value)
 

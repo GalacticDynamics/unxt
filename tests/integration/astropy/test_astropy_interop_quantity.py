@@ -91,16 +91,16 @@ class TestUconvertValueMixedAstropyAndUnxtUnits:
 
 
 class TestUconvertValueWithAstropyQuantity:
-    """Test uconvert_value convenience dispatch with Astropy ParametricQuantity objects."""
+    """Test uconvert_value convenience dispatch with Astropy Quantity objects."""
 
     def test_uconvert_value_apy_quantity_raw_value(self) -> None:
-        """Test uconvert_value with raw Astropy ParametricQuantity value."""
+        """Test uconvert_value with raw Astropy Quantity value."""
         # Validate conversion using string units with a raw magnitude
         result = u.uconvert_value("km", "m", 5000)
         assert jnp.isclose(result, 5.0)
 
     def test_uconvert_value_unxt_quantity_convenience(self) -> None:
-        """Test convenience dispatch with unxt ParametricQuantity objects."""
+        """Test convenience dispatch with unxt Quantity objects."""
         q = u.Q(5000, "m")
         result = u.uconvert_value("km", "m", q)
 
@@ -114,7 +114,7 @@ class TestUconvertValueWithAstropyQuantity:
         assert jnp.isclose(result, 1.0)
 
     def test_uconvert_value_unxt_quantity_with_array_values(self) -> None:
-        """Test convenience dispatch with array unxt ParametricQuantity."""
+        """Test convenience dispatch with array unxt Quantity."""
         q = u.Q([1000, 2000, 5000], "m")
         result = u.uconvert_value("km", "m", q)
 
@@ -128,7 +128,7 @@ class TestUconvertValueAstropyInteropRelationships:
 
     def test_uconvert_value_vs_apy_quantity_to(self) -> None:
         """Test that uconvert_value matches Astropy's .to() method."""
-        apy_q = apyu.ParametricQuantity(5000, "m")
+        apy_q = apyu.Quantity(5000, "m")
         apy_converted = apy_q.to("km")
 
         # Using uconvert_value with raw value
@@ -138,10 +138,10 @@ class TestUconvertValueAstropyInteropRelationships:
         assert np.isclose(uconvert_result, apy_converted.value)
 
     def test_uconvert_value_vs_uconvert_unxt_quantity(self) -> None:
-        """Test consistency between uconvert_value and uconvert for unxt ParametricQuantity."""
+        """Test consistency between uconvert_value and uconvert for unxt Quantity."""
         q = u.Q(1000, "m")
 
-        # Using uconvert on ParametricQuantity
+        # Using uconvert on Quantity
         uconvert_result = u.uconvert("km", q)
 
         # Using uconvert_value on raw value
@@ -226,8 +226,8 @@ class TestUconvertValueAstropyErrorHandling:
             u.uconvert_value(apyu.Unit("s"), apyu.Unit("m"), 1)
 
     def test_uconvert_value_apy_quantity_incompatible_units(self) -> None:
-        """Test incompatible conversion with Astropy ParametricQuantity convenience dispatch."""
-        apy_q = apyu.ParametricQuantity(1, "m")  # Length quantity
+        """Test incompatible conversion with Astropy Quantity convenience dispatch."""
+        apy_q = apyu.Quantity(1, "m")  # Length quantity
         # Try to convert to incompatible unit (time)
         with pytest.raises(apyu.UnitConversionError, match="not convertible"):
             u.uconvert_value("s", "m", apy_q)

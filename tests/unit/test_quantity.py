@@ -90,24 +90,28 @@ def test_properties(value):
 
 
 def test_parametric():
-    """Test the parametric strategy."""
+    """Test the parametric strategy (``ParametricQuantity`` / ``u.PQ``)."""
     # Inferred
-    q = u.Q(1, "m")
+    q = u.PQ(1, "m")
     (dims,) = q._type_parameter
     assert dims == u.dimension("length")
 
     # Explicit
-    q = u.Q["length"](1, "m")
+    q = u.PQ["length"](1, "m")
     (dims,) = q._type_parameter
     assert dims == u.dimension("length")
 
-    q = u.Q["length"](jnp.ones((1, 2)), "m")
+    q = u.PQ["length"](jnp.ones((1, 2)), "m")
     (dims,) = q._type_parameter
     assert dims == u.dimension("length")
 
     # type-checks
     with pytest.raises(ValueError, match=re.escape("Physical type mismatch.")):
-        u.Q["time"](1, "m")
+        u.PQ["time"](1, "m")
+
+    # The lightweight default ``Quantity`` does NOT dimension-check: the
+    # subscript is accepted but the unit-dimension mismatch does not raise.
+    u.Q["time"](1, "m")
 
 
 @pytest.mark.parametrize("unit", [apyu.m, "meter"])
@@ -554,14 +558,16 @@ def test_pow():
 
 def test_rpow():
     """Test the ``ParametricQuantity.__rpow__`` method."""
-    # Scalar base with dimensionless ParametricQuantity exponent
-    q = u.Q(2.0, "")  # dimensionless
+    # Scalar base with dimensionless ParametricQuantity exponent.
+    # ``pow`` with an array/scalar base only has a registered rule for a
+    # *parametric* dimensionless exponent (``pow_p_vq``), so use ``u.PQ``.
+    q = u.PQ(2.0, "")  # dimensionless
     result = 3.0**q
     assert jnp.isclose(result.value, 9.0)
     assert result.unit == u.unit("")
 
     # Exponent must be dimensionless
-    q = u.Q(2.0, "m")
+    q = u.PQ(2.0, "m")
     with pytest.raises(Exception):  # noqa: B017, PT011
         _ = 3.0**q
 
@@ -837,7 +843,10 @@ def test_mod():
     """Test taking the modulus."""
     q = u.Q(480.0, "deg")
 
-    with pytest.raises(RuntimeError):
+    # Modulo by a bare scalar treats it as dimensionless; ``deg`` is not
+    # convertible to dimensionless, so this raises a unit-conversion error
+    # (consistent with the dimension-mismatch case below).
+    with pytest.raises(apyu.UnitConversionError):
         _ = q % 2
 
     with pytest.raises(apyu.UnitConversionError):
@@ -940,8 +949,8 @@ def test_parametric_pickle_dumps_with_kw_fields():
 
 
 def test_from_astropy():
-    """Test the ``ParametricQuantity.from_(AstropyQuantity)`` method."""
-    apyq = apyu.ParametricQuantity(1, "m")
+    """Test the ``Quantity.from_(AstropyQuantity)`` method."""
+    apyq = apyu.Quantity(1, "m")
     q = u.Q.from_(apyq)
     assert isinstance(q, u.Q)
     assert np.equal(q.value, apyq.value)
@@ -949,11 +958,11 @@ def test_from_astropy():
 
 
 def test_convert_to_astropy():
-    """Test the ``convert(ParametricQuantity, AstropyQuantity)`` method."""
+    """Test the ``convert(Quantity, AstropyQuantity)`` method."""
     q = u.Q(1, "m")
-    apyq = convert(q, apyu.ParametricQuantity)
-    assert isinstance(apyq, apyu.ParametricQuantity)
-    assert apyq == apyu.ParametricQuantity(1, "m")
+    apyq = convert(q, apyu.Quantity)
+    assert isinstance(apyq, apyu.Quantity)
+    assert apyq == apyu.Quantity(1, "m")
 
 
 ##############################################################################
