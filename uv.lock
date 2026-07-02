@@ -31,6 +31,7 @@ members = [
     "unxt-hypothesis",
     "unxts-api",
     "unxts-hypothesis",
+    "unxts-interop-gala",
     "unxts-interop-xarray",
 ]
 constraints = [{ name = "matplotlib", marker = "python_full_version >= '3.14'", specifier = ">=3.10.8" }]
@@ -4291,10 +4292,10 @@ dependencies = [
 [package.optional-dependencies]
 all = [
     { name = "astropy" },
-    { name = "gala" },
     { name = "matplotlib" },
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
+    { name = "unxts-interop-gala" },
     { name = "unxts-interop-xarray" },
 ]
 backend-astropy = [
@@ -4313,7 +4314,7 @@ cuda12-local = [
     { name = "jax", extra = ["cuda12-local"], marker = "extra == 'extra-4-unxt-cuda12-local' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cpu' and extra != 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cpu' and extra != 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra != 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-k8s') or (extra == 'extra-4-unxt-cuda' and extra != 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm')" },
 ]
 interop-gala = [
-    { name = "gala" },
+    { name = "unxts-interop-gala" },
 ]
 interop-mpl = [
     { name = "matplotlib" },
@@ -4327,6 +4328,7 @@ k8s = [
 workspace = [
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
+    { name = "unxts-interop-gala" },
     { name = "unxts-interop-xarray" },
 ]
 
@@ -4379,6 +4381,7 @@ dev = [
     { name = "unxt-hypothesis" },
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
+    { name = "unxts-interop-gala" },
     { name = "unxts-interop-xarray" },
 ]
 docs = [
@@ -4449,6 +4452,7 @@ workspace = [
     { name = "unxt-hypothesis" },
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
+    { name = "unxts-interop-gala" },
     { name = "unxts-interop-xarray" },
 ]
 
@@ -4459,8 +4463,6 @@ requires-dist = [
     { name = "astropy", marker = "extra == 'backend-astropy'", specifier = ">=6.0" },
     { name = "dataclassish", specifier = ">=0.8.0" },
     { name = "equinox", specifier = ">=0.13.7" },
-    { name = "gala", marker = "extra == 'all'", specifier = ">=1.8" },
-    { name = "gala", marker = "extra == 'interop-gala'", specifier = ">=1.8" },
     { name = "is-annotated", specifier = ">=1.0" },
     { name = "jax", specifier = ">=0.5.3" },
     { name = "jax", extras = ["cpu"], marker = "extra == 'cpu'", specifier = ">=0.5.3" },
@@ -4485,6 +4487,9 @@ requires-dist = [
     { name = "unxts-api", marker = "extra == 'workspace'", editable = "packages/unxts.api" },
     { name = "unxts-hypothesis", marker = "extra == 'all'", editable = "packages/unxts.hypothesis" },
     { name = "unxts-hypothesis", marker = "extra == 'workspace'", editable = "packages/unxts.hypothesis" },
+    { name = "unxts-interop-gala", marker = "extra == 'all'", editable = "packages/unxts.interop.gala" },
+    { name = "unxts-interop-gala", marker = "extra == 'interop-gala'", editable = "packages/unxts.interop.gala" },
+    { name = "unxts-interop-gala", marker = "extra == 'workspace'", editable = "packages/unxts.interop.gala" },
     { name = "unxts-interop-xarray", marker = "extra == 'all'", editable = "packages/unxts.interop.xarray" },
     { name = "unxts-interop-xarray", marker = "extra == 'interop-xarray'", editable = "packages/unxts.interop.xarray" },
     { name = "unxts-interop-xarray", marker = "extra == 'workspace'", editable = "packages/unxts.interop.xarray" },
@@ -4539,6 +4544,7 @@ dev = [
     { name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" },
     { name = "unxts-api", editable = "packages/unxts.api" },
     { name = "unxts-hypothesis", editable = "packages/unxts.hypothesis" },
+    { name = "unxts-interop-gala", editable = "packages/unxts.interop.gala" },
     { name = "unxts-interop-xarray", editable = "packages/unxts.interop.xarray" },
 ]
 docs = [
@@ -4605,6 +4611,7 @@ workspace = [
     { name = "unxt-hypothesis", editable = "packages/unxt-hypothesis" },
     { name = "unxts-api", editable = "packages/unxts.api" },
     { name = "unxts-hypothesis", editable = "packages/unxts.hypothesis" },
+    { name = "unxts-interop-gala", editable = "packages/unxts.interop.gala" },
     { name = "unxts-interop-xarray", editable = "packages/unxts.interop.xarray" },
 ]
 
@@ -4734,6 +4741,42 @@ requires-dist = [
 [package.metadata.requires-dev]
 test = [
     { name = "hypothesis", extras = ["numpy"], specifier = ">=6.138.14" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-arraydiff", specifier = ">=0.6.1" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
+    { name = "pytest-env", specifier = ">=1.1.5" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
+]
+
+[[package]]
+name = "unxts-interop-gala"
+source = { editable = "packages/unxts.interop.gala" }
+dependencies = [
+    { name = "astropy" },
+    { name = "gala" },
+    { name = "unxt" },
+]
+
+[package.dev-dependencies]
+test = [
+    { name = "pytest" },
+    { name = "pytest-arraydiff" },
+    { name = "pytest-cov" },
+    { name = "pytest-env" },
+    { name = "pytest-github-actions-annotate-failures" },
+    { name = "sybil", extra = ["pytest"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "astropy", specifier = ">=6.0" },
+    { name = "gala", specifier = ">=1.8" },
+    { name = "unxt", editable = "." },
+]
+
+[package.metadata.requires-dev]
+test = [
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-arraydiff", specifier = ">=0.6.1" },
     { name = "pytest-cov", specifier = ">=6.2.1" },

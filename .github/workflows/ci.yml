@@ -238,6 +238,45 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  # unxts-interop-gala package tests
+  tests-unxts-interop-gala:
+    name:
+      unxts-interop-gala Python ${{ matrix.python-version }} on ${{
+      matrix.runs-on }}
+    runs-on: ${{ matrix.runs-on }}
+    needs: [setup, format]
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, '🧩 unxts-interop-gala') ||
+      startsWith(github.head_ref, 'unxts-interop-gala/')
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
+        runs-on: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          uv sync --no-default-groups --group test --locked --package unxts-interop-gala
+
+      - name: Test package
+        run: |
+          uv run --frozen --package unxts-interop-gala pytest packages/unxts.interop.gala/tests --cov=packages/unxts.interop.gala/src --cov-report=xml --cov-report=term
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   # unxts-interop-xarray package tests
   tests-unxts-interop-xarray:
     name:
@@ -387,6 +426,7 @@ jobs:
         tests-unxt-hypothesis,
         tests-unxts-api,
         tests-unxts-hypothesis,
+        tests-unxts-interop-gala,
         tests-unxts-interop-xarray,
         test-oldest,
         test-newest,
@@ -404,4 +444,5 @@ jobs:
           # skip instead of treating it as a failure.
           allowed-skips:
             tests-unxt-api, tests-unxt-hypothesis, tests-unxts-api,
-            tests-unxts-hypothesis, tests-unxts-interop-xarray
+            tests-unxts-hypothesis, tests-unxts-interop-gala,
+            tests-unxts-interop-xarray

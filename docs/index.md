@@ -14,6 +14,7 @@ unxt <self>
 unxt-hypothesis <packages/unxt-hypothesis/index>
 unxts.api <packages/unxts.api/index>
 unxts.hypothesis <packages/unxts.hypothesis/index>
+unxts.interop.gala <packages/unxts.interop.gala/index>
 unxts.interop.xarray <packages/unxts.interop.xarray/index>
 ```
 

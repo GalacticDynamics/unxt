@@ -69,15 +69,14 @@ class OptDeps(OptionalDependencyEnum):
     """Optional dependencies for ``unxt``."""
 
     ASTROPY = auto()
-    GALA = auto()
     MATPLOTLIB = auto()
+    UNXTS_INTEROP_GALA = auto()
 
 
 collect_ignore_glob = []
 if not OptDeps.ASTROPY.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_astropy/*")
-if not OptDeps.GALA.installed:
-    collect_ignore_glob.append("src/unxt/_interop/unxt_interop_gala/*")
+if not OptDeps.UNXTS_INTEROP_GALA.installed:
     collect_ignore_glob.append("docs/interop/gala.md")
 if not OptDeps.MATPLOTLIB.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_mpl/*")

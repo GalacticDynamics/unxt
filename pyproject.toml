@@ -36,7 +36,7 @@ dependencies = [
   "quax-blocks>=0.4.1",
   "quaxed>=0.10.5",
   "traitlets>=5.0.0",
-  "unxt-api>=1.10.0",
+  "unxt-api>=1.10.0",                             # change to "unxts.api>=2.0.0" after release
   "wadler-lindig>=0.1.5",
   "xmmutablemap>=0.1",
   "zeroth>=1.0.0",
@@ -56,12 +56,16 @@ cuda12       = ["jax[cuda12]>=0.5.3"]
 cuda12_local = ["jax[cuda12_local]>=0.5.3"]
 k8s          = ["jax[k8s]>=0.5.3"]
 # extra extras
-all             = ["unxt[backend-astropy,interop-gala,interop-mpl,workspace]"]
+all = ["unxt[backend-astropy,interop-mpl,workspace]"]
 backend-astropy = ["astropy>=6.0"]
-interop-gala    = ["gala>=1.8"]
-interop-mpl     = ["matplotlib>=3.8"]
-interop-xarray  = ["unxts.interop.xarray"]
-workspace       = ["unxt[interop-xarray]", "unxts.api", "unxts.hypothesis"]
+interop-gala = ["unxts.interop.gala"]
+interop-mpl = ["matplotlib>=3.8"]
+interop-xarray = ["unxts.interop.xarray"]
+workspace = [
+  "unxt[interop-gala,interop-xarray]",
+  "unxts.api",
+  "unxts.hypothesis",
+]
 
 [project.urls]
 "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"
@@ -132,6 +136,7 @@ workspace = [
   "unxt-hypothesis",
   "unxts.api",
   "unxts.hypothesis",
+  "unxts.interop.gala",
   "unxts.interop.xarray",
 ]
 
@@ -319,6 +324,8 @@ ignore = ["PC140", "PC901", "PC902", "PC903"]
 namespace-packages = [
   "packages/unxts.api/src/unxts",
   "packages/unxts.hypothesis/src/unxts",
+  "packages/unxts.interop.gala/src/unxts",
+  "packages/unxts.interop.gala/src/unxts/interop",
   "packages/unxts.interop.xarray/src/unxts",
   "packages/unxts.interop.xarray/src/unxts/interop",
 ]
@@ -401,6 +408,7 @@ unxt-api               = { workspace = true }
 unxt-hypothesis        = { workspace = true }
 "unxts.api"            = { workspace = true }
 "unxts.hypothesis"     = { workspace = true }
+"unxts.interop.gala"   = { workspace = true }
 "unxts.interop.xarray" = { workspace = true }
 
 [tool.uv.workspace]

@@ -9,8 +9,8 @@ from .optional_deps import OptDeps
 if OptDeps.ASTROPY.installed:
     from . import unxt_interop_astropy
 
-if OptDeps.GALA.installed:
-    from . import unxt_interop_gala
+if OptDeps.UNXTS_INTEROP_GALA.installed:
+    import unxts.interop.gala  # registers gala <-> unxt unitsystem conversions
 
 if OptDeps.MATPLOTLIB.installed:
     from . import unxt_interop_mpl as interop_mpl

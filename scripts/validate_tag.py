@@ -155,7 +155,8 @@ def main() -> int:
         logger.error("  TAG: The git tag to validate")
         logger.error(
             "  PACKAGE: Package name ('unxt', 'unxt-api', 'unxt-hypothesis', "
-            "'unxts-api', 'unxts-hypothesis', 'unxts-interop-xarray')"
+            "'unxts-api', 'unxts-hypothesis', 'unxts-interop-gala', "
+            "'unxts-interop-xarray')"
         )
         sys.exit(1)
 

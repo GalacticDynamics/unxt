@@ -57,6 +57,7 @@ jobs:
             echo "  - unxt-hypothesis-v${VERSION}"
             echo "  - unxts-api-v${VERSION}"
             echo "  - unxts-hypothesis-v${VERSION}"
+            echo "  - unxts-interop-gala-v${VERSION}"
             echo "  - unxts-interop-xarray-v${VERSION}"
             exit 1
           fi
@@ -82,13 +83,14 @@ jobs:
           echo "Coordinator tag $TAG points to commit: $COORDINATOR_SHA"
 
           # Define package tags to create
-          PACKAGES=("unxt" "unxt-api" "unxt-hypothesis" "unxts-api" "unxts-hypothesis" "unxts-interop-xarray")
+          PACKAGES=("unxt" "unxt-api" "unxt-hypothesis" "unxts-api" "unxts-hypothesis" "unxts-interop-gala" "unxts-interop-xarray")
           TAGS_TO_PUSH=()
 
           UNXT_API_TAG_CREATED="false"
           UNXT_HYPOTHESIS_TAG_CREATED="false"
           UNXTS_API_TAG_CREATED="false"
           UNXTS_HYPOTHESIS_TAG_CREATED="false"
+          UNXTS_INTEROP_GALA_TAG_CREATED="false"
           UNXTS_INTEROP_XARRAY_TAG_CREATED="false"
 
           # Check and create each package tag
@@ -135,6 +137,9 @@ jobs:
               if [ "$PACKAGE" = "unxts-hypothesis" ]; then
                 UNXTS_HYPOTHESIS_TAG_CREATED="true"
               fi
+              if [ "$PACKAGE" = "unxts-interop-gala" ]; then
+                UNXTS_INTEROP_GALA_TAG_CREATED="true"
+              fi
               if [ "$PACKAGE" = "unxts-interop-xarray" ]; then
                 UNXTS_INTEROP_XARRAY_TAG_CREATED="true"
               fi
@@ -160,6 +165,9 @@ jobs:
             echo "trigger_unxts_hypothesis_cd=false" >> "$GITHUB_OUTPUT"
             echo "unxts_hypothesis_tag=unxts-hypothesis-v${VERSION}" >> "$GITHUB_OUTPUT"
             echo "unxts_hypothesis_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
+            echo "trigger_unxts_interop_gala_cd=false" >> "$GITHUB_OUTPUT"
+            echo "unxts_interop_gala_tag=unxts-interop-gala-v${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "unxts_interop_gala_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
             echo "trigger_unxts_interop_xarray_cd=false" >> "$GITHUB_OUTPUT"
             echo "unxts_interop_xarray_tag=unxts-interop-xarray-v${VERSION}" >> "$GITHUB_OUTPUT"
             echo "unxts_interop_xarray_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
@@ -185,6 +193,9 @@ jobs:
           echo "trigger_unxts_hypothesis_cd=${UNXTS_HYPOTHESIS_TAG_CREATED}" >> "$GITHUB_OUTPUT"
           echo "unxts_hypothesis_tag=unxts-hypothesis-v${VERSION}" >> "$GITHUB_OUTPUT"
           echo "unxts_hypothesis_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
+          echo "trigger_unxts_interop_gala_cd=${UNXTS_INTEROP_GALA_TAG_CREATED}" >> "$GITHUB_OUTPUT"
+          echo "unxts_interop_gala_tag=unxts-interop-gala-v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "unxts_interop_gala_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
           echo "trigger_unxts_interop_xarray_cd=${UNXTS_INTEROP_XARRAY_TAG_CREATED}" >> "$GITHUB_OUTPUT"
           echo "unxts_interop_xarray_tag=unxts-interop-xarray-v${VERSION}" >> "$GITHUB_OUTPUT"
           echo "unxts_interop_xarray_tag_sha=${COORDINATOR_SHA}" >> "$GITHUB_OUTPUT"
@@ -255,6 +266,20 @@ jobs:
           tag_sha: ${{ steps.create_tags.outputs.unxts_hypothesis_tag_sha }}
           trigger_cd:
             ${{ steps.create_tags.outputs.trigger_unxts_hypothesis_cd }}
+
+      - name: Trigger CD - unxts-interop-gala
+        if: |
+          steps.create_tags.outputs.trigger_unxts_interop_gala_cd == 'true' ||
+          (steps.create_tags.outputs.unxts_interop_gala_tag != '' &&
+          steps.create_tags.outputs.trigger_unxts_interop_gala_cd == 'false')
+        uses: ./.github/actions/dispatch-package-cd
+        with:
+          workflow_id: cd-unxts-interop-gala.yml
+          workflow_name: CD - unxts-interop-gala
+          tag_ref: ${{ steps.create_tags.outputs.unxts_interop_gala_tag }}
+          tag_sha: ${{ steps.create_tags.outputs.unxts_interop_gala_tag_sha }}
+          trigger_cd:
+            ${{ steps.create_tags.outputs.trigger_unxts_interop_gala_cd }}
 
       - name: Trigger CD - unxts-interop-xarray
         if: |
