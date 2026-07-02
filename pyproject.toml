@@ -265,7 +265,11 @@ addopts = [
   "--showlocals",
   "--strict-config",
   "--strict-markers",
-  "-p no:doctest",    # using sybil
+  # importlib import mode: the monorepo has same-named test files across
+  # packages (e.g. test_public_api.py) with no __init__.py, and namespace
+  # packages whose leaf dir shadows a real library under prepend mode.
+  "--import-mode=importlib",
+  "-p no:doctest",           # using sybil
   "-ra",
 ]
 filterwarnings = [
