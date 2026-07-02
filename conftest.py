@@ -69,6 +69,7 @@ class OptDeps(OptionalDependencyEnum):
     """Optional dependencies for ``unxt``."""
 
     ASTROPY = auto()
+    GALA = auto()
     UNXTS_INTEROP_GALA = auto()
     UNXTS_INTEROP_MATPLOTLIB = auto()
 
@@ -76,7 +77,9 @@ class OptDeps(OptionalDependencyEnum):
 collect_ignore_glob = []
 if not OptDeps.ASTROPY.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_astropy/*")
-if not OptDeps.UNXTS_INTEROP_GALA.installed:
+# gala is skipped where it cannot build (Windows), even though the
+# unxts.interop.gala package itself is installed; gate on gala being importable.
+if not (OptDeps.UNXTS_INTEROP_GALA.installed and OptDeps.GALA.installed):
     collect_ignore_glob.append("packages/unxts.interop.gala/docs/*")
 if not OptDeps.UNXTS_INTEROP_MATPLOTLIB.installed:
     collect_ignore_glob.append("packages/unxts.interop.matplotlib/docs/*")

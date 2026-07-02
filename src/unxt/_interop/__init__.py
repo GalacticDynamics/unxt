@@ -9,7 +9,9 @@ from .optional_deps import OptDeps
 if OptDeps.ASTROPY.installed:
     from . import unxt_interop_astropy
 
-if OptDeps.UNXTS_INTEROP_GALA.installed:
+# gala itself must also be importable: unxts.interop.gala is installed on every
+# platform, but its gala dependency is skipped where gala cannot build (Windows).
+if OptDeps.UNXTS_INTEROP_GALA.installed and OptDeps.GALA.installed:
     import unxts.interop.gala  # registers gala <-> unxt unitsystem conversions
 
 if OptDeps.UNXTS_INTEROP_MATPLOTLIB.installed:

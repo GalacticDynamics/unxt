@@ -9,6 +9,7 @@ class OptDeps(OptionalDependencyEnum):  # type: ignore[misc]  # pylint: disable=
     """Optional dependencies for ``unxt``."""
 
     ASTROPY = auto()
+    GALA = auto()
     UNXTS_INTEROP_GALA = auto()
     UNXTS_INTEROP_MATPLOTLIB = auto()
     UNXTS_INTEROP_XARRAY = auto()
