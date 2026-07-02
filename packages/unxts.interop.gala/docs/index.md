@@ -1,0 +1,73 @@
+# `unxts.interop.gala`
+
+```{toctree}
+:maxdepth: 1
+:hidden:
+```
+
+The [`gala`][gala-link] package provides tools for Galactic dynamics. It is built on top of the [`astropy`][astropy-link] package and adds an additional units tool, the [`gala.units.UnitSystem`][gala-UnitSystem] class that can be used to convert between different unit systems.
+
+`unxts.interop.gala` is the canonical location for `gala` integration, providing conversions between `gala.units.UnitSystem` and [`unxt.unitsystems.AbstractUnitSystem`][unxt-AbstractUnitSystem] objects. This conversion is automatically enabled if `unxts.interop.gala` is installed. It is compatible with most versions of `gala`, but to ensure that compatible versions of `gala` and `unxt` are installed, the following installation [extra](https://peps.python.org/pep-0508/#extras) is provided:
+
+::::{tab-set}
+
+:::{tab-item} uv
+
+```bash
+uv add "unxt[interop-gala]"
+```
+
+:::
+
+:::{tab-item} pip
+
+```bash
+pip install "unxt[interop-gala]"
+```
+
+::::
+
+The following example demonstrates how to convert a `gala` unit system to a `unxt` unit system:
+
+```{code-block} python
+
+>>> import unxt
+>>> import gala.units as gu
+
+>>> gu.galactic  # gala unit system
+<UnitSystem (kpc, Myr, solMass, rad)>
+
+>>> unxt.unitsystem(gu.galactic)  # unxt unit system
+unitsystem(kpc, Myr, solMass, rad)
+
+```
+
+Alternatively, the multiple-dispatch library on which `unxt` is built enables 2-way conversion.
+
+```{code-block} python
+>>> from plum import convert
+
+>>> usys = convert(gu.galactic, unxt.AbstractUnitSystem)
+>>> usys
+unitsystem(kpc, Myr, solMass, rad)
+
+>>> convert(usys, gu.UnitSystem)
+<UnitSystem (kpc, Myr, solMass, rad)>
+
+```
+
+## Public API
+
+`unxts.interop.gala` exposes two conversion functions:
+
+- `convert_gala_unitsystem_to_unxt_unitsystem`
+- `convert_unxt_unitsystem_to_gala_unitsystem`
+
+These are `plum.conversion_method`s, registered with `plum`'s dispatch table as a side effect of importing `unxts.interop.gala`. Prefer `plum.convert(usys, ...)` (as shown above) over calling either function directly.
+
+Install: `pip install unxts.interop.gala`
+
+[gala-link]: https://gala.adrian.pw/en/stable/
+[astropy-link]: https://www.astropy.org/
+[gala-UnitSystem]: https://gala.adrian.pw/en/stable/api/gala.units.UnitSystem.html
+[unxt-AbstractUnitSystem]: https://unxt.readthedocs.io/en/latest/api/unitsystems/#unxt.unitsystems.AbstractUnitSystem

@@ -162,6 +162,199 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  # unxts-api package tests
+  tests-unxts-api:
+    name: unxts-api Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
+    runs-on: ${{ matrix.runs-on }}
+    needs: [setup, format]
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, '🧩 unxts-api') ||
+      startsWith(github.head_ref, 'unxts-api/')
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
+        runs-on: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          uv sync --no-default-groups --group test --locked --package unxts-api
+
+      - name: Test package
+        run: |
+          uv run --frozen --package unxts-api pytest packages/unxts.api/tests --cov=packages/unxts.api/src --cov-report=xml --cov-report=term
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # unxts-hypothesis package tests
+  tests-unxts-hypothesis:
+    name:
+      unxts-hypothesis Python ${{ matrix.python-version }} on ${{ matrix.runs-on
+      }}
+    runs-on: ${{ matrix.runs-on }}
+    needs: [setup, format]
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, '🧩 unxts-hypothesis') ||
+      startsWith(github.head_ref, 'unxts-hypothesis/')
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
+        runs-on: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          uv sync --no-default-groups --group test --locked --package unxts-hypothesis
+
+      - name: Test package
+        run: |
+          uv run --frozen --package unxts-hypothesis pytest packages/unxts.hypothesis/tests --cov=packages/unxts.hypothesis/src --cov-report=xml --cov-report=term
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # unxts-interop-gala package tests
+  tests-unxts-interop-gala:
+    name:
+      unxts-interop-gala Python ${{ matrix.python-version }} on ${{
+      matrix.runs-on }}
+    runs-on: ${{ matrix.runs-on }}
+    needs: [setup, format]
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, '🧩 unxts-interop-gala') ||
+      startsWith(github.head_ref, 'unxts-interop-gala/')
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
+        runs-on: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          uv sync --no-default-groups --group test --locked --package unxts-interop-gala
+
+      - name: Test package
+        run: |
+          uv run --frozen --package unxts-interop-gala pytest packages/unxts.interop.gala/tests --cov=packages/unxts.interop.gala/src --cov-report=xml --cov-report=term
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # unxts-interop-matplotlib package tests
+  tests-unxts-interop-matplotlib:
+    name:
+      unxts-interop-matplotlib Python ${{ matrix.python-version }} on ${{
+      matrix.runs-on }}
+    runs-on: ${{ matrix.runs-on }}
+    needs: [setup, format]
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, '🧩 unxts-interop-matplotlib') ||
+      startsWith(github.head_ref, 'unxts-interop-matplotlib/')
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
+        runs-on: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          uv sync --no-default-groups --group test --locked --package unxts-interop-matplotlib
+
+      - name: Test package
+        run: |
+          uv run --frozen --package unxts-interop-matplotlib pytest packages/unxts.interop.matplotlib/tests --cov=packages/unxts.interop.matplotlib/src --cov-report=xml --cov-report=term
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # unxts-interop-xarray package tests
+  tests-unxts-interop-xarray:
+    name:
+      unxts-interop-xarray Python ${{ matrix.python-version }} on ${{
+      matrix.runs-on }}
+    runs-on: ${{ matrix.runs-on }}
+    needs: [setup, format]
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, '🧩 unxts-interop-xarray') ||
+      startsWith(github.head_ref, 'unxts-interop-xarray/')
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
+        runs-on: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          uv sync --no-default-groups --group test --locked --package unxts-interop-xarray
+
+      - name: Test package
+        run: |
+          uv run --frozen --package unxts-interop-xarray pytest packages/unxts.interop.xarray/tests --cov=packages/unxts.interop.xarray/src --cov-report=xml --cov-report=term
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   test-oldest:
     name: Check Oldest Dependencies
     runs-on: ${{ matrix.runs-on }}
@@ -270,6 +463,11 @@ jobs:
         tests-unxt,
         tests-unxt-api,
         tests-unxt-hypothesis,
+        tests-unxts-api,
+        tests-unxts-hypothesis,
+        tests-unxts-interop-gala,
+        tests-unxts-interop-matplotlib,
+        tests-unxts-interop-xarray,
         test-oldest,
         test-newest,
         test-interoperability,
@@ -284,4 +482,7 @@ jobs:
           # package label / `unxt-api|unxt-hypothesis/*` branches (see their
           # `if:`), so on a normal PR they are intentionally skipped. Allow the
           # skip instead of treating it as a failure.
-          allowed-skips: tests-unxt-api, tests-unxt-hypothesis
+          allowed-skips:
+            tests-unxt-api, tests-unxt-hypothesis, tests-unxts-api,
+            tests-unxts-hypothesis, tests-unxts-interop-gala,
+            tests-unxts-interop-matplotlib, tests-unxts-interop-xarray

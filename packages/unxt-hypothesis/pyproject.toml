@@ -19,7 +19,7 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
 ]
-dependencies = ["unxt", "hypothesis[numpy]>=6.138.14", "jax>=0.5.3"]
+dependencies = ["unxts.hypothesis>=2.0.0"]
 description = "Hypothesis strategies for unxt"
 dynamic = ["version"]
 license.text = "BSD-3-Clause"
@@ -75,4 +75,4 @@ version_tuple = {version_tuple!r}
 
 
 [tool.uv.sources]
-unxt = { workspace = true }
+"unxts.hypothesis" = { workspace = true }

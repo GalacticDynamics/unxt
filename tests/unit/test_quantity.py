@@ -11,6 +11,7 @@ import jax
 import jax.numpy as jax_xp
 import numpy as np
 import pytest
+import unxts.hypothesis as ust
 from hypothesis import example, given, settings, strategies as st
 from hypothesis.extra.array_api import make_strategies_namespace
 from hypothesis.extra.numpy import array_shapes as np_array_shapes, arrays as np_arrays
@@ -21,7 +22,6 @@ from plum import convert, parametric
 import quaxed.numpy as jnp
 
 import unxt as u
-import unxt_hypothesis as ust
 from unxt.quantity import AbstractParametricQuantity
 
 xps = make_strategies_namespace(jax_xp)

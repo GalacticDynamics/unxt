@@ -1,7 +1,26 @@
-"""Hypothesis strategies for unxt."""
+"""Backward-compatible shim for unxt_hypothesis.
+
+The canonical package is now ``unxts.hypothesis``
+(install: ``pip install unxts.hypothesis``).
+This package re-exports the complete public API and will be maintained long-term.
+No changes are required in code that imports ``unxt_hypothesis``.
+"""
+
+from unxts.hypothesis import (
+    DIMENSION_NAMES,
+    __version__,
+    angles,
+    derived_units,
+    named_dimensions,
+    quantities,
+    units,
+    unitsystems,
+    wrap_to,
+)
 
 __all__ = (
     "DIMENSION_NAMES",
+    "__version__",
     "derived_units",
     "units",
     "unitsystems",
@@ -10,8 +29,3 @@ __all__ = (
     "angles",
     "named_dimensions",
 )
-
-from unxt_hypothesis._src.dimensions import DIMENSION_NAMES, named_dimensions
-from unxt_hypothesis._src.quantities import angles, quantities, wrap_to
-from unxt_hypothesis._src.units import derived_units, units
-from unxt_hypothesis._src.unitsystems import unitsystems
