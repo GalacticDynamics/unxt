@@ -25,7 +25,7 @@ UNIT_ATTR: Final = "units"
 
 def _array_attach_units(
     data: Any, /, unit: u.AbstractUnit | str | None
-) -> u.ParametricQuantity | Any:
+) -> u.Quantity | Any:
     """Attach units to array data.
 
     Parameters
@@ -37,8 +37,8 @@ def _array_attach_units(
 
     Returns
     -------
-    ParametricQuantity | array-like
-        If unit is not None, returns a ParametricQuantity. Otherwise returns data unchanged.
+    Quantity | array-like
+        If unit is not None, returns a Quantity. Otherwise returns data unchanged.
 
     Examples
     --------

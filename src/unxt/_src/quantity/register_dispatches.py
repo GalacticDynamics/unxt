@@ -11,7 +11,6 @@ import plum
 from jaxtyping import ArrayLike
 
 from .base import AbstractQuantity
-from .parametric import ParametricQuantity
 from unxt_api import ustrip
 
 # -----------------------------------------------
@@ -98,7 +97,7 @@ def full(
 
     """
     fill_val = ustrip(fill_value.unit, fill_value)
-    return ParametricQuantity(
+    return plum.type_unparametrized(fill_value)(
         jax_xp.full(shape, fill_val, **kwargs), unit=fill_value.unit
     )
 
