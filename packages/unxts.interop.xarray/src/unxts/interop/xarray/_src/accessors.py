@@ -35,7 +35,7 @@ class UnxtDataArrayAccessor:
     --------
     >>> import xarray as xr
     >>> import unxt as u
-    >>> import unxt_xarray  # registers the accessor
+    >>> import unxts.interop.xarray  # registers the accessor
 
     >>> da = xr.DataArray([1.0, 2.0, 3.0], dims=["x"], attrs={"units": "m"})
     >>> q = da.unxt.quantify()
@@ -93,7 +93,7 @@ class UnxtDataArrayAccessor:
         Examples
         --------
         >>> import xarray as xr
-        >>> import unxt_xarray
+        >>> import unxts.interop.xarray
 
         Quantify using attribute:
 
@@ -180,7 +180,7 @@ class UnxtDataArrayAccessor:
         --------
         >>> import xarray as xr
         >>> import unxt as u
-        >>> import unxt_xarray
+        >>> import unxts.interop.xarray
 
         >>> q = u.Quantity([1.0, 2.0], "m")
         >>> da = xr.DataArray(q, dims=["x"])
@@ -228,7 +228,7 @@ class UnxtDatasetAccessor:
     Examples
     --------
     >>> import xarray as xr
-    >>> import unxt_xarray
+    >>> import unxts.interop.xarray
 
     >>> ds = xr.Dataset(
     ...     {
@@ -273,7 +273,7 @@ class UnxtDatasetAccessor:
         Examples
         --------
         >>> import xarray as xr
-        >>> import unxt_xarray
+        >>> import unxts.interop.xarray
 
         Quantify using attributes:
 
@@ -339,7 +339,7 @@ class UnxtDatasetAccessor:
         --------
         >>> import xarray as xr
         >>> import unxt as u
-        >>> import unxt_xarray
+        >>> import unxts.interop.xarray
 
         >>> q1 = u.Quantity([1.0, 2.0], "m")
         >>> q2 = u.Quantity([3.0, 4.0], "s")

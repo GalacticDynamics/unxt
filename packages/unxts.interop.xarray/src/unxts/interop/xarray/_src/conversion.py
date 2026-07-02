@@ -44,7 +44,7 @@ def _array_attach_units(
     --------
     >>> import jax.numpy as jnp
     >>> import unxt as u
-    >>> from unxt_xarray._src.conversion import _array_attach_units
+    >>> from unxts.interop.xarray._src.conversion import _array_attach_units
 
     >>> data = jnp.array([1.0, 2.0, 3.0])
     >>> q = _array_attach_units(data, "m")
@@ -76,7 +76,7 @@ def extract_unit_attributes(obj: DataArray, /) -> dict[Hashable, u.AbstractUnit 
     Examples
     --------
     >>> import xarray as xr
-    >>> from unxt_xarray._src.conversion import extract_unit_attributes
+    >>> from unxts.interop.xarray._src.conversion import extract_unit_attributes
 
     >>> da = xr.DataArray([1.0, 2.0], dims=["x"], attrs={"units": "m"})
     >>> extract_unit_attributes(da)
@@ -114,7 +114,7 @@ def extract_unit_attributes(obj: Dataset, /) -> dict[Hashable, u.AbstractUnit | 
     Examples
     --------
     >>> import xarray as xr
-    >>> from unxt_xarray._src.conversion import extract_unit_attributes
+    >>> from unxts.interop.xarray._src.conversion import extract_unit_attributes
 
     >>> ds = xr.Dataset({"a": ("x", [1, 2], {"units": "m"}), "b": ("y", [3, 4])})
     >>> extract_unit_attributes(ds)
@@ -157,7 +157,7 @@ def extract_units(obj: DataArray, /) -> dict[Hashable, u.AbstractUnit | None]:
     >>> import jax.numpy as jnp
     >>> import xarray as xr
     >>> import unxt as u
-    >>> from unxt_xarray._src.conversion import extract_units
+    >>> from unxts.interop.xarray._src.conversion import extract_units
 
     >>> q = u.Quantity([1.0, 2.0], "m")
     >>> da = xr.DataArray(q, dims=["x"])
@@ -233,7 +233,7 @@ def attach_units(
     Examples
     --------
     >>> import xarray as xr
-    >>> from unxt_xarray._src.conversion import attach_units
+    >>> from unxts.interop.xarray._src.conversion import attach_units
 
     >>> da = xr.DataArray([1.0, 2.0], dims=["x"])
     >>> quantified = attach_units(da, {None: "m"})
@@ -330,7 +330,7 @@ def strip_units(obj: DataArray) -> DataArray:
     --------
     >>> import xarray as xr
     >>> import unxt as u
-    >>> from unxt_xarray._src.conversion import strip_units
+    >>> from unxts.interop.xarray._src.conversion import strip_units
 
     >>> q = u.Quantity([1.0, 2.0], "m")
     >>> da = xr.DataArray(q, dims=["x"])
