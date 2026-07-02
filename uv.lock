@@ -4293,8 +4293,6 @@ all = [
     { name = "astropy" },
     { name = "gala" },
     { name = "matplotlib" },
-    { name = "unxt-api" },
-    { name = "unxt-hypothesis" },
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
     { name = "unxts-interop-xarray" },
@@ -4320,12 +4318,13 @@ interop-gala = [
 interop-mpl = [
     { name = "matplotlib" },
 ]
+interop-xarray = [
+    { name = "unxts-interop-xarray" },
+]
 k8s = [
     { name = "jax", extra = ["k8s"], marker = "extra == 'extra-4-unxt-k8s' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cpu' and extra != 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra != 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra != 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
 ]
 workspace = [
-    { name = "unxt-api" },
-    { name = "unxt-hypothesis" },
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
     { name = "unxts-interop-xarray" },
@@ -4482,21 +4481,18 @@ requires-dist = [
     { name = "quaxed", specifier = ">=0.10.5" },
     { name = "traitlets", specifier = ">=5.0.0" },
     { name = "unxt-api", editable = "packages/unxt-api" },
-    { name = "unxt-api", marker = "extra == 'all'", editable = "packages/unxt-api" },
-    { name = "unxt-api", marker = "extra == 'workspace'", editable = "packages/unxt-api" },
-    { name = "unxt-hypothesis", marker = "extra == 'all'", editable = "packages/unxt-hypothesis" },
-    { name = "unxt-hypothesis", marker = "extra == 'workspace'", editable = "packages/unxt-hypothesis" },
     { name = "unxts-api", marker = "extra == 'all'", editable = "packages/unxts.api" },
     { name = "unxts-api", marker = "extra == 'workspace'", editable = "packages/unxts.api" },
     { name = "unxts-hypothesis", marker = "extra == 'all'", editable = "packages/unxts.hypothesis" },
     { name = "unxts-hypothesis", marker = "extra == 'workspace'", editable = "packages/unxts.hypothesis" },
     { name = "unxts-interop-xarray", marker = "extra == 'all'", editable = "packages/unxts.interop.xarray" },
+    { name = "unxts-interop-xarray", marker = "extra == 'interop-xarray'", editable = "packages/unxts.interop.xarray" },
     { name = "unxts-interop-xarray", marker = "extra == 'workspace'", editable = "packages/unxts.interop.xarray" },
     { name = "wadler-lindig", specifier = ">=0.1.5" },
     { name = "xmmutablemap", specifier = ">=0.1" },
     { name = "zeroth", specifier = ">=1.0.0" },
 ]
-provides-extras = ["all", "backend-astropy", "cpu", "cuda", "cuda12", "cuda12-local", "interop-gala", "interop-mpl", "k8s", "workspace"]
+provides-extras = ["all", "backend-astropy", "cpu", "cuda", "cuda12", "cuda12-local", "interop-gala", "interop-mpl", "interop-xarray", "k8s", "workspace"]
 
 [package.metadata.requires-dev]
 build = [{ name = "build", specifier = ">=1.3.0" }]

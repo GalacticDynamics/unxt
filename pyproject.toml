@@ -56,17 +56,12 @@ cuda12       = ["jax[cuda12]>=0.5.3"]
 cuda12_local = ["jax[cuda12_local]>=0.5.3"]
 k8s          = ["jax[k8s]>=0.5.3"]
 # extra extras
-all = ["unxt[backend-astropy,interop-gala,interop-mpl,workspace]"]
+all             = ["unxt[backend-astropy,interop-gala,interop-mpl,workspace]"]
 backend-astropy = ["astropy>=6.0"]
-interop-gala = ["gala>=1.8"]
-interop-mpl = ["matplotlib>=3.8"]
-workspace = [
-  "unxt-api",
-  "unxt-hypothesis",
-  "unxts.api",
-  "unxts.hypothesis",
-  "unxts.interop.xarray",
-]
+interop-gala    = ["gala>=1.8"]
+interop-mpl     = ["matplotlib>=3.8"]
+interop-xarray  = ["unxts.interop.xarray"]
+workspace       = ["unxt[interop-xarray]", "unxts.api", "unxts.hypothesis"]
 
 [project.urls]
 "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"
@@ -305,7 +300,6 @@ testpaths = [
   # unxt-api
   "packages/unxt-api/README.md",
   "packages/unxt-api/src/",
-  "packages/unxt-api/docs/",
   "packages/unxt-api/tests/",
   # unxt-hypothesis
   "packages/unxt-hypothesis/",
