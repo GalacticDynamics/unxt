@@ -67,7 +67,7 @@ floats_strategy = st.floats(
 @example(value=[[1]])  # list[list[int]]
 @example(value=[[1.0]])  # list[list[int]]
 def test_properties(value):
-    """Test the properties of Quantity."""
+    """Test the properties of ParametricQuantity."""
     q = u.Q(np.array(value), "m")
     expected = jnp.asarray(np.array(value))
 
@@ -174,8 +174,8 @@ def test_uconvert_value_with_strings():
 
 
 def test_uconvert_value_with_quantity():
-    """Test the ``u.uconvert_value`` convenience dispatch with Quantity objects."""
-    # Convert a Quantity object using uconvert_value
+    """Test the ``u.uconvert_value`` convenience dispatch with ParametricQuantity objects."""
+    # Convert a ParametricQuantity object using uconvert_value
     q = u.Q(1, "km")
     result = u.uconvert_value("m", "km", q)
     assert isinstance(result, u.Q)
@@ -268,7 +268,7 @@ def test_uconvert_value_with_jax_transformations():
 
 
 def test_uconvert_value_error_handling_quantity():
-    """Test error handling when converting incompatible Quantity with uconvert_value."""
+    """Test error handling when converting incompatible ParametricQuantity with uconvert_value."""
     q_length = u.Q(1, "m")
     # Try to convert length quantity to time units - should raise
     with pytest.raises(apyu.UnitConversionError, match="not convertible"):
@@ -305,7 +305,7 @@ def test_getitem():
     mask = jnp.array([True, False, True, False])
     assert np.array_equal(q[mask], u.Q([1, 3], "m"))
 
-    # Boolean indexing with a dimensionless-Quantity mask, as produced by
+    # Boolean indexing with a dimensionless-ParametricQuantity mask, as produced by
     # predicates such as ``isfinite``.
     qmask = u.Q(mask, "")
     assert np.array_equal(q[qmask], u.Q([1, 3], "m"))
@@ -314,7 +314,7 @@ def test_getitem():
     indices = jnp.array([0, 2])
     assert np.array_equal(q[indices], u.Q([1, 3], "m"))
 
-    # Integer indexing with a dimensionless-Quantity index, as produced
+    # Integer indexing with a dimensionless-ParametricQuantity index, as produced
     # internally by e.g. jax's quantile (``median``). These lower to the
     # ``gather`` / ``dynamic_slice`` primitives.
     qindices = u.Q(indices, "")
@@ -323,7 +323,7 @@ def test_getitem():
 
 
 def test_len():
-    """Test the ``len(Quantity)`` method."""
+    """Test the ``len(ParametricQuantity)`` method."""
     # Length 3
     q = u.Q([1, 2, 3], "m")
     assert len(q) == 3
@@ -334,7 +334,7 @@ def test_len():
 
 
 def test_add():
-    """Test the ``Quantity.__add__`` method."""
+    """Test the ``ParametricQuantity.__add__`` method."""
     # Scalar addition
     q1 = u.Q(1, "m")
     q2 = u.Q(2, "m")
@@ -366,7 +366,7 @@ def test_add():
 
 
 def test_radd():
-    """Test the ``Quantity.__radd__`` method."""
+    """Test the ``ParametricQuantity.__radd__`` method."""
     # Dimensionless quantities can be added with each other
     q1 = u.Q(1, "")
     q2 = u.Q(5, "")
@@ -381,7 +381,7 @@ def test_radd():
 
 
 def test_sub():
-    """Test the ``Quantity.__sub__`` method."""
+    """Test the ``ParametricQuantity.__sub__`` method."""
     # Scalar subtraction
     q1 = u.Q(3, "m")
     q2 = u.Q(2, "m")
@@ -409,7 +409,7 @@ def test_sub():
 
 
 def test_rsub():
-    """Test the ``Quantity.__rsub__`` method."""
+    """Test the ``ParametricQuantity.__rsub__`` method."""
     # Subtracting dimensionless quantity from scalar
     q = u.Q(1, "")
     result = 5 - q
@@ -423,7 +423,7 @@ def test_rsub():
 
 
 def test_mul():
-    """Test the ``Quantity.__mul__`` method."""
+    """Test the ``ParametricQuantity.__mul__`` method."""
     # Scalar multiplication
     q1 = u.Q(2, "m")
     q2 = u.Q(3, "s")
@@ -459,16 +459,16 @@ def test_mul():
 
 
 def test_rmul():
-    """Test the ``Quantity.__rmul__`` method."""
-    # Scalar * Quantity
+    """Test the ``ParametricQuantity.__rmul__`` method."""
+    # Scalar * ParametricQuantity
     q = u.Q(2, "m")
     assert 3 * q == u.Q(6, "m")
 
-    # Array scalar * Quantity
+    # Array scalar * ParametricQuantity
     q = u.Q([1, 2, 3], "m")
     assert np.array_equal(2 * q, u.Q([2, 4, 6], "m"))
 
-    # NumPy/JAX array * Quantity
+    # NumPy/JAX array * ParametricQuantity
     arr = jnp.array([1, 2, 3])
     q = u.Q(2, "m")
     result = arr * q
@@ -477,7 +477,7 @@ def test_rmul():
 
 
 def test_matmul():
-    """Test the ``Quantity.__matmul__`` method."""
+    """Test the ``ParametricQuantity.__matmul__`` method."""
     # Vector dot product
     q1 = u.Q([1, 2, 3], "m")
     q2 = u.Q([4, 5, 6], "kg")
@@ -508,15 +508,15 @@ def test_matmul():
 
 
 def test_rmatmul():
-    """Test the ``Quantity.__rmatmul__`` method."""
-    # Array @ Quantity
+    """Test the ``ParametricQuantity.__rmatmul__`` method."""
+    # Array @ ParametricQuantity
     arr = jnp.array([1, 2, 3])
     q = u.Q([4, 5, 6], "m")
     result = arr @ q
     assert result.value == 32  # 1*4 + 2*5 + 3*6
     assert result.unit == u.unit("m")
 
-    # Matrix @ Quantity
+    # Matrix @ ParametricQuantity
     arr = jnp.array([[1, 2], [3, 4]])
     q = u.Q([5, 6], "kg")
     result = arr @ q
@@ -525,7 +525,7 @@ def test_rmatmul():
 
 
 def test_pow():
-    """Test the ``Quantity.__pow__" method."""
+    """Test the ``ParametricQuantity.__pow__" method."""
     # Scalar power with integer
     q = u.Q(2.0, "m")
     result = q**2
@@ -552,8 +552,8 @@ def test_pow():
 
 
 def test_rpow():
-    """Test the ``Quantity.__rpow__`` method."""
-    # Scalar base with dimensionless Quantity exponent
+    """Test the ``ParametricQuantity.__rpow__`` method."""
+    # Scalar base with dimensionless ParametricQuantity exponent
     q = u.Q(2.0, "")  # dimensionless
     result = 3.0**q
     assert jnp.isclose(result.value, 9.0)
@@ -566,7 +566,7 @@ def test_rpow():
 
 
 def test_truediv():
-    """Test the ``Quantity.__truediv__`` method."""
+    """Test the ``ParametricQuantity.__truediv__`` method."""
     # Scalar division
     q1 = u.Q(6, "m")
     q2 = u.Q(2, "s")
@@ -603,21 +603,21 @@ def test_truediv():
 
 
 def test_rtruediv():
-    """Test the ``Quantity.__rtruediv__`` method."""
-    # Dimensionless scalar / Quantity
+    """Test the ``ParametricQuantity.__rtruediv__`` method."""
+    # Dimensionless scalar / ParametricQuantity
     q = u.Q(2, "m")
     result = 10 / q
     assert result.value == 5
     assert result.unit == u.unit("1/m")
 
-    # Array / Quantity
+    # Array / ParametricQuantity
     arr = jnp.array([10, 20, 30])
     q = u.Q(2, "s")
     result = arr / q
     assert np.array_equal(result.value, [5, 10, 15])
     assert result.unit == u.unit("1/s")
 
-    # Special case: 1 / Quantity
+    # Special case: 1 / ParametricQuantity
     q = u.Q(4, "m")
     result = 1 / q
     assert result.value == 0.25
@@ -625,7 +625,7 @@ def test_rtruediv():
 
 
 def test_and():
-    """Test the ``Quantity.__and__`` method."""
+    """Test the ``ParametricQuantity.__and__`` method."""
     # Bitwise AND for integer dimensionless Quantities
     q1 = u.Q(jnp.array([1, 2, 3], dtype=jnp.int32), "")
     q2 = u.Q(jnp.array([1, 0, 3], dtype=jnp.int32), "")
@@ -642,7 +642,7 @@ def test_and():
 
 
 def test_gt():
-    """Test the ``Quantity.__gt__`` method."""
+    """Test the ``ParametricQuantity.__gt__`` method."""
     # Test with a scalar
     q = u.Q(1, "m")
     assert q > u.Q(0, "m")
@@ -665,7 +665,7 @@ def test_gt():
 
 
 def test_ge():
-    """Test the ``Quantity.__ge__`` method."""
+    """Test the ``ParametricQuantity.__ge__`` method."""
     # Test with a scalar
     q = u.Q(1, "m")
     assert q >= u.Q(0, "m")
@@ -689,7 +689,7 @@ def test_ge():
 
 
 def test_lt():
-    """Test the ``Quantity.__lt__`` method."""
+    """Test the ``ParametricQuantity.__lt__`` method."""
     # Test with a scalar
     q = u.Q(1, "m")
     assert not q < u.Q(0, "m")
@@ -737,7 +737,7 @@ def test_le():
 
 
 def test_eq():
-    """Test the ``Quantity.__eq__`` method."""
+    """Test the ``ParametricQuantity.__eq__`` method."""
     # Test with a scalar
     q = u.Q(1, "m")
     assert not q == u.Q(0, "m")  # noqa: SIM201
@@ -760,7 +760,7 @@ def test_eq():
 
 
 def test_ne():
-    """Test the ``Quantity.__ne__`` method."""
+    """Test the ``ParametricQuantity.__ne__`` method."""
     # Test with a scalar
     q = u.Q(1, "m")
     assert q != u.Q(0, "m")
@@ -786,7 +786,7 @@ def test_ne():
 
 
 def test_neg():
-    """Test the ``Quantity.__neg__`` method."""
+    """Test the ``ParametricQuantity.__neg__`` method."""
     # Test with a scalar
     q = u.Q(1, "m")
     assert -q == u.Q(-1, "m")
@@ -798,7 +798,7 @@ def test_neg():
 
 
 def test_flatten():
-    """Test the ``Quantity.flatten`` method."""
+    """Test the ``ParametricQuantity.flatten`` method."""
     # Test with a scalar
     q = u.Q(1, "m")
     assert q.flatten() == u.Q(1, "m")
@@ -810,7 +810,7 @@ def test_flatten():
 
 
 def test_reshape():
-    """Test the ``Quantity.reshape`` method."""
+    """Test the ``ParametricQuantity.reshape`` method."""
     # Test with a scalar
     q = u.Q(1, "m")
     assert q.reshape(1, 1) == u.Q(1, "m")
@@ -851,7 +851,7 @@ def test_mod():
 
 
 def test_at():
-    """Test the ``Quantity.at`` method."""
+    """Test the ``ParametricQuantity.at`` method."""
     x = jnp.arange(10, dtype=float)
     q = u.Q(x, "km")
 
@@ -922,7 +922,7 @@ def test_at():
 
 @parametric
 class NewQuantity(AbstractParametricQuantity):
-    """Quantity with a flag."""
+    """ParametricQuantity with a flag."""
 
     value: Array = eqx.field(converter=jnp.asarray)
     unit: str = eqx.field(converter=u.unit)
@@ -939,8 +939,8 @@ def test_parametric_pickle_dumps_with_kw_fields():
 
 
 def test_from_astropy():
-    """Test the ``Quantity.from_(AstropyQuantity)`` method."""
-    apyq = apyu.Quantity(1, "m")
+    """Test the ``ParametricQuantity.from_(AstropyQuantity)`` method."""
+    apyq = apyu.ParametricQuantity(1, "m")
     q = u.Q.from_(apyq)
     assert isinstance(q, u.Q)
     assert np.equal(q.value, apyq.value)
@@ -948,11 +948,11 @@ def test_from_astropy():
 
 
 def test_convert_to_astropy():
-    """Test the ``convert(Quantity, AstropyQuantity)`` method."""
+    """Test the ``convert(ParametricQuantity, AstropyQuantity)`` method."""
     q = u.Q(1, "m")
-    apyq = convert(q, apyu.Quantity)
-    assert isinstance(apyq, apyu.Quantity)
-    assert apyq == apyu.Quantity(1, "m")
+    apyq = convert(q, apyu.ParametricQuantity)
+    assert isinstance(apyq, apyu.ParametricQuantity)
+    assert apyq == apyu.ParametricQuantity(1, "m")
 
 
 ##############################################################################
@@ -969,7 +969,7 @@ def test_is_unit_convertible():
     # Bad unit
     assert u.is_unit_convertible(apyu.s, apyu.m) is False
 
-    # Quantity
+    # ParametricQuantity
     assert u.is_unit_convertible(apyu.kpc, u.Q(1, "km")) is True
 
     # unit is a str
@@ -984,7 +984,7 @@ def test_is_unit_convertible():
 
 
 class TestQuantityProperties:
-    """Property-based tests for Quantity using hypothesis strategies."""
+    """Property-based tests for ParametricQuantity using hypothesis strategies."""
 
     @settings(max_examples=20, deadline=None)
     @given(q=ust.quantities("m", shape=st.integers(min_value=0, max_value=10)))
@@ -1233,7 +1233,7 @@ class TestQuantityProperties:
 
 
 class TestQuantityUsageExamples:
-    """Usage examples showing how to use Quantity primitives."""
+    """Usage examples showing how to use ParametricQuantity primitives."""
 
     def test_position_vector(self):
         """Example: Working with 3D position vectors."""

@@ -352,10 +352,10 @@ def dimension_of(obj: type, /) -> NoReturn:
     >>> import unxt as u
 
     >>> try:
-    ...     u.dimension_of(u.quantity.BareQuantity)
+    ...     u.dimension_of(u.quantity.Quantity)
     ... except ValueError as e:
     ...     print(e)
-    Cannot get the dimension of <class 'unxt._src.quantity.unchecked.BareQuantity'>.
+    Cannot get the dimension of <class 'unxt._src.quantity.unchecked.Quantity'>.
 
     """
     msg = f"Cannot get the dimension of {obj}."

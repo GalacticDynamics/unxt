@@ -50,22 +50,22 @@ Unit("m")
 
 ## Quantities
 
-`unxt` uses Astropy's units and dimensions objects as its backend, but has its own `Quantity` class hierarchy.
+`unxt` uses Astropy's units and dimensions objects as its backend, but has its own `ParametricQuantity` class hierarchy.
 
-Converting an [Astropy Quantity][astropy-Quantity] to a [unxt Quantity][unxt-Quantity] is straightforward -- use `unxt.Quantity.from_`:
+Converting an [Astropy ParametricQuantity][astropy-ParametricQuantity] to a [unxt ParametricQuantity][unxt-ParametricQuantity] is straightforward -- use `unxt.ParametricQuantity.from_`:
 
 ```{code-block} python
 
 >>> import unxt as u
 >>> import astropy.units as apyu
 
->>> aq = apyu.Quantity(1, 'm')  # Astropy Quantity
+>>> aq = apyu.ParametricQuantity(1, 'm')  # Astropy ParametricQuantity
 >>> aq
-<Quantity 1. m>
+<ParametricQuantity 1. m>
 
->>> xq = u.Q.from_(aq)  # unxt Quantity
+>>> xq = u.Q.from_(aq)  # unxt ParametricQuantity
 >>> xq
-Quantity(Array(1., dtype=float32), unit='m')
+ParametricQuantity(Array(1., dtype=float32), unit='m')
 ```
 
 Alternatively, the multiple-dispatch library on which `unxt` is built enables 2-way conversion.
@@ -74,10 +74,10 @@ Alternatively, the multiple-dispatch library on which `unxt` is built enables 2-
 >>> from plum import convert
 
 >>> convert(aq, u.Q)
-Quantity(Array(1., dtype=float32), unit='m')
+ParametricQuantity(Array(1., dtype=float32), unit='m')
 
->>> convert(xq, apyu.Quantity)
-<Quantity 1. m>
+>>> convert(xq, apyu.ParametricQuantity)
+<ParametricQuantity 1. m>
 
 ```
 
@@ -133,7 +133,7 @@ Support for composite units and unit equivalencies:
 
 - **Hot-path**: When units are identical, the value is returned unchanged
 - **JAX compatible**: Works with JIT compilation, vmap, and autodiff
-- **Low overhead**: Direct Astropy unit conversion without Quantity wrapping
+- **Low overhead**: Direct Astropy unit conversion without ParametricQuantity wrapping
 
 ```{code-block} python
 
@@ -153,5 +153,5 @@ Array([ 1.,  5., 10.], dtype=float32)
 
 [astropy-link]: https://www.astropy.org/
 [astropy-units]: https://docs.astropy.org/en/stable/units/index.html
-[astropy-Quantity]: https://docs.astropy.org/en/stable/api/astropy.units.Quantity.html
-[unxt-Quantity]: https://unxt.readthedocs.io/en/latest/api/quantities/#unxt.quantity.AbstractQuantity
+[astropy-ParametricQuantity]: https://docs.astropy.org/en/stable/api/astropy.units.ParametricQuantity.html
+[unxt-ParametricQuantity]: https://unxt.readthedocs.io/en/latest/api/quantities/#unxt.quantity.AbstractQuantity

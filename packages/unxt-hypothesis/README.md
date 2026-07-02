@@ -36,7 +36,7 @@ If you currently depend on `unxt-hypothesis`, you have two options:
 - `named_dimensions()` — physical dimensions from Astropy's catalogue
 - `units(dimension)` — random `Unit` objects
 - `derived_units(base)` — dimensionally-equivalent units
-- `quantities(*, shape, dtype, unit)` — random `Quantity` objects
+- `quantities(*, shape, dtype, unit)` — random `ParametricQuantity` objects
 - `unitsystems(*units)` — random `UnitSystem` objects
 - `angles(*, wrap_to)` — random `Angle` objects
 - `wrap_to(quantity, min, max)` — range-constrained quantities

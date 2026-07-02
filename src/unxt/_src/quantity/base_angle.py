@@ -8,8 +8,8 @@ from plum import add_promotion_rule
 
 import unxt_api as uapi
 from .base import AbstractQuantity
+from .parametric import ParametricQuantity
 from .quantity import Quantity
-from .unchecked import BareQuantity
 from unxt._src.dimensions import dimension, dimension_of
 from unxt._src.quantity.value import StaticValue
 from unxt.units import AbstractUnit
@@ -18,7 +18,7 @@ angle_dimension = dimension("angle")
 
 
 class AbstractAngle(AbstractQuantity):
-    """Angular Quantity.
+    """Angular ParametricQuantity.
 
     See Also
     --------
@@ -81,9 +81,9 @@ class AbstractAngle(AbstractQuantity):
         return uapi.wrap_to(self, min, max)
 
 
-# Add a rule that when a AbstractAngle interacts with a Quantity, the
-# angle degrades to a Quantity. This is necessary for many operations, e.g.
+# Add a rule that when a AbstractAngle interacts with a ParametricQuantity, the
+# angle degrades to a ParametricQuantity. This is necessary for many operations, e.g.
 # division of an angle by non-dimensionless quantity where the resulting units
 # are not those of an angle.
+add_promotion_rule(AbstractAngle, ParametricQuantity, ParametricQuantity)
 add_promotion_rule(AbstractAngle, Quantity, Quantity)
-add_promotion_rule(AbstractAngle, BareQuantity, BareQuantity)

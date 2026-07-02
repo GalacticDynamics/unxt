@@ -17,7 +17,7 @@ from matplotlib.axes import Axes
 
 from zeroth import zeroth
 
-from unxt.quantity import AbstractQuantity, BareQuantity, ustrip
+from unxt.quantity import AbstractQuantity, Quantity, ustrip
 
 
 @dataclass
@@ -25,7 +25,7 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
     """Support `unxt` in `matplotlib`'s unit conversion framework.
 
     This class is a subclass of `matplotlib.units.ConversionInterface`
-    and is used to convert `unxt.Quantity` instances for use with
+    and is used to convert `unxt.ParametricQuantity` instances for use with
     `matplotlib`.
 
     """
@@ -37,7 +37,7 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
 
     def convert(self, obj: Any, unit: Any, axis: Axes) -> Array | list[Array]:
         """Convert *obj* using *unit* for the specified *axis*."""
-        # Hot-path Quantity
+        # Hot-path ParametricQuantity
         if isinstance(obj, AbstractQuantity):
             return ustrip(unit, obj)
         # Need to recurse (singly) into iterables
@@ -52,7 +52,7 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
         if isinstance(obj, AbstractQuantity):
             return ustrip(unit, obj)
 
-        return BareQuantity.from_(obj, axis.get_units()).ustrip(unit)
+        return Quantity.from_(obj, axis.get_units()).ustrip(unit)
 
     def axisinfo(self, unit: Any, _: Axes) -> matplotlib.units.AxisInfo:
         """Return axis information for this particular unit."""

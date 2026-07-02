@@ -10,8 +10,8 @@ import unxt as u
 
 The configuration system is organized hierarchically with separate configs for different display methods:
 
-- `u.config.quantity_repr` - Options for `Quantity.__repr__()`
-- `u.config.quantity_str` - Options for `Quantity.__str__()`
+- `u.config.quantity_repr` - Options for `ParametricQuantity.__repr__()`
+- `u.config.quantity_str` - Options for `ParametricQuantity.__str__()`
 
 Modify configuration options directly:
 
@@ -56,9 +56,9 @@ The `unxt.config` object has the following structure:
 
 Each nested config has its own set of options and supports independent overrides.
 
-## Quantity Repr Options
+## ParametricQuantity Repr Options
 
-Options for controlling `Quantity.__repr__()` via `u.config.quantity_repr`.
+Options for controlling `ParametricQuantity.__repr__()` via `u.config.quantity_repr`.
 
 ### `short_arrays`
 
@@ -79,20 +79,20 @@ Options:
 >>> q = u.Q([1.0, 2.0, 3.0], "m")
 
 >>> u.config.quantity_repr.short_arrays = False
->>> print(repr(q))  # Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
+>>> print(repr(q))  # ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
 >>> u.config.quantity_repr.short_arrays = True
->>> print(repr(q))  # Quantity(f32[3], unit='m')
+>>> print(repr(q))  # ParametricQuantity(f32[3], unit='m')
 
 >>> u.config.quantity_repr.short_arrays = "compact"
->>> print(repr(q))  # Quantity([1., 2., 3.], unit='m')
+>>> print(repr(q))  # ParametricQuantity([1., 2., 3.], unit='m')
 ```
 
 <!-- skip: end -->
 
 ### `use_short_name`
 
-Use class short names where available (for example, `Quantity` -> `Q`).
+Use class short names where available (for example, `ParametricQuantity` -> `Q`).
 
 - **Type**: `bool`
 - **Default**: `False`
@@ -103,7 +103,7 @@ Use class short names where available (for example, `Quantity` -> `Q`).
 >>> # Default behavior (use_short_name=False)
 >>> with u.config.quantity_repr.override(use_short_name=False):
 ...     print(repr(q))
-Quantity(Array(1., dtype=float32...), unit='m')
+ParametricQuantity(Array(1., dtype=float32...), unit='m')
 
 >>> # With use_short_name=True
 >>> with u.config.quantity_repr.override(use_short_name=True):
@@ -124,12 +124,12 @@ Display units as `unit='m'` instead of positional `'m'`.
 >>> # Default behavior (named_unit=True)
 >>> with u.config.quantity_repr.override(named_unit=False):
 ...     print(repr(q))
-Quantity(Array(1., dtype=float32...), 'm')
+ParametricQuantity(Array(1., dtype=float32...), 'm')
 
 >>> # With named_unit=True
 >>> with u.config.quantity_repr.override(named_unit=True):
 ...     print(repr(q))
-Quantity(Array(1., dtype=float32...), unit='m')
+ParametricQuantity(Array(1., dtype=float32...), unit='m')
 ```
 
 ### `include_params`
@@ -144,11 +144,11 @@ Include type parameters in `repr()` for parametric quantities.
 
 >>> with u.config.quantity_repr.override(include_params=False):
 ...     print(repr(q))
-Quantity(Array(1., dtype=float32...), unit='m')
+ParametricQuantity(Array(1., dtype=float32...), unit='m')
 
 >>> with u.config.quantity_repr.override(include_params=True):
 ...     print(repr(q))
-Quantity['length'](Array(1., dtype=float32...), unit='m')
+ParametricQuantity['length'](Array(1., dtype=float32...), unit='m')
 ```
 
 ### `indent`
@@ -161,13 +161,13 @@ Indentation width for nested structures in `repr()`.
 ```{code-block} python
 >>> q = u.Q([[1.0, 2.0], [3.0, 4.0]], "m")
 >>> print(repr(q))  # Default indentation (4 spaces)
-Quantity(Array([[1., 2.],
+ParametricQuantity(Array([[1., 2.],
                 [3., 4.]], dtype=float32), unit='m')
 ```
 
-## Quantity Str Options
+## ParametricQuantity Str Options
 
-Options for controlling `Quantity.__str__()` via `u.config.quantity_str`.
+Options for controlling `ParametricQuantity.__str__()` via `u.config.quantity_str`.
 
 ### `short_arrays`
 
@@ -179,15 +179,15 @@ Controls how arrays are displayed in `str()`.
 ```{code-block} python
 >>> q = u.Q([1.0, 2.0, 3.0], "m")
 >>> print(str(q))  # Default behavior (compact)
-Quantity['length']([1., 2., 3.], unit='m')
+ParametricQuantity['length']([1., 2., 3.], unit='m')
 
 >>> with u.config.quantity_str.override(short_arrays=False):
 ...     print(str(q))
-Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+ParametricQuantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
 
 >>> with u.config.quantity_str.override(short_arrays=True):
 ...     print(str(q))
-Quantity['length'](f32[3], unit='m')
+ParametricQuantity['length'](f32[3], unit='m')
 ```
 
 ### `named_unit`
@@ -200,11 +200,11 @@ Display units as named keyword in `str()`.
 ```{code-block} python
 >>> q = u.Q(1.0, "m")
 >>> print(str(q))  # Default behavior (named)
-Quantity['length'](1., unit='m')
+ParametricQuantity['length'](1., unit='m')
 
 >>> with u.config.quantity_str.override(named_unit=False):
 ...     print(str(q))
-Quantity['length'](1., 'm')
+ParametricQuantity['length'](1., 'm')
 ```
 
 ### `use_short_name`
@@ -217,7 +217,7 @@ Use short class names in `str()` representation.
 ```{code-block} python
 >>> q = u.Q(1.0, "m")
 >>> print(str(q))
-Quantity['length'](1., unit='m')
+ParametricQuantity['length'](1., unit='m')
 
 >>> with u.config.quantity_str.override(use_short_name=True):
 ...     print(str(q))
@@ -321,7 +321,7 @@ You can override both repr and str configs simultaneously:
 ... ):
 ...     q = u.Q([1.0, 2.0, 3.0], "m")
 ...     print(repr(q), str(q))
-Quantity([1., 2., 3.], unit='m') Quantity['length'](f32[3], unit='m')
+ParametricQuantity([1., 2., 3.], unit='m') ParametricQuantity['length'](f32[3], unit='m')
 >>>
 >>> # Or using separate nested overrides
 >>> with (
@@ -330,7 +330,7 @@ Quantity([1., 2., 3.], unit='m') Quantity['length'](f32[3], unit='m')
 ... ):
 ...         q = u.Q([1.0, 2.0, 3.0], "m")
 ...         print(repr(q), str(q))
-Quantity([1., 2., 3.], unit='m') Quantity['length'](f32[3], unit='m')
+ParametricQuantity([1., 2., 3.], unit='m') ParametricQuantity['length'](f32[3], unit='m')
 ```
 
 ### Thread Safety
@@ -429,5 +429,5 @@ u.config.update_config(cfg)
 ## See Also
 
 - [Traitlets documentation](https://traitlets.readthedocs.io/)
-- {doc}`quantity` - Quantity user guide
+- {doc}`quantity` - ParametricQuantity user guide
 - {doc}`type-checking` - Type checking guide

@@ -41,11 +41,13 @@ __all__ = (
     "unitsystem_of",  # get the unit system
     # quantities
     "quantity",  # module
-    "Quantity",  # main class
-    "Q",  # convenience alias
-    "StaticQuantity",  # static value quantity
     "AbstractQuantity",  # base class
     "Angle",  # angular quantity
+    "PQ",  # convenience alias
+    "ParametricQuantity",  # dimension-parametrized class
+    "Q",  # convenience alias
+    "Quantity",  # default class
+    "StaticQuantity",  # static value quantity
     "uconvert_value",  # convert values
     "uconvert",  # convert units
     "ustrip",  # strip units
@@ -60,8 +62,10 @@ with install_import_hook("unxt"):
     from .config import config
     from .dims import AbstractDimension, dimension, dimension_of
     from .quantity import (
+        PQ,
         AbstractQuantity,
         Angle,
+        ParametricQuantity,
         Q,
         Quantity,
         StaticQuantity,

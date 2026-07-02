@@ -23,7 +23,7 @@ class LocalConfigurable(Configurable):
     """Base class for config objects that support thread-local overrides.
 
     This class provides a mechanism for temporary, thread-local configuration
-    changes that can be used in nested contexts (e.g., within Quantity.__repr__()).
+    changes that can be used in nested contexts (e.g., within ParametricQuantity.__repr__()).
     """
 
     # Thread-local storage for context manager overrides
@@ -64,7 +64,7 @@ class _NestedConfigContext:
 
 
 # ============================================================================
-# Quantity `__repr__`
+# ParametricQuantity `__repr__`
 
 QUANTITY_REPR_CONFIG_KEYS: Final = frozenset(
     {"short_arrays", "use_short_name", "named_unit", "include_params", "indent"}
@@ -72,9 +72,9 @@ QUANTITY_REPR_CONFIG_KEYS: Final = frozenset(
 
 
 class QuantityReprConfig(LocalConfigurable):
-    """Configuration for Quantity.__repr__() display options.
+    """Configuration for ParametricQuantity.__repr__() display options.
 
-    This controls how Quantity objects are displayed in ``repr()``.
+    This controls how ParametricQuantity objects are displayed in ``repr()``.
 
     Attributes
     ----------
@@ -122,7 +122,7 @@ class QuantityReprConfig(LocalConfigurable):
 
     use_short_name: ClassVar[object] = Bool(
         default_value=False,
-        help="Use short class name if available (e.g., Q instead of Quantity)",
+        help="Use short class name if available (e.g., Q instead of ParametricQuantity)",
     ).tag(config=True)
 
     named_unit: ClassVar[object] = Bool(
@@ -202,7 +202,7 @@ class QuantityReprConfig(LocalConfigurable):
         Q([1, 2, 3], unit='m')
 
         >>> print(str(q))
-        Quantity['length']([1, 2, 3], unit='m')
+        ParametricQuantity['length']([1, 2, 3], unit='m')
 
         """
         if cfg is not None and kwargs:
@@ -254,7 +254,7 @@ class QuantityReprConfig(LocalConfigurable):
 
 
 # ============================================================================
-# Quantity `__str__`
+# ParametricQuantity `__str__`
 
 QUANTITY_STR_CONFIG_KEYS: Final = frozenset(
     {"short_arrays", "use_short_name", "named_unit", "indent", "include_params"}
@@ -267,9 +267,9 @@ UNXT_OVERRIDE_CONFIG_KEYS: Final = {
 
 
 class QuantityStrConfig(LocalConfigurable):
-    """Configuration for Quantity.__str__() display options.
+    """Configuration for ParametricQuantity.__str__() display options.
 
-    This controls how Quantity objects are displayed in ``str()``.
+    This controls how ParametricQuantity objects are displayed in ``str()``.
 
     Attributes
     ----------
@@ -304,7 +304,7 @@ class QuantityStrConfig(LocalConfigurable):
     Q(i32[3], unit='m')
 
     >>> print(str(q))
-    Quantity['length']([1, 2, 3], unit='m')
+    ParametricQuantity['length']([1, 2, 3], unit='m')
 
     """
 
@@ -323,7 +323,7 @@ class QuantityStrConfig(LocalConfigurable):
 
     use_short_name: ClassVar[object] = Bool(
         default_value=False,
-        help="Use short class name if available (e.g., Q instead of Quantity)",
+        help="Use short class name if available (e.g., Q instead of ParametricQuantity)",
     ).tag(config=True)
 
     named_unit: ClassVar[object] = Bool(
@@ -439,8 +439,8 @@ class UnxtConfig(SingletonConfigurable):
     The config uses a hierarchical structure with separate config objects
     for different components:
 
-    - ``quantity_repr``: Configuration for Quantity.__repr__()
-    - ``quantity_str``: Configuration for Quantity.__str__()
+    - ``quantity_repr``: Configuration for ParametricQuantity.__repr__()
+    - ``quantity_str``: Configuration for ParametricQuantity.__str__()
 
     The config can be used as a context manager for temporary, thread-local
     configuration changes that are automatically restored on exit.
@@ -471,7 +471,7 @@ class UnxtConfig(SingletonConfigurable):
     Config restored after exiting context
 
     >>> print(repr(q))
-    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+    ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     """
 
@@ -511,12 +511,12 @@ class UnxtConfig(SingletonConfigurable):
         >>> with u.config.override(quantity_repr__short_arrays=True):
         ...     q = u.Q([1.0, 2.0, 3.0], "m")
         ...     print(repr(q))  # Uses compact display
-        Quantity(f32[3], unit='m')
+        ParametricQuantity(f32[3], unit='m')
 
         Config restored to previous value
 
         >>> print(repr(q))
-        Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
+        ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
         """
         # Parse nested config overrides (e.g., quantity_repr__short_arrays)

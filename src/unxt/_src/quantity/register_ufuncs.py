@@ -61,7 +61,7 @@ def register_ufunc(ufunc: np.ufunc, /) -> Callable[[AnyCallable], AnyCallable]:
     ...     return u.Q(2 * x.value, x.unit)
 
     >>> doubler(u.Q(3.0, "m"))
-    Quantity(Array(6., dtype=float32), unit='m')
+    ParametricQuantity(Array(6., dtype=float32), unit='m')
 
     """
 

@@ -1,4 +1,4 @@
-"""Quantity compatibility."""
+"""ParametricQuantity compatibility."""
 
 __all__: tuple[str, ...] = ()
 
@@ -14,7 +14,13 @@ import quaxed.numpy as jnp
 
 import unxt_api as uapi
 from .custom_types import APYUnits
-from unxt.quantity import AbstractQuantity, AllowValue, BareQuantity, Quantity, ustrip
+from unxt.quantity import (
+    AbstractQuantity,
+    AllowValue,
+    ParametricQuantity,
+    Quantity,
+    ustrip,
+)
 
 # ============================================================================
 # Value Converter
@@ -31,13 +37,13 @@ def convert_to_quantity_value(obj: AstropyQuantity, /) -> NoReturn:
     ...     convert_to_quantity_value(apyu.Quantity(1, "m"))
     ... except TypeError as e:
     ...     print(e)
-    Cannot convert 'Quantity' to a value.
-    For a Quantity, use the `.from_` constructor instead.
+    Cannot convert 'ParametricQuantity' to a value.
+    For a ParametricQuantity, use the `.from_` constructor instead.
 
     """
     msg = (
         f"Cannot convert {type(obj).__name__!r} to a value. "
-        "For a Quantity, use the `.from_` constructor instead."
+        "For a ParametricQuantity, use the `.from_` constructor instead."
     )
     raise TypeError(msg)
 
@@ -54,7 +60,7 @@ def convert_to_quantity_value(obj: AstropyQuantity, /) -> NoReturn:
 def from_(
     cls: type[AbstractQuantity], value: AstropyQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
-    """Construct a `Quantity` from another `Quantity`.
+    """Construct a `ParametricQuantity` from another `ParametricQuantity`.
 
     The `value` is converted to the new `unit`.
 
@@ -64,7 +70,7 @@ def from_(
     >>> import astropy.units as apyu
 
     >>> u.Q.from_(apyu.Quantity(1, "m"))
-    Quantity(Array(1., dtype=float32), unit='m')
+    ParametricQuantity(Array(1., dtype=float32), unit='m')
 
     """
     u = uapi.unit_of(value)
@@ -76,7 +82,7 @@ def from_(
 def from_(
     cls: type[AbstractQuantity], value: AstropyQuantity, u: Any, /, **kwargs: Any
 ) -> AbstractQuantity:
-    """Construct a `Quantity` from another `Quantity`.
+    """Construct a `ParametricQuantity` from another `ParametricQuantity`.
 
     The `value` is converted to the new `unit`.
 
@@ -86,7 +92,7 @@ def from_(
     >>> import astropy.units as apyu
 
     >>> u.Q.from_(apyu.Quantity(1, "m"), "cm")
-    Quantity(Array(100., dtype=float32), unit='cm')
+    ParametricQuantity(Array(100., dtype=float32), unit='cm')
 
     """
     u = uapi.unit(u)
@@ -111,7 +117,7 @@ def convert_unxt_quantity_to_astropy_quantity(
     >>> from plum import convert
 
     >>> convert(u.Q(1.0, "cm"), AstropyQuantity)
-    <Quantity 1. cm>
+    <ParametricQuantity 1. cm>
 
     """
     u = uapi.unit_of(q)
@@ -157,18 +163,42 @@ def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAng
 
 
 # ============================================================================
+# ParametricQuantity
+
+
+@plum.conversion_method(type_from=AstropyQuantity, type_to=ParametricQuantity)
+def convert_astropy_quantity_to_unxt_quantity(
+    q: AstropyQuantity, /
+) -> ParametricQuantity:
+    """Convert a `astropy.units.Quantity` to a `unxt.ParametricQuantity`.
+
+    Examples
+    --------
+    >>> from astropy.units import Quantity as AstropyQuantity
+    >>> from plum import convert
+    >>> from unxt import ParametricQuantity
+
+    >>> convert(AstropyQuantity(1.0, "cm"), ParametricQuantity)
+    ParametricQuantity(Array(1., dtype=float32), unit='cm')
+
+    """
+    u = uapi.unit_of(q)
+    return ParametricQuantity(uapi.ustrip(u, q), u)
+
+
+# ============================================================================
 # Quantity
 
 
-@plum.conversion_method(type_from=AstropyQuantity, type_to=Quantity)
-def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity:
+@plum.conversion_method(type_from=AstropyQuantity, type_to=Quantity)  # type: ignore[arg-type]
+def convert_astropy_quantity_to_unxt_barequantity(q: AstropyQuantity, /) -> Quantity:
     """Convert a `astropy.units.Quantity` to a `unxt.Quantity`.
 
     Examples
     --------
     >>> from astropy.units import Quantity as AstropyQuantity
     >>> from plum import convert
-    >>> from unxt import Quantity
+    >>> from unxt.quantity import Quantity
 
     >>> convert(AstropyQuantity(1.0, "cm"), Quantity)
     Quantity(Array(1., dtype=float32), unit='cm')
@@ -176,30 +206,6 @@ def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity
     """
     u = uapi.unit_of(q)
     return Quantity(uapi.ustrip(u, q), u)
-
-
-# ============================================================================
-# BareQuantity
-
-
-@plum.conversion_method(type_from=AstropyQuantity, type_to=BareQuantity)  # type: ignore[arg-type]
-def convert_astropy_quantity_to_unxt_barequantity(
-    q: AstropyQuantity, /
-) -> BareQuantity:
-    """Convert a `astropy.units.Quantity` to a `unxt.BareQuantity`.
-
-    Examples
-    --------
-    >>> from astropy.units import Quantity as AstropyQuantity
-    >>> from plum import convert
-    >>> from unxt.quantity import BareQuantity
-
-    >>> convert(AstropyQuantity(1.0, "cm"), BareQuantity)
-    BareQuantity(Array(1., dtype=float32), unit='cm')
-
-    """
-    u = uapi.unit_of(q)
-    return BareQuantity(uapi.ustrip(u, q), u)
 
 
 ###############################################################################
@@ -237,19 +243,19 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
 
     >>> x = u.Q(1000, "m")
     >>> u.uconvert(u.unit("km"), x)
-    Quantity(Array(1., dtype=float32, ...), unit='km')
+    ParametricQuantity(Array(1., dtype=float32, ...), unit='km')
 
     >>> x = u.Q([1, 2, 3], "Kelvin")
     >>> with apyu.add_enabled_equivalencies(apyu.temperature()):
     ...     y = x.uconvert("deg_C")
     >>> y
-    Quantity( Array([-272.15, -271.15, -270.15], dtype=float32, ...), unit='deg_C' )
+    ParametricQuantity( Array([-272.15, -271.15, -270.15], dtype=float32, ...), unit='deg_C' )
 
-    >>> x = Quantity([1, 2, 3], "radian")
+    >>> x = ParametricQuantity([1, 2, 3], "radian")
     >>> with apyu.add_enabled_equivalencies(apyu.dimensionless_angles()):
     ...     y = x.uconvert("")
     >>> y
-    Quantity(Array([1., 2., 3.], dtype=float32, ...), unit='')
+    ParametricQuantity(Array([1., 2., 3.], dtype=float32, ...), unit='')
 
     """
     # Hot-path: if no unit conversion is necessary
@@ -263,8 +269,8 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
         return dc.replace(x, value=value, unit=u)
 
     # If the dimensions are different, we need to create a new quantity since
-    # the dimensions can be part of the type. This won't work if the Quantity
-    # type itself needs to be changed, e.g. `unxt.Angle` -> `unxt.Quantity`.
+    # the dimensions can be part of the type. This won't work if the ParametricQuantity
+    # type itself needs to be changed, e.g. `unxt.Angle` -> `unxt.ParametricQuantity`.
     # These cases are handled separately, in other dispatches.
     fs = dict(dc.field_items(x))  # pylint: disable=unreachable
     fs["value"] = value

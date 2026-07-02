@@ -1,4 +1,4 @@
-"""Static Quantity Class."""
+"""Static ParametricQuantity Class."""
 
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
@@ -13,8 +13,8 @@ import wadler_lindig as wl
 from plum import add_promotion_rule, parametric
 
 from .base_parametric import AbstractParametricQuantity
+from .parametric import ParametricQuantity
 from .quantity import Quantity
-from .unchecked import BareQuantity
 from .value import StaticValue
 from unxt.units import AbstractUnit, unit as parse_unit
 
@@ -25,7 +25,7 @@ class StaticQuantity(AbstractParametricQuantity):
     """Static quantities with associated units.
 
     This class is parametrized by the dimensions of the units, just like
-    {class}`~unxt.quantity.Quantity`, but its value is always stored as a static
+    {class}`~unxt.quantity.ParametricQuantity`, but its value is always stored as a static
     NumPy array. It accepts Python scalars and array-like inputs that can be
     converted to NumPy arrays, and it rejects JAX arrays.
 
@@ -52,7 +52,7 @@ class StaticQuantity(AbstractParametricQuantity):
     ...     u.StaticQuantity(jnp.array([1.0, 2.0]), "m")
     ... except TypeError as e:
     ...     print(e)
-    StaticQuantity does not accept JAX arrays. Use Quantity for traced values.
+    StaticQuantity does not accept JAX arrays. Use ParametricQuantity for traced values.
 
     The Wadler-Lindig representation hides the internal static wrapper:
 
@@ -86,5 +86,5 @@ class StaticQuantity(AbstractParametricQuantity):
 
 
 add_promotion_rule(StaticQuantity, StaticQuantity, StaticQuantity)
+add_promotion_rule(StaticQuantity, ParametricQuantity, ParametricQuantity)
 add_promotion_rule(StaticQuantity, Quantity, Quantity)
-add_promotion_rule(StaticQuantity, BareQuantity, BareQuantity)

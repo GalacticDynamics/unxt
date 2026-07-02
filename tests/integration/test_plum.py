@@ -2,11 +2,11 @@
 
 from plum import is_faithful
 
-from unxt import Quantity
+from unxt import ParametricQuantity
 
 
 def test_is_faithful():
-    """Test `unxt.Quantity` is a faithful type.
+    """Test `unxt.ParametricQuantity` is a faithful type.
 
     See
     https://beartype.github.io/plum/types.html#performance-and-faithful-types
@@ -21,9 +21,9 @@ def test_is_faithful():
 
             isinstance(x, t) == issubclass(type(x), t)
     """
-    x = Quantity(1, "m")
-    assert isinstance(x, Quantity)
-    assert issubclass(type(x), Quantity)
+    x = ParametricQuantity(1, "m")
+    assert isinstance(x, ParametricQuantity)
+    assert issubclass(type(x), ParametricQuantity)
 
     # The previous tests are equivalent to the following:
-    assert is_faithful(Quantity)
+    assert is_faithful(ParametricQuantity)

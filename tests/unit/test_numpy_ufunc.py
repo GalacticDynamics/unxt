@@ -154,7 +154,7 @@ def test_unsupported_method_raises():
 
 def test_bare_quantity_also_supported():
     """``__array_ufunc__`` is inherited by all quantity types."""
-    q = u.quantity.BareQuantity(5.0, "m")
+    q = u.quantity.Quantity(5.0, "m")
 
     got = np.multiply(q, q)
 

@@ -1,4 +1,4 @@
-"""Orthogonal Mixin classes for Quantity classes."""
+"""Orthogonal Mixin classes for ParametricQuantity classes."""
 
 __all__: tuple[str, ...] = ()
 
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 class AstropyQuantityCompatMixin:
-    """Mixin for compatibility with `astropy.units.Quantity`."""
+    """Mixin for compatibility with `astropy.units.ParametricQuantity`."""
 
     value: eqx.AbstractVar[ArrayLike]
     unit: eqx.AbstractVar[AbstractUnit]
@@ -36,11 +36,11 @@ class AstropyQuantityCompatMixin:
 
         Examples
         --------
-        >>> from unxt import Quantity
+        >>> from unxt import ParametricQuantity
 
-        >>> q = Quantity(1, "m")
+        >>> q = ParametricQuantity(1, "m")
         >>> q.to("cm")
-        Quantity(Array(100., dtype=float32, ...), unit='cm')
+        ParametricQuantity(Array(100., dtype=float32, ...), unit='cm')
 
         """
         return uapi.uconvert(u, self)  # redirect to the standard method
@@ -52,9 +52,9 @@ class AstropyQuantityCompatMixin:
 
         Examples
         --------
-        >>> from unxt import Quantity
+        >>> from unxt import ParametricQuantity
 
-        >>> q = Quantity(1, "m")
+        >>> q = ParametricQuantity(1, "m")
         >>> q.to_value("cm")
         Array(100., dtype=float32, weak_type=True)
 
@@ -68,11 +68,11 @@ class AstropyQuantityCompatMixin:
 
         Examples
         --------
-        >>> from unxt import Quantity
+        >>> from unxt import ParametricQuantity
 
-        >>> q = Quantity(1, "m")
+        >>> q = ParametricQuantity(1, "m")
         >>> q.decompose(["cm", "s"])
-        Quantity(Array(100., dtype=float32, ...), unit='cm')
+        ParametricQuantity(Array(100., dtype=float32, ...), unit='cm')
 
         """
         bases_ = [parse_unit(b) for b in bases]
@@ -92,7 +92,7 @@ SUPPORTED_IPYTHON_REPR_FORMATS: dict[str, str] = {
 
 
 class IPythonReprMixin:
-    """Mixin class for IPython representation of a Quantity."""
+    """Mixin class for IPython representation of a ParametricQuantity."""
 
     value: Array
     unit: AbstractUnit
@@ -103,7 +103,7 @@ class IPythonReprMixin:
         include: Sequence[str] | None = None,
         exclude: Sequence[str] | None = None,
     ) -> dict[str, str]:
-        r"""Return a MIME bundle representation of the Quantity.
+        r"""Return a MIME bundle representation of the ParametricQuantity.
 
         :param include: The set of keys to include in the MIME bundle. If not
             provided, all supported formats are included.
@@ -113,19 +113,19 @@ class IPythonReprMixin:
 
         Examples
         --------
-        >>> from unxt import Quantity
+        >>> from unxt import ParametricQuantity
 
-        >>> q = Quantity([1.0, 2, 3, 4], "m")
+        >>> q = ParametricQuantity([1.0, 2, 3, 4], "m")
         >>> q._repr_mimebundle_()
-        {'text/plain': "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')",
+        {'text/plain': "ParametricQuantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')",
          'text/html': '<span>[1., 2., 3., 4.]</span> * <span>Unit("m")</span>',
          'text/latex': '$[1.,~2.,~3.,~4.] \\; \\mathrm{m}$'}
 
         >>> q._repr_mimebundle_(include=["text/plain"])
-        {'text/plain': "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
+        {'text/plain': "ParametricQuantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
 
         >>> q._repr_mimebundle_(exclude=["text/html", "text/latex"])
-        {'text/plain': "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
+        {'text/plain': "ParametricQuantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
 
         """
         # Determine the set of keys to include in the MIME bundle
@@ -147,13 +147,13 @@ class IPythonReprMixin:
         }
 
     def _repr_html_(self) -> str:
-        """Return an HTML representation of the Quantity.
+        """Return an HTML representation of the ParametricQuantity.
 
         Examples
         --------
-        >>> from unxt import Quantity
+        >>> from unxt import ParametricQuantity
 
-        >>> q = Quantity([1.0, 2, 3, 4], "m")
+        >>> q = ParametricQuantity([1.0, 2, 3, 4], "m")
         >>> q._repr_html_()
         '<span>[1., 2., 3., 4.]</span> * <span>Unit("m")</span>'
 
@@ -164,13 +164,13 @@ class IPythonReprMixin:
         return f"<span>{value_repr}</span> * <span>{unit_repr}</span>"
 
     def _repr_latex_(self) -> str:
-        r"""Return a LaTeX representation of the Quantity.
+        r"""Return a LaTeX representation of the ParametricQuantity.
 
         Examples
         --------
-        >>> from unxt import Quantity
+        >>> from unxt import ParametricQuantity
 
-        >>> q = Quantity([1.0, 2, 3, 4], "m")
+        >>> q = ParametricQuantity([1.0, 2, 3, 4], "m")
         >>> q._repr_latex_()
         '$[1.,~2.,~3.,~4.] \\; \\mathrm{m}$'
 
@@ -199,10 +199,10 @@ class NumPyCompatMixin:
 
         Examples
         --------
-        >>> from unxt import Quantity
+        >>> from unxt import ParametricQuantity
         >>> import numpy as np
 
-        >>> q = Quantity(1.01, "m")
+        >>> q = ParametricQuantity(1.01, "m")
         >>> np.array(q)
         array(1.01, dtype=float32)
 
@@ -226,10 +226,10 @@ class NumPyCompatMixin:
 
         >>> q = u.Q([1.0, 2, 3, 4], "m")
         >>> np.sum(q)
-        Quantity(Array(10., dtype=float32), unit='m')
+        ParametricQuantity(Array(10., dtype=float32), unit='m')
 
         >>> np.stack([q, q])
-        Quantity(Array([[1., 2., 3., 4.],
+        ParametricQuantity(Array([[1., 2., 3., 4.],
                         [1., 2., 3., 4.]], dtype=float32), unit='m')
 
         """
@@ -258,10 +258,10 @@ class NumPyCompatMixin:
         >>> import unxt as u
 
         >>> np.multiply(u.Q(5.0, "m"), u.Q(3.0, "m"))
-        Quantity(Array(15., dtype=float32), unit='m2')
+        ParametricQuantity(Array(15., dtype=float32), unit='m2')
 
         >>> np.sqrt(u.Q(4.0, "m2"))
-        Quantity(Array(2., dtype=float32), unit='m')
+        ParametricQuantity(Array(2., dtype=float32), unit='m')
 
         """
         return apply_ufunc(ufunc, method, inputs, kwargs)

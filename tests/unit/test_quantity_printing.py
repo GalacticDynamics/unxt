@@ -1,4 +1,4 @@
-"""Tests for Quantity printing with wadler-lindig."""
+"""Tests for ParametricQuantity printing with wadler-lindig."""
 
 import equinox as eqx
 import jax
@@ -68,21 +68,21 @@ class TestShortName:
     """Test the short_name feature for wadler-lindig printing."""
 
     def test_quantity_has_short_name(self):
-        """Test that Quantity has a short_name class variable."""
+        """Test that ParametricQuantity has a short_name class variable."""
         assert hasattr(u.Q, "short_name")
         assert u.Q.short_name == "Q"
 
     def test_barequantity_no_short_name(self):
-        """Test that BareQuantity doesn't have a short_name or it's None."""
+        """Test that Quantity doesn't have a short_name or it's None."""
         # It should either not have the attribute or have it as None
-        short_name = getattr(u.quantity.BareQuantity, "short_name", None)
+        short_name = getattr(u.quantity.Quantity, "short_name", None)
         assert short_name is None
 
     def test_use_short_name_default_false(self):
         """Test that use_short_name defaults to False."""
         q = u.Q([1, 2, 3], "m")
         result = wl.pformat(q)
-        assert result.startswith("Quantity")
+        assert result.startswith("ParametricQuantity")
         assert not result.startswith("Q(")
 
     def test_use_short_name_true(self):
@@ -128,11 +128,11 @@ class TestShortName:
         assert "[1, 2, 3]" in result
 
     def test_bare_quantity_use_short_name_none(self):
-        """Test that BareQuantity with use_short_name=True still uses full name."""
-        q = u.quantity.BareQuantity([1, 2, 3], "m")
+        """Test that Quantity with use_short_name=True still uses full name."""
+        q = u.quantity.Quantity([1, 2, 3], "m")
         result = wl.pformat(q, use_short_name=True)
         # Should still use full name since short_name is None
-        assert result.startswith("BareQuantity")
+        assert result.startswith("Quantity")
 
     def test_pprint(self):
         """Test that pprint works with use_short_name."""
@@ -146,7 +146,7 @@ class TestShortName:
 
         doc = q.__pdoc__(use_short_name=False)
         formatted = wl.pformat(doc)
-        assert formatted.startswith("Quantity")
+        assert formatted.startswith("ParametricQuantity")
 
         doc = q.__pdoc__(use_short_name=True)
         formatted = wl.pformat(doc)
@@ -154,10 +154,10 @@ class TestShortName:
 
 
 class TestStringConversionWithJIT:
-    """Test that str() works on Quantity and Angle inside JAX JIT with tracers."""
+    """Test that str() works on ParametricQuantity and Angle inside JAX JIT with tracers."""
 
     def test_str_quantity_in_jit(self):
-        """Test that str(Quantity) works inside jax.jit with tracers.
+        """Test that str(ParametricQuantity) works inside jax.jit with tracers.
 
         When values are tracers inside JIT, str() should work without raising an
         error.  We verify this by calling str() during JIT tracing and returning
@@ -195,7 +195,7 @@ class TestStringConversionWithJIT:
         assert jnp.allclose(result.value, angle.value * 2)
 
     def test_str_quantity_multiple_calls_in_jit(self):
-        """Test that str(Quantity) works reliably in multiple JIT calls."""
+        """Test that str(ParametricQuantity) works reliably in multiple JIT calls."""
 
         @jax.jit
         def process_and_stringify(q: u.Q) -> u.Q:

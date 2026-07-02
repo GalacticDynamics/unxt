@@ -1,19 +1,19 @@
-# Quantity
+# ParametricQuantity
 
-## Creating Quantity Instances
+## Creating ParametricQuantity Instances
 
-`Quantity` objects are created by passing a value and a unit to the `Quantity` constructor (with `Q` as a shorthand).
+`ParametricQuantity` objects are created by passing a value and a unit to the `ParametricQuantity` constructor (with `Q` as a shorthand).
 
 ```{code-block} python
 >>> import unxt as u
 
 >>> u.Q(5, "m")
-Quantity(Array(5, dtype=int32...), unit='m')
+ParametricQuantity(Array(5, dtype=int32...), unit='m')
 ```
 
 The constructor will automatically [convert](https://beartype.github.io/plum/conversion_promotion.html#conversion-with-convert) the value to a `jax.Array` (if it is not already one) and convert the unit to a `Unit` object.
 
-The value and unit of a `Quantity` object can be accessed using the `value` and `unit` attributes, respectively:
+The value and unit of a `ParametricQuantity` object can be accessed using the `value` and `unit` attributes, respectively:
 
 ```{code-block} python
 >>> q = u.Q([1, 2, 3, 5], "m")
@@ -25,24 +25,24 @@ Unit("m")
 
 ```
 
-If you want more flexible options to create a `Quantity`, you can use the `Quantity.from_` class method. This uses multiple dispatch to determine the appropriate constructor based on the input arguments.
+If you want more flexible options to create a `ParametricQuantity`, you can use the `ParametricQuantity.from_` class method. This uses multiple dispatch to determine the appropriate constructor based on the input arguments.
 
 ```{code-block} python
->>> u.Q.from_(5, "m")  # same as Quantity(5, "m")
-Quantity(Array(5, dtype=int32...), unit='m')
+>>> u.Q.from_(5, "m")  # same as ParametricQuantity(5, "m")
+ParametricQuantity(Array(5, dtype=int32...), unit='m')
 
 >>> u.Q.from_({"value": [1, 2, 3], "unit": "m"})
-Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
 
->>> u.Q.from_(q)  # from another Quantity object
-Quantity(Array([1, 2, 3, 5], dtype=int32), unit='m')
+>>> u.Q.from_(q)  # from another ParametricQuantity object
+ParametricQuantity(Array([1, 2, 3, 5], dtype=int32), unit='m')
 
 >>> u.Q.from_(5, "m", dtype=float)  # specify the dtype
-Quantity(Array(5., dtype=float32), unit='m')
+ParametricQuantity(Array(5., dtype=float32), unit='m')
 
 ```
 
-There are many more options available with `Quantity.from_`. For a complete list of options run `Quantity.from_.methods` in an IDE.
+There are many more options available with `ParametricQuantity.from_`. For a complete list of options run `ParametricQuantity.from_.methods` in an IDE.
 
 <!-- skip: next -->
 
@@ -55,16 +55,16 @@ List of 9 method(s):
     ...
 ```
 
-`Quantity.from_` assists with interfacing with other libraries, e.g. see [Interop with Astropy](../interop/astropy.md).
+`ParametricQuantity.from_` assists with interfacing with other libraries, e.g. see [Interop with Astropy](../interop/astropy.md).
 
 ## Converting to Different Units
 
-`Quantity` objects can be converted to different units and values in those units. If you prefer an object-oriented approach, use the `uconvert` method.
+`ParametricQuantity` objects can be converted to different units and values in those units. If you prefer an object-oriented approach, use the `uconvert` method.
 
 ```{code-block} python
 >>> q = u.Q(5, "m")
 >>> q.uconvert("cm")
-Quantity(Array(500., dtype=float32, ...), unit='cm')
+ParametricQuantity(Array(500., dtype=float32, ...), unit='cm')
 ```
 
 <!-- prettier-ignore-start -->
@@ -72,11 +72,11 @@ Quantity(Array(500., dtype=float32, ...), unit='cm')
 :class: dropdown
 <!-- prettier-ignore-end -->
 
-The Astropy API `.to` is also available for `Quantity` objects.
+The Astropy API `.to` is also available for `ParametricQuantity` objects.
 
 ```{code-block} python
 >>> q.to("cm")
-Quantity(Array(500., dtype=float32, ...), unit='cm')
+ParametricQuantity(Array(500., dtype=float32, ...), unit='cm')
 ```
 
 :::
@@ -85,12 +85,12 @@ If you prefer a more functional approach, use the `uconvert` function.
 
 ```{code-block} python
 >>> u.uconvert("cm", q)
-Quantity(Array(500., dtype=float32, ...), unit='cm')
+ParametricQuantity(Array(500., dtype=float32, ...), unit='cm')
 ```
 
 ### Low-Level Value Conversion with `uconvert_value`
 
-For operations on raw numerical values without `Quantity` wrapping, use the lower-level `uconvert_value` function. This is useful when you need to perform batch conversions or work with JAX transformations.
+For operations on raw numerical values without `ParametricQuantity` wrapping, use the lower-level `uconvert_value` function. This is useful when you need to perform batch conversions or work with JAX transformations.
 
 **Basic usage with unit strings:**
 
@@ -111,13 +111,13 @@ Array([1., 2., 5.], dtype=float32, ...)
 5.0
 ```
 
-**Convenience dispatch for Quantity objects:**
+**Convenience dispatch for ParametricQuantity objects:**
 
-The `uconvert_value` function also provides a convenience dispatch that works directly with `Quantity` objects, allowing you to use the lower-level function without breaking compatibility:
+The `uconvert_value` function also provides a convenience dispatch that works directly with `ParametricQuantity` objects, allowing you to use the lower-level function without breaking compatibility:
 
 ```{code-block} python
 >>> u.uconvert_value("km", "m", q)
-Quantity(Array(0.005, dtype=float32, ...), unit='km')
+ParametricQuantity(Array(0.005, dtype=float32, ...), unit='km')
 ```
 
 This dispatch just calls `uconvert` so you don't need to extract the value manually.
@@ -125,7 +125,7 @@ This dispatch just calls `uconvert` so you don't need to extract the value manua
 **Relationship to other functions:**
 
 - `uconvert_value` operates on raw numerical values and returns raw values
-- `uconvert` operates on `Quantity` objects and returns `Quantity` objects
+- `uconvert` operates on `ParametricQuantity` objects and returns `ParametricQuantity` objects
 - Internally, `uconvert` often delegates to `uconvert_value` for the numerical conversion step
 
 **Performance considerations:**
@@ -134,7 +134,7 @@ Use `uconvert_value` directly when:
 
 - Performing batch conversions on arrays
 - Working inside JAX transformations (jit, vmap, grad)
-- Avoiding the overhead of `Quantity` objects
+- Avoiding the overhead of `ParametricQuantity` objects
 - Maximum performance is critical
 
 ```{code-block} python
@@ -163,7 +163,7 @@ Alternatively the `ustrip` method can be used.
 Array(500., dtype=float32, ...)
 ```
 
-When working with either an array or a `Quantity` object, you can use the `ustrip` function with the `unxt.quantity.AllowValue` flag to allow arrays without units to be passed in, assuming them to be in the correct output units.
+When working with either an array or a `ParametricQuantity` object, you can use the `ustrip` function with the `unxt.quantity.AllowValue` flag to allow arrays without units to be passed in, assuming them to be in the correct output units.
 
 ```{code-block} python
 >>> import jax.numpy as jnp
@@ -176,7 +176,7 @@ When working with either an array or a `Quantity` object, you can use the `ustri
 :class: dropdown
 <!-- prettier-ignore-end -->
 
-The Astropy API `.to_value` is also available for `Quantity` objects.
+The Astropy API `.to_value` is also available for `ParametricQuantity` objects.
 
 ```{code-block} python
 >>> q.to_value("cm")
@@ -187,7 +187,7 @@ Array(500., dtype=float32, ...)
 
 ## With reference to `jax.Array`
 
-`Quantity` objects are designed to mirror `jax.Array` and the [Array API](https://data-apis.org/array-api/latest/).
+`ParametricQuantity` objects are designed to mirror `jax.Array` and the [Array API](https://data-apis.org/array-api/latest/).
 
 :::{note}
 
@@ -195,27 +195,27 @@ If you find that a method or property is missing, please open an issue on the [G
 
 :::
 
-This means you can perform operations on `Quantity` objects just like you would with `jax.Array`.
+This means you can perform operations on `ParametricQuantity` objects just like you would with `jax.Array`.
 
 ### Arithmetic Operations
 
-You can perform standard mathematical operations on `Quantity` objects:
+You can perform standard mathematical operations on `ParametricQuantity` objects:
 
 ```{code-block} python
 >>> q1 = u.Q(5, "m")
 >>> q2 = u.Q(10, "m")
 
 >>> q1 + q2
-Quantity(Array(15, dtype=int32...), unit='m')
+ParametricQuantity(Array(15, dtype=int32...), unit='m')
 
 >>> q1 * 1.5
-Quantity(Array(7.5, dtype=float32, ...), unit='m')
+ParametricQuantity(Array(7.5, dtype=float32, ...), unit='m')
 
 >>> q1 / q2
-Quantity(Array(0.5, dtype=float32...), unit='')
+ParametricQuantity(Array(0.5, dtype=float32...), unit='')
 
 >>> q1 ** 2
-Quantity(Array(25, dtype=int32...), unit='m2')
+ParametricQuantity(Array(25, dtype=int32...), unit='m2')
 
 ```
 
@@ -226,10 +226,10 @@ Quantity(Array(25, dtype=int32...), unit='m2')
 >>> q2 = u.Q([100., 201, 300], "cm")
 
 >>> q1 < q2
-Quantity(Array([False,  True, False], dtype=bool), unit='')
+ParametricQuantity(Array([False,  True, False], dtype=bool), unit='')
 
 >>> q1 == q2
-Quantity(Array([ True, False,  True], dtype=bool), unit='')
+ParametricQuantity(Array([ True, False,  True], dtype=bool), unit='')
 
 ```
 
@@ -239,10 +239,10 @@ Quantity(Array([ True, False,  True], dtype=bool), unit='')
 >>> q = u.Q([1, 2, 3, 4], "m")
 
 >>> q[1]
-Quantity(Array(2, dtype=int32), unit='m')
+ParametricQuantity(Array(2, dtype=int32), unit='m')
 
 >>> q[1:]
-Quantity(Array([2, 3, 4], dtype=int32), unit='m')
+ParametricQuantity(Array([2, 3, 4], dtype=int32), unit='m')
 
 ```
 
@@ -254,7 +254,7 @@ Quantity(Array([2, 3, 4], dtype=int32), unit='m')
 >>> q = u.Q([1., 2, 3, 4], "m")
 
 >>> q.at[2].set(u.Q(30.1, "cm"))
-Quantity(Array([1.   , 2.   , 0.301, 4.   ], dtype=float32), unit='m')
+ParametricQuantity(Array([1.   , 2.   , 0.301, 4.   ], dtype=float32), unit='m')
 
 ```
 
@@ -273,9 +273,9 @@ not a pure JAX array
 
 ```
 
-We use `quax` to enable Quantity support across most of the JAX ecosystem! See the [quax docs](https://docs.kidger.site/quax/) for implementation details. The short version is that you can use `Quantity` in JAX functions so long they pass through a [`quax.quaxify`](https://docs.kidger.site/quax/api/quax/#quax.quaxify) call. Here are a few examples:
+We use `quax` to enable ParametricQuantity support across most of the JAX ecosystem! See the [quax docs](https://docs.kidger.site/quax/) for implementation details. The short version is that you can use `ParametricQuantity` in JAX functions so long they pass through a [`quax.quaxify`](https://docs.kidger.site/quax/api/quax/#quax.quaxify) call. Here are a few examples:
 
-This is the way to "quaxify" a JAX function. A powerful feature of `quaxify` is that it enables `Quantity` support through _all_ the JAX functions inside the top function. With `unxt` you can use normal JAX!
+This is the way to "quaxify" a JAX function. A powerful feature of `quaxify` is that it enables `ParametricQuantity` support through _all_ the JAX functions inside the top function. With `unxt` you can use normal JAX!
 
 ```{code-block} python
 :emphasize-lines: 4
@@ -283,13 +283,13 @@ This is the way to "quaxify" a JAX function. A powerful feature of `quaxify` is 
 >>> import jax.numpy as jnp  # regular JAX
 >>> from quax import quaxify
 
->>> @quaxify  # Now it works with Quantity... that's it!
+>>> @quaxify  # Now it works with ParametricQuantity... that's it!
 ... def func(x, y):
 ...     return jnp.square(x) + jnp.multiply(x, y)  # normal JAX
 
 >>> y = u.Q([4, 5, 6], "m")
 >>> func(x, y)
-Quantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
+ParametricQuantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
 
 ```
 
@@ -301,7 +301,7 @@ Quantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
 >>> import quaxed.numpy as jnp  # pre-quaxified JAX
 
 >>> jnp.square(x) + jnp.multiply(x, y)
-Quantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
+ParametricQuantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
 
 ```
 
@@ -309,13 +309,13 @@ Quantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
 
 :::{attention}
 
-`Quantity` should support **all** JAX functions. If you find a function that doesn't work, please open an issue on the [GitHub repository](https://github.com/GalacticDynamics/unxt).
+`ParametricQuantity` should support **all** JAX functions. If you find a function that doesn't work, please open an issue on the [GitHub repository](https://github.com/GalacticDynamics/unxt).
 
 :::
 
 ## Pretty Printing
 
-`Quantity` objects support the [`wadler_lindig`](https://docs.kidger.site/wadler_lindig) library for pretty printing.
+`ParametricQuantity` objects support the [`wadler_lindig`](https://docs.kidger.site/wadler_lindig) library for pretty printing.
 
 ```{code-block} python
 
@@ -324,7 +324,7 @@ Quantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
 >>> q = u.Q([1, 2, 3], "m")
 
 >>> wl.pprint(q)  # The default pretty printing
-Quantity(i32[3], unit='m')
+ParametricQuantity(i32[3], unit='m')
 
 ```
 
@@ -333,7 +333,7 @@ The type parameter can be included in the representation:
 ```{code-block} python
 
 >>> wl.pprint(q, include_params=True)
-Quantity['length'](i32[3], unit='m')
+ParametricQuantity['length'](i32[3], unit='m')
 
 ```
 
@@ -342,7 +342,7 @@ The `str` method uses this as well:
 ```{code-block} python
 
 >>> print(q)
-Quantity['length']([1, 2, 3], unit='m')
+ParametricQuantity['length']([1, 2, 3], unit='m')
 
 ```
 
@@ -351,7 +351,7 @@ Arrays can be printed in full:
 ```{code-block} python
 
 >>> wl.pprint(q, short_arrays=False)
-Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
 
 ```
 
@@ -360,7 +360,7 @@ The `repr` method uses this setting:
 ```{code-block} python
 
 >>> print(repr(q))
-Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
 
 ```
 
@@ -369,7 +369,7 @@ The units can be turned from a named argument to a positional argument by settin
 ```{code-block} python
 
 >>> wl.pprint(q, named_unit=False)
-Quantity(i32[3], 'm')
+ParametricQuantity(i32[3], 'm')
 
 ```
 
@@ -378,11 +378,11 @@ Instead of printing the value as either a full Array or a short array, you can c
 ```{code-block} python
 
 >>> wl.pprint(q, short_arrays="compact")
-Quantity([1, 2, 3], unit='m')
+ParametricQuantity([1, 2, 3], unit='m')
 
 ```
 
-For more compact output, the `Quantity` class has a short name `Q` that can be used by setting `use_short_name=True`:
+For more compact output, the `ParametricQuantity` class has a short name `Q` that can be used by setting `use_short_name=True`:
 
 ```{code-block} python
 
@@ -405,15 +405,15 @@ Q([1, 2, 3], unit='m')
 
 See the [`wadler_lindig` documentation](https://docs.kidger.site/wadler_lindig) for more details on the pretty printing options.
 
-# Specialized Quantity Objects
+# Specialized ParametricQuantity Objects
 
 ## Working with `Angle` Objects
 
-The {class}`~unxt.quantity.Angle` class is a specialized quantity for representing angular measurements, similar to {class}`~unxt.quantity.Quantity` but with additional features and constraints tailored for angles.
+The {class}`~unxt.quantity.Angle` class is a specialized quantity for representing angular measurements, similar to {class}`~unxt.quantity.ParametricQuantity` but with additional features and constraints tailored for angles.
 
 ### Creating Angles
 
-You can create an {class}`~unxt.quantity.Angle` just like a {class}`~unxt.quantity.Quantity`, by specifying a value and a unit with angular dimensions:
+You can create an {class}`~unxt.quantity.Angle` just like a {class}`~unxt.quantity.ParametricQuantity`, by specifying a value and a unit with angular dimensions:
 
 ```{code-block} python
 >>> a = u.Angle(45, "deg")
@@ -421,7 +421,7 @@ You can create an {class}`~unxt.quantity.Angle` just like a {class}`~unxt.quanti
 Angle(Array(45, dtype=int32...), unit='deg')
 ```
 
-Just like {class}`~unxt.quantity.Quantity`, you can flexibly create {class}`~unxt.quantity.Angle` objects using the {meth}`~unxt.quantity.Angle.from_` constructor:
+Just like {class}`~unxt.quantity.ParametricQuantity`, you can flexibly create {class}`~unxt.quantity.Angle` objects using the {meth}`~unxt.quantity.Angle.from_` constructor:
 
 ```{code-block} python
 >>> u.Angle.from_(45, "deg")
@@ -437,7 +437,7 @@ Angle(Array([10, 15, 20], dtype=int32), unit='deg')
 
 ### Mathematical Operations
 
-{class}`~unxt.quantity.Angle` objects support arithmetic operations, broadcasting, and most mathematical functions, just like {class}`~unxt.quantity.Quantity`:
+{class}`~unxt.quantity.Angle` objects support arithmetic operations, broadcasting, and most mathematical functions, just like {class}`~unxt.quantity.ParametricQuantity`:
 
 ```{code-block} python
 >>> b = u.Angle(30, "deg")
@@ -453,7 +453,7 @@ For more information on mathematical operations, see the unxt documentation.
 
 ### Enforced Dimensionality
 
-Unlike a generic {class}`~unxt.quantity.Quantity`, the {class}`~unxt.quantity.Angle` class enforces that the unit must be angular (e.g., degrees, radians). Attempting to use a non-angular unit will raise an error:
+Unlike a generic {class}`~unxt.quantity.ParametricQuantity`, the {class}`~unxt.quantity.Angle` class enforces that the unit must be angular (e.g., degrees, radians). Attempting to use a non-angular unit will raise an error:
 
 ```{code-block} python
 >>> try: u.Angle(1, "m")
@@ -497,12 +497,12 @@ The {class}`~unxt.quantity.StaticQuantity` class is a parametric quantity with a
 ...     return jq + u.Q(jnp.asarray(sq.value), sq.unit)
 
 >>> add(jq, sq)
-Quantity(Array([2., 3.], dtype=float32), unit='m')
+ParametricQuantity(Array([2., 3.], dtype=float32), unit='m')
 ```
 
-## Working with `StaticValue` in `Quantity`
+## Working with `StaticValue` in `ParametricQuantity`
 
-If you want a regular {class}`~unxt.quantity.Quantity` but need its value to be static (for hashing or static JAX arguments), wrap the value with {class}`~unxt.quantity.StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`:
+If you want a regular {class}`~unxt.quantity.ParametricQuantity` but need its value to be static (for hashing or static JAX arguments), wrap the value with {class}`~unxt.quantity.StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`:
 
 ```{code-block} python
 >>> import numpy as np
@@ -514,12 +514,12 @@ If you want a regular {class}`~unxt.quantity.Quantity` but need its value to be 
 >>> q = u.Q(jnp.array([3.0, 4.0]), "m")
 
 >>> q_static + q
-Quantity(Array([4., 6.], dtype=float32), unit='m')
+ParametricQuantity(Array([4., 6.], dtype=float32), unit='m')
 ```
 
 ### Equality returns a scalar `bool`
 
-The equality operator on a `Quantity` backed by a `StaticValue` returns a **scalar `bool`**, not an element-wise array. This is the key property that makes it usable as a `static_argnames` argument in {func}`jax.jit`.
+The equality operator on a `ParametricQuantity` backed by a `StaticValue` returns a **scalar `bool`**, not an element-wise array. This is the key property that makes it usable as a `static_argnames` argument in {func}`jax.jit`.
 
 ```{code-block} python
 >>> sv1 = u.quantity.StaticValue(np.array([1.0, 2.0]))
@@ -540,18 +540,18 @@ Unit conversion is applied before comparison, so equivalent quantities in differ
 True
 ```
 
-This contrasts with a regular `Quantity` (JAX array value), where `==` follows NumPy broadcasting and returns a per-element boolean array wrapped in a dimensionless `Quantity` (so the result shares a namespace with the input, per the Array API):
+This contrasts with a regular `ParametricQuantity` (JAX array value), where `==` follows NumPy broadcasting and returns a per-element boolean array wrapped in a dimensionless `ParametricQuantity` (so the result shares a namespace with the input, per the Array API):
 
 ```{code-block} python
 >>> q1 = u.Q([1.0, 2.0], "m")
 >>> q2 = u.Q([1.0, 9.0], "m")
 >>> q1 == q2
-Quantity(Array([ True, False], dtype=bool), unit='')
+ParametricQuantity(Array([ True, False], dtype=bool), unit='')
 ```
 
-### Using `Quantity(StaticValue)` as a `jax.jit` static argument
+### Using `ParametricQuantity(StaticValue)` as a `jax.jit` static argument
 
-Because equality returns `bool` and `StaticValue` is hashable, the whole `Quantity` is hashable, which lets JAX use it as a compile-time constant:
+Because equality returns `bool` and `StaticValue` is hashable, the whole `ParametricQuantity` is hashable, which lets JAX use it as a compile-time constant:
 
 ```{code-block} python
 from functools import partial
@@ -572,8 +572,8 @@ rescale(jnp.ones(2), scale=new_scale)  # different value → recompiles
 
 ```{tip}
 Prefer {class}`~unxt.quantity.StaticQuantity` when the entire quantity is
-static.  Use `Quantity(StaticValue, ...)` when you need the dynamic/static
-distinction to live at the *value* level while keeping the `Quantity` type.
+static.  Use `ParametricQuantity(StaticValue, ...)` when you need the dynamic/static
+distinction to live at the *value* level while keeping the `ParametricQuantity` type.
 ```
 
 ---

@@ -9,7 +9,7 @@
 
 ## TL;DR
 
-You can tell functions about the dtype, shape, and dimensions of a `Quantity`. The dtype and shape information can be checked statically, and all three can be checked at runtime.
+You can tell functions about the dtype, shape, and dimensions of a `ParametricQuantity`. The dtype and shape information can be checked statically, and all three can be checked at runtime.
 
 In the following example we will define a function that operates on two length-'N' (1-D and equally-shaped) float dtype arrays. The function takes a length and a time and returns a velocity.
 
@@ -27,7 +27,7 @@ def function(
 
 ```
 
-For information on typing in Python see [the built-in `typing` module][typing-link]. Refer to the [`jaxtyping` library][jaxtyping-link] for information on how to annotate the dtype and shape of a Quantity, for example integer arrays or variable / context-dependent shapes. `jaxtyping` also powers `unxt`'s runtime typechecking, discussed next.
+For information on typing in Python see [the built-in `typing` module][typing-link]. Refer to the [`jaxtyping` library][jaxtyping-link] for information on how to annotate the dtype and shape of a ParametricQuantity, for example integer arrays or variable / context-dependent shapes. `jaxtyping` also powers `unxt`'s runtime typechecking, discussed next.
 
 ## Runtime Type Checking
 
@@ -92,15 +92,15 @@ Here's an example:
 >>> t = u.Q([1.], "s")
 
 >>> velocity(x, t)
-Quantity(Array([2.], dtype=float32), unit='m / s')
+ParametricQuantity(Array([2.], dtype=float32), unit='m / s')
 
 ```
 
-## Dimension Annotations to Quantity
+## Dimension Annotations to ParametricQuantity
 
-In the previous sections `Quantity` annotations had strings specifying the dimensions of that Quantity. Let's explore this a little more deeply.
+In the previous sections `ParametricQuantity` annotations had strings specifying the dimensions of that ParametricQuantity. Let's explore this a little more deeply.
 
-First the theory. Python classes can be 'parametric', where the class is parametrized by a set of metadata. The most common example of this is for [generics][typing-Generics-link] in the [builtin `typing` library][typing-link] where the metadata is type information about a function or object. This is useful for static type checking. However we are not limited to only type information. Classes can implement any form of parametric design (see [here](https://docs.python.org/3/reference/datamodel.html#object.__class_getitem__)). We use the library [`plum`][plum-link], on which `unxt` depends, to [enhance](https://beartype.github.io/plum/parametric.html) Python's parametric functionality and enable `Quantity` classes to be parametrized by their unit's dimensions in a way that can be checked by runtime type checkers.
+First the theory. Python classes can be 'parametric', where the class is parametrized by a set of metadata. The most common example of this is for [generics][typing-Generics-link] in the [builtin `typing` library][typing-link] where the metadata is type information about a function or object. This is useful for static type checking. However we are not limited to only type information. Classes can implement any form of parametric design (see [here](https://docs.python.org/3/reference/datamodel.html#object.__class_getitem__)). We use the library [`plum`][plum-link], on which `unxt` depends, to [enhance](https://beartype.github.io/plum/parametric.html) Python's parametric functionality and enable `ParametricQuantity` classes to be parametrized by their unit's dimensions in a way that can be checked by runtime type checkers.
 
 Now for some examples.
 
@@ -108,21 +108,21 @@ Now for some examples.
 >>> import unxt as u
 ```
 
-When a `Quantity` is constructed it is parametrized by the unit's dimension. This can be specified explicitly
+When a `ParametricQuantity` is constructed it is parametrized by the unit's dimension. This can be specified explicitly
 
 ```{code-block}
 >>> u.Q["length"](1, "m")
-Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+ParametricQuantity['length'](Array(1, dtype=int32, ...), unit='m')
 ```
 
 or inferred.
 
 ```{code-block}
 >>> u.Q(1, "m")
-Quantity['length'](Array(1, dtype=int32, ...), unit='m')
+ParametricQuantity['length'](Array(1, dtype=int32, ...), unit='m')
 ```
 
-When given explicitly Quantity will check the input dimensions. Here a length-parametrized Quantity is (correctly) refusing dimensions of time.
+When given explicitly ParametricQuantity will check the input dimensions. Here a length-parametrized ParametricQuantity is (correctly) refusing dimensions of time.
 
 ```{code-block} python
 >>> try:
@@ -134,21 +134,21 @@ Physical type mismatch.
 
 That should catch some bugs!
 
-The act of filling a `Quantity`'s parameters and its construction may be separated
+The act of filling a `ParametricQuantity`'s parameters and its construction may be separated
 
 ```{code-block} python
 >>> LengthQuantity = u.Q["length"]
 >>> LengthQuantity
-<class 'unxt...Quantity[PhysicalType('length')]'>
+<class 'unxt...ParametricQuantity[PhysicalType('length')]'>
 ```
 
 This parametric design is how `unxt` supports runtime type checking.
 
-In `unxt` not all Quantity classes are parametric. The base class, {class}`unxt.quantity.AbstractQuantity` is not parametric, nor is the concrete class {class}`unxt.quantity.BareQuantity`. Parametric classes incur a small performance overhead (generally eliminated in [`jit`ted code][JAX-jit-link]), which ultra-performance-optimized code might want to avoid, at the cost of inference and checking of the dimensions.
+In `unxt` not all ParametricQuantity classes are parametric. The base class, {class}`unxt.quantity.AbstractQuantity` is not parametric, nor is the concrete class {class}`unxt.quantity.Quantity`. Parametric classes incur a small performance overhead (generally eliminated in [`jit`ted code][JAX-jit-link]), which ultra-performance-optimized code might want to avoid, at the cost of inference and checking of the dimensions.
 
 :::{note}
 
-`BareQuantity[<dimension>]` **does nothing** and is for informational purposes only.
+`Quantity[<dimension>]` **does nothing** and is for informational purposes only.
 
 :::
 

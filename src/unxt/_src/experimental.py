@@ -32,7 +32,7 @@ import jax
 from jaxtyping import ArrayLike
 from plum import type_unparametrized
 
-from .quantity import AbstractQuantity, BareQuantity
+from .quantity import AbstractQuantity, Quantity
 from .units import AbstractUnit
 from unxt_api import unit, unit_of, ustrip
 
@@ -73,7 +73,7 @@ def grad(
 
     >>> grad_cube_volume = u.experimental.grad(cube_volume, units=("m",))
     >>> grad_cube_volume(u.Q(2.0, "m"))
-    Quantity(Array(12., dtype=float32...), unit='m2')
+    ParametricQuantity(Array(12., dtype=float32...), unit='m2')
 
     """
     theunits: tuple[AbstractUnit | None, ...] = tuple(map(unit_or_none, units))
@@ -82,23 +82,23 @@ def grad(
     @ft.partial(jax.grad, argnums=argnums)
     def gradfun_mag(*args: Any) -> ArrayLike:
         args_ = (
-            (a if unit is None else BareQuantity(a, unit))
+            (a if unit is None else Quantity(a, unit))
             for a, unit in zip(args, theunits, strict=True)
         )
         return ustrip(fun(*args_))  # type: ignore[arg-type]
 
     def gradfun(*args: *Args) -> R:
-        # Get the value of the args. They are turned back into Quantity
+        # Get the value of the args. They are turned back into ParametricQuantity
         # inside the function we are taking the grad of.
         args_ = tuple(  # type: ignore[var-annotated]
             (a if unit is None else ustrip(unit, a))
             for a, unit in zip(args, theunits, strict=True)  # type: ignore[arg-type]
         )
-        # Call the grad, returning a Quantity
+        # Call the grad, returning a ParametricQuantity
         value = fun(*args)
         grad_value = gradfun_mag(*args_)
-        # Adjust the Quantity by the units of the derivative
-        # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
+        # Adjust the ParametricQuantity by the units of the derivative
+        # TODO: get ParametricQuantity[unit] / unit2 -> ParametricQuantity[unit/unit2] working
         return type_unparametrized(value)(
             grad_value, unit_of(value) / theunits[argnums]
         )
@@ -135,7 +135,7 @@ def jacfwd(
 
     >>> jacfwd_cubbe_volume = u.experimental.jacfwd(cubbe_volume, units=("m",))
     >>> jacfwd_cubbe_volume(u.Q(2.0, "m"))
-    BareQuantity(Array(12., dtype=float32...), unit='m2')
+    Quantity(Array(12., dtype=float32...), unit='m2')
 
     """
     argnums = eqx.error_if(
@@ -149,23 +149,23 @@ def jacfwd(
     @ft.partial(jax.jacfwd, argnums=argnums)
     def jacfun_mag(*args: Any) -> R:
         args_ = tuple(
-            (a if unit is None else BareQuantity(a, unit))
+            (a if unit is None else Quantity(a, unit))
             for a, unit in zip(args, theunits, strict=True)
         )
         return fun(*args_)  # type: ignore[arg-type]
 
     def jacfun(*args: *Args) -> R:
-        # Get the value of the args. They are turned back into Quantity
+        # Get the value of the args. They are turned back into ParametricQuantity
         # inside the function we are taking the Jacobian of.
         args_ = tuple(  # type: ignore[var-annotated]
             (a if unit is None else ustrip(unit, a))
             for a, unit in zip(args, theunits, strict=True)  # type: ignore[arg-type]
         )
-        # Call the Jacobian, returning a Quantity
+        # Call the Jacobian, returning a ParametricQuantity
         value = jacfun_mag(*args_)
-        # Adjust the Quantity by the units of the derivative
+        # Adjust the ParametricQuantity by the units of the derivative
         # TODO: check the unit correction
-        # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
+        # TODO: get ParametricQuantity[unit] / unit2 -> ParametricQuantity[unit/unit2] working
         return type_unparametrized(value)(
             ustrip(value), unit_of(value) / theunits[argnums]
         )
@@ -202,7 +202,7 @@ def hessian(
 
     >>> hessian_cubbe_volume = u.experimental.hessian(cubbe_volume, units=("m",))
     >>> hessian_cubbe_volume(u.Q(2.0, "m"))
-    BareQuantity(Array(12., dtype=float32...), unit='m')
+    Quantity(Array(12., dtype=float32...), unit='m')
 
     """
     theunits: tuple[AbstractUnit, ...] = tuple(map(unit_or_none, units))
@@ -210,23 +210,23 @@ def hessian(
     @ft.partial(jax.hessian)
     def hessfun_mag(*args: Any) -> R:
         args_ = tuple(
-            (a if unit is None else BareQuantity(a, unit))
+            (a if unit is None else Quantity(a, unit))
             for a, unit in zip(args, theunits, strict=True)
         )
         return fun(*args_)  # type: ignore[arg-type]
 
     def hessfun(*args: *Args) -> R:
-        # Get the value of the args. They are turned back into Quantity
+        # Get the value of the args. They are turned back into ParametricQuantity
         # inside the function we are taking the hessian of.
         args_ = tuple(  # type: ignore[var-annotated]
             (a if unit is None else ustrip(unit, a))
             for a, unit in zip(args, units, strict=True)  # type: ignore[arg-type]
         )
-        # Call the hessian, returning a Quantity
+        # Call the hessian, returning a ParametricQuantity
         value = hessfun_mag(*args_)
-        # Adjust the Quantity by the units of the derivative
+        # Adjust the ParametricQuantity by the units of the derivative
         # TODO: check the unit correction
-        # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
+        # TODO: get ParametricQuantity[unit] / unit2 -> ParametricQuantity[unit/unit2] working
         return type_unparametrized(value)(
             ustrip(value), unit_of(value) / theunits[argnums] ** 2
         )

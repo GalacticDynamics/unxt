@@ -11,7 +11,7 @@ import plum
 from jaxtyping import ArrayLike
 
 from .base import AbstractQuantity
-from .quantity import Quantity
+from .parametric import ParametricQuantity
 from unxt_api import ustrip
 
 # -----------------------------------------------
@@ -29,16 +29,20 @@ def arange(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt import ParametricQuantity
 
-    >>> jnp.arange(Quantity(5, "m"))
-    Quantity(Array([0, 1, 2, 3, 4], dtype=int32), unit='m')
+    >>> jnp.arange(ParametricQuantity(5, "m"))
+    ParametricQuantity(Array([0, 1, 2, 3, 4], dtype=int32), unit='m')
 
-    >>> jnp.arange(Quantity(5, "m"), Quantity(10, "m"))
-    Quantity(Array([5, 6, 7, 8, 9], dtype=int32), unit='m')
+    >>> jnp.arange(ParametricQuantity(5, "m"), ParametricQuantity(10, "m"))
+    ParametricQuantity(Array([5, 6, 7, 8, 9], dtype=int32), unit='m')
 
-    >>> jnp.arange(Quantity(5, "m"), Quantity(10, "m"), Quantity(2, "m"))
-    Quantity(Array([5, 7, 9], dtype=int32), unit='m')
+    >>> jnp.arange(
+    ...     ParametricQuantity(5, "m"),
+    ...     ParametricQuantity(10, "m"),
+    ...     ParametricQuantity(2, "m"),
+    ... )
+    ParametricQuantity(Array([5, 7, 9], dtype=int32), unit='m')
 
     """
     unit = start.unit
@@ -65,10 +69,10 @@ def empty_like(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt import ParametricQuantity
 
-    >>> jnp.empty_like(Quantity(5, "m"))
-    Quantity(Array(0, dtype=int32...), unit='m')
+    >>> jnp.empty_like(ParametricQuantity(5, "m"))
+    ParametricQuantity(Array(0, dtype=int32...), unit='m')
 
     """
     out = plum.type_unparametrized(x)(jax_xp.empty_like(x.value, **kwargs), unit=x.unit)
@@ -87,14 +91,16 @@ def full(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt import ParametricQuantity
 
-    >>> jnp.full((2, 2), Quantity(5, "m"))
-    Quantity(Array([[5, 5], [5, 5]], dtype=int32...), unit='m')
+    >>> jnp.full((2, 2), ParametricQuantity(5, "m"))
+    ParametricQuantity(Array([[5, 5], [5, 5]], dtype=int32...), unit='m')
 
     """
     fill_val = ustrip(fill_value.unit, fill_value)
-    return Quantity(jax_xp.full(shape, fill_val, **kwargs), unit=fill_value.unit)
+    return ParametricQuantity(
+        jax_xp.full(shape, fill_val, **kwargs), unit=fill_value.unit
+    )
 
 
 # -----------------------------------------------
@@ -109,10 +115,12 @@ def full_like(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt import ParametricQuantity
 
-    >>> jnp.full_like(Quantity(5, "m"), fill_value=Quantity(10, "m"))
-    Quantity(Array(10, dtype=int32...), unit='m')
+    >>> jnp.full_like(
+    ...     ParametricQuantity(5, "m"), fill_value=ParametricQuantity(10, "m")
+    ... )
+    ParametricQuantity(Array(10, dtype=int32...), unit='m')
 
     """
     # re-dispatch to the correct implementation
@@ -128,10 +136,10 @@ def full_like(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt import ParametricQuantity
 
-    >>> jnp.full_like(Quantity(5, "m"), 100.0)
-    Quantity(Array(100, dtype=int32...), unit='m')
+    >>> jnp.full_like(ParametricQuantity(5, "m"), 100.0)
+    ParametricQuantity(Array(100, dtype=int32...), unit='m')
 
     """
     return plum.type_unparametrized(x)(
@@ -148,10 +156,10 @@ def full_like(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt import ParametricQuantity
 
-    >>> jnp.full_like(Quantity(5, "m"), Quantity(10, "m"))
-    Quantity(Array(10, dtype=int32...), unit='m')
+    >>> jnp.full_like(ParametricQuantity(5, "m"), ParametricQuantity(10, "m"))
+    ParametricQuantity(Array(10, dtype=int32...), unit='m')
 
     """
     fill_val = ustrip(x.unit, fill_value)
@@ -172,10 +180,10 @@ def linspace(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt import ParametricQuantity
 
-    >>> jnp.linspace(Quantity(0, "m"), Quantity(10, "m"), 5)
-    Quantity(Array([ 0. ,  2.5,  5. ,  7.5, 10. ], dtype=float32), unit='m')
+    >>> jnp.linspace(ParametricQuantity(0, "m"), ParametricQuantity(10, "m"), 5)
+    ParametricQuantity(Array([ 0. ,  2.5,  5. ,  7.5, 10. ], dtype=float32), unit='m')
 
     """
     unit = start.unit
@@ -194,10 +202,10 @@ def linspace(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt import ParametricQuantity
 
-    >>> jnp.linspace(Quantity(0, "m"), Quantity(10, "m"), num=5)
-    Quantity(Array([ 0. ,  2.5,  5. ,  7.5, 10. ], dtype=float32), unit='m')
+    >>> jnp.linspace(ParametricQuantity(0, "m"), ParametricQuantity(10, "m"), num=5)
+    ParametricQuantity(Array([ 0. ,  2.5,  5. ,  7.5, 10. ], dtype=float32), unit='m')
 
     """
     unit = start.unit
@@ -218,10 +226,10 @@ def ones_like(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt import ParametricQuantity
 
-    >>> jnp.ones_like(Quantity(5, "m"))
-    Quantity(Array(1, dtype=int32...), unit='m')
+    >>> jnp.ones_like(ParametricQuantity(5, "m"))
+    ParametricQuantity(Array(1, dtype=int32...), unit='m')
 
     """
     cls = plum.type_unparametrized(x)
@@ -241,10 +249,10 @@ def zeros_like(
     Examples
     --------
     >>> import quaxed.numpy as jnp
-    >>> from unxt import Quantity
+    >>> from unxt import ParametricQuantity
 
-    >>> jnp.zeros_like(Quantity(5, "m"))
-    Quantity(Array(0, dtype=int32...), unit='m')
+    >>> jnp.zeros_like(ParametricQuantity(5, "m"))
+    ParametricQuantity(Array(0, dtype=int32...), unit='m')
 
     """
     cls = plum.type_unparametrized(x)

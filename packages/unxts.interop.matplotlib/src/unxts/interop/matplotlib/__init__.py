@@ -1,7 +1,7 @@
 """matplotlib integration for unxt.
 
 This is the canonical package (unxts.interop.matplotlib). It registers a
-`matplotlib.units.ConversionInterface` so `unxt.Quantity` objects can be
+`matplotlib.units.ConversionInterface` so `unxt.ParametricQuantity` objects can be
 plotted directly with `matplotlib`.
 """
 

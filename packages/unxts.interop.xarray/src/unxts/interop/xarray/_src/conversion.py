@@ -25,7 +25,7 @@ UNIT_ATTR: Final = "units"
 
 def _array_attach_units(
     data: Any, /, unit: u.AbstractUnit | str | None
-) -> u.Quantity | Any:
+) -> u.ParametricQuantity | Any:
     """Attach units to array data.
 
     Parameters
@@ -37,8 +37,8 @@ def _array_attach_units(
 
     Returns
     -------
-    Quantity | array-like
-        If unit is not None, returns a Quantity. Otherwise returns data unchanged.
+    ParametricQuantity | array-like
+        If unit is not None, returns a ParametricQuantity. Otherwise returns data unchanged.
 
     Examples
     --------
@@ -49,7 +49,7 @@ def _array_attach_units(
     >>> data = jnp.array([1.0, 2.0, 3.0])
     >>> q = _array_attach_units(data, "m")
     >>> q
-    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
+    ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     >>> _array_attach_units(data, None) is data
     True
@@ -159,7 +159,7 @@ def extract_units(obj: DataArray, /) -> dict[Hashable, u.AbstractUnit | None]:
     >>> import unxt as u
     >>> from unxts.interop.xarray._src.conversion import extract_units
 
-    >>> q = u.Quantity([1.0, 2.0], "m")
+    >>> q = u.ParametricQuantity([1.0, 2.0], "m")
     >>> da = xr.DataArray(q, dims=["x"])
     >>> units = extract_units(da)
     >>> units[None]
@@ -238,7 +238,7 @@ def attach_units(
     >>> da = xr.DataArray([1.0, 2.0], dims=["x"])
     >>> quantified = attach_units(da, {None: "m"})
     >>> quantified.data
-    Quantity(Array([1., 2.], dtype=float32), unit='m')
+    ParametricQuantity(Array([1., 2.], dtype=float32), unit='m')
 
     """
     # Handle the data array itself (None key = the DataArray's own data)
@@ -332,7 +332,7 @@ def strip_units(obj: DataArray) -> DataArray:
     >>> import unxt as u
     >>> from unxts.interop.xarray._src.conversion import strip_units
 
-    >>> q = u.Quantity([1.0, 2.0], "m")
+    >>> q = u.ParametricQuantity([1.0, 2.0], "m")
     >>> da = xr.DataArray(q, dims=["x"])
     >>> stripped = strip_units(da)
     >>> stripped.data

@@ -3,7 +3,7 @@
 This guide covers common pitfalls and surprising behaviors when working with `unxt` quantities in JAX. Like JAX itself, `unxt` has some "sharp bits" — behaviors that might surprise you if you're coming from NumPy or non-JAX Python scientific computing.
 
 ```{tip}
-If you're new to `unxt`, start with the [Quantity guide](quantity.md) first.
+If you're new to `unxt`, start with the [ParametricQuantity guide](quantity.md) first.
 This guide assumes you're familiar with basic `unxt` usage.
 ```
 
@@ -64,7 +64,7 @@ new_q = replace(q, value=q.value.at[0].set(5.0))
 
 ## JAX Control Flow
 
-### ❌ Problem: Control Flow on Quantity Values
+### ❌ Problem: Control Flow on ParametricQuantity Values
 
 JAX control flow requires special handling, independent of unit considerations:
 
@@ -144,8 +144,8 @@ import quaxed.numpy as jnp  # Note: quaxed, not jax
 q = u.Q([1.0, 2.0, 3.0], "m")
 
 # ✅ These preserve quantities correctly
-result = jnp.concat([q, q])  # Still Quantity
-result = jnp.stack([q, q])  # Still Quantity
+result = jnp.concat([q, q])  # Still ParametricQuantity
+result = jnp.stack([q, q])  # Still ParametricQuantity
 ```
 
 **General rule:** Import from `quaxed` when working with `unxt` quantities:
@@ -205,7 +205,7 @@ except Exception as e:
     print(e)
 ```
 
-**Why it works:** The units are static on the Quantity PyTree. {mod}`unxt` can catch dimension mismatches during tracing.
+**Why it works:** The units are static on the ParametricQuantity PyTree. {mod}`unxt` can catch dimension mismatches during tracing.
 
 ### ❌ Problem: Units Triggering Recompilation
 
@@ -247,16 +247,16 @@ result = add_lengths_m(u.Q(5.0, "m"), length_m_input)
 
 **Key insight:** Dimensions are checked statically, but each unique combination of units creates a new compiled version.
 
-## Mixing Quantity Types
+## Mixing ParametricQuantity Types
 
-### ❌ Problem: Confused by BareQuantity vs Quantity
+### ❌ Problem: Confused by Quantity vs ParametricQuantity
 
 Different quantity types have different guarantees:
 
 ```python
 # What's the difference?
 q1 = u.Q(5.0, "m")
-q2 = u.quantity.BareQuantity(5.0, "m")
+q2 = u.quantity.Quantity(5.0, "m")
 q3 = u.quantity.StaticQuantity(5.0, "m")
 ```
 
@@ -273,20 +273,20 @@ def function(x, *, constant=u.Q(3.26, "lyr")):
 
 ### ✅ Solution: Choose the Right Type
 
-**`Quantity`** — Standard choice with full dimension checking:
+**`ParametricQuantity`** — Standard choice with full dimension checking:
 
 ```python
 length = u.Q(5.0, "m")
 time = u.Q(2.0, "s")
-speed = length / time  # ✅ Creates Quantity with correct dimension
+speed = length / time  # ✅ Creates ParametricQuantity with correct dimension
 ```
 
-**`BareQuantity`** — No dimension checking, just unit tracking:
+**`Quantity`** — No dimension checking, just unit tracking:
 
 ```python
 # Use when you need raw speed, trust your dimensions
-length = u.quantity.BareQuantity(5.0, "m")
-time = u.quantity.BareQuantity(2.0, "s")
+length = u.quantity.Quantity(5.0, "m")
+time = u.quantity.Quantity(2.0, "s")
 speed = length / time  # Faster, but no dimension validation
 ```
 
@@ -305,11 +305,11 @@ def function(x, *, constant=u.StaticQuantity(3.26, "lyr")):
 
 **When to use each:**
 
-| Type             | Use Case        | Dimension Checking | Performance      |
-| ---------------- | --------------- | ------------------ | ---------------- |
-| `Quantity`       | Default choice  | ✅ Full            | Good             |
-| `BareQuantity`   | Trust your math | ❌ None            | Better           |
-| `StaticQuantity` | Constants       | ✅ Full            | Best (no tracer) |
+| Type | Use Case | Dimension Checking | Performance |
+| --- | --- | --- | --- |
+| `ParametricQuantity` | Default choice | ✅ Full | Good |
+| `Quantity` | Trust your math | ❌ None | Better |
+| `StaticQuantity` | Constants | ✅ Full | Best (no tracer) |
 
 ## Dimension Checking Overhead
 
@@ -343,13 +343,13 @@ os.environ["UNXT_ENABLE_RUNTIME_TYPECHECKING"] = "beartype.beartype"
 
 **Default:** Runtime checking is `False` unless you're running tests.
 
-## Quantity as a PyTree: JAX flattening overhead
+## ParametricQuantity as a PyTree: JAX flattening overhead
 
 See the [Performance Guide](perf.md)
 
-### ❌ Problem: Quantity is slower than Array
+### ❌ Problem: ParametricQuantity is slower than Array
 
-For most functions, Quantity input is slower than an Array. This is because Quantities are PyTrees that combine a value and a unit. When a PyTree passes through a {func}`jax.jit` boundary it is de-structured then re-structured. This process has an associated overhead.
+For most functions, ParametricQuantity input is slower than an Array. This is because Quantities are PyTrees that combine a value and a unit. When a PyTree passes through a {func}`jax.jit` boundary it is de-structured then re-structured. This process has an associated overhead.
 
 ```python
 @jax.jit
@@ -384,11 +384,11 @@ func(x, y, usys=u.unitsystems.si)
 
 This only applies to the outer-most function. Nesting jitted and quaxified functions are fine. The outermost jit boundary handles the constant-folding.
 
-## `Quantity` Equality: Arrays vs. `StaticValue`
+## `ParametricQuantity` Equality: Arrays vs. `StaticValue`
 
-### ❌ Problem: `==` on a normal `Quantity` is not a scalar `bool`
+### ❌ Problem: `==` on a normal `ParametricQuantity` is not a scalar `bool`
 
-A normal `Quantity` (backed by a JAX array) follows NumPy broadcasting: `==` returns an **element-wise boolean array**, not a scalar `bool`. This means you cannot use it as a `static_argnames` argument in `jax.jit`, and it will raise an error if JAX tries to check cache validity:
+A normal `ParametricQuantity` (backed by a JAX array) follows NumPy broadcasting: `==` returns an **element-wise boolean array**, not a scalar `bool`. This means you cannot use it as a `static_argnames` argument in `jax.jit`, and it will raise an error if JAX tries to check cache validity:
 
 ```python
 from functools import partial
@@ -410,7 +410,7 @@ except Exception as e:
 
 ### ✅ Solution: Wrap the value with `StaticValue`
 
-When a `Quantity` is backed by a `StaticValue`, its `==` operator returns a **scalar `bool`** (structural equality, like a tuple) instead of an element-wise array. This makes the whole `Quantity` hashable and safe for `static_argnames`:
+When a `ParametricQuantity` is backed by a `StaticValue`, its `==` operator returns a **scalar `bool`** (structural equality, like a tuple) instead of an element-wise array. This makes the whole `ParametricQuantity` hashable and safe for `static_argnames`:
 
 ```python
 import numpy as np
@@ -434,11 +434,11 @@ sv_km = u.quantity.StaticValue(np.array([0.001, 0.003]))
 u.Q(scale.value, "m") == u.Q(sv_km, "km")  # True — same physical value
 ```
 
-See [Working with StaticValue in Quantity](quantity.md#working-with-staticvalue-in-quantity) for more details.
+See [Working with StaticValue in ParametricQuantity](quantity.md#working-with-staticvalue-in-quantity) for more details.
 
 ## See Also
 
 - [JAX Common Gotchas](https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html)
-- [Quantity Guide](quantity.md)
+- [ParametricQuantity Guide](quantity.md)
 - [Type Checking Guide](type-checking.md)
 - [Testing Guide](../packages/unxt-hypothesis/testing-guide.md)
