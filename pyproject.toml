@@ -307,12 +307,13 @@ testpaths = [
   "docs",
   "src/",
   "tests/",
-  # unxt-api
+  # unxt-api (a runtime dependency of unxt, so always installed)
   "packages/unxt-api/README.md",
   "packages/unxt-api/src/",
   "packages/unxt-api/tests/",
-  # unxt-hypothesis
-  "packages/unxt-hypothesis/",
+  # NOTE: unxt-hypothesis is a deprecated shim that is not installed by default
+  # (it is no longer in the `workspace` extra), so it is covered only by its own
+  # per-package CI job, not by this shared sweep.
 ]
 xfail_strict = true
 
