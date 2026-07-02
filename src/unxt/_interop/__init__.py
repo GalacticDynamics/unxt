@@ -16,3 +16,6 @@ if OptDeps.MATPLOTLIB.installed:
     from . import unxt_interop_mpl as interop_mpl
 
     interop_mpl.setup_matplotlib_support_for_unxt(enable=True)
+
+if OptDeps.UNXTS_INTEROP_XARRAY.installed:
+    import unxts.interop.xarray  # registers the `.unxt` xarray accessor
