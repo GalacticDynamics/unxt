@@ -56,6 +56,15 @@ unitsystem(kpc, Myr, solMass, rad)
 
 ```
 
+## Public API
+
+`unxts.interop.gala` exposes two conversion functions:
+
+- `convert_gala_unitsystem_to_unxt_unitsystem`
+- `convert_unxt_unitsystem_to_gala_unitsystem`
+
+These are `plum.conversion_method`s, registered with `plum`'s dispatch table as a side effect of importing `unxts.interop.gala`. Prefer `plum.convert(usys, ...)` (as shown above) over calling either function directly.
+
 Install: `pip install unxts.interop.gala`
 
 [gala-link]: https://gala.adrian.pw/en/stable/

@@ -1,7 +1,9 @@
 """Unitsystem compatibility."""
-# TODO: move to a compatibility module
 
-__all__: tuple[str, ...] = ()
+__all__ = (
+    "convert_gala_unitsystem_to_unxt_unitsystem",
+    "convert_unxt_unitsystem_to_gala_unitsystem",
+)
 
 from typing import Any
 
@@ -60,6 +62,11 @@ def convert_gala_unitsystem_to_unxt_unitsystem(
 ) -> AbstractUnitSystem:
     """Convert a `gala.units.UnitSystem` to a `unxt.AbstractUnitSystem`.
 
+    This is a `plum.conversion_method` and is registered with `plum`'s
+    dispatch table as a side effect of importing this module. Prefer calling
+    `plum.convert(usys, AbstractUnitSystem)` over calling this function
+    directly.
+
     Examples
     --------
     >>> import unxt as u
@@ -77,11 +84,21 @@ def convert_gala_unitsystem_to_unxt_unitsystem(
     return unitsystem(usys)
 
 
+def _convert_unit_to_apyu(u: Any) -> AstropyUnit:
+    """Convert a `unxt.AbstractUnit` to an astropy.unit."""
+    return convert(u, AstropyUnit)
+
+
 @conversion_method(type_from=AbstractUnitSystem, type_to=gala.units.UnitSystem)  # type: ignore[arg-type]
 def convert_unxt_unitsystem_to_gala_unitsystem(
     usys: AbstractUnitSystem, /
 ) -> gala.units.UnitSystem:
     """Convert a `unxt.AbstractUnitSystem` to a `gala.units.UnitSystem`.
+
+    This is a `plum.conversion_method` and is registered with `plum`'s
+    dispatch table as a side effect of importing this module. Prefer calling
+    `plum.convert(usys, gala.units.UnitSystem)` over calling this function
+    directly.
 
     Examples
     --------
@@ -98,8 +115,4 @@ def convert_unxt_unitsystem_to_gala_unitsystem(
     <UnitSystem (km, s, solMass, rad)>
 
     """
-
-    def convert_unit_to_apyu(u: Any) -> AstropyUnit:
-        return convert(u, AstropyUnit)
-
-    return gala.units.UnitSystem(*map(convert_unit_to_apyu, usys.base_units))
+    return gala.units.UnitSystem(*map(_convert_unit_to_apyu, usys.base_units))
