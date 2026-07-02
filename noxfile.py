@@ -143,7 +143,10 @@ def _parse_pytest_paths(package: PackageEnum, /) -> list[str]:
             assert_never(package)
 
 
-@session(uv_groups=["test"], uv_extras=["workspace"], reuse_venv=True)
+# ``test-all`` (not ``test``) because the ``workspace`` extra pulls in
+# matplotlib via ``unxt[interop-mpl]``, so the matplotlib integration tests are
+# collected and need ``pytest-mpl`` to register the ``mpl_image_compare`` marker.
+@session(uv_groups=["test-all"], uv_extras=["workspace"], reuse_venv=True)
 @nox.parametrize("package", list(PackageEnum))
 def pytest(s: nox.Session, /, package: PackageEnum) -> None:
     """Run the unit and regular tests."""
