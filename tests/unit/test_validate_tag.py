@@ -3,7 +3,7 @@
 Tests cover the core release/tagging validation rules:
 - Package tag required (not bare vX.Y.Z tags)
 - .0 releases require coordinator tag
-- Legacy (<1.11) behavior exceptions
+- Legacy (<2.0) behavior exceptions
 - subprocess-based coordinator lookup with error handling
 """
 
@@ -123,7 +123,7 @@ class TestValidateTagForPackage:
     # Legacy behavior tests
 
     def test_legacy_tags_always_valid(self, validate_tag):
-        """Tags for version 1.10.x and lower are always valid."""
+        """Tags below v2.0.0 are always valid (v2.0.0 is the first release)."""
         # Bare tags are acceptable for legacy
         is_valid, error = validate_tag.validate_tag_for_package("v1.10.0", "unxt")
         assert is_valid is True
@@ -135,6 +135,10 @@ class TestValidateTagForPackage:
         is_valid, error = validate_tag.validate_tag_for_package("v0.5.0", "unxt-api")
         assert is_valid is True
 
+        # The whole 1.x series is grandfathered in, including 1.11+
+        is_valid, error = validate_tag.validate_tag_for_package("v1.11.0", "unxt")
+        assert is_valid is True
+
     # Invalid format tests
 
     def test_invalid_tag_format_rejected(self, validate_tag):
@@ -143,14 +147,14 @@ class TestValidateTagForPackage:
         assert is_valid is False
         assert "Invalid tag format" in error
 
-        is_valid, error = validate_tag.validate_tag_for_package("1.11.0", "unxt")
+        is_valid, error = validate_tag.validate_tag_for_package("2.0.0", "unxt")
         assert is_valid is False
 
-    # Rule 1: Package-specific tag required (post-1.10)
+    # Rule 1: Package-specific tag required (post-1.x)
 
     def test_bare_tag_rejected_for_new_versions(self, validate_tag):
-        """Bare vX.Y.Z tags are rejected for versions >= 1.11."""
-        is_valid, error = validate_tag.validate_tag_for_package("v1.11.0", "unxt")
+        """Bare vX.Y.Z tags are rejected for versions >= 2.0."""
+        is_valid, error = validate_tag.validate_tag_for_package("v2.0.0", "unxt")
         assert is_valid is False
         assert "package-specific tags" in error
         assert "coordinator tags" in error
@@ -165,12 +169,12 @@ class TestValidateTagForPackage:
         # Valid: tag matches package
         mock_result = MagicMock()
         mock_result.returncode = 0
-        mock_result.stdout = "v1.11.0\n"
+        mock_result.stdout = "v2.0.0\n"
         mock_result.stderr = ""
 
         with patch("subprocess.run", return_value=mock_result):
             is_valid, error = validate_tag.validate_tag_for_package(
-                "unxt-v1.11.0", "unxt"
+                "unxt-v2.0.0", "unxt"
             )
             assert is_valid is True
             assert error == ""
@@ -178,14 +182,14 @@ class TestValidateTagForPackage:
     def test_package_specific_tag_wrong_package(self, validate_tag):
         """Reject tag when package doesn't match."""
         is_valid, error = validate_tag.validate_tag_for_package(
-            "unxt-api-v1.11.0", "unxt"
+            "unxt-api-v2.0.0", "unxt"
         )
         assert is_valid is False
         assert "This tag is for package 'unxt-api'" in error
         assert "but this workflow is for package 'unxt'" in error
 
         is_valid, error = validate_tag.validate_tag_for_package(
-            "unxt-v1.11.0", "unxt-api"
+            "unxt-v2.0.0", "unxt-api"
         )
         assert is_valid is False
         assert "This tag is for package 'unxt'" in error
@@ -194,15 +198,15 @@ class TestValidateTagForPackage:
 
     def test_dot_zero_release_with_coordinator_tag(self, validate_tag):
         """Accept .0 release when coordinator tag exists."""
-        # Test for unxt-v1.11.0 with v1.11.0 coordinator
+        # Test for unxt-v2.0.0 with v2.0.0 coordinator
         mock_result = MagicMock()
         mock_result.returncode = 0
-        mock_result.stdout = "v1.11.0\n"  # Coordinator tag exists
+        mock_result.stdout = "v2.0.0\n"  # Coordinator tag exists
         mock_result.stderr = ""
 
         with patch("subprocess.run", return_value=mock_result):
             is_valid, error = validate_tag.validate_tag_for_package(
-                "unxt-v1.11.0", "unxt"
+                "unxt-v2.0.0", "unxt"
             )
             assert is_valid is True
             assert error == ""
@@ -228,11 +232,11 @@ class TestValidateTagForPackage:
 
         with patch("subprocess.run", return_value=mock_result):
             is_valid, error = validate_tag.validate_tag_for_package(
-                "unxt-v1.11.0", "unxt"
+                "unxt-v2.0.0", "unxt"
             )
             assert is_valid is False
             assert "must have a corresponding coordinator tag" in error
-            assert "v1.11.0" in error
+            assert "v2.0.0" in error
             assert "synchronized releases" in error
 
     # Bug-fix releases (patch > 0)
@@ -240,7 +244,7 @@ class TestValidateTagForPackage:
     def test_bugfix_release_no_coordinator_required(self, validate_tag):
         """Bug-fix releases (X.Y.Z where Z > 0) don't require coordinator tag."""
         # No subprocess.run call should happen for patch > 0
-        is_valid, error = validate_tag.validate_tag_for_package("unxt-v1.11.1", "unxt")
+        is_valid, error = validate_tag.validate_tag_for_package("unxt-v2.0.1", "unxt")
         assert is_valid is True
         assert error == ""
 
@@ -250,7 +254,7 @@ class TestValidateTagForPackage:
         assert is_valid is True
 
         is_valid, error = validate_tag.validate_tag_for_package(
-            "unxt-hypothesis-v1.12.99", "unxt-hypothesis"
+            "unxt-hypothesis-v2.0.99", "unxt-hypothesis"
         )
         assert is_valid is True
 
@@ -260,19 +264,17 @@ class TestValidateTagForPackage:
         """package=None should default to 'unxt'."""
         mock_result = MagicMock()
         mock_result.returncode = 0
-        mock_result.stdout = "v1.11.0\n"
+        mock_result.stdout = "v2.0.0\n"
         mock_result.stderr = ""
 
         with patch("subprocess.run", return_value=mock_result):
             # Should validate as if package='unxt'
-            is_valid, error = validate_tag.validate_tag_for_package(
-                "unxt-v1.11.0", None
-            )
+            is_valid, error = validate_tag.validate_tag_for_package("unxt-v2.0.0", None)
             assert is_valid is True
 
             # Should fail for wrong package
             is_valid, error = validate_tag.validate_tag_for_package(
-                "unxt-api-v1.11.0", None
+                "unxt-api-v2.0.0", None
             )
             assert is_valid is False
             assert "This tag is for package 'unxt-api'" in error
@@ -286,24 +288,24 @@ class TestIntegration:
         """Test complete flow for .0 release validation."""
         mock_result = MagicMock()
         mock_result.returncode = 0
-        mock_result.stdout = "v1.11.0\n"
+        mock_result.stdout = "v2.0.0\n"
         mock_result.stderr = ""
 
         with patch("subprocess.run", return_value=mock_result) as mock_subprocess:
             # Valid .0 release
-            is_valid, _ = validate_tag.validate_tag_for_package("unxt-v1.11.0", "unxt")
+            is_valid, _ = validate_tag.validate_tag_for_package("unxt-v2.0.0", "unxt")
             assert is_valid is True
 
             # Verify git was called to check coordinator tag
             mock_subprocess.assert_called_once()
             call_args = mock_subprocess.call_args[0][0]
-            assert call_args == ["git", "tag", "-l", "v1.11.0"]
+            assert call_args == ["git", "tag", "-l", "v2.0.0"]
 
     def test_complete_validation_flow_bugfix_release(self, validate_tag):
         """Test complete flow for bug-fix release (no coordinator check)."""
         with patch("subprocess.run") as mock_subprocess:
             # Valid bug-fix release
-            is_valid, _ = validate_tag.validate_tag_for_package("unxt-v1.11.1", "unxt")
+            is_valid, _ = validate_tag.validate_tag_for_package("unxt-v2.0.1", "unxt")
             assert is_valid is True
 
             # Git should NOT be called for bug-fix releases
@@ -319,6 +321,6 @@ class TestIntegration:
         with patch("subprocess.run", return_value=mock_result):
             # Should raise RuntimeError from check_coordinator_tag_exists
             with pytest.raises(RuntimeError) as exc_info:
-                validate_tag.validate_tag_for_package("unxt-v1.11.0", "unxt")
+                validate_tag.validate_tag_for_package("unxt-v2.0.0", "unxt")
 
             assert "git tag -l failed" in str(exc_info.value)
