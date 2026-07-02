@@ -30,9 +30,6 @@ guides/units_and_systems
 guides/type-checking
 guides/sharp-bits
 Performance Optimization <guides/perf.ipynb>
-packages/unxt-api/extending
-packages/unxt-hypothesis/testing-guide
-packages/unxt-xarray/xarray-guide
 ```
 
 ```{toctree}
@@ -49,9 +46,7 @@ interop/*
 :hidden:
 :caption: 🔌 API Reference
 
-packages/unxt-api/api
 api/index
-packages/unxt-hypothesis/api
 ```
 
 ```{toctree}
