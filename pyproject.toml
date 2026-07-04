@@ -139,6 +139,7 @@ workspace = [
   "unxts.interop.gala",
   "unxts.interop.matplotlib",
   "unxts.interop.xarray",
+  "unxts.parametric",
 ]
 
 
@@ -427,6 +428,7 @@ unxt-hypothesis            = { workspace = true }
 "unxts.interop.gala"       = { workspace = true }
 "unxts.interop.matplotlib" = { workspace = true }
 "unxts.interop.xarray"     = { workspace = true }
+"unxts.parametric"         = { workspace = true }
 
 [tool.uv.workspace]
 members = ["packages/*"]

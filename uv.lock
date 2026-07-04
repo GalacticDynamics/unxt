@@ -34,6 +34,7 @@ members = [
     "unxts-interop-gala",
     "unxts-interop-matplotlib",
     "unxts-interop-xarray",
+    "unxts-parametric",
 ]
 constraints = [{ name = "matplotlib", marker = "python_full_version >= '3.14'", specifier = ">=3.10.8" }]
 
@@ -4386,6 +4387,7 @@ dev = [
     { name = "unxts-interop-gala" },
     { name = "unxts-interop-matplotlib" },
     { name = "unxts-interop-xarray" },
+    { name = "unxts-parametric" },
 ]
 docs = [
     { name = "jax" },
@@ -4458,6 +4460,7 @@ workspace = [
     { name = "unxts-interop-gala" },
     { name = "unxts-interop-matplotlib" },
     { name = "unxts-interop-xarray" },
+    { name = "unxts-parametric" },
 ]
 
 [package.metadata]
@@ -4552,6 +4555,7 @@ dev = [
     { name = "unxts-interop-gala", editable = "packages/unxts.interop.gala" },
     { name = "unxts-interop-matplotlib", editable = "packages/unxts.interop.matplotlib" },
     { name = "unxts-interop-xarray", editable = "packages/unxts.interop.xarray" },
+    { name = "unxts-parametric", editable = "packages/unxts.parametric" },
 ]
 docs = [
     { name = "jax", extras = ["cpu"], specifier = ">=0.5.3" },
@@ -4620,6 +4624,7 @@ workspace = [
     { name = "unxts-interop-gala", editable = "packages/unxts.interop.gala" },
     { name = "unxts-interop-matplotlib", editable = "packages/unxts.interop.matplotlib" },
     { name = "unxts-interop-xarray", editable = "packages/unxts.interop.xarray" },
+    { name = "unxts-parametric", editable = "packages/unxts.parametric" },
 ]
 
 [[package]]
@@ -4854,6 +4859,49 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 test = [
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-arraydiff", specifier = ">=0.6.1" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
+    { name = "pytest-env", specifier = ">=1.1.5" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
+]
+
+[[package]]
+name = "unxts-parametric"
+source = { editable = "packages/unxts.parametric" }
+dependencies = [
+    { name = "plum-dispatch" },
+    { name = "unxt" },
+]
+
+[package.optional-dependencies]
+astropy = [
+    { name = "astropy" },
+]
+
+[package.dev-dependencies]
+test = [
+    { name = "optional-dependencies" },
+    { name = "pytest" },
+    { name = "pytest-arraydiff" },
+    { name = "pytest-cov" },
+    { name = "pytest-env" },
+    { name = "pytest-github-actions-annotate-failures" },
+    { name = "sybil", extra = ["pytest"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "astropy", marker = "extra == 'astropy'" },
+    { name = "plum-dispatch", specifier = ">=2.5.7" },
+    { name = "unxt", editable = "." },
+]
+provides-extras = ["astropy"]
+
+[package.metadata.requires-dev]
+test = [
+    { name = "optional-dependencies", specifier = ">=0.3.2" },
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-arraydiff", specifier = ">=0.6.1" },
     { name = "pytest-cov", specifier = ">=6.2.1" },
