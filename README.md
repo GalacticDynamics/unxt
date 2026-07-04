@@ -385,13 +385,13 @@ import quaxed.numpy as jnp
 
 # Using the x quantity from earlier examples
 print(jnp.square(x))
-# ParametricQuantity['area']([ 1.,  4.,  9., 16.], unit='km2')
+# Quantity([ 1.,  4.,  9., 16.], unit='km2')
 
 print(jnp.power(x, 3))
-# ParametricQuantity['volume']([ 1.,  8., 27., 64.], unit='km3')
+# Quantity([ 1.,  8., 27., 64.], unit='km3')
 
 print(vmap(grad(lambda x: x**3))(x))
-# ParametricQuantity['area']([ 3., 12., 27., 48.], unit='km2')
+# Quantity([ 3., 12., 27., 48.], unit='km2')
 ```
 
 See the [documentation][rtd-link] for more examples and details of JIT and AD
