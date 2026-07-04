@@ -11,8 +11,12 @@ from jaxtyping import Array, Shaped
 from plum import add_promotion_rule, parametric
 
 from .base_parametric import AbstractParametricQuantity
-from .quantity import Quantity
-from .value import StaticValue, convert_to_quantity_value
+from unxt.quantity import (
+    AbstractQuantity,
+    Quantity,
+    StaticValue,
+    convert_to_quantity_value,
+)
 from unxt.units import AbstractUnit, unit as parse_unit
 
 

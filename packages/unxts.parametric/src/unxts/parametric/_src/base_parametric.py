@@ -15,11 +15,10 @@ from plum import dispatch, parametric, type_unparametrized
 
 from dataclassish import field_items, fields
 
-from .base import AbstractQuantity
-from .value import StaticValue
 from unxt._src.dimensions import name_of
 from unxt.config import config
 from unxt.dims import AbstractDimension, dimension, dimension_of
+from unxt.quantity import AbstractQuantity, StaticValue
 from unxt.units import AbstractUnit, unit as parse_unit
 
 
