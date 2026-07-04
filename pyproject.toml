@@ -369,6 +369,9 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "**docs/**"   = ["A001", "INP001"]
 "**tests/**"  = ["ANN", "D401", "E731", "INP001", "S101", "SLF001", "T20"]
+# `Qcls` is a class-valued fixture parametrized over the quantity classes; the
+# capitalized name (and using it as a constructor) is intentional.
+"**tests/unit/test_quantity_interchangeability.py" = ["N802", "N803", "N806", "PLC0415"]
 "__init__.py" = ["F403"]
 "noxfile.py"  = ["T20"]
 

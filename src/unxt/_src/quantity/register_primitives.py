@@ -4081,6 +4081,67 @@ def pow_p_vq(x: ArrayLike, y: ABCPQ["dimensionless"], /) -> ABCQ:
 
 
 @quax.register(lax.pow_p)
+def pow_p_q_bareq(x: ABCQ, y: Quantity, /) -> ABCQ:
+    """Power of a quantity by a bare (non-parametric) dimensionless quantity.
+
+    The exponent must be dimensionless; a dimensionful exponent raises
+    ``UnitConversionError`` at trace time via ``ustrip("", y)``. This mirrors
+    :func:`pow_p_qq` (which requires a *parametric* dimensionless exponent) so
+    that the lightweight default :class:`~unxt.Quantity` works as an exponent
+    everywhere :class:`~unxt.ParametricQuantity` does.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> q1 = u.quantity.Quantity(2.0, "m")
+    >>> p = u.Q(3, "")
+    >>> jnp.power(q1, p)
+    Quantity(Array(8., dtype=float32...), unit='m3')
+    >>> q1**p
+    Quantity(Array(8., dtype=float32...), unit='m3')
+
+    Non-scalar exponents raise a ValueError:
+
+    >>> p_arr = u.Q([3, 2], "")
+    >>> try:
+    ...     q1**p_arr
+    ... except ValueError as e:
+    ...     print(e)
+    Exponent must be a scalar.
+
+    """
+    yv = ustrip("", y)
+    y0 = yv[()]
+    if y0.ndim != 0:
+        msg = "Exponent must be a scalar."
+        raise ValueError(msg)
+    return type_np(x)(value=lax.pow(ustrip(x), y0), unit=x.unit**y0)
+
+
+@quax.register(lax.pow_p)
+def pow_p_v_bareq(x: ArrayLike, y: Quantity, /) -> ABCQ:
+    """Array raised to a bare (non-parametric) dimensionless quantity.
+
+    Mirrors :func:`pow_p_vq` for the lightweight default
+    :class:`~unxt.Quantity` exponent.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> x = jnp.array([2.0])
+    >>> p = u.Q(3, "")
+    >>> jnp.power(x, p)
+    Quantity(Array([8.], dtype=float32), unit='')
+
+    """
+    return replace(y, value=lax.pow(x, ustrip("", y)))
+
+
+@quax.register(lax.pow_p)
 def pow_p_abstractangle_arraylike(x: AbstractAngle, y: ArrayLike, /) -> ABCQ:
     """Power of an Angle by redispatching to ParametricQuantity.
 
