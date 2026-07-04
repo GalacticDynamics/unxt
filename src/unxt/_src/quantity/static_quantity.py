@@ -13,7 +13,6 @@ import wadler_lindig as wl
 from plum import add_promotion_rule
 
 from .base import AbstractQuantity
-from .parametric import ParametricQuantity
 from .quantity import Quantity
 from .value import StaticValue
 from unxt.units import AbstractUnit, unit as parse_unit
@@ -85,5 +84,4 @@ class StaticQuantity(AbstractQuantity):
 
 
 add_promotion_rule(StaticQuantity, StaticQuantity, StaticQuantity)
-add_promotion_rule(StaticQuantity, ParametricQuantity, ParametricQuantity)
 add_promotion_rule(StaticQuantity, Quantity, Quantity)

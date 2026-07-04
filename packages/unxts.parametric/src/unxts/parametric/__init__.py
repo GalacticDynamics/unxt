@@ -4,3 +4,6 @@ __all__ = ["AbstractParametricQuantity", "ParametricQuantity", "PQ"]
 
 from ._src.base_parametric import AbstractParametricQuantity
 from ._src.parametric import PQ, ParametricQuantity
+
+# Import register modules for their dispatch/promotion side effects.
+from ._src import register_promotions  # noqa: F401
