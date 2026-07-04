@@ -249,13 +249,9 @@ result = add_lengths_m(u.Q(5.0, "m"), length_m_input)
 
 ### ❌ Problem: `ParametricQuantity` Recompiles Per Dimension
 
-`ParametricQuantity` encodes the physical dimension in its *type* — each dimension
-is a distinct parametric class (`ParametricQuantity[length]`, `ParametricQuantity[time]`, ...).
-Because {func}`jax.jit` keys its cache on the PyTree *type*, feeding
-`ParametricQuantity` of different dimensions into the same jitted function triggers a
-recompilation for each dimension, on top of the per-unit recompilation above. The
-default `Quantity` avoids this: it is a single non-parametric class, so its type
-does not change with the physical dimension.
+:::{seealso} [Changed in v2: `Quantity` is no longer parametric](quantity.md#changed-in-v2-quantity-is-no-longer-parametric) — background on why the default `Quantity` is the non-parametric class and when to reach for `ParametricQuantity`. :::
+
+`ParametricQuantity` encodes the physical dimension in its _type_ — each dimension is a distinct parametric class (`ParametricQuantity[length]`, `ParametricQuantity[time]`, ...). Because {func}`jax.jit` keys its cache on the PyTree _type_, feeding `ParametricQuantity` of different dimensions into the same jitted function triggers a recompilation for each dimension, on top of the per-unit recompilation above. The default `Quantity` avoids this: it is a single non-parametric class, so its type does not change with the physical dimension.
 
 ```python
 @jax.jit
@@ -298,8 +294,7 @@ def function(x, *, constant=u.Q(3.26, "lyr")):
 
 ### ✅ Solution: Choose the Right Type
 
-**`Quantity`** — The default. A lightweight, non-parametric quantity that tracks
-units without encoding the physical dimension in its type:
+**`Quantity`** — The default. A lightweight, non-parametric quantity that tracks units without encoding the physical dimension in its type:
 
 ```python
 length = u.Q(5.0, "m")
@@ -307,8 +302,7 @@ time = u.Q(2.0, "s")
 speed = length / time  # ✅ Fast; unit arithmetic without per-dimension classes
 ```
 
-**`ParametricQuantity`** — Opt in when you want the physical dimension carried in
-the type (for dimension-specific `plum` dispatch and runtime dimension checking):
+**`ParametricQuantity`** — Opt in when you want the physical dimension carried in the type (for dimension-specific `plum` dispatch and runtime dimension checking):
 
 ```python
 # Use when you want dimension-parametrized dispatch / runtime checking

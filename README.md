@@ -212,6 +212,8 @@ print(usys["mass"])
 
 Quantities combine values with units, providing type-safe unitful arithmetic.
 
+**New in v2:** `Quantity` is the fast non-parametric class (formerly `BareQuantity`). The dimension-parametric class is now `ParametricQuantity` (`u.PQ`); use it when you want runtime dimension checking or dimension-specific `plum` dispatch — each parametrized dimension is its own class, so it can trigger extra `jax.jit` compilations. See the [Quantity guide](https://unxt.readthedocs.io/en/latest/guides/quantity.html) for full details.
+
 #### Basic Quantities
 
 ```python
@@ -270,9 +272,7 @@ print(x.uconvert("m"))  # via method
 # Quantity([1000., 2000., 3000., 4000.], unit='m')
 ```
 
-`ParametricQuantity` (`u.PQ`) adds runtime dimension checking on construction. Use
-`u.PQ["length"]` to create a parametric type that raises if the unit's physical type
-does not match:
+`ParametricQuantity` (`u.PQ`) adds runtime dimension checking on construction. Use `u.PQ["length"]` to create a parametric type that raises if the unit's physical type does not match:
 
 ```python
 LengthQuantity = u.PQ["length"]
@@ -286,15 +286,11 @@ except ValueError as e:
 # Physical type mismatch.
 ```
 
-Note: the default `u.Q["length"]` accepts the subscript but does **not** check
-dimensions — `u.Q["length"](2, "s")` silently returns `Quantity(Array(2, ...), unit='s')`.
-Use `u.PQ["length"]` when you need the runtime guard.
+Note: the default `u.Q["length"]` accepts the subscript but does **not** check dimensions — `u.Q["length"](2, "s")` silently returns `Quantity(Array(2, ...), unit='s')`. Use `u.PQ["length"]` when you need the runtime guard.
 
 #### Quantity
 
-`Quantity` (aliased as `u.Q`) is the default lightweight class. It does **not** do
-runtime dimension checking on construction, which makes it the fastest option for
-performance-critical code:
+`Quantity` (aliased as `u.Q`) is the default lightweight class. It does **not** do runtime dimension checking on construction, which makes it the fastest option for performance-critical code:
 
 ```python
 import unxt as u
