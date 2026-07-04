@@ -34,9 +34,8 @@ ParametricQuantity
   class — and therefore a separate `jax.jit` compilation — per dimension.
 
 BareQuantity
-  A **deprecated** alias for {class}`~unxt.Quantity`. Prior to the v2 rename,
-  ``BareQuantity`` was the name of the lightweight non-parametric class that is
-  now simply ``Quantity``. New code should use ``Quantity`` / ``u.Q``.
+  A **deprecated** alias of {class}`~unxt.Quantity` (`u.Q`); new code should use
+  `Quantity`. See the {ref}`migration guide <migration-v2>`.
 
 Multiple-Dispatch
   Multiple dispatch is a programming paradigm in which the method or function to be called is determined by the runtime types of the arguments.

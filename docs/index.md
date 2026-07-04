@@ -59,6 +59,7 @@ glossary
 conventions
 contributing
 dev
+migration
 ```
 
 # 🚀 Get Started

@@ -44,17 +44,23 @@ Quantity(Array(5., dtype=float32), unit='m')
 
 <!-- prettier-ignore-start -->
 
-:::{admonition} Changed in v2: `Quantity` is no longer parametric
+:::{admonition} Why `Quantity` is non-parametric
 :class: important
 
-Prior to v2, `unxt.Quantity` was parametrized by its physical dimension: `Quantity["length"]` and `Quantity["time"]` were _different classes_, created on the fly. Because JAX keys its compilation cache on the pytree structure — which includes the class of every node — every quantity with a different dimension triggered a fresh `jax.jit` compilation. That is pretty inefficient given JAX's compilation model.
+`Quantity` (`u.Q`) is the lightweight, non-parametric default: a single class for
+all physical dimensions. `ParametricQuantity` (`u.PQ`) encodes the dimension in
+the type — `ParametricQuantity["length"]` and `ParametricQuantity["time"]` are
+distinct classes. Because JAX keys its `jit` compilation cache on the pytree
+structure (which includes the class of every leaf node), each distinct parametric
+dimension triggers a fresh `jax.jit` compilation. Using the single-class `Quantity`
+avoids this per-dimension recompilation overhead entirely.
 
-As of v2 the default `unxt.Quantity` (alias `u.Q`) is the lightweight, non-parametric implementation formerly named `BareQuantity`: a single class for all dimensions. The parametric implementation is still available as `unxt.ParametricQuantity` (alias `u.PQ`) — reach for it only when you need its two extra features:
+Reach for `ParametricQuantity` only when you need its two extra features:
 
 1. **Runtime dimension checking** — `u.PQ["length"](1, "m")` validates the unit against the dimension at construction; the default `u.Q["length"](1, "m")` accepts the subscript for compatibility but does not check it.
 2. **Dispatch on specific dimensions** — `u.PQ["length"]` is a real type usable in `plum` dispatch annotations; `u.Q["length"]` is just `Quantity`.
 
-Everything else — arithmetic, unit conversion, JAX transforms, interop — works identically with either class. `BareQuantity` remains as a deprecated alias of `Quantity` and will be removed in a future release.
+Everything else — arithmetic, unit conversion, JAX transforms, interop — works identically with either class. For upgrading from an earlier version of `unxt`, see the {ref}`migration guide <migration-v2>`.
 
 :::
 

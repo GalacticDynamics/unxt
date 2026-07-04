@@ -212,7 +212,7 @@ print(usys["mass"])
 
 Quantities combine values with units, providing type-safe unitful arithmetic.
 
-**New in v2:** `Quantity` is the fast non-parametric class (formerly `BareQuantity`). The dimension-parametric class is now `ParametricQuantity` (`u.PQ`); use it when you want runtime dimension checking or dimension-specific `plum` dispatch — each parametrized dimension is its own class, so it can trigger extra `jax.jit` compilations. See the [Quantity guide](https://unxt.readthedocs.io/en/latest/guides/quantity.html) for full details.
+`Quantity` (`u.Q`) is the lightweight, non-parametric default: a single class for all physical dimensions, avoiding per-dimension `jax.jit` recompilation. `ParametricQuantity` (`u.PQ`) adds runtime dimension checking and dimension-specific `plum` dispatch — each parametrized dimension is its own class, which can trigger extra `jax.jit` compilations. See the [Quantity guide](https://unxt.readthedocs.io/en/latest/guides/quantity.html) for full details; upgrading from an earlier version? See the [migration guide](https://unxt.readthedocs.io/en/latest/migration.html).
 
 #### Basic Quantities
 
