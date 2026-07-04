@@ -64,7 +64,7 @@ class AbstractQuantity(
     quax_blocks.LaxLenMixin,
     quax_blocks.LaxLengthHintMixin,
 ):
-    """Represents a ParametricQuantity with a unit.
+    """Represents a quantity with a value and a unit.
 
     Attributes
     ----------
@@ -137,7 +137,7 @@ class AbstractQuantity(
     # See below for additional constructors
 
     # ===============================================================
-    # ParametricQuantity API
+    # Quantity API
 
     def uconvert(self, u: Any, /) -> "AbstractQuantity":
         """Convert the quantity to the given units.
@@ -442,7 +442,7 @@ class AbstractQuantity(
     # JAX API
 
     def __iter__(self) -> Any:
-        """Iterate over the ParametricQuantity's value.
+        """Iterate over the quantity's value.
 
         Examples
         --------
@@ -862,7 +862,7 @@ def from_(
     *,
     dtype: Any = None,
 ) -> AbstractQuantity:
-    """Construct a `unxt.ParametricQuantity` from an array-like value and a unit.
+    """Construct a `unxt.AbstractQuantity` from an array-like value and a unit.
 
     :param value: The array-like value.
     :param unit: The unit of the value.
@@ -870,7 +870,7 @@ def from_(
 
     Examples
     --------
-    For this example we'll use the `ParametricQuantity` class. The same applies to
+    For this example we'll use the `Quantity` class. The same applies to
     any subclass of `AbstractQuantity`.
 
     >>> import jax.numpy as jnp
@@ -939,11 +939,11 @@ def from_(
 
 @AbstractQuantity.from_.dispatch
 def from_(cls: type[AbstractQuantity], mapping: Mapping[str, Any]) -> AbstractQuantity:
-    """Construct a `ParametricQuantity` from a Mapping.
+    """Construct a quantity from a Mapping.
 
     Examples
     --------
-    For this example we'll use the `ParametricQuantity` class. The same applies to
+    For this example we'll use the `Quantity` class. The same applies to
     any subclass of `AbstractQuantity`.
 
     >>> import jax.numpy as jnp
@@ -972,7 +972,7 @@ def from_(
     *,
     dtype: Any = None,
 ) -> AbstractQuantity:
-    """Construct a `ParametricQuantity` from another `ParametricQuantity`.
+    """Construct a quantity from another quantity.
 
     The `value` is converted to the new `unit`.
 
@@ -998,7 +998,7 @@ def from_(
     *,
     dtype: Any = None,
 ) -> AbstractQuantity:
-    """Construct a `ParametricQuantity` from another `ParametricQuantity`.
+    """Construct a quantity from another quantity.
 
     The `value` is converted to the new `unit`.
 
@@ -1025,7 +1025,7 @@ def from_(
     unit: Any | None = None,
     dtype: Any = None,
 ) -> AbstractQuantity:
-    """Construct a `ParametricQuantity` from another `ParametricQuantity`.
+    """Construct a quantity from another quantity.
 
     The unit is unchanged.
     """
@@ -1115,7 +1115,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
         values = eqx.error_if(
             values,
             isinstance(values, AbstractQuantity),
-            "values cannot be a ParametricQuantity",
+            "values cannot be a Quantity (strip units first)",
         )  # TODO: can permit dimensionless quantities.
 
         # TODO: by quaxified super
@@ -1129,7 +1129,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
         values = eqx.error_if(
             values,
             isinstance(values, AbstractQuantity),
-            "values cannot be a ParametricQuantity",
+            "values cannot be a Quantity (strip units first)",
         )  # TODO: can permit dimensionless quantities.
 
         # TODO: by quaxified super
@@ -1197,7 +1197,7 @@ def from_(cls: StaticValue, value: AbstractQuantity, /) -> StaticValue:
     """Disallow conversion of `AbstractQuantity` to a value."""
     msg = (
         f"Cannot convert '{type(value).__name__}' to a value. "
-        "For a ParametricQuantity, use the `.from_` constructor instead."
+        "For a Quantity, use the `.from_` constructor instead."
     )
     raise TypeError(msg)
 
@@ -1214,11 +1214,11 @@ def convert_to_quantity_value(obj: AbstractQuantity, /) -> NoReturn:
     ... except TypeError as e:
     ...     print(e)
     Cannot convert 'Quantity' to a value.
-    For a ParametricQuantity, use the `.from_` constructor instead.
+    For a Quantity, use the `.from_` constructor instead.
 
     """
     msg = (
         f"Cannot convert '{type(obj).__name__}' to a value. "
-        "For a ParametricQuantity, use the `.from_` constructor instead."
+        "For a Quantity, use the `.from_` constructor instead."
     )
     raise TypeError(msg)

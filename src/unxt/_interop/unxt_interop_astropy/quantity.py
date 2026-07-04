@@ -1,4 +1,4 @@
-"""ParametricQuantity compatibility."""
+"""Astropy quantity compatibility for unxt quantity classes."""
 
 __all__: tuple[str, ...] = ()
 
@@ -38,12 +38,12 @@ def convert_to_quantity_value(obj: AstropyQuantity, /) -> NoReturn:
     ... except TypeError as e:
     ...     print(e)
     Cannot convert 'Quantity' to a value.
-    For a ParametricQuantity, use the `.from_` constructor instead.
+    For a Quantity, use the `.from_` constructor instead.
 
     """
     msg = (
         f"Cannot convert {type(obj).__name__!r} to a value. "
-        "For a ParametricQuantity, use the `.from_` constructor instead."
+        "For a Quantity, use the `.from_` constructor instead."
     )
     raise TypeError(msg)
 
@@ -60,7 +60,7 @@ def convert_to_quantity_value(obj: AstropyQuantity, /) -> NoReturn:
 def from_(
     cls: type[AbstractQuantity], value: AstropyQuantity, /, **kwargs: Any
 ) -> AbstractQuantity:
-    """Construct a `ParametricQuantity` from another `ParametricQuantity`.
+    """Construct a quantity from an astropy `Quantity`.
 
     The `value` is converted to the new `unit`.
 
@@ -82,7 +82,7 @@ def from_(
 def from_(
     cls: type[AbstractQuantity], value: AstropyQuantity, u: Any, /, **kwargs: Any
 ) -> AbstractQuantity:
-    """Construct a `ParametricQuantity` from another `ParametricQuantity`.
+    """Construct a quantity from an astropy `Quantity`, converting to a target unit.
 
     The `value` is converted to the new `unit`.
 
@@ -269,8 +269,8 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
         return dc.replace(x, value=value, unit=u)
 
     # If the dimensions are different, we need to create a new quantity since
-    # the dimensions can be part of the type. This won't work if the ParametricQuantity
-    # type itself needs to be changed, e.g. `unxt.Angle` -> `unxt.ParametricQuantity`.
+    # the dimensions can be part of the type. This won't work if the quantity
+    # type itself needs to be changed, e.g. `unxt.Angle` -> `unxt.Quantity`.
     # These cases are handled separately, in other dispatches.
     fs = dict(dc.field_items(x))  # pylint: disable=unreachable
     fs["value"] = value

@@ -1,4 +1,4 @@
-"""Orthogonal Mixin classes for ParametricQuantity classes."""
+"""Orthogonal mixin classes for quantity classes."""
 
 __all__: tuple[str, ...] = ()
 
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 class AstropyQuantityCompatMixin:
-    """Mixin for compatibility with `astropy.units.ParametricQuantity`."""
+    """Mixin for compatibility with `astropy.units.Quantity`."""
 
     value: eqx.AbstractVar[ArrayLike]
     unit: eqx.AbstractVar[AbstractUnit]
@@ -92,7 +92,7 @@ SUPPORTED_IPYTHON_REPR_FORMATS: dict[str, str] = {
 
 
 class IPythonReprMixin:
-    """Mixin class for IPython representation of a ParametricQuantity."""
+    """Mixin class for IPython representation of a quantity."""
 
     value: Array
     unit: AbstractUnit
@@ -103,7 +103,7 @@ class IPythonReprMixin:
         include: Sequence[str] | None = None,
         exclude: Sequence[str] | None = None,
     ) -> dict[str, str]:
-        r"""Return a MIME bundle representation of the ParametricQuantity.
+        r"""Return a MIME bundle representation of the quantity.
 
         :param include: The set of keys to include in the MIME bundle. If not
             provided, all supported formats are included.
@@ -150,7 +150,7 @@ class IPythonReprMixin:
         }
 
     def _repr_html_(self) -> str:
-        """Return an HTML representation of the ParametricQuantity.
+        """Return an HTML representation of the quantity.
 
         Examples
         --------
@@ -167,7 +167,7 @@ class IPythonReprMixin:
         return f"<span>{value_repr}</span> * <span>{unit_repr}</span>"
 
     def _repr_latex_(self) -> str:
-        r"""Return a LaTeX representation of the ParametricQuantity.
+        r"""Return a LaTeX representation of the quantity.
 
         Examples
         --------

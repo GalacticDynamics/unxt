@@ -1,4 +1,4 @@
-"""Register jax primitives support for ParametricQuantity."""
+"""Register JAX primitive support for the unxt quantity classes."""
 # pylint: disable=import-error, too-many-lines
 
 __all__: tuple[str, ...] = ()
@@ -55,7 +55,7 @@ def _as_dimensionless_like(q: ABCQ, value: ArrayLike) -> ABCQ:
     ``Angle``, ``StaticQuantity``) constrain their units and cannot be
     dimensionless; for those — which only arise from internal, value-level
     comparisons inside composite functions (``mod``, ``floor_divide``, ...) — we
-    fall back to a plain dimensionless :class:`ParametricQuantity`.
+    fall back to a plain dimensionless :class:`Quantity`.
     """
     try:
         return type_np(q)(value, unit=one)
@@ -389,8 +389,8 @@ def and_p_aq(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
 def and_p_qv(x1: ABCQ, x2: ArrayLike, /) -> ABCQ:
     """Bitwise AND of a dimensionless quantity and an array.
 
-    A ParametricQuantity operand keeps the result in the ParametricQuantity
-    namespace: the result is a dimensionless quantity (per the Array API).
+    A quantity operand keeps the result in the same quantity namespace:
+    the result is a dimensionless quantity (per the Array API).
 
     Examples
     --------
@@ -410,7 +410,7 @@ def and_p_qv(x1: ABCQ, x2: ArrayLike, /) -> ABCQ:
 def and_p_vq(x1: ArrayLike, x2: ABCQ, /) -> ABCQ:
     """Bitwise AND of an array and a dimensionless quantity.
 
-    See :func:`and_p_qv`: a ParametricQuantity operand keeps the result dimensionless.
+    See :func:`and_p_qv`: a quantity operand keeps the result dimensionless.
 
     Examples
     --------
@@ -454,7 +454,7 @@ def approx_top_k_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
 def argmax_p(
     operand: ABCQ, /, *, axes: int | tuple[int, ...], index_dtype: DTypeLike
 ) -> Array:
-    """Argmax of a ParametricQuantity.
+    """Argmax of a quantity.
 
     Examples
     --------
@@ -1554,7 +1554,7 @@ def custom_linear_solve_q(
     )
 
     # Cannot use replace() because physical type may change (e.g., m*s -> s when
-    # dividing by m) Use type_np to get non-parametric ParametricQuantity constructor
+    # dividing by m) Use type_np to get the unparametrized quantity constructor
     # Return as list to match JAX primitive conventions
     return [type_np(x6)(result_value, unit=result_unit)]
 
@@ -1585,7 +1585,7 @@ def custom_linear_solve_q_array_arg6(
     )
 
     # Cannot use replace() because physical type changes (m -> 1/m)
-    # Use type_np to get non-parametric ParametricQuantity constructor
+    # Use type_np to get the unparametrized quantity constructor
     # Return as list to match JAX primitive conventions
     return [type_np(x0)(result_value, unit=result_unit)]
 
@@ -3820,8 +3820,8 @@ def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Logical OR of a dimensionless quantity and an array.
 
-    A ParametricQuantity operand keeps the result in the ParametricQuantity
-    namespace: the result is a dimensionless quantity (per the Array API),
+    A quantity operand keeps the result in the same quantity namespace:
+    the result is a dimensionless quantity (per the Array API),
     mirroring :func:`and_p_qv`.
 
     Examples
@@ -3842,7 +3842,7 @@ def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 def or_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     """Logical OR of an array and a dimensionless quantity.
 
-    See :func:`or_p_qv`: a ParametricQuantity operand keeps the result dimensionless.
+    See :func:`or_p_qv`: a quantity operand keeps the result dimensionless.
 
     Examples
     --------
@@ -4388,6 +4388,8 @@ def rem_p_qv(x: Quantity, y: ArrayLike, /) -> Quantity:
     Quantity(Array(1, dtype=int32), unit='')
 
     """
+    # Construct fresh (not replace): forces the dimensionless unit and rejects
+    # a dimensionful x via ustrip("", x).
     return Quantity(lax.rem(ustrip("", x), y), unit=one)
 
 
@@ -5349,8 +5351,8 @@ def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 def xor_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Logical XOR of a dimensionless quantity and an array.
 
-    A ParametricQuantity operand keeps the result in the ParametricQuantity
-    namespace: the result is a dimensionless quantity (per the Array API),
+    A quantity operand keeps the result in the same quantity namespace:
+    the result is a dimensionless quantity (per the Array API),
     mirroring :func:`and_p_qv`.
 
     Examples
@@ -5371,7 +5373,7 @@ def xor_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 def xor_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     """Logical XOR of an array and a dimensionless quantity.
 
-    See :func:`xor_p_qv`: a ParametricQuantity operand keeps the result dimensionless.
+    See :func:`xor_p_qv`: a quantity operand keeps the result dimensionless.
 
     Examples
     --------

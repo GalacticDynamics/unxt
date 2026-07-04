@@ -18,7 +18,7 @@ angle_dimension = dimension("angle")
 
 
 class AbstractAngle(AbstractQuantity):
-    """Angular ParametricQuantity.
+    """Angular quantity.
 
     See Also
     --------
