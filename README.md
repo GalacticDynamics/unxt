@@ -219,38 +219,38 @@ import jax.numpy as jnp
 
 x = u.Q(jnp.arange(1, 5, dtype=float), "km")
 print(x)
-# ParametricQuantity['length']([1., 2., 3., 4.], unit='km')
+# Quantity([1., 2., 3., 4.], unit='km')
 ```
 
 The constituent value and unit are accessible as attributes:
 
 ```python
 repr(x.value)
-# Array([1., 2., 3., 4.], dtype=float64)
+# Array([1., 2., 3., 4.], dtype=float32)
 
 repr(x.unit)
 # Unit("km")
 ```
 
-`ParametricQuantity` objects obey the rules of unitful arithmetic.
+`Quantity` objects obey the rules of unitful arithmetic.
 
 ```python
 # Addition / Subtraction
 print(x + x)
-# ParametricQuantity["length"]([2.0, 4.0, 6.0, 8.0], unit="km")
+# Quantity([2., 4., 6., 8.], unit='km')
 
 # Multiplication / Division
 print(2 * x)
-# ParametricQuantity["length"]([2.0, 4.0, 6.0, 8.0], unit="km")
+# Quantity([2., 4., 6., 8.], unit='km')
 
 y = u.Q(jnp.arange(4, 8, dtype=float), "yr")
 
 print(x / y)
-# ParametricQuantity['speed']([0.25, 0.4 , 0.5 , 0.57142857], unit='km / yr')
+# Quantity([0.25     , 0.40000001, 0.5      , 0.5714286], unit='km / yr')
 
 # Exponentiation
 print(x**2)
-# ParametricQuantity['area']([ 1.,  4.,  9., 16.], unit='km2')
+# Quantity([ 1.,  4.,  9., 16.], unit='km2')
 
 # Unit checking on operations
 try:
@@ -264,16 +264,18 @@ Quantities can be converted to different units:
 
 ```python
 print(u.uconvert("m", x))  # via function
-# ParametricQuantity['length']([1000., 2000., 3000., 4000.], unit='m')
+# Quantity([1000., 2000., 3000., 4000.], unit='m')
 
 print(x.uconvert("m"))  # via method
-# ParametricQuantity['length']([1000., 2000., 3000., 4000.], unit='m')
+# Quantity([1000., 2000., 3000., 4000.], unit='m')
 ```
 
-Since `ParametricQuantity` is parametric, it can do runtime dimension checking!
+`ParametricQuantity` (`u.PQ`) adds runtime dimension checking on construction. Use
+`u.PQ["length"]` to create a parametric type that raises if the unit's physical type
+does not match:
 
 ```python
-LengthQuantity = u.Q["length"]
+LengthQuantity = u.PQ["length"]
 print(LengthQuantity(2, "km"))
 # ParametricQuantity['length'](2, unit='km')
 
@@ -284,20 +286,24 @@ except ValueError as e:
 # Physical type mismatch.
 ```
 
+Note: the default `u.Q["length"]` accepts the subscript but does **not** check
+dimensions — `u.Q["length"](2, "s")` silently returns `Quantity(Array(2, ...), unit='s')`.
+Use `u.PQ["length"]` when you need the runtime guard.
+
 #### Quantity
 
-For performance-critical code where you don't need dimension checking, use `Quantity`:
+`Quantity` (aliased as `u.Q`) is the default lightweight class. It does **not** do
+runtime dimension checking on construction, which makes it the fastest option for
+performance-critical code:
 
 ```python
 import unxt as u
 import jax.numpy as jnp
 
-# Quantity skips dimension checks for better performance
 bq = u.quantity.Quantity(jnp.array([1.0, 2.0, 3.0]), "m")
 print(bq)
 # Quantity([1., 2., 3.], unit='m')
 
-# Works just like ParametricQuantity but without dimension validation
 print(bq * 2)
 # Quantity([2., 4., 6.], unit='m')
 ```
