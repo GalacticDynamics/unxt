@@ -98,7 +98,8 @@ def grad(
         value = fun(*args)
         grad_value = gradfun_mag(*args_)
         # Adjust the ParametricQuantity by the units of the derivative
-        # TODO: get ParametricQuantity[unit] / unit2 -> ParametricQuantity[unit/unit2] working
+        # TODO: get ParametricQuantity[unit] / unit2 ->
+        # ParametricQuantity[unit/unit2] working
         return type_unparametrized(value)(
             grad_value, unit_of(value) / theunits[argnums]
         )
@@ -165,7 +166,8 @@ def jacfwd(
         value = jacfun_mag(*args_)
         # Adjust the ParametricQuantity by the units of the derivative
         # TODO: check the unit correction
-        # TODO: get ParametricQuantity[unit] / unit2 -> ParametricQuantity[unit/unit2] working
+        # TODO: get ParametricQuantity[unit] / unit2 ->
+        # ParametricQuantity[unit/unit2] working
         return type_unparametrized(value)(
             ustrip(value), unit_of(value) / theunits[argnums]
         )
@@ -226,7 +228,8 @@ def hessian(
         value = hessfun_mag(*args_)
         # Adjust the ParametricQuantity by the units of the derivative
         # TODO: check the unit correction
-        # TODO: get ParametricQuantity[unit] / unit2 -> ParametricQuantity[unit/unit2] working
+        # TODO: get ParametricQuantity[unit] / unit2 ->
+        # ParametricQuantity[unit/unit2] working
         return type_unparametrized(value)(
             ustrip(value), unit_of(value) / theunits[argnums] ** 2
         )

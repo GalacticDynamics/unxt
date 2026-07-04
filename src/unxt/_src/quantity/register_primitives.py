@@ -389,8 +389,8 @@ def and_p_aq(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
 def and_p_qv(x1: ABCQ, x2: ArrayLike, /) -> ABCQ:
     """Bitwise AND of a dimensionless quantity and an array.
 
-    A ParametricQuantity operand keeps the result in the ParametricQuantity namespace: the result
-    is a dimensionless quantity (per the Array API).
+    A ParametricQuantity operand keeps the result in the ParametricQuantity
+    namespace: the result is a dimensionless quantity (per the Array API).
 
     Examples
     --------
@@ -562,8 +562,8 @@ def atan2_p_aqaq(x: ABCQ, y: ABCQ) -> ABCQ:
     """Arctangent2 of two quantities.
 
     The result shares the (promoted) first operand's namespace; a parametric
-    ``ParametricQuantity`` input yields a ``ParametricQuantity``, so a separate parametric
-    registration is unnecessary.
+    ``ParametricQuantity`` input yields a ``ParametricQuantity``, so a separate
+    parametric registration is unnecessary.
 
     Examples
     --------
@@ -3820,8 +3820,9 @@ def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Logical OR of a dimensionless quantity and an array.
 
-    A ParametricQuantity operand keeps the result in the ParametricQuantity namespace: the result
-    is a dimensionless quantity (per the Array API), mirroring :func:`and_p_qv`.
+    A ParametricQuantity operand keeps the result in the ParametricQuantity
+    namespace: the result is a dimensionless quantity (per the Array API),
+    mirroring :func:`and_p_qv`.
 
     Examples
     --------
@@ -4552,10 +4553,11 @@ def scatter_add_p_vvq(
 ) -> ABCQ:
     """Scatter-add operator between an Array and a ParametricQuantity.
 
-    This is an interesting case where the ParametricQuantity is the `updates` and the Array
-    is the `operand`. For some reason when doing a ``scatter_add`` between two
-    ParametricQuantity objects an intermediate Array operand is created. Therefore we
-    need to pretend that the Array has the same units as the `updates`.
+    This is an interesting case where the ParametricQuantity is the `updates`
+    and the Array is the `operand`. For some reason when doing a ``scatter_add``
+    between two ParametricQuantity objects an intermediate Array operand is
+    created. Therefore we need to pretend that the Array has the same units as
+    the `updates`.
 
     """
     return replace(
@@ -4723,13 +4725,15 @@ def select_n_p_jqq(which: ArrayLike, /, *cases: ABCQ) -> ABCQ:
     Quantity(Array([5.], dtype=float32), unit='kpc')
 
     """
-    # Promote all cases to a common type (e.g., StaticQuantity + ParametricQuantity -> ParametricQuantity)
+    # Promote all cases to a common type
+    # (e.g., StaticQuantity + ParametricQuantity -> ParametricQuantity)
     cases = promote(*cases)
     u = unit_of(cases[0])
     dtypes = tuple(case.dtype for case in cases)
     casesv = promote_dtypes_if_needed(dtypes, *(ustrip(u, case) for case in cases))
 
-    # If result is a JAX array but promoted type is StaticQuantity, use ParametricQuantity
+    # If result is a JAX array but promoted type is StaticQuantity, use
+    # ParametricQuantity
     return replace(cases[0], value=lax.select_n(which, *casesv))
 
 
@@ -5345,8 +5349,9 @@ def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 def xor_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Logical XOR of a dimensionless quantity and an array.
 
-    A ParametricQuantity operand keeps the result in the ParametricQuantity namespace: the result
-    is a dimensionless quantity (per the Array API), mirroring :func:`and_p_qv`.
+    A ParametricQuantity operand keeps the result in the ParametricQuantity
+    namespace: the result is a dimensionless quantity (per the Array API),
+    mirroring :func:`and_p_qv`.
 
     Examples
     --------

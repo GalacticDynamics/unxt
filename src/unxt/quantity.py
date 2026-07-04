@@ -112,6 +112,9 @@ Quantity(Array(49., dtype=float32...), unit='kg m / s2')
 
 """
 # pylint: disable=duplicate-code
+# The ``BareQuantity`` deprecation shim in ``__getattr__`` imports ``warnings``
+# lazily on purpose; silence the module-level lint for that intentional pattern.
+# pylint: disable=import-outside-toplevel
 
 __all__ = (
     # Core
@@ -169,7 +172,7 @@ del install_import_hook
 
 def __getattr__(name: str) -> object:
     if name == "BareQuantity":
-        import warnings
+        import warnings  # noqa: PLC0415
 
         warnings.warn(
             "`BareQuantity` has been renamed to `Quantity` and is now the "

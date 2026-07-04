@@ -25,8 +25,8 @@ class StaticQuantity(AbstractParametricQuantity):
     """Static quantities with associated units.
 
     This class is parametrized by the dimensions of the units, just like
-    {class}`~unxt.quantity.ParametricQuantity`, but its value is always stored as a static
-    NumPy array. It accepts Python scalars and array-like inputs that can be
+    {class}`~unxt.quantity.ParametricQuantity`, but its value is always stored
+    as a static NumPy array. It accepts Python scalars and array-like inputs that can be
     converted to NumPy arrays, and it rejects JAX arrays.
 
     Examples

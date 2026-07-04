@@ -52,7 +52,8 @@ def dimension_of(obj: type[AbstractParametricQuantity], /) -> AbstractDimension:
     ...     u.dimension_of(u.PQ)
     ... except Exception as e:
     ...     print(e)
-    can only get dimensions from parametrized ParametricQuantity -- ParametricQuantity[dim].
+    can only get dimensions from parametrized ParametricQuantity --
+    ParametricQuantity[dim].
 
     >>> u.dimension_of(u.PQ["length"])
     PhysicalType('length')
@@ -159,7 +160,8 @@ def uconvert_value(uto: str, ufrom: str, x: ArrayLike, /) -> ArrayLike:
 
 
 # **NOTE:** we also add convenience dispatches for `uconvert_value` so that
-# users can use the lower-level function with ParametricQuantity and not break their code.
+# users can use the lower-level function with ParametricQuantity and not break
+# their code.
 
 
 @dispatch

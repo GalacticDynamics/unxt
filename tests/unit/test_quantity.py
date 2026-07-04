@@ -179,7 +179,7 @@ def test_uconvert_value_with_strings():
 
 
 def test_uconvert_value_with_quantity():
-    """Test the ``u.uconvert_value`` convenience dispatch with ParametricQuantity objects."""
+    """Test ``u.uconvert_value`` convenience dispatch with ParametricQuantity."""
     # Convert a ParametricQuantity object using uconvert_value
     q = u.Q(1, "km")
     result = u.uconvert_value("m", "km", q)
@@ -273,7 +273,7 @@ def test_uconvert_value_with_jax_transformations():
 
 
 def test_uconvert_value_error_handling_quantity():
-    """Test error handling when converting incompatible ParametricQuantity with uconvert_value."""
+    """Test error when converting incompatible ParametricQuantity units."""
     q_length = u.Q(1, "m")
     # Try to convert length quantity to time units - should raise
     with pytest.raises(apyu.UnitConversionError, match="not convertible"):

@@ -183,7 +183,7 @@ def test_astropy_compat_methods(Qcls):
 
 def test_only_parametric_checks_dimensions():
     """Documented v2 difference #1: no runtime dimension checking on Quantity."""
-    with pytest.raises(ValueError, match="[Pp]hysical type"):
+    with pytest.raises(ValueError, match=r"[Pp]hysical type"):
         ParametricQuantity["time"](1.0, "m")
     # The same expression on the default Quantity is a silent no-op.
     q = Quantity["time"](1.0, "m")

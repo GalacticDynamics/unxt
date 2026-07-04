@@ -117,15 +117,18 @@ class IPythonReprMixin:
 
         >>> q = ParametricQuantity([1.0, 2, 3, 4], "m")
         >>> q._repr_mimebundle_()
-        {'text/plain': "ParametricQuantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')",
+        {'text/plain':
+         "ParametricQuantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')",
          'text/html': '<span>[1., 2., 3., 4.]</span> * <span>Unit("m")</span>',
          'text/latex': '$[1.,~2.,~3.,~4.] \\; \\mathrm{m}$'}
 
         >>> q._repr_mimebundle_(include=["text/plain"])
-        {'text/plain': "ParametricQuantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
+        {'text/plain':
+         "ParametricQuantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
 
         >>> q._repr_mimebundle_(exclude=["text/html", "text/latex"])
-        {'text/plain': "ParametricQuantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
+        {'text/plain':
+         "ParametricQuantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
 
         """
         # Determine the set of keys to include in the MIME bundle

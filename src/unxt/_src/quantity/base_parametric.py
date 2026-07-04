@@ -28,7 +28,8 @@ def _dimension_of_unit(unit: AbstractUnit) -> AbstractDimension:
     """Return the dimension of a unit, memoized for the construction hot path.
 
     `dimension_of` is a `plum`-dispatched function whose resolver is non-faithful
-    (it carries `type[...]` class overloads, e.g. ``dimension_of(ParametricQuantity["length"])``),
+    (it carries `type[...]` class overloads, e.g.
+    ``dimension_of(ParametricQuantity["length"])``),
     so `plum` cannot cache its method resolution and re-resolves on every call
     (~60us). `__check_init__` runs on every `AbstractParametricQuantity`
     construction -- including every arithmetic result -- so we memoize the
@@ -211,7 +212,8 @@ class AbstractParametricQuantity(AbstractQuantity):
         include_params
             If `True`, the type parameter is included in the representation. If
             `False`, the type parameter is not included in the representation.
-            For example, ``ParametricQuantity['length'][i32]`` versus ``ParametricQuantity[i32]``.
+            For example, ``ParametricQuantity['length'][i32]`` versus
+            ``ParametricQuantity[i32]``.
         named_unit
             If `True`, the unit is included in the representation as a named
             argument. If `False`, the unit is included as a positional argument.

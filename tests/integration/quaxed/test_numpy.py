@@ -873,11 +873,11 @@ def test_logical_and():
 
 
 def test_logical_and_quantity_array():
-    """Test `logical_and` mixing a dimensionless ParametricQuantity and a raw array.
+    """Test `logical_and` mixing a dimensionless ParametricQuantity and an array.
 
-    A ParametricQuantity operand keeps the result in the ParametricQuantity namespace: the result
-    is a dimensionless ParametricQuantity (per the Array API), regardless of operand
-    order.
+    A ParametricQuantity operand keeps the result in the ParametricQuantity
+    namespace: the result is a dimensionless ParametricQuantity (per the Array
+    API), regardless of operand order.
     """
     x = u.Q([True, False, True], "")
     y = jnp.asarray([True, True, False])
@@ -1592,10 +1592,11 @@ def test_sort():
 
 
 def test_sort_multiple_quantity_operands():
-    """Test sorting a key ParametricQuantity while carrying along a second ParametricQuantity.
+    """Test sorting a key ParametricQuantity while carrying along a second one.
 
-    Sorting by one key ParametricQuantity while reordering a payload ParametricQuantity of a
-    *different* unit must preserve each operand's own unit.
+    Sorting by one key ParametricQuantity while reordering a payload
+    ParametricQuantity of a *different* unit must preserve each operand's own
+    unit.
     """
     pos = u.Q(jnp.asarray([3.0, 1.0, 2.0]), "km")
     vel = u.Q(jnp.asarray([30.0, 10.0, 20.0]), "km/s")

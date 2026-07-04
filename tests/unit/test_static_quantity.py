@@ -85,7 +85,7 @@ def test_static_quantity_promotes_to_quantity() -> None:
 
 
 def test_static_quantity_subtraction_with_quantity() -> None:
-    """StaticQuantity subtraction with ParametricQuantity promotes to ParametricQuantity."""
+    """StaticQuantity - ParametricQuantity promotes to ParametricQuantity."""
     sq = u.StaticQuantity(np.array(1.0), "s")
     q = u.Q(0.5, "s")
 
@@ -112,7 +112,7 @@ def test_static_quantity_subtraction_preserves_static() -> None:
 
 
 def test_static_quantity_addition_with_quantity() -> None:
-    """StaticQuantity addition with ParametricQuantity promotes to ParametricQuantity."""
+    """StaticQuantity + ParametricQuantity promotes to ParametricQuantity."""
     sq = u.StaticQuantity(np.array(1.0), "s")
     q = u.Q(0.5, "s")
 
@@ -139,7 +139,7 @@ def test_static_quantity_addition_preserves_static() -> None:
 
 
 def test_static_quantity_multiplication_with_quantity() -> None:
-    """StaticQuantity multiplication with ParametricQuantity promotes to ParametricQuantity."""
+    """StaticQuantity * ParametricQuantity promotes to ParametricQuantity."""
     sq = u.StaticQuantity(2.0, "m")
     q = u.Q(3.0, "s")
 
@@ -194,7 +194,7 @@ def test_static_quantity_integer_power_preserves_static_array() -> None:
 
 
 def test_static_quantity_division_with_quantity() -> None:
-    """StaticQuantity division with ParametricQuantity promotes to ParametricQuantity."""
+    """StaticQuantity / ParametricQuantity promotes to ParametricQuantity."""
     sq = u.StaticQuantity(6.0, "m")
     q = u.Q(2.0, "s")
 
@@ -555,7 +555,7 @@ def test_quantity_ops_with_static_value() -> None:
 
 
 def test_quantity_static_value_as_jit_static_arg() -> None:
-    """ParametricQuantity(StaticValue) can be used as a static argument to jitted functions."""
+    """ParametricQuantity(StaticValue) works as a static arg to jitted funcs."""
     # Create a ParametricQuantity with StaticValue. A StaticValue must be
     # held by the parametric class (``u.PQ``), whose value field is static;
     # the lightweight ``Quantity`` treats its value as a pytree leaf, so an

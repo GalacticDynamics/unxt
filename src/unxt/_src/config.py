@@ -23,7 +23,8 @@ class LocalConfigurable(Configurable):
     """Base class for config objects that support thread-local overrides.
 
     This class provides a mechanism for temporary, thread-local configuration
-    changes that can be used in nested contexts (e.g., within ParametricQuantity.__repr__()).
+    changes that can be used in nested contexts (e.g., within
+    ParametricQuantity.__repr__()).
     """
 
     # Thread-local storage for context manager overrides
@@ -122,7 +123,9 @@ class QuantityReprConfig(LocalConfigurable):
 
     use_short_name: ClassVar[object] = Bool(
         default_value=False,
-        help="Use short class name if available (e.g., Q instead of ParametricQuantity)",
+        help=(
+            "Use short class name if available (e.g., Q instead of ParametricQuantity)"
+        ),
     ).tag(config=True)
 
     named_unit: ClassVar[object] = Bool(
@@ -323,7 +326,9 @@ class QuantityStrConfig(LocalConfigurable):
 
     use_short_name: ClassVar[object] = Bool(
         default_value=False,
-        help="Use short class name if available (e.g., Q instead of ParametricQuantity)",
+        help=(
+            "Use short class name if available (e.g., Q instead of ParametricQuantity)"
+        ),
     ).tag(config=True)
 
     named_unit: ClassVar[object] = Bool(

@@ -175,7 +175,7 @@ class TestShortName:
 
 
 class TestStringConversionWithJIT:
-    """Test that str() works on ParametricQuantity and Angle inside JAX JIT with tracers."""
+    """Test str() on ParametricQuantity and Angle inside JAX JIT with tracers."""
 
     def test_str_quantity_in_jit(self):
         """Test that str(ParametricQuantity) works inside jax.jit with tracers.

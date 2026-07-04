@@ -265,7 +265,10 @@ def from_(cls: type[StaticValue], value: StaticValue, /) -> StaticValue:
 @StaticValue.from_.dispatch
 def from_(cls: type[StaticValue], value: jax.Array | jax.core.Tracer, /) -> StaticValue:
     """Reject JAX arrays for `StaticQuantity`."""
-    msg = "StaticQuantity does not accept JAX arrays. Use ParametricQuantity for traced values."
+    msg = (
+        "StaticQuantity does not accept JAX arrays. "
+        "Use ParametricQuantity for traced values."
+    )
     raise TypeError(msg)
 
 

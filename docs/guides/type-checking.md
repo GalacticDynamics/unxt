@@ -9,7 +9,7 @@
 
 ## TL;DR
 
-You can tell functions about the dtype, shape, and dimensions of a `ParametricQuantity`. The dtype and shape information can be checked statically, and all three can be checked at runtime. (Runtime *dimension* checking is what the parametric `ParametricQuantity` -- alias `u.PQ` -- adds over the lightweight default `Quantity`.)
+You can tell functions about the dtype, shape, and dimensions of a `ParametricQuantity`. The dtype and shape information can be checked statically, and all three can be checked at runtime. (Runtime _dimension_ checking is what the parametric `ParametricQuantity` -- alias `u.PQ` -- adds over the lightweight default `Quantity`.)
 
 In the following example we will define a function that operates on two length-'N' (1-D and equally-shaped) float dtype arrays. The function takes a length and a time and returns a velocity.
 

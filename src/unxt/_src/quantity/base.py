@@ -1025,7 +1025,10 @@ def from_(
     unit: Any | None = None,
     dtype: Any = None,
 ) -> AbstractQuantity:
-    """Construct a `ParametricQuantity` from another `ParametricQuantity`, with no unit change."""
+    """Construct a `ParametricQuantity` from another `ParametricQuantity`.
+
+    The unit is unchanged.
+    """
     unit = value.unit if unit is None else unit
     value = jnp.asarray(uapi.uconvert(unit, value), dtype=dtype)
     return cls(uapi.ustrip(unit, value), unit)
