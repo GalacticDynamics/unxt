@@ -355,7 +355,7 @@ def dimension_of(obj: type, /) -> NoReturn:
     ...     u.dimension_of(u.quantity.Quantity)
     ... except ValueError as e:
     ...     print(e)
-    Cannot get the dimension of <class 'unxt._src.quantity.unchecked.Quantity'>.
+    Cannot get the dimension of <class 'unxt._src.quantity.quantity.Quantity'>.
 
     """
     msg = f"Cannot get the dimension of {obj}."

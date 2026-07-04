@@ -1,4 +1,4 @@
-"""Compatibility for ParametricQuantity."""
+"""Conversion methods between quantity classes."""
 
 __all__: tuple[str, ...] = ()
 
@@ -12,8 +12,8 @@ from unxt_api import unit_of, ustrip
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=Quantity)  # type: ignore[arg-type]
-def quantity_to_unchecked(q: AbstractQuantity, /) -> Quantity:
-    """Convert any quantity to an unchecked quantity.
+def quantity_to_default(q: AbstractQuantity, /) -> Quantity:
+    """Convert any quantity to the default (non-parametric) ``Quantity``.
 
     Examples
     --------

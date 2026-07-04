@@ -202,7 +202,7 @@ class QuantityReprConfig(LocalConfigurable):
         Q([1, 2, 3], unit='m')
 
         >>> print(str(q))
-        ParametricQuantity['length']([1, 2, 3], unit='m')
+        Quantity([1, 2, 3], unit='m')
 
         """
         if cfg is not None and kwargs:
@@ -304,7 +304,7 @@ class QuantityStrConfig(LocalConfigurable):
     Q(i32[3], unit='m')
 
     >>> print(str(q))
-    ParametricQuantity['length']([1, 2, 3], unit='m')
+    Quantity([1, 2, 3], unit='m')
 
     """
 
@@ -471,7 +471,7 @@ class UnxtConfig(SingletonConfigurable):
     Config restored after exiting context
 
     >>> print(repr(q))
-    ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     """
 
@@ -511,12 +511,12 @@ class UnxtConfig(SingletonConfigurable):
         >>> with u.config.override(quantity_repr__short_arrays=True):
         ...     q = u.Q([1.0, 2.0, 3.0], "m")
         ...     print(repr(q))  # Uses compact display
-        ParametricQuantity(f32[3], unit='m')
+        Quantity(f32[3], unit='m')
 
         Config restored to previous value
 
         >>> print(repr(q))
-        ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
+        Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
         """
         # Parse nested config overrides (e.g., quantity_repr__short_arrays)

@@ -132,7 +132,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         >>> import copy as pycopy
         >>> import unxt as u
 
-        >>> x = u.Q([1, 2, 3], "m")
+        >>> x = u.PQ([1, 2, 3], "m")
         >>> pycopy.copy(x)
         ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
 
@@ -178,7 +178,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         >>> import pickle
         >>> import unxt as u
 
-        >>> x = u.Q([1, 2, 3], "m")
+        >>> x = u.PQ([1, 2, 3], "m")
         >>> pickle.dumps(x)
         b'...'
 
@@ -230,7 +230,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         >>> import unxt as u
         >>> import wadler_lindig as wl
 
-        >>> q = u.Q([1, 2, 3], "m")
+        >>> q = u.PQ([1, 2, 3], "m")
 
         The default pretty printing:
 
@@ -266,12 +266,12 @@ class AbstractParametricQuantity(AbstractQuantity):
         The class can be printed with its short name:
 
         >>> wl.pprint(q, use_short_name=True)
-        Q(i32[3], unit='m')
+        PQ(i32[3], unit='m')
 
         Short name with type parameter:
 
         >>> wl.pprint(q, use_short_name=True, include_params=True)
-        Q['length'](i32[3], unit='m')
+        PQ['length'](i32[3], unit='m')
 
         """
         pdoc = super().__pdoc__(

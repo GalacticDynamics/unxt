@@ -241,7 +241,7 @@ You can use unit system units to create quantities:
 
 >>> q = u.Q(10, usys["velocity"])
 >>> q
-ParametricQuantity(Array(10, dtype=int32...), unit='m / s')
+Quantity(Array(10, dtype=int32...), unit='m / s')
 
 ```
 
@@ -288,7 +288,7 @@ Create a `ParametricQuantity` by passing a JAX array-compatible object and a uni
 
 >>> x = u.Q([1.0, 2.0, 3.0], unit="m")  # same as u.ParametricQuantity(...)
 >>> x
-ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
+Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 ```
 
 As a shorthand, we also support `u.Q` and specifying units as strings (parsed by `unxt.unit`, using Astropy as the backend):
@@ -297,7 +297,7 @@ As a shorthand, we also support `u.Q` and specifying units as strings (parsed by
 
 >>> y = u.Q([4.0, 5.0, 6.0], "m")
 >>> y
-ParametricQuantity(Array([4., 5., 6.], dtype=float32), unit='m')
+Quantity(Array([4., 5., 6.], dtype=float32), unit='m')
 ```
 
 The constituent value and unit are accessible as attributes:
@@ -316,13 +316,13 @@ Unit("m")
 ```{code-block} python
 
 >>> x + y
-ParametricQuantity(Array([5., 7., 9.], dtype=float32), unit='m')
+Quantity(Array([5., 7., 9.], dtype=float32), unit='m')
 
 >>> x * y
-ParametricQuantity(Array([ 4., 10., 18.], dtype=float32), unit='m2')
+Quantity(Array([ 4., 10., 18.], dtype=float32), unit='m2')
 
 >>> x / y
-ParametricQuantity(Array([0.25, 0.4 , 0.5 ], dtype=float32), unit='')
+Quantity(Array([0.25, 0.4 , 0.5 ], dtype=float32), unit='')
 
 ```
 
@@ -349,7 +349,7 @@ using the explicit syntax
 ```{code-block} python
 
 >>> x.uconvert("cm")
-ParametricQuantity(Array([100., 200., 300.], dtype=float32), unit='cm')
+Quantity(Array([100., 200., 300.], dtype=float32), unit='cm')
 
 ```
 
@@ -358,7 +358,7 @@ or Astropy's API
 ```{code-block} python
 
 >>> x.to("cm")
-ParametricQuantity(Array([100., 200., 300.], dtype=float32), unit='cm')
+Quantity(Array([100., 200., 300.], dtype=float32), unit='cm')
 
 ```
 
@@ -371,7 +371,7 @@ or a function-oriented approach
 ```{code-block} python
 
 >>> u.uconvert("cm", x)
-ParametricQuantity(Array([100., 200., 300.], dtype=float32), unit='cm')
+Quantity(Array([100., 200., 300.], dtype=float32), unit='cm')
 
 ```
 
@@ -412,7 +412,7 @@ This is the way to "quaxify" a JAX function. A powerful feature of `quaxify` is 
 ...     return jnp.square(x) + jnp.multiply(x, y)  # normal JAX
 
 >>> func(x, y)
-ParametricQuantity(Array([ 5., 14., 27.], dtype=float32), unit='m2')
+Quantity(Array([ 5., 14., 27.], dtype=float32), unit='m2')
 
 ```
 
@@ -427,7 +427,7 @@ ParametricQuantity(Array([ 5., 14., 27.], dtype=float32), unit='m2')
 >>> import quaxed.numpy as jnp  # pre-quaxified JAX
 
 >>> jnp.square(x) + jnp.multiply(x, y)
-ParametricQuantity(Array([ 5., 14., 27.], dtype=float32), unit='m2')
+Quantity(Array([ 5., 14., 27.], dtype=float32), unit='m2')
 
 ```
 
@@ -449,7 +449,7 @@ ParametricQuantity(Array([ 5., 14., 27.], dtype=float32), unit='m2')
 
 >>> jitted_func = jit(func)
 >>> jitted_func(x, y)
-ParametricQuantity(Array([ 5., 14., 27.], dtype=float32), unit='m2')
+Quantity(Array([ 5., 14., 27.], dtype=float32), unit='m2')
 
 ```
 
@@ -471,7 +471,7 @@ Static quantities are also available when you need JAX-static configuration or c
 ...     return jq + u.Q(jnp.asarray(sq.value), sq.unit)
 
 >>> add(jq, sq)
-ParametricQuantity(Array([2., 3.], dtype=float32), unit='m')
+Quantity(Array([2., 3.], dtype=float32), unit='m')
 
 ```
 
@@ -488,7 +488,7 @@ You can also keep a static value inside a regular `ParametricQuantity` by wrappi
 >>> q = u.Q(jnp.array([3.0, 4.0]), "m")
 
 >>> q_static + q
-ParametricQuantity(Array([4., 6.], dtype=float32), unit='m')
+Quantity(Array([4., 6.], dtype=float32), unit='m')
 
 ```
 
@@ -517,7 +517,7 @@ JAX Auto-Differentiation (AD) is supported:
 
 >>> grad_f = quaxify(jax.grad(f))
 >>> grad_f(x, y)
-ParametricQuantity(Array(0.5, dtype=float32...), unit='m / s')
+Quantity(Array(0.5, dtype=float32...), unit='m / s')
 
 ```
 
@@ -529,7 +529,7 @@ or using the convenience library
 
 >>> grad_f = qjax.grad(f)
 >>> grad_f(x, y)
-ParametricQuantity(Array(0.5, dtype=float32...), unit='m / s')
+Quantity(Array(0.5, dtype=float32...), unit='m / s')
 
 ```
 
@@ -541,7 +541,7 @@ ParametricQuantity(Array(0.5, dtype=float32...), unit='m / s')
 
 >>> jac_f = quaxify(jax.jacfwd(f))
 >>> jac_f(x, y)
-ParametricQuantity(Array(0.5, dtype=float32...), unit='m / s')
+Quantity(Array(0.5, dtype=float32...), unit='m / s')
 
 ```
 
@@ -551,7 +551,7 @@ or using the convenience library
 
 >>> jac_f = qjax.jacfwd(f)
 >>> jac_f(x, y)
-ParametricQuantity(Array(0.5, dtype=float32...), unit='m / s')
+Quantity(Array(0.5, dtype=float32...), unit='m / s')
 
 ```
 
@@ -563,7 +563,7 @@ ParametricQuantity(Array(0.5, dtype=float32...), unit='m / s')
 
 >>> hess_f = quaxify(jax.hessian(f))
 >>> hess_f(x, y)
-ParametricQuantity(Array(0.5, dtype=float32...), unit='1 / s')
+Quantity(Array(0.5, dtype=float32...), unit='1 / s')
 
 ```
 
@@ -573,7 +573,7 @@ or using the convenience library
 
 >>> hess_f = qjax.hessian(f)
 >>> hess_f(x, y)
-ParametricQuantity(Array(0.5, dtype=float32...), unit='1 / s')
+Quantity(Array(0.5, dtype=float32...), unit='1 / s')
 
 ```
 

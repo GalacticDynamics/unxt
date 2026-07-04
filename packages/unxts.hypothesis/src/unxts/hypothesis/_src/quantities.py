@@ -1,4 +1,4 @@
-"""Hypothesis strategies for ParametricQuantity objects."""
+"""Hypothesis strategies for Quantity objects."""
 
 __all__ = ("quantities", "wrap_to", "angles")
 
@@ -40,17 +40,20 @@ def quantities(
     static_value: bool | st.SearchStrategy[bool] = False,
     **kwargs: Any,
 ) -> u.AbstractQuantity:
-    """Generate hypothesis strategy for unxt ParametricQuantity objects.
+    """Generate hypothesis strategy for unxt Quantity objects.
 
     This strategy combines JAX array generation with unit specifications to
-    create valid ParametricQuantity objects for property-based testing.
+    create valid Quantity objects for property-based testing. By default it
+    generates the lightweight `unxt.Quantity`; pass ``quantity_cls`` (e.g.
+    `unxt.ParametricQuantity`) to generate another `unxt.AbstractQuantity`
+    subclass.
 
     Parameters
     ----------
     draw : st.DrawFn
         Hypothesis draw function (automatically provided by @st.composite).
     unit : str | st.SearchStrategy[unxt.AbstractUnit]
-        Unit specification for the ParametricQuantity. Can be:
+        Unit specification for the Quantity. Can be:
 
         - str: Fixed unit (e.g., "kpc", "km/s")
         - `unxt.AbstractUnit`: Fixed unit object
@@ -59,7 +62,7 @@ def quantities(
         - SearchStrategy: Strategy that generates units (e.g., from `units()`)
           or dimensions. The default strategy samples from SI base units.
     quantity_cls : type[`unxt.AbstractQuantity`], optional
-        The target quantity class to convert to. Default is `unxt.ParametricQuantity`.
+        The target quantity class to convert to. Default is `unxt.Quantity`.
         Can be any `unxt.AbstractQuantity` subclass like `unxt.ParametricQuantity` or
         `unxt.Angle`.
     dtype : Any, optional
@@ -84,8 +87,9 @@ def quantities(
 
     Returns
     -------
-    `unxt.ParametricQuantity`
-        A ParametricQuantity object with the specified unit and array properties.
+    `unxt.Quantity`
+        A Quantity object with the specified unit and array properties (or an
+        instance of ``quantity_cls`` if provided).
 
     Examples
     --------
@@ -169,7 +173,7 @@ def quantities(
 
     >>> @given(angle=ust.quantities("rad", quantity_cls=u.Angle, shape=3))
     ... def test_angle_generation(angle):
-    ...     # Creates Angle instances instead of ParametricQuantity
+    ...     # Creates Angle instances instead of the default Quantity
     ...     assert isinstance(angle, u.Angle)
     ...     assert angle.unit == u.unit("rad")
     ...     assert angle.shape == (3,)
@@ -202,7 +206,7 @@ def quantities(
     if static_value:
         values = u.quantity.StaticValue(np.asarray(values))
 
-    # Create ParametricQuantity with the specified unit
+    # Create the quantity (default Quantity) with the specified unit
     return quantity_cls(values, unit_obj, **kwargs)
 
 
@@ -224,7 +228,7 @@ def wrap_to(
     draw
         Hypothesis draw function (automatically provided by @st.composite).
     quantity
-        ParametricQuantity or strategy that generates the base quantity to wrap.
+        Quantity or strategy that generates the base quantity to wrap.
     min
         Minimum value of the wrapping range (inclusive).
     max

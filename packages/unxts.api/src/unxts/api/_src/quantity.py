@@ -1,4 +1,4 @@
-"""ParametricQuantity API for unxt.
+"""Quantity API for unxt.
 
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
@@ -44,7 +44,7 @@ def uconvert(u: Any, x: Any, /) -> Any:
 
     Internally, {func}`unxts.api.uconvert` often calls to
     {func}`unxts.api.uconvert_value` to perform the numerical conversion on the
-    ParametricQuantity's value.
+    Quantity's value.
 
     Examples
     --------
@@ -52,10 +52,10 @@ def uconvert(u: Any, x: Any, /) -> Any:
 
     >>> q = u.Q(1, "km")
     >>> u.uconvert(u.unit("m"), q)
-    ParametricQuantity(Array(1000., dtype=float32, ...), unit='m')
+    Quantity(Array(1000., dtype=float32, ...), unit='m')
 
     >>> u.uconvert("m", q)
-    ParametricQuantity(Array(1000., dtype=float32, ...), unit='m')
+    Quantity(Array(1000., dtype=float32, ...), unit='m')
 
     For further examples, see the other method dispatches.
 

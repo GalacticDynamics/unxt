@@ -20,7 +20,7 @@ As an example, consider the following code snippets:
 
 >>> q = u.Q(1, 'm')
 >>> q
-ParametricQuantity(Array(1, dtype=int32...), unit='m')
+Quantity(Array(1, dtype=int32...), unit='m')
 ```
 
 First we'll show the object-oriented API:
@@ -28,7 +28,7 @@ First we'll show the object-oriented API:
 ```{code-block} python
 
 >>> q.uconvert('cm')
-ParametricQuantity(Array(100., dtype=float32, weak_type=True), unit='cm')
+Quantity(Array(100., dtype=float32, weak_type=True), unit='cm')
 ```
 
 And now the function-oriented API:
@@ -36,7 +36,7 @@ And now the function-oriented API:
 ```{code-block} python
 
 >>> u.uconvert("cm", q)
-ParametricQuantity(Array(100., dtype=float32, weak_type=True), unit='cm')
+Quantity(Array(100., dtype=float32, weak_type=True), unit='cm')
 ```
 
 ## Argument Order of Functional APIs
@@ -48,32 +48,32 @@ For example, to convert a quantity `q` to centimeters, we use the `uconvert` fun
 ```{code-block} python
 
 >>> u.uconvert("cm", q)  # convert[to_unit](quantity)
-ParametricQuantity(Array(100., dtype=float32, weak_type=True), unit='cm')
+Quantity(Array(100., dtype=float32, weak_type=True), unit='cm')
 ```
 
 One of the reasons for this order is because it works very well with a multiple-dispatch system, where many variants of the same function can be defined based on the types of the arguments. The arguments for "operator" part of the function are the first arguments, and the arguments for the "operand" are the last arguments.
 
 ## Multiple Dispatch
 
-`unxt` uses [multiple dispatch](https://beartype.github.io/plum/) to hook into `quax`'s flexible and extensible system to enable custom array-ish objects, like `ParametricQuantity`, in `JAX`. Also, `unxt` uses multiple dispatch to enable deep interoperability between `unxt` and other libraries, like `astropy`, `gala` (, and anything user-defined).
+`unxt` uses [multiple dispatch](https://beartype.github.io/plum/) to hook into `quax`'s flexible and extensible system to enable custom array-ish objects, like `Quantity`, in `JAX`. Also, `unxt` uses multiple dispatch to enable deep interoperability between `unxt` and other libraries, like `astropy`, `gala` (, and anything user-defined).
 
-For example, `unxt` provides a `ParametricQuantity.from_` method that can convert an `astropy.ParametricQuantity` to a `unxt.ParametricQuantity`:
+For example, `unxt` provides a `Quantity.from_` method that can convert an `astropy.Quantity` to a `unxt.Quantity`:
 
 ```{code-block} python
 
 >>> import astropy.units as apyu
 >>> import unxt as u
 
->>> aq = apyu.ParametricQuantity(1, 'm')  # Astropy ParametricQuantity
+>>> aq = apyu.Quantity(1, 'm')  # Astropy Quantity
 >>> aq
-<ParametricQuantity 1. m>
+<Quantity 1. m>
 
->>> xq = u.Q.from_(aq)  # unxt ParametricQuantity
+>>> xq = u.Q.from_(aq)  # unxt Quantity
 >>> xq
-ParametricQuantity(Array(1., dtype=float32), unit='m')
+Quantity(Array(1., dtype=float32), unit='m')
 
 ```
 
-This easy interoperability is enabled by multiple dispatch, which allows the `ParametricQuantity.from_` method to dispatch to the correct implementation based on the types of the arguments.
+This easy interoperability is enabled by multiple dispatch, which allows the `Quantity.from_` method to dispatch to the correct implementation based on the types of the arguments.
 
 For more information on multiple dispatch, see the [plum documentation](https://beartype.github.io/plum/).

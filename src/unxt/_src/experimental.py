@@ -73,7 +73,7 @@ def grad(
 
     >>> grad_cube_volume = u.experimental.grad(cube_volume, units=("m",))
     >>> grad_cube_volume(u.Q(2.0, "m"))
-    ParametricQuantity(Array(12., dtype=float32...), unit='m2')
+    Quantity(Array(12., dtype=float32...), unit='m2')
 
     """
     theunits: tuple[AbstractUnit | None, ...] = tuple(map(unit_or_none, units))

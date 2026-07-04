@@ -5,7 +5,7 @@
 :hidden:
 ```
 
-`unxts.interop.matplotlib` is the canonical location for [matplotlib](https://matplotlib.org/) integration. If installed, `unxt` will automatically detect this and register a converter with `matplotlib` to enable plotting `ParametricQuantity` objects.
+`unxts.interop.matplotlib` is the canonical location for [matplotlib](https://matplotlib.org/) integration. If installed, `unxt` will automatically detect this and register a converter with `matplotlib` to enable plotting `Quantity` objects.
 
 To ensure that a compatible version of `matplotlib` is installed, you can install `unxt` with the `interop-mpl` extra:
 
@@ -29,7 +29,7 @@ pip install unxt[interop-mpl]
 
 ::::
 
-Once installed, you can plot `ParametricQuantity` objects directly with `matplotlib`:
+Once installed, you can plot `Quantity` objects directly with `matplotlib`:
 
 ::::{tab-set}
 

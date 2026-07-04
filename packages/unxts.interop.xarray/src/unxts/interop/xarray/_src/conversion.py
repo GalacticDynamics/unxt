@@ -49,7 +49,7 @@ def _array_attach_units(
     >>> data = jnp.array([1.0, 2.0, 3.0])
     >>> q = _array_attach_units(data, "m")
     >>> q
-    ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     >>> _array_attach_units(data, None) is data
     True
@@ -238,7 +238,7 @@ def attach_units(
     >>> da = xr.DataArray([1.0, 2.0], dims=["x"])
     >>> quantified = attach_units(da, {None: "m"})
     >>> quantified.data
-    ParametricQuantity(Array([1., 2.], dtype=float32), unit='m')
+    Quantity(Array([1., 2.], dtype=float32), unit='m')
 
     """
     # Handle the data array itself (None key = the DataArray's own data)

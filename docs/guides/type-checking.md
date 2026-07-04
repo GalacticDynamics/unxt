@@ -9,7 +9,7 @@
 
 ## TL;DR
 
-You can tell functions about the dtype, shape, and dimensions of a `ParametricQuantity`. The dtype and shape information can be checked statically, and all three can be checked at runtime.
+You can tell functions about the dtype, shape, and dimensions of a `ParametricQuantity`. The dtype and shape information can be checked statically, and all three can be checked at runtime. (Runtime *dimension* checking is what the parametric `ParametricQuantity` -- alias `u.PQ` -- adds over the lightweight default `Quantity`.)
 
 In the following example we will define a function that operates on two length-'N' (1-D and equally-shaped) float dtype arrays. The function takes a length and a time and returns a velocity.
 
@@ -20,9 +20,9 @@ from jaxtyping import Float
 import unxt as u
 
 def function(
-    x: Float[u.Q["length"], "N"],
-    t: Float[u.Q["time"], "N"],
-) -> Float[u.Q["speed"], "N"]:
+    x: Float[u.PQ["length"], "N"],
+    t: Float[u.PQ["time"], "N"],
+) -> Float[u.PQ["speed"], "N"]:
     return x / t
 
 ```
@@ -83,13 +83,13 @@ Here's an example:
 
 >>> @jaxtyped(typechecker=typechecker)
 ... def velocity(
-...     x: Shaped[u.Q["length"], "N"],
-...     t: Shaped[u.Q["time"], "N"],
-... ) -> Shaped[u.Q["speed"], "N"]:
+...     x: Shaped[u.PQ["length"], "N"],
+...     t: Shaped[u.PQ["time"], "N"],
+... ) -> Shaped[u.PQ["speed"], "N"]:
 ...     return x / t
 
->>> x = u.Q([2.], "m")
->>> t = u.Q([1.], "s")
+>>> x = u.PQ([2.], "m")
+>>> t = u.PQ([1.], "s")
 
 >>> velocity(x, t)
 ParametricQuantity(Array([2.], dtype=float32), unit='m / s')
@@ -111,22 +111,22 @@ Now for some examples.
 When a `ParametricQuantity` is constructed it is parametrized by the unit's dimension. This can be specified explicitly
 
 ```{code-block}
->>> u.Q["length"](1, "m")
-ParametricQuantity['length'](Array(1, dtype=int32, ...), unit='m')
+>>> u.PQ["length"](1, "m")
+ParametricQuantity(Array(1, dtype=int32, ...), unit='m')
 ```
 
 or inferred.
 
 ```{code-block}
->>> u.Q(1, "m")
-ParametricQuantity['length'](Array(1, dtype=int32, ...), unit='m')
+>>> u.PQ(1, "m")
+ParametricQuantity(Array(1, dtype=int32, ...), unit='m')
 ```
 
 When given explicitly ParametricQuantity will check the input dimensions. Here a length-parametrized ParametricQuantity is (correctly) refusing dimensions of time.
 
 ```{code-block} python
 >>> try:
-...     u.Q["length"](1, "s")
+...     u.PQ["length"](1, "s")
 ... except Exception as e:
 ...     print(e)
 Physical type mismatch.
@@ -137,7 +137,7 @@ That should catch some bugs!
 The act of filling a `ParametricQuantity`'s parameters and its construction may be separated
 
 ```{code-block} python
->>> LengthQuantity = u.Q["length"]
+>>> LengthQuantity = u.PQ["length"]
 >>> LengthQuantity
 <class 'unxt...ParametricQuantity[PhysicalType('length')]'>
 ```

@@ -226,10 +226,10 @@ class NumPyCompatMixin:
 
         >>> q = u.Q([1.0, 2, 3, 4], "m")
         >>> np.sum(q)
-        ParametricQuantity(Array(10., dtype=float32), unit='m')
+        Quantity(Array(10., dtype=float32), unit='m')
 
         >>> np.stack([q, q])
-        ParametricQuantity(Array([[1., 2., 3., 4.],
+        Quantity(Array([[1., 2., 3., 4.],
                         [1., 2., 3., 4.]], dtype=float32), unit='m')
 
         """
@@ -258,10 +258,10 @@ class NumPyCompatMixin:
         >>> import unxt as u
 
         >>> np.multiply(u.Q(5.0, "m"), u.Q(3.0, "m"))
-        ParametricQuantity(Array(15., dtype=float32), unit='m2')
+        Quantity(Array(15., dtype=float32), unit='m2')
 
         >>> np.sqrt(u.Q(4.0, "m2"))
-        ParametricQuantity(Array(2., dtype=float32), unit='m')
+        Quantity(Array(2., dtype=float32), unit='m')
 
         """
         return apply_ufunc(ufunc, method, inputs, kwargs)

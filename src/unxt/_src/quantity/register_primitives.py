@@ -80,9 +80,9 @@ def abs_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(-1, "m")
     >>> jnp.abs(q)
-    ParametricQuantity(Array(1, dtype=int32...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
     >>> abs(q)
-    ParametricQuantity(Array(1, dtype=int32...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     >>> q = u.quantity.Quantity(-1, "m")
     >>> jnp.abs(q)
@@ -112,7 +112,7 @@ def acos_p_aq(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(-1, "")
     >>> jnp.acos(q).round(4)
-    ParametricQuantity(Array(3.1416, dtype=float32...), unit='rad')
+    Quantity(Array(3.1416, dtype=float32...), unit='rad')
 
     """
     x_ = ustrip(one, x)
@@ -137,7 +137,7 @@ def acosh_p_aq(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(2.0, "")
     >>> jnp.acosh(q)
-    ParametricQuantity(Array(1.316958, dtype=float32...), unit='rad')
+    Quantity(Array(1.316958, dtype=float32...), unit='rad')
 
     """
     x_ = ustrip(one, x)
@@ -167,16 +167,16 @@ def add_p_aqaq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.Q(1, "km")
     >>> q2 = u.Q(500.0, "m")
     >>> jnp.add(q1, q2)
-    ParametricQuantity(Array(1.5, dtype=float32...), unit='km')
+    Quantity(Array(1.5, dtype=float32...), unit='km')
     >>> q1 + q2
-    ParametricQuantity(Array(1.5, dtype=float32...), unit='km')
+    Quantity(Array(1.5, dtype=float32...), unit='km')
 
     >>> q1 = u.quantity.Quantity(1, "km")
     >>> q2 = u.Q(500.0, "m")
     >>> jnp.add(q1, q2)
-    ParametricQuantity(Array(1.5, dtype=float32...), unit='km')
+    Quantity(Array(1.5, dtype=float32...), unit='km')
     >>> q1 + q2
-    ParametricQuantity(Array(1.5, dtype=float32...), unit='km')
+    Quantity(Array(1.5, dtype=float32...), unit='km')
 
     """
     x, y = promote(x, y)
@@ -240,15 +240,15 @@ def add_p_vaq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     >>> q2 = u.Q(100.0, "")
     >>> jnp.add(x, q2)
-    ParametricQuantity(Array(600., dtype=float32...), unit='')
+    Quantity(Array(600., dtype=float32...), unit='')
 
     >>> x + q2
-    ParametricQuantity(Array(600., dtype=float32...), unit='')
+    Quantity(Array(600., dtype=float32...), unit='')
 
     >>> q2 = u.Q(1.0, "km")
     >>> q3 = u.Q(1_000.0, "m")
     >>> jnp.add(x, q2 / q3)
-    ParametricQuantity(Array(501., dtype=float32...), unit='')
+    Quantity(Array(501., dtype=float32...), unit='')
 
     """
     y = uconvert(one, y)
@@ -312,15 +312,15 @@ def add_p_aqv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q1 = u.Q(100.0, "")
     >>> jnp.add(q1, y)
-    ParametricQuantity(Array(600., dtype=float32...), unit='')
+    Quantity(Array(600., dtype=float32...), unit='')
 
     >>> q1 + y
-    ParametricQuantity(Array(600., dtype=float32...), unit='')
+    Quantity(Array(600., dtype=float32...), unit='')
 
     >>> q2 = u.Q(1.0, "km")
     >>> q3 = u.Q(1_000.0, "m")
     >>> jnp.add(q2 / q3, y)
-    ParametricQuantity(Array(501., dtype=float32...), unit='')
+    Quantity(Array(501., dtype=float32...), unit='')
 
     """
     x = uconvert(one, x)
@@ -340,8 +340,8 @@ def add_jaxvals_p_qq(x: ABCPQ, y: ABCPQ, /) -> ABCPQ:
     >>> import quaxed.numpy as jnp
     >>> import unxt as u
 
-    >>> q1 = u.Q(1, "km")
-    >>> q2 = u.Q(500.0, "m")
+    >>> q1 = u.PQ(1, "km")
+    >>> q2 = u.PQ(500.0, "m")
 
     >>> @jax.jit
     ... def f(x, y):
@@ -379,7 +379,7 @@ def and_p_aq(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
     >>> x1 = u.Q(1, "")
     >>> x2 = u.Q(2, "")
     >>> jnp.bitwise_and(x1, x2)
-    ParametricQuantity(Array(0, dtype=int32...), unit='')
+    Quantity(Array(0, dtype=int32...), unit='')
 
     """
     return _as_dimensionless_like(x1, lax.and_p.bind(ustrip(one, x1), ustrip(one, x2)))
@@ -400,7 +400,7 @@ def and_p_qv(x1: ABCQ, x2: ArrayLike, /) -> ABCQ:
     >>> q = u.Q([True, False, True], "")
     >>> arr = jnp.asarray([True, True, False])
     >>> jnp.logical_and(q, arr)
-    ParametricQuantity(Array([ True, False, False], dtype=bool), unit='')
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     """
     return _as_dimensionless_like(x1, lax.and_p.bind(ustrip(one, x1), x2))
@@ -420,7 +420,7 @@ def and_p_vq(x1: ArrayLike, x2: ABCQ, /) -> ABCQ:
     >>> arr = jnp.asarray([True, True, False])
     >>> q = u.Q([True, False, True], "")
     >>> jnp.logical_and(arr, q)
-    ParametricQuantity(Array([ True, False, False], dtype=bool), unit='')
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     """
     return _as_dimensionless_like(x2, lax.and_p.bind(x1, ustrip(one, x2)))
@@ -521,7 +521,7 @@ def asin_p_aq(x: ABCQ) -> ABCQ:
 
     >>> q = u.Q(1, "")
     >>> jnp.asin(q)
-    ParametricQuantity(Array(1.5707964, dtype=float32...), unit='rad')
+    Quantity(Array(1.5707964, dtype=float32...), unit='rad')
 
     """
     return type_np(x)(lax.asin(ustrip(one, x)), unit=radian)
@@ -548,7 +548,7 @@ def asinh_p_aq(x: ABCQ) -> ABCQ:
 
     >>> q = u.Q(2, "")
     >>> jnp.asinh(q)
-    ParametricQuantity(Array(1.4436355, dtype=float32...), unit='rad')
+    Quantity(Array(1.4436355, dtype=float32...), unit='rad')
 
     """
     return type_np(x)(lax.asinh(ustrip(one, x)), unit=radian)
@@ -578,7 +578,7 @@ def atan2_p_aqaq(x: ABCQ, y: ABCQ) -> ABCQ:
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(3.0, "m")
     >>> jnp.atan2(q1, q2)
-    ParametricQuantity(Array(0.32175055, dtype=float32...), unit='rad')
+    Quantity(Array(0.32175055, dtype=float32...), unit='rad')
 
     """
     x, y = promote(x, y)  # e.g. Distance -> ParametricQuantity
@@ -608,7 +608,7 @@ def atan2_p_vaq(x: ArrayLike, y: ABCQ) -> ABCQ:
 
     >>> q2 = u.Q(3, "")
     >>> jnp.atan2(x1, q2)
-    ParametricQuantity(Array(0.32175055, dtype=float32...), unit='rad')
+    Quantity(Array(0.32175055, dtype=float32...), unit='rad')
 
     """
     yv = ustrip(one, y)
@@ -637,7 +637,7 @@ def atan2_p_aqv(x: ABCQ, y: ArrayLike) -> ABCQ:
 
     >>> q1 = u.Q(1.0, "")
     >>> jnp.atan2(q1, x2)
-    ParametricQuantity(Array(0.32175055, dtype=float32...), unit='rad')
+    Quantity(Array(0.32175055, dtype=float32...), unit='rad')
 
     """
     xv = ustrip(one, x)
@@ -664,7 +664,7 @@ def atan_p_aq(x: ABCQ) -> ABCQ:
 
     >>> q = u.Q(1, "")
     >>> jnp.atan(q)
-    ParametricQuantity(Array(0.7853982, dtype=float32...), unit='rad')
+    Quantity(Array(0.7853982, dtype=float32...), unit='rad')
 
     """
     return type_np(x)(lax.atan(ustrip(one, x)), unit=radian)
@@ -690,7 +690,7 @@ def atanh_p_aq(x: ABCQ) -> ABCQ:
 
     >>> q = u.Q(2, "")
     >>> jnp.atanh(q)
-    ParametricQuantity(Array(nan, dtype=float32...), unit='rad')
+    Quantity(Array(nan, dtype=float32...), unit='rad')
 
     """
     return type_np(x)(lax.atanh(ustrip(one, x)), unit=radian)
@@ -713,7 +713,7 @@ def bessel_i0e_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
 
     >>> x = u.Q(1.0, "")
     >>> qlax.bessel_i0e(x)
-    ParametricQuantity(Array(0.46575963, dtype=float32...), unit='')
+    Quantity(Array(0.46575963, dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.bessel_i0e_p.bind(ustrip(one, x), **kwargs))
@@ -733,7 +733,7 @@ def bessel_i1e_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
 
     >>> x = u.Q(1.0, "")
     >>> qlax.bessel_i1e(x)
-    ParametricQuantity(Array(0.20791042, dtype=float32...), unit='')
+    Quantity(Array(0.20791042, dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.bessel_i1e_p.bind(ustrip(one, x), **kwargs))
@@ -756,7 +756,7 @@ def bitcast_convert_type_p(x: ABCQ, /, *, new_dtype: DTypeLike) -> ABCQ:
 
     >>> x = u.Q(1.0, "")
     >>> qlax.bitcast_convert_type(x, jnp.int16)
-    ParametricQuantity(Array([    0, 16256], dtype=int16), unit='')
+    Quantity(Array([    0, 16256], dtype=int16), unit='')
 
     """
     return replace(
@@ -791,7 +791,7 @@ def cbrt_p_q(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(8, "m3")
     >>> jnp.cbrt(q)
-    ParametricQuantity(Array(2., dtype=float32...), unit='m')
+    Quantity(Array(2., dtype=float32...), unit='m')
 
     """
     return type_np(x)(lax.cbrt_p.bind(ustrip(x), **kw), unit=x.unit ** (1 / 3))
@@ -832,7 +832,7 @@ def ceil_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(1.5, "m")
     >>> jnp.ceil(q)
-    ParametricQuantity(Array(2., dtype=float32...), unit='m')
+    Quantity(Array(2., dtype=float32...), unit='m')
 
     """
     return replace(x, value=lax.ceil(ustrip(x)))
@@ -864,10 +864,10 @@ def clamp_p(min: ABCQ, x: ABCQ, max: ABCQ) -> ABCQ:
     >>> max = u.Q(2, "m")
     >>> q = u.Q([-1, 1, 3], "m")
     >>> lax.clamp(min, q, max)
-    ParametricQuantity(Array([0, 1, 2], dtype=int32), unit='m')
+    Quantity(Array([0, 1, 2], dtype=int32), unit='m')
 
     >>> jnp.clip(q.astype(float), min, max)
-    ParametricQuantity(Array([0., 1., 2.], dtype=float32), unit='m')
+    Quantity(Array([0., 1., 2.], dtype=float32), unit='m')
 
     """
     return replace(
@@ -898,7 +898,7 @@ def clamp_p_vaqaq(min: ArrayLike, x: ABCQ, max: ABCQ) -> ABCQ:
     >>> max = u.Q(2, "")
     >>> q = u.Q([-1, 1, 3], "")
     >>> lax.clamp(min, q, max)
-    ParametricQuantity(Array([0, 1, 2], dtype=int32), unit='')
+    Quantity(Array([0, 1, 2], dtype=int32), unit='')
 
     """
     return replace(x, value=lax.clamp(min, ustrip(one, x), ustrip(one, max)))
@@ -986,7 +986,7 @@ def clamp_p_qqv(
     >>> max = jnp.asarray(2)
     >>> q = u.Q([-1, 1, 3], "")
     >>> lax.clamp(min, q, max)
-    ParametricQuantity(Array([0, 1, 2], dtype=int32), unit='')
+    Quantity(Array([0, 1, 2], dtype=int32), unit='')
 
     """
     return replace(x, value=lax.clamp(ustrip(one, min), ustrip(one, x), max))
@@ -1010,7 +1010,7 @@ def clz_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(1, "")
     >>> qlax.clz(q)
-    ParametricQuantity(Array(31, dtype=int32...), unit='')
+    Quantity(Array(31, dtype=int32...), unit='')
 
     """
     return replace(x, value=lax.clz_p.bind(ustrip(x)))
@@ -1036,7 +1036,7 @@ def complex_p(x: ABCQ, y: ABCQ) -> ABCQ:
     >>> x = u.Q(1.0, "m")
     >>> y = u.Q(2.0, "m")
     >>> lax.complex(x, y)
-    ParametricQuantity(Array(1.+2.j, dtype=complex64...), unit='m')
+    Quantity(Array(1.+2.j, dtype=complex64...), unit='m')
 
     """
     x, y = promote(x, y)  # e.g. Distance -> ParametricQuantity
@@ -1096,7 +1096,7 @@ def concatenate_p(operand0: ABCQ, *operands: ABCQ | ArrayLike, dimension: Any) -
     >>> q1 = u.Q([1.0], "km")
     >>> q2 = u.Q([2_000.0], "m")
     >>> jnp.concat([q1, q2])
-    ParametricQuantity(Array([1., 2.], dtype=float32), unit='km')
+    Quantity(Array([1., 2.], dtype=float32), unit='km')
 
     Mixing dimensionless quantities and raw arrays yields a dimensionless
     quantity -- e.g. when building a rotation matrix:
@@ -1110,7 +1110,7 @@ def concatenate_p(operand0: ABCQ, *operands: ABCQ | ArrayLike, dimension: Any) -
     ...     ]
     ... )
     >>> Rz
-    ParametricQuantity(Array([[ 0.70710677, -0.70710677,  0.        ],
+    Quantity(Array([[ 0.70710677, -0.70710677,  0.        ],
                          [ 0.70710677,  0.70710677,  0.        ],
                          [ 0.        ,  0.        ,  1.        ]], dtype=float32),
                   unit='')
@@ -1143,10 +1143,11 @@ def concatenate_p_v(
     ...     ]
     ... )
     >>> Rx
-    ParametricQuantity(Array([[ 1.        ,  0.        ,  0.        ],
-                         [ 0.        ,  0.70710677, -0.70710677],
-                         [ 0.        ,  0.70710677,  0.70710677]], dtype=float32),
-                  unit='')
+    ParametricQuantity(
+        Array([[ 1.        ,  0.        ,  0.        ],
+               [ 0.        ,  0.70710677, -0.70710677],
+               [ 0.        ,  0.70710677,  0.70710677]], dtype=float32), unit=''
+    )
 
     """
     return _combine_quantities(
@@ -1185,7 +1186,7 @@ if hasattr(lax, "stack_p"):
         >>> q1 = u.Q([1.0, 2.0], "km")
         >>> q2 = u.Q([3_000.0, 4_000.0], "m")
         >>> jnp.stack([q1, q2]).round(2)
-        ParametricQuantity(Array([[1., 2.],
+        Quantity(Array([[1., 2.],
                         [3., 4.]], dtype=float32), unit='km')
 
         Mixing a leading dimensionless quantity with raw arrays yields a
@@ -1194,7 +1195,7 @@ if hasattr(lax, "stack_p"):
         >>> q1 = u.Q([0.5, 0.5], "")
         >>> arr = jnp.asarray([1.0, 2.0])
         >>> jnp.stack([q1, arr])
-        ParametricQuantity(Array([[0.5, 0.5],
+        Quantity(Array([[0.5, 0.5],
                         [1. , 2. ]], dtype=float32), unit='')
 
         """
@@ -1263,7 +1264,7 @@ def conj_p(x: ABCQ, *, input_dtype: Any) -> ABCQ:
 
     >>> q = u.Q(1 + 2j, "m")
     >>> jnp.conj(q)
-    ParametricQuantity(Array(1.-2.j, dtype=complex64...), unit='m')
+    Quantity(Array(1.-2.j, dtype=complex64...), unit='m')
 
     """
     del input_dtype  # TODO: use this?
@@ -1305,7 +1306,7 @@ def copy_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.Q(1, "m")
     >>> jnp.copy(q)
-    ParametricQuantity(Array(1, dtype=int32...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     """
     return replace(x, value=lax.copy_p.bind(ustrip(x)))  # type: ignore[no-untyped-call]
@@ -1332,11 +1333,11 @@ def cos_p_aq(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(1, "rad")
     >>> jnp.cos(q)
-    ParametricQuantity(Array(0.5403023, dtype=float32...), unit='')
+    Quantity(Array(0.5403023, dtype=float32...), unit='')
 
     >>> q = u.Q(1, "")
     >>> jnp.cos(q)
-    ParametricQuantity(Array(0.5403023, dtype=float32...), unit='')
+    Quantity(Array(0.5403023, dtype=float32...), unit='')
 
     """
     return type_np(x)(lax.cos_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
@@ -1380,7 +1381,7 @@ def cosh_p_aq(x: ABCQ) -> ABCQ:
 
     >>> q = u.Q(1, "")
     >>> jnp.cosh(q)
-    ParametricQuantity(Array(1.5430806, dtype=float32...), unit='')
+    Quantity(Array(1.5430806, dtype=float32...), unit='')
 
     """
     return type_np(x)(lax.cosh(_to_val_rad_or_one(x)), unit=one)
@@ -1404,7 +1405,7 @@ def cumlogsumexp_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
 
     >>> q = u.Q([-1.0, -2, -3], "")
     >>> lax.cumlogsumexp(q)
-    ParametricQuantity(Array([-1. , -0.6867383 , -0.59239405], dtype=float32),
+    Quantity(Array([-1. , -0.6867383 , -0.59239405], dtype=float32),
                               unit='')
 
     """
@@ -1432,7 +1433,7 @@ def cummax_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
 
     >>> q = u.Q([1, 2, 1], "m")
     >>> lax.cummax(q)
-    ParametricQuantity(Array([1, 2, 2], dtype=int32), unit='m')
+    Quantity(Array([1, 2, 2], dtype=int32), unit='m')
 
     """
     return replace(
@@ -1458,7 +1459,7 @@ def cummin_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
 
     >>> q = u.Q([2, 1, 3], "m")
     >>> lax.cummin(q)
-    ParametricQuantity(Array([2, 1, 1], dtype=int32), unit='m')
+    Quantity(Array([2, 1, 1], dtype=int32), unit='m')
 
     """
     return replace(
@@ -1484,7 +1485,7 @@ def cumprod_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
 
     >>> q = u.Q([1, 2, 3], "")
     >>> lax.cumprod(q)
-    ParametricQuantity(Array([1, 2, 6], dtype=int32), unit='')
+    Quantity(Array([1, 2, 6], dtype=int32), unit='')
 
     """
     return replace(
@@ -1510,7 +1511,7 @@ def cumsum_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
 
     >>> q = u.Q([1, 2, 3], "m")
     >>> lax.cumsum(q)
-    ParametricQuantity(Array([1, 3, 6], dtype=int32), unit='m')
+    Quantity(Array([1, 3, 6], dtype=int32), unit='m')
 
     """
     return replace(
@@ -1624,7 +1625,7 @@ def svd_p_q(
 
     >>> x = u.Q([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], "m")
     >>> u, s, vt = jnp.linalg.svd(x, full_matrices=False)
-    >>> isinstance(s, ParametricQuantity)
+    >>> isinstance(s, Quantity)
     True
     >>> s.unit
     Unit("m")
@@ -1665,7 +1666,7 @@ def cholesky_p_q(x: ABCQ, /, **params: Any) -> ABCQ:
 
     >>> x = u.Q([[4.0, 2.0], [2.0, 3.0]], "m2")
     >>> L = jnp.linalg.cholesky(x)
-    >>> isinstance(L, ParametricQuantity)
+    >>> isinstance(L, Quantity)
     True
     >>> L.unit
     Unit("m")
@@ -1700,7 +1701,7 @@ def qr_p_q(x: ABCQ, /, **params: Any) -> Any:
 
     >>> x = u.Q([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], "m")
     >>> q, r = jnp.linalg.qr(x)
-    >>> isinstance(q, ParametricQuantity)
+    >>> isinstance(q, Quantity)
     True
     >>> q.unit
     Unit(dimensionless)
@@ -1777,7 +1778,7 @@ def device_put_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(1, "m")
     >>> device_put(q)
-    ParametricQuantity(Array(1, dtype=int32...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     """
     return jt.map(lambda y: lax.device_put_p.bind(y, **kw), x)  # type: ignore[no-untyped-call]
@@ -1801,7 +1802,7 @@ def digamma_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(1.0, "")
     >>> lax.digamma(q)
-    ParametricQuantity(Array(-0.5772154, dtype=float32...), unit='')
+    Quantity(Array(-0.5772154, dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.digamma(ustrip(one, x)))
@@ -1866,9 +1867,9 @@ def div_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(2, "s")
     >>> jnp.divide(q1, q2)
-    ParametricQuantity(Array(0.5, dtype=float32...), unit='m / s')
+    Quantity(Array(0.5, dtype=float32...), unit='m / s')
     >>> q1 / q2
-    ParametricQuantity(Array(0.5, dtype=float32...), unit='m / s')
+    Quantity(Array(0.5, dtype=float32...), unit='m / s')
 
     """
     x, y = promote(x, y)
@@ -1897,9 +1898,9 @@ def div_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(2.0, "m")
     >>> jnp.divide(x, q)
-    ParametricQuantity(Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
+    Quantity(Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
     >>> x / q
-    ParametricQuantity(Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
+    Quantity(Array([0.5, 1. , 1.5], dtype=float32), unit='1 / m')
 
     """
     u = (1 / y.unit).unit  # TODO: better construction of the unit
@@ -1925,9 +1926,9 @@ def div_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q = u.Q(6.0, "m")
     >>> jnp.divide(q, y)
-    ParametricQuantity(Array([6., 3., 2.], dtype=float32...), unit='m')
+    Quantity(Array([6., 3., 2.], dtype=float32...), unit='m')
     >>> q / y
-    ParametricQuantity(Array([6., 3., 2.], dtype=float32...), unit='m')
+    Quantity(Array([6., 3., 2.], dtype=float32...), unit='m')
 
     """
     return replace(x, value=ustrip(x) / y)
@@ -1946,7 +1947,7 @@ def div_p_a(x: AbstractAngle, y: AbstractAngle, /) -> ABCQ:
     >>> angle = u.Angle(1, "deg")
     >>> q = u.Q(2, "km")
     >>> jnp.divide(q, angle)
-    ParametricQuantity(Array(2., dtype=float32...), unit='km / deg')
+    Quantity(Array(2., dtype=float32...), unit='km / deg')
 
     """
     x, y = promote(x, y)
@@ -1980,9 +1981,9 @@ def dot_general_jq(lhs: ArrayLike, rhs: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q([1, 0, 0], "m")
     >>> jnp.linalg.matmul(Rz, q)
-    ParametricQuantity(Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
+    Quantity(Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
     >>> Rz @ q
-    ParametricQuantity(Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
+    Quantity(Array([0.70710677, 0.70710677, 0. ], dtype=float32), unit='m')
 
     """
     return type_np(rhs)(lax.dot_general_p.bind(lhs, ustrip(rhs), **kw), unit=rhs.unit)
@@ -2009,7 +2010,7 @@ def dot_general_qj(lhs: ABCQ, rhs: ArrayLike, /, **kw: Any) -> ABCQ:
 
     >>> q = jnp.asarray([1, 2, 3])
     >>> jnp.linalg.matmul(Rz, q).round(2)
-    ParametricQuantity(Array([-2.,  1.,  3.], dtype=float32), unit='km')
+    Quantity(Array([-2.,  1.,  3.], dtype=float32), unit='km')
 
     """
     return type_np(lhs)(lax.dot_general_p.bind(ustrip(lhs), rhs, **kw), unit=lhs.unit)
@@ -2036,21 +2037,21 @@ def dot_general_qq(lhs: ABCQ, rhs: ABCQ, /, **kw: Any) -> ABCQ:
     >>> q1 = u.Q([1, 2, 3], "m")
     >>> q2 = u.Q([4, 5, 6], "m")
     >>> jnp.vecdot(q1, q2)
-    ParametricQuantity(Array(32, dtype=int32), unit='m2')
+    Quantity(Array(32, dtype=int32), unit='m2')
     >>> q1 @ q2
-    ParametricQuantity(Array(32, dtype=int32), unit='m2')
+    Quantity(Array(32, dtype=int32), unit='m2')
 
     This rule is also used by `jnp.matmul` for quantities.
 
     >>> Rz = jnp.asarray([[0, -1, 0], [1, 0, 0], [0, 0, 1]])
     >>> q = u.Q([1, 0, 0], "m")
     >>> Rz @ q
-    ParametricQuantity(Array([0, 1, 0], dtype=int32), unit='m')
+    Quantity(Array([0, 1, 0], dtype=int32), unit='m')
 
     This uses `matmul` for quantities.
 
     >>> jnp.linalg.matmul(Rz, q)
-    ParametricQuantity(Array([0, 1, 0], dtype=int32), unit='m')
+    Quantity(Array([0, 1, 0], dtype=int32), unit='m')
 
     """
     lhs, rhs = promote(lhs, rhs)
@@ -2101,7 +2102,7 @@ def dynamic_slice_q(operand: ABCQ, /, *indices: ArrayLike | ABCQ, **kw: Any) -> 
 
     >>> q = u.Q([1, 2, 3, 4, 5], "m")
     >>> lax.dynamic_slice(q, (1,), (3,))
-    ParametricQuantity(Array([2, 3, 4], dtype=int32), unit='m')
+    Quantity(Array([2, 3, 4], dtype=int32), unit='m')
 
     """
     idxs = [ustrip(AllowValue, i) for i in indices]
@@ -2131,7 +2132,7 @@ def dynamic_update_slice_p(
     >>> q = u.Q([1, 2, 3, 4, 5], "m")
     >>> update = u.Q([6, 7], "m")
     >>> lax.dynamic_update_slice(q, update, (1,))
-    ParametricQuantity(Array([1, 6, 7, 4, 5], dtype=int32), unit='m')
+    Quantity(Array([1, 6, 7, 4, 5], dtype=int32), unit='m')
 
     """
     return replace(
@@ -2157,7 +2158,7 @@ def eigh_p(x: ABCQ, /, **kw: Any) -> tuple[Array, ABCQ]:
     >>> q = u.Q([[2, -1], [1, 3]], "eV")
     >>> w, v = jnp.linalg.eigh(q)
     >>> w
-    ParametricQuantity(Array([2., 3.], dtype=float32), unit='eV')
+    Quantity(Array([2., 3.], dtype=float32), unit='eV')
     >>> v
     Array([[1., 0.],
            [0., 1.]], dtype=float32)
@@ -2189,9 +2190,9 @@ def eq_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(1, "m")
     >>> jnp.equal(q1, q2)
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
     >>> q1 == q2
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
 
     """
     xv = ustrip(x)
@@ -2220,7 +2221,7 @@ def eq_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(2.0, "")
     >>> jnp.equal(x, q)
-    ParametricQuantity(Array([False,  True, False], dtype=bool), unit='')
+    Quantity(Array([False,  True, False], dtype=bool), unit='')
 
     >>> q = u.Q(2.0, "m")
     >>> try:
@@ -2267,11 +2268,11 @@ def eq_p_aqv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q = u.Q(2.0, "")
     >>> jnp.equal(q, y)
-    ParametricQuantity(Array([False,  True, False], dtype=bool), unit='')
+    Quantity(Array([False,  True, False], dtype=bool), unit='')
 
     >>> q = u.Q([3.0, 2, 1], "")
     >>> jnp.equal(q, y)
-    ParametricQuantity(Array([False,  True, False], dtype=bool), unit='')
+    Quantity(Array([False,  True, False], dtype=bool), unit='')
 
     >>> q = u.Q([3.0, 2, 1], "m")
     >>> try:
@@ -2283,10 +2284,10 @@ def eq_p_aqv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     Check against the special cases:
 
     >>> q == 0
-    ParametricQuantity(Array([False, False, False], dtype=bool), unit='')
+    Quantity(Array([False, False, False], dtype=bool), unit='')
 
     >>> q == jnp.inf
-    ParametricQuantity(Array([False, False, False], dtype=bool), unit='')
+    Quantity(Array([False, False, False], dtype=bool), unit='')
 
     """
     special_vals = jnp.logical_or(jnp.all(y == 0), jnp.all(jnp.isinf(y)))
@@ -2317,7 +2318,7 @@ def erf_inv_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.Q(0.5, "")
     >>> lax.erf_inv(q)
-    ParametricQuantity(Array(0.47693628, dtype=float32...), unit='')
+    Quantity(Array(0.47693628, dtype=float32...), unit='')
 
     """
     # TODO: can this support non-dimensionless quantities?
@@ -2342,7 +2343,7 @@ def erf_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.Q(0.5, "")
     >>> lax.erf(q)
-    ParametricQuantity(Array(0.5204999, dtype=float32...), unit='')
+    Quantity(Array(0.5204999, dtype=float32...), unit='')
 
     """
     # TODO: can this support non-dimensionless quantities?
@@ -2367,7 +2368,7 @@ def erfc_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.Q(0.5, "")
     >>> lax.erfc(q)
-    ParametricQuantity(Array(0.47950017, dtype=float32...), unit='')
+    Quantity(Array(0.47950017, dtype=float32...), unit='')
 
     """
     # TODO: can this support non-dimensionless quantities?
@@ -2392,7 +2393,7 @@ def exp2_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(3, "")
     >>> jnp.exp2(q)
-    ParametricQuantity(Array(8., dtype=float32...), unit='')
+    Quantity(Array(8., dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.exp2_p.bind(ustrip(one, x), **kw))
@@ -2416,12 +2417,12 @@ def exp_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(1, "")
     >>> jnp.exp(q)
-    ParametricQuantity(Array(2.7182817, dtype=float32...), unit='')
+    Quantity(Array(2.7182817, dtype=float32...), unit='')
 
     Euler's crown jewel:
 
     >>> jnp.exp(u.Q(jnp.pi * 1j, "")) + 1
-    ParametricQuantity(Array(0.-8.742278e-08j, dtype=complex64...), unit='')
+    Quantity(Array(0.-8.742278e-08j, dtype=complex64...), unit='')
 
     Pretty close to zero!
 
@@ -2448,7 +2449,7 @@ def expm1_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(0, "")
     >>> jnp.expm1(q)
-    ParametricQuantity(Array(0., dtype=float32...), unit='')
+    Quantity(Array(0., dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.expm1_p.bind(ustrip(one, x), **kw))
@@ -2474,7 +2475,7 @@ def fft_p(x: ABCQ, *, fft_type: Any, fft_lengths: Any) -> ABCQ:
 
     >>> q = u.Q([1, 2, 3], "")
     >>> jnp.fft.fft(q)
-    ParametricQuantity(
+    Quantity(
         Array([ 6. +0.j , -1.5+0.8660254j, -1.5-0.8660254j], dtype=complex64), unit=''
     )
 
@@ -2499,7 +2500,7 @@ def floor_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.Q(1.5, "")
     >>> jnp.floor(q)
-    ParametricQuantity(Array(1., dtype=float32...), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.floor(ustrip(x)))
@@ -2540,9 +2541,9 @@ def ge_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
     >>> q1 >= q2
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
 
     """
     xv = ustrip(x)
@@ -2571,7 +2572,7 @@ def ge_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     >>> q2 = u.Q(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
@@ -2607,7 +2608,7 @@ def ge_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q1 = u.Q(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
@@ -2645,7 +2646,7 @@ def gt_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
 
     """
     xv = ustrip(x)
@@ -2676,7 +2677,7 @@ def gt_p_vq(x: ArrayLike, y: ABCQ) -> ABCQ:
 
     >>> q2 = u.Q(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
@@ -2712,7 +2713,7 @@ def gt_p_qv(x: ABCQ, y: ArrayLike) -> ABCQ:
 
     >>> q1 = u.Q(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
@@ -2755,7 +2756,7 @@ def igamma_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
     >>> a = u.Q(1.0, "")
     >>> x = u.Q(1.0, "")
     >>> lax.igamma(a, x)
-    ParametricQuantity(Array(0.6321202, dtype=float32...), unit='')
+    Quantity(Array(0.6321202, dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.igamma(ustrip(AllowValue, one, a), ustrip(one, x)))
@@ -2784,7 +2785,7 @@ def igammac_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
     >>> a = u.Q(1.0, "")
     >>> x = u.Q(1.0, "")
     >>> qlax.igammac(a, x)
-    ParametricQuantity(Array(0.36787927, dtype=float32...), unit='')
+    Quantity(Array(0.36787927, dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.igammac(ustrip(AllowValue, one, a), ustrip(one, x)))
@@ -2814,7 +2815,7 @@ def integer_pow_p(x: ABCQ, *, y: Any) -> ABCQ:
 
     >>> q = u.Q(2, "m")
     >>> q**3
-    ParametricQuantity(Array(8, dtype=int32...), unit='m3')
+    Quantity(Array(8, dtype=int32...), unit='m3')
 
     >>> q = u.StaticQuantity(2, "m")
     >>> q**3
@@ -2871,7 +2872,7 @@ def is_finite_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.Q(1.0, "m")
     >>> jnp.isfinite(q)
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
     >>> bool(jnp.isfinite(q))
     True
 
@@ -2902,7 +2903,7 @@ def le_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
     >>> jnp.less_equal(q1, q2)
-    ParametricQuantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool), unit='')
 
     """
     xv = ustrip(x)
@@ -2931,7 +2932,7 @@ def le_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     >>> q2 = u.Q(1.0, "")
     >>> jnp.less_equal(x1, q2)
-    ParametricQuantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool), unit='')
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
@@ -2967,7 +2968,7 @@ def le_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q1 = u.Q(1.0, "")
     >>> jnp.less_equal(q1, y1)
-    ParametricQuantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool), unit='')
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
@@ -3003,7 +3004,7 @@ def lgamma_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.Q(3, "")
     >>> jsp.special.gammaln(q)
-    ParametricQuantity(Array(0.6931474, dtype=float32...), unit='')
+    Quantity(Array(0.6931474, dtype=float32...), unit='')
 
     """
     # TODO: are there any units that this can support?
@@ -3028,7 +3029,7 @@ def log1p_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(-1, "")
     >>> jnp.log1p(q)
-    ParametricQuantity(Array(-inf, dtype=float32...), unit='')
+    Quantity(Array(-inf, dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.log1p_p.bind(ustrip(one, x), **kw))
@@ -3052,7 +3053,7 @@ def log_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(1, "")
     >>> jnp.log(q)
-    ParametricQuantity(Array(0., dtype=float32...), unit='')
+    Quantity(Array(0., dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.log_p.bind(ustrip(one, x), **kw))
@@ -3076,7 +3077,7 @@ def logistic_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(1.0, "")
     >>> qlax.logistic(q)
-    ParametricQuantity(Array(0.7310586, dtype=float32...), unit='')
+    Quantity(Array(0.7310586, dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.logistic_p.bind(ustrip(one, x), **kw))
@@ -3116,17 +3117,17 @@ def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> x = u.Q(1.0, "km")
     >>> y = u.Q(2000.0, "m")
     >>> x < y
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> jnp.less(x, y)
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> x = u.Q([1.0, 2, 3], "km")
     >>> x < y
-    ParametricQuantity(Array([ True, False, False], dtype=bool), unit='')
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     >>> jnp.less(x, y)
-    ParametricQuantity(Array([ True, False, False], dtype=bool), unit='')
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     """
     # Check if the units are convertible.
@@ -3176,11 +3177,11 @@ def lt_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     >>> y = u.Q(2.0, "")
     >>> jnp.less(x, y)
-    ParametricQuantity(Array([ True, False, False], dtype=bool), unit='')
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     >>> x = jnp.asarray([1.0, 2, 3])
     >>> jnp.less(x, y)
-    ParametricQuantity(Array([ True, False, False], dtype=bool), unit='')
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     >>> y = u.Q(2.0, "m")
     >>> try:
@@ -3230,17 +3231,17 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> x = u.Q(1, "")
     >>> y = 2
     >>> x < y
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> jnp.less(x, y)
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> x = u.Q([1, 2, 3], "")
     >>> x < y
-    ParametricQuantity(Array([ True, False, False], dtype=bool), unit='')
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     >>> jnp.less(x, y)
-    ParametricQuantity(Array([ True, False, False], dtype=bool), unit='')
+    Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     >>> x = u.Q([1, 2], "m")
     >>> try:
@@ -3274,7 +3275,7 @@ def lu_p_q(x: ABCQ, /) -> tuple[ABCQ, Int[Array, "..."], Int[Array, "..."]]:
     >>> x = u.Q([[1.0, 2.0], [3.0, 4.0]], "m")
     >>> lu, pivots, permutation = lax.linalg.lu(x)
     >>> lu
-    ParametricQuantity(Array([[3.        , 4.        ],
+    Quantity(Array([[3.        , 4.        ],
                     [0.33333334, 0.6666666 ]], dtype=float32), unit='m')
 
     >>> pivots
@@ -3304,7 +3305,7 @@ def max_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(2, "m")
     >>> jnp.maximum(q1, q2)
-    ParametricQuantity(Array(2, dtype=int32...), unit='m')
+    Quantity(Array(2, dtype=int32...), unit='m')
 
     """
     yv = ustrip(x.unit, y)
@@ -3326,7 +3327,7 @@ def max_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     >>> q2 = u.Q(2, "")
     >>> jnp.maximum(x, q2)
-    ParametricQuantity(Array([2.], dtype=float32), unit='')
+    Quantity(Array([2.], dtype=float32), unit='')
 
     """
     yv = ustrip(one, y)
@@ -3348,7 +3349,7 @@ def max_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q1 = u.Q(2, "")
     >>> jnp.maximum(q1, y)
-    ParametricQuantity(Array([2.], dtype=float32), unit='')
+    Quantity(Array([2.], dtype=float32), unit='')
 
     """
     xv = ustrip(one, x)
@@ -3393,13 +3394,13 @@ def min_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q3 = u.Q([1, 2, 3], "m")
     >>> q4 = u.Q([2, 1, 3], "m")
     >>> jnp.minimum(q3, q4)
-    ParametricQuantity(Array([1, 1, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 1, 3], dtype=int32), unit='m')
 
     >>> jnp.minimum(q1, q4)
     Quantity(Array([1, 1, 3], dtype=int32), unit='m')
 
     >>> jnp.minimum(q3, q2)
-    ParametricQuantity(Array([1, 1, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 1, 3], dtype=int32), unit='m')
 
     """
     return replace(x, value=lax.min(ustrip(x), ustrip(x.unit, y)))
@@ -3421,7 +3422,7 @@ def min_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(2, "")
     >>> jnp.minimum(x, q)
-    ParametricQuantity(Array([1, 2, 2], dtype=int32), unit='')
+    Quantity(Array([1, 2, 2], dtype=int32), unit='')
 
     """
     return replace(y, value=lax.min(x, ustrip(one, y)))
@@ -3443,7 +3444,7 @@ def min_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q = u.Q(2, "")
     >>> jnp.minimum(q, x)
-    ParametricQuantity(Array([1, 2, 2], dtype=int32), unit='')
+    Quantity(Array([1, 2, 2], dtype=int32), unit='')
 
     """
     return replace(x, value=lax.min(ustrip(one, x), y))
@@ -3470,12 +3471,12 @@ def mul_p_qq(x: ABCQ, y: ABCQ, /, **kw: Any) -> ABCQ:
     >>> q1 = u.Q(2, "m")
     >>> q2 = u.Q(3, "m")
     >>> jnp.multiply(q1, q2)
-    ParametricQuantity(Array(6, dtype=int32...), unit='m2')
+    Quantity(Array(6, dtype=int32...), unit='m2')
 
     >>> q1 = u.quantity.Quantity(2, "m")
     >>> q2 = u.Q(3, "m")
     >>> jnp.multiply(q1, q2)
-    ParametricQuantity(Array(6, dtype=int32...), unit='m2')
+    Quantity(Array(6, dtype=int32...), unit='m2')
 
     """
     # Promote to a common type
@@ -3508,13 +3509,13 @@ def mul_p_vq(x: ArrayLike, y: ABCQ, /, **kw: Any) -> ABCQ:
     >>> q = u.Q(2, "m")
 
     >>> 2.0 * q
-    ParametricQuantity(Array(4., dtype=float32...), unit='m')
+    Quantity(Array(4., dtype=float32...), unit='m')
 
     >>> jnp.asarray(2) * q
-    ParametricQuantity(Array(4, dtype=int32...), unit='m')
+    Quantity(Array(4, dtype=int32...), unit='m')
 
     >>> jnp.asarray([2, 3]) * q
-    ParametricQuantity(Array([4, 6], dtype=int32), unit='m')
+    Quantity(Array([4, 6], dtype=int32), unit='m')
 
     """
     return replace(y, value=mul_qbind(x, ustrip(y), **kw))
@@ -3543,13 +3544,13 @@ def mul_p_qv(x: ABCQ, y: ArrayLike, /, **kw: Any) -> ABCQ:
     >>> q = u.Q(2, "m")
 
     >>> q * 2.0
-    ParametricQuantity(Array(4., dtype=float32...), unit='m')
+    Quantity(Array(4., dtype=float32...), unit='m')
 
     >>> q * jnp.asarray(2)
-    ParametricQuantity(Array(4, dtype=int32...), unit='m')
+    Quantity(Array(4, dtype=int32...), unit='m')
 
     >>> q * jnp.asarray([2, 3])
-    ParametricQuantity(Array([4, 6], dtype=int32), unit='m')
+    Quantity(Array([4, 6], dtype=int32), unit='m')
 
     """
     return replace(x, value=mul_qbind(ustrip(x), y, **kw))
@@ -3604,15 +3605,15 @@ def ne_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(2, "m")
     >>> jnp.not_equal(q1, q2)
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
     >>> q1 != q2
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> q2 = u.Q(1, "m")
     >>> jnp.not_equal(q1, q2)
-    ParametricQuantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool), unit='')
     >>> q1 != q2
-    ParametricQuantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool), unit='')
 
     """
     if not is_unit_convertible(x.unit, y.unit):
@@ -3648,15 +3649,15 @@ def ne_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     >>> x = u.Q(1, "")
     >>> q2 = u.Q(2, "")
     >>> jnp.not_equal(x, q2)
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
     >>> x != q2
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> q2 = u.Q(1, "")
     >>> jnp.not_equal(x, q2)
-    ParametricQuantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool), unit='')
     >>> x != q2
-    ParametricQuantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool), unit='')
 
     """
     yv = ustrip(y)
@@ -3693,15 +3694,15 @@ def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> x = u.Q(1, "")
     >>> q1 = u.Q(2, "")
     >>> jnp.not_equal(q1, x)
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
     >>> q1 != x
-    ParametricQuantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool), unit='')
 
     >>> q1 = u.Q(1, "")
     >>> jnp.not_equal(q1, x)
-    ParametricQuantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool), unit='')
     >>> q1 != x
-    ParametricQuantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool), unit='')
 
     """
     xv = ustrip(x)
@@ -3735,7 +3736,7 @@ def neg_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(1, "m")
     >>> -q
-    ParametricQuantity(Array(-1, dtype=int32...), unit='m')
+    Quantity(Array(-1, dtype=int32...), unit='m')
 
     """
     return replace(x, value=lax.neg(ustrip(x)))
@@ -3760,7 +3761,7 @@ def nextafter_p(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
     >>> q1 = u.Q(1, "")
     >>> q2 = u.Q(2, "")
     >>> jnp.nextafter(q1, q2)
-    ParametricQuantity(Array(1.0000001, dtype=float32...), unit='')
+    Quantity(Array(1.0000001, dtype=float32...), unit='')
 
     """
     u = unit_of(x1)
@@ -3784,7 +3785,7 @@ def not_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(1, "")
     >>> ~q
-    ParametricQuantity(Array(-2, dtype=int32...), unit='')
+    Quantity(Array(-2, dtype=int32...), unit='')
 
     """
     return replace(x, value=lax.bitwise_not(ustrip(one, x)))
@@ -3809,7 +3810,7 @@ def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.Q(1, "")
     >>> q2 = u.Q(2, "")
     >>> jnp.bitwise_or(q1, q2)
-    ParametricQuantity(Array(3, dtype=int32...), unit='')
+    Quantity(Array(3, dtype=int32...), unit='')
 
     """
     return replace(x, value=lax.bitwise_or(ustrip(one, x), ustrip(one, y)))
@@ -3830,7 +3831,7 @@ def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> q = u.Q([True, False, False], "")
     >>> arr = jnp.asarray([False, False, True])
     >>> jnp.logical_or(q, arr)
-    ParametricQuantity(Array([ True, False,  True], dtype=bool), unit='')
+    Quantity(Array([ True, False,  True], dtype=bool), unit='')
 
     """
     return _as_dimensionless_like(x, lax.or_p.bind(ustrip(one, x), y))
@@ -3850,7 +3851,7 @@ def or_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     >>> arr = jnp.asarray([False, False, True])
     >>> q = u.Q([True, False, False], "")
     >>> jnp.logical_or(arr, q)
-    ParametricQuantity(Array([ True, False,  True], dtype=bool), unit='')
+    Quantity(Array([ True, False,  True], dtype=bool), unit='')
 
     """
     return _as_dimensionless_like(y, lax.or_p.bind(x, ustrip(one, y)))
@@ -3876,7 +3877,7 @@ def pad_p(operand: ABCQ, padding_value: ABCQ, /, *, padding_config: Any) -> ABCQ
     >>> x = u.Q([1, 2, 3], "m")
     >>> padding_value = u.Q(0, "m")
     >>> qlax.pad(x, padding_value, padding_config=((1, 1, 0),))
-    ParametricQuantity(Array([0, 1, 2, 3, 0], dtype=int32), unit='m')
+    Quantity(Array([0, 1, 2, 3, 0], dtype=int32), unit='m')
 
     """
     padding_value_stripped = ustrip(operand.unit, padding_value)
@@ -3960,7 +3961,7 @@ def polygamma_p(m: ArrayLike, x: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(3.0, "")
     >>> qlax.polygamma(1.0, q)
-    ParametricQuantity(Array(0.39493403, dtype=float32...), unit='')
+    Quantity(Array(0.39493403, dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.polygamma(m, ustrip(one, x)))
@@ -3983,7 +3984,7 @@ def population_count_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(3, "")
     >>> qlax.population_count(q)
-    ParametricQuantity(Array(2, dtype=int32...), unit='')
+    Quantity(Array(2, dtype=int32...), unit='')
 
     """
     return replace(x, value=lax.population_count(ustrip(one, x)))
@@ -4001,8 +4002,11 @@ def pow_p_qq(x: ABCQ, y: ABCPQ["dimensionless"], /) -> ABCQ:
     >>> import quaxed.numpy as jnp
     >>> import unxt as u
 
+    The exponent must be a (dimensionless) parametric quantity to select this
+    registration:
+
     >>> q1 = u.quantity.Quantity(2.0, "m")
-    >>> p = u.Q(3, "")
+    >>> p = u.PQ(3, "")
     >>> jnp.power(q1, p)
     Quantity(Array(8., dtype=float32...), unit='m3')
     >>> q1**p
@@ -4010,13 +4014,13 @@ def pow_p_qq(x: ABCQ, y: ABCPQ["dimensionless"], /) -> ABCQ:
 
     >>> q1 = u.Q(2.0, "m")
     >>> jnp.power(q1, p)
-    ParametricQuantity(Array(8., dtype=float32...), unit='m3')
+    Quantity(Array(8., dtype=float32...), unit='m3')
     >>> q1**p
-    ParametricQuantity(Array(8., dtype=float32...), unit='m3')
+    Quantity(Array(8., dtype=float32...), unit='m3')
 
     Non-scalar exponents raise a ValueError:
 
-    >>> p_arr = u.Q([3, 2], "")
+    >>> p_arr = u.PQ([3, 2], "")
     >>> try:
     ...     q1**p_arr
     ... except ValueError as e:
@@ -4050,9 +4054,9 @@ def pow_p_qf(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q1 = u.Q(2.0, "m")
     >>> jnp.power(q1, y)
-    ParametricQuantity(Array(8., dtype=float32...), unit='m3')
+    Quantity(Array(8., dtype=float32...), unit='m3')
     >>> q1**y
-    ParametricQuantity(Array(8., dtype=float32...), unit='m3')
+    Quantity(Array(8., dtype=float32...), unit='m3')
 
     """
     return type_np(x)(value=lax.pow(ustrip(x), y), unit=x.unit**y)
@@ -4068,7 +4072,7 @@ def pow_p_vq(x: ArrayLike, y: ABCPQ["dimensionless"], /) -> ABCQ:
     >>> import unxt as u
 
     >>> x = jnp.array([2.0])
-    >>> p = u.Q(3, "")
+    >>> p = u.PQ(3, "")
     >>> jnp.power(x, p)
     ParametricQuantity(Array([8.], dtype=float32), unit='')
 
@@ -4113,10 +4117,10 @@ def real_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(1., dtype=float32...), unit='m')
 
     >>> jnp.real(u.Q(1.0, "m"))
-    ParametricQuantity(Array(1., dtype=float32...), unit='m')
+    Quantity(Array(1., dtype=float32...), unit='m')
 
     >>> jnp.real(u.Q(1 + 2j, "m"))
-    ParametricQuantity(Array(1., dtype=float32...), unit='m')
+    Quantity(Array(1., dtype=float32...), unit='m')
 
     """
     return replace(x, value=lax.real(ustrip(x)))
@@ -4226,7 +4230,7 @@ def regularized_incomplete_beta_q(
 
     >>> x = u.Q(0.5, "")
     >>> jsp.betainc(a, b, x).round(7)
-    ParametricQuantity(Array(0.6874998, dtype=float32...), unit='')
+    Quantity(Array(0.6874998, dtype=float32...), unit='')
 
     >>> x = u.Q(0.5, "m")
     >>> try:
@@ -4278,7 +4282,7 @@ def rem_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.Q(10, "m")
     >>> q2 = u.Q(3, "m")
     >>> q1 % q2
-    ParametricQuantity(Array(1, dtype=int32...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     """
     x, y = promote(x, y)
@@ -4300,7 +4304,7 @@ def rem_p_uqv(
     >>> q1 = u.Q(10, "")
     >>> q2 = jnp.array(3)
     >>> q1 % q2
-    ParametricQuantity(Array(1, dtype=int32...), unit='')
+    Quantity(Array(1, dtype=int32...), unit='')
 
     """
     return replace(x, value=ustrip(x) % y)
@@ -4345,7 +4349,7 @@ def reshape_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(jnp.arange(6), "m")
     >>> jnp.reshape(q, (3, 2))
-    ParametricQuantity(Array([[0, 1],
+    Quantity(Array([[0, 1],
                               [2, 3],
                               [4, 5]], dtype=int32), unit='m')
 
@@ -4371,7 +4375,7 @@ def rev_p(operand: ABCQ, /, *, dimensions: Any) -> ABCQ:
 
     >>> q = u.Q([0, 1, 2, 3], "m")
     >>> qlax.rev(q, dimensions=(0,))
-    ParametricQuantity(Array([3, 2, 1, 0], dtype=int32), unit='m')
+    Quantity(Array([3, 2, 1, 0], dtype=int32), unit='m')
 
     """
     return replace(operand, value=lax.rev(ustrip(operand), dimensions))
@@ -4395,7 +4399,7 @@ def round_p(x: ABCQ, /, *, rounding_method: Any) -> ABCQ:
 
     >>> q = u.Q(1.234, "m")
     >>> jnp.round(q, 2)
-    ParametricQuantity(Array(1.23, dtype=float32...), unit='m')
+    Quantity(Array(1.23, dtype=float32...), unit='m')
 
     """
     return replace(x, value=lax.round(ustrip(x), rounding_method))
@@ -4419,7 +4423,7 @@ def rsqrt_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(1 / 4, "m")
     >>> qlax.rsqrt(q)
-    ParametricQuantity(Array(2., dtype=float32...), unit='1 / m(1/2)')
+    Quantity(Array(2., dtype=float32...), unit='1 / m(1/2)')
 
     """
     return type_np(x)(lax.rsqrt_p.bind(ustrip(x), **kw), unit=x.unit ** (-1 / 2))
@@ -4525,7 +4529,7 @@ def select_n_p_q(which: ABCQ, /, *cases: ABCQ | ArrayLike) -> ABCQ | ArrayLike:
     >>> a = u.Q([1.0, 5.0, 9.0], "km")
     >>> b = u.Q([2.0, 4.0, 10.0], "km")
     >>> jnp.where(a > b, a, b)
-    ParametricQuantity(Array([ 2.,  5., 10.], dtype=float32), unit='km')
+    Quantity(Array([ 2.,  5., 10.], dtype=float32), unit='km')
 
     Selecting between raw arrays (e.g. inside ``jnp.digitize``) stays a raw
     array:
@@ -4559,10 +4563,10 @@ def select_n_p_jqj(which: ArrayLike, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
     >>> y = u.Q([2.0, 4.0, 10.0], "km")
 
     >>> jnp.hypot(x, y)
-    ParametricQuantity(Array([ 2.236068 ,  6.4031243, 13.453625 ], dtype=float32), unit='km')
+    Quantity(Array([ 2.236068 ,  6.4031243, 13.453625 ], dtype=float32), unit='km')
 
     >>> jnp.triu(u.Q([[1, 2], [3, 4]], "km"))
-    ParametricQuantity(Array([[1, 2],
+    Quantity(Array([[1, 2],
                               [0, 4]], dtype=int32), unit='km')
 
     """
@@ -4574,7 +4578,8 @@ def select_n_p_jsqj(which: ArrayLike, case0: StaticQuantity, case1: ArrayLike, /
     """Select from a StaticQuantity and array using a non-quantity selector.
 
     StaticQuantity operations that go through JAX's select_n produce JAX arrays,
-    so we return a ParametricQuantity instead.
+    so we return the (lightweight) default ``Quantity`` instead of trying to
+    put a JAX array into a StaticQuantity.
     """
     return Q(lax.select_n(which, ustrip(case0), case1), unit=unit_of(case0))
 
@@ -4647,14 +4652,14 @@ def select_n_p_jqq(which: ArrayLike, /, *cases: ABCQ) -> ABCQ:
     >>> b = u.Q([2.0, 6.0, 10.0], "kpc")
     >>> mask = [a > u.Q(4, "kpc"), b < u.Q(8, "kpc")]
     >>> jnp.select(mask, [a, b], default=u.Q(0, "kpc"))
-    ParametricQuantity(Array([2., 5., 9.], dtype=float32), unit='kpc')
+    Quantity(Array([2., 5., 9.], dtype=float32), unit='kpc')
 
     This selection dispatch also happens when using ``jnp.hypot``.
 
     >>> a = u.Q([3], "kpc")
     >>> b = u.Q([4], "kpc")
     >>> jnp.hypot(a, b)
-    ParametricQuantity(Array([5.], dtype=float32), unit='kpc')
+    Quantity(Array([5.], dtype=float32), unit='kpc')
 
     """
     # Promote all cases to a common type (e.g., StaticQuantity + ParametricQuantity -> ParametricQuantity)
@@ -4685,7 +4690,7 @@ def shift_right_arithmetic_p(x: ABCQ, y: ABCQ | float | int, /) -> ABCQ:
 
     >>> q = u.Q(1, "")
     >>> qlax.shift_right_arithmetic(q, 2)
-    ParametricQuantity(Array(0, dtype=int32...), unit='')
+    Quantity(Array(0, dtype=int32...), unit='')
 
     """
     return replace(
@@ -4738,11 +4743,11 @@ def sin_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(90, "deg")
     >>> jnp.sin(q)
-    ParametricQuantity(Array(1., dtype=float32...), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     >>> q = u.Q(jnp.pi / 2, "")
     >>> jnp.sin(q)
-    ParametricQuantity(Array(1., dtype=float32...), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     """
     return type_np(x)(lax.sin_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
@@ -4759,7 +4764,7 @@ def sin_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Angle(90, "deg")
     >>> jnp.sin(q)
-    ParametricQuantity(Array(1., dtype=float32...), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     """
     return sin_p(convert(x, Q), **kw)
@@ -4787,11 +4792,11 @@ def sinh_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(90, "deg")
     >>> jnp.sinh(q)
-    ParametricQuantity(Array(2.301299, dtype=float32...), unit='')
+    Quantity(Array(2.301299, dtype=float32...), unit='')
 
     >>> q = u.Q(jnp.pi / 2, "")
     >>> jnp.sinh(q)
-    ParametricQuantity(Array(2.301299, dtype=float32...), unit='')
+    Quantity(Array(2.301299, dtype=float32...), unit='')
 
     """
     return type_np(x)(lax.sinh(_to_val_rad_or_one(x)), unit=one)
@@ -4815,7 +4820,7 @@ def shift_left_p(x: ABCQ, y: ABCQ | float | int, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(1, "")
     >>> qlax.shift_left(q, 2)
-    ParametricQuantity(Array(4, dtype=int32...), unit='')
+    Quantity(Array(4, dtype=int32...), unit='')
 
     """
     return replace(x, value=lax.shift_left(ustrip(x), ustrip(AllowValue, one, y)))
@@ -4873,7 +4878,7 @@ def sort_p(
 
     >>> q = u.Q([3.0, 1.0, 2.0], "m")
     >>> jnp.sort(q)
-    ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     Sorting by a key quantity while carrying along a payload quantity of a
     *different* unit preserves each operand's unit:
@@ -4884,9 +4889,9 @@ def sort_p(
     ...     (pos, vel), dimension=0, is_stable=True, num_keys=1
     ... )
     >>> sorted_pos
-    ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='km')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='km')
     >>> sorted_vel
-    ParametricQuantity(Array([10., 20., 30.], dtype=float32), unit='km / s')
+    Quantity(Array([10., 20., 30.], dtype=float32), unit='km / s')
 
     """
     all_operands = (operand0, *operands)
@@ -4927,7 +4932,7 @@ def square_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(3, "m")
     >>> jnp.square(q)
-    ParametricQuantity(Array(9, dtype=int32...), unit='m2')
+    Quantity(Array(9, dtype=int32...), unit='m2')
 
     """
     return type_np(x)(lax.square(ustrip(x)), unit=x.unit**2)
@@ -4950,7 +4955,7 @@ def sqrt_p_q(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(9, "m")
     >>> jnp.sqrt(q)
-    ParametricQuantity(Array(3., dtype=float32...), unit='m(1/2)')
+    Quantity(Array(3., dtype=float32...), unit='m(1/2)')
 
     """
     # Apply sqrt to the value and adjust the unit
@@ -4968,7 +4973,7 @@ def sqrt_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Angle(9, "deg")
     >>> jnp.sqrt(q)
-    ParametricQuantity(Array(3., dtype=float32...), unit='deg(1/2)')
+    Quantity(Array(3., dtype=float32...), unit='deg(1/2)')
 
     """
     return sqrt_p_q(convert(x, Q), **kw)
@@ -4992,7 +4997,7 @@ def squeeze_p(x: ABCQ, /, *, dimensions: Any) -> ABCQ:
 
     >>> q = u.Q(jnp.array([[[1], [2], [3]]]), "m")
     >>> jnp.squeeze(q)
-    ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     """
     return type_np(x)(lax.squeeze(ustrip(x), dimensions), unit=x.unit)
@@ -5041,9 +5046,9 @@ def sub_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.Q(1.0, "km")
     >>> q2 = u.Q(500.0, "m")
     >>> jnp.subtract(q1, q2)
-    ParametricQuantity(Array(0.5, dtype=float32...), unit='km')
+    Quantity(Array(0.5, dtype=float32...), unit='km')
     >>> q1 - q2
-    ParametricQuantity(Array(0.5, dtype=float32...), unit='km')
+    Quantity(Array(0.5, dtype=float32...), unit='km')
 
     """
     x, y = promote(x, y)
@@ -5075,10 +5080,10 @@ def sub_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     >>> q = u.Q(500.0, "")
     >>> jnp.subtract(x, q)
-    ParametricQuantity(Array(500., dtype=float32...), unit='')
+    Quantity(Array(500., dtype=float32...), unit='')
 
     >>> x - q
-    ParametricQuantity(Array(500., dtype=float32...), unit='')
+    Quantity(Array(500., dtype=float32...), unit='')
 
     """
     y = uconvert(one, y)
@@ -5104,10 +5109,10 @@ def sub_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q = u.Q(500.0, "")
     >>> jnp.subtract(q, y)
-    ParametricQuantity(Array(-500., dtype=float32...), unit='')
+    Quantity(Array(-500., dtype=float32...), unit='')
 
     >>> q - y
-    ParametricQuantity(Array(-500., dtype=float32...), unit='')
+    Quantity(Array(-500., dtype=float32...), unit='')
 
     """
     x = uconvert(one, x)
@@ -5136,11 +5141,11 @@ def tan_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(45, "deg")
     >>> jnp.tan(q)
-    ParametricQuantity(Array(1., dtype=float32...), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     >>> q = u.Q(jnp.pi / 4, "")
     >>> jnp.tan(q)
-    ParametricQuantity(Array(1., dtype=float32...), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     """
     return type_np(x)(lax.tan_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
@@ -5185,11 +5190,11 @@ def tanh_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q(45, "deg")
     >>> jnp.tanh(q)
-    ParametricQuantity(Array(0.65579426, dtype=float32...), unit='')
+    Quantity(Array(0.65579426, dtype=float32...), unit='')
 
     >>> q = u.Q(jnp.pi / 4, "")
     >>> jnp.tanh(q)
-    ParametricQuantity(Array(0.65579426, dtype=float32...), unit='')
+    Quantity(Array(0.65579426, dtype=float32...), unit='')
 
     """
     return type_np(x)(lax.tanh_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
@@ -5214,8 +5219,8 @@ def top_k_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Q([1, 2, 3], "m")
     >>> qlax.top_k(q, k=2)
-    [ParametricQuantity(Array([3, 2], dtype=int32), unit='m'),
-     ParametricQuantity(Array([2, 1], dtype=int32), unit='m')]
+    [Quantity(Array([3, 2], dtype=int32), unit='m'),
+     Quantity(Array([2, 1], dtype=int32), unit='m')]
 
     """
     return replace(operand, value=lax.top_k_p.bind(ustrip(operand), **kw))  # type: ignore[no-untyped-call]
@@ -5241,7 +5246,7 @@ def transpose_p(operand: ABCQ, /, *, permutation: Any) -> ABCQ:
 
     >>> q = u.Q(x, "m")
     >>> jnp.transpose(q)
-    ParametricQuantity(Array([[0, 3], [1, 4], [2, 5]], dtype=int32), unit='m')
+    Quantity(Array([[0, 3], [1, 4], [2, 5]], dtype=int32), unit='m')
 
     """
     return replace(
@@ -5269,7 +5274,7 @@ def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.Q(1, "")
     >>> q2 = u.Q(2, "")
     >>> jnp.bitwise_xor(q1, q2)
-    ParametricQuantity(Array(3, dtype=int32...), unit='')
+    Quantity(Array(3, dtype=int32...), unit='')
 
     """
     return replace(x, value=lax.bitwise_xor(ustrip(one, x), ustrip(one, y)))
@@ -5290,7 +5295,7 @@ def xor_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> q = u.Q([True, False, True], "")
     >>> arr = jnp.asarray([True, True, False])
     >>> jnp.logical_xor(q, arr)
-    ParametricQuantity(Array([False,  True,  True], dtype=bool), unit='')
+    Quantity(Array([False,  True,  True], dtype=bool), unit='')
 
     """
     return _as_dimensionless_like(x, lax.xor_p.bind(ustrip(one, x), y))
@@ -5310,7 +5315,7 @@ def xor_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     >>> arr = jnp.asarray([True, True, False])
     >>> q = u.Q([True, False, True], "")
     >>> jnp.logical_xor(arr, q)
-    ParametricQuantity(Array([False,  True,  True], dtype=bool), unit='')
+    Quantity(Array([False,  True,  True], dtype=bool), unit='')
 
     """
     return _as_dimensionless_like(y, lax.xor_p.bind(x, ustrip(one, y)))
@@ -5336,7 +5341,7 @@ def zeta_p(x: ABCQ, q: ArrayLike, /) -> ABCQ:
 
     >>> x = u.Q(2.0, "")
     >>> qlax.zeta(x, 1.0).round(4)
-    ParametricQuantity(Array(1.6449, dtype=float32), unit='')
+    Quantity(Array(1.6449, dtype=float32), unit='')
 
     """
     return replace(x, value=lax.zeta_p.bind(ustrip(x), q))

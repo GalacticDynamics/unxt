@@ -103,7 +103,7 @@ Use class short names where available (for example, `ParametricQuantity` -> `Q`)
 >>> # Default behavior (use_short_name=False)
 >>> with u.config.quantity_repr.override(use_short_name=False):
 ...     print(repr(q))
-ParametricQuantity(Array(1., dtype=float32...), unit='m')
+Quantity(Array(1., dtype=float32...), unit='m')
 
 >>> # With use_short_name=True
 >>> with u.config.quantity_repr.override(use_short_name=True):
@@ -124,12 +124,12 @@ Display units as `unit='m'` instead of positional `'m'`.
 >>> # Default behavior (named_unit=True)
 >>> with u.config.quantity_repr.override(named_unit=False):
 ...     print(repr(q))
-ParametricQuantity(Array(1., dtype=float32...), 'm')
+Quantity(Array(1., dtype=float32...), 'm')
 
 >>> # With named_unit=True
 >>> with u.config.quantity_repr.override(named_unit=True):
 ...     print(repr(q))
-ParametricQuantity(Array(1., dtype=float32...), unit='m')
+Quantity(Array(1., dtype=float32...), unit='m')
 ```
 
 ### `include_params`
@@ -140,7 +140,7 @@ Include type parameters in `repr()` for parametric quantities.
 - **Default**: `False`
 
 ```{code-block} python
->>> q = u.Q["length"](1.0, "m")
+>>> q = u.PQ["length"](1.0, "m")
 
 >>> with u.config.quantity_repr.override(include_params=False):
 ...     print(repr(q))
@@ -161,7 +161,7 @@ Indentation width for nested structures in `repr()`.
 ```{code-block} python
 >>> q = u.Q([[1.0, 2.0], [3.0, 4.0]], "m")
 >>> print(repr(q))  # Default indentation (4 spaces)
-ParametricQuantity(Array([[1., 2.],
+Quantity(Array([[1., 2.],
                 [3., 4.]], dtype=float32), unit='m')
 ```
 
@@ -177,7 +177,7 @@ Controls how arrays are displayed in `str()`.
 - **Default**: `"compact"`
 
 ```{code-block} python
->>> q = u.Q([1.0, 2.0, 3.0], "m")
+>>> q = u.PQ([1.0, 2.0, 3.0], "m")
 >>> print(str(q))  # Default behavior (compact)
 ParametricQuantity['length']([1., 2., 3.], unit='m')
 
@@ -198,7 +198,7 @@ Display units as named keyword in `str()`.
 - **Default**: `True`
 
 ```{code-block} python
->>> q = u.Q(1.0, "m")
+>>> q = u.PQ(1.0, "m")
 >>> print(str(q))  # Default behavior (named)
 ParametricQuantity['length'](1., unit='m')
 
@@ -215,13 +215,13 @@ Use short class names in `str()` representation.
 - **Default**: `False`
 
 ```{code-block} python
->>> q = u.Q(1.0, "m")
+>>> q = u.PQ(1.0, "m")
 >>> print(str(q))
 ParametricQuantity['length'](1., unit='m')
 
 >>> with u.config.quantity_str.override(use_short_name=True):
 ...     print(str(q))
-Q['length'](1., unit='m')
+PQ['length'](1., unit='m')
 ```
 
 ### `indent`
@@ -319,7 +319,7 @@ You can override both repr and str configs simultaneously:
 ...     quantity_repr__short_arrays="compact",
 ...     quantity_str__short_arrays=True
 ... ):
-...     q = u.Q([1.0, 2.0, 3.0], "m")
+...     q = u.PQ([1.0, 2.0, 3.0], "m")
 ...     print(repr(q), str(q))
 ParametricQuantity([1., 2., 3.], unit='m') ParametricQuantity['length'](f32[3], unit='m')
 >>>
@@ -328,7 +328,7 @@ ParametricQuantity([1., 2., 3.], unit='m') ParametricQuantity['length'](f32[3], 
 ...     u.config.quantity_repr.override(short_arrays="compact"),
 ...     u.config.quantity_str.override(short_arrays=True)
 ... ):
-...         q = u.Q([1.0, 2.0, 3.0], "m")
+...         q = u.PQ([1.0, 2.0, 3.0], "m")
 ...         print(repr(q), str(q))
 ParametricQuantity([1., 2., 3.], unit='m') ParametricQuantity['length'](f32[3], unit='m')
 ```

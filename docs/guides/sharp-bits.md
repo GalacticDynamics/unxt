@@ -3,7 +3,7 @@
 This guide covers common pitfalls and surprising behaviors when working with `unxt` quantities in JAX. Like JAX itself, `unxt` has some "sharp bits" — behaviors that might surprise you if you're coming from NumPy or non-JAX Python scientific computing.
 
 ```{tip}
-If you're new to `unxt`, start with the [ParametricQuantity guide](quantity.md) first.
+If you're new to `unxt`, start with the [Quantity guide](quantity.md) first.
 This guide assumes you're familiar with basic `unxt` usage.
 ```
 
@@ -64,7 +64,7 @@ new_q = replace(q, value=q.value.at[0].set(5.0))
 
 ## JAX Control Flow
 
-### ❌ Problem: Control Flow on ParametricQuantity Values
+### ❌ Problem: Control Flow on Quantity Values
 
 JAX control flow requires special handling, independent of unit considerations:
 
@@ -144,8 +144,8 @@ import quaxed.numpy as jnp  # Note: quaxed, not jax
 q = u.Q([1.0, 2.0, 3.0], "m")
 
 # ✅ These preserve quantities correctly
-result = jnp.concat([q, q])  # Still ParametricQuantity
-result = jnp.stack([q, q])  # Still ParametricQuantity
+result = jnp.concat([q, q])  # Still Quantity
+result = jnp.stack([q, q])  # Still Quantity
 ```
 
 **General rule:** Import from `quaxed` when working with `unxt` quantities:
@@ -205,7 +205,7 @@ except Exception as e:
     print(e)
 ```
 
-**Why it works:** The units are static on the ParametricQuantity PyTree. {mod}`unxt` can catch dimension mismatches during tracing.
+**Why it works:** The units are static on the Quantity PyTree. {mod}`unxt` can catch dimension mismatches during tracing.
 
 ### ❌ Problem: Units Triggering Recompilation
 
@@ -247,7 +247,32 @@ result = add_lengths_m(u.Q(5.0, "m"), length_m_input)
 
 **Key insight:** Dimensions are checked statically, but each unique combination of units creates a new compiled version.
 
-## Mixing ParametricQuantity Types
+### ❌ Problem: `ParametricQuantity` Recompiles Per Dimension
+
+`ParametricQuantity` encodes the physical dimension in its *type* — each dimension
+is a distinct parametric class (`ParametricQuantity[length]`, `ParametricQuantity[time]`, ...).
+Because {func}`jax.jit` keys its cache on the PyTree *type*, feeding
+`ParametricQuantity` of different dimensions into the same jitted function triggers a
+recompilation for each dimension, on top of the per-unit recompilation above. The
+default `Quantity` avoids this: it is a single non-parametric class, so its type
+does not change with the physical dimension.
+
+```python
+@jax.jit
+def square(x):
+    return x**2
+
+
+# ParametricQuantity: each dimension is a new type → new compilation
+square(u.PQ(5.0, "m"))  # compiles for ParametricQuantity[length]
+square(u.PQ(5.0, "s"))  # RECOMPILES for ParametricQuantity[time]
+
+# Quantity: one type for all dimensions → no per-dimension recompilation
+square(u.Q(5.0, "m"))  # compiles for Quantity
+square(u.Q(5.0, "s"))  # reuses the same Quantity compilation (unit still varies)
+```
+
+## Mixing Quantity Types
 
 ### ❌ Problem: Confused by Quantity vs ParametricQuantity
 
@@ -255,8 +280,8 @@ Different quantity types have different guarantees:
 
 ```python
 # What's the difference?
-q1 = u.Q(5.0, "m")
-q2 = u.quantity.Quantity(5.0, "m")
+q1 = u.Q(5.0, "m")  # the default, lightweight Quantity
+q2 = u.PQ(5.0, "m")  # ParametricQuantity, dimension in the type
 q3 = u.quantity.StaticQuantity(5.0, "m")
 ```
 
@@ -273,21 +298,23 @@ def function(x, *, constant=u.Q(3.26, "lyr")):
 
 ### ✅ Solution: Choose the Right Type
 
-**`ParametricQuantity`** — Standard choice with full dimension checking:
+**`Quantity`** — The default. A lightweight, non-parametric quantity that tracks
+units without encoding the physical dimension in its type:
 
 ```python
 length = u.Q(5.0, "m")
 time = u.Q(2.0, "s")
-speed = length / time  # ✅ Creates ParametricQuantity with correct dimension
+speed = length / time  # ✅ Fast; unit arithmetic without per-dimension classes
 ```
 
-**`Quantity`** — No dimension checking, just unit tracking:
+**`ParametricQuantity`** — Opt in when you want the physical dimension carried in
+the type (for dimension-specific `plum` dispatch and runtime dimension checking):
 
 ```python
-# Use when you need raw speed, trust your dimensions
-length = u.quantity.Quantity(5.0, "m")
-time = u.quantity.Quantity(2.0, "s")
-speed = length / time  # Faster, but no dimension validation
+# Use when you want dimension-parametrized dispatch / runtime checking
+length = u.PQ(5.0, "m")
+time = u.PQ(2.0, "s")
+speed = length / time  # A distinct parametric class per dimension
 ```
 
 **`StaticQuantity`** — For compile-time constants:
@@ -305,11 +332,11 @@ def function(x, *, constant=u.StaticQuantity(3.26, "lyr")):
 
 **When to use each:**
 
-| Type | Use Case | Dimension Checking | Performance |
+| Type | Use Case | Dimension in Type | Performance |
 | --- | --- | --- | --- |
-| `ParametricQuantity` | Default choice | ✅ Full | Good |
-| `Quantity` | Trust your math | ❌ None | Better |
-| `StaticQuantity` | Constants | ✅ Full | Best (no tracer) |
+| `Quantity` | Default choice | ❌ None | Better |
+| `ParametricQuantity` | Dimension-parametrized dispatch / runtime checking | ✅ Yes | Good (recompiles per dimension) |
+| `StaticQuantity` | Constants | ✅ Yes | Best (no tracer) |
 
 ## Dimension Checking Overhead
 
@@ -343,13 +370,13 @@ os.environ["UNXT_ENABLE_RUNTIME_TYPECHECKING"] = "beartype.beartype"
 
 **Default:** Runtime checking is `False` unless you're running tests.
 
-## ParametricQuantity as a PyTree: JAX flattening overhead
+## Quantity as a PyTree: JAX flattening overhead
 
 See the [Performance Guide](perf.md)
 
-### ❌ Problem: ParametricQuantity is slower than Array
+### ❌ Problem: Quantity is slower than Array
 
-For most functions, ParametricQuantity input is slower than an Array. This is because Quantities are PyTrees that combine a value and a unit. When a PyTree passes through a {func}`jax.jit` boundary it is de-structured then re-structured. This process has an associated overhead.
+For most functions, Quantity input is slower than an Array. This is because Quantities are PyTrees that combine a value and a unit. When a PyTree passes through a {func}`jax.jit` boundary it is de-structured then re-structured. This process has an associated overhead.
 
 ```python
 @jax.jit
@@ -403,7 +430,7 @@ def rescale(x, *, scale):
 
 # ❌ Fails — JAX cannot convert Array([True, True]) to a scalar bool
 try:
-    rescale(x, scale=u.Q([2.0, 3.0], "m"))
+    rescale(x, scale=u.PQ([2.0, 3.0], "m"))
 except Exception as e:
     print(f"Error: {e}")
 ```
@@ -415,7 +442,7 @@ When a `ParametricQuantity` is backed by a `StaticValue`, its `==` operator retu
 ```python
 import numpy as np
 
-scale = u.Q(u.quantity.StaticValue(np.array([2.0, 3.0])), "m")
+scale = u.PQ(u.quantity.StaticValue(np.array([2.0, 3.0])), "m")
 
 
 @partial(jax.jit, static_argnames=("scale",))
@@ -431,14 +458,14 @@ Unit conversion is applied before comparing, so quantities in compatible but dif
 
 ```python
 sv_km = u.quantity.StaticValue(np.array([0.001, 0.003]))
-u.Q(scale.value, "m") == u.Q(sv_km, "km")  # True — same physical value
+u.PQ(scale.value, "m") == u.PQ(sv_km, "km")  # True — same physical value
 ```
 
-See [Working with StaticValue in ParametricQuantity](quantity.md#working-with-staticvalue-in-quantity) for more details.
+See [Working with StaticValue in ParametricQuantity](quantity.md#working-with-staticvalue-in-parametricquantity) for more details.
 
 ## See Also
 
 - [JAX Common Gotchas](https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html)
-- [ParametricQuantity Guide](quantity.md)
+- [Quantity Guide](quantity.md)
 - [Type Checking Guide](type-checking.md)
 - [Testing Guide](../packages/unxt-hypothesis/testing-guide.md)

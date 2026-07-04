@@ -157,10 +157,10 @@ PhysicalType('length')
 >>> u.dimension_of(q)
 PhysicalType('length')
 
->>> u.dimension_of(u.Q["length"])  # so do parameterized ParametricQuantity classes
+>>> u.dimension_of(u.PQ["length"])  # so do parameterized ParametricQuantity classes
 PhysicalType('length')
 
->>> try: u.dimension_of(u.Q)  # unparameterized ParametricQuantity will raise an error
+>>> try: u.dimension_of(u.PQ)  # unparameterized ParametricQuantity will raise an error
 ... except Exception as e: print(e)
 can only get dimensions from parametrized ParametricQuantity -- ParametricQuantity[dim].
 

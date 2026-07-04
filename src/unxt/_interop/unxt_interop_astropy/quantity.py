@@ -37,7 +37,7 @@ def convert_to_quantity_value(obj: AstropyQuantity, /) -> NoReturn:
     ...     convert_to_quantity_value(apyu.Quantity(1, "m"))
     ... except TypeError as e:
     ...     print(e)
-    Cannot convert 'ParametricQuantity' to a value.
+    Cannot convert 'Quantity' to a value.
     For a ParametricQuantity, use the `.from_` constructor instead.
 
     """
@@ -70,7 +70,7 @@ def from_(
     >>> import astropy.units as apyu
 
     >>> u.Q.from_(apyu.Quantity(1, "m"))
-    ParametricQuantity(Array(1., dtype=float32), unit='m')
+    Quantity(Array(1., dtype=float32), unit='m')
 
     """
     u = uapi.unit_of(value)
@@ -92,7 +92,7 @@ def from_(
     >>> import astropy.units as apyu
 
     >>> u.Q.from_(apyu.Quantity(1, "m"), "cm")
-    ParametricQuantity(Array(100., dtype=float32), unit='cm')
+    Quantity(Array(100., dtype=float32), unit='cm')
 
     """
     u = uapi.unit(u)
@@ -117,7 +117,7 @@ def convert_unxt_quantity_to_astropy_quantity(
     >>> from plum import convert
 
     >>> convert(u.Q(1.0, "cm"), AstropyQuantity)
-    <ParametricQuantity 1. cm>
+    <Quantity 1. cm>
 
     """
     u = uapi.unit_of(q)
@@ -243,13 +243,13 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
 
     >>> x = u.Q(1000, "m")
     >>> u.uconvert(u.unit("km"), x)
-    ParametricQuantity(Array(1., dtype=float32, ...), unit='km')
+    Quantity(Array(1., dtype=float32, ...), unit='km')
 
     >>> x = u.Q([1, 2, 3], "Kelvin")
     >>> with apyu.add_enabled_equivalencies(apyu.temperature()):
     ...     y = x.uconvert("deg_C")
     >>> y
-    ParametricQuantity( Array([-272.15, -271.15, -270.15], dtype=float32, ...), unit='deg_C' )
+    Quantity( Array([-272.15, -271.15, -270.15], dtype=float32, ...), unit='deg_C' )
 
     >>> x = ParametricQuantity([1, 2, 3], "radian")
     >>> with apyu.add_enabled_equivalencies(apyu.dimensionless_angles()):

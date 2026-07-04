@@ -79,40 +79,40 @@ class AbstractQuantity(
     From an integer:
 
     >>> u.Q(1, "m")
-    ParametricQuantity(Array(1, dtype=int32...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     From a float:
 
     >>> u.Q(1.0, "m")
-    ParametricQuantity(Array(1., dtype=float32...), unit='m')
+    Quantity(Array(1., dtype=float32...), unit='m')
 
     From a list:
 
     >>> u.Q([1, 2, 3], "m")
-    ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a tuple:
 
     >>> u.Q((1, 2, 3), "m")
-    ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a `numpy.ndarray`:
 
     >>> import numpy as np
     >>> u.Q(np.array([1, 2, 3]), "m")
-    ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a `jax.Array`:
 
     >>> import jax.numpy as jnp
     >>> u.Q(jnp.array([1, 2, 3]), "m")
-    ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
+    Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     The unit can also be given as a `astropy.units.Unit`:
 
     >>> import astropy.units as apyu
     >>> u.Q(1, apyu.m)
-    ParametricQuantity(Array(1, dtype=int32...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     """
 
@@ -152,7 +152,7 @@ class AbstractQuantity(
 
         >>> q = u.Q(1, "m")
         >>> q.uconvert("cm")
-        ParametricQuantity(Array(100., dtype=float32, ...), unit='cm')
+        Quantity(Array(100., dtype=float32, ...), unit='cm')
 
         """
         return uapi.uconvert(u, self)
@@ -253,7 +253,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Q([[0, 1], [1, 2]], "m")
         >>> q.mT
-        ParametricQuantity(Array([[0, 1],
+        Quantity(Array([[0, 1],
                                   [1, 2]], dtype=int32), unit='m')
 
         """
@@ -296,7 +296,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Q([[0, 1], [1, 2]], "m")
         >>> q.T
-        ParametricQuantity(Array([[0, 1],
+        Quantity(Array([[0, 1],
                                   [1, 2]], dtype=int32), unit='m')
 
         """
@@ -374,7 +374,7 @@ class AbstractQuantity(
 
         >>> q = u.Q([1.0, 2.0, jnp.inf, 4.0], "m")
         >>> q[jnp.isfinite(q)]
-        ParametricQuantity(Array([1., 2., 4.], dtype=float32), unit='m')
+        Quantity(Array([1., 2., 4.], dtype=float32), unit='m')
 
         """
         if isinstance(key, AbstractQuantity):
@@ -433,7 +433,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Q(1, "m")
         >>> q.to_device(None)
-        ParametricQuantity(Array(1, dtype=int32...), unit='m')
+        Quantity(Array(1, dtype=int32...), unit='m')
 
         """
         return replace(self, value=self.value.to_device(device))
@@ -449,9 +449,9 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Q([1, 2, 3], "m")
         >>> [x for x in q]
-        [ParametricQuantity(Array(1, dtype=int32), unit='m'),
-         ParametricQuantity(Array(2, dtype=int32), unit='m'),
-         ParametricQuantity(Array(3, dtype=int32), unit='m')]
+        [Quantity(Array(1, dtype=int32), unit='m'),
+         Quantity(Array(2, dtype=int32), unit='m'),
+         Quantity(Array(3, dtype=int32), unit='m')]
 
         """
         yield from (self[i] for i in range(len(self.value)))
@@ -493,7 +493,7 @@ class AbstractQuantity(
         dtype('int32')
 
         >>> q.astype(float)
-        ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
+        Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
         """
         return replace(self, value=self.value.astype(*args, **kwargs))
@@ -537,7 +537,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Q([[1, 2], [3, 4]], "m")
         >>> q.flatten()
-        ParametricQuantity(Array([1, 2, 3, 4], dtype=int32), unit='m')
+        Quantity(Array([1, 2, 3, 4], dtype=int32), unit='m')
 
         """
         return replace(self, value=self.value.flatten())
@@ -550,7 +550,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Q([1, 2, 3], "m")
         >>> q.max()
-        ParametricQuantity(Array(3, dtype=int32), unit='m')
+        Quantity(Array(3, dtype=int32), unit='m')
 
         """
         return replace(self, value=self.value.max(*args, **kwargs))
@@ -563,7 +563,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Q([1, 2, 3], "m")
         >>> q.mean()
-        ParametricQuantity(Array(2., dtype=float32), unit='m')
+        Quantity(Array(2., dtype=float32), unit='m')
 
         """
         return replace(self, value=self.value.mean(*args, **kwargs))
@@ -576,7 +576,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Q([1, 2, 3], "m")
         >>> q.min()
-        ParametricQuantity(Array(1, dtype=int32), unit='m')
+        Quantity(Array(1, dtype=int32), unit='m')
 
         """
         return replace(self, value=self.value.min(*args, **kwargs))
@@ -589,7 +589,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Q([[1, 2], [3, 4]], "m")
         >>> q.ravel()
-        ParametricQuantity(Array([1, 2, 3, 4], dtype=int32), unit='m')
+        Quantity(Array([1, 2, 3, 4], dtype=int32), unit='m')
 
         """
         return replace(self, value=self.value.ravel())
@@ -602,7 +602,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Q([1, 2, 3, 4], "m")
         >>> q.reshape(2, 2)
-        ParametricQuantity(Array([[1, 2],
+        Quantity(Array([[1, 2],
                                   [3, 4]], dtype=int32), unit='m')
 
         """
@@ -617,7 +617,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Q([1.1, 2.2, 3.3], "m")
         >>> q.round(0)
-        ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
+        Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
         """
         return replace(self, value=self.value.round(*args, **kwargs))
@@ -644,7 +644,7 @@ class AbstractQuantity(
         >>> import unxt as u
         >>> q = u.Q([[[1], [2], [3]]], "m")
         >>> q.squeeze()
-        ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
+        Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
         """
         return replace(self, value=self.value.squeeze(*args, **kwargs))
@@ -748,7 +748,7 @@ class AbstractQuantity(
         The class short name can be used if available:
 
         >>> wl.pprint(q, use_short_name=True)
-        Quantity(i32[3], unit='m')
+        Q(i32[3], unit='m')
 
         """
         # Class Name
@@ -878,13 +878,13 @@ def from_(
 
     >>> x = jnp.array([1.0, 2, 3])
     >>> u.Q.from_(x, "m")
-    ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     >>> u.Q.from_([1.0, 2, 3], "m")
-    ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     >>> u.Q.from_((1.0, 2, 3), "m")
-    ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     """
     # Dispatch on both arguments.
@@ -910,7 +910,7 @@ def from_(
 
     >>> import unxt as u
     >>> u.Q.from_([1.0, 2, 3], unit="m")
-    ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     """
     # Dispatch on the `value` only. Dispatch to the full constructor.
@@ -930,7 +930,7 @@ def from_(
 
     >>> import unxt as u
     >>> u.Q.from_(value=[1.0, 2, 3], unit="m")
-    ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     """
     # Dispatched on no argument. Dispatch to the full constructor.
@@ -952,10 +952,10 @@ def from_(cls: type[AbstractQuantity], mapping: Mapping[str, Any]) -> AbstractQu
     >>> x = jnp.array([1.0, 2, 3])
     >>> q = u.Q.from_({"value": x, "unit": "m"})
     >>> q
-    ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
     >>> u.Q.from_({"value": q, "unit": "km"})
-    ParametricQuantity(Array([0.001, 0.002, 0.003], dtype=float32), unit='km')
+    Quantity(Array([0.001, 0.002, 0.003], dtype=float32), unit='km')
 
     """
     # Dispatch on both arguments.
@@ -982,7 +982,7 @@ def from_(
 
     >>> q = u.Q(1, "m")
     >>> u.Q.from_(q, "cm")
-    ParametricQuantity(Array(100., dtype=float32, ...), unit='cm')
+    Quantity(Array(100., dtype=float32, ...), unit='cm')
 
     """
     value = jnp.asarray(uapi.uconvert(unit, value), dtype=dtype)
@@ -1008,7 +1008,7 @@ def from_(
 
     >>> q = u.Q(1, "m")
     >>> u.Q.from_(q, None)
-    ParametricQuantity(Array(1, dtype=int32...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     """
     value = jnp.asarray(value, dtype=dtype)
@@ -1057,7 +1057,7 @@ class _QuantityIndexUpdateHelper(_IndexUpdateHelper):
         >>> import unxt as u
         >>> q = u.Q([1, 2, 3, 4], "m")
         >>> q.at
-        _QuantityIndexUpdateHelper(ParametricQuantity(Array([1, 2, 3, 4], dtype=int32), unit='m'))
+        _QuantityIndexUpdateHelper(Quantity(Array([1, 2, 3, 4], dtype=int32), unit='m'))
 
         """
         return f"_QuantityIndexUpdateHelper({self.array!r})"
@@ -1210,7 +1210,7 @@ def convert_to_quantity_value(obj: AbstractQuantity, /) -> NoReturn:
     ...     convert_to_quantity_value(u.Q(1, "m"))
     ... except TypeError as e:
     ...     print(e)
-    Cannot convert 'ParametricQuantity[PhysicalType('length')]' to a value.
+    Cannot convert 'Quantity' to a value.
     For a ParametricQuantity, use the `.from_` constructor instead.
 
     """

@@ -40,7 +40,7 @@ class UnxtDataArrayAccessor:
     >>> da = xr.DataArray([1.0, 2.0, 3.0], dims=["x"], attrs={"units": "m"})
     >>> q = da.unxt.quantify()
     >>> q.data
-    ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
+    Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
     >>> da.unxt.units
     {None: Unit("m")}
 
@@ -103,17 +103,17 @@ class UnxtDataArrayAccessor:
 
         >>> q = da.unxt.quantify()
         >>> q.data
-        ParametricQuantity(Array([1., 2.], dtype=float32), unit='m')
+        Quantity(Array([1., 2.], dtype=float32), unit='m')
 
         Quantify with explicit unit:
 
         >>> da = xr.DataArray([1.0, 2.0], dims=["x"])
         >>> q = da.unxt.quantify("km")
         >>> q.data
-        ParametricQuantity(Array([1., 2.], dtype=float32), unit='km')
+        Quantity(Array([1., 2.], dtype=float32), unit='km')
 
         Quantify with coordinate units (use non-dimension coordinates to preserve
-        ParametricQuantity data on coordinates):
+        Quantity data on coordinates):
 
         >>> da = xr.DataArray(
         ...     [1.0, 2.0],
@@ -123,9 +123,9 @@ class UnxtDataArrayAccessor:
         ... )
         >>> q = da.unxt.quantify()
         >>> q.data
-        ParametricQuantity(Array([1., 2.], dtype=float32), unit='m')
+        Quantity(Array([1., 2.], dtype=float32), unit='m')
         >>> q.coords["x"].data
-        ParametricQuantity(Array([0., 1.], dtype=float32), unit='s')
+        Quantity(Array([0., 1.], dtype=float32), unit='s')
 
         """
         # Combine explicit units with unit_kwargs
@@ -238,9 +238,9 @@ class UnxtDatasetAccessor:
     ... )
     >>> q = ds.unxt.quantify()
     >>> q["a"].data
-    ParametricQuantity(Array([1., 2.], dtype=float32), unit='m')
+    Quantity(Array([1., 2.], dtype=float32), unit='m')
     >>> q["b"].data
-    ParametricQuantity(Array([3., 4.], dtype=float32), unit='s')
+    Quantity(Array([3., 4.], dtype=float32), unit='s')
 
     """
 
@@ -285,14 +285,14 @@ class UnxtDatasetAccessor:
         ... )
         >>> q = ds.unxt.quantify()
         >>> q["a"].data
-        ParametricQuantity(Array([1., 2.], dtype=float32), unit='m')
+        Quantity(Array([1., 2.], dtype=float32), unit='m')
 
         Quantify with explicit units:
 
         >>> ds = xr.Dataset({"a": ("x", [1.0, 2.0])})
         >>> q = ds.unxt.quantify(a="km")
         >>> q["a"].data
-        ParametricQuantity(Array([1., 2.], dtype=float32), unit='km')
+        Quantity(Array([1., 2.], dtype=float32), unit='km')
 
         """
         # Combine explicit units with unit_kwargs

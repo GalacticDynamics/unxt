@@ -49,12 +49,12 @@ def dimension_of(obj: type[AbstractParametricQuantity], /) -> AbstractDimension:
     >>> import unxt as u
 
     >>> try:
-    ...     u.dimension_of(u.Q)
+    ...     u.dimension_of(u.PQ)
     ... except Exception as e:
     ...     print(e)
     can only get dimensions from parametrized ParametricQuantity -- ParametricQuantity[dim].
 
-    >>> u.dimension_of(u.Q["length"])
+    >>> u.dimension_of(u.PQ["length"])
     PhysicalType('length')
 
     """
@@ -177,7 +177,7 @@ def uconvert_value(uto: Any, ufrom: Any, x: AbstractQuantity, /) -> AbstractQuan
 
     >>> q = u.Q(1, "km")
     >>> u.uconvert_value("m", "km", q)
-    ParametricQuantity(Array(1000., dtype=float32...), unit='m')
+    Quantity(Array(1000., dtype=float32...), unit='m')
 
     """
     x = eqx.error_if(
