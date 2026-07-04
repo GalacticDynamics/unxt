@@ -6,7 +6,6 @@ from plum import conversion_method
 
 from .angle import Angle
 from .base import AbstractQuantity
-from .parametric import ParametricQuantity
 from .quantity import Quantity
 from unxt_api import unit_of, ustrip
 
@@ -35,35 +34,6 @@ def quantity_to_default(q: AbstractQuantity, /) -> Quantity:
         return q
     u = unit_of(q)
     return Quantity(ustrip(u, q), u)
-
-
-@conversion_method(type_from=AbstractQuantity, type_to=ParametricQuantity)  # type: ignore[arg-type]
-def quantity_to_checked(q: AbstractQuantity, /) -> ParametricQuantity:
-    """Convert any quantity to a checked quantity.
-
-    Examples
-    --------
-    >>> from plum import convert
-    >>> from unxt.quantity import ParametricQuantity, Quantity
-
-    >>> q = Quantity(1, "m")
-    >>> q
-    Quantity(Array(1, dtype=int32...), unit='m')
-
-    >>> convert(q, ParametricQuantity)
-    ParametricQuantity(Array(1, dtype=int32...), unit='m')
-
-    The self-conversion doesn't copy the object:
-
-    >>> q = ParametricQuantity(1, "m")
-    >>> convert(q, ParametricQuantity) is q
-    True
-
-    """
-    if isinstance(q, ParametricQuantity):
-        return q
-    u = unit_of(q)
-    return ParametricQuantity(ustrip(u, q), u)
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=Angle)  # type: ignore[arg-type]

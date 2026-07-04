@@ -6,9 +6,7 @@
 from .angle import *
 from .base import *
 from .base_angle import *
-from .base_parametric import *
 from .flag import *
-from .parametric import *
 from .quantity import *
 from .static_quantity import *
 from .value import *
@@ -21,7 +19,17 @@ from .register_primitives import *
 from .register_ufuncs import *
 
 
+_MOVED_TO_PARAMETRIC = {"ParametricQuantity", "PQ", "AbstractParametricQuantity"}
+
+
 def __getattr__(name: str) -> object:
+    if name in _MOVED_TO_PARAMETRIC:
+        msg = (
+            f"`{name}` moved to the `unxts.parametric` package. Install it "
+            "(`pip install unxts.parametric`) and use "
+            f"`from unxts.parametric import {name}`."
+        )
+        raise AttributeError(msg)
     if name == "BareQuantity":
         import warnings  # noqa: PLC0415
 
