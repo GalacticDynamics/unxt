@@ -506,7 +506,7 @@ Angle(Array(10, dtype=int32...), unit='deg')
 
 ## Working with `StaticQuantity` Objects
 
-The {class}`~unxt.quantity.StaticQuantity` class is a parametric quantity with a static value stored as a NumPy array. It accepts Python scalars and NumPy arrays only, rejecting JAX arrays. This makes it convenient for static arguments in `jax.jit` or `jax.vmap`.
+The {class}`~unxt.quantity.StaticQuantity` class is a non-parametric quantity with a static value stored as a NumPy array. It accepts Python scalars and NumPy arrays only, rejecting JAX arrays. This makes it convenient for static arguments in `jax.jit` or `jax.vmap`.
 
 ```{code-block} python
 >>> import numpy as np
