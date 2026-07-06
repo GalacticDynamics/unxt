@@ -514,9 +514,9 @@ The {class}`~unxt.quantity.StaticQuantity` class is a parametric quantity with a
 Quantity(Array([2., 3.], dtype=float32), unit='m')
 ```
 
-## Working with `StaticValue` in `ParametricQuantity`
+## Working with `StaticValue` in a `Quantity`
 
-If you want a {class}`~unxt.quantity.ParametricQuantity` (alias `PQ`) but need its value to be static (for hashing or static JAX arguments), wrap the value with {class}`~unxt.quantity.StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`:
+If you want a {class}`~unxt.Quantity` but need its value to be static (for hashing or static JAX arguments), wrap the value with {class}`~unxt.quantity.StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`:
 
 ```{code-block} python
 >>> import numpy as np
@@ -524,25 +524,25 @@ If you want a {class}`~unxt.quantity.ParametricQuantity` (alias `PQ`) but need i
 >>> import unxt as u
 
 >>> sv = u.quantity.StaticValue(np.array([1.0, 2.0]))
->>> q_static = u.PQ(sv, "m")
->>> q = u.PQ(jnp.array([3.0, 4.0]), "m")
+>>> q_static = u.Q(sv, "m")
+>>> q = u.Q(jnp.array([3.0, 4.0]), "m")
 
 >>> q_static + q
-ParametricQuantity(Array([4., 6.], dtype=float32), unit='m')
+Quantity(Array([4., 6.], dtype=float32), unit='m')
 ```
 
 ### Equality returns a scalar `bool`
 
-The equality operator on a `ParametricQuantity` backed by a `StaticValue` returns a **scalar `bool`**, not an element-wise array. This is the key property that makes it usable as a `static_argnames` argument in {func}`jax.jit`.
+The equality operator on a `Quantity` backed by a `StaticValue` returns a **scalar `bool`**, not an element-wise array. This is the key property that makes it usable as a `static_argnames` argument in {func}`jax.jit`. (This behaviour lives on {class}`~unxt.quantity.AbstractQuantity`, so it applies to every quantity class.)
 
 ```{code-block} python
 >>> sv1 = u.quantity.StaticValue(np.array([1.0, 2.0]))
 >>> sv2 = u.quantity.StaticValue(np.array([1.0, 2.0]))
 >>> sv3 = u.quantity.StaticValue(np.array([9.0, 9.0]))
 
->>> u.PQ(sv1, "m") == u.PQ(sv2, "m")   # same value, same unit → True
+>>> u.Q(sv1, "m") == u.Q(sv2, "m")   # same value, same unit → True
 True
->>> u.PQ(sv1, "m") == u.PQ(sv3, "m")   # different value → False
+>>> u.Q(sv1, "m") == u.Q(sv3, "m")   # different value → False
 False
 ```
 
@@ -550,22 +550,22 @@ Unit conversion is applied before comparison, so equivalent quantities in differ
 
 ```{code-block} python
 >>> sv_km = u.quantity.StaticValue(np.array([0.001, 0.002]))
->>> u.PQ(sv1, "m") == u.PQ(sv_km, "km")  # 0.001 km == 1 m → True
+>>> u.Q(sv1, "m") == u.Q(sv_km, "km")  # 0.001 km == 1 m → True
 True
 ```
 
-This contrasts with a regular `ParametricQuantity` (JAX array value), where `==` follows NumPy broadcasting and returns a per-element boolean array wrapped in a dimensionless `ParametricQuantity` (so the result shares a namespace with the input, per the Array API):
+This contrasts with a regular `Quantity` (JAX array value), where `==` follows NumPy broadcasting and returns a per-element boolean array wrapped in a dimensionless `Quantity` (so the result shares a namespace with the input, per the Array API):
 
 ```{code-block} python
->>> q1 = u.PQ([1.0, 2.0], "m")
->>> q2 = u.PQ([1.0, 9.0], "m")
+>>> q1 = u.Q([1.0, 2.0], "m")
+>>> q2 = u.Q([1.0, 9.0], "m")
 >>> q1 == q2
-ParametricQuantity(Array([ True, False], dtype=bool), unit='')
+Quantity(Array([ True, False], dtype=bool), unit='')
 ```
 
-### Using `ParametricQuantity(StaticValue)` as a `jax.jit` static argument
+### Using `Quantity(StaticValue)` as a `jax.jit` static argument
 
-Because equality returns `bool` and `StaticValue` is hashable, the whole `ParametricQuantity` is hashable, which lets JAX use it as a compile-time constant:
+Because equality returns `bool` and `StaticValue` is hashable, the whole `Quantity` is hashable, which lets JAX use it as a compile-time constant:
 
 ```{code-block} python
 from functools import partial
@@ -576,18 +576,18 @@ import jax.numpy as jnp
 def rescale(x, *, scale):
     return x * jnp.asarray(scale.value)
 
-scale = u.PQ(u.quantity.StaticValue(np.array([2.0, 3.0])), "m")
+scale = u.Q(u.quantity.StaticValue(np.array([2.0, 3.0])), "m")
 rescale(jnp.ones(2), scale=scale)   # compiles once
 rescale(jnp.ones(2), scale=scale)   # cache hit — no recompilation
 
-new_scale = u.PQ(u.quantity.StaticValue(np.array([5.0, 7.0])), "m")
+new_scale = u.Q(u.quantity.StaticValue(np.array([5.0, 7.0])), "m")
 rescale(jnp.ones(2), scale=new_scale)  # different value → recompiles
 ```
 
 ```{tip}
 Prefer {class}`~unxt.quantity.StaticQuantity` when the entire quantity is
-static.  Use `ParametricQuantity(StaticValue, ...)` when you need the dynamic/static
-distinction to live at the *value* level while keeping the `ParametricQuantity` type.
+static.  Use `Quantity(StaticValue, ...)` when you need the dynamic/static
+distinction to live at the *value* level while keeping the `Quantity` type.
 ```
 
 ---

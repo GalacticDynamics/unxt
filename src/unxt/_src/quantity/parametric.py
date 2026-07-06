@@ -7,17 +7,13 @@ from typing import ClassVar, final
 from typing_extensions import override
 
 import equinox as eqx
-import numpy as np
-import quax_blocks
 from jaxtyping import Array, Shaped
 from plum import add_promotion_rule, parametric
 
-from .base import AbstractQuantity
 from .base_parametric import AbstractParametricQuantity
 from .quantity import Quantity
 from .value import StaticValue, convert_to_quantity_value
 from unxt.units import AbstractUnit, unit as parse_unit
-from unxt_api import is_unit_convertible, uconvert_value
 
 
 @final
@@ -127,68 +123,6 @@ class ParametricQuantity(AbstractParametricQuantity):
     unit: AbstractUnit = eqx.field(static=True, converter=parse_unit)
     """The unit associated with this value."""
 
-    # TODO: consider moving up to `AbstractQuantity`
-    @override
-    def __eq__(self, other: object, /) -> object:  # type: ignore[override]
-        """Element-wise equality, with a scalar-bool fast path for StaticValue.
-
-        When both operands carry a `StaticValue`, structural (scalar bool)
-        equality is returned so that this quantity can be used safely as a
-        ``static_argnames`` argument in `jax.jit`.  Units are accounted for by
-        converting `other` to `self`'s units before comparing.  In all other
-        cases the element-wise `NumpyEqMixin` behaviour is preserved.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> import unxt as u
-
-        Normal array quantities return element-wise boolean arrays:
-
-        >>> q1 = u.PQ([1, 2, 3], "m")
-        >>> q2 = u.PQ([1, 0, 3], "m")
-        >>> q1 == q2
-        ParametricQuantity(Array([ True, False,  True], dtype=bool), unit='')
-
-        When both quantities carry a `StaticValue`, a scalar `bool` is returned,
-        which is required for use as ``static_argnames`` in `jax.jit`:
-
-        >>> sv1 = u.quantity.StaticValue(np.array([1.0, 2.0]))
-        >>> sv2 = u.quantity.StaticValue(np.array([1.0, 2.0]))
-        >>> u.PQ(sv1, "m") == u.PQ(sv2, "m")
-        True
-
-        >>> sv3 = u.quantity.StaticValue(np.array([3.0, 4.0]))
-        >>> u.PQ(sv1, "m") == u.PQ(sv3, "m")
-        False
-
-        Unit conversion is applied before comparing, so equivalent quantities in
-        different units compare equal:
-
-        >>> sv_km = u.quantity.StaticValue(np.array([0.001, 0.002]))
-        >>> u.PQ(sv1, "m") == u.PQ(sv_km, "km")
-        True
-
-        Quantities with incompatible dimensions are never equal:
-
-        >>> sv_s = u.quantity.StaticValue(np.array([1.0, 2.0]))
-        >>> u.PQ(sv1, "m") == u.PQ(sv_s, "s")
-        False
-
-        """
-        if (
-            isinstance(self.value, StaticValue)
-            and isinstance(other, AbstractQuantity)
-            and isinstance(other.value, StaticValue)
-        ):
-            if not is_unit_convertible(other.unit, self.unit):
-                return False
-            converted = uconvert_value(self.unit, other.unit, other.value.array)
-            return bool(np.array_equal(self.value.array, converted))
-
-        return quax_blocks.NumpyEqMixin.__eq__(self, other)
-
-    # TODO: consider moving up to `AbstractQuantity`
     @override
     def __hash__(self) -> int:
         """Return hash when value is a StaticValue; otherwise unhashable.
