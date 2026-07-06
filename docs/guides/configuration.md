@@ -10,8 +10,8 @@ import unxt as u
 
 The configuration system is organized hierarchically with separate configs for different display methods:
 
-- `u.config.quantity_repr` - Options for `ParametricQuantity.__repr__()`
-- `u.config.quantity_str` - Options for `ParametricQuantity.__str__()`
+- `u.config.quantity_repr` - Options for quantity `__repr__()` (all quantity classes)
+- `u.config.quantity_str` - Options for quantity `__str__()` (all quantity classes)
 
 Modify configuration options directly:
 
@@ -79,20 +79,20 @@ Options:
 >>> q = u.Q([1.0, 2.0, 3.0], "m")
 
 >>> u.config.quantity_repr.short_arrays = False
->>> print(repr(q))  # ParametricQuantity(Array([1., 2., 3.], dtype=float32), unit='m')
+>>> print(repr(q))  # Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
 >>> u.config.quantity_repr.short_arrays = True
->>> print(repr(q))  # ParametricQuantity(f32[3], unit='m')
+>>> print(repr(q))  # Quantity(f32[3], unit='m')
 
 >>> u.config.quantity_repr.short_arrays = "compact"
->>> print(repr(q))  # ParametricQuantity([1., 2., 3.], unit='m')
+>>> print(repr(q))  # Quantity([1., 2., 3.], unit='m')
 ```
 
 <!-- skip: end -->
 
 ### `use_short_name`
 
-Use class short names where available (for example, `ParametricQuantity` -> `Q`).
+Use class short names where available (for example, `Quantity` -> `Q` and `ParametricQuantity` -> `PQ`).
 
 - **Type**: `bool`
 - **Default**: `False`

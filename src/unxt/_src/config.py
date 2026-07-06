@@ -73,9 +73,11 @@ QUANTITY_REPR_CONFIG_KEYS: Final = frozenset(
 
 
 class QuantityReprConfig(LocalConfigurable):
-    """Configuration for ParametricQuantity.__repr__() display options.
+    """Configuration for quantity ``__repr__()`` display options.
 
-    This controls how ParametricQuantity objects are displayed in ``repr()``.
+    This controls how quantity objects are displayed in ``repr()``. It is
+    consumed by ``AbstractQuantity.__repr__`` and so applies to every quantity
+    class, including the default ``Quantity`` and ``ParametricQuantity``.
 
     Attributes
     ----------
@@ -124,7 +126,8 @@ class QuantityReprConfig(LocalConfigurable):
     use_short_name: ClassVar[object] = Bool(
         default_value=False,
         help=(
-            "Use short class name if available (e.g., Q instead of ParametricQuantity)"
+            "Use a class's short name if available (e.g. Quantity -> Q, "
+            "ParametricQuantity -> PQ)"
         ),
     ).tag(config=True)
 
@@ -270,9 +273,11 @@ UNXT_OVERRIDE_CONFIG_KEYS: Final = {
 
 
 class QuantityStrConfig(LocalConfigurable):
-    """Configuration for ParametricQuantity.__str__() display options.
+    """Configuration for quantity ``__str__()`` display options.
 
-    This controls how ParametricQuantity objects are displayed in ``str()``.
+    This controls how quantity objects are displayed in ``str()``. It is
+    consumed by ``AbstractQuantity.__str__`` and so applies to every quantity
+    class, including the default ``Quantity`` and ``ParametricQuantity``.
 
     Attributes
     ----------
@@ -327,7 +332,8 @@ class QuantityStrConfig(LocalConfigurable):
     use_short_name: ClassVar[object] = Bool(
         default_value=False,
         help=(
-            "Use short class name if available (e.g., Q instead of ParametricQuantity)"
+            "Use a class's short name if available (e.g. Quantity -> Q, "
+            "ParametricQuantity -> PQ)"
         ),
     ).tag(config=True)
 

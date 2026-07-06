@@ -75,7 +75,7 @@ def test_static_quantity_vmap_static_arg() -> None:
 
 
 def test_static_quantity_promotes_to_quantity() -> None:
-    """StaticQuantity promotes to ParametricQuantity."""
+    """StaticQuantity promotes to Quantity."""
     q = u.StaticQuantity(np.array([1.0, 2.0]), "m")
     r = u.Q(jnp.array([3.0, 4.0]), "m")
 

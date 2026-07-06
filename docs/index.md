@@ -277,17 +277,17 @@ unitsystem(kpc, Myr, ...)
 
 For more details, see the [Unit Systems Guide](guides/units_and_systems.md).
 
-### Creating and Working with ParametricQuantity objects
+### Creating and Working with Quantity objects
 
-The primary API of {mod}`unxt` is the {class}`~unxt.ParametricQuantity` class. It combines a JAX array with unit information. We currently use [astropy.units][apyunits] for unit handling.
+The primary API of {mod}`unxt` is the {class}`~unxt.Quantity` class (the lightweight, non-parametric default). It combines a JAX array with unit information. We currently use [astropy.units][apyunits] for unit handling.
 
-Create a `ParametricQuantity` by passing a JAX array-compatible object and a unit:
+Create a `Quantity` by passing a JAX array-compatible object and a unit:
 
 ```{code-block} python
 
 >>> import unxt as u
 
->>> x = u.Q([1.0, 2.0, 3.0], unit="m")  # same as u.ParametricQuantity(...)
+>>> x = u.Q([1.0, 2.0, 3.0], unit="m")  # same as u.Quantity(...)
 >>> x
 Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 ```
@@ -312,7 +312,7 @@ Unit("m")
 
 ```
 
-`ParametricQuantity` objects obey the rules of unitful arithmetic. For example, adding, multiplying, or dividing two quantities produces a new `ParametricQuantity` with the correct units:
+`Quantity` objects obey the rules of unitful arithmetic. For example, adding, multiplying, or dividing two quantities produces a new `Quantity` with the correct units:
 
 ```{code-block} python
 

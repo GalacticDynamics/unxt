@@ -68,7 +68,7 @@ floats_strategy = st.floats(
 @example(value=[[1]])  # list[list[int]]
 @example(value=[[1.0]])  # list[list[int]]
 def test_properties(value):
-    """Test the properties of ParametricQuantity."""
+    """Test the properties of Quantity."""
     q = u.Q(np.array(value), "m")
     expected = jnp.asarray(np.array(value))
 
