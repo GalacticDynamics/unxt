@@ -70,7 +70,7 @@ jitted_func = jax.jit(func)
 
 ### `quaxify` for unit support
 
-Now let's apply the same function to Quantities using `quax.quaxify`. This wraps the function so it can handle ParametricQuantity inputs.
+Now let's apply the same function to Quantities using `quax.quaxify`. This wraps the function so it can handle Quantity inputs.
 
 ```{code-cell} ipython3
 quax_func = quax.quaxify(func)
@@ -85,7 +85,7 @@ Wow! That's much slower than the JIT'd version. This is the **wrapper overhead**
 
 1. Unwrap the Quantities into arrays
 2. Track unit information
-3. Re-wrap the result back into a ParametricQuantity
+3. Re-wrap the result back into a Quantity
 4. Do all of this EVERY time the function is called, without JIT optimization
 
 This is why JIT is a necessary ingredient -- let's see what happens when we add JIT:

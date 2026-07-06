@@ -339,25 +339,16 @@ Quantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
 
 ## Pretty Printing
 
-Quantity objects support the [`wadler_lindig`](https://docs.kidger.site/wadler_lindig) library for pretty printing. Here we use a `ParametricQuantity` (alias `PQ`) to show how the dimension parameter is displayed; the lightweight default `Quantity` prints the same way but without the `['length']` parameter.
+Quantity objects support the [`wadler_lindig`](https://docs.kidger.site/wadler_lindig) library for pretty printing. Here we use the lightweight default `Quantity` (alias `Q`), which carries no dimension parameter.
 
 ```{code-block} python
 
 >>> import wadler_lindig as wl
 
->>> q = u.PQ([1, 2, 3], "m")
+>>> q = u.Q([1, 2, 3], "m")
 
 >>> wl.pprint(q)  # The default pretty printing
-ParametricQuantity(i32[3], unit='m')
-
-```
-
-The type parameter can be included in the representation:
-
-```{code-block} python
-
->>> wl.pprint(q, include_params=True)
-ParametricQuantity['length'](i32[3], unit='m')
+Quantity(i32[3], unit='m')
 
 ```
 
@@ -366,7 +357,7 @@ The `str` method uses this as well:
 ```{code-block} python
 
 >>> print(q)
-ParametricQuantity['length']([1, 2, 3], unit='m')
+Quantity([1, 2, 3], unit='m')
 
 ```
 
@@ -375,7 +366,7 @@ Arrays can be printed in full:
 ```{code-block} python
 
 >>> wl.pprint(q, short_arrays=False)
-ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
+Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
 ```
 
@@ -384,7 +375,7 @@ The `repr` method uses this setting:
 ```{code-block} python
 
 >>> print(repr(q))
-ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
+Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
 ```
 
@@ -393,7 +384,7 @@ The units can be turned from a named argument to a positional argument by settin
 ```{code-block} python
 
 >>> wl.pprint(q, named_unit=False)
-ParametricQuantity(i32[3], 'm')
+Quantity(i32[3], 'm')
 
 ```
 
@@ -402,16 +393,16 @@ Instead of printing the value as either a full Array or a short array, you can c
 ```{code-block} python
 
 >>> wl.pprint(q, short_arrays="compact")
-ParametricQuantity([1, 2, 3], unit='m')
+Quantity([1, 2, 3], unit='m')
 
 ```
 
-For more compact output, the `ParametricQuantity` class has a short name `PQ` that can be used by setting `use_short_name=True` (the default `Quantity` has the short name `Q`):
+For more compact output, the `Quantity` class has a short name `Q` that can be used by setting `use_short_name=True`:
 
 ```{code-block} python
 
 >>> wl.pprint(q, use_short_name=True)
-PQ(i32[3], unit='m')
+Q(i32[3], unit='m')
 
 ```
 
@@ -419,13 +410,12 @@ The short name can be combined with other printing options:
 
 ```{code-block} python
 
->>> wl.pprint(q, use_short_name=True, include_params=True)
-PQ['length'](i32[3], unit='m')
-
 >>> wl.pprint(q, use_short_name=True, short_arrays="compact")
-PQ([1, 2, 3], unit='m')
+Q([1, 2, 3], unit='m')
 
 ```
+
+(The `include_params=True` option adds a dimension parameter such as `['length']` to the representation. The default `Quantity` has no such parameter, so it only takes effect for a `ParametricQuantity`; see the parametric quantity guide.)
 
 See the [`wadler_lindig` documentation](https://docs.kidger.site/wadler_lindig) for more details on the pretty printing options.
 

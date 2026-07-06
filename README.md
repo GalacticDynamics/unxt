@@ -33,7 +33,7 @@ Unxt supports JAX's compelling features:
 - auto-differentiation (`grad`, `jacobian`, `hessian`)
 - GPU/TPU/multi-host acceleration
 
-And best of all, `unxt` doesn't force you to use special unit-compatible re-exports of JAX libraries. You can use `unxt` with existing JAX code, and with [quax][quax]'s simple decorator, JAX will work with `unxt.ParametricQuantity`.
+And best of all, `unxt` doesn't force you to use special unit-compatible re-exports of JAX libraries. You can use `unxt` with existing JAX code, and with [quax][quax]'s simple decorator, JAX will work with `unxt.Quantity`.
 
 ## Installation
 
@@ -348,7 +348,7 @@ print(add(1.0, cfg))
 
 #### StaticValue
 
-If you want a `ParametricQuantity` that keeps a static value but still participates in regular arithmetic, wrap the value with `StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`. Comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) return NumPy boolean arrays for element-wise comparison:
+If you want a `Quantity` that keeps a static value but still participates in regular arithmetic, wrap the value with `StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`. Comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) return NumPy boolean arrays for element-wise comparison:
 
 ```python
 import numpy as np

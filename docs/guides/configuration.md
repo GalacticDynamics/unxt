@@ -56,9 +56,9 @@ The `unxt.config` object has the following structure:
 
 Each nested config has its own set of options and supports independent overrides.
 
-## ParametricQuantity Repr Options
+## Quantity Repr Options
 
-Options for controlling `ParametricQuantity.__repr__()` via `u.config.quantity_repr`.
+Options for controlling quantity `__repr__()` via `u.config.quantity_repr`.
 
 ### `short_arrays`
 
@@ -165,9 +165,9 @@ Quantity(Array([[1., 2.],
                 [3., 4.]], dtype=float32), unit='m')
 ```
 
-## ParametricQuantity Str Options
+## Quantity Str Options
 
-Options for controlling `ParametricQuantity.__str__()` via `u.config.quantity_str`.
+Options for controlling quantity `__str__()` via `u.config.quantity_str`.
 
 ### `short_arrays`
 
@@ -177,17 +177,17 @@ Controls how arrays are displayed in `str()`.
 - **Default**: `"compact"`
 
 ```{code-block} python
->>> q = u.PQ([1.0, 2.0, 3.0], "m")
+>>> q = u.Q([1.0, 2.0, 3.0], "m")
 >>> print(str(q))  # Default behavior (compact)
-ParametricQuantity['length']([1., 2., 3.], unit='m')
+Quantity([1., 2., 3.], unit='m')
 
 >>> with u.config.quantity_str.override(short_arrays=False):
 ...     print(str(q))
-ParametricQuantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
 >>> with u.config.quantity_str.override(short_arrays=True):
 ...     print(str(q))
-ParametricQuantity['length'](f32[3], unit='m')
+Quantity(f32[3], unit='m')
 ```
 
 ### `named_unit`
@@ -198,13 +198,13 @@ Display units as named keyword in `str()`.
 - **Default**: `True`
 
 ```{code-block} python
->>> q = u.PQ(1.0, "m")
+>>> q = u.Q(1.0, "m")
 >>> print(str(q))  # Default behavior (named)
-ParametricQuantity['length'](1., unit='m')
+Quantity(1., unit='m')
 
 >>> with u.config.quantity_str.override(named_unit=False):
 ...     print(str(q))
-ParametricQuantity['length'](1., 'm')
+Quantity(1., 'm')
 ```
 
 ### `use_short_name`
@@ -215,13 +215,13 @@ Use short class names in `str()` representation.
 - **Default**: `False`
 
 ```{code-block} python
->>> q = u.PQ(1.0, "m")
+>>> q = u.Q(1.0, "m")
 >>> print(str(q))
-ParametricQuantity['length'](1., unit='m')
+Quantity(1., unit='m')
 
 >>> with u.config.quantity_str.override(use_short_name=True):
 ...     print(str(q))
-PQ['length'](1., unit='m')
+Q(1., unit='m')
 ```
 
 ### `indent`
@@ -319,18 +319,18 @@ You can override both repr and str configs simultaneously:
 ...     quantity_repr__short_arrays="compact",
 ...     quantity_str__short_arrays=True
 ... ):
-...     q = u.PQ([1.0, 2.0, 3.0], "m")
+...     q = u.Q([1.0, 2.0, 3.0], "m")
 ...     print(repr(q), str(q))
-ParametricQuantity([1., 2., 3.], unit='m') ParametricQuantity['length'](f32[3], unit='m')
+Quantity([1., 2., 3.], unit='m') Quantity(f32[3], unit='m')
 >>>
 >>> # Or using separate nested overrides
 >>> with (
 ...     u.config.quantity_repr.override(short_arrays="compact"),
 ...     u.config.quantity_str.override(short_arrays=True)
 ... ):
-...         q = u.PQ([1.0, 2.0, 3.0], "m")
+...         q = u.Q([1.0, 2.0, 3.0], "m")
 ...         print(repr(q), str(q))
-ParametricQuantity([1., 2., 3.], unit='m') ParametricQuantity['length'](f32[3], unit='m')
+Quantity([1., 2., 3.], unit='m') Quantity(f32[3], unit='m')
 ```
 
 ### Thread Safety
@@ -429,5 +429,5 @@ u.config.update_config(cfg)
 ## See Also
 
 - [Traitlets documentation](https://traitlets.readthedocs.io/)
-- {doc}`quantity` - ParametricQuantity user guide
+- {doc}`quantity` - Quantity user guide
 - {doc}`type-checking` - Type checking guide
