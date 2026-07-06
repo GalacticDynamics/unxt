@@ -134,22 +134,20 @@ Quantity(Array(1., dtype=float32...), unit='m')
 
 ### `include_params`
 
-Include type parameters in `repr()` for parametric quantities.
+Include the dimension type parameter in `repr()`. The default `Quantity` (`u.Q`) carries no dimension parameter, so this option has no visible effect on it:
 
 - **Type**: `bool`
 - **Default**: `False`
 
 ```{code-block} python
->>> q = u.PQ["length"](1.0, "m")
-
->>> with u.config.quantity_repr.override(include_params=False):
-...     print(repr(q))
-ParametricQuantity(Array(1., dtype=float32...), unit='m')
+>>> q = u.Q(1.0, "m")
 
 >>> with u.config.quantity_repr.override(include_params=True):
 ...     print(repr(q))
-ParametricQuantity['length'](Array(1., dtype=float32...), unit='m')
+Quantity(Array(1., dtype=float32...), unit='m')
 ```
+
+The option only changes the output for the dimension-parametrized `ParametricQuantity` (`u.PQ`), whose repr can show its `['length']`-style parameter; see the parametric quantity guide.
 
 ### `indent`
 

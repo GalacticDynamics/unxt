@@ -88,18 +88,18 @@ def grad(
         return ustrip(fun(*args_))  # type: ignore[arg-type]
 
     def gradfun(*args: *Args) -> R:
-        # Get the value of the args. They are turned back into ParametricQuantity
+        # Get the value of the args. They are turned back into Quantity
         # inside the function we are taking the grad of.
         args_ = tuple(  # type: ignore[var-annotated]
             (a if unit is None else ustrip(unit, a))
             for a, unit in zip(args, theunits, strict=True)  # type: ignore[arg-type]
         )
-        # Call the grad, returning a ParametricQuantity
+        # Call the grad, returning a Quantity
         value = fun(*args)
         grad_value = gradfun_mag(*args_)
-        # Adjust the ParametricQuantity by the units of the derivative
-        # TODO: get ParametricQuantity[unit] / unit2 ->
-        # ParametricQuantity[unit/unit2] working
+        # Adjust the Quantity by the units of the derivative
+        # TODO: get Quantity[unit] / unit2 ->
+        # Quantity[unit/unit2] working
         return type_unparametrized(value)(
             grad_value, unit_of(value) / theunits[argnums]
         )
@@ -156,18 +156,18 @@ def jacfwd(
         return fun(*args_)  # type: ignore[arg-type]
 
     def jacfun(*args: *Args) -> R:
-        # Get the value of the args. They are turned back into ParametricQuantity
+        # Get the value of the args. They are turned back into Quantity
         # inside the function we are taking the Jacobian of.
         args_ = tuple(  # type: ignore[var-annotated]
             (a if unit is None else ustrip(unit, a))
             for a, unit in zip(args, theunits, strict=True)  # type: ignore[arg-type]
         )
-        # Call the Jacobian, returning a ParametricQuantity
+        # Call the Jacobian, returning a Quantity
         value = jacfun_mag(*args_)
-        # Adjust the ParametricQuantity by the units of the derivative
+        # Adjust the Quantity by the units of the derivative
         # TODO: check the unit correction
-        # TODO: get ParametricQuantity[unit] / unit2 ->
-        # ParametricQuantity[unit/unit2] working
+        # TODO: get Quantity[unit] / unit2 ->
+        # Quantity[unit/unit2] working
         return type_unparametrized(value)(
             ustrip(value), unit_of(value) / theunits[argnums]
         )
@@ -218,18 +218,18 @@ def hessian(
         return fun(*args_)  # type: ignore[arg-type]
 
     def hessfun(*args: *Args) -> R:
-        # Get the value of the args. They are turned back into ParametricQuantity
+        # Get the value of the args. They are turned back into Quantity
         # inside the function we are taking the hessian of.
         args_ = tuple(  # type: ignore[var-annotated]
             (a if unit is None else ustrip(unit, a))
             for a, unit in zip(args, units, strict=True)  # type: ignore[arg-type]
         )
-        # Call the hessian, returning a ParametricQuantity
+        # Call the hessian, returning a Quantity
         value = hessfun_mag(*args_)
-        # Adjust the ParametricQuantity by the units of the derivative
+        # Adjust the Quantity by the units of the derivative
         # TODO: check the unit correction
-        # TODO: get ParametricQuantity[unit] / unit2 ->
-        # ParametricQuantity[unit/unit2] working
+        # TODO: get Quantity[unit] / unit2 ->
+        # Quantity[unit/unit2] working
         return type_unparametrized(value)(
             ustrip(value), unit_of(value) / theunits[argnums] ** 2
         )

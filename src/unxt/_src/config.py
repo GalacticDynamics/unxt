@@ -23,8 +23,8 @@ class LocalConfigurable(Configurable):
     """Base class for config objects that support thread-local overrides.
 
     This class provides a mechanism for temporary, thread-local configuration
-    changes that can be used in nested contexts (e.g., within
-    ParametricQuantity.__repr__()).
+    changes that can be used in nested contexts (e.g., within a quantity's
+    ``__repr__()``).
     """
 
     # Thread-local storage for context manager overrides
@@ -65,7 +65,7 @@ class _NestedConfigContext:
 
 
 # ============================================================================
-# ParametricQuantity `__repr__`
+# Quantity `__repr__`
 
 QUANTITY_REPR_CONFIG_KEYS: Final = frozenset(
     {"short_arrays", "use_short_name", "named_unit", "include_params", "indent"}
@@ -260,7 +260,7 @@ class QuantityReprConfig(LocalConfigurable):
 
 
 # ============================================================================
-# ParametricQuantity `__str__`
+# Quantity `__str__`
 
 QUANTITY_STR_CONFIG_KEYS: Final = frozenset(
     {"short_arrays", "use_short_name", "named_unit", "indent", "include_params"}
