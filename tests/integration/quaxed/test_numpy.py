@@ -723,7 +723,7 @@ def test_imag():
 def test_isfinite():
     """Test `isfinite`.
 
-    The result is a dimensionless ParametricQuantity of the same type as the input, so
+    The result is a dimensionless Quantity of the same type as the input, so
     that the output shares a namespace with the input (per the Array API).
     """
     x = u.Q(jnp.asarray([1, 2, 3], dtype=float), "m")
@@ -760,9 +760,9 @@ def test_isnan():
 def test_nanmedian():
     """Test `nanmedian`.
 
-    The nan-aware quantile path builds a dimensionless-ParametricQuantity nan mask (per
+    The nan-aware quantile path builds a dimensionless-Quantity nan mask (per
     the Array API boolean ops) and uses it to index the data via the ``gather``
-    / ``dynamic_slice`` primitives, so those must accept a ParametricQuantity index.
+    / ``dynamic_slice`` primitives, so those must accept a Quantity index.
     """
     x = u.Q(jnp.asarray([1, 2, 3, 4, 5], dtype=float), "m")
     got = jnp.nanmedian(x)
@@ -772,7 +772,7 @@ def test_nanmedian():
 
 
 def test_nanquantile():
-    """Test `nanquantile` (gather with a dimensionless-ParametricQuantity index)."""
+    """Test `nanquantile` (gather with a dimensionless-Quantity index)."""
     x = u.Q(jnp.asarray([1, 2, 3, 4, 5], dtype=float), "m")
     got = jnp.nanquantile(x, 0.5)
     assert isinstance(got, u.Q)
@@ -873,10 +873,10 @@ def test_logical_and():
 
 
 def test_logical_and_quantity_array():
-    """Test `logical_and` mixing a dimensionless ParametricQuantity and an array.
+    """Test `logical_and` mixing a dimensionless Quantity and an array.
 
-    A ParametricQuantity operand keeps the result in the ParametricQuantity
-    namespace: the result is a dimensionless ParametricQuantity (per the Array
+    A Quantity operand keeps the result in the Quantity
+    namespace: the result is a dimensionless Quantity (per the Array
     API), regardless of operand order.
     """
     x = u.Q([True, False, True], "")
@@ -1502,7 +1502,7 @@ def test_where_with_predicate_condition():
 # Set functions
 
 
-@pytest.mark.xfail(reason="value is not a ParametricQuantity")
+@pytest.mark.xfail(reason="value is not a Quantity")
 def test_unique_all():
     """Test `unique_all`."""
     x = u.Q(jnp.asarray([1, 2, 2, 3, 3, 3], dtype=float))
@@ -1524,7 +1524,7 @@ def test_unique_all():
     assert jnp.array_equal(got.counts, exp.counts)
 
 
-@pytest.mark.xfail(reason="value is not a ParametricQuantity")
+@pytest.mark.xfail(reason="value is not a Quantity")
 def test_unique_counts():
     """Test `unique_counts`."""
     x = u.Q(jnp.asarray([1, 2, 2, 3, 3, 3], dtype=float))
@@ -1540,7 +1540,7 @@ def test_unique_counts():
     assert jnp.array_equal(got.counts, exp.counts)
 
 
-@pytest.mark.xfail(reason="value is not a ParametricQuantity")
+@pytest.mark.xfail(reason="value is not a Quantity")
 def test_unique_inverse():
     """Test `unique_inverse`."""
     x = u.Q(jnp.asarray([1, 2, 2, 3, 3, 3], dtype=float))
@@ -1556,7 +1556,7 @@ def test_unique_inverse():
     assert jnp.array_equal(got.inverse.value, exp.inverse)
 
 
-@pytest.mark.xfail(reason="value is not a ParametricQuantity")
+@pytest.mark.xfail(reason="value is not a Quantity")
 def test_unique_values():
     """Test `unique_values`."""
     x = u.Q(jnp.asarray([1, 2, 2, 3, 3, 3], dtype=float))
@@ -1592,10 +1592,10 @@ def test_sort():
 
 
 def test_sort_multiple_quantity_operands():
-    """Test sorting a key ParametricQuantity while carrying along a second one.
+    """Test sorting a key Quantity while carrying along a second one.
 
-    Sorting by one key ParametricQuantity while reordering a payload
-    ParametricQuantity of a *different* unit must preserve each operand's own
+    Sorting by one key Quantity while reordering a payload
+    Quantity of a *different* unit must preserve each operand's own
     unit.
     """
     pos = u.Q(jnp.asarray([3.0, 1.0, 2.0]), "km")

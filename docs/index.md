@@ -73,7 +73,7 @@ Unxt supports JAX's compelling features:
 - auto-differentiation (`grad`, `jacobian`, `hessian`)
 - GPU/TPU/multi-host acceleration
 
-And best of all, `unxt` doesn't force you to use special unit-compatible re-exports of JAX libraries. You can use `unxt` with existing JAX code, and with one simple [decorator](#jax-functions), JAX will work with `unxt.ParametricQuantity`.
+And best of all, `unxt` doesn't force you to use special unit-compatible re-exports of JAX libraries. You can use `unxt` with existing JAX code, and with one simple [decorator](#jax-functions), JAX will work with `unxt.Quantity`.
 
 ---
 
@@ -394,13 +394,13 @@ not a pure JAX array
 
 ```
 
-We use `quax` to enable ParametricQuantity support across most of the JAX ecosystem! See the [quax docs](https://docs.kidger.site/quax/) for implementation details. The short explanation is that you can use `ParametricQuantity` in JAX functions so long they pass through a [`quax.quaxify`](https://docs.kidger.site/quax/api/quax/#quax.quaxify) call. Here are a few examples:
+We use `quax` to enable Quantity support across most of the JAX ecosystem! See the [quax docs](https://docs.kidger.site/quax/) for implementation details. The short explanation is that you can use `Quantity` in JAX functions so long they pass through a [`quax.quaxify`](https://docs.kidger.site/quax/api/quax/#quax.quaxify) call. Here are a few examples:
 
 ::::{tab-set}
 
 :::{tab-item} using `quaxify`
 
-This is the way to "quaxify" a JAX function. A powerful feature of `quaxify` is that it enables `ParametricQuantity` support through _all_ the JAX functions inside the top function. With `unxt` you can use normal JAX!
+This is the way to "quaxify" a JAX function. A powerful feature of `quaxify` is that it enables `Quantity` support through _all_ the JAX functions inside the top function. With `unxt` you can use normal JAX!
 
 ```{code-block} python
 :emphasize-lines: 4
@@ -408,7 +408,7 @@ This is the way to "quaxify" a JAX function. A powerful feature of `quaxify` is 
 >>> import jax.numpy as jnp  # regular JAX
 >>> from quax import quaxify
 
->>> @quaxify  # Now it works with ParametricQuantity... that's it!
+>>> @quaxify  # Now it works with Quantity... that's it!
 ... def func(x, y):
 ...     return jnp.square(x) + jnp.multiply(x, y)  # normal JAX
 
@@ -442,7 +442,7 @@ Quantity(Array([ 5., 14., 27.], dtype=float32), unit='m2')
 
 ### JIT
 
-`unxt.ParametricQuantity` works through `jax.jit`:
+`unxt.Quantity` works through `jax.jit`:
 
 ```{code-block} python
 
@@ -476,7 +476,7 @@ Quantity(Array([2., 3.], dtype=float32), unit='m')
 
 ```
 
-You can also keep a static value inside a regular `ParametricQuantity` by wrapping it with `StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`:
+You can also keep a static value inside a regular `Quantity` by wrapping it with `StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`:
 
 ```{code-block} python
 
@@ -593,7 +593,7 @@ Quantity(Array(0.5, dtype=float32...), unit='1 / s')
 :link: guides/quantity
 :link-type: doc
 
-Create, convert, and manipulate unitful arrays with the core `ParametricQuantity` API.
+Create, convert, and manipulate unitful arrays with the core `Quantity` API.
 :::
 
 :::{grid-item-card} Dimensions

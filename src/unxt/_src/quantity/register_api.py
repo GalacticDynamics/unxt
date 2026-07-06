@@ -93,8 +93,8 @@ def unit_of(obj: AbstractQuantity, /) -> AbstractUnit:
 
     Examples
     --------
-    >>> from unxt import unit_of, ParametricQuantity
-    >>> q = ParametricQuantity(1, "m")
+    >>> from unxt import unit_of, Quantity
+    >>> q = Quantity(1, "m")
     >>> unit_of(q)
     Unit("m")
 
@@ -160,7 +160,7 @@ def uconvert_value(uto: str, ufrom: str, x: ArrayLike, /) -> ArrayLike:
 
 
 # **NOTE:** we also add convenience dispatches for `uconvert_value` so that
-# users can use the lower-level function with ParametricQuantity and not break
+# users can use the lower-level function with a `Quantity` and not break
 # their code.
 
 
@@ -169,7 +169,7 @@ def uconvert_value(uto: Any, ufrom: Any, x: AbstractQuantity, /) -> AbstractQuan
     """Convert the quantity to the specified units.
 
     This is a convenience dispatch so that users can use the lower-level
-    function with ParametricQuantity and not break their code.
+    function with a `Quantity` and not break their code.
     This dispatch simply calls `uconvert`, checking first that the units are
     convertible.
 
@@ -200,11 +200,11 @@ def uconvert(ustr: str, x: AbstractQuantity, /) -> AbstractQuantity:
 
     Examples
     --------
-    >>> from unxt import ParametricQuantity, units
+    >>> from unxt import Quantity, units
 
-    >>> x = ParametricQuantity(1000, "m")
+    >>> x = Quantity(1000, "m")
     >>> uconvert("km", x)
-    ParametricQuantity(Array(1., dtype=float32...), unit='km')
+    Quantity(Array(1., dtype=float32...), unit='km')
 
     """
     return uconvert(uapi.unit(ustr), x)
@@ -216,12 +216,12 @@ def uconvert(usys: AbstractUnitSystem, x: AbstractQuantity, /) -> AbstractQuanti
 
     Examples
     --------
-    >>> from unxt import ParametricQuantity, units
+    >>> from unxt import Quantity, units
     >>> from unxt.unitsystems import galactic
 
-    >>> q = ParametricQuantity(1e17, "km")
+    >>> q = Quantity(1e17, "km")
     >>> uconvert(galactic, q)
-    ParametricQuantity(Array(3.2407792, dtype=float32...), unit='kpc')
+    Quantity(Array(3.2407792, dtype=float32...), unit='kpc')
 
     """
     return uconvert(usys[uapi.dimension_of(x)], x)
@@ -319,7 +319,7 @@ def is_unit_convertible(to_unit: Any, from_: Any, /) -> bool:
         The unit to convert to. Converted to a unit object using `unxt.unit`.
     from_ : Any
         The unit to convert from. Converted to a unit object using `unxt.unit`,
-        Note this means it also support `ParametricQuantity` objects and many others.
+        Note this means it also support `Quantity` objects and many others.
 
     Examples
     --------
@@ -342,12 +342,12 @@ def is_unit_convertible(to_unit: Any, from_: Any, /) -> bool:
 
 @dispatch
 def is_unit_convertible(to_unit: Any, from_: AbstractQuantity, /) -> bool:
-    """Check if a ParametricQuantity can be converted to another unit.
+    """Check if a quantity can be converted to another unit.
 
     Examples
     --------
-    >>> from unxt import ParametricQuantity, is_unit_convertible
-    >>> q = ParametricQuantity(1, "m")
+    >>> from unxt import Quantity, is_unit_convertible
+    >>> q = Quantity(1, "m")
 
     >>> is_unit_convertible("cm", q)
     True

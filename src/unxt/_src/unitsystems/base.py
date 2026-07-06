@@ -185,7 +185,7 @@ class AbstractUnitSystem:
 
         """
         # Note: This is required for q.decompose(usys) to work, where q is a
-        # ParametricQuantity
+        # Quantity
         return len(self.base_dimensions)
 
     # TODO: should this be changed to _base_field_names -> Iterator[str]?

@@ -228,7 +228,7 @@ def add_p_vaq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     >>> jnp.add(x, q2 / q3)
     Quantity(Array(501., dtype=float32...), unit='')
 
-    `unxt.ParametricQuantity`:
+    `unxt.Quantity` (via ``u.Q``):
 
     >>> x = jnp.asarray(500.0)
     >>> q2 = u.Q(1.0, "km")
@@ -294,7 +294,7 @@ def add_p_aqv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> jnp.add(q2 / q3, y)
     Quantity(Array(501., dtype=float32...), unit='')
 
-    `unxt.ParametricQuantity`:
+    `unxt.Quantity` (via ``u.Q``):
 
     >>> q1 = u.Q(1.0, "km")
 
@@ -3112,7 +3112,7 @@ def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> jnp.less(x, y)
     Quantity(Array([ True, False, False], dtype=bool), unit='')
 
-    `ParametricQuantity`:
+    `Quantity` (via ``u.Q``):
 
     >>> x = u.Q(1.0, "km")
     >>> y = u.Q(2000.0, "m")
@@ -3173,7 +3173,7 @@ def lt_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     >>> jnp.less(x, y)
     Quantity(Array([ True, False, False], dtype=bool), unit='')
 
-    `ParametricQuantity`:
+    `Quantity` (via ``u.Q``):
 
     >>> y = u.Q(2.0, "")
     >>> jnp.less(x, y)
@@ -3226,7 +3226,7 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> jnp.less(x, y)
     Quantity(Array([ True, False, False], dtype=bool), unit='')
 
-    `ParametricQuantity`:
+    `Quantity` (via ``u.Q``):
 
     >>> x = u.Q(1, "")
     >>> y = 2

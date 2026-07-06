@@ -751,17 +751,17 @@ class AbstractQuantity(
         named_unit
             If `True`, the unit is included in the representation as a named
             argument. If `False`, the unit is included as a positional argument.
-            For example, ``ParametricQuantity(<array>, unit='m')`` versus
-            ``ParametricQuantity(<array>, 'm')``.
+            For example, ``Quantity(<array>, unit='m')`` versus
+            ``Quantity(<array>, 'm')``.
         short_arrays
             If 'compact', the array is printed in a compact form,
-            ``ParametricQuantity(Array([1., 2.], dtype=float32), unit='')`` to
-            ``ParametricQuantity([1., 2.], unit='')``. If `True` or `False` it uses the
+            ``Quantity(Array([1., 2.], dtype=float32), unit='')`` to
+            ``Quantity([1., 2.], unit='')``. If `True` or `False` it uses the
             default `wadler_lindig` behavior.
         use_short_name
             If `True` and the class has a ``short_name`` class variable, use the
             short name instead of the full class name. For example, ``Q(...)``
-            instead of ``ParametricQuantity(...)``.
+            instead of ``Quantity(...)``.
         kwargs
             Additional keyword arguments ``wadler_lindig.pdoc`` method for
             formatting the value, stringified unit, and other fields.
@@ -965,7 +965,7 @@ def from_(
 
     Examples
     --------
-    For this example we'll use the `unxt.ParametricQuantity` class. The same applies
+    For this example we'll use the `unxt.Quantity` class. The same applies
     to any subclass of `unxt.AbstractQuantity`.
 
     >>> import unxt as u
@@ -985,7 +985,7 @@ def from_(
 
     Examples
     --------
-    For this example we'll use the `ParametricQuantity` class. The same applies to
+    For this example we'll use the `Quantity` class. The same applies to
     any subclass of `AbstractQuantity`.
 
     >>> import unxt as u

@@ -52,7 +52,7 @@ class StaticQuantity(AbstractParametricQuantity):
     ...     u.StaticQuantity(jnp.array([1.0, 2.0]), "m")
     ... except TypeError as e:
     ...     print(e)
-    StaticQuantity does not accept JAX arrays. Use ParametricQuantity for traced values.
+    StaticQuantity does not accept JAX arrays. Use Quantity for traced values.
 
     The Wadler-Lindig representation hides the internal static wrapper:
 

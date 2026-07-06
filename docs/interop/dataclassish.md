@@ -22,7 +22,7 @@ All of these work seamlessly across:
 - Dimensions
 - Units
 - Unit Systems
-- ParametricQuantity types (ParametricQuantity, Quantity, Angle, Distance, etc.)
+- Quantity types (Quantity, ParametricQuantity, Angle, Distance, etc.)
 
 This makes it easy to build generic code that works with unxt types without needing to know their internal structure.
 
@@ -109,14 +109,14 @@ print(f"astuple(unit_system): {ussystem_tuple}")
 
 Now let's explore how `dataclassish` works with quantities. We'll examine different quantity types.
 
-### Basic ParametricQuantity (with dimension checking)
+### Basic Quantity
 
-The `ParametricQuantity` type includes dimension parametrization and dimension checking.
+The default `Quantity` type is the lightweight, non-parametric quantity.
 
 ```python
-# Create a quantity with dimension checking
+# Create a quantity
 distance = u.Q(10.0, "m")
-print(f"ParametricQuantity: {distance}")
+print(f"Quantity: {distance}")
 print(f"Type: {type(distance)}")
 
 # Get fields

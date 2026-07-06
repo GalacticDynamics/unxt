@@ -251,11 +251,11 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
     >>> y
     Quantity( Array([-272.15, -271.15, -270.15], dtype=float32, ...), unit='deg_C' )
 
-    >>> x = ParametricQuantity([1, 2, 3], "radian")
+    >>> x = u.Q([1, 2, 3], "radian")
     >>> with apyu.add_enabled_equivalencies(apyu.dimensionless_angles()):
     ...     y = x.uconvert("")
     >>> y
-    ParametricQuantity(Array([1., 2., 3.], dtype=float32, ...), unit='')
+    Quantity(Array([1., 2., 3.], dtype=float32, ...), unit='')
 
     """
     # Hot-path: if no unit conversion is necessary

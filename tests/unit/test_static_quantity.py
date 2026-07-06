@@ -85,16 +85,16 @@ def test_static_quantity_promotes_to_quantity() -> None:
 
 
 def test_static_quantity_subtraction_with_quantity() -> None:
-    """StaticQuantity - ParametricQuantity promotes to ParametricQuantity."""
+    """StaticQuantity - Quantity promotes to Quantity."""
     sq = u.StaticQuantity(np.array(1.0), "s")
     q = u.Q(0.5, "s")
 
-    # ParametricQuantity - StaticQuantity -> ParametricQuantity
+    # Quantity - StaticQuantity -> Quantity
     result1 = q - sq
     assert isinstance(result1, u.Q)
     assert np.allclose(np.asarray(result1.value), -0.5)
 
-    # StaticQuantity - ParametricQuantity -> ParametricQuantity
+    # StaticQuantity - Quantity -> Quantity
     result2 = sq - q
     assert isinstance(result2, u.Q)
     assert np.allclose(np.asarray(result2.value), 0.5)
@@ -112,16 +112,16 @@ def test_static_quantity_subtraction_preserves_static() -> None:
 
 
 def test_static_quantity_addition_with_quantity() -> None:
-    """StaticQuantity + ParametricQuantity promotes to ParametricQuantity."""
+    """StaticQuantity + Quantity promotes to Quantity."""
     sq = u.StaticQuantity(np.array(1.0), "s")
     q = u.Q(0.5, "s")
 
-    # ParametricQuantity + StaticQuantity -> ParametricQuantity
+    # Quantity + StaticQuantity -> Quantity
     result1 = q + sq
     assert isinstance(result1, u.Q)
     assert np.allclose(np.asarray(result1.value), 1.5)
 
-    # StaticQuantity + ParametricQuantity -> ParametricQuantity
+    # StaticQuantity + Quantity -> Quantity
     result2 = sq + q
     assert isinstance(result2, u.Q)
     assert np.allclose(np.asarray(result2.value), 1.5)
@@ -139,17 +139,17 @@ def test_static_quantity_addition_preserves_static() -> None:
 
 
 def test_static_quantity_multiplication_with_quantity() -> None:
-    """StaticQuantity * ParametricQuantity promotes to ParametricQuantity."""
+    """StaticQuantity * Quantity promotes to Quantity."""
     sq = u.StaticQuantity(2.0, "m")
     q = u.Q(3.0, "s")
 
-    # ParametricQuantity * StaticQuantity -> ParametricQuantity
+    # Quantity * StaticQuantity -> Quantity
     result1 = q * sq
     assert isinstance(result1, u.Q)
     assert np.allclose(result1.value, 6.0)
     assert result1.unit == u.unit("m * s")
 
-    # StaticQuantity * ParametricQuantity -> ParametricQuantity
+    # StaticQuantity * Quantity -> Quantity
     result2 = sq * q
     assert isinstance(result2, u.Q)
     assert np.allclose(result2.value, 6.0)
@@ -194,17 +194,17 @@ def test_static_quantity_integer_power_preserves_static_array() -> None:
 
 
 def test_static_quantity_division_with_quantity() -> None:
-    """StaticQuantity / ParametricQuantity promotes to ParametricQuantity."""
+    """StaticQuantity / Quantity promotes to Quantity."""
     sq = u.StaticQuantity(6.0, "m")
     q = u.Q(2.0, "s")
 
-    # ParametricQuantity / StaticQuantity -> ParametricQuantity
+    # Quantity / StaticQuantity -> Quantity
     result1 = q / sq
     assert isinstance(result1, u.Q)
     assert np.allclose(result1.value, 1.0 / 3.0)
     assert result1.unit == u.unit("s / m")
 
-    # StaticQuantity / ParametricQuantity -> ParametricQuantity
+    # StaticQuantity / Quantity -> Quantity
     result2 = sq / q
     assert isinstance(result2, u.Q)
     assert np.allclose(result2.value, 3.0)
@@ -236,17 +236,17 @@ def test_static_quantity_division_integer_inputs() -> None:
 
 
 def test_static_quantity_modulo_with_quantity() -> None:
-    """StaticQuantity modulo with ParametricQuantity promotes to ParametricQuantity."""
+    """StaticQuantity modulo with Quantity promotes to Quantity."""
     sq = u.StaticQuantity(7.0, "m")
     q = u.Q(3.0, "m")
 
-    # ParametricQuantity % StaticQuantity -> ParametricQuantity (via promotion)
+    # Quantity % StaticQuantity -> Quantity (via promotion)
     result1 = q % sq
     assert isinstance(result1, u.Q)
     assert np.allclose(result1.value, 3.0 % 7.0)
     assert result1.unit == u.unit("m")
 
-    # StaticQuantity % ParametricQuantity -> ParametricQuantity (via promotion)
+    # StaticQuantity % Quantity -> Quantity (via promotion)
     result2 = sq % q
     assert isinstance(result2, u.Q)
     assert np.allclose(result2.value, 7.0 % 3.0)
@@ -541,7 +541,7 @@ def test_static_value_ops_property(arr: np.ndarray) -> None:
 
 
 def test_quantity_ops_with_static_value() -> None:
-    """ParametricQuantity should operate correctly with StaticValue-backed values."""
+    """Quantity should operate correctly with StaticValue-backed values."""
     sv = u.quantity.StaticValue(np.array([1.0, 2.0]))
     q_static = u.Q(sv, "m")
     q = u.Q(jnp.array([3.0, 4.0]), "m")

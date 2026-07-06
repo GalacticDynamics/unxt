@@ -4,7 +4,7 @@
 
 import pytest
 
-from unxt import ParametricQuantity
+from unxt import Quantity
 
 plt = pytest.importorskip("matplotlib.pyplot")
 
@@ -12,7 +12,7 @@ plt = pytest.importorskip("matplotlib.pyplot")
 @pytest.mark.mpl_image_compare
 def test_labels_axes() -> plt.Figure:
     fig, ax = plt.subplots()
-    x = ParametricQuantity([1, 2, 3], "kpc")
-    y = ParametricQuantity([1, 4, 9], "Msun")
+    x = Quantity([1, 2, 3], "kpc")
+    y = Quantity([1, 4, 9], "Msun")
     ax.plot(x, y)
     return fig

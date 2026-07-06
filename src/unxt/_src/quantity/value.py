@@ -34,11 +34,11 @@ class StaticValue:
     `StaticValue` equality returns a **scalar** `bool`, not an element-wise
     array.  This is intentional: it mirrors Python's structural-equality
     contract (like ``tuple.__eq__``) and is a prerequisite for using a
-    ``ParametricQuantity(StaticValue, ...)`` as a ``static_argnames`` argument in
+    ``Quantity(StaticValue, ...)`` as a ``static_argnames`` argument in
     :func:`jax.jit`.  JAX needs a scalar ``bool`` to decide whether a cached
     compilation can be reused.
 
-    This is fundamentally different from a normal :class:`~unxt.ParametricQuantity`
+    This is fundamentally different from a normal :class:`~unxt.Quantity`
     (backed by a JAX array), whose ``==`` operator follows NumPy broadcasting
     rules and returns an element-wise boolean array.
 
@@ -265,10 +265,7 @@ def from_(cls: type[StaticValue], value: StaticValue, /) -> StaticValue:
 @StaticValue.from_.dispatch
 def from_(cls: type[StaticValue], value: jax.Array | jax.core.Tracer, /) -> StaticValue:
     """Reject JAX arrays for `StaticQuantity`."""
-    msg = (
-        "StaticQuantity does not accept JAX arrays. "
-        "Use ParametricQuantity for traced values."
-    )
+    msg = "StaticQuantity does not accept JAX arrays. Use Quantity for traced values."
     raise TypeError(msg)
 
 

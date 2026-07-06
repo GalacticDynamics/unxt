@@ -690,7 +690,7 @@ def test_config_context_manager_partial_override() -> None:
 
 
 def test_config_context_manager_with_quantity() -> None:
-    """Test context manager actually affects ParametricQuantity repr."""
+    """Test context manager actually affects Quantity repr."""
     original_short_arrays = u.config.quantity_repr.short_arrays
     original_use_short_name = u.config.quantity_repr.use_short_name
 

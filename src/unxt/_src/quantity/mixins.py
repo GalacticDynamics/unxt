@@ -36,11 +36,11 @@ class AstropyQuantityCompatMixin:
 
         Examples
         --------
-        >>> from unxt import ParametricQuantity
+        >>> from unxt import Quantity
 
-        >>> q = ParametricQuantity(1, "m")
+        >>> q = Quantity(1, "m")
         >>> q.to("cm")
-        ParametricQuantity(Array(100., dtype=float32, ...), unit='cm')
+        Quantity(Array(100., dtype=float32, ...), unit='cm')
 
         """
         return uapi.uconvert(u, self)  # redirect to the standard method
@@ -52,9 +52,9 @@ class AstropyQuantityCompatMixin:
 
         Examples
         --------
-        >>> from unxt import ParametricQuantity
+        >>> from unxt import Quantity
 
-        >>> q = ParametricQuantity(1, "m")
+        >>> q = Quantity(1, "m")
         >>> q.to_value("cm")
         Array(100., dtype=float32, weak_type=True)
 
@@ -68,11 +68,11 @@ class AstropyQuantityCompatMixin:
 
         Examples
         --------
-        >>> from unxt import ParametricQuantity
+        >>> from unxt import Quantity
 
-        >>> q = ParametricQuantity(1, "m")
+        >>> q = Quantity(1, "m")
         >>> q.decompose(["cm", "s"])
-        ParametricQuantity(Array(100., dtype=float32, ...), unit='cm')
+        Quantity(Array(100., dtype=float32, ...), unit='cm')
 
         """
         bases_ = [parse_unit(b) for b in bases]
@@ -113,22 +113,22 @@ class IPythonReprMixin:
 
         Examples
         --------
-        >>> from unxt import ParametricQuantity
+        >>> from unxt import Quantity
 
-        >>> q = ParametricQuantity([1.0, 2, 3, 4], "m")
+        >>> q = Quantity([1.0, 2, 3, 4], "m")
         >>> q._repr_mimebundle_()
         {'text/plain':
-         "ParametricQuantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')",
+         "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')",
          'text/html': '<span>[1., 2., 3., 4.]</span> * <span>Unit("m")</span>',
          'text/latex': '$[1.,~2.,~3.,~4.] \\; \\mathrm{m}$'}
 
         >>> q._repr_mimebundle_(include=["text/plain"])
         {'text/plain':
-         "ParametricQuantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
+         "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
 
         >>> q._repr_mimebundle_(exclude=["text/html", "text/latex"])
         {'text/plain':
-         "ParametricQuantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
+         "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
 
         """
         # Determine the set of keys to include in the MIME bundle
@@ -154,9 +154,9 @@ class IPythonReprMixin:
 
         Examples
         --------
-        >>> from unxt import ParametricQuantity
+        >>> from unxt import Quantity
 
-        >>> q = ParametricQuantity([1.0, 2, 3, 4], "m")
+        >>> q = Quantity([1.0, 2, 3, 4], "m")
         >>> q._repr_html_()
         '<span>[1., 2., 3., 4.]</span> * <span>Unit("m")</span>'
 
@@ -171,9 +171,9 @@ class IPythonReprMixin:
 
         Examples
         --------
-        >>> from unxt import ParametricQuantity
+        >>> from unxt import Quantity
 
-        >>> q = ParametricQuantity([1.0, 2, 3, 4], "m")
+        >>> q = Quantity([1.0, 2, 3, 4], "m")
         >>> q._repr_latex_()
         '$[1.,~2.,~3.,~4.] \\; \\mathrm{m}$'
 
@@ -202,10 +202,10 @@ class NumPyCompatMixin:
 
         Examples
         --------
-        >>> from unxt import ParametricQuantity
+        >>> from unxt import Quantity
         >>> import numpy as np
 
-        >>> q = ParametricQuantity(1.01, "m")
+        >>> q = Quantity(1.01, "m")
         >>> np.array(q)
         array(1.01, dtype=float32)
 

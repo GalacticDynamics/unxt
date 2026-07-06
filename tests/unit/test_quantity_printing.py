@@ -175,10 +175,10 @@ class TestShortName:
 
 
 class TestStringConversionWithJIT:
-    """Test str() on ParametricQuantity and Angle inside JAX JIT with tracers."""
+    """Test str() on Quantity and Angle inside JAX JIT with tracers."""
 
     def test_str_quantity_in_jit(self):
-        """Test that str(ParametricQuantity) works inside jax.jit with tracers.
+        """Test that str(Quantity) works inside jax.jit with tracers.
 
         When values are tracers inside JIT, str() should work without raising an
         error.  We verify this by calling str() during JIT tracing and returning
@@ -216,7 +216,7 @@ class TestStringConversionWithJIT:
         assert jnp.allclose(result.value, angle.value * 2)
 
     def test_str_quantity_multiple_calls_in_jit(self):
-        """Test that str(ParametricQuantity) works reliably in multiple JIT calls."""
+        """Test that str(Quantity) works reliably in multiple JIT calls."""
 
         @jax.jit
         def process_and_stringify(q: u.Q) -> u.Q:

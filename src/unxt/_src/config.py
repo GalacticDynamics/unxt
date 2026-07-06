@@ -450,8 +450,8 @@ class UnxtConfig(SingletonConfigurable):
     The config uses a hierarchical structure with separate config objects
     for different components:
 
-    - ``quantity_repr``: Configuration for ParametricQuantity.__repr__()
-    - ``quantity_str``: Configuration for ParametricQuantity.__str__()
+    - ``quantity_repr``: Configuration for Quantity.__repr__()
+    - ``quantity_str``: Configuration for Quantity.__str__()
 
     The config can be used as a context manager for temporary, thread-local
     configuration changes that are automatically restored on exit.
