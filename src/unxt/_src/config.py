@@ -696,8 +696,9 @@ def _load_toml_config_from_pyproject(
     path : Path
         Path to pyproject.toml file
     tool_path : tuple of str
-        Keys under ``[tool]`` to navigate into (e.g. ``("unxt",)`` or
-        ``("unxts", "parametric")``). Defaults to unxt's own section.
+        Keys under ``[tool]`` to navigate into (e.g. ``("unxts", "unxt")`` or
+        ``("unxts", "parametric")``). Defaults to unxt's own section,
+        ``[tool.unxts.unxt]``.
     path_to_class : dict
         Mapping from TOML sub-path to Config class name (passed through to
         :func:`_walk_toml_config`).
