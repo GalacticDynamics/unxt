@@ -59,7 +59,7 @@ Everything else — arithmetic, unit conversion, JAX transforms, interop — wor
 | --- | --- | --- | --- |
 | `unxt.Quantity` | Default choice | ❌ None | Better |
 | `ParametricQuantity` | Dimension dispatch / runtime checking | ✅ Yes | Good (per-dimension type) |
-| `unxt.StaticQuantity` | Compile-time constants | ✅ Yes | Best (no tracer) |
+| `unxt.StaticQuantity` | Compile-time constants | ❌ None | Best (no tracer) |
 
 ## Construction and runtime dimension checking
 

@@ -23,8 +23,9 @@ Quantity
   Examples include 5 meters, 10 seconds, or 50 joules.
   In `unxt`, {class}`~unxt.Quantity` (alias `u.Q`) is the **default**, lightweight
   quantity class. It is *non-parametric*: it tracks units without encoding the
-  physical dimension in its type, which keeps it fast and avoids per-dimension
-  `jax.jit` recompilation.
+  physical dimension in its type, so it stays a single class — and a single JAX
+  pytree node type — for every dimension instead of proliferating one per
+  dimension.
 
 ParametricQuantity
   `ParametricQuantity` (alias `up.PQ`, from the separate
@@ -32,7 +33,9 @@ ParametricQuantity
   *parametric* quantity class. It encodes the physical dimension in its type
   (e.g. ``ParametricQuantity['length']``), enabling dimension-specific
   multiple-dispatch and runtime dimension checking, at the cost of a distinct
-  class — and therefore a separate `jax.jit` compilation — per dimension.
+  class — and a distinct JAX pytree node type — per dimension. (This grows the
+  type and dispatch surface; it does not add `jax.jit` compilations, which are
+  driven by the static unit for either class.)
 
 BareQuantity
   A **deprecated** alias of {class}`~unxt.Quantity` (`u.Q`); new code should use

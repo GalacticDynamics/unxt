@@ -33,7 +33,6 @@ def test_staticquantity_jit_static_argument():
     """Its purpose: usable as a jit static arg; equal values do not retrace."""
     calls = {"n": 0}
 
-    @jax.jit
     def f(x, sq):
         calls["n"] += 1
         return x * float(np.asarray(sq.value))

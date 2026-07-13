@@ -313,8 +313,8 @@ def function(x, *, constant=u.StaticQuantity(3.26, "lyr")):
 | Type | Use Case | Dimension in Type | Performance |
 | --- | --- | --- | --- |
 | `Quantity` | Default choice | ❌ None | Better |
-| `ParametricQuantity` | Dimension-parametrized dispatch / runtime checking | ✅ Yes | Good (recompiles per dimension) |
-| `StaticQuantity` | Constants | ✅ Yes | Best (no tracer) |
+| `ParametricQuantity` | Dimension-parametrized dispatch / runtime checking | ✅ Yes | Good (a distinct type per dimension) |
+| `StaticQuantity` | Constants | ❌ None | Best (no tracer) |
 
 `ParametricQuantity` lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package; see its [guide](../packages/unxts.parametric/index.md) for construction, dimension checking, and dispatch.
 
