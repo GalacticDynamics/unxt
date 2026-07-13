@@ -18,7 +18,6 @@ from .register_dispatches import *
 from .register_primitives import *
 from .register_ufuncs import *
 
-
 _MOVED_TO_PARAMETRIC = {"ParametricQuantity", "PQ", "AbstractParametricQuantity"}
 
 
