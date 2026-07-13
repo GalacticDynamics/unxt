@@ -5,6 +5,9 @@ display setting, reusing unxt's thread-local override and TOML-loading
 machinery. TOML configuration is discovered automatically from the nearest
 ``pyproject.toml`` at import time, from the ``[tool.unxts.parametric]`` section.
 """
+# The config classes mirror the structure of ``unxt._src.config`` (and the
+# public ``config`` re-export) by design; silence the duplicate-code check.
+# pylint: disable=duplicate-code
 
 __all__ = (
     "ParametricConfig",

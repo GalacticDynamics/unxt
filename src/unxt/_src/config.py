@@ -604,7 +604,7 @@ def _walk_toml_config(
     data: dict[str, Any],
     path: tuple[str, ...] = (),
     *,
-    path_to_class: dict[tuple[str, ...], str] = _TOML_PATH_TO_CONFIG_CLASS,
+    path_to_class: dict[tuple[str, ...], str] | None = None,
 ) -> dict[str, Config]:
     r"""Walk nested TOML dict and build Config objects for known paths.
 
@@ -638,6 +638,9 @@ def _walk_toml_config(
     True
 
     """
+    if path_to_class is None:
+        path_to_class = _TOML_PATH_TO_CONFIG_CLASS
+
     result: dict[str, Config] = {}
 
     for key, value in data.items():
@@ -663,7 +666,7 @@ def _load_toml_config_from_pyproject(
     /,
     *,
     tool_path: tuple[str, ...] = ("unxt",),
-    path_to_class: dict[tuple[str, ...], str] = _TOML_PATH_TO_CONFIG_CLASS,
+    path_to_class: dict[tuple[str, ...], str] | None = None,
 ) -> Config:
     """Load a ``[tool.<...>]`` section from a ``pyproject.toml`` file.
 
@@ -698,6 +701,9 @@ def _load_toml_config_from_pyproject(
         Traitlets Config object with nested configuration
 
     """
+    if path_to_class is None:
+        path_to_class = _TOML_PATH_TO_CONFIG_CLASS
+
     with path.open("rb") as f:
         data = tomllib.load(f)
 

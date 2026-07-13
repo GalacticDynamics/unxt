@@ -1,7 +1,7 @@
 """Quantities in JAX."""
 # The ``BareQuantity`` deprecation shim in ``__getattr__`` imports ``warnings``
 # lazily on purpose; silence the module-level lint for that intentional pattern.
-# pylint: disable=import-outside-toplevel,redefined-outer-name
+# pylint: disable=import-outside-toplevel,redefined-outer-name,duplicate-code
 
 from .angle import *
 from .base import *

@@ -19,6 +19,9 @@ documentation.
 -----
 
 """
+# The ``_MOVED_TO_PARAMETRIC`` shim in ``__getattr__`` mirrors the one in the
+# quantity subpackage on purpose; silence the duplicate-code check.
+# pylint: disable=duplicate-code
 
 __all__ = (
     "__version__",
