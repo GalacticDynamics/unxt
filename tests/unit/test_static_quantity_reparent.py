@@ -2,9 +2,10 @@
 
 import jax
 import numpy as np
+from unxts.parametric import AbstractParametricQuantity
 
 import unxt as u
-from unxt.quantity import AbstractParametricQuantity, AbstractQuantity
+from unxt.quantity import AbstractQuantity
 
 
 def test_staticquantity_is_non_parametric():

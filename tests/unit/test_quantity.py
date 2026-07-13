@@ -2,11 +2,7 @@
 
 """Test the Array API."""
 
-import pickle
-import re
-
 import astropy.units as apyu
-import equinox as eqx
 import jax
 import jax.numpy as jax_xp
 import numpy as np
@@ -17,13 +13,12 @@ from hypothesis import example, given, settings, strategies as st
 from hypothesis.extra.array_api import make_strategies_namespace
 from hypothesis.extra.numpy import array_shapes as np_array_shapes, arrays as np_arrays
 from jax.dtypes import canonicalize_dtype
-from jaxtyping import Array, TypeCheckError
-from plum import convert, parametric
+from jaxtyping import TypeCheckError
+from plum import convert
 
 import quaxed.numpy as jnp
 
 import unxt as u
-from unxt.quantity import AbstractParametricQuantity
 
 xps = make_strategies_namespace(jax_xp)
 
@@ -87,31 +82,6 @@ def test_properties(value):
 
     # Test enable_materialise
     assert np.array_equal(q.enable_materialise().value, q.value)
-
-
-def test_parametric():
-    """Test the parametric strategy (``ParametricQuantity`` / ``u.PQ``)."""
-    # Inferred
-    q = u.PQ(1, "m")
-    (dims,) = q._type_parameter
-    assert dims == u.dimension("length")
-
-    # Explicit
-    q = u.PQ["length"](1, "m")
-    (dims,) = q._type_parameter
-    assert dims == u.dimension("length")
-
-    q = u.PQ["length"](jnp.ones((1, 2)), "m")
-    (dims,) = q._type_parameter
-    assert dims == u.dimension("length")
-
-    # type-checks
-    with pytest.raises(ValueError, match=re.escape("Physical type mismatch.")):
-        u.PQ["time"](1, "m")
-
-    # The lightweight default ``Quantity`` does NOT dimension-check: the
-    # subscript is accepted but the unit-dimension mismatch does not raise.
-    u.Q["time"](1, "m")
 
 
 @pytest.mark.parametrize("unit", [apyu.m, "meter"])
@@ -556,22 +526,6 @@ def test_pow():
     assert u.dimension_of(result) == u.dimension("dimensionless")
 
 
-def test_rpow():
-    """Test the ``ParametricQuantity.__rpow__`` method."""
-    # Scalar base with dimensionless ParametricQuantity exponent.
-    # ``pow`` with an array/scalar base only has a registered rule for a
-    # *parametric* dimensionless exponent (``pow_p_vq``), so use ``u.PQ``.
-    q = u.PQ(2.0, "")  # dimensionless
-    result = 3.0**q
-    assert jnp.isclose(result.value, 9.0)
-    assert result.unit == u.unit("")
-
-    # Exponent must be dimensionless
-    q = u.PQ(2.0, "m")
-    with pytest.raises(Exception):  # noqa: B017, PT011
-        _ = 3.0**q
-
-
 def test_truediv():
     """Test the ``Quantity.__truediv__`` method."""
     # Scalar division
@@ -925,23 +879,6 @@ def test_at():
     q2 = q.at[1].max(u.Q(0.5, "km"))
     assert q2[1] == u.Q(1.0, "km")
     assert q[1] == u.Q(1.0, "km")  # original is unchanged
-
-
-# ---------------------------
-
-
-@parametric
-class NewQuantity(AbstractParametricQuantity):
-    """ParametricQuantity with a flag."""
-
-    value: Array = eqx.field(converter=jnp.asarray)
-    unit: str = eqx.field(converter=u.unit)
-    flag: bool = eqx.field(static=True, kw_only=True)
-
-
-def test_parametric_pickle_dumps_with_kw_fields():
-    x = NewQuantity([1, 2, 3], "m", flag=True)
-    assert isinstance(pickle.dumps(x), bytes)
 
 
 # ===============================================================

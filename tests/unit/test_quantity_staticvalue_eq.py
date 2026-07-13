@@ -1,6 +1,7 @@
 """The default `Quantity` (not only `ParametricQuantity`) gets StaticValue eq."""
 
 import numpy as np
+from unxts.parametric import PQ
 
 import unxt as u
 
@@ -29,4 +30,4 @@ def test_quantity_and_parametric_staticvalue_equality_match():
     """`Quantity` and `ParametricQuantity` agree on StaticValue equality."""
     sv1 = u.quantity.StaticValue(np.array([1.0, 2.0]))
     sv2 = u.quantity.StaticValue(np.array([1.0, 2.0]))
-    assert (u.Q(sv1, "m") == u.Q(sv2, "m")) == (u.PQ(sv1, "m") == u.PQ(sv2, "m"))
+    assert (u.Q(sv1, "m") == u.Q(sv2, "m")) == (PQ(sv1, "m") == PQ(sv2, "m"))

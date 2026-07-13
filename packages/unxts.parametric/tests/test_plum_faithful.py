@@ -1,12 +1,11 @@
 """Tests for `plum` related things."""
 
 from plum import is_faithful
-
-from unxt import ParametricQuantity
+from unxts.parametric import ParametricQuantity
 
 
 def test_is_faithful():
-    """Test `unxt.ParametricQuantity` is a faithful type.
+    """Test `ParametricQuantity` is a faithful type.
 
     See
     https://beartype.github.io/plum/types.html#performance-and-faithful-types

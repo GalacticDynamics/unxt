@@ -11,9 +11,10 @@ import jax
 import jax.numpy as jnp
 import pytest
 from plum import convert
+from unxts.parametric import ParametricQuantity
 
 import unxt as u
-from unxt.quantity import AbstractQuantity, ParametricQuantity, Quantity
+from unxt.quantity import AbstractQuantity, Quantity
 
 
 @pytest.fixture(params=[Quantity, ParametricQuantity], ids=lambda c: c.__name__)
