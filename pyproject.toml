@@ -65,6 +65,7 @@ workspace = [
   "unxt[interop-gala,interop-mpl,interop-xarray]",
   "unxts.api",
   "unxts.hypothesis",
+  "unxts.parametric",
 ]
 
 [project.urls]

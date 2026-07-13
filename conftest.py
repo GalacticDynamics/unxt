@@ -72,6 +72,7 @@ class OptDeps(OptionalDependencyEnum):
     GALA = auto()
     UNXTS_INTEROP_GALA = auto()
     UNXTS_INTEROP_MATPLOTLIB = auto()
+    UNXTS_PARAMETRIC = auto()
 
 
 collect_ignore_glob = []
@@ -87,6 +88,9 @@ if not (OptDeps.UNXTS_INTEROP_GALA.installed and OptDeps.GALA.installed):
 if not OptDeps.UNXTS_INTEROP_MATPLOTLIB.installed:
     collect_ignore_glob.append("docs/packages/unxts.interop.matplotlib/*")
     collect_ignore_glob.append("packages/unxts.interop.matplotlib/docs/*")
+if not OptDeps.UNXTS_PARAMETRIC.installed:
+    collect_ignore_glob.append("docs/packages/unxts.parametric/*")
+    collect_ignore_glob.append("packages/unxts.parametric/docs/*")
 
 
 def pytest_generate_tests(metafunc: Any) -> None:

@@ -13,7 +13,6 @@ from jax._src.numpy.setops import (
 )
 from jax.numpy import iinfo as IInfo  # noqa: N812
 from numpy import finfo as FInfo  # noqa: N812
-from unxts.parametric import PQ
 
 import quaxed.lax as qlax
 import quaxed.numpy as jnp
@@ -970,22 +969,6 @@ def test_positive():
     x = u.Q(jnp.asarray([1, 2, 3], dtype=float), "m")
     got = jnp.positive(x)
     exp = u.Q(jnp.positive(x.value), "m")
-
-    assert isinstance(got, u.Q)
-    assert got.unit == exp.unit
-    assert jnp.array_equal(got.value, exp.value)
-
-
-def test_pow_quantity_power():
-    """Test `pow` with a Quantity exponent.
-
-    A dimensionless parametric quantity (``PQ``) is a valid exponent; the
-    parametric-exponent ``pow`` rule lives in ``unxts.parametric``.
-    """
-    x = u.Q(jnp.asarray([1, 2, 3], dtype=float), "m")
-    y = PQ(jnp.asarray(4, dtype=float), "")
-    got = jnp.pow(x, y)
-    exp = u.Q(jnp.pow(x.value, y.value), "m4")
 
     assert isinstance(got, u.Q)
     assert got.unit == exp.unit

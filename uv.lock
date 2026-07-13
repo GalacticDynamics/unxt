@@ -4299,6 +4299,7 @@ all = [
     { name = "unxts-interop-gala" },
     { name = "unxts-interop-matplotlib" },
     { name = "unxts-interop-xarray" },
+    { name = "unxts-parametric" },
 ]
 backend-astropy = [
     { name = "astropy" },
@@ -4333,6 +4334,7 @@ workspace = [
     { name = "unxts-interop-gala" },
     { name = "unxts-interop-matplotlib" },
     { name = "unxts-interop-xarray" },
+    { name = "unxts-parametric" },
 ]
 
 [package.dev-dependencies]
@@ -4501,6 +4503,8 @@ requires-dist = [
     { name = "unxts-interop-xarray", marker = "extra == 'all'", editable = "packages/unxts.interop.xarray" },
     { name = "unxts-interop-xarray", marker = "extra == 'interop-xarray'", editable = "packages/unxts.interop.xarray" },
     { name = "unxts-interop-xarray", marker = "extra == 'workspace'", editable = "packages/unxts.interop.xarray" },
+    { name = "unxts-parametric", marker = "extra == 'all'", editable = "packages/unxts.parametric" },
+    { name = "unxts-parametric", marker = "extra == 'workspace'", editable = "packages/unxts.parametric" },
     { name = "wadler-lindig", specifier = ">=0.1.5" },
     { name = "xmmutablemap", specifier = ">=0.1" },
     { name = "zeroth", specifier = ">=1.0.0" },
