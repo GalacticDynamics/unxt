@@ -2,7 +2,7 @@
 
 # Migrating to v2
 
-This guide covers the breaking changes introduced in `unxt` v2, specifically the rename of the quantity classes. If you are starting fresh with `unxt`, you do not need this guide — consult the [Quantity guide](guides/quantity.md) for the current API.
+This guide covers the breaking changes introduced in `unxt` v2: the rename of the quantity classes and the extraction of the parametric quantity into the separate `unxts.parametric` package. If you are starting fresh with `unxt`, you do not need this guide — consult the [Quantity guide](guides/quantity.md) and the [parametric quantity guide](packages/unxts.parametric/index.md) for the current API.
 
 ---
 
@@ -21,6 +21,95 @@ package rather than in `unxt`. Install it with `pip install unxts.parametric`
 and import as `import unxts.parametric as up` (so `up.PQ`). Accessing
 `unxt.ParametricQuantity` / `u.PQ` now raises an `AttributeError` pointing here.
 ```
+
+---
+
+## Package Split: `ParametricQuantity` Moved to `unxts.parametric`
+
+In v2 the parametric quantity classes live in a **separate package**, `unxts.parametric`, rather than in `unxt`. Core `unxt` no longer imports or depends on `ParametricQuantity` at all. Install the package to opt in:
+
+```bash
+pip install unxts.parametric   # or: uv add unxts.parametric
+```
+
+Accessing the moved names on `unxt` now raises `AttributeError` with a message pointing to the new package — this covers `unxt.ParametricQuantity`, `unxt.PQ`, `unxt.AbstractParametricQuantity`, and their `unxt.quantity.*` equivalents.
+
+### Update your imports
+
+| v1 (`unxt`) | v2 (`unxts.parametric`) |
+| --- | --- |
+| `from unxt import ParametricQuantity` | `from unxts.parametric import ParametricQuantity` |
+| `from unxt import PQ` | `from unxts.parametric import PQ` |
+| `from unxt.quantity import AbstractParametricQuantity` | `from unxts.parametric import AbstractParametricQuantity` |
+| `u.PQ(...)` / `u.ParametricQuantity(...)` | `up.PQ(...)` (with `import unxts.parametric as up`) |
+
+<!-- skip: start -->
+
+```python
+# Before (v1)
+import unxt as u
+
+q = u.PQ(1, "m")
+
+# After (v2)
+import unxts.parametric as up
+
+q = up.PQ(1, "m")
+```
+
+<!-- skip: end -->
+
+### Angle operations now return the default `Quantity`
+
+Trigonometric and product operations on an `Angle` (`cos`, `sin`, `tan`, `cbrt`, `Angle @ Angle`, `Angle * Angle`, integer/array powers, etc.) previously produced a `ParametricQuantity`. Because core `unxt` can no longer reference the parametric class, in v2 they produce the lightweight default `Quantity`:
+
+<!-- skip: start -->
+
+```python
+import unxt as u
+import quaxed.numpy as jnp
+
+jnp.cos(u.Angle(0, "deg"))  # v1: ParametricQuantity(...) -> v2: Quantity(...)
+u.Angle([1, 2, 3], "deg") @ u.Angle([4, 5, 6], "deg")  # now a Quantity
+```
+
+<!-- skip: end -->
+
+The value and unit are unchanged — only the wrapping class differs. If you specifically need a parametric result, convert explicitly with `convert(result, up.PQ)`.
+
+### Parametric operands need `unxts.parametric` imported
+
+A few JAX primitive rules fire only when a _parametric_ quantity is involved — raising a quantity to a dimensionless `ParametricQuantity` exponent, `%` (remainder), and `clamp` with parametric bounds. These rules are registered as an import side effect of `unxts.parametric`. Importing the package (which you do to use `up.PQ` at all) registers them; if a `ParametricQuantity` reaches your code some other way, `import unxts.parametric` once at startup.
+
+### Astropy conversion
+
+Converting an `astropy.units.Quantity` **to a `ParametricQuantity`** is now registered by `unxts.parametric` (import it to enable). Conversion to the default `Quantity` remains in core `unxt`:
+
+<!-- skip: start -->
+
+```python
+from astropy.units import Quantity as AstropyQuantity
+from plum import convert
+import unxt as u
+import unxts.parametric as up
+
+convert(AstropyQuantity(1.0, "cm"), u.Quantity)  # core unxt
+convert(AstropyQuantity(1.0, "cm"), up.PQ)  # needs unxts.parametric
+```
+
+<!-- skip: end -->
+
+### Config: `include_params` moved to `unxts.parametric.config`
+
+The `include_params` display option — whether `repr()`/`str()` show the `['length']`-style dimension parameter — only affects parametric quantities, so it moved out of `unxt.config` into `unxts.parametric.config`. `unxt.config` now rejects it as an unknown option.
+
+| v1 (`unxt.config`) | v2 (`unxts.parametric.config`) |
+| --- | --- |
+| `u.config.quantity_repr.include_params` | `up.config.quantity_repr.include_params` |
+| `u.config.override(quantity_repr__include_params=True)` | `up.config.override(quantity_repr__include_params=True)` |
+| `[tool.unxt.quantity.repr]` → `include_params` | `[tool.unxts.parametric.quantity.repr]` → `include_params` |
+
+Defaults are unchanged (`repr` hides the parameter, `str` shows it). The other display settings (`short_arrays`, `use_short_name`, `named_unit`, `indent`) remain in `unxt.config`. See the [parametric quantity guide](packages/unxts.parametric/index.md#configuration).
 
 ---
 
