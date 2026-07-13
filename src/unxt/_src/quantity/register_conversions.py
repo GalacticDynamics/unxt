@@ -17,11 +17,11 @@ def quantity_to_default(q: AbstractQuantity, /) -> Quantity:
     Examples
     --------
     >>> from plum import convert
-    >>> from unxt.quantity import ParametricQuantity, Quantity
+    >>> from unxt.quantity import Angle, Quantity
 
-    >>> q = ParametricQuantity(1, "m")
+    >>> q = Angle(1, "rad")
     >>> convert(q, Quantity)
-    Quantity(Array(1, dtype=int32...), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='rad')
 
     The self-conversion doesn't copy the object:
 

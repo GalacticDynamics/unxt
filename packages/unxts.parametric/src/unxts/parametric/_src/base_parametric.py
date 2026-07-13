@@ -131,8 +131,9 @@ class AbstractParametricQuantity(AbstractQuantity):
         --------
         >>> import copy as pycopy
         >>> import unxt as u
+        >>> import unxts.parametric as up
 
-        >>> x = u.PQ([1, 2, 3], "m")
+        >>> x = up.PQ([1, 2, 3], "m")
         >>> pycopy.copy(x)
         ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
 
@@ -177,8 +178,9 @@ class AbstractParametricQuantity(AbstractQuantity):
         --------
         >>> import pickle
         >>> import unxt as u
+        >>> import unxts.parametric as up
 
-        >>> x = u.PQ([1, 2, 3], "m")
+        >>> x = up.PQ([1, 2, 3], "m")
         >>> pickle.dumps(x)
         b'...'
 
@@ -229,9 +231,10 @@ class AbstractParametricQuantity(AbstractQuantity):
         Examples
         --------
         >>> import unxt as u
+        >>> import unxts.parametric as up
         >>> import wadler_lindig as wl
 
-        >>> q = u.PQ([1, 2, 3], "m")
+        >>> q = up.PQ([1, 2, 3], "m")
 
         The default pretty printing:
 

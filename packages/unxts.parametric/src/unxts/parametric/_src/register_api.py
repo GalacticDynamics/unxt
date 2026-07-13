@@ -3,16 +3,14 @@
 __all__: tuple[str, ...] = ()
 
 import equinox as eqx
-
-from unxt.dims import AbstractDimension, dimension_of
+from unxts.api import dimension_of
 
 from .base_parametric import AbstractParametricQuantity
+from unxt.dims import AbstractDimension
 
 
 @dimension_of.dispatch
-def dimension_of(
-    obj: type[AbstractParametricQuantity], /
-) -> AbstractDimension:
+def dimension_of(obj: type[AbstractParametricQuantity], /) -> AbstractDimension:
     """Return the dimension of a parametrized quantity type.
 
     Examples

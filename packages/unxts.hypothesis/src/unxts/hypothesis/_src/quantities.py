@@ -45,7 +45,7 @@ def quantities(
     This strategy combines JAX array generation with unit specifications to
     create valid Quantity objects for property-based testing. By default it
     generates the lightweight `unxt.Quantity`; pass ``quantity_cls`` (e.g.
-    `unxt.ParametricQuantity`) to generate another `unxt.AbstractQuantity`
+    `unxts.parametric.ParametricQuantity`) to generate another `unxt.AbstractQuantity`
     subclass.
 
     Parameters
@@ -63,8 +63,8 @@ def quantities(
           or dimensions. The default strategy samples from SI base units.
     quantity_cls : type[`unxt.AbstractQuantity`], optional
         The target quantity class to convert to. Default is `unxt.Quantity`.
-        Can be any `unxt.AbstractQuantity` subclass like `unxt.ParametricQuantity` or
-        `unxt.Angle`.
+        Can be any `unxt.AbstractQuantity` subclass like
+        `unxts.parametric.ParametricQuantity` or `unxt.Angle`.
     dtype : Any, optional
         NumPy/JAX dtype for the underlying array. Default is jnp.float32.
         Can also be a `SearchStrategy` that generates dtypes.

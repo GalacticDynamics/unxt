@@ -82,7 +82,9 @@ from . import _interop  # noqa: F401  # register interop
 del install_import_hook
 
 
-_MOVED_TO_PARAMETRIC = {"ParametricQuantity", "PQ", "AbstractParametricQuantity"}
+_MOVED_TO_PARAMETRIC = frozenset(
+    {"ParametricQuantity", "PQ", "AbstractParametricQuantity"}
+)
 
 
 def __getattr__(name: str) -> object:

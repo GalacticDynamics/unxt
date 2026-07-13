@@ -77,7 +77,8 @@ class QuantityReprConfig(LocalConfigurable):
 
     This controls how quantity objects are displayed in ``repr()``. It is
     consumed by ``AbstractQuantity.__repr__`` and so applies to every quantity
-    class, including the default ``Quantity`` and ``ParametricQuantity``.
+    class, including the default ``Quantity`` (and ``ParametricQuantity`` from
+    the ``unxts.parametric`` package).
 
     Attributes
     ----------
@@ -277,7 +278,8 @@ class QuantityStrConfig(LocalConfigurable):
 
     This controls how quantity objects are displayed in ``str()``. It is
     consumed by ``AbstractQuantity.__str__`` and so applies to every quantity
-    class, including the default ``Quantity`` and ``ParametricQuantity``.
+    class, including the default ``Quantity`` (and ``ParametricQuantity`` from
+    the ``unxts.parametric`` package).
 
     Attributes
     ----------
