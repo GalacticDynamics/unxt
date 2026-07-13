@@ -19,15 +19,14 @@ __all__ = (
 import contextlib
 import threading
 import tomllib
-from dataclasses import dataclass, field
 from pathlib import Path
-from types import TracebackType
 from typing import Any, ClassVar, Final
 
 from traitlets import Bool, TraitError
 from traitlets.config import Config, SingletonConfigurable
 
 from unxt._src.config import (
+    AbstractUnxtConfig,
     LocalConfigurable,
     _find_pyproject,
     _load_toml_config_from_pyproject,
@@ -148,7 +147,7 @@ class ParametricQuantityStrConfig(_ParametricLocalConfig):
     ).tag(config=True)
 
 
-class ParametricConfig(SingletonConfigurable):
+class ParametricConfig(AbstractUnxtConfig, SingletonConfigurable):
     """Configuration for ``unxts.parametric`` display options.
 
     Singleton config controlling whether a ``ParametricQuantity`` renders its
@@ -177,6 +176,9 @@ class ParametricConfig(SingletonConfigurable):
         ParametricQuantityReprConfig,
         ParametricQuantityStrConfig,
     ]
+    _override_config_keys: ClassVar[dict[str, frozenset[str]]] = (
+        PARAMETRIC_OVERRIDE_CONFIG_KEYS
+    )
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize ParametricConfig with nested config instances."""
@@ -186,72 +188,8 @@ class ParametricConfig(SingletonConfigurable):
         )
         self.quantity_str = ParametricQuantityStrConfig(config=self.config, parent=self)
 
-    def override(self, **kwargs: Any) -> "_ParametricConfigContext":
-        """Create a context manager for temporary config changes.
-
-        Use double-underscore notation for nested configs, e.g.
-        ``quantity_repr__include_params=True``.
-        """
-        parsed_overrides: dict[str, dict[str, Any]] = {}
-        for key, value in kwargs.items():
-            if "__" not in key:
-                msg = (
-                    f"Config override '{key}' must use double-underscore notation "
-                    "(e.g., 'quantity_repr__include_params')"
-                )
-                raise ValueError(msg)
-
-            config_name, attr_name = key.split("__", 1)
-            if config_name not in PARAMETRIC_OVERRIDE_CONFIG_KEYS:
-                valid_configs = ", ".join(sorted(PARAMETRIC_OVERRIDE_CONFIG_KEYS))
-                msg = (
-                    f"Unknown config section '{config_name}' in override key "
-                    f"'{key}'. Valid sections are: {valid_configs}"
-                )
-                raise ValueError(msg)
-
-            valid_attrs = PARAMETRIC_OVERRIDE_CONFIG_KEYS[config_name]
-            if attr_name not in valid_attrs:
-                valid_options = ", ".join(sorted(valid_attrs))
-                msg = (
-                    f"Unknown option '{attr_name}' for config section "
-                    f"'{config_name}' in override key '{key}'. "
-                    f"Valid options are: {valid_options}"
-                )
-                raise ValueError(msg)
-
-            parsed_overrides.setdefault(config_name, {})[attr_name] = value
-
-        return _ParametricConfigContext(self, parsed_overrides)
-
-
-@dataclass(slots=True)
-class _ParametricConfigContext:
-    """Context manager for temporary ``ParametricConfig`` changes.
-
-    Not instantiated directly -- use ``config.override(**kwargs)``.
-    """
-
-    config: ParametricConfig
-    overrides: dict[str, dict[str, Any]]  # {config_name: {attr: value}}
-    _stack: contextlib.ExitStack = field(init=False, repr=False)
-
-    def __enter__(self) -> ParametricConfig:
-        """Enter context, applying thread-local config overrides."""
-        self._stack = contextlib.ExitStack()
-        for config_name, attrs in self.overrides.items():
-            nested_config = getattr(self.config, config_name)
-            self._stack.enter_context(nested_config.override(**attrs))
-        return self.config
-
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: TracebackType | None,
-    ) -> None:
-        """Exit context, restoring previous config values."""
-        self._stack.__exit__(exc_type, exc_val, exc_tb)
+    # ``override()`` (the top-level context manager) is inherited from
+    # ``AbstractUnxtConfig`` and returns unxt's ``_ConfigContext``.
 
 
 # Mapping from TOML sub-path to Config class name (under [tool.unxts.parametric])

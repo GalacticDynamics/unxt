@@ -4,7 +4,13 @@ TOML configuration is discovered automatically from ``pyproject.toml`` at import
 time.
 """
 
-__all__ = ("config", "UnxtConfig", "QuantityReprConfig", "QuantityStrConfig")
+__all__ = (
+    "AbstractUnxtConfig",
+    "QuantityReprConfig",
+    "QuantityStrConfig",
+    "UnxtConfig",
+    "config",
+)
 
 import contextlib
 import threading
@@ -425,7 +431,75 @@ class QuantityStrConfig(LocalConfigurable):
 # Unxt configuration
 
 
-class UnxtConfig(SingletonConfigurable):
+class AbstractUnxtConfig:
+    """Mixin for hierarchical, unxt-style config singletons.
+
+    A concrete config inherits this alongside
+    :class:`~traitlets.config.SingletonConfigurable`, declares the sections it
+    accepts via ``_override_config_keys`` (``{section name: valid option
+    names}``), and creates its nested config objects in ``__init__``. This mixin
+    provides the shared top-level ``override()`` context manager, so packages
+    that mirror this config (e.g. ``unxts.parametric``) can reuse the same
+    machinery -- their singletons are accepted by :class:`_ConfigContext`
+    without reimplementation.
+
+    It is a plain mixin (not itself a ``SingletonConfigurable``) so that each
+    concrete config keeps its own independent singleton instance.
+    """
+
+    # {section_name: frozenset of valid option names}; set by subclasses.
+    _override_config_keys: ClassVar[dict[str, frozenset[str]]] = {}
+
+    def override(self, **kwargs: Any) -> "_ConfigContext":
+        """Create a context manager for temporary config changes.
+
+        Use double-underscore notation for nested configs, e.g.
+        ``quantity_repr__short_arrays="compact"``.
+
+        Raises
+        ------
+        ValueError
+            If an unknown configuration option is provided.
+
+        """
+        # Parse nested config overrides (e.g., quantity_repr__short_arrays)
+        parsed_overrides: dict[str, dict[str, Any]] = {}
+        for key, value in kwargs.items():
+            if "__" in key:
+                config_name, attr_name = key.split("__", 1)
+                if config_name not in self._override_config_keys:
+                    valid_configs = ", ".join(sorted(self._override_config_keys))
+                    msg = (
+                        "Unknown config section "
+                        f"'{config_name}' in override key '{key}'. "
+                        f"Valid sections are: {valid_configs}"
+                    )
+                    raise ValueError(msg)
+
+                valid_attrs = self._override_config_keys[config_name]
+                if attr_name not in valid_attrs:
+                    valid_options = ", ".join(sorted(valid_attrs))
+                    msg = (
+                        "Unknown option "
+                        f"'{attr_name}' for config section '{config_name}' "
+                        f"in override key '{key}'. Valid options are: {valid_options}"
+                    )
+                    raise ValueError(msg)
+
+                if config_name not in parsed_overrides:
+                    parsed_overrides[config_name] = {}
+                parsed_overrides[config_name][attr_name] = value
+            else:
+                msg = (
+                    f"Config override '{key}' must use double-underscore notation "
+                    "(e.g., 'quantity_repr__short_arrays')"
+                )
+                raise ValueError(msg)
+
+        return _ConfigContext(self, parsed_overrides)
+
+
+class UnxtConfig(AbstractUnxtConfig, SingletonConfigurable):
     """Configuration for unxt display and printing options.
 
     This is a singleton configuration object that controls how quantities
@@ -472,6 +546,9 @@ class UnxtConfig(SingletonConfigurable):
 
     # Configurable classes that are part of this config hierarchy
     classes: ClassVar[list[type]] = [QuantityReprConfig, QuantityStrConfig]
+    _override_config_keys: ClassVar[dict[str, frozenset[str]]] = (
+        UNXT_OVERRIDE_CONFIG_KEYS
+    )
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize UnxtConfig with nested config instances."""
@@ -479,76 +556,6 @@ class UnxtConfig(SingletonConfigurable):
         # Initialize child configs with parent config for inheritance
         self.quantity_repr = QuantityReprConfig(config=self.config, parent=self)
         self.quantity_str = QuantityStrConfig(config=self.config, parent=self)
-
-    def override(self, **kwargs: Any) -> "_ConfigContext":
-        """Create a context manager for temporary config changes.
-
-        Parameters
-        ----------
-        **kwargs
-            Configuration options to set temporarily. Use double-underscore
-            notation for nested configs, e.g., quantity_repr__short_arrays="compact".
-
-        Returns
-        -------
-        _ConfigContext
-            A context manager that applies the config changes on entry
-            and restores previous values on exit.
-
-        Raises
-        ------
-        ValueError
-            If an unknown configuration option is provided.
-
-        Examples
-        --------
-        >>> import unxt as u
-        >>> with u.config.override(quantity_repr__short_arrays=True):
-        ...     q = u.Q([1.0, 2.0, 3.0], "m")
-        ...     print(repr(q))  # Uses compact display
-        Quantity(f32[3], unit='m')
-
-        Config restored to previous value
-
-        >>> print(repr(q))
-        Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
-
-        """
-        # Parse nested config overrides (e.g., quantity_repr__short_arrays)
-        parsed_overrides: dict[str, dict[str, Any]] = {}
-        for key, value in kwargs.items():
-            if "__" in key:
-                config_name, attr_name = key.split("__", 1)
-                if config_name not in UNXT_OVERRIDE_CONFIG_KEYS:
-                    valid_configs = ", ".join(sorted(UNXT_OVERRIDE_CONFIG_KEYS))
-                    msg = (
-                        "Unknown config section "
-                        f"'{config_name}' in override key '{key}'. "
-                        f"Valid sections are: {valid_configs}"
-                    )
-                    raise ValueError(msg)
-
-                valid_attrs = UNXT_OVERRIDE_CONFIG_KEYS[config_name]
-                if attr_name not in valid_attrs:
-                    valid_options = ", ".join(sorted(valid_attrs))
-                    msg = (
-                        "Unknown option "
-                        f"'{attr_name}' for config section '{config_name}' "
-                        f"in override key '{key}'. Valid options are: {valid_options}"
-                    )
-                    raise ValueError(msg)
-
-                if config_name not in parsed_overrides:
-                    parsed_overrides[config_name] = {}
-                parsed_overrides[config_name][attr_name] = value
-            else:
-                msg = (
-                    f"Config override '{key}' must use double-underscore notation "
-                    "(e.g., 'quantity_repr__short_arrays')"
-                )
-                raise ValueError(msg)
-
-        return _ConfigContext(self, parsed_overrides)
 
 
 @dataclass(slots=True)
@@ -559,11 +566,11 @@ class _ConfigContext:
     `config.override(**kwargs)` to create a context manager.
     """
 
-    config: UnxtConfig
+    config: AbstractUnxtConfig
     overrides: dict[str, dict[str, Any]]  # {config_name: {attr: value}}
     _stack: contextlib.ExitStack = field(init=False, repr=False)
 
-    def __enter__(self) -> UnxtConfig:
+    def __enter__(self) -> AbstractUnxtConfig:
         """Enter context, applying thread-local config overrides."""
         self._stack = contextlib.ExitStack()
         for config_name, attrs in self.overrides.items():
