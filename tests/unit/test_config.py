@@ -82,7 +82,7 @@ def test_load_toml_config_from_pyproject(tmp_path: Path) -> None:
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         """\
-[tool.unxt.quantity.repr]
+[tool.unxts.unxt.quantity.repr]
 short_arrays = "compact"
 use_short_name = true
 """,
@@ -105,7 +105,7 @@ def test_load_toml_config_no_tool_section(tmp_path: Path) -> None:
 
 
 def test_load_toml_config_no_unxt_section(tmp_path: Path) -> None:
-    """Test _load_toml_config_from_pyproject with no [tool.unxt] section."""
+    """Test _load_toml_config_from_pyproject with no [tool.unxts.unxt] section."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         "[tool.other]\nenabled = true\n",
@@ -210,7 +210,7 @@ def test_auto_load_toml_from_pyproject_on_import(tmp_path: Path) -> None:
 name = "demo-project"
 version = "0.1.0"
 
-[tool.unxt.quantity.repr]
+[tool.unxts.unxt.quantity.repr]
 short_arrays = "compact"
 use_short_name = true
 named_unit = false
@@ -232,7 +232,7 @@ def test_auto_load_uses_nearest_pyproject(tmp_path: Path) -> None:
 
     _ = (root / "pyproject.toml").write_text(
         """\
-[tool.unxt.quantity.repr]
+[tool.unxts.unxt.quantity.repr]
 short_arrays = false
 use_short_name = false
 """,
@@ -240,7 +240,7 @@ use_short_name = false
     )
     _ = (pkg / "pyproject.toml").write_text(
         """\
-[tool.unxt.quantity.repr]
+[tool.unxts.unxt.quantity.repr]
 short_arrays = "compact"
 use_short_name = true
 """,
@@ -253,7 +253,7 @@ use_short_name = true
 
 
 def test_auto_load_ignores_pyproject_without_tool_unxt(tmp_path: Path) -> None:
-    """Import should keep defaults if pyproject.toml has no [tool.unxt] section."""
+    """Keep defaults when pyproject.toml has no [tool.unxts.unxt] section."""
     project = tmp_path / "no_unxt_config"
     project.mkdir()
     _ = (project / "pyproject.toml").write_text(
@@ -284,12 +284,12 @@ def test_auto_load_ignores_invalid_toml_entries(tmp_path: Path) -> None:
 name = "demo-project"
 version = "0.1.0"
 
-[tool.unxt.quantity.repr]
+[tool.unxts.unxt.quantity.repr]
 use_short_name = true
 indent = "not-an-int"
 typo_option = true
 
-[tool.unxt.quantity.str]
+[tool.unxts.unxt.quantity.str]
 indent = "not-an-int"
 """,
         encoding="utf-8",
@@ -313,7 +313,7 @@ def test_auto_load_dotted_key_syntax(tmp_path: Path) -> None:
 name = "demo-project"
 version = "0.1.0"
 
-[tool.unxt]
+[tool.unxts.unxt]
 quantity.repr.use_short_name = true
 quantity.repr.short_arrays = "compact"
 quantity.str.use_short_name = true
@@ -339,12 +339,12 @@ name = "demo-project"
 version = "0.1.0"
 
 # Dotted key syntax for repr config
-[tool.unxt]
+[tool.unxts.unxt]
 quantity.repr.use_short_name = true
 quantity.repr.short_arrays = "compact"
 
 # Nested section syntax for str config
-[tool.unxt.quantity.str]
+[tool.unxts.unxt.quantity.str]
 named_unit = false
 use_short_name = true
 """,
@@ -358,7 +358,7 @@ use_short_name = true
 
 
 def test_auto_load_empty_tool_unxt_section(tmp_path: Path) -> None:
-    """Empty [tool.unxt] section should not affect defaults."""
+    """Empty [tool.unxts.unxt] section should not affect defaults."""
     project = tmp_path / "empty_unxt"
     project.mkdir()
     _ = (project / "pyproject.toml").write_text(
@@ -367,7 +367,7 @@ def test_auto_load_empty_tool_unxt_section(tmp_path: Path) -> None:
 name = "demo-project"
 version = "0.1.0"
 
-[tool.unxt]
+[tool.unxts.unxt]
 """,
         encoding="utf-8",
     )
@@ -380,19 +380,19 @@ version = "0.1.0"
 
 
 def test_auto_load_unknown_toml_sections_ignored(tmp_path: Path) -> None:
-    """Unknown sections under [tool.unxt] should be silently ignored."""
+    """Unknown sections under [tool.unxts.unxt] should be silently ignored."""
     project = tmp_path / "unknown_sections"
     project.mkdir()
     _ = (project / "pyproject.toml").write_text(
         """\
-[tool.unxt.quantity.repr]
+[tool.unxts.unxt.quantity.repr]
 use_short_name = true
 
-[tool.unxt.future_feature]
+[tool.unxts.unxt.future_feature]
 enabled = true
 some_value = 42
 
-[tool.unxt.another.unknown.path]
+[tool.unxts.unxt.another.unknown.path]
 value = "ignored"
 """,
         encoding="utf-8",
@@ -456,7 +456,7 @@ tool = "not-a-dict"
 
 
 def test_auto_load_non_dict_unxt_section(tmp_path: Path) -> None:
-    """Non-dict [tool.unxt] section should be ignored without error."""
+    """Non-dict [tool.unxts.unxt] section should be ignored without error."""
     project = tmp_path / "non_dict_unxt"
     project.mkdir()
     _ = (project / "pyproject.toml").write_text(
@@ -864,7 +864,7 @@ def test_auto_load_handles_oserror_gracefully(tmp_path: Path) -> None:
     project.mkdir()
     pyproject = project / "pyproject.toml"
     pyproject.write_text(
-        "[tool.unxt.quantity.repr]\nuse_short_name = true\n", encoding="utf-8"
+        "[tool.unxts.unxt.quantity.repr]\nuse_short_name = true\n", encoding="utf-8"
     )
 
     # Patch pathlib.Path.open before importing unxt in the subprocess so
@@ -902,7 +902,7 @@ def test_auto_load_handles_keyerror_in_toml(tmp_path: Path) -> None:
     pyproject = project / "pyproject.toml"
     pyproject.write_text(
         """\
-[tool.unxt.quantity.repr]
+[tool.unxts.unxt.quantity.repr]
 use_short_name = true
 """,
         encoding="utf-8",
@@ -990,7 +990,7 @@ dev-dependencies = [
     "pytest>=8.0",
 ]
 
-[tool.unxt.quantity.repr]
+[tool.unxts.unxt.quantity.repr]
 # Configure unxt for compact notebook output
 short_arrays = "compact"
 use_short_name = true

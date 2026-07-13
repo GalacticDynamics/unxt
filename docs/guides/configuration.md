@@ -221,13 +221,13 @@ Indentation width for nested structures in `str()`.
 The configuration uses a hierarchical format matching the nested structure:
 
 ```toml
-[tool.unxt.quantity.repr]
+[tool.unxts.unxt.quantity.repr]
 short_arrays = "compact"
 use_short_name = true
 named_unit = false
 indent = 4
 
-[tool.unxt.quantity.str]
+[tool.unxts.unxt.quantity.str]
 short_arrays = true
 named_unit = false
 use_short_name = false
@@ -239,7 +239,7 @@ You only need to set the options you want to override.
 Minimal example:
 
 ```toml
-[tool.unxt.quantity.repr]
+[tool.unxts.unxt.quantity.repr]
 short_arrays = "compact"
 use_short_name = true
 ```

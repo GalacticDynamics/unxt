@@ -111,6 +111,17 @@ The `include_params` display option — whether `repr()`/`str()` show the `['len
 
 Defaults are unchanged (`repr` hides the parameter, `str` shows it). The other display settings (`short_arrays`, `use_short_name`, `named_unit`, `indent`) remain in `unxt.config`. See the [parametric quantity guide](packages/unxts.parametric/index.md#configuration).
 
+### Config file section renamed to `[tool.unxts.unxt]`
+
+`unxt`'s `pyproject.toml` display configuration moved from `[tool.unxt...]` to `[tool.unxts.unxt...]`, matching the shared `unxts.*` namespace (alongside `[tool.unxts.parametric...]`). Rename any existing sections:
+
+| v1                          | v2                                |
+| --------------------------- | --------------------------------- |
+| `[tool.unxt.quantity.repr]` | `[tool.unxts.unxt.quantity.repr]` |
+| `[tool.unxt.quantity.str]`  | `[tool.unxts.unxt.quantity.str]`  |
+
+In-code configuration via `u.config` is unchanged.
+
 ---
 
 ## Deprecation: `BareQuantity`
