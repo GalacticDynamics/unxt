@@ -184,7 +184,6 @@ def _run_isolated_import(
                     "short_arrays": u.config.quantity_repr.short_arrays,
                     "use_short_name": u.config.quantity_repr.use_short_name,
                     "named_unit": u.config.quantity_repr.named_unit,
-                    "include_params": u.config.quantity_repr.include_params,
                 }
                 print(json.dumps(payload))
                 """
@@ -215,7 +214,6 @@ version = "0.1.0"
 short_arrays = "compact"
 use_short_name = true
 named_unit = false
-include_params = true
 """,
         encoding="utf-8",
     )
@@ -224,7 +222,6 @@ include_params = true
     assert payload["short_arrays"] == "compact"
     assert payload["use_short_name"] is True
     assert payload["named_unit"] is False
-    assert payload["include_params"] is True
 
 
 def test_auto_load_uses_nearest_pyproject(tmp_path: Path) -> None:
@@ -275,7 +272,6 @@ enabled = true
     assert payload["short_arrays"] is False
     assert payload["use_short_name"] is False
     assert payload["named_unit"] is True
-    assert payload["include_params"] is False
 
 
 def test_auto_load_ignores_invalid_toml_entries(tmp_path: Path) -> None:
@@ -305,7 +301,6 @@ indent = "not-an-int"
     # Invalid values/keys should be ignored without breaking import.
     assert payload["short_arrays"] is False
     assert payload["named_unit"] is True
-    assert payload["include_params"] is False
 
 
 def test_auto_load_dotted_key_syntax(tmp_path: Path) -> None:
@@ -382,7 +377,6 @@ version = "0.1.0"
     assert payload["short_arrays"] is False
     assert payload["use_short_name"] is False
     assert payload["named_unit"] is True
-    assert payload["include_params"] is False
 
 
 def test_auto_load_unknown_toml_sections_ignored(tmp_path: Path) -> None:
@@ -440,7 +434,6 @@ def test_auto_load_no_pyproject_file(tmp_path: Path) -> None:
     assert payload["short_arrays"] is False
     assert payload["use_short_name"] is False
     assert payload["named_unit"] is True
-    assert payload["include_params"] is False
 
 
 def test_auto_load_non_dict_tool_section(tmp_path: Path) -> None:
@@ -897,7 +890,6 @@ pathlib.Path.open = _open_raises_for_pyproject
     assert payload["short_arrays"] is False
     assert payload["use_short_name"] is False
     assert payload["named_unit"] is True
-    assert payload["include_params"] is False
 
 
 def test_auto_load_handles_keyerror_in_toml(tmp_path: Path) -> None:
@@ -1003,7 +995,6 @@ dev-dependencies = [
 short_arrays = "compact"
 use_short_name = true
 named_unit = false
-include_params = true
 """
     pyproject_file = package_root / "pyproject.toml"
     pyproject_file.write_text(pyproject_content, encoding="utf-8")
@@ -1020,7 +1011,6 @@ include_params = true
     assert payload["short_arrays"] == "compact"
     assert payload["use_short_name"] is True
     assert payload["named_unit"] is False
-    assert payload["include_params"] is True
 
     # Demonstrate the package structure was created correctly
     assert package_root.exists()

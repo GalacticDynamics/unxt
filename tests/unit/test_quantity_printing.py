@@ -1,4 +1,4 @@
-"""Tests for ParametricQuantity printing with wadler-lindig."""
+"""Tests for Quantity printing with wadler-lindig."""
 
 import equinox as eqx
 import jax
@@ -72,11 +72,6 @@ class TestShortName:
         assert hasattr(u.Q, "short_name")
         assert u.Q.short_name == "Q"
 
-    def test_parametricquantity_short_name(self):
-        """Test that ``ParametricQuantity`` (``u.PQ``) has short_name 'PQ'."""
-        assert hasattr(u.PQ, "short_name")
-        assert u.PQ.short_name == "PQ"
-
     def test_use_short_name_default_false(self):
         """Test that use_short_name defaults to False."""
         q = u.Q([1, 2, 3], "m")
@@ -84,24 +79,11 @@ class TestShortName:
         assert result.startswith("Quantity")
         assert not result.startswith("Q(")
 
-        # The parametric class uses its full name by default too.
-        pq = u.PQ([1, 2, 3], "m")
-        pq_result = wl.pformat(pq)
-        assert pq_result.startswith("ParametricQuantity")
-        assert not pq_result.startswith("PQ(")
-
     def test_use_short_name_true(self):
         """Test that use_short_name=True uses the short name."""
         q = u.Q([1, 2, 3], "m")
         result = wl.pformat(q, use_short_name=True)
         assert result.startswith("Q(")
-        assert "unit='m'" in result
-
-    def test_parametric_use_short_name_true(self):
-        """Test that ``ParametricQuantity`` uses its short name 'PQ'."""
-        pq = u.PQ([1, 2, 3], "m")
-        result = wl.pformat(pq, use_short_name=True)
-        assert result.startswith("PQ(")
         assert "unit='m'" in result
 
     def test_use_short_name_with_include_params(self):
@@ -111,11 +93,6 @@ class TestShortName:
         q = u.Q([1, 2, 3], "m")
         result = wl.pformat(q, use_short_name=True, include_params=True)
         assert result.startswith("Q(")
-
-        # The parametric class shows its dimension parameter.
-        pq = u.PQ([1, 2, 3], "m")
-        pq_result = wl.pformat(pq, use_short_name=True, include_params=True)
-        assert pq_result.startswith("PQ['length']")
 
     def test_use_short_name_with_named_unit_false(self):
         """Test that use_short_name works with named_unit=False."""

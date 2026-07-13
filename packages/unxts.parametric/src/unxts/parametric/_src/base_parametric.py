@@ -15,11 +15,11 @@ from plum import dispatch, parametric, type_unparametrized
 
 from dataclassish import field_items, fields
 
-from .base import AbstractQuantity
-from .value import StaticValue
+from .config import config as parametric_config
 from unxt._src.dimensions import name_of
 from unxt.config import config
 from unxt.dims import AbstractDimension, dimension, dimension_of
+from unxt.quantity import AbstractQuantity, StaticValue
 from unxt.units import AbstractUnit, unit as parse_unit
 
 
@@ -132,8 +132,9 @@ class AbstractParametricQuantity(AbstractQuantity):
         --------
         >>> import copy as pycopy
         >>> import unxt as u
+        >>> import unxts.parametric as up
 
-        >>> x = u.PQ([1, 2, 3], "m")
+        >>> x = up.PQ([1, 2, 3], "m")
         >>> pycopy.copy(x)
         ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
 
@@ -178,8 +179,9 @@ class AbstractParametricQuantity(AbstractQuantity):
         --------
         >>> import pickle
         >>> import unxt as u
+        >>> import unxts.parametric as up
 
-        >>> x = u.PQ([1, 2, 3], "m")
+        >>> x = up.PQ([1, 2, 3], "m")
         >>> pickle.dumps(x)
         b'...'
 
@@ -230,9 +232,10 @@ class AbstractParametricQuantity(AbstractQuantity):
         Examples
         --------
         >>> import unxt as u
+        >>> import unxts.parametric as up
         >>> import wadler_lindig as wl
 
-        >>> q = u.PQ([1, 2, 3], "m")
+        >>> q = up.PQ([1, 2, 3], "m")
 
         The default pretty printing:
 
@@ -294,7 +297,7 @@ class AbstractParametricQuantity(AbstractQuantity):
     def __repr__(self) -> str:
         return wl.pformat(
             self,
-            include_params=config.quantity_repr.include_params,
+            include_params=parametric_config.quantity_repr.include_params,
             named_unit=config.quantity_repr.named_unit,
             short_arrays=config.quantity_repr.short_arrays,
             use_short_name=config.quantity_repr.use_short_name,
@@ -304,7 +307,7 @@ class AbstractParametricQuantity(AbstractQuantity):
     def __str__(self) -> str:
         return wl.pformat(
             self,
-            include_params=config.quantity_str.include_params,
+            include_params=parametric_config.quantity_str.include_params,
             named_unit=config.quantity_str.named_unit,
             short_arrays=config.quantity_str.short_arrays,
             use_short_name=config.quantity_str.use_short_name,

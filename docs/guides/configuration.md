@@ -92,7 +92,7 @@ Options:
 
 ### `use_short_name`
 
-Use class short names where available (for example, `Quantity` -> `Q` and `ParametricQuantity` -> `PQ`).
+Use a class's short name where available (for example, `Quantity` -> `Q`).
 
 - **Type**: `bool`
 - **Default**: `False`
@@ -131,23 +131,6 @@ Quantity(Array(1., dtype=float32...), 'm')
 ...     print(repr(q))
 Quantity(Array(1., dtype=float32...), unit='m')
 ```
-
-### `include_params`
-
-Include the dimension type parameter in `repr()`. The default `Quantity` (`u.Q`) carries no dimension parameter, so this option has no visible effect on it:
-
-- **Type**: `bool`
-- **Default**: `False`
-
-```{code-block} python
->>> q = u.Q(1.0, "m")
-
->>> with u.config.quantity_repr.override(include_params=True):
-...     print(repr(q))
-Quantity(Array(1., dtype=float32...), unit='m')
-```
-
-The option only changes the output for the dimension-parametrized `ParametricQuantity` (`u.PQ`), whose repr can show its `['length']`-style parameter; see the parametric quantity guide.
 
 ### `indent`
 
@@ -242,7 +225,6 @@ The configuration uses a hierarchical format matching the nested structure:
 short_arrays = "compact"
 use_short_name = true
 named_unit = false
-include_params = true
 indent = 4
 
 [tool.unxt.quantity.str]

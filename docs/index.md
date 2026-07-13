@@ -14,6 +14,7 @@ unxt <self>
 unxt-hypothesis <packages/unxt-hypothesis/index>
 unxts.api <packages/unxts.api/index>
 unxts.hypothesis <packages/unxts.hypothesis/index>
+unxts.parametric <packages/unxts.parametric/index>
 unxts.interop.gala <packages/unxts.interop.gala/index>
 unxts.interop.matplotlib <packages/unxts.interop.matplotlib/index>
 unxts.interop.xarray <packages/unxts.interop.xarray/index>
@@ -622,6 +623,13 @@ Configure `unxt` behavior, including runtime settings and import-time hooks.
 :link-type: doc
 
 See how `unxt` uses runtime and static typing across its quantity system.
+:::
+
+:::{grid-item-card} Parametric Quantities
+:link: packages/unxts.parametric/index
+:link-type: doc
+
+Opt into dimension-parametrized quantities with runtime dimension checking and dimension-specific dispatch.
 :::
 
 :::{grid-item-card} API Reference

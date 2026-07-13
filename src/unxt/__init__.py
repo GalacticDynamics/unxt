@@ -19,6 +19,9 @@ documentation.
 -----
 
 """
+# The ``_MOVED_TO_PARAMETRIC`` shim in ``__getattr__`` mirrors the one in the
+# quantity subpackage on purpose; silence the duplicate-code check.
+# pylint: disable=duplicate-code
 
 __all__ = (
     "__version__",
@@ -43,8 +46,6 @@ __all__ = (
     "quantity",  # module
     "AbstractQuantity",  # base class
     "Angle",  # angular quantity
-    "PQ",  # convenience alias
-    "ParametricQuantity",  # dimension-parametrized class
     "Q",  # convenience alias
     "Quantity",  # default class
     "StaticQuantity",  # static value quantity
@@ -62,10 +63,8 @@ with install_import_hook("unxt"):
     from .config import config
     from .dims import AbstractDimension, dimension, dimension_of
     from .quantity import (
-        PQ,
         AbstractQuantity,
         Angle,
-        ParametricQuantity,
         Q,
         Quantity,
         StaticQuantity,
@@ -84,3 +83,20 @@ from . import _interop  # noqa: F401  # register interop
 
 # Clean up the namespace
 del install_import_hook
+
+
+_MOVED_TO_PARAMETRIC = frozenset(
+    {"ParametricQuantity", "PQ", "AbstractParametricQuantity"}
+)
+
+
+def __getattr__(name: str) -> object:
+    if name in _MOVED_TO_PARAMETRIC:
+        msg = (
+            f"`{name}` moved to the `unxts.parametric` package. Install it "
+            "(`pip install unxts.parametric`) and use "
+            f"`from unxts.parametric import {name}`."
+        )
+        raise AttributeError(msg)
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)

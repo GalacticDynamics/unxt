@@ -17,7 +17,6 @@ from .custom_types import APYUnits
 from unxt.quantity import (
     AbstractQuantity,
     AllowValue,
-    ParametricQuantity,
     Quantity,
     ustrip,
 )
@@ -160,30 +159,6 @@ def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAng
     """
     u = uapi.unit_of(q)
     return AstropyAngle(uapi.ustrip(u, q), u)
-
-
-# ============================================================================
-# ParametricQuantity
-
-
-@plum.conversion_method(type_from=AstropyQuantity, type_to=ParametricQuantity)
-def convert_astropy_quantity_to_unxt_quantity(
-    q: AstropyQuantity, /
-) -> ParametricQuantity:
-    """Convert a `astropy.units.Quantity` to a `unxt.ParametricQuantity`.
-
-    Examples
-    --------
-    >>> from astropy.units import Quantity as AstropyQuantity
-    >>> from plum import convert
-    >>> from unxt import ParametricQuantity
-
-    >>> convert(AstropyQuantity(1.0, "cm"), ParametricQuantity)
-    ParametricQuantity(Array(1., dtype=float32), unit='cm')
-
-    """
-    u = uapi.unit_of(q)
-    return ParametricQuantity(uapi.ustrip(u, q), u)
 
 
 # ============================================================================

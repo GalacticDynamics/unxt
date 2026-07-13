@@ -14,7 +14,6 @@ from plum import dispatch
 import unxt_api as uapi
 from .base import AbstractQuantity
 from .base_angle import AbstractAngle
-from .base_parametric import AbstractParametricQuantity
 from .static_quantity import StaticQuantity
 from .value import StaticValue
 from unxt.dims import AbstractDimension
@@ -38,34 +37,6 @@ def dimension_of(obj: AbstractQuantity, /) -> AbstractDimension:
 
     """
     return uapi.dimension_of(obj.unit)
-
-
-@dispatch
-def dimension_of(obj: type[AbstractParametricQuantity], /) -> AbstractDimension:
-    """Return the dimension of a quantity.
-
-    Examples
-    --------
-    >>> import unxt as u
-
-    >>> try:
-    ...     u.dimension_of(u.PQ)
-    ... except Exception as e:
-    ...     print(e)
-    can only get dimensions from parametrized ParametricQuantity --
-    ParametricQuantity[dim].
-
-    >>> u.dimension_of(u.PQ["length"])
-    PhysicalType('length')
-
-    """
-    obj = eqx.error_if(
-        obj,
-        not hasattr(obj, "_type_parameter"),
-        f"can only get dimensions from parametrized {obj.__name__} "
-        f"-- {obj.__name__}[dim].",
-    )
-    return obj._type_parameter  # noqa: SLF001
 
 
 @dispatch

@@ -10,24 +10,22 @@ from typing import Any, final
 import equinox as eqx
 import numpy as np
 import wadler_lindig as wl
-from plum import add_promotion_rule, parametric
+from plum import add_promotion_rule
 
-from .base_parametric import AbstractParametricQuantity
-from .parametric import ParametricQuantity
+from .base import AbstractQuantity
 from .quantity import Quantity
 from .value import StaticValue
 from unxt.units import AbstractUnit, unit as parse_unit
 
 
 @final
-@parametric
-class StaticQuantity(AbstractParametricQuantity):
-    """Static quantities with associated units.
+class StaticQuantity(AbstractQuantity):
+    """A non-parametric quantity whose value is always a static NumPy array.
 
-    This class is parametrized by the dimensions of the units, just like
-    {class}`~unxt.quantity.ParametricQuantity`, but its value is always stored
-    as a static NumPy array. It accepts Python scalars and array-like inputs that can be
-    converted to NumPy arrays, and it rejects JAX arrays.
+    Unlike `~unxt.Quantity`, its value is stored as a static (hashable) NumPy
+    array, which lets a `StaticQuantity` be passed as a static argument to a
+    `jax.jit`-compiled function. It accepts Python scalars and array-like
+    inputs convertible to NumPy arrays, and rejects JAX arrays.
 
     Examples
     --------
@@ -86,5 +84,4 @@ class StaticQuantity(AbstractParametricQuantity):
 
 
 add_promotion_rule(StaticQuantity, StaticQuantity, StaticQuantity)
-add_promotion_rule(StaticQuantity, ParametricQuantity, ParametricQuantity)
 add_promotion_rule(StaticQuantity, Quantity, Quantity)

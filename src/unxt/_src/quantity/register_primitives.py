@@ -27,9 +27,7 @@ import quaxed.lax as qlax
 
 from .base import AbstractQuantity as ABCQ  # noqa: N814
 from .base_angle import AbstractAngle
-from .base_parametric import AbstractParametricQuantity as ABCPQ  # noqa: N814
 from .flag import AllowValue
-from .parametric import ParametricQuantity
 from .quantity import Q, Quantity
 from .static_quantity import StaticQuantity
 from .value import StaticValue
@@ -331,7 +329,7 @@ def add_p_aqv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
 
 @quax.register(add_jaxvals_p)
-def add_jaxvals_p_qq(x: ABCPQ, y: ABCPQ, /) -> ABCPQ:
+def add_jaxvals_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """Add two quantities using the ``jax.interpreters.ad.add_jaxvals_p``.
 
     Examples
@@ -340,15 +338,15 @@ def add_jaxvals_p_qq(x: ABCPQ, y: ABCPQ, /) -> ABCPQ:
     >>> import quaxed.numpy as jnp
     >>> import unxt as u
 
-    >>> q1 = u.PQ(1, "km")
-    >>> q2 = u.PQ(500.0, "m")
+    >>> q1 = u.Q(1, "km")
+    >>> q2 = u.Q(500.0, "m")
 
     >>> @jax.jit
     ... def f(x, y):
     ...     return add_jaxvals_p_qq(x, y)
 
     >>> f(q1, q2)
-    ParametricQuantity(Array(1.5, dtype=float32), unit='km')
+    Quantity(Array(1.5, dtype=float32), unit='km')
 
     """
     xv, yv = ustrip(x), ustrip(x.unit, y)
@@ -506,8 +504,8 @@ def argmin_p(
 def asin_p_aq(x: ABCQ) -> ABCQ:
     """Inverse sine of a quantity.
 
-    The result shares the input's namespace (a parametric ``ParametricQuantity`` input
-    yields a ``ParametricQuantity``), so a separate parametric registration is
+    The result shares the input's namespace (a parametric-quantity input
+    yields a parametric quantity), so a separate parametric registration is
     unnecessary.
 
     Examples
@@ -535,7 +533,7 @@ def asinh_p_aq(x: ABCQ) -> ABCQ:
     """Inverse hyperbolic sine of a quantity.
 
     The result shares the input's namespace, so a separate parametric
-    ``ParametricQuantity`` registration is unnecessary.
+    parametric-quantity registration is unnecessary.
 
     Examples
     --------
@@ -561,8 +559,8 @@ def asinh_p_aq(x: ABCQ) -> ABCQ:
 def atan2_p_aqaq(x: ABCQ, y: ABCQ) -> ABCQ:
     """Arctangent2 of two quantities.
 
-    The result shares the (promoted) first operand's namespace; a parametric
-    ``ParametricQuantity`` input yields a ``ParametricQuantity``, so a separate
+    The result shares the (promoted) first operand's namespace; a
+    parametric-quantity input yields a parametric quantity, so a separate
     parametric registration is unnecessary.
 
     Examples
@@ -581,7 +579,7 @@ def atan2_p_aqaq(x: ABCQ, y: ABCQ) -> ABCQ:
     Quantity(Array(0.32175055, dtype=float32...), unit='rad')
 
     """
-    x, y = promote(x, y)  # e.g. Distance -> ParametricQuantity
+    x, y = promote(x, y)  # e.g. Distance -> Quantity
     yv = ustrip(x.unit, y)
     return type_np(x)(lax.atan2(ustrip(x), yv), unit=radian)
 
@@ -593,7 +591,7 @@ def atan2_p_aqaq(x: ABCQ, y: ABCQ) -> ABCQ:
 def atan2_p_vaq(x: ArrayLike, y: ABCQ) -> ABCQ:
     """Arctangent2 of a value and a (dimensionless) quantity.
 
-    The result shares ``y``'s namespace, so a parametric ``ParametricQuantity``
+    The result shares ``y``'s namespace, so a separate parametric-quantity
     registration is unnecessary.
 
     Examples
@@ -622,7 +620,7 @@ def atan2_p_vaq(x: ArrayLike, y: ABCQ) -> ABCQ:
 def atan2_p_aqv(x: ABCQ, y: ArrayLike) -> ABCQ:
     """Arctangent2 of a (dimensionless) quantity and a value.
 
-    The result shares ``x``'s namespace, so a parametric ``ParametricQuantity``
+    The result shares ``x``'s namespace, so a separate parametric-quantity
     registration is unnecessary.
 
     Examples
@@ -652,7 +650,7 @@ def atan_p_aq(x: ABCQ) -> ABCQ:
     """Arctangent of a quantity.
 
     The result shares the input's namespace, so a separate parametric
-    ``ParametricQuantity`` registration is unnecessary.
+    parametric-quantity registration is unnecessary.
 
     Examples
     --------
@@ -678,7 +676,7 @@ def atanh_p_aq(x: ABCQ) -> ABCQ:
     """Inverse hyperbolic tangent of a quantity.
 
     The result shares the input's namespace, so a separate parametric
-    ``ParametricQuantity`` registration is unnecessary.
+    parametric-quantity registration is unnecessary.
 
     Examples
     --------
@@ -809,10 +807,10 @@ def cbrt_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Angle(8, "rad")
     >>> jnp.cbrt(q)
-    ParametricQuantity(Array(2., dtype=float32...), unit='rad(1/3)')
+    Quantity(Array(2., dtype=float32...), unit='rad(1/3)')
 
     """
-    return cbrt_p_q(convert(x, ParametricQuantity), **kw)
+    return cbrt_p_q(convert(x, Quantity), **kw)
 
 
 # ==============================================================================
@@ -928,30 +926,6 @@ def clamp_p_aqvaq(min: ABCQ, x: ArrayLike, max: ABCQ) -> ArrayLike:
 
 
 @quax.register(lax.clamp_p)
-def clamp_p_qvq(
-    min: ABCPQ["dimensionless"], x: ArrayLike, max: ABCPQ["dimensionless"]
-) -> ArrayLike:
-    """Clamp a value between two quantities.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-    >>> import quaxed.lax as lax
-
-    >>> min = u.Q(0, "")
-    >>> max = u.Q(2, "")
-    >>> x = jnp.asarray([-1, 1, 3])
-    >>> lax.clamp(min, x, max)
-    Array([0, 1, 2], dtype=int32)
-
-    """
-    return lax.clamp(ustrip(one, min), x, ustrip(one, max))
-
-
-# ---------------------------
-
-
-@quax.register(lax.clamp_p)
 def clamp_p_aqaqv(min: ABCQ, x: ABCQ, max: ArrayLike) -> ABCQ:
     """Clamp a quantity between a quantity and a value.
 
@@ -964,27 +938,6 @@ def clamp_p_aqaqv(min: ABCQ, x: ABCQ, max: ArrayLike) -> ABCQ:
     >>> min = u.quantity.Quantity(0, "")
     >>> max = jnp.asarray(2)
     >>> q = u.quantity.Quantity([-1, 1, 3], "")
-    >>> lax.clamp(min, q, max)
-    Quantity(Array([0, 1, 2], dtype=int32), unit='')
-
-    """
-    return replace(x, value=lax.clamp(ustrip(one, min), ustrip(one, x), max))
-
-
-@quax.register(lax.clamp_p)
-def clamp_p_qqv(
-    min: ABCPQ["dimensionless"], x: ABCPQ["dimensionless"], max: ArrayLike
-) -> ABCPQ["dimensionless"]:
-    """Clamp a quantity between a quantity and a value.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-    >>> import quaxed.lax as lax
-
-    >>> min = u.Q(0, "")
-    >>> max = jnp.asarray(2)
-    >>> q = u.Q([-1, 1, 3], "")
     >>> lax.clamp(min, q, max)
     Quantity(Array([0, 1, 2], dtype=int32), unit='')
 
@@ -1039,7 +992,7 @@ def complex_p(x: ABCQ, y: ABCQ) -> ABCQ:
     Quantity(Array(1.+2.j, dtype=complex64...), unit='m')
 
     """
-    x, y = promote(x, y)  # e.g. Distance -> ParametricQuantity
+    x, y = promote(x, y)  # e.g. Distance -> Quantity
     y_ = ustrip(x.unit, y)
     return replace(x, value=lax.complex(ustrip(x), y_))
 
@@ -1059,7 +1012,7 @@ def _combine_quantities(operands: tuple[Any, ...], combine: Any) -> ABCQ:
       its namespace), converting the others to it.
     - **Mixed with raw arrays:** the quantities must be dimensionless (raw
       arrays carry no unit), and the result is a dimensionless quantity sharing
-      the first quantity operand's namespace (or a plain ``ParametricQuantity`` when the
+      the first quantity operand's namespace (or a plain ``Quantity`` when the
       sequence starts with a raw array).
     """
     if all(isinstance(op, ABCQ) for op in operands):
@@ -1072,7 +1025,7 @@ def _combine_quantities(operands: tuple[Any, ...], combine: Any) -> ABCQ:
     first = operands[0]
     if isinstance(first, ABCQ):
         return type_np(first)(out, unit=one)
-    return ParametricQuantity(out, unit=one)
+    return Quantity(out, unit=one)
 
 
 @quax.register(lax.concatenate_p)
@@ -1143,11 +1096,9 @@ def concatenate_p_v(
     ...     ]
     ... )
     >>> Rx
-    ParametricQuantity(
-        Array([[ 1.        ,  0.        ,  0.        ],
-               [ 0.        ,  0.70710677, -0.70710677],
-               [ 0.        ,  0.70710677,  0.70710677]], dtype=float32), unit=''
-    )
+    Quantity(Array([[ 1.        ,  0.        ,  0.        ],
+                    [ 0.        ,  0.70710677, -0.70710677],
+                    [ 0.        ,  0.70710677,  0.70710677]], dtype=float32), unit='')
 
     """
     return _combine_quantities(
@@ -1216,7 +1167,7 @@ if hasattr(lax, "stack_p"):
         >>> arr = jnp.asarray([1.0, 2.0])
         >>> q = u.Q([0.5, 0.5], "")
         >>> jnp.stack([arr, q])
-        ParametricQuantity(Array([[1. , 2. ],
+        Quantity(Array([[1. , 2. ],
                         [0.5, 0.5]], dtype=float32), unit='')
 
         """
@@ -1320,7 +1271,7 @@ def cos_p_aq(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Cosine of a quantity.
 
     The result shares the input's namespace, so a separate parametric
-    ``ParametricQuantity`` registration is unnecessary.
+    parametric-quantity registration is unnecessary.
 
     Examples
     --------
@@ -1344,7 +1295,7 @@ def cos_p_aq(x: ABCQ, /, **kw: Any) -> ABCQ:
 
 
 @quax.register(lax.cos_p)
-def cos_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ParametricQuantity:
+def cos_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
     """Cosine of an Angle.
 
     Examples
@@ -1354,10 +1305,10 @@ def cos_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ParametricQuantity:
 
     >>> q = u.Angle(0, "deg")
     >>> jnp.cos(q)
-    ParametricQuantity(Array(1., dtype=float32...), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     """
-    return cos_p_aq(convert(x, ParametricQuantity), **kw)
+    return cos_p_aq(convert(x, Quantity), **kw)
 
 
 # ==============================================================================
@@ -1368,7 +1319,7 @@ def cosh_p_aq(x: ABCQ) -> ABCQ:
     """Hyperbolic cosine of a quantity.
 
     The result shares the input's namespace, so a separate parametric
-    ``ParametricQuantity`` registration is unnecessary.
+    parametric-quantity registration is unnecessary.
 
     Examples
     --------
@@ -1529,7 +1480,7 @@ def custom_linear_solve_q(
     """Handle linear solve Ax = b where A and b are Quantities.
 
     Returns a list [result] to match JAX primitive conventions.
-    This prevents Quax from trying to iterate over the ParametricQuantity result
+    This prevents Quax from trying to iterate over the quantity result
     (which would cause tracer leaks in vectorized/JIT contexts).
 
     For linear solve Ax = b, the result x has units b/A.
@@ -1571,7 +1522,7 @@ def custom_linear_solve_q_array_arg6(
     /,
     **kw: Any,
 ) -> Any:
-    """Handle case where x6 is a plain Array instead of a ParametricQuantity.
+    """Handle case where x6 is a plain Array instead of a quantity.
 
     If x6 (the RHS) is a plain array, treat it as dimensionless.
     Returns a list [result] to match JAX primitive conventions.
@@ -1937,7 +1888,7 @@ def div_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 # TODO: can this be done with promotion/conversion/default rule instead?
 @quax.register(lax.div_p)
 def div_p_a(x: AbstractAngle, y: AbstractAngle, /) -> ABCQ:
-    """Division of a ParametricQuantity by an Angle.
+    """Division of an Angle by an Angle.
 
     Examples
     --------
@@ -1951,7 +1902,7 @@ def div_p_a(x: AbstractAngle, y: AbstractAngle, /) -> ABCQ:
 
     """
     x, y = promote(x, y)
-    return div_p_qq(convert(x, ParametricQuantity), convert(y, ParametricQuantity))
+    return div_p_qq(convert(x, Quantity), convert(y, Quantity))
 
 
 # ==============================================================================
@@ -2064,7 +2015,7 @@ def dot_general_qq(lhs: ABCQ, rhs: ABCQ, /, **kw: Any) -> ABCQ:
 @quax.register(lax.dot_general_p)
 def dot_general_abstractangle_abstractangle(
     lhs: AbstractAngle, rhs: AbstractAngle, /, **kwargs: Any
-) -> ParametricQuantity:
+) -> Quantity:
     """Dot product of two Angles.
 
     Examples
@@ -2075,14 +2026,14 @@ def dot_general_abstractangle_abstractangle(
     >>> q1 = u.Angle([1, 2, 3], "deg")
     >>> q2 = u.Angle([4, 5, 6], "deg")
     >>> jnp.vecdot(q1, q2)
-    ParametricQuantity(Array(32, dtype=int32), unit='deg2')
+    Quantity(Array(32, dtype=int32), unit='deg2')
 
     >>> q1 @ q2
-    ParametricQuantity(Array(32, dtype=int32), unit='deg2')
+    Quantity(Array(32, dtype=int32), unit='deg2')
 
     """
     value = lax.dot_general_p.bind(lhs.value, rhs.value, **kwargs)
-    return ParametricQuantity(value, unit=lhs.unit * rhs.unit)
+    return Quantity(value, unit=lhs.unit * rhs.unit)
 
 
 # ==============================================================================
@@ -2839,10 +2790,10 @@ def integer_pow_p_abstractangle(x: AbstractAngle, /, *, y: Any) -> ABCQ:
     >>> q = u.Angle(2, "deg")
 
     >>> q**3
-    ParametricQuantity(Array(8, dtype=int32...), unit='deg3')
+    Quantity(Array(8, dtype=int32...), unit='deg3')
 
     """
-    return integer_pow_p(convert(x, ParametricQuantity), y=y)
+    return integer_pow_p(convert(x, Quantity), y=y)
 
 
 # ==============================================================================
@@ -3202,7 +3153,7 @@ def lt_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
 @quax.register(lax.lt_p)
 def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
-    """Compare a unitless ParametricQuantity to a value.
+    """Compare a unitless quantity to a value.
 
     Examples
     --------
@@ -3715,7 +3666,7 @@ def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
 
 # @quax.register(lax.ne_p)
-# def ne_p_qv(x: ABCPQ, y: ArrayLike) -> ArrayLike:
+# def ne_p_qv(x: ABCQ, y: ArrayLike) -> ArrayLike:
 #     return lax.
 
 
@@ -3995,49 +3946,6 @@ def population_count_p(x: ABCQ, /) -> ABCQ:
 
 
 @quax.register(lax.pow_p)
-def pow_p_qq(x: ABCQ, y: ABCPQ["dimensionless"], /) -> ABCQ:
-    """Power of a quantity.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-    >>> import unxt as u
-
-    The exponent must be a (dimensionless) parametric quantity to select this
-    registration:
-
-    >>> q1 = u.quantity.Quantity(2.0, "m")
-    >>> p = u.PQ(3, "")
-    >>> jnp.power(q1, p)
-    Quantity(Array(8., dtype=float32...), unit='m3')
-    >>> q1**p
-    Quantity(Array(8., dtype=float32...), unit='m3')
-
-    >>> q1 = u.Q(2.0, "m")
-    >>> jnp.power(q1, p)
-    Quantity(Array(8., dtype=float32...), unit='m3')
-    >>> q1**p
-    Quantity(Array(8., dtype=float32...), unit='m3')
-
-    Non-scalar exponents raise a ValueError:
-
-    >>> p_arr = u.PQ([3, 2], "")
-    >>> try:
-    ...     q1**p_arr
-    ... except ValueError as e:
-    ...     print(e)
-    Exponent must be a scalar.
-
-    """
-    yv = ustrip(one, y)
-    y0 = yv[()]
-    if y0.ndim != 0:
-        msg = "Exponent must be a scalar."
-        raise ValueError(msg)
-    return type_np(x)(value=lax.pow(ustrip(x), y0), unit=x.unit**y0)
-
-
-@quax.register(lax.pow_p)
 def pow_p_qf(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Power of a quantity.
 
@@ -4064,32 +3972,13 @@ def pow_p_qf(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
 
 @quax.register(lax.pow_p)
-def pow_p_vq(x: ArrayLike, y: ABCPQ["dimensionless"], /) -> ABCQ:
-    """Array raised to a quantity.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-    >>> import unxt as u
-
-    >>> x = jnp.array([2.0])
-    >>> p = u.PQ(3, "")
-    >>> jnp.power(x, p)
-    ParametricQuantity(Array([8.], dtype=float32), unit='')
-
-    """
-    return replace(y, value=lax.pow(x, ustrip(y)))
-
-
-@quax.register(lax.pow_p)
 def pow_p_q_bareq(x: ABCQ, y: Quantity, /) -> ABCQ:
-    """Power of a quantity by a bare (non-parametric) dimensionless quantity.
+    """Power of a quantity by a dimensionless quantity exponent.
 
     The exponent must be dimensionless; a dimensionful exponent raises
-    ``UnitConversionError`` at trace time via ``ustrip("", y)``. This mirrors
-    :func:`pow_p_qq` (which requires a *parametric* dimensionless exponent) so
-    that the lightweight default :class:`~unxt.Quantity` works as an exponent
-    everywhere :class:`~unxt.ParametricQuantity` does.
+    ``UnitConversionError`` at trace time via ``ustrip("", y)``. This handles
+    the default :class:`~unxt.Quantity` exponent; the parametric-exponent case
+    is registered by the ``unxts.parametric`` package.
 
     Examples
     --------
@@ -4123,10 +4012,10 @@ def pow_p_q_bareq(x: ABCQ, y: Quantity, /) -> ABCQ:
 
 @quax.register(lax.pow_p)
 def pow_p_v_bareq(x: ArrayLike, y: Quantity, /) -> ABCQ:
-    """Array raised to a bare (non-parametric) dimensionless quantity.
+    """Array raised to a dimensionless quantity exponent.
 
-    Mirrors :func:`pow_p_vq` for the lightweight default
-    :class:`~unxt.Quantity` exponent.
+    Handles the default :class:`~unxt.Quantity` exponent; the
+    parametric-exponent case is registered by the ``unxts.parametric`` package.
 
     Examples
     --------
@@ -4144,7 +4033,7 @@ def pow_p_v_bareq(x: ArrayLike, y: Quantity, /) -> ABCQ:
 
 @quax.register(lax.pow_p)
 def pow_p_abstractangle_arraylike(x: AbstractAngle, y: ArrayLike, /) -> ABCQ:
-    """Power of an Angle by redispatching to ParametricQuantity.
+    """Power of an Angle by redispatching to Quantity.
 
     Examples
     --------
@@ -4154,10 +4043,10 @@ def pow_p_abstractangle_arraylike(x: AbstractAngle, y: ArrayLike, /) -> ABCQ:
     >>> q1 = u.Angle(10.0, "deg")
     >>> y = 3.0
     >>> q1**y
-    ParametricQuantity(Array(1000., dtype=float32...), unit='deg3')
+    Quantity(Array(1000., dtype=float32...), unit='deg3')
 
     """
-    return pow_p_qf(convert(x, ParametricQuantity), y)
+    return pow_p_qf(convert(x, Quantity), y)
 
 
 # ==============================================================================
@@ -4353,26 +4242,6 @@ def rem_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 
 
 @quax.register(lax.rem_p)
-def rem_p_uqv(
-    x: ParametricQuantity["dimensionless"], y: ArrayLike, /
-) -> ParametricQuantity["dimensionless"]:
-    """Remainder of two quantities.
-
-    Examples
-    --------
-    >>> import jax.numpy as jnp
-    >>> from unxt import ParametricQuantity
-
-    >>> q1 = u.Q(10, "")
-    >>> q2 = jnp.array(3)
-    >>> q1 % q2
-    Quantity(Array(1, dtype=int32...), unit='')
-
-    """
-    return replace(x, value=ustrip(x) % y)
-
-
-@quax.register(lax.rem_p)
 def rem_p_qv(x: Quantity, y: ArrayLike, /) -> Quantity:
     """Remainder for a non-parametric dimensionless quantity and an array.
 
@@ -4553,11 +4422,11 @@ def scatter_add_p_qvq(
 def scatter_add_p_vvq(
     operand: ArrayLike, scatter_indices: ArrayLike, updates: ABCQ, /, **kw: Any
 ) -> ABCQ:
-    """Scatter-add operator between an Array and a ParametricQuantity.
+    """Scatter-add operator between an Array and a quantity.
 
-    This is an interesting case where the ParametricQuantity is the `updates`
+    This is an interesting case where the quantity is the `updates`
     and the Array is the `operand`. For some reason when doing a ``scatter_add``
-    between two ParametricQuantity objects an intermediate Array operand is
+    between two quantity objects an intermediate Array operand is
     created. Therefore we need to pretend that the Array has the same units as
     the `updates`.
 
@@ -4579,7 +4448,7 @@ def select_n_p_q(which: ABCQ, /, *cases: ABCQ | ArrayLike) -> ABCQ | ArrayLike:
     (per the Array API). Such a selector must behave exactly like a raw-array
     one, so strip it and re-dispatch through ``qlax.select_n``: this single
     registration covers every combination of quantity / raw-array cases, and
-    the result follows the *cases'* namespace (``ParametricQuantity``, ``Angle``,
+    the result follows the *cases'* namespace (``Quantity``, ``Angle``,
     ``StaticQuantity``, or a raw array when all cases are arrays) -- handled
     uniformly by the array-selector registrations below. Requiring ``which`` to
     be a quantity keeps this from pirating an all-array ``select_n``.
@@ -4728,14 +4597,14 @@ def select_n_p_jqq(which: ArrayLike, /, *cases: ABCQ) -> ABCQ:
 
     """
     # Promote all cases to a common type
-    # (e.g., StaticQuantity + ParametricQuantity -> ParametricQuantity)
+    # (e.g., StaticQuantity + Quantity -> Quantity)
     cases = promote(*cases)
     u = unit_of(cases[0])
     dtypes = tuple(case.dtype for case in cases)
     casesv = promote_dtypes_if_needed(dtypes, *(ustrip(u, case) for case in cases))
 
     # If result is a JAX array but promoted type is StaticQuantity, use
-    # ParametricQuantity
+    # Quantity
     return replace(cases[0], value=lax.select_n(which, *casesv))
 
 
@@ -5229,10 +5098,10 @@ def tan_p_abstractangle(x: AbstractAngle, /, **kw: Any) -> ABCQ:
 
     >>> q = u.Angle(45, "deg")
     >>> jnp.tan(q)
-    ParametricQuantity(Array(1., dtype=float32...), unit='')
+    Quantity(Array(1., dtype=float32...), unit='')
 
     """
-    return tan_p(convert(x, ParametricQuantity), **kw)
+    return tan_p(convert(x, Quantity), **kw)
 
 
 # ==============================================================================

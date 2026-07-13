@@ -11,8 +11,11 @@ from jaxtyping import Array, Shaped
 from plum import add_promotion_rule, parametric
 
 from .base_parametric import AbstractParametricQuantity
-from .quantity import Quantity
-from .value import StaticValue, convert_to_quantity_value
+from unxt.quantity import (
+    Quantity,
+    StaticValue,
+    convert_to_quantity_value,
+)
 from unxt.units import AbstractUnit, unit as parse_unit
 
 
@@ -33,54 +36,55 @@ class ParametricQuantity(AbstractParametricQuantity):
     Examples
     --------
     >>> import unxt as u
+    >>> import unxts.parametric as up
 
     From an integer:
 
-    >>> u.PQ(1, "m")
+    >>> up.PQ(1, "m")
     ParametricQuantity(Array(1, dtype=int32...), unit='m')
 
     From a float:
 
-    >>> u.PQ(1.0, "m")
+    >>> up.PQ(1.0, "m")
     ParametricQuantity(Array(1., dtype=float32...), unit='m')
 
     From a list:
 
-    >>> u.PQ([1, 2, 3], "m")
+    >>> up.PQ([1, 2, 3], "m")
     ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a tuple:
 
-    >>> u.PQ((1, 2, 3), "m")
+    >>> up.PQ((1, 2, 3), "m")
     ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a `numpy.ndarray`:
 
     >>> import numpy as np
-    >>> u.PQ(np.array([1, 2, 3]), "m")
+    >>> up.PQ(np.array([1, 2, 3]), "m")
     ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     From a `jax.Array`:
 
     >>> import jax.numpy as jnp
-    >>> u.PQ(jnp.array([1, 2, 3]), "m")
+    >>> up.PQ(jnp.array([1, 2, 3]), "m")
     ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
 
     The unit can also be given as a units object:
 
-    >>> u.PQ(1, u.unit("m"))
+    >>> up.PQ(1, u.unit("m"))
     ParametricQuantity(Array(1, dtype=int32...), unit='m')
 
     In the previous examples, the dimension parameter was inferred from the
     values. It can also be given explicitly:
 
-    >>> u.PQ["length"](1, "m")
+    >>> up.PQ["length"](1, "m")
     ParametricQuantity(Array(1, dtype=int32...), unit='m')
 
     This can be used for runtime checking of the input dimension!
 
     >>> try:
-    ...     u.PQ["length"](1, "s")
+    ...     up.PQ["length"](1, "s")
     ... except Exception as e:
     ...     print(e)
     Physical type mismatch.
@@ -90,12 +94,12 @@ class ParametricQuantity(AbstractParametricQuantity):
     >>> dims = u.dimension("length")
     >>> dims
     PhysicalType('length')
-    >>> u.PQ[dims](1.0, "m")
+    >>> up.PQ[dims](1.0, "m")
     ParametricQuantity(Array(1., dtype=float32...), unit='m')
 
     Or as a unit:
 
-    >>> u.PQ[u.unit("m")](1.0, "m")
+    >>> up.PQ[u.unit("m")](1.0, "m")
     ParametricQuantity(Array(1., dtype=float32...), unit='m')
 
     Some tricky cases are when the physical type is unknown:
@@ -107,7 +111,7 @@ class ParametricQuantity(AbstractParametricQuantity):
     The dimension can be given as a string in all cases, but is necessary when
     the physical type is unknown:
 
-    >>> print(u.PQ["m2 kg-1 s-2"](1.0, unit))  # to show the [dim]
+    >>> print(up.PQ["m2 kg-1 s-2"](1.0, unit))  # to show the [dim]
     ParametricQuantity['m2 kg-1 s-2'](1., unit='m2 / (kg s2)')
 
     """
@@ -135,17 +139,18 @@ class ParametricQuantity(AbstractParametricQuantity):
         --------
         >>> import numpy as np
         >>> import unxt as u
+        >>> import unxts.parametric as up
 
         A ``ParametricQuantity`` backed by a `StaticValue` is hashable:
 
         >>> sv = u.quantity.StaticValue(np.array([1.0, 2.0]))
-        >>> isinstance(hash(u.PQ(sv, "m")), int)
+        >>> isinstance(hash(up.PQ(sv, "m")), int)
         True
 
         A normal ``ParametricQuantity`` (JAX array value) is not:
 
         >>> try:
-        ...     hash(u.PQ([1.0, 2.0], "m"))
+        ...     hash(up.PQ([1.0, 2.0], "m"))
         ... except TypeError as e:
         ...     print(e)
         unhashable type: 'jaxlib...ArrayImpl'

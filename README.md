@@ -212,7 +212,7 @@ print(usys["mass"])
 
 Quantities combine values with units, providing type-safe unitful arithmetic.
 
-`Quantity` (`u.Q`) is the lightweight, non-parametric default: a single class — and a single JAX pytree type — for all physical dimensions. `ParametricQuantity` (`u.PQ`) adds runtime dimension checking and dimension-specific `plum` dispatch by encoding each dimension in its own on-the-fly class (and pytree type), which grows the type/dispatch surface and adds per-construction overhead. (This is not about `jax.jit` cache misses: the `unit` is static, so a jitted function specializes per unit with either class — that part is inherent.) See the [Quantity guide](https://unxt.readthedocs.io/en/latest/guides/quantity.html) for full details; upgrading from an earlier version? See the [migration guide](https://unxt.readthedocs.io/en/latest/migration.html).
+`Quantity` (`u.Q`) is the lightweight, non-parametric default: a single class — and a single JAX pytree type — for all physical dimensions. `ParametricQuantity` (`up.PQ`) adds runtime dimension checking and dimension-specific `plum` dispatch by encoding each dimension in its own on-the-fly class (and pytree type), which grows the type/dispatch surface and adds per-construction overhead. (This is not about `jax.jit` cache misses: the `unit` is static, so a jitted function specializes per unit with either class — that part is inherent.) See the [Quantity guide](https://unxt.readthedocs.io/en/latest/guides/quantity.html) for full details; upgrading from an earlier version? See the [migration guide](https://unxt.readthedocs.io/en/latest/migration.html).
 
 #### Basic Quantities
 
@@ -272,10 +272,12 @@ print(x.uconvert("m"))  # via method
 # Quantity([1000., 2000., 3000., 4000.], unit='m')
 ```
 
-`ParametricQuantity` (`u.PQ`) adds runtime dimension checking on construction. Use `u.PQ["length"]` to create a parametric type that raises if the unit's physical type does not match:
+`ParametricQuantity` — from the separate `unxts.parametric` package (`pip install unxts.parametric`, imported below as `up`) — adds runtime dimension checking on construction. Use `up.PQ["length"]` to create a parametric type that raises if the unit's physical type does not match:
 
 ```python
-LengthQuantity = u.PQ["length"]
+import unxts.parametric as up
+
+LengthQuantity = up.PQ["length"]
 print(LengthQuantity(2, "km"))
 # ParametricQuantity['length'](2, unit='km')
 
@@ -286,7 +288,7 @@ except ValueError as e:
 # Physical type mismatch.
 ```
 
-Note: the default `u.Q["length"]` accepts the subscript but does **not** check dimensions — `u.Q["length"](2, "s")` silently returns `Quantity(Array(2, ...), unit='s')`. Use `u.PQ["length"]` when you need the runtime guard.
+Note: the default `u.Q["length"]` accepts the subscript but does **not** check dimensions — `u.Q["length"](2, "s")` silently returns `Quantity(Array(2, ...), unit='s')`. Use `up.PQ["length"]` when you need the runtime guard. See the [`unxts.parametric` guide](https://unxt.readthedocs.io/en/latest/packages/unxts.parametric/index.html) for the full API.
 
 #### Quantity
 

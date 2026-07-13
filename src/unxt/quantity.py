@@ -120,8 +120,6 @@ __all__ = (
     # Core
     "Quantity",
     "Q",  # convenience alias
-    "ParametricQuantity",
-    "PQ",  # convenience alias
     "StaticQuantity",
     "StaticValue",
     # Base
@@ -129,8 +127,6 @@ __all__ = (
     # Angles
     "AbstractAngle",
     "Angle",
-    # Base Parametric
-    "AbstractParametricQuantity",
     # Functional
     "uconvert_value",
     "uconvert",
@@ -149,13 +145,10 @@ from .setup_package import install_import_hook
 
 with install_import_hook("unxt.quantity"):
     from ._src.quantity import (
-        PQ,
         AbstractAngle,
-        AbstractParametricQuantity,
         AbstractQuantity,
         AllowValue,
         Angle,
-        ParametricQuantity,
         Q,
         Quantity,
         StaticQuantity,
@@ -170,7 +163,17 @@ with install_import_hook("unxt.quantity"):
 del install_import_hook
 
 
+_MOVED_TO_PARAMETRIC = {"ParametricQuantity", "PQ", "AbstractParametricQuantity"}
+
+
 def __getattr__(name: str) -> object:
+    if name in _MOVED_TO_PARAMETRIC:
+        msg = (
+            f"`{name}` moved to the `unxts.parametric` package. Install it "
+            "(`pip install unxts.parametric`) and use "
+            f"`from unxts.parametric import {name}`."
+        )
+        raise AttributeError(msg)
     if name == "BareQuantity":
         import warnings  # noqa: PLC0415
 

@@ -4,7 +4,13 @@ TOML configuration is discovered automatically from ``pyproject.toml`` at import
 time.
 """
 
-__all__ = ("config", "UnxtConfig", "QuantityReprConfig", "QuantityStrConfig")
+__all__ = (
+    "AbstractUnxtConfig",
+    "QuantityReprConfig",
+    "QuantityStrConfig",
+    "UnxtConfig",
+    "config",
+)
 
 import contextlib
 import threading
@@ -68,7 +74,7 @@ class _NestedConfigContext:
 # Quantity `__repr__`
 
 QUANTITY_REPR_CONFIG_KEYS: Final = frozenset(
-    {"short_arrays", "use_short_name", "named_unit", "include_params", "indent"}
+    {"short_arrays", "use_short_name", "named_unit", "indent"}
 )
 
 
@@ -77,7 +83,8 @@ class QuantityReprConfig(LocalConfigurable):
 
     This controls how quantity objects are displayed in ``repr()``. It is
     consumed by ``AbstractQuantity.__repr__`` and so applies to every quantity
-    class, including the default ``Quantity`` and ``ParametricQuantity``.
+    class, including the default ``Quantity`` (and ``ParametricQuantity`` from
+    the ``unxts.parametric`` package).
 
     Attributes
     ----------
@@ -94,9 +101,6 @@ class QuantityReprConfig(LocalConfigurable):
         If `True`, display unit as a named argument `unit='m'`.
         If `False`, display unit as a positional argument `'m'`.
         Default: `True`
-    include_params : bool
-        If `True`, include type parameters in repr for parametric quantities.
-        If `False`, omit type parameters from repr. Default: `False`
 
     Examples
     --------
@@ -134,11 +138,6 @@ class QuantityReprConfig(LocalConfigurable):
     named_unit: ClassVar[object] = Bool(
         default_value=True,
         help="Display unit as named argument (unit='m') vs positional ('m')",
-    ).tag(config=True)
-
-    include_params: ClassVar[object] = Bool(
-        default_value=False,
-        help="Include type parameters in repr for parametric quantities",
     ).tag(config=True)
 
     indent: ClassVar[object] = Int(
@@ -263,7 +262,7 @@ class QuantityReprConfig(LocalConfigurable):
 # Quantity `__str__`
 
 QUANTITY_STR_CONFIG_KEYS: Final = frozenset(
-    {"short_arrays", "use_short_name", "named_unit", "indent", "include_params"}
+    {"short_arrays", "use_short_name", "named_unit", "indent"}
 )
 
 UNXT_OVERRIDE_CONFIG_KEYS: Final = {
@@ -277,7 +276,8 @@ class QuantityStrConfig(LocalConfigurable):
 
     This controls how quantity objects are displayed in ``str()``. It is
     consumed by ``AbstractQuantity.__str__`` and so applies to every quantity
-    class, including the default ``Quantity`` and ``ParametricQuantity``.
+    class, including the default ``Quantity`` (and ``ParametricQuantity`` from
+    the ``unxts.parametric`` package).
 
     Attributes
     ----------
@@ -294,9 +294,6 @@ class QuantityStrConfig(LocalConfigurable):
         If True, display unit as a named argument `unit='m'`.
         If False, display unit as a positional argument `'m'`.
         Default: True
-    include_params : bool
-        If True, include type parameters in str for parametric quantities.
-        If False, omit type parameters from str. Default: `True`
     indent : int
         Indentation width for nested structures in str representation.
         Default: 4
@@ -304,9 +301,7 @@ class QuantityStrConfig(LocalConfigurable):
     Examples
     --------
     >>> import unxt as u
-    >>> with u.config.quantity_str.override(
-    ...     short_arrays=True, use_short_name=True, include_params=False
-    ... ):
+    >>> with u.config.quantity_str.override(short_arrays=True, use_short_name=True):
     ...     q = u.Q([1, 2, 3], "m")
     ...     print(str(q))
     Q(i32[3], unit='m')
@@ -340,11 +335,6 @@ class QuantityStrConfig(LocalConfigurable):
     named_unit: ClassVar[object] = Bool(
         default_value=True,
         help="Display unit as named argument (unit='m') vs positional ('m')",
-    ).tag(config=True)
-
-    include_params: ClassVar[object] = Bool(
-        default_value=True,
-        help="Include type parameters in str for parametric quantities",
     ).tag(config=True)
 
     indent: ClassVar[object] = Int(
@@ -441,7 +431,75 @@ class QuantityStrConfig(LocalConfigurable):
 # Unxt configuration
 
 
-class UnxtConfig(SingletonConfigurable):
+class AbstractUnxtConfig:
+    """Mixin for hierarchical, unxt-style config singletons.
+
+    A concrete config inherits this alongside
+    :class:`~traitlets.config.SingletonConfigurable`, declares the sections it
+    accepts via ``_override_config_keys`` (``{section name: valid option
+    names}``), and creates its nested config objects in ``__init__``. This mixin
+    provides the shared top-level ``override()`` context manager, so packages
+    that mirror this config (e.g. ``unxts.parametric``) can reuse the same
+    machinery -- their singletons are accepted by :class:`_ConfigContext`
+    without reimplementation.
+
+    It is a plain mixin (not itself a ``SingletonConfigurable``) so that each
+    concrete config keeps its own independent singleton instance.
+    """
+
+    # {section_name: frozenset of valid option names}; set by subclasses.
+    _override_config_keys: ClassVar[dict[str, frozenset[str]]] = {}
+
+    def override(self, **kwargs: Any) -> "_ConfigContext":
+        """Create a context manager for temporary config changes.
+
+        Use double-underscore notation for nested configs, e.g.
+        ``quantity_repr__short_arrays="compact"``.
+
+        Raises
+        ------
+        ValueError
+            If an unknown configuration option is provided.
+
+        """
+        # Parse nested config overrides (e.g., quantity_repr__short_arrays)
+        parsed_overrides: dict[str, dict[str, Any]] = {}
+        for key, value in kwargs.items():
+            if "__" in key:
+                config_name, attr_name = key.split("__", 1)
+                if config_name not in self._override_config_keys:
+                    valid_configs = ", ".join(sorted(self._override_config_keys))
+                    msg = (
+                        "Unknown config section "
+                        f"'{config_name}' in override key '{key}'. "
+                        f"Valid sections are: {valid_configs}"
+                    )
+                    raise ValueError(msg)
+
+                valid_attrs = self._override_config_keys[config_name]
+                if attr_name not in valid_attrs:
+                    valid_options = ", ".join(sorted(valid_attrs))
+                    msg = (
+                        "Unknown option "
+                        f"'{attr_name}' for config section '{config_name}' "
+                        f"in override key '{key}'. Valid options are: {valid_options}"
+                    )
+                    raise ValueError(msg)
+
+                if config_name not in parsed_overrides:
+                    parsed_overrides[config_name] = {}
+                parsed_overrides[config_name][attr_name] = value
+            else:
+                msg = (
+                    f"Config override '{key}' must use double-underscore notation "
+                    "(e.g., 'quantity_repr__short_arrays')"
+                )
+                raise ValueError(msg)
+
+        return _ConfigContext(self, parsed_overrides)
+
+
+class UnxtConfig(AbstractUnxtConfig, SingletonConfigurable):
     """Configuration for unxt display and printing options.
 
     This is a singleton configuration object that controls how quantities
@@ -488,6 +546,9 @@ class UnxtConfig(SingletonConfigurable):
 
     # Configurable classes that are part of this config hierarchy
     classes: ClassVar[list[type]] = [QuantityReprConfig, QuantityStrConfig]
+    _override_config_keys: ClassVar[dict[str, frozenset[str]]] = (
+        UNXT_OVERRIDE_CONFIG_KEYS
+    )
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize UnxtConfig with nested config instances."""
@@ -495,76 +556,6 @@ class UnxtConfig(SingletonConfigurable):
         # Initialize child configs with parent config for inheritance
         self.quantity_repr = QuantityReprConfig(config=self.config, parent=self)
         self.quantity_str = QuantityStrConfig(config=self.config, parent=self)
-
-    def override(self, **kwargs: Any) -> "_ConfigContext":
-        """Create a context manager for temporary config changes.
-
-        Parameters
-        ----------
-        **kwargs
-            Configuration options to set temporarily. Use double-underscore
-            notation for nested configs, e.g., quantity_repr__short_arrays="compact".
-
-        Returns
-        -------
-        _ConfigContext
-            A context manager that applies the config changes on entry
-            and restores previous values on exit.
-
-        Raises
-        ------
-        ValueError
-            If an unknown configuration option is provided.
-
-        Examples
-        --------
-        >>> import unxt as u
-        >>> with u.config.override(quantity_repr__short_arrays=True):
-        ...     q = u.Q([1.0, 2.0, 3.0], "m")
-        ...     print(repr(q))  # Uses compact display
-        Quantity(f32[3], unit='m')
-
-        Config restored to previous value
-
-        >>> print(repr(q))
-        Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
-
-        """
-        # Parse nested config overrides (e.g., quantity_repr__short_arrays)
-        parsed_overrides: dict[str, dict[str, Any]] = {}
-        for key, value in kwargs.items():
-            if "__" in key:
-                config_name, attr_name = key.split("__", 1)
-                if config_name not in UNXT_OVERRIDE_CONFIG_KEYS:
-                    valid_configs = ", ".join(sorted(UNXT_OVERRIDE_CONFIG_KEYS))
-                    msg = (
-                        "Unknown config section "
-                        f"'{config_name}' in override key '{key}'. "
-                        f"Valid sections are: {valid_configs}"
-                    )
-                    raise ValueError(msg)
-
-                valid_attrs = UNXT_OVERRIDE_CONFIG_KEYS[config_name]
-                if attr_name not in valid_attrs:
-                    valid_options = ", ".join(sorted(valid_attrs))
-                    msg = (
-                        "Unknown option "
-                        f"'{attr_name}' for config section '{config_name}' "
-                        f"in override key '{key}'. Valid options are: {valid_options}"
-                    )
-                    raise ValueError(msg)
-
-                if config_name not in parsed_overrides:
-                    parsed_overrides[config_name] = {}
-                parsed_overrides[config_name][attr_name] = value
-            else:
-                msg = (
-                    f"Config override '{key}' must use double-underscore notation "
-                    "(e.g., 'quantity_repr__short_arrays')"
-                )
-                raise ValueError(msg)
-
-        return _ConfigContext(self, parsed_overrides)
 
 
 @dataclass(slots=True)
@@ -575,11 +566,11 @@ class _ConfigContext:
     `config.override(**kwargs)` to create a context manager.
     """
 
-    config: UnxtConfig
+    config: AbstractUnxtConfig
     overrides: dict[str, dict[str, Any]]  # {config_name: {attr: value}}
     _stack: contextlib.ExitStack = field(init=False, repr=False)
 
-    def __enter__(self) -> UnxtConfig:
+    def __enter__(self) -> AbstractUnxtConfig:
         """Enter context, applying thread-local config overrides."""
         self._stack = contextlib.ExitStack()
         for config_name, attrs in self.overrides.items():
@@ -617,7 +608,10 @@ _TOML_PATH_TO_CONFIG_CLASS: Final = {
 
 
 def _walk_toml_config(
-    data: dict[str, Any], path: tuple[str, ...] = ()
+    data: dict[str, Any],
+    path: tuple[str, ...] = (),
+    *,
+    path_to_class: dict[tuple[str, ...], str] | None = None,
 ) -> dict[str, Config]:
     r"""Walk nested TOML dict and build Config objects for known paths.
 
@@ -630,6 +624,9 @@ def _walk_toml_config(
         Nested dictionary from parsed TOML (e.g., tool.unxt section)
     path : tuple of str
         Current path in the nested structure (e.g., ("quantity", "repr"))
+    path_to_class : dict
+        Mapping from TOML sub-path to Config class name. Defaults to unxt's
+        own mapping; other packages (e.g. ``unxts.parametric``) pass their own.
 
     Returns
     -------
@@ -648,26 +645,37 @@ def _walk_toml_config(
     True
 
     """
+    if path_to_class is None:
+        path_to_class = _TOML_PATH_TO_CONFIG_CLASS
+
     result: dict[str, Config] = {}
 
     for key, value in data.items():
         current_path = (*path, key)
 
         # Check if this path maps to a known Config class
-        if current_path in _TOML_PATH_TO_CONFIG_CLASS:
-            config_class_name = _TOML_PATH_TO_CONFIG_CLASS[current_path]
+        if current_path in path_to_class:
+            config_class_name = path_to_class[current_path]
             if isinstance(value, dict):
                 result[config_class_name] = Config(value)
         elif isinstance(value, dict):
             # Continue walking nested dicts
-            nested_result = _walk_toml_config(value, current_path)
+            nested_result = _walk_toml_config(
+                value, current_path, path_to_class=path_to_class
+            )
             result.update(nested_result)
 
     return result
 
 
-def _load_toml_config_from_pyproject(path: Path, /) -> Config:
-    """Load ``[tool.unxt]`` section from a ``pyproject.toml`` file.
+def _load_toml_config_from_pyproject(
+    path: Path,
+    /,
+    *,
+    tool_path: tuple[str, ...] = ("unxt",),
+    path_to_class: dict[tuple[str, ...], str] | None = None,
+) -> Config:
+    """Load a ``[tool.<...>]`` section from a ``pyproject.toml`` file.
 
     Supports both nested sections and dotted keys:
 
@@ -687,6 +695,12 @@ def _load_toml_config_from_pyproject(path: Path, /) -> Config:
     ----------
     path : Path
         Path to pyproject.toml file
+    tool_path : tuple of str
+        Keys under ``[tool]`` to navigate into (e.g. ``("unxt",)`` or
+        ``("unxts", "parametric")``). Defaults to unxt's own section.
+    path_to_class : dict
+        Mapping from TOML sub-path to Config class name (passed through to
+        :func:`_walk_toml_config`).
 
     Returns
     -------
@@ -694,20 +708,23 @@ def _load_toml_config_from_pyproject(path: Path, /) -> Config:
         Traitlets Config object with nested configuration
 
     """
+    if path_to_class is None:
+        path_to_class = _TOML_PATH_TO_CONFIG_CLASS
+
     with path.open("rb") as f:
         data = tomllib.load(f)
 
-    # Navigate to tool.unxt section
-    tool = data.get("tool")
-    if not isinstance(tool, dict):
-        return Config()
-
-    unxt_cfg = tool.get("unxt")
-    if not isinstance(unxt_cfg, dict):
+    # Navigate to the tool.<tool_path> section
+    section: Any = data.get("tool")
+    for key in tool_path:
+        if not isinstance(section, dict):
+            return Config()
+        section = section.get(key)
+    if not isinstance(section, dict):
         return Config()
 
     # Walk the nested structure and build Config objects
-    config_dict = _walk_toml_config(unxt_cfg)
+    config_dict = _walk_toml_config(section, path_to_class=path_to_class)
 
     # Build final Config object
     config = Config()  # pylint: disable=redefined-outer-name
