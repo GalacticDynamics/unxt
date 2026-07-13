@@ -111,7 +111,7 @@ Now let's explore how `dataclassish` works with quantities. We'll examine differ
 
 ### Basic Quantity
 
-The default `Quantity` type is the lightweight, non-parametric quantity.
+The default `Quantity` type is the lightweight class wrapping unit information with a value.
 
 ```python
 # Create a quantity
@@ -150,27 +150,6 @@ print(f"get_field(distance, 'value'): {value_field}")
 
 unit_field = dc.get_field(distance, "unit")
 print(f"get_field(distance, 'unit'): {unit_field}")
-```
-
-### Quantity (lightweight, no dimension checking)
-
-```python
-# Quantity is a lightweight alternative without dimension checking
-bare_qty = u.quantity.Quantity(5.0, "km")
-print(f"Quantity: {bare_qty}")
-print(f"Type: {type(bare_qty)}")
-
-# All dataclassish functions work the same
-print(f"\nFields: {dc.fields(bare_qty)}")
-print(f"Field keys: {list(dc.field_keys(bare_qty))}")
-print(f"Field values: {list(dc.field_values(bare_qty))}")
-print(f"asdict: {dc.asdict(bare_qty)}")
-print(f"astuple: {dc.astuple(bare_qty)}")
-
-# Replace works here too
-new_bare_qty = dc.replace(bare_qty, value=10.0)
-print(f"\nOriginal: {bare_qty}")
-print(f"After replace(value=10.0): {new_bare_qty}")
 ```
 
 ### Angle (specialized quantity with wrapping)
