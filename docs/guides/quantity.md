@@ -42,6 +42,42 @@ Quantity(Array(5., dtype=float32), unit='m')
 
 ```
 
+<!-- prettier-ignore-start -->
+
+:::{admonition} Why `Quantity` is non-parametric
+:class: important
+
+`Quantity` (`u.Q`) is the lightweight, non-parametric default: a single class for
+all physical dimensions. `ParametricQuantity` (`u.PQ`) instead encodes the
+dimension in its _type_ — `ParametricQuantity["length"]` and
+`ParametricQuantity["time"]` are distinct Python classes, created on demand, and
+each is registered as its own JAX pytree node type.
+
+That per-dimension type proliferation carries real costs: a new class is created
+the first time each dimension is used (via `plum`'s parametric machinery), every
+one is a separately-registered pytree and dispatch type that JAX and `plum` must
+track, and construction runs dimension inference plus a validation check. The
+single-class `Quantity` avoids all of it — one class, one pytree type, lighter
+construction and dispatch.
+
+A note on `jax.jit`: this is **not** about jit cache misses. The `unit` is a
+_static_ field, so it lives in the pytree aux data (the treedef), which is part
+of the jit cache key — a jitted function therefore specializes per distinct unit
+with **either** class (a call on `"m"` is not reused for `"s"`). The rename does
+not change that per-unit compilation; it removes the redundant per-dimension
+_type_, not any jit recompilation (a unit already implies its dimension).
+
+Reach for `ParametricQuantity` only when you need its two extra features:
+
+1. **Runtime dimension checking** — `u.PQ["length"](1, "m")` validates the unit against the dimension at construction; the default `u.Q["length"](1, "m")` accepts the subscript for compatibility but does not check it.
+2. **Dispatch on specific dimensions** — `u.PQ["length"]` is a real type usable in `plum` dispatch annotations; `u.Q["length"]` is just `Quantity`.
+
+Everything else — arithmetic, unit conversion, JAX transforms, interop — works identically with either class. For upgrading from an earlier version of `unxt`, see the {ref}`migration guide <migration-v2>`.
+
+:::
+
+<!-- prettier-ignore-end -->
+
 There are many more options available with `Quantity.from_`. For a complete list of options run `Quantity.from_.methods` in an IDE.
 
 <!-- skip: next -->
@@ -315,7 +351,7 @@ Quantity(Array([ 5, 14, 27], dtype=int32), unit='m2')
 
 ## Pretty Printing
 
-`Quantity` objects support the [`wadler_lindig`](https://docs.kidger.site/wadler_lindig) library for pretty printing.
+Quantity objects support the [`wadler_lindig`](https://docs.kidger.site/wadler_lindig) library for pretty printing. Here we use the lightweight default `Quantity` (alias `Q`), which carries no dimension parameter.
 
 ```{code-block} python
 
@@ -328,21 +364,12 @@ Quantity(i32[3], unit='m')
 
 ```
 
-The type parameter can be included in the representation:
-
-```{code-block} python
-
->>> wl.pprint(q, include_params=True)
-Quantity['length'](i32[3], unit='m')
-
-```
-
 The `str` method uses this as well:
 
 ```{code-block} python
 
 >>> print(q)
-Quantity['length']([1, 2, 3], unit='m')
+Quantity([1, 2, 3], unit='m')
 
 ```
 
@@ -395,13 +422,12 @@ The short name can be combined with other printing options:
 
 ```{code-block} python
 
->>> wl.pprint(q, use_short_name=True, include_params=True)
-Q['length'](i32[3], unit='m')
-
 >>> wl.pprint(q, use_short_name=True, short_arrays="compact")
 Q([1, 2, 3], unit='m')
 
 ```
+
+(The `include_params=True` option adds a dimension parameter such as `['length']` to the representation. The default `Quantity` has no such parameter, so it only takes effect for a `ParametricQuantity`; see the parametric quantity guide.)
 
 See the [`wadler_lindig` documentation](https://docs.kidger.site/wadler_lindig) for more details on the pretty printing options.
 
@@ -500,9 +526,9 @@ The {class}`~unxt.quantity.StaticQuantity` class is a parametric quantity with a
 Quantity(Array([2., 3.], dtype=float32), unit='m')
 ```
 
-## Working with `StaticValue` in `Quantity`
+## Working with `StaticValue` in a `Quantity`
 
-If you want a regular {class}`~unxt.quantity.Quantity` but need its value to be static (for hashing or static JAX arguments), wrap the value with {class}`~unxt.quantity.StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`:
+If you want a {class}`~unxt.Quantity` but need its value to be static (for hashing or static JAX arguments), wrap the value with {class}`~unxt.quantity.StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`:
 
 ```{code-block} python
 >>> import numpy as np
@@ -519,7 +545,7 @@ Quantity(Array([4., 6.], dtype=float32), unit='m')
 
 ### Equality returns a scalar `bool`
 
-The equality operator on a `Quantity` backed by a `StaticValue` returns a **scalar `bool`**, not an element-wise array. This is the key property that makes it usable as a `static_argnames` argument in {func}`jax.jit`.
+The equality operator on a `Quantity` backed by a `StaticValue` returns a **scalar `bool`**, not an element-wise array. This is the key property that makes it usable as a `static_argnames` argument in {func}`jax.jit`. (This behaviour lives on {class}`~unxt.quantity.AbstractQuantity`, so it applies to every quantity class.)
 
 ```{code-block} python
 >>> sv1 = u.quantity.StaticValue(np.array([1.0, 2.0]))

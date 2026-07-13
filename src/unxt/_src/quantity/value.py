@@ -281,7 +281,7 @@ def convert_to_quantity_value(obj: Any, /) -> Any:
 
 @plum.dispatch
 def convert_to_quantity_value(obj: StaticValue, /) -> StaticValue:
-    """Allow static values in `Quantity`-like classes."""
+    """Allow static values in quantity-like classes."""
     return obj
 
 

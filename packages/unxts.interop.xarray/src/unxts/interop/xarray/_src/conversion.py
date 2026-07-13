@@ -159,7 +159,7 @@ def extract_units(obj: DataArray, /) -> dict[Hashable, u.AbstractUnit | None]:
     >>> import unxt as u
     >>> from unxts.interop.xarray._src.conversion import extract_units
 
-    >>> q = u.Quantity([1.0, 2.0], "m")
+    >>> q = u.ParametricQuantity([1.0, 2.0], "m")
     >>> da = xr.DataArray(q, dims=["x"])
     >>> units = extract_units(da)
     >>> units[None]
@@ -332,7 +332,7 @@ def strip_units(obj: DataArray) -> DataArray:
     >>> import unxt as u
     >>> from unxts.interop.xarray._src.conversion import strip_units
 
-    >>> q = u.Quantity([1.0, 2.0], "m")
+    >>> q = u.ParametricQuantity([1.0, 2.0], "m")
     >>> da = xr.DataArray(q, dims=["x"])
     >>> stripped = strip_units(da)
     >>> stripped.data

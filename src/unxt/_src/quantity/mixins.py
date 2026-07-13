@@ -1,4 +1,4 @@
-"""Orthogonal Mixin classes for Quantity classes."""
+"""Orthogonal mixin classes for quantity classes."""
 
 __all__: tuple[str, ...] = ()
 
@@ -92,7 +92,7 @@ SUPPORTED_IPYTHON_REPR_FORMATS: dict[str, str] = {
 
 
 class IPythonReprMixin:
-    """Mixin class for IPython representation of a Quantity."""
+    """Mixin class for IPython representation of a quantity."""
 
     value: Array
     unit: AbstractUnit
@@ -103,7 +103,7 @@ class IPythonReprMixin:
         include: Sequence[str] | None = None,
         exclude: Sequence[str] | None = None,
     ) -> dict[str, str]:
-        r"""Return a MIME bundle representation of the Quantity.
+        r"""Return a MIME bundle representation of the quantity.
 
         :param include: The set of keys to include in the MIME bundle. If not
             provided, all supported formats are included.
@@ -117,15 +117,18 @@ class IPythonReprMixin:
 
         >>> q = Quantity([1.0, 2, 3, 4], "m")
         >>> q._repr_mimebundle_()
-        {'text/plain': "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')",
+        {'text/plain':
+         "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')",
          'text/html': '<span>[1., 2., 3., 4.]</span> * <span>Unit("m")</span>',
          'text/latex': '$[1.,~2.,~3.,~4.] \\; \\mathrm{m}$'}
 
         >>> q._repr_mimebundle_(include=["text/plain"])
-        {'text/plain': "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
+        {'text/plain':
+         "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
 
         >>> q._repr_mimebundle_(exclude=["text/html", "text/latex"])
-        {'text/plain': "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
+        {'text/plain':
+         "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')"}
 
         """
         # Determine the set of keys to include in the MIME bundle
@@ -147,7 +150,7 @@ class IPythonReprMixin:
         }
 
     def _repr_html_(self) -> str:
-        """Return an HTML representation of the Quantity.
+        """Return an HTML representation of the quantity.
 
         Examples
         --------
@@ -164,7 +167,7 @@ class IPythonReprMixin:
         return f"<span>{value_repr}</span> * <span>{unit_repr}</span>"
 
     def _repr_latex_(self) -> str:
-        r"""Return a LaTeX representation of the Quantity.
+        r"""Return a LaTeX representation of the quantity.
 
         Examples
         --------

@@ -11,7 +11,6 @@ import plum
 from jaxtyping import ArrayLike
 
 from .base import AbstractQuantity
-from .quantity import Quantity
 from unxt_api import ustrip
 
 # -----------------------------------------------
@@ -37,7 +36,11 @@ def arange(
     >>> jnp.arange(Quantity(5, "m"), Quantity(10, "m"))
     Quantity(Array([5, 6, 7, 8, 9], dtype=int32), unit='m')
 
-    >>> jnp.arange(Quantity(5, "m"), Quantity(10, "m"), Quantity(2, "m"))
+    >>> jnp.arange(
+    ...     Quantity(5, "m"),
+    ...     Quantity(10, "m"),
+    ...     Quantity(2, "m"),
+    ... )
     Quantity(Array([5, 7, 9], dtype=int32), unit='m')
 
     """
@@ -94,7 +97,9 @@ def full(
 
     """
     fill_val = ustrip(fill_value.unit, fill_value)
-    return Quantity(jax_xp.full(shape, fill_val, **kwargs), unit=fill_value.unit)
+    return plum.type_unparametrized(fill_value)(
+        jax_xp.full(shape, fill_val, **kwargs), unit=fill_value.unit
+    )
 
 
 # -----------------------------------------------

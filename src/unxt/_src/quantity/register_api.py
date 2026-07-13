@@ -49,12 +49,13 @@ def dimension_of(obj: type[AbstractParametricQuantity], /) -> AbstractDimension:
     >>> import unxt as u
 
     >>> try:
-    ...     u.dimension_of(u.Q)
+    ...     u.dimension_of(u.PQ)
     ... except Exception as e:
     ...     print(e)
-    can only get dimensions from parametrized Quantity -- Quantity[dim].
+    can only get dimensions from parametrized ParametricQuantity --
+    ParametricQuantity[dim].
 
-    >>> u.dimension_of(u.Q["length"])
+    >>> u.dimension_of(u.PQ["length"])
     PhysicalType('length')
 
     """
@@ -159,7 +160,8 @@ def uconvert_value(uto: str, ufrom: str, x: ArrayLike, /) -> ArrayLike:
 
 
 # **NOTE:** we also add convenience dispatches for `uconvert_value` so that
-# users can use the lower-level function with Quantity and not break their code.
+# users can use the lower-level function with a `Quantity` and not break
+# their code.
 
 
 @dispatch
@@ -167,7 +169,7 @@ def uconvert_value(uto: Any, ufrom: Any, x: AbstractQuantity, /) -> AbstractQuan
     """Convert the quantity to the specified units.
 
     This is a convenience dispatch so that users can use the lower-level
-    function with Quantity and not break their code.
+    function with a `Quantity` and not break their code.
     This dispatch simply calls `uconvert`, checking first that the units are
     convertible.
 
@@ -340,7 +342,7 @@ def is_unit_convertible(to_unit: Any, from_: Any, /) -> bool:
 
 @dispatch
 def is_unit_convertible(to_unit: Any, from_: AbstractQuantity, /) -> bool:
-    """Check if a Quantity can be converted to another unit.
+    """Check if a quantity can be converted to another unit.
 
     Examples
     --------

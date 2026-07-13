@@ -1,4 +1,4 @@
-"""Tests for Quantity printing with wadler-lindig."""
+"""Tests for ParametricQuantity printing with wadler-lindig."""
 
 import equinox as eqx
 import jax
@@ -68,15 +68,14 @@ class TestShortName:
     """Test the short_name feature for wadler-lindig printing."""
 
     def test_quantity_has_short_name(self):
-        """Test that Quantity has a short_name class variable."""
+        """Test that the default ``Quantity`` (``u.Q``) has short_name 'Q'."""
         assert hasattr(u.Q, "short_name")
         assert u.Q.short_name == "Q"
 
-    def test_barequantity_no_short_name(self):
-        """Test that BareQuantity doesn't have a short_name or it's None."""
-        # It should either not have the attribute or have it as None
-        short_name = getattr(u.quantity.BareQuantity, "short_name", None)
-        assert short_name is None
+    def test_parametricquantity_short_name(self):
+        """Test that ``ParametricQuantity`` (``u.PQ``) has short_name 'PQ'."""
+        assert hasattr(u.PQ, "short_name")
+        assert u.PQ.short_name == "PQ"
 
     def test_use_short_name_default_false(self):
         """Test that use_short_name defaults to False."""
@@ -85,6 +84,12 @@ class TestShortName:
         assert result.startswith("Quantity")
         assert not result.startswith("Q(")
 
+        # The parametric class uses its full name by default too.
+        pq = u.PQ([1, 2, 3], "m")
+        pq_result = wl.pformat(pq)
+        assert pq_result.startswith("ParametricQuantity")
+        assert not pq_result.startswith("PQ(")
+
     def test_use_short_name_true(self):
         """Test that use_short_name=True uses the short name."""
         q = u.Q([1, 2, 3], "m")
@@ -92,11 +97,25 @@ class TestShortName:
         assert result.startswith("Q(")
         assert "unit='m'" in result
 
+    def test_parametric_use_short_name_true(self):
+        """Test that ``ParametricQuantity`` uses its short name 'PQ'."""
+        pq = u.PQ([1, 2, 3], "m")
+        result = wl.pformat(pq, use_short_name=True)
+        assert result.startswith("PQ(")
+        assert "unit='m'" in result
+
     def test_use_short_name_with_include_params(self):
         """Test that use_short_name works with include_params."""
+        # The bare default ``Quantity`` has no type parameter, so
+        # include_params adds nothing to the short name.
         q = u.Q([1, 2, 3], "m")
         result = wl.pformat(q, use_short_name=True, include_params=True)
-        assert result.startswith("Q['length']")
+        assert result.startswith("Q(")
+
+        # The parametric class shows its dimension parameter.
+        pq = u.PQ([1, 2, 3], "m")
+        pq_result = wl.pformat(pq, use_short_name=True, include_params=True)
+        assert pq_result.startswith("PQ['length']")
 
     def test_use_short_name_with_named_unit_false(self):
         """Test that use_short_name works with named_unit=False."""
@@ -127,12 +146,14 @@ class TestShortName:
         assert result.startswith("Q(")
         assert "[1, 2, 3]" in result
 
-    def test_bare_quantity_use_short_name_none(self):
-        """Test that BareQuantity with use_short_name=True still uses full name."""
-        q = u.quantity.BareQuantity([1, 2, 3], "m")
+    def test_bare_quantity_use_short_name(self):
+        """Test that the bare default ``Quantity`` uses its short name 'Q'."""
+        q = u.quantity.Quantity([1, 2, 3], "m")
         result = wl.pformat(q, use_short_name=True)
-        # Should still use full name since short_name is None
-        assert result.startswith("BareQuantity")
+        assert result.startswith("Q(")
+
+        # Without use_short_name it uses the full class name.
+        assert wl.pformat(q).startswith("Quantity")
 
     def test_pprint(self):
         """Test that pprint works with use_short_name."""
@@ -154,7 +175,7 @@ class TestShortName:
 
 
 class TestStringConversionWithJIT:
-    """Test that str() works on Quantity and Angle inside JAX JIT with tracers."""
+    """Test str() on Quantity and Angle inside JAX JIT with tracers."""
 
     def test_str_quantity_in_jit(self):
         """Test that str(Quantity) works inside jax.jit with tracers.

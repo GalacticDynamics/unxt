@@ -28,7 +28,8 @@ def _dimension_of_unit(unit: AbstractUnit) -> AbstractDimension:
     """Return the dimension of a unit, memoized for the construction hot path.
 
     `dimension_of` is a `plum`-dispatched function whose resolver is non-faithful
-    (it carries `type[...]` class overloads, e.g. ``dimension_of(Quantity["length"])``),
+    (it carries `type[...]` class overloads, e.g.
+    ``dimension_of(ParametricQuantity["length"])``),
     so `plum` cannot cache its method resolution and re-resolves on every call
     (~60us). `__check_init__` runs on every `AbstractParametricQuantity`
     construction -- including every arithmetic result -- so we memoize the
@@ -132,9 +133,9 @@ class AbstractParametricQuantity(AbstractQuantity):
         >>> import copy as pycopy
         >>> import unxt as u
 
-        >>> x = u.Q([1, 2, 3], "m")
+        >>> x = u.PQ([1, 2, 3], "m")
         >>> pycopy.copy(x)
-        Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+        ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
 
         """
         return (), field_items(self)
@@ -178,7 +179,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         >>> import pickle
         >>> import unxt as u
 
-        >>> x = u.Q([1, 2, 3], "m")
+        >>> x = u.PQ([1, 2, 3], "m")
         >>> pickle.dumps(x)
         b'...'
 
@@ -211,16 +212,17 @@ class AbstractParametricQuantity(AbstractQuantity):
         include_params
             If `True`, the type parameter is included in the representation. If
             `False`, the type parameter is not included in the representation.
-            For example, ``Quantity['length'][i32]`` versus ``Quantity[i32]``.
+            For example, ``ParametricQuantity['length'][i32]`` versus
+            ``ParametricQuantity[i32]``.
         named_unit
             If `True`, the unit is included in the representation as a named
             argument. If `False`, the unit is included as a positional argument.
-            For example, ``Quantity(<array>, unit='m')`` versus
-            ``Quantity(<array>, 'm')``.
+            For example, ``ParametricQuantity(<array>, unit='m')`` versus
+            ``ParametricQuantity(<array>, 'm')``.
         use_short_name
             If `True` and the class has a ``short_name`` class variable, use the
             short name instead of the full class name. For example, ``Q(...)``
-            instead of ``Quantity(...)``.
+            instead of ``ParametricQuantity(...)``.
         kwargs
             Additional keyword arguments ``wadler_lindig.pdoc`` method for
             formatting the value, stringified unit, and other fields.
@@ -230,48 +232,48 @@ class AbstractParametricQuantity(AbstractQuantity):
         >>> import unxt as u
         >>> import wadler_lindig as wl
 
-        >>> q = u.Q([1, 2, 3], "m")
+        >>> q = u.PQ([1, 2, 3], "m")
 
         The default pretty printing:
 
         >>> wl.pprint(q)
-        Quantity(i32[3], unit='m')
+        ParametricQuantity(i32[3], unit='m')
 
         The type parameter can be included in the representation:
 
         >>> wl.pprint(q, include_params=True)
-        Quantity['length'](i32[3], unit='m')
+        ParametricQuantity['length'](i32[3], unit='m')
 
         The `str` method uses this as well:
 
         >>> print(q)
-        Quantity['length']([1, 2, 3], unit='m')
+        ParametricQuantity['length']([1, 2, 3], unit='m')
 
         Arrays can be printed in full:
 
         >>> wl.pprint(q, short_arrays=False)
-        Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+        ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
 
         The `repr` method uses this setting:
 
         >>> print(repr(q))
-        Quantity(Array([1, 2, 3], dtype=int32), unit='m')
+        ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
 
         The units can be turned from a named argument to a positional argument
         by setting `named_unit=False`:
 
         >>> wl.pprint(q, named_unit=False)
-        Quantity(i32[3], 'm')
+        ParametricQuantity(i32[3], 'm')
 
         The class can be printed with its short name:
 
         >>> wl.pprint(q, use_short_name=True)
-        Q(i32[3], unit='m')
+        PQ(i32[3], unit='m')
 
         Short name with type parameter:
 
         >>> wl.pprint(q, use_short_name=True, include_params=True)
-        Q['length'](i32[3], unit='m')
+        PQ['length'](i32[3], unit='m')
 
         """
         pdoc = super().__pdoc__(

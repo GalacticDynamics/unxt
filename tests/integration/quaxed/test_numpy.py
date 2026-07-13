@@ -873,11 +873,11 @@ def test_logical_and():
 
 
 def test_logical_and_quantity_array():
-    """Test `logical_and` mixing a dimensionless Quantity and a raw array.
+    """Test `logical_and` mixing a dimensionless Quantity and an array.
 
-    A Quantity operand keeps the result in the Quantity namespace: the result
-    is a dimensionless Quantity (per the Array API), regardless of operand
-    order.
+    A Quantity operand keeps the result in the Quantity
+    namespace: the result is a dimensionless Quantity (per the Array
+    API), regardless of operand order.
     """
     x = u.Q([True, False, True], "")
     y = jnp.asarray([True, True, False])
@@ -976,9 +976,13 @@ def test_positive():
 
 
 def test_pow_quantity_power():
-    """Test `pow`."""
+    """Test `pow` with a Quantity exponent.
+
+    A Quantity exponent must be a *parametric* dimensionless quantity
+    (``u.PQ``): that is the signature the ``pow`` primitive registers.
+    """
     x = u.Q(jnp.asarray([1, 2, 3], dtype=float), "m")
-    y = u.Q(jnp.asarray(4, dtype=float), "")
+    y = u.PQ(jnp.asarray(4, dtype=float), "")
     got = jnp.pow(x, y)
     exp = u.Q(jnp.pow(x.value, y.value), "m4")
 
@@ -1387,13 +1391,17 @@ def test_stack_dimensionless_with_array():
 
 
 def test_stack_array_with_dimensionless():
-    """Test `stack` with arrays and dimensionless quantities."""
+    """Test `stack` with arrays and dimensionless quantities.
+
+    Stacking a leading raw array with a dimensionless quantity promotes the
+    result to a ``ParametricQuantity`` (``u.PQ``); see ``stack_p_v``.
+    """
     x = jnp.asarray([1, 2, 3], dtype=float)
     y = u.Q(jnp.asarray([4, 5, 6], dtype=float), "")
     got = jnp.stack((x, y))
     exp = u.Q(jnp.stack((x, y.value)), "")
 
-    assert isinstance(got, u.Q)
+    assert isinstance(got, u.PQ)
     assert str(got.unit) == ""
     assert jnp.array_equal(got.value, exp.value)
 
@@ -1482,11 +1490,11 @@ def test_where_with_predicate_condition():
     assert got.unit == u.unit("m")
     assert jnp.array_equal(got.value, exp)
 
-    # BareQuantity end-to-end stays a BareQuantity
-    by = u.quantity.BareQuantity(y.value, "m")
-    bz = u.quantity.BareQuantity(z.value, "m")
+    # Quantity end-to-end stays a Quantity
+    by = u.quantity.Quantity(y.value, "m")
+    bz = u.quantity.Quantity(z.value, "m")
     got = jnp.where(by > bz, by, bz)
-    assert isinstance(got, u.quantity.BareQuantity)
+    assert isinstance(got, u.quantity.Quantity)
     assert got.unit == u.unit("m")
 
 
@@ -1584,10 +1592,11 @@ def test_sort():
 
 
 def test_sort_multiple_quantity_operands():
-    """Test sorting a key Quantity while carrying along a second Quantity.
+    """Test sorting a key Quantity while carrying along a second one.
 
-    Sorting by one key Quantity while reordering a payload Quantity of a
-    *different* unit must preserve each operand's own unit.
+    Sorting by one key Quantity while reordering a payload
+    Quantity of a *different* unit must preserve each operand's own
+    unit.
     """
     pos = u.Q(jnp.asarray([3.0, 1.0, 2.0]), "km")
     vel = u.Q(jnp.asarray([30.0, 10.0, 20.0]), "km/s")

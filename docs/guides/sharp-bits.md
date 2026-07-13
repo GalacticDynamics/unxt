@@ -247,16 +247,37 @@ result = add_lengths_m(u.Q(5.0, "m"), length_m_input)
 
 **Key insight:** Dimensions are checked statically, but each unique combination of units creates a new compiled version.
 
+### ℹ️ Note: `ParametricQuantity` multiplies pytree _types_ (not jit compilations)
+
+:::{seealso} See [Why `Quantity` is non-parametric](quantity.md#why-quantity-is-non-parametric) for the design rationale behind the default `Quantity`, and the {ref}`migration guide <migration-v2>` for the rename mapping and upgrade steps. :::
+
+A common misconception is that feeding `ParametricQuantity` of different dimensions into a jitted function adds a recompilation _per dimension_. It does not. Recompilation is driven by the **unit**, which is a static field for _both_ classes, so a jitted function specializes per distinct unit either way ([Use Consistent Units](#solution-use-consistent-units) above). Because a unit already implies its dimension, `ParametricQuantity`'s per-dimension _type_ is redundant with the per-unit cache key and adds no extra compilations:
+
+```python
+@jax.jit
+def square(x):
+    return x**2
+
+
+# Both classes recompile per *unit* ("m" and "s" are different units):
+square(u.Q(5.0, "m"))
+square(u.Q(5.0, "s"))  # 2 compilations
+square(u.PQ(5.0, "m"))
+square(u.PQ(5.0, "s"))  # also 2 compilations
+```
+
+What `ParametricQuantity` _does_ add is a new Python class — and a new registered JAX pytree node type — for every physical dimension, created on demand. That grows the pytree and `plum` dispatch type surface that must be tracked and searched, and adds per-construction dimension inference and a validation check. The default `Quantity` is a single type for all dimensions, so it avoids that proliferation and its overhead — that is the win, rather than fewer `jax.jit` compilations.
+
 ## Mixing Quantity Types
 
-### ❌ Problem: Confused by BareQuantity vs Quantity
+### ❌ Problem: Confused by Quantity vs ParametricQuantity
 
 Different quantity types have different guarantees:
 
 ```python
 # What's the difference?
-q1 = u.Q(5.0, "m")
-q2 = u.quantity.BareQuantity(5.0, "m")
+q1 = u.Q(5.0, "m")  # the default, lightweight Quantity
+q2 = u.PQ(5.0, "m")  # ParametricQuantity, dimension in the type
 q3 = u.quantity.StaticQuantity(5.0, "m")
 ```
 
@@ -273,21 +294,21 @@ def function(x, *, constant=u.Q(3.26, "lyr")):
 
 ### ✅ Solution: Choose the Right Type
 
-**`Quantity`** — Standard choice with full dimension checking:
+**`Quantity`** — The default. A lightweight, non-parametric quantity that tracks units without encoding the physical dimension in its type:
 
 ```python
 length = u.Q(5.0, "m")
 time = u.Q(2.0, "s")
-speed = length / time  # ✅ Creates Quantity with correct dimension
+speed = length / time  # ✅ Fast; unit arithmetic without per-dimension classes
 ```
 
-**`BareQuantity`** — No dimension checking, just unit tracking:
+**`ParametricQuantity`** — Opt in when you want the physical dimension carried in the type (for dimension-specific `plum` dispatch and runtime dimension checking):
 
 ```python
-# Use when you need raw speed, trust your dimensions
-length = u.quantity.BareQuantity(5.0, "m")
-time = u.quantity.BareQuantity(2.0, "s")
-speed = length / time  # Faster, but no dimension validation
+# Use when you want dimension-parametrized dispatch / runtime checking
+length = u.PQ(5.0, "m")
+time = u.PQ(2.0, "s")
+speed = length / time  # A distinct parametric class per dimension
 ```
 
 **`StaticQuantity`** — For compile-time constants:
@@ -305,11 +326,11 @@ def function(x, *, constant=u.StaticQuantity(3.26, "lyr")):
 
 **When to use each:**
 
-| Type             | Use Case        | Dimension Checking | Performance      |
-| ---------------- | --------------- | ------------------ | ---------------- |
-| `Quantity`       | Default choice  | ✅ Full            | Good             |
-| `BareQuantity`   | Trust your math | ❌ None            | Better           |
-| `StaticQuantity` | Constants       | ✅ Full            | Best (no tracer) |
+| Type | Use Case | Dimension in Type | Performance |
+| --- | --- | --- | --- |
+| `Quantity` | Default choice | ❌ None | Better |
+| `ParametricQuantity` | Dimension-parametrized dispatch / runtime checking | ✅ Yes | Good (recompiles per dimension) |
+| `StaticQuantity` | Constants | ✅ Yes | Best (no tracer) |
 
 ## Dimension Checking Overhead
 
@@ -384,11 +405,11 @@ func(x, y, usys=u.unitsystems.si)
 
 This only applies to the outer-most function. Nesting jitted and quaxified functions are fine. The outermost jit boundary handles the constant-folding.
 
-## `Quantity` Equality: Arrays vs. `StaticValue`
+## `ParametricQuantity` Equality: Arrays vs. `StaticValue`
 
-### ❌ Problem: `==` on a normal `Quantity` is not a scalar `bool`
+### ❌ Problem: `==` on a normal `ParametricQuantity` is not a scalar `bool`
 
-A normal `Quantity` (backed by a JAX array) follows NumPy broadcasting: `==` returns an **element-wise boolean array**, not a scalar `bool`. This means you cannot use it as a `static_argnames` argument in `jax.jit`, and it will raise an error if JAX tries to check cache validity:
+A normal `ParametricQuantity` (backed by a JAX array) follows NumPy broadcasting: `==` returns an **element-wise boolean array**, not a scalar `bool`. This means you cannot use it as a `static_argnames` argument in `jax.jit`, and it will raise an error if JAX tries to check cache validity:
 
 ```python
 from functools import partial
@@ -403,19 +424,19 @@ def rescale(x, *, scale):
 
 # ❌ Fails — JAX cannot convert Array([True, True]) to a scalar bool
 try:
-    rescale(x, scale=u.Q([2.0, 3.0], "m"))
+    rescale(x, scale=u.PQ([2.0, 3.0], "m"))
 except Exception as e:
     print(f"Error: {e}")
 ```
 
 ### ✅ Solution: Wrap the value with `StaticValue`
 
-When a `Quantity` is backed by a `StaticValue`, its `==` operator returns a **scalar `bool`** (structural equality, like a tuple) instead of an element-wise array. This makes the whole `Quantity` hashable and safe for `static_argnames`:
+When a `ParametricQuantity` is backed by a `StaticValue`, its `==` operator returns a **scalar `bool`** (structural equality, like a tuple) instead of an element-wise array. This makes the whole `ParametricQuantity` hashable and safe for `static_argnames`:
 
 ```python
 import numpy as np
 
-scale = u.Q(u.quantity.StaticValue(np.array([2.0, 3.0])), "m")
+scale = u.PQ(u.quantity.StaticValue(np.array([2.0, 3.0])), "m")
 
 
 @partial(jax.jit, static_argnames=("scale",))
@@ -431,10 +452,10 @@ Unit conversion is applied before comparing, so quantities in compatible but dif
 
 ```python
 sv_km = u.quantity.StaticValue(np.array([0.001, 0.003]))
-u.Q(scale.value, "m") == u.Q(sv_km, "km")  # True — same physical value
+u.PQ(scale.value, "m") == u.PQ(sv_km, "km")  # True — same physical value
 ```
 
-See [Working with StaticValue in Quantity](quantity.md#working-with-staticvalue-in-quantity) for more details.
+See [Working with StaticValue in ParametricQuantity](quantity.md#working-with-staticvalue-in-parametricquantity) for more details.
 
 ## See Also
 

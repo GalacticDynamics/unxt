@@ -182,7 +182,7 @@ class UnxtDataArrayAccessor:
         >>> import unxt as u
         >>> import unxts.interop.xarray
 
-        >>> q = u.Quantity([1.0, 2.0], "m")
+        >>> q = u.ParametricQuantity([1.0, 2.0], "m")
         >>> da = xr.DataArray(q, dims=["x"])
         >>> dequantified = da.unxt.dequantify()
         >>> dequantified.data
@@ -341,8 +341,8 @@ class UnxtDatasetAccessor:
         >>> import unxt as u
         >>> import unxts.interop.xarray
 
-        >>> q1 = u.Quantity([1.0, 2.0], "m")
-        >>> q2 = u.Quantity([3.0, 4.0], "s")
+        >>> q1 = u.ParametricQuantity([1.0, 2.0], "m")
+        >>> q2 = u.ParametricQuantity([3.0, 4.0], "s")
         >>> ds = xr.Dataset({"a": ("x", q1), "b": ("y", q2)})
         >>> dequantified = ds.unxt.dequantify()
         >>> dequantified["a"].attrs["units"]

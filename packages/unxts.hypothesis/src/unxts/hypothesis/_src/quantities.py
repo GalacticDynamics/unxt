@@ -43,7 +43,10 @@ def quantities(
     """Generate hypothesis strategy for unxt Quantity objects.
 
     This strategy combines JAX array generation with unit specifications to
-    create valid Quantity objects for property-based testing.
+    create valid Quantity objects for property-based testing. By default it
+    generates the lightweight `unxt.Quantity`; pass ``quantity_cls`` (e.g.
+    `unxt.ParametricQuantity`) to generate another `unxt.AbstractQuantity`
+    subclass.
 
     Parameters
     ----------
@@ -60,7 +63,7 @@ def quantities(
           or dimensions. The default strategy samples from SI base units.
     quantity_cls : type[`unxt.AbstractQuantity`], optional
         The target quantity class to convert to. Default is `unxt.Quantity`.
-        Can be any `unxt.AbstractQuantity` subclass like `unxt.Quantity` or
+        Can be any `unxt.AbstractQuantity` subclass like `unxt.ParametricQuantity` or
         `unxt.Angle`.
     dtype : Any, optional
         NumPy/JAX dtype for the underlying array. Default is jnp.float32.
@@ -85,7 +88,8 @@ def quantities(
     Returns
     -------
     `unxt.Quantity`
-        A Quantity object with the specified unit and array properties.
+        A Quantity object with the specified unit and array properties (or an
+        instance of ``quantity_cls`` if provided).
 
     Examples
     --------
@@ -169,7 +173,7 @@ def quantities(
 
     >>> @given(angle=ust.quantities("rad", quantity_cls=u.Angle, shape=3))
     ... def test_angle_generation(angle):
-    ...     # Creates Angle instances instead of Quantity
+    ...     # Creates Angle instances instead of the default Quantity
     ...     assert isinstance(angle, u.Angle)
     ...     assert angle.unit == u.unit("rad")
     ...     assert angle.shape == (3,)
@@ -202,7 +206,7 @@ def quantities(
     if static_value:
         values = u.quantity.StaticValue(np.asarray(values))
 
-    # Create Quantity with the specified unit
+    # Create the quantity (default Quantity) with the specified unit
     return quantity_cls(values, unit_obj, **kwargs)
 
 
@@ -353,9 +357,7 @@ def angles(
 # Note: Pass the callable, not an invoked strategy
 st.register_type_strategy(u.AbstractQuantity, lambda _: quantities(quantity_cls=u.Q))
 st.register_type_strategy(u.Q, lambda typ: quantities(quantity_cls=typ))
-st.register_type_strategy(
-    u.quantity.BareQuantity, lambda typ: quantities(quantity_cls=typ)
-)
+st.register_type_strategy(u.quantity.Quantity, lambda typ: quantities(quantity_cls=typ))
 st.register_type_strategy(
     u.quantity.StaticQuantity,
     lambda typ: quantities(quantity_cls=typ, static_value=True),

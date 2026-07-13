@@ -23,7 +23,8 @@ class LocalConfigurable(Configurable):
     """Base class for config objects that support thread-local overrides.
 
     This class provides a mechanism for temporary, thread-local configuration
-    changes that can be used in nested contexts (e.g., within Quantity.__repr__()).
+    changes that can be used in nested contexts (e.g., within a quantity's
+    ``__repr__()``).
     """
 
     # Thread-local storage for context manager overrides
@@ -72,9 +73,11 @@ QUANTITY_REPR_CONFIG_KEYS: Final = frozenset(
 
 
 class QuantityReprConfig(LocalConfigurable):
-    """Configuration for Quantity.__repr__() display options.
+    """Configuration for quantity ``__repr__()`` display options.
 
-    This controls how Quantity objects are displayed in ``repr()``.
+    This controls how quantity objects are displayed in ``repr()``. It is
+    consumed by ``AbstractQuantity.__repr__`` and so applies to every quantity
+    class, including the default ``Quantity`` and ``ParametricQuantity``.
 
     Attributes
     ----------
@@ -122,7 +125,10 @@ class QuantityReprConfig(LocalConfigurable):
 
     use_short_name: ClassVar[object] = Bool(
         default_value=False,
-        help="Use short class name if available (e.g., Q instead of Quantity)",
+        help=(
+            "Use a class's short name if available (e.g. Quantity -> Q, "
+            "ParametricQuantity -> PQ)"
+        ),
     ).tag(config=True)
 
     named_unit: ClassVar[object] = Bool(
@@ -202,7 +208,7 @@ class QuantityReprConfig(LocalConfigurable):
         Q([1, 2, 3], unit='m')
 
         >>> print(str(q))
-        Quantity['length']([1, 2, 3], unit='m')
+        Quantity([1, 2, 3], unit='m')
 
         """
         if cfg is not None and kwargs:
@@ -267,9 +273,11 @@ UNXT_OVERRIDE_CONFIG_KEYS: Final = {
 
 
 class QuantityStrConfig(LocalConfigurable):
-    """Configuration for Quantity.__str__() display options.
+    """Configuration for quantity ``__str__()`` display options.
 
-    This controls how Quantity objects are displayed in ``str()``.
+    This controls how quantity objects are displayed in ``str()``. It is
+    consumed by ``AbstractQuantity.__str__`` and so applies to every quantity
+    class, including the default ``Quantity`` and ``ParametricQuantity``.
 
     Attributes
     ----------
@@ -304,7 +312,7 @@ class QuantityStrConfig(LocalConfigurable):
     Q(i32[3], unit='m')
 
     >>> print(str(q))
-    Quantity['length']([1, 2, 3], unit='m')
+    Quantity([1, 2, 3], unit='m')
 
     """
 
@@ -323,7 +331,10 @@ class QuantityStrConfig(LocalConfigurable):
 
     use_short_name: ClassVar[object] = Bool(
         default_value=False,
-        help="Use short class name if available (e.g., Q instead of Quantity)",
+        help=(
+            "Use a class's short name if available (e.g. Quantity -> Q, "
+            "ParametricQuantity -> PQ)"
+        ),
     ).tag(config=True)
 
     named_unit: ClassVar[object] = Bool(

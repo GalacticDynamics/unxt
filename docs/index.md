@@ -59,6 +59,7 @@ glossary
 conventions
 contributing
 dev
+migration
 ```
 
 # 🚀 Get Started
@@ -278,7 +279,7 @@ For more details, see the [Unit Systems Guide](guides/units_and_systems.md).
 
 ### Creating and Working with Quantity objects
 
-The primary API of {mod}`unxt` is the {class}`~unxt.Quantity` class. It combines a JAX array with unit information. We currently use [astropy.units][apyunits] for unit handling.
+The primary API of {mod}`unxt` is the {class}`~unxt.Quantity` class (the lightweight, non-parametric default). It combines a JAX array with unit information. We currently use [astropy.units][apyunits] for unit handling.
 
 Create a `Quantity` by passing a JAX array-compatible object and a unit:
 

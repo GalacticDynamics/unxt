@@ -85,7 +85,7 @@ def test_static_quantity_promotes_to_quantity() -> None:
 
 
 def test_static_quantity_subtraction_with_quantity() -> None:
-    """StaticQuantity subtraction with Quantity promotes to Quantity."""
+    """StaticQuantity - Quantity promotes to Quantity."""
     sq = u.StaticQuantity(np.array(1.0), "s")
     q = u.Q(0.5, "s")
 
@@ -112,7 +112,7 @@ def test_static_quantity_subtraction_preserves_static() -> None:
 
 
 def test_static_quantity_addition_with_quantity() -> None:
-    """StaticQuantity addition with Quantity promotes to Quantity."""
+    """StaticQuantity + Quantity promotes to Quantity."""
     sq = u.StaticQuantity(np.array(1.0), "s")
     q = u.Q(0.5, "s")
 
@@ -139,7 +139,7 @@ def test_static_quantity_addition_preserves_static() -> None:
 
 
 def test_static_quantity_multiplication_with_quantity() -> None:
-    """StaticQuantity multiplication with Quantity promotes to Quantity."""
+    """StaticQuantity * Quantity promotes to Quantity."""
     sq = u.StaticQuantity(2.0, "m")
     q = u.Q(3.0, "s")
 
@@ -194,7 +194,7 @@ def test_static_quantity_integer_power_preserves_static_array() -> None:
 
 
 def test_static_quantity_division_with_quantity() -> None:
-    """StaticQuantity division with Quantity promotes to Quantity."""
+    """StaticQuantity / Quantity promotes to Quantity."""
     sq = u.StaticQuantity(6.0, "m")
     q = u.Q(2.0, "s")
 
@@ -254,13 +254,13 @@ def test_static_quantity_modulo_with_quantity() -> None:
 
 
 def test_static_quantity_modulo_with_static_quantity_promotes() -> None:
-    """StaticQuantity modulo StaticQuantity promotes to Quantity."""
+    """StaticQuantity modulo StaticQuantity yields the default ``Quantity``."""
     sq1 = u.StaticQuantity(7.0, "m")
     sq2 = u.StaticQuantity(3.0, "m")
 
     result = sq1 % sq2
-    # Since there's no modulo_p primitive dispatch, plum promotion rules apply
-    # StaticQuantity % StaticQuantity -> Quantity (via default promotion)
+    # The modulo goes through ``select_n`` (which materialises to a JAX array),
+    # so the result is the lightweight default ``Quantity`` (``u.Q``).
     assert isinstance(result, u.Q)
     assert np.allclose(result.value, 7.0 % 3.0)
     assert result.unit == u.unit("m")
@@ -555,10 +555,13 @@ def test_quantity_ops_with_static_value() -> None:
 
 
 def test_quantity_static_value_as_jit_static_arg() -> None:
-    """Quantity(StaticValue) can be used as a static argument to jitted functions."""
-    # Create a Quantity with StaticValue
+    """ParametricQuantity(StaticValue) works as a static arg to jitted funcs."""
+    # Create a ParametricQuantity with StaticValue. A StaticValue must be
+    # held by the parametric class (``u.PQ``), whose value field is static;
+    # the lightweight ``Quantity`` treats its value as a pytree leaf, so an
+    # array-backed StaticValue there would be rejected as pytree metadata.
     sv = u.quantity.StaticValue(np.array([2.0, 3.0]))
-    q_static = u.Q(sv, "m")
+    q_static = u.PQ(sv, "m")
 
     # Define a function that uses the static quantity
     @partial(jax.jit, static_argnames=("q_static",))
@@ -577,7 +580,7 @@ def test_quantity_static_value_as_jit_static_arg() -> None:
 
     # Third call with different static value - should trigger recompilation
     sv_new = u.quantity.StaticValue(np.array([5.0, 7.0]))
-    q_static_new = u.Q(sv_new, "m")
+    q_static_new = u.PQ(sv_new, "m")
     result3 = compute(jnp.array([1.0, 1.0]), q_static_new)
     assert np.allclose(result3, np.array([5.0, 7.0]))
 
@@ -587,9 +590,9 @@ def test_quantity_static_value_as_jit_static_arg() -> None:
 
 
 def test_quantity_static_value_jit_with_operations() -> None:
-    """Quantity(StaticValue) works correctly in jitted operations."""
+    """ParametricQuantity(StaticValue) works correctly in jitted operations."""
     sv = u.quantity.StaticValue(np.array([2.0, 3.0]))
-    q_static = u.Q(sv, "m")
+    q_static = u.PQ(sv, "m")
 
     @partial(jax.jit, static_argnames=("scale",))
     def scale_and_add(x, scale):
@@ -603,7 +606,7 @@ def test_quantity_static_value_jit_with_operations() -> None:
 
     # Test with different units to ensure unit is also part of static args
     sv2 = u.quantity.StaticValue(np.array([2.0, 3.0]))
-    q_static2 = u.Q(sv2, "km")
+    q_static2 = u.PQ(sv2, "km")
 
     result2 = scale_and_add(x, q_static2)
     assert np.allclose(result2, np.array([3.0, 5.0]))

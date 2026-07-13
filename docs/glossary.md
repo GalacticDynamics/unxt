@@ -21,6 +21,21 @@ USys
 Quantity
   A quantity refers to a property of a system that can be measured or calculated, expressed as a number combined with a unit.
   Examples include 5 meters, 10 seconds, or 50 joules.
+  In `unxt`, {class}`~unxt.Quantity` (alias `u.Q`) is the **default**, lightweight
+  quantity class. It is *non-parametric*: it tracks units without encoding the
+  physical dimension in its type, which keeps it fast and avoids per-dimension
+  `jax.jit` recompilation.
+
+ParametricQuantity
+  {class}`~unxt.ParametricQuantity` (alias `u.PQ`) is the opt-in, *parametric*
+  quantity class. It encodes the physical dimension in its type
+  (e.g. ``ParametricQuantity['length']``), enabling dimension-specific
+  multiple-dispatch and runtime dimension checking, at the cost of a distinct
+  class — and therefore a separate `jax.jit` compilation — per dimension.
+
+BareQuantity
+  A **deprecated** alias of {class}`~unxt.Quantity` (`u.Q`); new code should use
+  `Quantity`. See the {ref}`migration guide <migration-v2>`.
 
 Multiple-Dispatch
   Multiple dispatch is a programming paradigm in which the method or function to be called is determined by the runtime types of the arguments.
@@ -28,10 +43,10 @@ Multiple-Dispatch
   See [Wikipedia](https://en.wikipedia.org/wiki/Multiple_dispatch) for more information.
 
 Parametric Class
-  A parametric class is a class that is defined by a set of parameters. The `unxt.Quantity` class is an example of a parametric class, as it is defined by its dimensions -- ``unxt.Quantity['length']`` is a quantity with dimensions of length, while ``unxt.Quantity['time']`` is a quantity with dimensions of time.
+  A parametric class is a class that is defined by a set of parameters. The `unxt.ParametricQuantity` class is an example of a parametric class, as it is defined by its dimensions -- ``unxt.ParametricQuantity['length']`` is a quantity with dimensions of length, while ``unxt.ParametricQuantity['time']`` is a quantity with dimensions of time.
 
 Non-parametric Class
   A non-parametric class is a class that is not defined by a set of parameters.
-  The `unxt.quantity.BareQuantity` class is an example of a non-parametric class; it does not use any parameter.
+  The `unxt.quantity.Quantity` class is an example of a non-parametric class; it does not use any parameter.
 
 ```

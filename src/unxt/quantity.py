@@ -6,11 +6,12 @@ correctness.
 
 ## Core Classes
 
-- **`Quantity`**: The main quantity class with dimension parametrization and
-  full unit checking. Aliased as `Q` for convenience.
+- **`Quantity`**: The default quantity class, no dimension parametrization,
+  aliased as `Q`.
+- **`ParametricQuantity`**: Dimension-parametrized with runtime checking,
+  aliased as `PQ`.
 - **`StaticQuantity`**: Parametric quantity with static NumPy values for JAX
   static arguments.
-- **`BareQuantity`**: Lightweight quantity without dimension parametrization.
 - **`Angle`**: Specialized quantity type for angular measurements with wrapping
   support.
 
@@ -111,17 +112,20 @@ Quantity(Array(49., dtype=float32...), unit='kg m / s2')
 
 """
 # pylint: disable=duplicate-code
+# The ``BareQuantity`` deprecation shim in ``__getattr__`` imports ``warnings``
+# lazily on purpose; silence the module-level lint for that intentional pattern.
+# pylint: disable=import-outside-toplevel
 
 __all__ = (
     # Core
     "Quantity",
     "Q",  # convenience alias
+    "ParametricQuantity",
+    "PQ",  # convenience alias
     "StaticQuantity",
     "StaticValue",
     # Base
     "AbstractQuantity",
-    # Fast
-    "BareQuantity",
     # Angles
     "AbstractAngle",
     "Angle",
@@ -145,12 +149,13 @@ from .setup_package import install_import_hook
 
 with install_import_hook("unxt.quantity"):
     from ._src.quantity import (
+        PQ,
         AbstractAngle,
         AbstractParametricQuantity,
         AbstractQuantity,
         AllowValue,
         Angle,
-        BareQuantity,
+        ParametricQuantity,
         Q,
         Quantity,
         StaticQuantity,
@@ -163,3 +168,20 @@ with install_import_hook("unxt.quantity"):
 
 # Clean up namespace
 del install_import_hook
+
+
+def __getattr__(name: str) -> object:
+    if name == "BareQuantity":
+        import warnings  # noqa: PLC0415
+
+        warnings.warn(
+            "`BareQuantity` has been renamed to `Quantity` and is now the "
+            "default quantity class (unxt v2). The parametric class formerly "
+            "named `Quantity` is now `ParametricQuantity`. `BareQuantity` "
+            "will be removed in a future release.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return Quantity
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)

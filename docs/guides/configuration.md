@@ -10,8 +10,8 @@ import unxt as u
 
 The configuration system is organized hierarchically with separate configs for different display methods:
 
-- `u.config.quantity_repr` - Options for `Quantity.__repr__()`
-- `u.config.quantity_str` - Options for `Quantity.__str__()`
+- `u.config.quantity_repr` - Options for quantity `__repr__()` (all quantity classes)
+- `u.config.quantity_str` - Options for quantity `__str__()` (all quantity classes)
 
 Modify configuration options directly:
 
@@ -58,7 +58,7 @@ Each nested config has its own set of options and supports independent overrides
 
 ## Quantity Repr Options
 
-Options for controlling `Quantity.__repr__()` via `u.config.quantity_repr`.
+Options for controlling quantity `__repr__()` via `u.config.quantity_repr`.
 
 ### `short_arrays`
 
@@ -92,7 +92,7 @@ Options:
 
 ### `use_short_name`
 
-Use class short names where available (for example, `Quantity` -> `Q`).
+Use class short names where available (for example, `Quantity` -> `Q` and `ParametricQuantity` -> `PQ`).
 
 - **Type**: `bool`
 - **Default**: `False`
@@ -134,22 +134,20 @@ Quantity(Array(1., dtype=float32...), unit='m')
 
 ### `include_params`
 
-Include type parameters in `repr()` for parametric quantities.
+Include the dimension type parameter in `repr()`. The default `Quantity` (`u.Q`) carries no dimension parameter, so this option has no visible effect on it:
 
 - **Type**: `bool`
 - **Default**: `False`
 
 ```{code-block} python
->>> q = u.Q["length"](1.0, "m")
-
->>> with u.config.quantity_repr.override(include_params=False):
-...     print(repr(q))
-Quantity(Array(1., dtype=float32...), unit='m')
+>>> q = u.Q(1.0, "m")
 
 >>> with u.config.quantity_repr.override(include_params=True):
 ...     print(repr(q))
-Quantity['length'](Array(1., dtype=float32...), unit='m')
+Quantity(Array(1., dtype=float32...), unit='m')
 ```
+
+The option only changes the output for the dimension-parametrized `ParametricQuantity` (`u.PQ`), whose repr can show its `['length']`-style parameter; see the parametric quantity guide.
 
 ### `indent`
 
@@ -167,7 +165,7 @@ Quantity(Array([[1., 2.],
 
 ## Quantity Str Options
 
-Options for controlling `Quantity.__str__()` via `u.config.quantity_str`.
+Options for controlling quantity `__str__()` via `u.config.quantity_str`.
 
 ### `short_arrays`
 
@@ -179,15 +177,15 @@ Controls how arrays are displayed in `str()`.
 ```{code-block} python
 >>> q = u.Q([1.0, 2.0, 3.0], "m")
 >>> print(str(q))  # Default behavior (compact)
-Quantity['length']([1., 2., 3.], unit='m')
+Quantity([1., 2., 3.], unit='m')
 
 >>> with u.config.quantity_str.override(short_arrays=False):
 ...     print(str(q))
-Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
 >>> with u.config.quantity_str.override(short_arrays=True):
 ...     print(str(q))
-Quantity['length'](f32[3], unit='m')
+Quantity(f32[3], unit='m')
 ```
 
 ### `named_unit`
@@ -200,11 +198,11 @@ Display units as named keyword in `str()`.
 ```{code-block} python
 >>> q = u.Q(1.0, "m")
 >>> print(str(q))  # Default behavior (named)
-Quantity['length'](1., unit='m')
+Quantity(1., unit='m')
 
 >>> with u.config.quantity_str.override(named_unit=False):
 ...     print(str(q))
-Quantity['length'](1., 'm')
+Quantity(1., 'm')
 ```
 
 ### `use_short_name`
@@ -217,11 +215,11 @@ Use short class names in `str()` representation.
 ```{code-block} python
 >>> q = u.Q(1.0, "m")
 >>> print(str(q))
-Quantity['length'](1., unit='m')
+Quantity(1., unit='m')
 
 >>> with u.config.quantity_str.override(use_short_name=True):
 ...     print(str(q))
-Q['length'](1., unit='m')
+Q(1., unit='m')
 ```
 
 ### `indent`
@@ -321,7 +319,7 @@ You can override both repr and str configs simultaneously:
 ... ):
 ...     q = u.Q([1.0, 2.0, 3.0], "m")
 ...     print(repr(q), str(q))
-Quantity([1., 2., 3.], unit='m') Quantity['length'](f32[3], unit='m')
+Quantity([1., 2., 3.], unit='m') Quantity(f32[3], unit='m')
 >>>
 >>> # Or using separate nested overrides
 >>> with (
@@ -330,7 +328,7 @@ Quantity([1., 2., 3.], unit='m') Quantity['length'](f32[3], unit='m')
 ... ):
 ...         q = u.Q([1.0, 2.0, 3.0], "m")
 ...         print(repr(q), str(q))
-Quantity([1., 2., 3.], unit='m') Quantity['length'](f32[3], unit='m')
+Quantity([1., 2., 3.], unit='m') Quantity(f32[3], unit='m')
 ```
 
 ### Thread Safety

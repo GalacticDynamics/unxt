@@ -704,6 +704,7 @@ def test_config_context_manager_with_quantity() -> None:
         # Default repr (with short_arrays=False, use_short_name=False)
         default_repr = repr(q)
         assert "Quantity(" in default_repr  # Full name, not short
+        assert not default_repr.startswith("Q(")  # not the short name
         assert "Array" in default_repr  # Not compact
 
         # With compact arrays and short name

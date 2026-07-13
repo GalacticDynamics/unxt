@@ -12,6 +12,7 @@ import jax.numpy as jax_xp
 import numpy as np
 import pytest
 import unxts.hypothesis as ust
+from astropy.units import UnitConversionError
 from hypothesis import example, given, settings, strategies as st
 from hypothesis.extra.array_api import make_strategies_namespace
 from hypothesis.extra.numpy import array_shapes as np_array_shapes, arrays as np_arrays
@@ -89,24 +90,28 @@ def test_properties(value):
 
 
 def test_parametric():
-    """Test the parametric strategy."""
+    """Test the parametric strategy (``ParametricQuantity`` / ``u.PQ``)."""
     # Inferred
-    q = u.Q(1, "m")
+    q = u.PQ(1, "m")
     (dims,) = q._type_parameter
     assert dims == u.dimension("length")
 
     # Explicit
-    q = u.Q["length"](1, "m")
+    q = u.PQ["length"](1, "m")
     (dims,) = q._type_parameter
     assert dims == u.dimension("length")
 
-    q = u.Q["length"](jnp.ones((1, 2)), "m")
+    q = u.PQ["length"](jnp.ones((1, 2)), "m")
     (dims,) = q._type_parameter
     assert dims == u.dimension("length")
 
     # type-checks
     with pytest.raises(ValueError, match=re.escape("Physical type mismatch.")):
-        u.Q["time"](1, "m")
+        u.PQ["time"](1, "m")
+
+    # The lightweight default ``Quantity`` does NOT dimension-check: the
+    # subscript is accepted but the unit-dimension mismatch does not raise.
+    u.Q["time"](1, "m")
 
 
 @pytest.mark.parametrize("unit", [apyu.m, "meter"])
@@ -174,7 +179,7 @@ def test_uconvert_value_with_strings():
 
 
 def test_uconvert_value_with_quantity():
-    """Test the ``u.uconvert_value`` convenience dispatch with Quantity objects."""
+    """Test ``u.uconvert_value`` convenience dispatch with Quantity."""
     # Convert a Quantity object using uconvert_value
     q = u.Q(1, "km")
     result = u.uconvert_value("m", "km", q)
@@ -268,7 +273,7 @@ def test_uconvert_value_with_jax_transformations():
 
 
 def test_uconvert_value_error_handling_quantity():
-    """Test error handling when converting incompatible Quantity with uconvert_value."""
+    """Test error when converting incompatible Quantity units."""
     q_length = u.Q(1, "m")
     # Try to convert length quantity to time units - should raise
     with pytest.raises(apyu.UnitConversionError, match="not convertible"):
@@ -552,15 +557,17 @@ def test_pow():
 
 
 def test_rpow():
-    """Test the ``Quantity.__rpow__`` method."""
-    # Scalar base with dimensionless Quantity exponent
-    q = u.Q(2.0, "")  # dimensionless
+    """Test the ``ParametricQuantity.__rpow__`` method."""
+    # Scalar base with dimensionless ParametricQuantity exponent.
+    # ``pow`` with an array/scalar base only has a registered rule for a
+    # *parametric* dimensionless exponent (``pow_p_vq``), so use ``u.PQ``.
+    q = u.PQ(2.0, "")  # dimensionless
     result = 3.0**q
     assert jnp.isclose(result.value, 9.0)
     assert result.unit == u.unit("")
 
     # Exponent must be dimensionless
-    q = u.Q(2.0, "m")
+    q = u.PQ(2.0, "m")
     with pytest.raises(Exception):  # noqa: B017, PT011
         _ = 3.0**q
 
@@ -836,7 +843,10 @@ def test_mod():
     """Test taking the modulus."""
     q = u.Q(480.0, "deg")
 
-    with pytest.raises(RuntimeError):
+    # Modulo by a bare scalar treats it as dimensionless; ``deg`` is not
+    # convertible to dimensionless, so this raises a unit-conversion error
+    # (consistent with the dimension-mismatch case below).
+    with pytest.raises(apyu.UnitConversionError):
         _ = q % 2
 
     with pytest.raises(apyu.UnitConversionError):
@@ -922,7 +932,7 @@ def test_at():
 
 @parametric
 class NewQuantity(AbstractParametricQuantity):
-    """Quantity with a flag."""
+    """ParametricQuantity with a flag."""
 
     value: Array = eqx.field(converter=jnp.asarray)
     unit: str = eqx.field(converter=u.unit)
@@ -1382,3 +1392,23 @@ class TestQuantityUsageExamples:
         min_val = jnp.min(values)
         assert max_val.value == 5.0
         assert min_val.value == 1.0
+
+
+# ==============================================================================
+# Task 4: lax.rem_p support for the default (non-parametric) Quantity
+# ==============================================================================
+
+
+def test_remainder_bare_quantity_dimensionless():
+    """jnp.remainder works on the (non-parametric) default Quantity."""
+    q = u.Quantity(jnp.asarray([5.0, 7.0]), "")
+    got = jnp.remainder(q, jnp.asarray(3.0))
+    assert isinstance(got, u.Quantity)
+    assert jnp.array_equal(got.value, jnp.asarray([2.0, 1.0]))
+
+
+def test_remainder_bare_quantity_dimensionful_raises():
+    """jnp.remainder raises for a dimensionful (non-parametric) Quantity."""
+    q = u.Quantity(jnp.asarray([5.0, 7.0]), "m")
+    with pytest.raises(UnitConversionError):
+        _ = jnp.remainder(q, jnp.asarray(3.0))
