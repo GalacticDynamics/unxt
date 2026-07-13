@@ -249,7 +249,7 @@ result = add_lengths_m(u.Q(5.0, "m"), length_m_input)
 
 ### ℹ️ Note: `ParametricQuantity` multiplies pytree _types_ (not jit compilations)
 
-Feeding `ParametricQuantity` (from the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package) of different dimensions into a jitted function does **not** add a recompilation per dimension — recompilation is driven by the **unit**, a static field for both classes. What the parametric class adds is a new Python class and pytree type per dimension. See [Parametric types multiply pytree types](../packages/unxts.parametric/index.md#parametric-types-multiply-pytree-types-not-jit-compilations) in the parametric guide for the full explanation.
+Feeding `ParametricQuantity` (from the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package) of different dimensions into a jitted function does **not** add a recompilation per dimension — recompilation is driven by the **unit**, a static field for both classes. What the parametric class adds is a new Python class and pytree type per dimension. See [Parametric types multiply pytree types](../packages/unxts.parametric/sharp-bits.md) in the parametric guide for the full explanation.
 
 ## Mixing Quantity Types
 
@@ -285,7 +285,7 @@ time = u.Q(2.0, "s")
 speed = length / time  # ✅ Fast; unit arithmetic without per-dimension classes
 ```
 
-**`ParametricQuantity`** — Opt in when you want the physical dimension carried in the type (for dimension-specific `plum` dispatch and runtime dimension checking). It lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package (`up.PQ`); see its [guide](../packages/unxts.parametric/index.md).
+**`ParametricQuantity`** — Opt in when you want the physical dimension carried in the type (for dimension-specific `plum` dispatch and runtime dimension checking). It lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package (`up.PQ`); see its [guide](../packages/unxts.parametric/quantity.md).
 
 **`StaticQuantity`** — For compile-time constants:
 
@@ -308,7 +308,7 @@ def function(x, *, constant=u.StaticQuantity(3.26, "lyr")):
 | `ParametricQuantity` | Dimension-parametrized dispatch / runtime checking | ✅ Yes | Good (a distinct type per dimension) |
 | `StaticQuantity` | Constants | ❌ None | Best (no tracer) |
 
-`ParametricQuantity` lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package; see its [guide](../packages/unxts.parametric/index.md) for construction, dimension checking, and dispatch.
+`ParametricQuantity` lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package; see its [guide](../packages/unxts.parametric/quantity.md) for construction, dimension checking, and dispatch.
 
 ## Dimension Checking Overhead
 
@@ -385,7 +385,7 @@ This only applies to the outer-most function. Nesting jitted and quaxified funct
 
 ## `ParametricQuantity` Equality: Arrays vs. `StaticValue`
 
-A normal `ParametricQuantity` backed by a JAX array returns an element-wise boolean array from `==`, so it can't be a `jax.jit` `static_argnames` argument. Wrapping its value in a `StaticValue` makes `==` return a scalar `bool`, making the quantity hashable and usable as a static argument. This is a `ParametricQuantity` behavior (from the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package); see [Equality with `StaticValue`](../packages/unxts.parametric/index.md#equality-with-staticvalue) in the parametric guide.
+A normal `ParametricQuantity` backed by a JAX array returns an element-wise boolean array from `==`, so it can't be a `jax.jit` `static_argnames` argument. Wrapping its value in a `StaticValue` makes `==` return a scalar `bool`, making the quantity hashable and usable as a static argument. This is a `ParametricQuantity` behavior (from the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package); see [Equality with `StaticValue`](../packages/unxts.parametric/sharp-bits.md#equality-with-staticvalue) in the parametric guide.
 
 ## See Also
 

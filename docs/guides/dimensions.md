@@ -170,7 +170,7 @@ PhysicalType('angle')
 
 ```
 
-The dimension-parametrized `ParametricQuantity` (from the separate [`unxts.parametric`](../packages/unxts.parametric/index) package) encodes its dimension in the _class itself_, so `dimension_of` also works on a parametrized class — see [The dimension of a parametric class](../packages/unxts.parametric/index.md#the-dimension-of-a-parametric-class).
+The dimension-parametrized `ParametricQuantity` (from the separate [`unxts.parametric`](../packages/unxts.parametric/index) package) encodes its dimension in the _class itself_, so `dimension_of` also works on a parametrized class — see [The dimension of a parametric class](../packages/unxts.parametric/dimensions.md).
 
 ## Important Notes
 

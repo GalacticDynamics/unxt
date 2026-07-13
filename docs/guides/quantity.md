@@ -417,7 +417,7 @@ Q([1, 2, 3], unit='m')
 
 ```
 
-(The `include_params=True` option adds a dimension parameter such as `['length']` to the representation. The default `Quantity` has no such parameter, so it only takes effect for a `ParametricQuantity`; see the [parametric quantity guide](../packages/unxts.parametric/index.md).)
+(The `include_params=True` option adds a dimension parameter such as `['length']` to the representation. The default `Quantity` has no such parameter, so it only takes effect for a `ParametricQuantity`; see the [Configuration guide](../packages/unxts.parametric/configuration.md).)
 
 See the [`wadler_lindig` documentation](https://docs.kidger.site/wadler_lindig) for more details on the pretty printing options.
 
