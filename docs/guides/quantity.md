@@ -47,32 +47,22 @@ Quantity(Array(5., dtype=float32), unit='m')
 :::{admonition} Why `Quantity` is non-parametric
 :class: important
 
-`Quantity` (`u.Q`) is the lightweight, non-parametric default: a single class for
-all physical dimensions. `ParametricQuantity` (`u.PQ`) instead encodes the
-dimension in its _type_ — `ParametricQuantity["length"]` and
-`ParametricQuantity["time"]` are distinct Python classes, created on demand, and
-each is registered as its own JAX pytree node type.
+`Quantity` (`u.Q`) is the lightweight, non-parametric default: a single class —
+and a single JAX pytree type — for all physical dimensions. The alternative,
+`ParametricQuantity`, encodes the physical dimension in its _type_ (a distinct
+class, and pytree type, per dimension), which adds type-proliferation and
+per-construction overhead. This is **not** about `jax.jit` cache misses — the
+`unit` is a static field, so both classes specialize per distinct unit — but
+about keeping a smaller, simpler type surface by default.
 
-That per-dimension type proliferation carries real costs: a new class is created
-the first time each dimension is used (via `plum`'s parametric machinery), every
-one is a separately-registered pytree and dispatch type that JAX and `plum` must
-track, and construction runs dimension inference plus a validation check. The
-single-class `Quantity` avoids all of it — one class, one pytree type, lighter
-construction and dispatch.
-
-A note on `jax.jit`: this is **not** about jit cache misses. The `unit` is a
-_static_ field, so it lives in the pytree aux data (the treedef), which is part
-of the jit cache key — a jitted function therefore specializes per distinct unit
-with **either** class (a call on `"m"` is not reused for `"s"`). The rename does
-not change that per-unit compilation; it removes the redundant per-dimension
-_type_, not any jit recompilation (a unit already implies its dimension).
-
-Reach for `ParametricQuantity` only when you need its two extra features:
-
-1. **Runtime dimension checking** — `u.PQ["length"](1, "m")` validates the unit against the dimension at construction; the default `u.Q["length"](1, "m")` accepts the subscript for compatibility but does not check it.
-2. **Dispatch on specific dimensions** — `u.PQ["length"]` is a real type usable in `plum` dispatch annotations; `u.Q["length"]` is just `Quantity`.
-
-Everything else — arithmetic, unit conversion, JAX transforms, interop — works identically with either class. For upgrading from an earlier version of `unxt`, see the {ref}`migration guide <migration-v2>`.
+`ParametricQuantity` moved to the separate
+[`unxts.parametric`](../packages/unxts.parametric/index.md) package in v2. Reach
+for it when you need runtime dimension checking or dimension-specific `plum`
+dispatch; see the [parametric quantity
+guide](../packages/unxts.parametric/index.md) for details and the
+{ref}`migration guide <migration-v2>` for the v1→v2 mapping. Everything else —
+arithmetic, unit conversion, JAX transforms, interop — works identically with
+either class.
 
 :::
 
@@ -427,7 +417,7 @@ Q([1, 2, 3], unit='m')
 
 ```
 
-(The `include_params=True` option adds a dimension parameter such as `['length']` to the representation. The default `Quantity` has no such parameter, so it only takes effect for a `ParametricQuantity`; see the parametric quantity guide.)
+(The `include_params=True` option adds a dimension parameter such as `['length']` to the representation. The default `Quantity` has no such parameter, so it only takes effect for a `ParametricQuantity`; see the [parametric quantity guide](../packages/unxts.parametric/index.md).)
 
 See the [`wadler_lindig` documentation](https://docs.kidger.site/wadler_lindig) for more details on the pretty printing options.
 

@@ -147,7 +147,7 @@ Include the dimension type parameter in `repr()`. The default `Quantity` (`u.Q`)
 Quantity(Array(1., dtype=float32...), unit='m')
 ```
 
-The option only changes the output for the dimension-parametrized `ParametricQuantity` (`u.PQ`), whose repr can show its `['length']`-style parameter; see the parametric quantity guide.
+The option only changes the output for the dimension-parametrized `ParametricQuantity` (`up.PQ`, from the `unxts.parametric` package), whose repr can show its `['length']`-style parameter; see the [parametric quantity guide](../packages/unxts.parametric/index.md).
 
 ### `indent`
 

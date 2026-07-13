@@ -27,8 +27,9 @@ Quantity
   `jax.jit` recompilation.
 
 ParametricQuantity
-  {class}`~unxt.ParametricQuantity` (alias `u.PQ`) is the opt-in, *parametric*
-  quantity class. It encodes the physical dimension in its type
+  `ParametricQuantity` (alias `up.PQ`, from the separate
+  [`unxts.parametric`](packages/unxts.parametric/index) package) is the opt-in,
+  *parametric* quantity class. It encodes the physical dimension in its type
   (e.g. ``ParametricQuantity['length']``), enabling dimension-specific
   multiple-dispatch and runtime dimension checking, at the cost of a distinct
   class — and therefore a separate `jax.jit` compilation — per dimension.
@@ -43,7 +44,7 @@ Multiple-Dispatch
   See [Wikipedia](https://en.wikipedia.org/wiki/Multiple_dispatch) for more information.
 
 Parametric Class
-  A parametric class is a class that is defined by a set of parameters. The `unxt.ParametricQuantity` class is an example of a parametric class, as it is defined by its dimensions -- ``unxt.ParametricQuantity['length']`` is a quantity with dimensions of length, while ``unxt.ParametricQuantity['time']`` is a quantity with dimensions of time.
+  A parametric class is a class that is defined by a set of parameters. The `unxts.parametric.ParametricQuantity` class is an example of a parametric class, as it is defined by its dimensions -- ``ParametricQuantity['length']`` is a quantity with dimensions of length, while ``ParametricQuantity['time']`` is a quantity with dimensions of time.
 
 Non-parametric Class
   A non-parametric class is a class that is not defined by a set of parameters.

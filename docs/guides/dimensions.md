@@ -161,13 +161,6 @@ PhysicalType('length')
 ... except Exception as e: print(e)
 Cannot get the dimension of <class 'unxt._src.quantity.quantity.Quantity'>.
 
->>> u.dimension_of(u.PQ["length"])  # a parameterized ParametricQuantity class does carry one
-PhysicalType('length')
-
->>> try: u.dimension_of(u.PQ)  # unparameterized ParametricQuantity will raise an error
-... except Exception as e: print(e)
-can only get dimensions from parametrized ParametricQuantity -- ParametricQuantity[dim].
-
 >>> angle = u.Angle(30, 'deg')  # angles always have dimension 'angle'
 >>> u.dimension_of(angle)
 PhysicalType('angle')
@@ -176,6 +169,8 @@ PhysicalType('angle')
 PhysicalType('angle')
 
 ```
+
+The dimension-parametrized `ParametricQuantity` (from the separate [`unxts.parametric`](../packages/unxts.parametric/index) package) encodes its dimension in the _class itself_, so `dimension_of` also works on a parametrized class — see [The dimension of a parametric class](../packages/unxts.parametric/index.md#the-dimension-of-a-parametric-class).
 
 ## Important Notes
 

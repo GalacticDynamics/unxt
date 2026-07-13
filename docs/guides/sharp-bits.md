@@ -16,6 +16,7 @@ Coming from NumPy or Astropy, you might expect to modify quantities in place:
 ```python
 import jax.numpy as jnp
 import unxt as u
+import unxts.parametric as up
 
 # This doesn't work as expected!
 q = u.Q([1.0, 2.0, 3.0], "m")
@@ -249,24 +250,7 @@ result = add_lengths_m(u.Q(5.0, "m"), length_m_input)
 
 ### ℹ️ Note: `ParametricQuantity` multiplies pytree _types_ (not jit compilations)
 
-:::{seealso} See [Why `Quantity` is non-parametric](quantity.md#why-quantity-is-non-parametric) for the design rationale behind the default `Quantity`, and the {ref}`migration guide <migration-v2>` for the rename mapping and upgrade steps. :::
-
-A common misconception is that feeding `ParametricQuantity` of different dimensions into a jitted function adds a recompilation _per dimension_. It does not. Recompilation is driven by the **unit**, which is a static field for _both_ classes, so a jitted function specializes per distinct unit either way ([Use Consistent Units](#solution-use-consistent-units) above). Because a unit already implies its dimension, `ParametricQuantity`'s per-dimension _type_ is redundant with the per-unit cache key and adds no extra compilations:
-
-```python
-@jax.jit
-def square(x):
-    return x**2
-
-
-# Both classes recompile per *unit* ("m" and "s" are different units):
-square(u.Q(5.0, "m"))
-square(u.Q(5.0, "s"))  # 2 compilations
-square(u.PQ(5.0, "m"))
-square(u.PQ(5.0, "s"))  # also 2 compilations
-```
-
-What `ParametricQuantity` _does_ add is a new Python class — and a new registered JAX pytree node type — for every physical dimension, created on demand. That grows the pytree and `plum` dispatch type surface that must be tracked and searched, and adds per-construction dimension inference and a validation check. The default `Quantity` is a single type for all dimensions, so it avoids that proliferation and its overhead — that is the win, rather than fewer `jax.jit` compilations.
+Feeding `ParametricQuantity` (from the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package) of different dimensions into a jitted function does **not** add a recompilation per dimension — recompilation is driven by the **unit**, a static field for both classes. What the parametric class adds is a new Python class and pytree type per dimension. See [Parametric types multiply pytree types](../packages/unxts.parametric/index.md#parametric-types-multiply-pytree-types-not-jit-compilations) in the parametric guide for the full explanation.
 
 ## Mixing Quantity Types
 
@@ -277,7 +261,7 @@ Different quantity types have different guarantees:
 ```python
 # What's the difference?
 q1 = u.Q(5.0, "m")  # the default, lightweight Quantity
-q2 = u.PQ(5.0, "m")  # ParametricQuantity, dimension in the type
+q2 = up.PQ(5.0, "m")  # ParametricQuantity, dimension in the type
 q3 = u.quantity.StaticQuantity(5.0, "m")
 ```
 
@@ -306,8 +290,8 @@ speed = length / time  # ✅ Fast; unit arithmetic without per-dimension classes
 
 ```python
 # Use when you want dimension-parametrized dispatch / runtime checking
-length = u.PQ(5.0, "m")
-time = u.PQ(2.0, "s")
+length = up.PQ(5.0, "m")
+time = up.PQ(2.0, "s")
 speed = length / time  # A distinct parametric class per dimension
 ```
 
@@ -331,6 +315,8 @@ def function(x, *, constant=u.StaticQuantity(3.26, "lyr")):
 | `Quantity` | Default choice | ❌ None | Better |
 | `ParametricQuantity` | Dimension-parametrized dispatch / runtime checking | ✅ Yes | Good (recompiles per dimension) |
 | `StaticQuantity` | Constants | ✅ Yes | Best (no tracer) |
+
+`ParametricQuantity` lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package; see its [guide](../packages/unxts.parametric/index.md) for construction, dimension checking, and dispatch.
 
 ## Dimension Checking Overhead
 
@@ -407,55 +393,7 @@ This only applies to the outer-most function. Nesting jitted and quaxified funct
 
 ## `ParametricQuantity` Equality: Arrays vs. `StaticValue`
 
-### ❌ Problem: `==` on a normal `ParametricQuantity` is not a scalar `bool`
-
-A normal `ParametricQuantity` (backed by a JAX array) follows NumPy broadcasting: `==` returns an **element-wise boolean array**, not a scalar `bool`. This means you cannot use it as a `static_argnames` argument in `jax.jit`, and it will raise an error if JAX tries to check cache validity:
-
-```python
-from functools import partial
-import jax
-import unxt as u
-
-
-@partial(jax.jit, static_argnames=("scale",))
-def rescale(x, *, scale):
-    return x * scale.value
-
-
-# ❌ Fails — JAX cannot convert Array([True, True]) to a scalar bool
-try:
-    rescale(x, scale=u.PQ([2.0, 3.0], "m"))
-except Exception as e:
-    print(f"Error: {e}")
-```
-
-### ✅ Solution: Wrap the value with `StaticValue`
-
-When a `ParametricQuantity` is backed by a `StaticValue`, its `==` operator returns a **scalar `bool`** (structural equality, like a tuple) instead of an element-wise array. This makes the whole `ParametricQuantity` hashable and safe for `static_argnames`:
-
-```python
-import numpy as np
-
-scale = u.PQ(u.quantity.StaticValue(np.array([2.0, 3.0])), "m")
-
-
-@partial(jax.jit, static_argnames=("scale",))
-def rescale(x, *, scale):
-    return x * jnp.asarray(scale.value)
-
-
-x2 = jnp.ones(2)
-rescale(x2, scale=scale)  # ✅ compiles; equality is a scalar bool
-```
-
-Unit conversion is applied before comparing, so quantities in compatible but different units still compare correctly:
-
-```python
-sv_km = u.quantity.StaticValue(np.array([0.001, 0.003]))
-u.PQ(scale.value, "m") == u.PQ(sv_km, "km")  # True — same physical value
-```
-
-See [Working with StaticValue in ParametricQuantity](quantity.md#working-with-staticvalue-in-parametricquantity) for more details.
+A normal `ParametricQuantity` backed by a JAX array returns an element-wise boolean array from `==`, so it can't be a `jax.jit` `static_argnames` argument. Wrapping its value in a `StaticValue` makes `==` return a scalar `bool`, making the quantity hashable and usable as a static argument. This is a `ParametricQuantity` behavior (from the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package); see [Equality with `StaticValue`](../packages/unxts.parametric/index.md#equality-with-staticvalue) in the parametric guide.
 
 ## See Also
 

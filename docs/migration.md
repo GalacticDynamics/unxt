@@ -11,9 +11,16 @@ This guide covers the breaking changes introduced in `unxt` v2, specifically the
 | v1 name | v2 name | Short alias | Notes |
 | --- | --- | --- | --- |
 | `BareQuantity` | `Quantity` | `u.Q` | Now the **default**, non-parametric class |
-| `Quantity` (parametric) | `ParametricQuantity` | `u.PQ` | Opt-in; encodes dimension in type |
+| `Quantity` (parametric) | `ParametricQuantity` | `up.PQ` | Opt-in; **moved** to the `unxts.parametric` package |
 | — | `Q` | `u.Q` | New alias for `Quantity` |
-| — | `PQ` | `u.PQ` | New alias for `ParametricQuantity` |
+| — | `PQ` | `up.PQ` | New alias for `ParametricQuantity` (in `unxts.parametric`) |
+
+```{note}
+As of v2, `ParametricQuantity`/`PQ` live in the separate **`unxts.parametric`**
+package rather than in `unxt`. Install it with `pip install unxts.parametric`
+and import as `import unxts.parametric as up` (so `up.PQ`). Accessing
+`unxt.ParametricQuantity` / `u.PQ` now raises an `AttributeError` pointing here.
+```
 
 ---
 
@@ -69,20 +76,21 @@ In v1, `Quantity["length"](1, "s")` would raise a `ValueError` because `"s"` (se
 
 ```python
 import unxt as u
+import unxts.parametric as up
 
 # v2 default Quantity — subscript is a no-op, no check
 u.Q["length"](1, "s")  # Quantity(1, unit='s') — no error
 
 # ParametricQuantity — still raises on mismatch
 try:
-    u.PQ["length"](1, "s")
+    up.PQ["length"](1, "s")
 except ValueError as e:
     print(e)  # Physical type mismatch.
 ```
 
 <!-- skip: end -->
 
-**Migration:** Replace `Quantity["<dim>"](...)` calls that relied on dimension checking with `ParametricQuantity["<dim>"](...)` (or `u.PQ["<dim>"](...)`).
+**Migration:** Replace `Quantity["<dim>"](...)` calls that relied on dimension checking with `ParametricQuantity["<dim>"](...)` (or `up.PQ["<dim>"](...)`).
 
 ### (b) Plum dispatch on dimension-specific types requires `ParametricQuantity`
 
@@ -97,16 +105,16 @@ In v1, `Quantity["length"]` was a distinct class usable in `plum` dispatch annot
 
 # v2 — use ParametricQuantity for dimension-specific dispatch
 from plum import dispatch
-import unxt as u
+import unxts.parametric as up
 
 
 @dispatch
-def f(x: u.PQ["length"]):
+def f(x: up.PQ["length"]):
     return "length!"
 
 
 @dispatch
-def f(x: u.PQ["time"]):
+def f(x: up.PQ["time"]):
     return "time!"
 ```
 
@@ -132,8 +140,8 @@ The single-class `Quantity` avoids all of that: one class, one registered pytree
 
 `ParametricQuantity` remains available — and is the right choice — when you genuinely need:
 
-- **Runtime dimension checking**: `u.PQ["length"](1, "s")` raises immediately.
-- **Dimension-specific `plum` dispatch**: `u.PQ["length"]` is a distinct type.
+- **Runtime dimension checking**: `up.PQ["length"](1, "s")` raises immediately.
+- **Dimension-specific `plum` dispatch**: `up.PQ["length"]` is a distinct type.
 
 For everything else — arithmetic, unit conversion, JAX transforms, interop — `Quantity` and `ParametricQuantity` behave identically.
 

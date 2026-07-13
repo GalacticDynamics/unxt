@@ -9,7 +9,7 @@
 
 ## TL;DR
 
-You can tell functions about the dtype, shape, and dimensions of a `ParametricQuantity`. The dtype and shape information can be checked statically, and all three can be checked at runtime. (Runtime _dimension_ checking is what the parametric `ParametricQuantity` -- alias `u.PQ` -- adds over the lightweight default `Quantity`.)
+You can tell functions about the dtype, shape, and dimensions of a `ParametricQuantity`. The dtype and shape information can be checked statically, and all three can be checked at runtime. (Runtime _dimension_ checking is what the parametric `ParametricQuantity` -- from the `unxts.parametric` package, imported here as `up` so `ParametricQuantity` is `up.PQ` -- adds over the lightweight default `Quantity`.)
 
 In the following example we will define a function that operates on two length-'N' (1-D and equally-shaped) float dtype arrays. The function takes a length and a time and returns a velocity.
 
@@ -18,11 +18,12 @@ In the following example we will define a function that operates on two length-'
 from jaxtyping import Float
 
 import unxt as u
+import unxts.parametric as up
 
 def function(
-    x: Float[u.PQ["length"], "N"],
-    t: Float[u.PQ["time"], "N"],
-) -> Float[u.PQ["speed"], "N"]:
+    x: Float[up.PQ["length"], "N"],
+    t: Float[up.PQ["time"], "N"],
+) -> Float[up.PQ["speed"], "N"]:
     return x / t
 
 ```
@@ -80,76 +81,31 @@ Here's an example:
 >>> from beartype import beartype as typechecker  # or use any supported typechecker
 
 >>> import unxt as u
+>>> import unxts.parametric as up
 
 >>> @jaxtyped(typechecker=typechecker)
 ... def velocity(
-...     x: Shaped[u.PQ["length"], "N"],
-...     t: Shaped[u.PQ["time"], "N"],
-... ) -> Shaped[u.PQ["speed"], "N"]:
+...     x: Shaped[up.PQ["length"], "N"],
+...     t: Shaped[up.PQ["time"], "N"],
+... ) -> Shaped[up.PQ["speed"], "N"]:
 ...     return x / t
 
->>> x = u.PQ([2.], "m")
->>> t = u.PQ([1.], "s")
+>>> x = up.PQ([2.], "m")
+>>> t = up.PQ([1.], "s")
 
 >>> velocity(x, t)
 ParametricQuantity(Array([2.], dtype=float32), unit='m / s')
 
 ```
 
-## Dimension Annotations to ParametricQuantity
+## Dimension annotations
 
-In the previous sections `ParametricQuantity` annotations had strings specifying the dimensions of that ParametricQuantity. Let's explore this a little more deeply.
+The examples above constrain the physical **dimension** of an argument (e.g. `up.PQ["length"]`). That capability comes from `ParametricQuantity`, which encodes the dimension in its _type_ and lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package. For how `ParametricQuantity` is constructed, how dimensions are inferred and checked, and the parametric-class theory, see [Dimension annotations for type checking](../packages/unxts.parametric/index.md#dimension-annotations-for-type-checking).
 
-First the theory. Python classes can be 'parametric', where the class is parametrized by a set of metadata. The most common example of this is for [generics][typing-Generics-link] in the [builtin `typing` library][typing-link] where the metadata is type information about a function or object. This is useful for static type checking. However we are not limited to only type information. Classes can implement any form of parametric design (see [here](https://docs.python.org/3/reference/datamodel.html#object.__class_getitem__)). We use the library [`plum`][plum-link], on which `unxt` depends, to [enhance](https://beartype.github.io/plum/parametric.html) Python's parametric functionality and enable `ParametricQuantity` classes to be parametrized by their unit's dimensions in a way that can be checked by runtime type checkers.
-
-Now for some examples.
-
-```{code-block} python
->>> import unxt as u
-```
-
-When a `ParametricQuantity` is constructed it is parametrized by the unit's dimension. This can be specified explicitly
-
-```{code-block}
->>> u.PQ["length"](1, "m")
-ParametricQuantity(Array(1, dtype=int32, ...), unit='m')
-```
-
-or inferred.
-
-```{code-block}
->>> u.PQ(1, "m")
-ParametricQuantity(Array(1, dtype=int32, ...), unit='m')
-```
-
-When given explicitly ParametricQuantity will check the input dimensions. Here a length-parametrized ParametricQuantity is (correctly) refusing dimensions of time.
-
-```{code-block} python
->>> try:
-...     u.PQ["length"](1, "s")
-... except Exception as e:
-...     print(e)
-Physical type mismatch.
-```
-
-That should catch some bugs!
-
-The act of filling a `ParametricQuantity`'s parameters and its construction may be separated
-
-```{code-block} python
->>> LengthQuantity = u.PQ["length"]
->>> LengthQuantity
-<class 'unxt...ParametricQuantity[PhysicalType('length')]'>
-```
-
-This parametric design is how `unxt` supports runtime type checking.
-
-In `unxt` not all ParametricQuantity classes are parametric. The base class, {class}`unxt.quantity.AbstractQuantity` is not parametric, nor is the concrete class {class}`unxt.quantity.Quantity`. Parametric classes incur a small performance overhead (generally eliminated in [`jit`ted code][JAX-jit-link]), which ultra-performance-optimized code might want to avoid, at the cost of inference and checking of the dimensions.
+The default {class}`unxt.quantity.Quantity` (and the base {class}`unxt.quantity.AbstractQuantity`) are **not** parametric — their type carries dtype and shape but no dimension, so annotations still check dtype and shape.
 
 :::{note}
 
 `Quantity[<dimension>]` **does nothing** and is for informational purposes only.
 
 :::
-
-Check out [`plum`](https://beartype.github.io/plum/parametric.html) to explore more powerful features of parametric classes.
