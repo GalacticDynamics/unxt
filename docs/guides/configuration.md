@@ -132,22 +132,13 @@ Quantity(Array(1., dtype=float32...), 'm')
 Quantity(Array(1., dtype=float32...), unit='m')
 ```
 
-### `include_params`
-
-Include the dimension type parameter in `repr()`. The default `Quantity` (`u.Q`) carries no dimension parameter, so this option has no visible effect on it:
-
-- **Type**: `bool`
-- **Default**: `False`
-
-```{code-block} python
->>> q = u.Q(1.0, "m")
-
->>> with u.config.quantity_repr.override(include_params=True):
-...     print(repr(q))
-Quantity(Array(1., dtype=float32...), unit='m')
+```{note}
+Showing the dimension type parameter (e.g. `['length']`) applies only to the
+dimension-parametrized `ParametricQuantity`, so its `include_params` option
+lives in the separate `unxts.parametric` package's own config
+(`unxts.parametric.config`), not in `unxt.config`. See the [parametric quantity
+guide](../packages/unxts.parametric/index.md#configuration).
 ```
-
-The option only changes the output for the dimension-parametrized `ParametricQuantity` (`up.PQ`, from the `unxts.parametric` package), whose repr can show its `['length']`-style parameter; see the [parametric quantity guide](../packages/unxts.parametric/index.md).
 
 ### `indent`
 
@@ -242,7 +233,6 @@ The configuration uses a hierarchical format matching the nested structure:
 short_arrays = "compact"
 use_short_name = true
 named_unit = false
-include_params = true
 indent = 4
 
 [tool.unxt.quantity.str]

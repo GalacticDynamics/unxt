@@ -68,7 +68,7 @@ class _NestedConfigContext:
 # Quantity `__repr__`
 
 QUANTITY_REPR_CONFIG_KEYS: Final = frozenset(
-    {"short_arrays", "use_short_name", "named_unit", "include_params", "indent"}
+    {"short_arrays", "use_short_name", "named_unit", "indent"}
 )
 
 
@@ -95,9 +95,6 @@ class QuantityReprConfig(LocalConfigurable):
         If `True`, display unit as a named argument `unit='m'`.
         If `False`, display unit as a positional argument `'m'`.
         Default: `True`
-    include_params : bool
-        If `True`, include type parameters in repr for parametric quantities.
-        If `False`, omit type parameters from repr. Default: `False`
 
     Examples
     --------
@@ -135,11 +132,6 @@ class QuantityReprConfig(LocalConfigurable):
     named_unit: ClassVar[object] = Bool(
         default_value=True,
         help="Display unit as named argument (unit='m') vs positional ('m')",
-    ).tag(config=True)
-
-    include_params: ClassVar[object] = Bool(
-        default_value=False,
-        help="Include type parameters in repr for parametric quantities",
     ).tag(config=True)
 
     indent: ClassVar[object] = Int(
@@ -264,7 +256,7 @@ class QuantityReprConfig(LocalConfigurable):
 # Quantity `__str__`
 
 QUANTITY_STR_CONFIG_KEYS: Final = frozenset(
-    {"short_arrays", "use_short_name", "named_unit", "indent", "include_params"}
+    {"short_arrays", "use_short_name", "named_unit", "indent"}
 )
 
 UNXT_OVERRIDE_CONFIG_KEYS: Final = {
@@ -296,9 +288,6 @@ class QuantityStrConfig(LocalConfigurable):
         If True, display unit as a named argument `unit='m'`.
         If False, display unit as a positional argument `'m'`.
         Default: True
-    include_params : bool
-        If True, include type parameters in str for parametric quantities.
-        If False, omit type parameters from str. Default: `True`
     indent : int
         Indentation width for nested structures in str representation.
         Default: 4
@@ -306,9 +295,7 @@ class QuantityStrConfig(LocalConfigurable):
     Examples
     --------
     >>> import unxt as u
-    >>> with u.config.quantity_str.override(
-    ...     short_arrays=True, use_short_name=True, include_params=False
-    ... ):
+    >>> with u.config.quantity_str.override(short_arrays=True, use_short_name=True):
     ...     q = u.Q([1, 2, 3], "m")
     ...     print(str(q))
     Q(i32[3], unit='m')
@@ -342,11 +329,6 @@ class QuantityStrConfig(LocalConfigurable):
     named_unit: ClassVar[object] = Bool(
         default_value=True,
         help="Display unit as named argument (unit='m') vs positional ('m')",
-    ).tag(config=True)
-
-    include_params: ClassVar[object] = Bool(
-        default_value=True,
-        help="Include type parameters in str for parametric quantities",
     ).tag(config=True)
 
     indent: ClassVar[object] = Int(
@@ -619,7 +601,10 @@ _TOML_PATH_TO_CONFIG_CLASS: Final = {
 
 
 def _walk_toml_config(
-    data: dict[str, Any], path: tuple[str, ...] = ()
+    data: dict[str, Any],
+    path: tuple[str, ...] = (),
+    *,
+    path_to_class: dict[tuple[str, ...], str] = _TOML_PATH_TO_CONFIG_CLASS,
 ) -> dict[str, Config]:
     r"""Walk nested TOML dict and build Config objects for known paths.
 
@@ -632,6 +617,9 @@ def _walk_toml_config(
         Nested dictionary from parsed TOML (e.g., tool.unxt section)
     path : tuple of str
         Current path in the nested structure (e.g., ("quantity", "repr"))
+    path_to_class : dict
+        Mapping from TOML sub-path to Config class name. Defaults to unxt's
+        own mapping; other packages (e.g. ``unxts.parametric``) pass their own.
 
     Returns
     -------
@@ -656,20 +644,28 @@ def _walk_toml_config(
         current_path = (*path, key)
 
         # Check if this path maps to a known Config class
-        if current_path in _TOML_PATH_TO_CONFIG_CLASS:
-            config_class_name = _TOML_PATH_TO_CONFIG_CLASS[current_path]
+        if current_path in path_to_class:
+            config_class_name = path_to_class[current_path]
             if isinstance(value, dict):
                 result[config_class_name] = Config(value)
         elif isinstance(value, dict):
             # Continue walking nested dicts
-            nested_result = _walk_toml_config(value, current_path)
+            nested_result = _walk_toml_config(
+                value, current_path, path_to_class=path_to_class
+            )
             result.update(nested_result)
 
     return result
 
 
-def _load_toml_config_from_pyproject(path: Path, /) -> Config:
-    """Load ``[tool.unxt]`` section from a ``pyproject.toml`` file.
+def _load_toml_config_from_pyproject(
+    path: Path,
+    /,
+    *,
+    tool_path: tuple[str, ...] = ("unxt",),
+    path_to_class: dict[tuple[str, ...], str] = _TOML_PATH_TO_CONFIG_CLASS,
+) -> Config:
+    """Load a ``[tool.<...>]`` section from a ``pyproject.toml`` file.
 
     Supports both nested sections and dotted keys:
 
@@ -689,6 +685,12 @@ def _load_toml_config_from_pyproject(path: Path, /) -> Config:
     ----------
     path : Path
         Path to pyproject.toml file
+    tool_path : tuple of str
+        Keys under ``[tool]`` to navigate into (e.g. ``("unxt",)`` or
+        ``("unxts", "parametric")``). Defaults to unxt's own section.
+    path_to_class : dict
+        Mapping from TOML sub-path to Config class name (passed through to
+        :func:`_walk_toml_config`).
 
     Returns
     -------
@@ -699,17 +701,17 @@ def _load_toml_config_from_pyproject(path: Path, /) -> Config:
     with path.open("rb") as f:
         data = tomllib.load(f)
 
-    # Navigate to tool.unxt section
-    tool = data.get("tool")
-    if not isinstance(tool, dict):
-        return Config()
-
-    unxt_cfg = tool.get("unxt")
-    if not isinstance(unxt_cfg, dict):
+    # Navigate to the tool.<tool_path> section
+    section: Any = data.get("tool")
+    for key in tool_path:
+        if not isinstance(section, dict):
+            return Config()
+        section = section.get(key)
+    if not isinstance(section, dict):
         return Config()
 
     # Walk the nested structure and build Config objects
-    config_dict = _walk_toml_config(unxt_cfg)
+    config_dict = _walk_toml_config(section, path_to_class=path_to_class)
 
     # Build final Config object
     config = Config()  # pylint: disable=redefined-outer-name

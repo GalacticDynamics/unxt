@@ -15,6 +15,7 @@ from plum import dispatch, parametric, type_unparametrized
 
 from dataclassish import field_items, fields
 
+from .config import config as parametric_config
 from unxt._src.dimensions import name_of
 from unxt.config import config
 from unxt.dims import AbstractDimension, dimension, dimension_of
@@ -296,7 +297,7 @@ class AbstractParametricQuantity(AbstractQuantity):
     def __repr__(self) -> str:
         return wl.pformat(
             self,
-            include_params=config.quantity_repr.include_params,
+            include_params=parametric_config.quantity_repr.include_params,
             named_unit=config.quantity_repr.named_unit,
             short_arrays=config.quantity_repr.short_arrays,
             use_short_name=config.quantity_repr.use_short_name,
@@ -306,7 +307,7 @@ class AbstractParametricQuantity(AbstractQuantity):
     def __str__(self) -> str:
         return wl.pformat(
             self,
-            include_params=config.quantity_str.include_params,
+            include_params=parametric_config.quantity_str.include_params,
             named_unit=config.quantity_str.named_unit,
             short_arrays=config.quantity_str.short_arrays,
             use_short_name=config.quantity_str.use_short_name,
