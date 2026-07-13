@@ -9,26 +9,25 @@
 
 ## TL;DR
 
-You can tell functions about the dtype, shape, and dimensions of a `ParametricQuantity`. The dtype and shape information can be checked statically, and all three can be checked at runtime. (Runtime _dimension_ checking is what the parametric `ParametricQuantity` -- from the `unxts.parametric` package, imported here as `up` so `ParametricQuantity` is `up.PQ` -- adds over the lightweight default `Quantity`.)
+You can annotate the **dtype** and **shape** of a `Quantity` — checked statically, and at runtime. To _also_ constrain the physical **dimension** of an argument, use the dimension-parametrized `ParametricQuantity` from the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package; see [Dimension annotations for type checking](../packages/unxts.parametric/index.md#dimension-annotations-for-type-checking).
 
-In the following example we will define a function that operates on two length-'N' (1-D and equally-shaped) float dtype arrays. The function takes a length and a time and returns a velocity.
+In the following example we define a function over two 1-D, equally-shaped float arrays and return their elementwise ratio:
 
 ```{code-block} python
 
 from jaxtyping import Float
 
 import unxt as u
-import unxts.parametric as up
 
-def function(
-    x: Float[up.PQ["length"], "N"],
-    t: Float[up.PQ["time"], "N"],
-) -> Float[up.PQ["speed"], "N"]:
+def velocity(
+    x: Float[u.Quantity, "N"],
+    t: Float[u.Quantity, "N"],
+) -> Float[u.Quantity, "N"]:
     return x / t
 
 ```
 
-For information on typing in Python see [the built-in `typing` module][typing-link]. Refer to the [`jaxtyping` library][jaxtyping-link] for information on how to annotate the dtype and shape of a ParametricQuantity, for example integer arrays or variable / context-dependent shapes. `jaxtyping` also powers `unxt`'s runtime typechecking, discussed next.
+For information on typing in Python see [the built-in `typing` module][typing-link]. Refer to the [`jaxtyping` library][jaxtyping-link] for how to annotate the dtype and shape of a `Quantity`, for example integer arrays or variable / context-dependent shapes. `jaxtyping` also powers `unxt`'s runtime typechecking, discussed next.
 
 ## Runtime Type Checking
 
@@ -81,31 +80,22 @@ Here's an example:
 >>> from beartype import beartype as typechecker  # or use any supported typechecker
 
 >>> import unxt as u
->>> import unxts.parametric as up
 
 >>> @jaxtyped(typechecker=typechecker)
 ... def velocity(
-...     x: Shaped[up.PQ["length"], "N"],
-...     t: Shaped[up.PQ["time"], "N"],
-... ) -> Shaped[up.PQ["speed"], "N"]:
+...     x: Shaped[u.Quantity, "N"],
+...     t: Shaped[u.Quantity, "N"],
+... ) -> Shaped[u.Quantity, "N"]:
 ...     return x / t
 
->>> x = up.PQ([2.], "m")
->>> t = up.PQ([1.], "s")
+>>> x = u.Q([2.], "m")
+>>> t = u.Q([1.], "s")
 
 >>> velocity(x, t)
-ParametricQuantity(Array([2.], dtype=float32), unit='m / s')
+Quantity(Array([2.], dtype=float32), unit='m / s')
 
 ```
 
 ## Dimension annotations
 
-The examples above constrain the physical **dimension** of an argument (e.g. `up.PQ["length"]`). That capability comes from `ParametricQuantity`, which encodes the dimension in its _type_ and lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package. For how `ParametricQuantity` is constructed, how dimensions are inferred and checked, and the parametric-class theory, see [Dimension annotations for type checking](../packages/unxts.parametric/index.md#dimension-annotations-for-type-checking).
-
-The default {class}`unxt.quantity.Quantity` (and the base {class}`unxt.quantity.AbstractQuantity`) are **not** parametric — their type carries dtype and shape but no dimension, so annotations still check dtype and shape.
-
-:::{note}
-
-`Quantity[<dimension>]` **does nothing** and is for informational purposes only.
-
-:::
+The default {class}`unxt.quantity.Quantity` carries **dtype and shape** in its type, but no dimension — so `Quantity[<dimension>]` **does nothing** (it is informational only). To additionally check the physical **dimension** of an argument (e.g. `up.PQ["length"]`), use `ParametricQuantity` from the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package, which encodes the dimension in its _type_. For construction, dimension inference/checking, and the parametric-class theory, see [Dimension annotations for type checking](../packages/unxts.parametric/index.md#dimension-annotations-for-type-checking).

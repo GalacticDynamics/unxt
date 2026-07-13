@@ -16,7 +16,6 @@ Coming from NumPy or Astropy, you might expect to modify quantities in place:
 ```python
 import jax.numpy as jnp
 import unxt as u
-import unxts.parametric as up
 
 # This doesn't work as expected!
 q = u.Q([1.0, 2.0, 3.0], "m")
@@ -261,8 +260,8 @@ Different quantity types have different guarantees:
 ```python
 # What's the difference?
 q1 = u.Q(5.0, "m")  # the default, lightweight Quantity
-q2 = up.PQ(5.0, "m")  # ParametricQuantity, dimension in the type
-q3 = u.quantity.StaticQuantity(5.0, "m")
+q2 = u.quantity.StaticQuantity(5.0, "m")  # static value, for constants
+# ParametricQuantity (dimension in the type) lives in unxts.parametric
 ```
 
 ### ❌ Problem: Quantities are Dynamic
@@ -286,14 +285,7 @@ time = u.Q(2.0, "s")
 speed = length / time  # ✅ Fast; unit arithmetic without per-dimension classes
 ```
 
-**`ParametricQuantity`** — Opt in when you want the physical dimension carried in the type (for dimension-specific `plum` dispatch and runtime dimension checking):
-
-```python
-# Use when you want dimension-parametrized dispatch / runtime checking
-length = up.PQ(5.0, "m")
-time = up.PQ(2.0, "s")
-speed = length / time  # A distinct parametric class per dimension
-```
+**`ParametricQuantity`** — Opt in when you want the physical dimension carried in the type (for dimension-specific `plum` dispatch and runtime dimension checking). It lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package (`up.PQ`); see its [guide](../packages/unxts.parametric/index.md).
 
 **`StaticQuantity`** — For compile-time constants:
 
