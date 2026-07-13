@@ -5,7 +5,7 @@ import equinox as eqx
 import unxt as u
 
 
-def quantity_as_module_field():
+def test_quantity_as_module_field():
     """Test a Quantity as an `equinox.Module` field."""
 
     class TestModule(eqx.Module):
