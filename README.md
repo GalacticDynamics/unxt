@@ -212,7 +212,7 @@ print(usys["mass"])
 
 Quantities combine values with units, providing type-safe unitful arithmetic.
 
-`Quantity` (`u.Q`) is the lightweight, non-parametric default: a single class for all physical dimensions, avoiding per-dimension `jax.jit` recompilation. `ParametricQuantity` (`u.PQ`) adds runtime dimension checking and dimension-specific `plum` dispatch — each parametrized dimension is its own class, which can trigger extra `jax.jit` compilations. See the [Quantity guide](https://unxt.readthedocs.io/en/latest/guides/quantity.html) for full details; upgrading from an earlier version? See the [migration guide](https://unxt.readthedocs.io/en/latest/migration.html).
+`Quantity` (`u.Q`) is the lightweight, non-parametric default: a single class — and a single JAX pytree type — for all physical dimensions. `ParametricQuantity` (`u.PQ`) adds runtime dimension checking and dimension-specific `plum` dispatch by encoding each dimension in its own on-the-fly class (and pytree type), which grows the type/dispatch surface and adds per-construction overhead. (This is not about `jax.jit` cache misses: the `unit` is static, so a jitted function specializes per unit with either class — that part is inherent.) See the [Quantity guide](https://unxt.readthedocs.io/en/latest/guides/quantity.html) for full details; upgrading from an earlier version? See the [migration guide](https://unxt.readthedocs.io/en/latest/migration.html).
 
 #### Basic Quantities
 

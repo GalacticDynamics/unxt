@@ -48,12 +48,24 @@ Quantity(Array(5., dtype=float32), unit='m')
 :class: important
 
 `Quantity` (`u.Q`) is the lightweight, non-parametric default: a single class for
-all physical dimensions. `ParametricQuantity` (`u.PQ`) encodes the dimension in
-the type — `ParametricQuantity["length"]` and `ParametricQuantity["time"]` are
-distinct classes. Because JAX keys its `jit` compilation cache on the pytree
-structure (which includes the class of every leaf node), each distinct parametric
-dimension triggers a fresh `jax.jit` compilation. Using the single-class `Quantity`
-avoids this per-dimension recompilation overhead entirely.
+all physical dimensions. `ParametricQuantity` (`u.PQ`) instead encodes the
+dimension in its _type_ — `ParametricQuantity["length"]` and
+`ParametricQuantity["time"]` are distinct Python classes, created on demand, and
+each is registered as its own JAX pytree node type.
+
+That per-dimension type proliferation carries real costs: a new class is created
+the first time each dimension is used (via `plum`'s parametric machinery), every
+one is a separately-registered pytree and dispatch type that JAX and `plum` must
+track, and construction runs dimension inference plus a validation check. The
+single-class `Quantity` avoids all of it — one class, one pytree type, lighter
+construction and dispatch.
+
+A note on `jax.jit`: this is **not** about jit cache misses. The `unit` is a
+_static_ field, so it lives in the pytree aux data (the treedef), which is part
+of the jit cache key — a jitted function therefore specializes per distinct unit
+with **either** class (a call on `"m"` is not reused for `"s"`). The rename does
+not change that per-unit compilation; it removes the redundant per-dimension
+_type_, not any jit recompilation (a unit already implies its dimension).
 
 Reach for `ParametricQuantity` only when you need its two extra features:
 

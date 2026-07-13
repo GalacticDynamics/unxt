@@ -114,13 +114,21 @@ def f(x: u.PQ["time"]):
 
 ---
 
-## Why the Default Changed: the JIT-Recompilation Rationale
+## Why the Default Changed: Pytree Types, Not JIT Cache Misses
 
-The motivation for making the non-parametric class the default is JAX's compilation model.
+The motivation for making the non-parametric class the default is how it interacts with JAX's pytree machinery — but it is worth being precise about what does and does not change.
 
-`ParametricQuantity` encodes the physical dimension in its _type_: `ParametricQuantity["length"]` and `ParametricQuantity["time"]` are distinct Python classes, created on demand. JAX keys its `jit` compilation cache on the pytree _structure_, which includes the class of every leaf node. As a result, every distinct parametric dimension in a function's input triggers a fresh `jax.jit` compilation — on top of the per-unit recompilation that already occurs because units are static leaves.
+`ParametricQuantity` encodes the physical dimension in its _type_: `ParametricQuantity["length"]` and `ParametricQuantity["time"]` are distinct Python classes, created on demand, and each is registered as its own JAX pytree node type. The new default `Quantity` is a _single_ class — and a single pytree node type — for every dimension.
 
-The new default `Quantity` is a _single_ class for all dimensions. Its type never changes with the physical dimension, so a jitted function compiled for a length quantity can be reused for a time quantity (same class → same cache key). This makes `Quantity` far more efficient in workflows that pass many different physical dimensions through the same jitted function.
+**What this does _not_ change: `jax.jit` recompilation.** A quantity's `unit` is a _static_ field, so it lives in the pytree aux data (the treedef), which is part of the `jit` cache key. A jitted function therefore specializes per distinct unit with _either_ class — a function compiled for a length quantity in metres is **not** reused for a time quantity in seconds, because their units (and treedefs) differ. Since a unit already implies its dimension, `ParametricQuantity`'s per-dimension _class_ is redundant with the per-unit key and adds no extra compilations. The two classes produce the same number of `jit` compilations for the same inputs.
+
+**What it _does_ change: the cost of the type proliferation itself.** With `ParametricQuantity`, every physical dimension you touch:
+
+- creates a new Python class the first time it is used (via `plum`'s parametric machinery),
+- registers a new JAX pytree node type and grows `plum`'s dispatch tables, all of which must be tracked and searched, and
+- pays a per-construction cost for dimension inference and the `__check_init__` validation.
+
+The single-class `Quantity` avoids all of that: one class, one registered pytree type, no on-the-fly class creation, and a lighter construction/dispatch path. That is the efficiency win — a smaller, simpler type surface and cheaper per-operation overhead — rather than fewer `jit` compilations.
 
 `ParametricQuantity` remains available — and is the right choice — when you genuinely need:
 

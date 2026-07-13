@@ -247,11 +247,11 @@ result = add_lengths_m(u.Q(5.0, "m"), length_m_input)
 
 **Key insight:** Dimensions are checked statically, but each unique combination of units creates a new compiled version.
 
-### ❌ Problem: `ParametricQuantity` Recompiles Per Dimension
+### ℹ️ Note: `ParametricQuantity` multiplies pytree _types_ (not jit compilations)
 
 :::{seealso} See [Why `Quantity` is non-parametric](quantity.md#why-quantity-is-non-parametric) for the design rationale behind the default `Quantity`, and the {ref}`migration guide <migration-v2>` for the rename mapping and upgrade steps. :::
 
-`ParametricQuantity` encodes the physical dimension in its _type_ — each dimension is a distinct parametric class (`ParametricQuantity[length]`, `ParametricQuantity[time]`, ...). Because {func}`jax.jit` keys its cache on the PyTree _type_, feeding `ParametricQuantity` of different dimensions into the same jitted function triggers a recompilation for each dimension, on top of the per-unit recompilation above. The default `Quantity` avoids this: it is a single non-parametric class, so its type does not change with the physical dimension.
+A common misconception is that feeding `ParametricQuantity` of different dimensions into a jitted function adds a recompilation _per dimension_. It does not. Recompilation is driven by the **unit**, which is a static field for _both_ classes, so a jitted function specializes per distinct unit either way ([Use Consistent Units](#solution-use-consistent-units) above). Because a unit already implies its dimension, `ParametricQuantity`'s per-dimension _type_ is redundant with the per-unit cache key and adds no extra compilations:
 
 ```python
 @jax.jit
@@ -259,14 +259,14 @@ def square(x):
     return x**2
 
 
-# ParametricQuantity: each dimension is a new type → new compilation
-square(u.PQ(5.0, "m"))  # compiles for ParametricQuantity[length]
-square(u.PQ(5.0, "s"))  # RECOMPILES for ParametricQuantity[time]
-
-# Quantity: one type for all dimensions → no per-dimension recompilation
-square(u.Q(5.0, "m"))  # compiles for Quantity
-square(u.Q(5.0, "s"))  # reuses the same Quantity compilation (unit still varies)
+# Both classes recompile per *unit* ("m" and "s" are different units):
+square(u.Q(5.0, "m"))
+square(u.Q(5.0, "s"))  # 2 compilations
+square(u.PQ(5.0, "m"))
+square(u.PQ(5.0, "s"))  # also 2 compilations
 ```
+
+What `ParametricQuantity` _does_ add is a new Python class — and a new registered JAX pytree node type — for every physical dimension, created on demand. That grows the pytree and `plum` dispatch type surface that must be tracked and searched, and adds per-construction dimension inference and a validation check. The default `Quantity` is a single type for all dimensions, so it avoids that proliferation and its overhead — that is the win, rather than fewer `jax.jit` compilations.
 
 ## Mixing Quantity Types
 
