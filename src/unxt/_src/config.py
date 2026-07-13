@@ -621,7 +621,7 @@ def _walk_toml_config(
     Parameters
     ----------
     data : dict
-        Nested dictionary from parsed TOML (e.g., tool.unxt section)
+        Nested dictionary from parsed TOML (e.g., tool.unxts.unxt section)
     path : tuple of str
         Current path in the nested structure (e.g., ("quantity", "repr"))
     path_to_class : dict
@@ -638,8 +638,8 @@ def _walk_toml_config(
     --------
     >>> import tomllib
     >>> from pathlib import Path
-    >>> toml = '[tool.unxt.quantity.repr]\nshort_arrays = "compact"\n'
-    >>> data = tomllib.loads(toml)["tool"]["unxt"]
+    >>> toml = '[tool.unxts.unxt.quantity.repr]\nshort_arrays = "compact"\n'
+    >>> data = tomllib.loads(toml)["tool"]["unxts"]["unxt"]
     >>> configs = _walk_toml_config(data)
     >>> "QuantityReprConfig" in configs
     True
@@ -672,7 +672,7 @@ def _load_toml_config_from_pyproject(
     path: Path,
     /,
     *,
-    tool_path: tuple[str, ...] = ("unxt",),
+    tool_path: tuple[str, ...] = ("unxts", "unxt"),
     path_to_class: dict[tuple[str, ...], str] | None = None,
 ) -> Config:
     """Load a ``[tool.<...>]`` section from a ``pyproject.toml`` file.
@@ -680,12 +680,12 @@ def _load_toml_config_from_pyproject(
     Supports both nested sections and dotted keys:
 
     Nested sections:
-        [tool.unxt.quantity.repr]
+        [tool.unxts.unxt.quantity.repr]
         short_arrays = "compact"
         use_short_name = true
 
     Dotted keys:
-        [tool.unxt]
+        [tool.unxts.unxt]
         quantity.repr.short_arrays = "compact"
         quantity.repr.use_short_name = true
 
@@ -696,8 +696,9 @@ def _load_toml_config_from_pyproject(
     path : Path
         Path to pyproject.toml file
     tool_path : tuple of str
-        Keys under ``[tool]`` to navigate into (e.g. ``("unxt",)`` or
-        ``("unxts", "parametric")``). Defaults to unxt's own section.
+        Keys under ``[tool]`` to navigate into (e.g. ``("unxts", "unxt")`` or
+        ``("unxts", "parametric")``). Defaults to unxt's own section,
+        ``[tool.unxts.unxt]``.
     path_to_class : dict
         Mapping from TOML sub-path to Config class name (passed through to
         :func:`_walk_toml_config`).
@@ -758,7 +759,7 @@ def _auto_load_project_toml_config(cfg: UnxtConfig, /) -> None:
 
     This function:
     1. Searches for nearest pyproject.toml from cwd
-    2. Loads [tool.unxt] configuration
+    2. Loads [tool.unxts.unxt] configuration
     3. Applies valid settings to config instances
     4. Silently ignores invalid values or missing files
 
