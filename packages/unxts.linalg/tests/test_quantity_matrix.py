@@ -24,7 +24,7 @@ from unxts.linalg._src import (
     det as qm_det,
     inv as qm_inv,
 )
-from unxts.linalg._src._register_primitives import _wrap_operand
+from unxts.linalg._src._register_primitives import _check_contract, _wrap_operand
 
 import quaxed.numpy as qnp
 
@@ -257,6 +257,13 @@ class TestUnitsMatrix:
         ):
             assert UnitsMatrix(m.to_string()) == m
             assert eval(repr(m)) == m  # noqa: S307
+
+    def test_unbalanced_parens_rejected(self):
+        """A structural string with unbalanced parentheses raises ValueError."""
+        with pytest.raises(ValueError, match="Unbalanced"):
+            UnitsMatrix("(a, (b)")  # unmatched '('
+        with pytest.raises(ValueError, match="Unbalanced"):
+            UnitsMatrix("(), )")  # unmatched ')'
 
     def test_not_isinstance_structured_unit(self):
         """UnitsMatrix is NOT a StructuredUnit — it is a standalone class."""
@@ -943,6 +950,12 @@ class TestProducts:
         d = vecdot(a, b)
         assert d.value.shape == (2,)
         assert jnp.allclose(d.value, jnp.array([8003.0, 8003.0]))
+
+    def test_check_contract_raises_on_mismatch(self):
+        """Contraction validation raises ValueError (not a strippable assert)."""
+        _check_contract(3, 3)  # ok
+        with pytest.raises(ValueError, match="contraction mismatch"):
+            _check_contract(2, 3)
 
     def test_wrap_operand_rejects_unsupported_rank(self):
         """The operand-wrapper raises a clear error for non vector/matrix ranks."""

@@ -126,6 +126,19 @@ def sub_qm_qm(x: QuantityMatrix, y: QuantityMatrix, /) -> QuantityMatrix:
 # ── dot_general helpers ───────────────────────────────────────────────────
 
 
+def _check_contract(lhs_dim: int, rhs_dim: int, /) -> None:
+    """Validate that the contraction dimensions match.
+
+    An explicit check (not ``assert``, which ``python -O`` strips) so a shape
+    mismatch fails deterministically with a clear message.
+    """
+    if lhs_dim != rhs_dim:
+        msg = (
+            f"QuantityMatrix dot_general contraction mismatch: {lhs_dim} != {rhs_dim}."
+        )
+        raise ValueError(msg)
+
+
 def _dot_general_1d_1d(
     lhs: QuantityMatrix,
     rhs: QuantityMatrix,
@@ -143,7 +156,7 @@ def _dot_general_1d_1d(
     All terms must be unit-compatible. We convert to the unit of the first term.
     """
     n = lhs.shape[-1]
-    assert n == rhs.shape[-1]  # noqa: S101
+    _check_contract(n, rhs.shape[-1])
 
     # Reference unit: lhs.unit[0] * rhs.unit[0]
     ref_unit = lhs.unit[0] * rhs.unit[0]
@@ -206,7 +219,7 @@ def _dot_general_2d_1d(
     '(m s, m s)'
 
     """
-    assert rhs.shape[-1] == lhs.shape[-1]  # noqa: S101
+    _check_contract(lhs.shape[-1], rhs.shape[-1])
 
     # 1) Output units: ref[i] = lhs.unit[i][0] * rhs.unit[0]
     out_unit = UnitsMatrix(np.multiply(lhs.unit._units[:, 0], rhs.unit._units[0]))
@@ -267,7 +280,7 @@ def _dot_general_1d_2d(
     '(m s, km s)'
 
     """
-    assert lhs.shape[-1] == rhs.shape[-2]  # noqa: S101
+    _check_contract(lhs.shape[-1], rhs.shape[-2])
 
     # 1) Output units: ref[k] = lhs.unit[0] * rhs.unit[0][k]
     out_unit = UnitsMatrix(np.multiply(lhs.unit._units[0], rhs.unit._units[0, :]))
@@ -327,7 +340,7 @@ def _dot_general_2d_2d(
        equivalently with a loop + accumulate.
     """
     # Check contraction axis
-    assert lhs.shape[-1] == rhs.shape[-2]  # noqa: S101
+    _check_contract(lhs.shape[-1], rhs.shape[-2])
 
     # 1) Compute output units: ref[i][k] = lhs.unit[i][0] * rhs.unit[0][k]
     out_unit = np.multiply(lhs.unit._units[:, 0:1], rhs.unit._units[0:1, :])

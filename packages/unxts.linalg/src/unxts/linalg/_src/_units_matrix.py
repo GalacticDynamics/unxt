@@ -42,12 +42,18 @@ def _split_top_level(inner: str, /) -> list[str]:
             buf.append(ch)
         elif ch == ")":
             depth -= 1
+            if depth < 0:
+                msg = f"Unbalanced parentheses (unmatched ')'): {inner!r}"
+                raise ValueError(msg)
             buf.append(ch)
         elif ch == "," and depth == 0:
             parts.append("".join(buf).strip())
             buf = []
         else:
             buf.append(ch)
+    if depth != 0:
+        msg = f"Unbalanced parentheses (unmatched '('): {inner!r}"
+        raise ValueError(msg)
     tail = "".join(buf).strip()
     if tail:  # drop the empty tail from a trailing comma, e.g. "(m,)"
         parts.append(tail)
