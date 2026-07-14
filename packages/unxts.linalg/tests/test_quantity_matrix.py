@@ -753,6 +753,26 @@ class TestElementwiseMulDiv:
         assert jnp.allclose(r2.value, 2 * r.value)
 
 
+class TestReduceSum:
+    """lax.reduce_sum on a QuantityMatrix respects leading batch axes."""
+
+    def test_batch_axis_reduction_keeps_units(self):
+        qm = QMat(jnp.ones((3, 2, 2)), unit=((_m, _s), (_kg, _rad)))
+        r = quax.quaxify(lambda a: jnp.sum(a, axis=0))(qm)  # sum over batch
+        assert r.value.shape == (2, 2)
+        assert r.unit == ((_m, _s), (_kg, _rad))  # unchanged
+
+    def test_logical_row_and_col_reduction(self):
+        qm = QMat(jnp.ones((3, 2, 2)), unit=((_m, _s), (_kg, _rad)))
+        # axis 1 is the logical row axis (n_batch=1) -> first row's units
+        row = quax.quaxify(lambda a: jnp.sum(a, axis=1))(qm)
+        assert row.value.shape == (3, 2)
+        assert row.unit == (_m, _s)
+        # axis 2 is the logical col axis -> first column's units
+        col = quax.quaxify(lambda a: jnp.sum(a, axis=2))(qm)
+        assert col.unit == (_m, _kg)
+
+
 # ---------------------------------------------------------------------------
 # Dot product / matmul  (quax lax.dot_general_p)
 # ---------------------------------------------------------------------------

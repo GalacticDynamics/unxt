@@ -1000,20 +1000,28 @@ def reduce_sum_p_qm(
     """
     result_value = lax.reduce_sum_p.bind(operand.value, axes=axes, **kwargs)
 
-    # Reduce the unit structure by dropping the summed axes.
-    axset = set(axes)
-    if operand.ndim == 2:
-        if axset == {0}:
-            # Row reduction → 1-D output; unit = first row's units.
-            out_unit = UnitsMatrix(operand.unit._units[0])
-        elif axset == {1}:
-            # Column reduction → 1-D output; unit = first column's units.
-            out_unit = UnitsMatrix(operand.unit._units[:, 0])
-        else:
-            msg = f"reduce_sum_p_qm: unsupported axes={axes} for 2-D QuantityMatrix."
-            raise NotImplementedError(msg)
+    # `axes` index the *value* array, which carries `n_batch` leading batch
+    # axes that the unit structure does not. Map them to the logical axes.
+    n_batch = operand.value.ndim - operand.unit.ndim
+    axset = {a % operand.value.ndim for a in axes}
+    logical_axes = frozenset(a - n_batch for a in axset if a >= n_batch)
+
+    # Reducing only batch axes leaves the per-element unit structure unchanged.
+    if not logical_axes:
+        return QuantityMatrix(value=result_value, unit=operand.unit)
+
+    if operand.unit.ndim == 2 and logical_axes == {0}:
+        # Row reduction → unit = first row's units (columns must be compatible).
+        out_unit = UnitsMatrix(operand.unit._units[0])
+    elif operand.unit.ndim == 2 and logical_axes == {1}:
+        # Column reduction → unit = first column's units.
+        out_unit = UnitsMatrix(operand.unit._units[:, 0])
     else:
-        msg = f"reduce_sum_p_qm: only 2-D QuantityMatrix is supported, got ndim={operand.ndim}."
+        msg = (
+            f"reduce_sum_p_qm: unsupported reduction over logical axes "
+            f"{sorted(logical_axes)} of a {operand.unit.ndim}-D QuantityMatrix "
+            f"(axes={axes}, n_batch={n_batch})."
+        )
         raise NotImplementedError(msg)
 
     return QuantityMatrix(value=result_value, unit=out_unit)
