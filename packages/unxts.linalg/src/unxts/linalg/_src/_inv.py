@@ -19,6 +19,7 @@ from jax.extend import core as jexc
 from jax.interpreters import ad as jax_ad, batching as jax_batching, mlir as jax_mlir
 from jaxtyping import Array
 
+from ._det import to_inexact_dtype
 from ._quantity_matrix import QuantityMatrix
 
 inv_p = jexc.Primitive("inv")
@@ -108,7 +109,9 @@ def _inv_abstract_eval(x: "jax.core.ShapedArray", /) -> "jax.core.ShapedArray": 
             f"inv_p requires a square matrix "
             f"(shape[-2] == shape[-1]), got shape={x.shape}"
         )
-    return x.update(shape=x.shape)  # same shape as input
+    # `jnp.linalg.inv` promotes non-inexact inputs (int/bool) to floating point,
+    # so the abstract output dtype must match or JIT lowering fails.
+    return x.update(shape=x.shape, dtype=to_inexact_dtype(x.dtype))
 
 
 inv_p.def_abstract_eval(_inv_abstract_eval)

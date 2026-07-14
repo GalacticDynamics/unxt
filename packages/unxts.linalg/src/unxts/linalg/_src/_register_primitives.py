@@ -516,11 +516,20 @@ def _wrap_operand(
     if logical_ndim == 1:
         n = value.shape[-1]
         unit = UnitsMatrix(tuple(element_unit for _ in range(n)))
-    else:  # matrix (logical_ndim == 2)
+    elif logical_ndim == 2:
         nr, nc = value.shape[-2], value.shape[-1]
         unit = UnitsMatrix(
             tuple(tuple(element_unit for _ in range(nc)) for _ in range(nr))
         )
+    else:
+        # Only vector/matrix operands are supported; fail here with a clear
+        # message rather than an IndexError on value.shape[-2] below.
+        msg = (
+            "QuantityMatrix dot_general only supports vector (1-D) or matrix "
+            f"(2-D) operands; got logical ndim {logical_ndim} for a value of "
+            f"shape {value.shape} with {len(batch_axes)} batch axes."
+        )
+        raise NotImplementedError(msg)
     return QuantityMatrix(value, unit=unit)
 
 

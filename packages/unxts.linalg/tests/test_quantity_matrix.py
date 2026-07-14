@@ -24,6 +24,7 @@ from unxts.linalg._src import (
     det as qm_det,
     inv as qm_inv,
 )
+from unxts.linalg._src._register_primitives import _wrap_operand
 
 import quaxed.numpy as qnp
 
@@ -924,6 +925,12 @@ class TestProducts:
         d = vecdot(a, b)
         assert d.value.shape == (2,)
         assert jnp.allclose(d.value, jnp.array([8003.0, 8003.0]))
+
+    def test_wrap_operand_rejects_unsupported_rank(self):
+        """The operand-wrapper raises a clear error for non vector/matrix ranks."""
+        # logical ndim 3 (no batch axes) -> not a vector or matrix
+        with pytest.raises(NotImplementedError, match=r"vector .* or matrix"):
+            _wrap_operand(jnp.ones((2, 2, 2)), _dimless, ())
 
     def test_nonstandard_dot_general_rejected(self):
         """A non-matmul dot_general contraction is rejected, not mis-propagated."""
@@ -1952,6 +1959,13 @@ class TestInvPrimitive:
         A = jnp.array([[2.0, 0.0], [0.0, 4.0]])
         result = jax.jit(qm_inv)(A)
         assert jnp.allclose(result, jnp.linalg.inv(A))
+
+    def test_inv_jit_integer_dtype(self):
+        """Integer input promotes to inexact under jit (abstract eval must match)."""
+        A = jnp.array([[2, 0], [0, 4]], dtype=jnp.int32)
+        result = jax.jit(qm_inv)(A)  # would fail lowering if abstract dtype disagreed
+        assert jnp.issubdtype(result.dtype, jnp.inexact)
+        assert jnp.allclose(result, jnp.array([[0.5, 0.0], [0.0, 0.25]]))
 
     def test_inv_jvp(self):
         """Forward-mode derivative of A^{-1}: d(A^{-1})(dA) = -A^{-1} dA A^{-1}."""

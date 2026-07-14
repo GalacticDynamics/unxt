@@ -1,13 +1,19 @@
 """Shared utilities for the `unxts.linalg` package."""
 
-from typing import Any, TypeAlias, cast
+from typing import TYPE_CHECKING, Any, TypeAlias, cast
 
 import unxt as u
+
+if TYPE_CHECKING:
+    from ._units_matrix import UnitsMatrix
 
 CDict: TypeAlias = dict[str, Any]
 _DMLS = u.unit("")
 
-PackedUnitOutput: TypeAlias = tuple[u.AbstractUnit | None, ...]
+# ``unit_of`` can return a ``UnitsMatrix`` (e.g. for a ``QuantityMatrix`` entry),
+# not just a scalar unit or ``None`` — kept as a forward reference to avoid an
+# import cycle with ``_units_matrix``.
+PackedUnitOutput: TypeAlias = tuple["u.AbstractUnit | UnitsMatrix | None", ...]
 
 
 def strict_zip(*args: Any) -> zip:
