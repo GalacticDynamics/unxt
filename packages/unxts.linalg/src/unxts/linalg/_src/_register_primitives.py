@@ -21,7 +21,11 @@ import quax
 from jax import lax
 
 import unxt as u
-from ._quantity_matrix import QuantityMatrix, _convert_value
+from ._quantity_matrix import (
+    QuantityMatrix,
+    _convert_value,
+    _convert_value_matrix,
+)
 from ._units_matrix import UnitsMatrix
 from unxt.quantity import AllowValue
 
@@ -976,11 +980,15 @@ def reduce_sum_p_qm(
 
     When reducing a 2-D ``QuantityMatrix`` along ``axes=(0,)`` (rows): the
     output unit for column *j* is taken from ``operand.unit[0, j]`` (the first
-    row).  All elements being summed along a column must be unit-compatible for
-    the sum to be physically meaningful.
+    row).  The other elements in each column are first *converted* to that
+    reference unit before summing, so a column of unit-compatible-but-different
+    units (e.g. ``m`` and ``km``) sums correctly rather than being silently
+    relabelled.  Summing along a column of *incompatible* units raises (via
+    ``uconvert_value``), as it must.
 
     Analogously for ``axes=(1,)`` (column reduction), the output unit for row
-    *i* is ``operand.unit[i, 0]``.
+    *i* is ``operand.unit[i, 0]`` and each row is converted to it before
+    summing.
 
     >>> import jax.numpy as jnp
     >>> from unxts.linalg import QuantityMatrix
@@ -998,8 +1006,6 @@ def reduce_sum_p_qm(
     1
 
     """
-    result_value = lax.reduce_sum_p.bind(operand.value, axes=axes, **kwargs)
-
     # `axes` index the *value* array, which carries `n_batch` leading batch
     # axes that the unit structure does not. Map them to the logical axes.
     n_batch = operand.value.ndim - operand.unit.ndim
@@ -1008,14 +1014,24 @@ def reduce_sum_p_qm(
 
     # Reducing only batch axes leaves the per-element unit structure unchanged.
     if not logical_axes:
+        result_value = lax.reduce_sum_p.bind(operand.value, axes=axes, **kwargs)
         return QuantityMatrix(value=result_value, unit=operand.unit)
 
+    units = operand.unit._units
     if operand.unit.ndim == 2 and logical_axes == {0}:
-        # Row reduction → unit = first row's units (columns must be compatible).
-        out_unit = UnitsMatrix(operand.unit._units[0])
+        # Row reduction → unit = first row's units. Convert every row to that
+        # reference row before summing so compatible-but-different units add up.
+        out_unit = UnitsMatrix(units[0])
+        target = tuple(tuple(units[0]) for _ in range(units.shape[0]))
+        value = _convert_value_matrix(operand.value, units, target)
     elif operand.unit.ndim == 2 and logical_axes == {1}:
-        # Column reduction → unit = first column's units.
-        out_unit = UnitsMatrix(operand.unit._units[:, 0])
+        # Column reduction → unit = first column's units; convert each column.
+        out_unit = UnitsMatrix(units[:, 0])
+        target = tuple(
+            tuple(units[i, 0] for _ in range(units.shape[1]))
+            for i in range(units.shape[0])
+        )
+        value = _convert_value_matrix(operand.value, units, target)
     else:
         msg = (
             f"reduce_sum_p_qm: unsupported reduction over logical axes "
@@ -1024,4 +1040,5 @@ def reduce_sum_p_qm(
         )
         raise NotImplementedError(msg)
 
+    result_value = lax.reduce_sum_p.bind(value, axes=axes, **kwargs)
     return QuantityMatrix(value=result_value, unit=out_unit)

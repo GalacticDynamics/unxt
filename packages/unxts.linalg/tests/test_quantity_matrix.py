@@ -771,14 +771,41 @@ class TestReduceSum:
         assert r.unit == ((_m, _s), (_kg, _rad))  # unchanged
 
     def test_logical_row_and_col_reduction(self):
-        qm = QMat(jnp.ones((3, 2, 2)), unit=((_m, _s), (_kg, _rad)))
-        # axis 1 is the logical row axis (n_batch=1) -> first row's units
-        row = quax.quaxify(lambda a: jnp.sum(a, axis=1))(qm)
+        # Units must be dimensionally uniform along the *summed* axis. For row
+        # reduction (axis 1) each column is uniform-dimension; the output takes
+        # the first row's units.
+        qm = QMat(jnp.ones((3, 2, 2)), unit=((_m, _s), (_km, _s)))
+        row = quax.quaxify(lambda a: jnp.sum(a, axis=1))(qm)  # logical rows
         assert row.value.shape == (3, 2)
         assert row.unit == (_m, _s)
-        # axis 2 is the logical col axis -> first column's units
-        col = quax.quaxify(lambda a: jnp.sum(a, axis=2))(qm)
-        assert col.unit == (_m, _kg)
+        # For column reduction (axis 2) each row is uniform-dimension; the
+        # output takes the first column's units.
+        qm2 = QMat(jnp.ones((3, 2, 2)), unit=((_m, _km), (_s, _s)))
+        col = quax.quaxify(lambda a: jnp.sum(a, axis=2))(qm2)  # logical cols
+        assert col.value.shape == (3, 2)
+        assert col.unit == (_m, _s)
+
+    def test_row_reduction_converts_compatible_units(self):
+        """A column of compatible-but-different units is converted, not relabelled."""
+        # column 0 has units [m, km]; summing must give 1 m + 1 km = 1001 m.
+        qm = QMat(jnp.array([[1.0, 1.0], [1.0, 1.0]]), unit=((_m, _s), (_km, _s)))
+        row = quax.quaxify(lambda a: jnp.sum(a, axis=0))(qm)
+        assert row.unit == (_m, _s)
+        assert jnp.allclose(row.value, jnp.array([1001.0, 2.0]))
+
+    def test_col_reduction_converts_compatible_units(self):
+        """A row of compatible-but-different units is converted before summing."""
+        # row 0 has units [km, m]; summing must give 1 km + 1000 m = 2 km.
+        qm = QMat(jnp.array([[1.0, 1000.0], [1.0, 1.0]]), unit=((_km, _m), (_km, _m)))
+        col = quax.quaxify(lambda a: jnp.sum(a, axis=1))(qm)
+        assert col.unit == (_km, _km)
+        assert jnp.allclose(col.value, jnp.array([2.0, 1.001]))
+
+    def test_reduction_incompatible_units_raises(self):
+        """Summing a column of dimensionally incompatible units raises."""
+        qm = QMat(jnp.array([[1.0, 1.0], [1.0, 1.0]]), unit=((_m, _s), (_kg, _s)))
+        with pytest.raises(Exception, match=r"(?i)convert|unit"):
+            quax.quaxify(lambda a: jnp.sum(a, axis=0))(qm)
 
 
 # ---------------------------------------------------------------------------
@@ -1985,6 +2012,19 @@ class TestDetPrimitive:
         results = jax.vmap(qm_det)(A)
         expected = jnp.array([6.0, 20.0])
         assert jnp.allclose(results, expected)
+
+    def test_det_grad_batched(self):
+        """Grad over a *batched* det sums matches jnp.linalg.det.
+
+        The JVP traces the two matrix axes (not the leading batch axis); a
+        regression guard for that trace axis choice.
+        """
+        A = jnp.stack(
+            [jnp.array([[2.0, 1.0], [0.0, 3.0]]), jnp.array([[4.0, 0.0], [2.0, 5.0]])]
+        )
+        grad_custom = jax.grad(lambda mat: qm_det(mat).sum())(A)
+        grad_ref = jax.grad(lambda mat: jnp.linalg.det(mat).sum())(A)
+        assert jnp.allclose(grad_custom, grad_ref)
 
     def test_det_jit_vmap(self):
         """jit(vmap(det)) works correctly."""
