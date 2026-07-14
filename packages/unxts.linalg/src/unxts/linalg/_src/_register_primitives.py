@@ -251,9 +251,14 @@ def _dot_general_1d_1d(
     # Reference unit: lhs.unit[0] * rhs.unit[0]
     ref_unit = lhs.unit[0] * rhs.unit[0]
 
-    # Compute scale factors
+    # Compute scale factors. ``uconvert_value`` returns Python floats, so a bare
+    # ``jnp.array`` is float64 and would silently upcast a float32 contraction
+    # under jax_enable_x64=True. Cast to ``result_type(values, 1.0)``: the weak
+    # float keeps the scale *at least* floating (so integer operands still get a
+    # correct fractional conversion) without widening float32 → float64.
     scales = jnp.array(
-        [u.uconvert_value(ref_unit, lhs.unit[i] * rhs.unit[i], 1.0) for i in range(n)]
+        [u.uconvert_value(ref_unit, lhs.unit[i] * rhs.unit[i], 1.0) for i in range(n)],
+        dtype=jnp.result_type(lhs.value, rhs.value, 1.0),
     )
 
     # Compute dot product with rescaling
@@ -316,12 +321,13 @@ def _dot_general_2d_1d(
 
     # 2) Precompute scale factors: scale[i, j] converts
     #    lhs.unit[i][j]*rhs.unit[j] → ref[i]
-    scale_2d = jnp.array(
+    scale_2d = jnp.asarray(
         vec_uconvert_value(
             out_unit._units[:, None],  # (N, 1) — broadcast over K
             np.multiply(lhs.unit._units, rhs.unit._units[None, :]),  # (N, K)
             1.0,
-        )
+        ),
+        dtype=jnp.result_type(lhs.value, rhs.value, 1.0),
     )
 
     # 3) Vectorised contraction:
@@ -377,12 +383,13 @@ def _dot_general_1d_2d(
 
     # 2) Precompute scale factors: scale[j, k] converts
     #    lhs.unit[j]*rhs.unit[j][k] → ref[k]
-    scale_2d = jnp.array(
+    scale_2d = jnp.asarray(
         vec_uconvert_value(
             out_unit._units[None, :],  # (1, M) — broadcast over K
             np.multiply(lhs.unit._units[:, None], rhs.unit._units),  # (K, M)
             1.0,
-        )
+        ),
+        dtype=jnp.result_type(lhs.value, rhs.value, 1.0),
     )
 
     # 3) Vectorised contraction:
@@ -453,12 +460,13 @@ def _dot_general_2d_2d(
     #    astropy keeps rejecting affine product conversions.  If that
     #    ever changes, those tests will fail, alerting us that this
     #    assumption needs revisiting.
-    scale_3d = jnp.array(
+    scale_3d = jnp.asarray(
         vec_uconvert_value(
             out_unit[:, None, :],  # (N, 1, M)
             np.multiply(lhs.unit._units[:, :, None], rhs.unit._units[None, :, :]),
             1.0,  # ꜛ (N, K, M)
-        )
+        ),
+        dtype=jnp.result_type(lhs.value, rhs.value, 1.0),
     )
 
     # 3) Vectorised contraction — no Python loop, no accumulator.
@@ -957,6 +965,21 @@ def gather_qm(
     # multi-dimensional advanced indexing (``index_shape`` 2-D+). The last axis
     # is the index vector, indexed via ``idx_np[..., k]``.
     out_shape = start_indices.shape[:-1]
+
+    # A scalar-output gather (``index_shape == ()``) selects a single element,
+    # which carries a single unit. ``UnitsMatrix`` only represents 1-D/2-D unit
+    # structures, so return a plain scalar ``Quantity`` instead.
+    if out_shape == ():
+        if isinstance(start_indices, jax.core.Tracer):  # ty: ignore[possibly-missing-submodule]
+            scalar_unit = _jit_fallback_uniform_unit(x.unit, (1,))._units[0]
+        else:
+            idx_np = np.asarray(start_indices)
+            scalar_unit = (
+                x.unit._units[idx_np[0]]
+                if x.unit.ndim == 1
+                else x.unit._units[idx_np[0], idx_np[1]]
+            )
+        return u.Q(result_value, scalar_unit)
 
     if isinstance(start_indices, jax.core.Tracer):  # ty: ignore[possibly-missing-submodule]
         # JIT path: indices are traced — fall back to uniform-unit check.

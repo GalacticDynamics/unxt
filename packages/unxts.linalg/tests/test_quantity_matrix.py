@@ -1195,6 +1195,25 @@ class TestProducts:
         bb = QMat(jnp.stack([b.value, b.value]), unit=(_s, _s))
         assert jax.vmap(vecdot)(ab, bb).value.shape == (2,)
 
+    def test_products_preserve_operand_dtype(self):
+        """Unit-conversion scale factors must not upcast the result dtype.
+
+        ``uconvert_value`` returns Python floats, so a naive ``jnp.array`` of
+        the scales is float64 under ``jax_enable_x64``; casting the scales to
+        the operand result dtype avoids surprise promotion. Tested here with
+        float16 inputs (the same upcast mechanism, but visible under x32).
+        """
+        f16 = lambda x: jnp.asarray(x, jnp.float16)
+        a = QMat(f16([1.0, 2.0]), unit=(_m, _km))
+        b = QMat(f16([3.0, 4.0]), unit=(_s, _s))
+        A = QMat(f16([[1.0, 2.0], [3.0, 4.0]]), unit=((_m, _km), (_m, _km)))
+        v = QMat(f16([1.0, 1.0]), unit=(_s, _s))
+        B = QMat(f16([[1.0, 2.0], [3.0, 4.0]]), unit=((_s, _s), (_s, _s)))
+        assert vecdot(a, b).value.dtype == jnp.float16
+        assert matvec(A, v).value.dtype == jnp.float16
+        assert vecmat(v, A).value.dtype == jnp.float16
+        assert matmul(A, B).value.dtype == jnp.float16
+
     def test_batched_plain_and_quantity_operands(self):
         """A *batched* plain / Quantity vector is not mis-classified as a matrix."""
         A = QMat(jnp.ones((2, 2, 2)), unit=((_m, _m), (_m, _m)))
@@ -1627,6 +1646,33 @@ class TestDiagAndGather:
         assert r.unit.shape == (2, 2)
         assert r.unit[0, 0] == _m
         assert r.unit[1, 1] == _rad
+
+    def test_scalar_output_gather_returns_quantity(self):
+        """A scalar-output gather (index_shape == ()) returns a scalar Quantity.
+
+        A single element has a single unit; UnitsMatrix only represents 1-D/2-D
+        structures, so the handler returns a plain Quantity for scalar output.
+        """
+        A = QMat(jnp.arange(4.0).reshape(2, 2), unit=((_m, _s), (_kg, _rad)))
+        dnums = lax.GatherDimensionNumbers(
+            offset_dims=(), collapsed_slice_dims=(0, 1), start_index_map=(0, 1)
+        )
+        # select element (1, 0) -> value 2.0, unit kg
+        r = gather_qm(A, jnp.array([1, 0]), dimension_numbers=dnums, slice_sizes=(1, 1))
+        assert isinstance(r, u.AbstractQuantity)
+        assert not isinstance(r, QMat)
+        assert jnp.allclose(r.value, 2.0)
+        assert r.unit == _kg
+        # 1-D QuantityMatrix scalar select
+        v = QMat(jnp.arange(3.0), unit=(_m, _s, _kg))
+        dn1 = lax.GatherDimensionNumbers(
+            offset_dims=(), collapsed_slice_dims=(0,), start_index_map=(0,)
+        )
+        r1 = gather_qm(v, jnp.array([2]), dimension_numbers=dn1, slice_sizes=(1,))
+        assert isinstance(r1, u.AbstractQuantity)
+        assert not isinstance(r1, QMat)
+        assert jnp.allclose(r1.value, 2.0)
+        assert r1.unit == _kg
 
     def test_diag_dimensionless_unit_string(self):
         """Dimensionless diagonal has '(, , )'-style repr, not '((, , ), ...)'."""
