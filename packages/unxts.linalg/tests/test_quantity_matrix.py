@@ -10,7 +10,14 @@ import plum
 import pytest
 import quax
 from astropy.units import imperial  # registers °F
-from unxts.linalg import QuantityMatrix as QMat, UnitsMatrix
+from unxts.linalg import (
+    QuantityMatrix as QMat,
+    UnitsMatrix,
+    matmul,
+    matvec,
+    vecdot,
+    vecmat,
+)
 from unxts.linalg._src import (
     _convert_value_matrix,
     _convert_value_vector,
@@ -774,6 +781,93 @@ class TestDotProduct:
         assert jnp.isclose(result.value[0], 23)
         assert jnp.isclose(result.value[1], 67)
         assert jnp.isclose(result.value[2], 127)
+
+
+# ---------------------------------------------------------------------------
+# Public products: matmul / matvec / vecmat / vecdot
+# ---------------------------------------------------------------------------
+
+
+class TestProducts:
+    """The batch-safe `unxts.linalg` matrix/vector product wrappers."""
+
+    def test_matmul_2d_2d(self):
+        """matmul(matrix, matrix) → matrix, with per-element units."""
+        a = QMat(jnp.array([[1.0, 2.0], [3.0, 4.0]]), unit=((_m, _m), (_m, _m)))
+        b = QMat(jnp.eye(2), unit=((_s, _s), (_s, _s)))
+        r = matmul(a, b)
+        assert jnp.allclose(r.value, a.value)  # times identity
+        ms = _m * _s
+        assert r.unit == ((ms, ms), (ms, ms))
+
+    def test_matvec_unbatched(self):
+        """matvec(matrix, vector) → vector."""
+        a = QMat(jnp.array([[1.0, 2.0], [3.0, 4.0]]), unit=((_m, _m), (_m, _m)))
+        v = QMat(jnp.array([1.0, 1.0]), unit=(_s, _s))
+        w = matvec(a, v)
+        assert w.ndim == 1
+        assert jnp.allclose(w.value, jnp.array([3.0, 7.0]))
+        assert w.unit == (_m * _s, _m * _s)
+
+    def test_matvec_batched(self):
+        """A batch of matrices applied to a batch of vectors (per batch element)."""
+        a_val = jnp.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+        a = QMat(a_val, unit=((_m, _m), (_m, _m)))
+        v = QMat(jnp.array([[1.0, 1.0], [1.0, 1.0]]), unit=(_s, _s))
+        w = matvec(a, v)
+        assert w.shape == (2, 2)
+        # b0: [1+2, 3+4]=[3,7]; b1: [5+6, 7+8]=[11,15]
+        assert jnp.allclose(w.value, jnp.array([[3.0, 7.0], [11.0, 15.0]]))
+        assert w.unit == (_m * _s, _m * _s)
+
+    def test_matmul_cannot_do_batched_matvec(self):
+        """Matmul can't express a batched matrix-vector product.
+
+        A batched vector's value ``(B, K)`` is indistinguishable from a matrix,
+        so matmul tries to contract mismatched axes (here N=2 != K=3) and raises.
+        This is exactly why ``matvec`` exists.
+        """
+        a = QMat(jnp.ones((2, 2, 3)), unit=((_m, _m, _m), (_m, _m, _m)))
+        v = QMat(jnp.ones((2, 3)), unit=(_s, _s, _s))
+        with pytest.raises(TypeError):
+            matmul(a, v)
+        # matvec handles it fine.
+        assert matvec(a, v).shape == (2, 2)
+
+    def test_vecmat_unbatched(self):
+        """vecmat(vector, matrix) → vector (transpose of matvec)."""
+        v = QMat(jnp.array([1.0, 1.0]), unit=(_s, _s))
+        a = QMat(jnp.array([[1.0, 2.0], [3.0, 4.0]]), unit=((_m, _km), (_m, _km)))
+        w = vecmat(v, a)
+        assert w.ndim == 1
+        assert jnp.allclose(w.value, jnp.array([4.0, 6.0]))
+        assert w.unit == (_s * _m, _s * _km)
+
+    def test_vecmat_batched(self):
+        """A batch of vectors times a batch of matrices."""
+        v = QMat(jnp.ones((2, 2)), unit=(_s, _s))
+        a_val = jnp.broadcast_to(jnp.array([[1.0, 2.0], [3.0, 4.0]]), (2, 2, 2))
+        a = QMat(a_val, unit=((_m, _km), (_m, _km)))
+        w = vecmat(v, a)
+        assert w.shape == (2, 2)
+        assert jnp.allclose(w.value, jnp.array([[4.0, 6.0], [4.0, 6.0]]))
+
+    def test_vecdot_unbatched(self):
+        """vecdot(vector, vector) → scalar Quantity."""
+        a = QMat(jnp.array([1.0, 2.0]), unit=(_m, _km))
+        b = QMat(jnp.array([3.0, 4.0]), unit=(_s, _s))
+        d = vecdot(a, b)
+        # 1*3 m*s + 2*4 km*s = 3 + 8000 = 8003 m*s
+        assert jnp.isclose(d.value, 8003.0)
+        assert d.unit == _m * _s
+
+    def test_vecdot_batched(self):
+        """Batched vector dot product."""
+        a = QMat(jnp.array([[1.0, 2.0], [1.0, 2.0]]), unit=(_m, _km))
+        b = QMat(jnp.array([[3.0, 4.0], [3.0, 4.0]]), unit=(_s, _s))
+        d = vecdot(a, b)
+        assert d.value.shape == (2,)
+        assert jnp.allclose(d.value, jnp.array([8003.0, 8003.0]))
 
 
 # ---------------------------------------------------------------------------

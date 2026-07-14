@@ -228,6 +228,67 @@ def _dot_general_2d_1d(
     return QuantityMatrix(value=accum, unit=out_unit)
 
 
+def _dot_general_1d_2d(
+    lhs: QuantityMatrix,
+    rhs: QuantityMatrix,
+    /,
+    *,
+    dimension_numbers: lax.DotDimensionNumbers,
+    precision: Any = None,
+    preferred_element_type: Any = None,
+    **kw: Any,
+) -> QuantityMatrix:
+    """Vector-matrix multiply: (K,) @ (K, M) → (M,).
+
+    For ``w = v @ A`` where ``v`` is ``(K,)`` and ``A`` is ``(K, M)``:
+
+    ``w[k] = Σ_j  v[j] * A[j, k]``
+
+    Each product ``v[j] * A[j,k]`` has unit ``v.unit[j] * A.unit[j][k]``.  All
+    ``K`` terms in the sum for output column ``k`` must be unit-compatible.  We
+    convert every term to the unit of the *first* term (``j = 0``) for each
+    output column ``k``: ``ref[k] = v.unit[0] * A.unit[0][k]``.  This is the
+    transpose of the matrix-vector case (:func:`_dot_general_2d_1d`).
+
+    >>> import jax.numpy as jnp
+    >>> import unxt as u
+    >>> import unxts.linalg as ul
+
+    Row vector times a matrix:
+
+    >>> v = ul.QuantityMatrix(jnp.array([1.0, 1.0]), unit=("s", "s"))
+    >>> A = ul.QuantityMatrix(
+    ...     jnp.array([[1.0, 2.0], [3.0, 4.0]]), unit=(("m", "km"), ("m", "km"))
+    ... )
+    >>> w = ul.vecmat(v, A)
+    >>> w.value
+    Array([4., 6.], dtype=float32)
+    >>> w.unit.to_string()
+    '(m s, km s)'
+
+    """
+    assert lhs.shape[-1] == rhs.shape[-2]  # noqa: S101
+
+    # 1) Output units: ref[k] = lhs.unit[0] * rhs.unit[0][k]
+    out_unit = UnitsMatrix(np.multiply(lhs.unit._units[0], rhs.unit._units[0, :]))
+
+    # 2) Precompute scale factors: scale[j, k] converts
+    #    lhs.unit[j]*rhs.unit[j][k] → ref[k]
+    scale_2d = jnp.array(
+        vec_uconvert_value(
+            out_unit._units[None, :],  # (1, M) — broadcast over K
+            np.multiply(lhs.unit._units[:, None], rhs.unit._units),  # (K, M)
+            1.0,
+        )
+    )
+
+    # 3) Vectorised contraction:
+    #    w[..., k] = Σ_j  scale[j, k] * v[..., j] * A[..., j, k]
+    accum = jnp.einsum("jk,...j,...jk->...k", scale_2d, lhs.value, rhs.value)
+
+    return QuantityMatrix(value=accum, unit=out_unit)
+
+
 def _dot_general_2d_2d(
     lhs: QuantityMatrix,
     rhs: QuantityMatrix,
@@ -322,9 +383,17 @@ def dot_general_qm_qm(
 ) -> QuantityMatrix | u.Q:
     """Dot product / matrix multiply two `QuantityMatrix` objects.
 
-    Delegates to specialized implementations based on the dimensionality:
+    Delegates to specialized implementations based on the (logical)
+    dimensionality of each operand:
     - 1D @ 1D → scalar (vector dot product)
+    - 2D @ 1D → 1D (matrix-vector product)
+    - 1D @ 2D → 1D (vector-matrix product)
     - 2D @ 2D → 2D (matrix-matrix multiply)
+
+    Leading batch axes on the value arrays are broadcast over. The batch-aware
+    entry points are the wrappers in `unxts.linalg` (``matmul``/``matvec``/
+    ``vecmat``/``vecdot``); ``matmul`` alone cannot express batched
+    matrix-vector products (see `unxts.linalg._src._products`).
 
     For the standard matmul contraction: contracting_dims = ((-1,), (-2,)).
     Leading *batch* axes on the value arrays are supported: ``jnp.matmul`` /
@@ -397,6 +466,15 @@ def dot_general_qm_qm(
         )
     if lhs.ndim == 2 and rhs.ndim == 1:
         return _dot_general_2d_1d(
+            lhs,
+            rhs,
+            dimension_numbers=dimension_numbers,
+            precision=precision,
+            preferred_element_type=preferred_element_type,
+            **kw,
+        )
+    if lhs.ndim == 1 and rhs.ndim == 2:
+        return _dot_general_1d_2d(
             lhs,
             rhs,
             dimension_numbers=dimension_numbers,

@@ -16,6 +16,10 @@ __all__ = (
     "det_p",
     "inv",
     "inv_p",
+    "matmul",
+    "matvec",
+    "vecdot",
+    "vecmat",
 )
 
 # Importing from ``._src`` triggers the Quax primitive registrations and the
@@ -29,4 +33,8 @@ from ._src import (
     det_p,
     inv,
     inv_p,
+    matmul,
+    matvec,
+    vecdot,
+    vecmat,
 )

@@ -5,24 +5,29 @@ The whole point of `QuantityMatrix` is that linear-algebra operations carry the 
 ```{code-block} python
 >>> import jax.numpy as jnp
 >>> import quax
->>> import quaxed.numpy as qnp
 >>> import unxt as u
 >>> import unxts.linalg as ul
 ```
 
-## Matrix–vector and matrix–matrix products
+## Matrix and vector products
 
-`qnp.matmul` contracts the shared axis and multiplies the corresponding units. Here a dimensionless identity leaves a vector's units untouched:
+`unxts.linalg` exposes the four NumPy / Array-API contraction functions, each of which contracts the shared axis and multiplies the corresponding per-element units:
+
+| Function          | Operands        | Result            |
+| ----------------- | --------------- | ----------------- |
+| `ul.matmul(A, B)` | matrix × matrix | matrix            |
+| `ul.matvec(A, v)` | matrix × vector | vector            |
+| `ul.vecmat(v, A)` | vector × matrix | vector            |
+| `ul.vecdot(a, b)` | vector · vector | scalar `Quantity` |
+
+`matmul` contracts the shared axis and multiplies the corresponding units — here a dimensionless identity leaves a vector's units untouched:
 
 ```{code-block} python
 >>> A = ul.QuantityMatrix(jnp.eye(3),
 ...                       unit=(("", "", ""), ("", "", ""), ("", "", "")))
 >>> v = ul.QuantityMatrix(jnp.array([1.0, 2.0, 3.0]), unit=("m", "m", "m"))
->>> w = qnp.matmul(A, v)
->>> w.value
+>>> ul.matvec(A, v).value
 Array([1., 2., 3.], dtype=float32)
->>> w.unit.to_string()
-'(m, m, m)'
 ```
 
 Units on the contracted axis are combined and converted to a common reference, so mixed units are handled correctly:
@@ -31,11 +36,27 @@ Units on the contracted axis are combined and converted to a common reference, s
 >>> A2 = ul.QuantityMatrix(jnp.array([[1.0, 2.0], [3.0, 4.0]]),
 ...                        unit=(("m", "km"), ("m", "km")))
 >>> v2 = ul.QuantityMatrix(jnp.array([1.0, 1.0]), unit=("s", "s"))
->>> qnp.matmul(A2, v2).value
+>>> ul.matvec(A2, v2).value
 Array([2001., 4003.], dtype=float32)
 ```
 
 A plain JAX array or an ordinary `unxt.Quantity` on one side is treated as dimensionless / uniform-unit respectively.
+
+### Batches: prefer `matvec`/`vecmat` over `matmul`
+
+A `QuantityMatrix` carries its logical 1-D/2-D units in the _trailing_ axes and treats _leading_ axes of the value array as batch dimensions. All four products broadcast those batch axes. But note a subtlety inherited from NumPy: a batched vector's value `(B, K)` is shape-indistinguishable from a matrix, so **`matmul` cannot express a batched matrix-vector product** — use `matvec` (and `vecmat`) for those.
+
+```{code-block} python
+>>> # A batch of 2 matrices applied to a batch of 2 vectors.
+>>> Ab = ul.QuantityMatrix(
+...     jnp.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]),
+...     unit=(("m", "m"), ("m", "m")),
+... )
+>>> vb = ul.QuantityMatrix(jnp.ones((2, 2)), unit=("s", "s"))
+>>> ul.matvec(Ab, vb).value
+Array([[ 3.,  7.],
+       [11., 15.]], dtype=float32)
+```
 
 ## Transpose and diagonal
 

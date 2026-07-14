@@ -51,6 +51,10 @@ The `.diag()` **method** operates on the static unit structure and works for het
 
 By contrast `qnp.diag` lowers to a `gather`, whose indices are traced under `jit`; there the unit of each output element cannot be resolved individually, so **all units must be equal**. Prefer the `.diag()` method for heterogeneous-unit matrices.
 
+## `matmul` can't do a _batched_ matrix-vector product
+
+A batched vector's value `(B, K)` is shape-indistinguishable from a matrix, so `matmul` (`@`) can only do batched matrix-vector when the shapes happen to coincide, and otherwise raises. Use `unxts.linalg.matvec` (and `vecmat`) for matrix-vector / vector-matrix products — they name the operand ranks explicitly and broadcast the batch axis correctly. See [Linear algebra](linear-algebra.md#batches-prefer-matvecvecmat-over-matmul).
+
 ## It is a Quax type, not a materialisable array
 
 `QuantityMatrix` is a `quax` array-ish value: it flows through `quax.quaxify`-ed functions but refuses to _materialise_ into a plain array (its elements have no single dtype-plus-unit), so use `.value` / `.unit` to inspect it, and `plum.convert(..., u.Q)` only when every unit is identical (see [Quantity matrices](quantity-matrix.md)).

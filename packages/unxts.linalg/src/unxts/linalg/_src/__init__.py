@@ -32,11 +32,16 @@ __all__ = (
     "det_p",
     "inv",
     "inv_p",
+    "matmul",
+    "matvec",
+    "vecdot",
+    "vecmat",
 )
 
 from . import _register_primitives  # noqa: F401
 from ._det import det, det_p
 from ._inv import inv, inv_p
+from ._products import matmul, matvec, vecdot, vecmat
 from ._quantity_matrix import (  # noqa: F401
     QM,
     QuantityMatrix,
