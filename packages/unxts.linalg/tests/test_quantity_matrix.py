@@ -922,6 +922,49 @@ class TestProducts:
 
 
 # ---------------------------------------------------------------------------
+# The `@` operator (QuantityMatrix.__matmul__)
+# ---------------------------------------------------------------------------
+
+
+class TestMatmulOperator:
+    """`@` dispatches on logical rank (NumPy semantics) and is batch-safe."""
+
+    def test_at_batched_matvec(self):
+        """A @ v with leading batch axes does matvec — matmul cannot."""
+        A = QMat(
+            jnp.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]),
+            unit=((_m, _m), (_m, _m)),
+        )
+        v = QMat(jnp.ones((2, 2)), unit=(_s, _s))
+        w = A @ v  # eager, no explicit quaxify needed
+        assert jnp.allclose(w.value, jnp.array([[3.0, 7.0], [11.0, 15.0]]))
+        assert w.unit == (_m * _s, _m * _s)
+        assert jnp.allclose(w.value, matvec(A, v).value)
+
+    def test_at_nonsquare_batched_matvec(self):
+        """The non-square batch that ``matmul`` rejects works via ``@``."""
+        A = QMat(jnp.ones((2, 2, 3)), unit=((_m, _m, _m), (_m, _m, _m)))
+        v = QMat(jnp.ones((2, 3)), unit=(_s, _s, _s))
+        assert (A @ v).shape == (2, 2)
+
+    def test_at_dispatch_by_rank(self):
+        """2D@2D→matmul, 1D@2D→vecmat, 1D@1D→vecdot (scalar)."""
+        A = QMat(jnp.array([[1.0, 2.0], [3.0, 4.0]]), unit=((_m, _m), (_m, _m)))
+        B = QMat(jnp.eye(2), unit=((_s, _s), (_s, _s)))
+        assert (A @ B).ndim == 2  # matmul
+        v = QMat(jnp.array([1.0, 1.0]), unit=(_s, _s))
+        assert (v @ A).ndim == 1  # vecmat
+        a = QMat(jnp.array([1.0, 2.0]), unit=(_m, _km))
+        b = QMat(jnp.array([3.0, 4.0]), unit=(_s, _s))
+        assert jnp.isclose((a @ b).value, 8003.0)  # vecdot → scalar Quantity
+
+    def test_at_fallback_plain_array(self):
+        """QM @ plain array falls back to default handling (still works)."""
+        A = QMat(jnp.array([[1.0, 2.0], [3.0, 4.0]]), unit=((_m, _m), (_m, _m)))
+        assert (A @ jnp.array([1.0, 1.0])).value.shape == (2,)
+
+
+# ---------------------------------------------------------------------------
 # JAX integration
 # ---------------------------------------------------------------------------
 

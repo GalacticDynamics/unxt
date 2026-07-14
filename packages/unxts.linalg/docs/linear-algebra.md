@@ -42,9 +42,9 @@ Array([2001., 4003.], dtype=float32)
 
 A plain JAX array or an ordinary `unxt.Quantity` on one side is treated as dimensionless / uniform-unit respectively.
 
-### Batches: prefer `matvec`/`vecmat` over `matmul`
+### Batches
 
-A `QuantityMatrix` carries its logical 1-D/2-D units in the _trailing_ axes and treats _leading_ axes of the value array as batch dimensions. All four products broadcast those batch axes. But note a subtlety inherited from NumPy: a batched vector's value `(B, K)` is shape-indistinguishable from a matrix, so **`matmul` cannot express a batched matrix-vector product** — use `matvec` (and `vecmat`) for those.
+A `QuantityMatrix` carries its logical 1-D/2-D units in the _trailing_ axes and treats _leading_ axes of the value array as batch dimensions. All four products — and the `@` operator — broadcast those batch axes. The `@` operator dispatches on the _logical_ rank (matrix vs vector), so a batch of matrices applied to a batch of vectors "just works":
 
 ```{code-block} python
 >>> # A batch of 2 matrices applied to a batch of 2 vectors.
@@ -53,10 +53,12 @@ A `QuantityMatrix` carries its logical 1-D/2-D units in the _trailing_ axes and 
 ...     unit=(("m", "m"), ("m", "m")),
 ... )
 >>> vb = ul.QuantityMatrix(jnp.ones((2, 2)), unit=("s", "s"))
->>> ul.matvec(Ab, vb).value
+>>> (Ab @ vb).value
 Array([[ 3.,  7.],
        [11., 15.]], dtype=float32)
 ```
+
+There is one subtlety inherited from NumPy: a batched vector's value `(B, K)` is shape-indistinguishable from a matrix, so the raw **function** forms `jnp.matmul` / `quaxed.numpy.matmul` cannot express a batched matrix-vector product (and `ul.matmul` rejects it with a pointer to `matvec`). Use `@`, `ul.matvec`, or `ul.vecmat` — all of which name the ranks explicitly.
 
 ## Transpose and diagonal
 

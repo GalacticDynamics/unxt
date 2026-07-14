@@ -8,6 +8,7 @@ import jax.core
 import jax.numpy as jnp
 import jax.tree_util as jtu
 import plum
+import quax
 from jaxtyping import Array, Shaped
 
 import unxt as u
@@ -192,6 +193,53 @@ class QuantityMatrix(u.AbstractQuantity):
         if isinstance(unit_item, UnitsMatrix):
             return QuantityMatrix(value=value_item, unit=unit_item)
         return u.Q(value_item, unit_item)
+
+    def __matmul__(self, other: Any) -> Any:
+        """``@`` with NumPy semantics, dispatched on *logical* rank.
+
+        When *other* is a `QuantityMatrix`, the product is chosen from the pair
+        of logical (``unit``) ranks — not the value shapes, which also carry
+        batch axes — so a *batched* matrix-vector product works (``matmul``
+        cannot express one; see `unxts.linalg.matvec`). Leading batch axes are
+        broadcast over.
+
+        - 2-D @ 2-D → matrix-matrix (`~unxts.linalg.matmul`)
+        - 2-D @ 1-D → matrix-vector (`~unxts.linalg.matvec`)
+        - 1-D @ 2-D → vector-matrix (`~unxts.linalg.vecmat`)
+        - 1-D @ 1-D → vector-vector, a scalar `~unxt.Quantity` (`~unxts.linalg.vecdot`)
+
+        Non-`QuantityMatrix` operands fall back to the default handling.
+
+        Examples
+        --------
+        >>> import jax.numpy as jnp
+        >>> import unxts.linalg as ul
+
+        A batch of matrices applied to a batch of vectors — ``@`` just works:
+
+        >>> A = ul.QuantityMatrix(
+        ...     jnp.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]),
+        ...     unit=(("m", "m"), ("m", "m")),
+        ... )
+        >>> v = ul.QuantityMatrix(jnp.ones((2, 2)), unit=("s", "s"))
+        >>> (A @ v).value
+        Array([[ 3.,  7.],
+               [11., 15.]], dtype=float32)
+        >>> (A @ v).unit.to_string()
+        '(m s, m s)'
+
+        """
+        if isinstance(other, QuantityMatrix):
+            ranks = (self.unit.ndim, other.unit.ndim)
+            if ranks == (2, 2):
+                return quax.quaxify(jnp.matmul)(self, other)
+            if ranks == (2, 1):
+                return quax.quaxify(jnp.matvec)(self, other)
+            if ranks == (1, 2):
+                return quax.quaxify(jnp.vecmat)(self, other)
+            if ranks == (1, 1):
+                return quax.quaxify(jnp.vecdot)(self, other)
+        return super().__matmul__(other)
 
     # ── Quax API ─────────────────────────────────────────────────────
 

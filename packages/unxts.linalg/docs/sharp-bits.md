@@ -51,9 +51,9 @@ The `.diag()` **method** operates on the static unit structure and works for het
 
 By contrast `qnp.diag` lowers to a `gather`, whose indices are traced under `jit`; there the unit of each output element cannot be resolved individually, so **all units must be equal**. Prefer the `.diag()` method for heterogeneous-unit matrices.
 
-## `matmul` can't do a _batched_ matrix-vector product
+## The `matmul` _function_ can't do a batched matrix-vector product
 
-A batched vector's value `(B, K)` is shape-indistinguishable from a matrix, so `matmul` (`@`) can only do batched matrix-vector when the shapes happen to coincide, and otherwise raises. Use `unxts.linalg.matvec` (and `vecmat`) for matrix-vector / vector-matrix products — they name the operand ranks explicitly and broadcast the batch axis correctly. See [Linear algebra](linear-algebra.md#batches-prefer-matvecvecmat-over-matmul).
+A batched vector's value `(B, K)` is shape-indistinguishable from a matrix. The **`@` operator is fine** — `QuantityMatrix.__matmul__` dispatches on the logical rank, so `A @ v` correctly does a (batched) matrix-vector product. But the raw **function** forms `jnp.matmul` / `quaxed.numpy.matmul` infer their contraction from the value shapes and so cannot; they silently succeed only when the sizes coincide and otherwise raise. `unxts.linalg.matmul` refuses a batched vector operand outright, pointing you at `matvec`. Prefer `@`, `ul.matvec`, or `ul.vecmat`. See [Linear algebra](linear-algebra.md#batches).
 
 ## It is a Quax type, not a materialisable array
 

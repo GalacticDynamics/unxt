@@ -42,7 +42,8 @@ def _reject_batched_vector(a: Any, b: Any, /) -> None:
             msg = (
                 "matmul cannot express a batched matrix-vector product: a "
                 "batched vector's value shape (*batch, K) is ambiguous with a "
-                "matrix. Use unxts.linalg.matvec / vecmat / vecdot instead."
+                "matrix. Use the `@` operator, or unxts.linalg.matvec / vecmat "
+                "/ vecdot, which dispatch on logical rank instead."
             )
             raise ValueError(msg)
 
