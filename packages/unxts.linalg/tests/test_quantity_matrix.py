@@ -956,6 +956,21 @@ class TestProducts:
         rv = jax.vmap(matvec)(Ab, vb)
         assert jnp.allclose(rv.value, jnp.array([[3.0, 7.0], [6.0, 14.0]]))
 
+    def test_batched_plain_and_quantity_operands(self):
+        """A *batched* plain / Quantity vector is not mis-classified as a matrix."""
+        A = QMat(jnp.ones((2, 2, 2)), unit=((_m, _m), (_m, _m)))
+        vvals = jnp.array([[0.0, 1.0], [2.0, 3.0]])  # (B=2, K=2) batched vector
+        ref = matvec(A, QMat(vvals, unit=(_dimless, _dimless))).value
+
+        # plain array on the right (dot_general_qm_arr)
+        assert jnp.allclose(matvec(A, vvals).value, ref)
+        # Quantity on the right (dot_general_qm_qty)
+        w_qty = matvec(A, u.Q(vvals, "kg"))
+        assert w_qty.value.shape == (2, 2)
+        assert w_qty.unit == (_m * _kg, _m * _kg)
+        # plain array on the left, vecmat (dot_general_arr_qm) — was silently (2,2,2)
+        assert vecmat(jnp.ones((2, 2)), A).value.shape == (2, 2)
+
 
 # ---------------------------------------------------------------------------
 # The `@` operator (QuantityMatrix.__matmul__)

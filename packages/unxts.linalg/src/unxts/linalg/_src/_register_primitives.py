@@ -502,6 +502,28 @@ def dot_general_qm_qm(
     raise NotImplementedError(msg)
 
 
+def _wrap_operand(
+    value: jax.Array, element_unit: Any, batch_axes: tuple[int, ...], /
+) -> QuantityMatrix:
+    """Wrap a plain value as a `QuantityMatrix` with a uniform per-element unit.
+
+    The logical (vector vs matrix) rank is inferred from the number of *batch*
+    axes in ``dimension_numbers`` — ``value.ndim - len(batch_axes)`` — so a
+    batched vector ``(*batch, K)`` is correctly wrapped with a 1-D unit
+    structure rather than being mistaken for a matrix by its raw ``ndim``.
+    """
+    logical_ndim = value.ndim - len(batch_axes)
+    if logical_ndim == 1:
+        n = value.shape[-1]
+        unit = UnitsMatrix(tuple(element_unit for _ in range(n)))
+    else:  # matrix (logical_ndim == 2)
+        nr, nc = value.shape[-2], value.shape[-1]
+        unit = UnitsMatrix(
+            tuple(tuple(element_unit for _ in range(nc)) for _ in range(nr))
+        )
+    return QuantityMatrix(value, unit=unit)
+
+
 @quax.register(lax.dot_general_p)
 def dot_general_qm_arr(
     lhs: QuantityMatrix,
@@ -537,15 +559,7 @@ def dot_general_qm_arr(
     Array([2., 3.], dtype=float32)
 
     """
-    if rhs.ndim == 1:
-        n = rhs.shape[0]
-        rhs_qm = QuantityMatrix(rhs, unit=UnitsMatrix(tuple(_DMLS for _ in range(n))))
-    else:
-        nr, nc = rhs.shape[-2], rhs.shape[-1]
-        rhs_qm = QuantityMatrix(
-            rhs,
-            unit=UnitsMatrix(tuple(tuple(_DMLS for _ in range(nc)) for _ in range(nr))),
-        )
+    rhs_qm = _wrap_operand(rhs, _DMLS, dimension_numbers[1][1])
     return dot_general_qm_qm(
         lhs,
         rhs_qm,
@@ -598,19 +612,7 @@ def dot_general_qm_qty(
     """
     rhs_unit = u.unit_of(rhs)
     rhs_val = cast("jax.Array", u.ustrip(AllowValue, rhs_unit, rhs))
-    if rhs_val.ndim == 1:
-        n = rhs_val.shape[0]
-        rhs_qm = QuantityMatrix(
-            rhs_val, unit=UnitsMatrix(tuple(rhs_unit for _ in range(n)))
-        )
-    else:
-        nr, nc = rhs_val.shape[-2], rhs_val.shape[-1]
-        rhs_qm = QuantityMatrix(
-            rhs_val,
-            unit=UnitsMatrix(
-                tuple(tuple(rhs_unit for _ in range(nc)) for _ in range(nr))
-            ),
-        )
+    rhs_qm = _wrap_operand(rhs_val, rhs_unit, dimension_numbers[1][1])
     return dot_general_qm_qm(
         lhs,
         rhs_qm,
@@ -653,15 +655,7 @@ def dot_general_arr_qm(
     Array([2., 3.], dtype=float32)
 
     """
-    if lhs.ndim == 1:
-        n = lhs.shape[0]
-        lhs_qm = QuantityMatrix(lhs, unit=UnitsMatrix(tuple(_DMLS for _ in range(n))))
-    else:
-        nr, nc = lhs.shape[-2], lhs.shape[-1]
-        lhs_qm = QuantityMatrix(
-            lhs,
-            unit=UnitsMatrix(tuple(tuple(_DMLS for _ in range(nc)) for _ in range(nr))),
-        )
+    lhs_qm = _wrap_operand(lhs, _DMLS, dimension_numbers[1][0])
     return dot_general_qm_qm(
         lhs_qm,
         rhs,

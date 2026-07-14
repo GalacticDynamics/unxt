@@ -1,4 +1,4 @@
-"""Shared utilities for the quantity_matrix package."""
+"""Shared utilities for the `unxts.linalg` package."""
 
 from typing import Any, TypeAlias, cast
 
