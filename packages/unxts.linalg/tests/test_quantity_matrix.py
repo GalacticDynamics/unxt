@@ -112,6 +112,24 @@ class TestConstruction:
         assert qm.shape == (5, 3, 2, 2)
         assert qm.ndim == 2  # logical
 
+    def test_batched_indexing_leaves_unit(self):
+        """Indexing a batch axis reduces the value but keeps the unit structure."""
+        qm = QMat(jnp.arange(12.0).reshape(3, 2, 2), unit=((_m, _s), (_kg, _m)))
+        # Select a batch element -> a single matrix with the full unit.
+        assert qm[0].value.shape == (2, 2)
+        assert qm[0].unit == ((_m, _s), (_kg, _m))
+        # Batch slice keeps the batch axis and the unit.
+        assert qm[0:2].value.shape == (2, 2, 2)
+        assert qm[0:2].unit == ((_m, _s), (_kg, _m))
+        # Batch index + logical row -> 1-D vector with that row's units.
+        assert qm[0, 1].value.shape == (2,)
+        assert qm[0, 1].unit == (_kg, _m)
+        # Batch index + full element -> scalar Quantity.
+        assert qm[0, 1, 0].unit == _kg
+        # Ellipsis / newaxis are not supported (deterministic error).
+        with pytest.raises(NotImplementedError, match="Ellipsis"):
+            _ = qm[..., 0]
+
     def test_shape(self, qm_2x2):
         assert qm_2x2.shape == (2, 2)
 

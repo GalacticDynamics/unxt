@@ -210,9 +210,27 @@ class QuantityMatrix(u.AbstractQuantity):
         >>> qm[1, 2]
         Quantity(Array(1., dtype=float32), unit='m')
 
+        Leading **batch** axes are indexed on the value only — the unit
+        structure is untouched:
+
+        >>> qmb = QuantityMatrix(jnp.ones((3, 2, 2)), unit=(("m", "s"), ("kg", "rad")))
+        >>> qmb[0].unit.to_string()
+        '((m, s), (kg, rad))'
+
         """
         value_item = self.value[index]
-        unit_item = self.unit[index]
+        # `value` carries `n_batch` leading batch axes that `unit` does not, so
+        # the leading portion of `index` addresses batch axes and must not be
+        # applied to the unit; only the trailing entries index the logical axes.
+        n_batch = self.value.ndim - self.unit.ndim
+        idx = index if isinstance(index, tuple) else (index,)
+        if any(i is Ellipsis or i is None for i in idx):
+            msg = (
+                "QuantityMatrix.__getitem__ does not support Ellipsis (...) or "
+                "None (newaxis); index the batch and logical axes positionally."
+            )
+            raise NotImplementedError(msg)
+        unit_item = self.unit[idx[n_batch:]]  # () -> whole unit (batch-only index)
         if isinstance(unit_item, UnitsMatrix):
             return QuantityMatrix(value=value_item, unit=unit_item)
         return u.Q(value_item, unit_item)
