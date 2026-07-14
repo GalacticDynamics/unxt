@@ -387,6 +387,10 @@ jobs:
 
       - name: Test package
         run: |
+          # src doctests and tests are collected in separate invocations: the
+          # namespace package's leaf dir is imported under one name for src and
+          # another for tests, so co-collecting them double-imports the module.
+          uv run --frozen --package unxts-parametric pytest packages/unxts.parametric/src
           uv run --frozen --package unxts-parametric pytest packages/unxts.parametric/tests --cov=packages/unxts.parametric/src --cov-report=xml --cov-report=term
 
       - name: Upload coverage report
@@ -425,6 +429,10 @@ jobs:
 
       - name: Test package
         run: |
+          # src doctests and tests are collected in separate invocations: the
+          # namespace package's leaf dir is imported under one name for src and
+          # another for tests, so co-collecting them double-imports the module.
+          uv run --frozen --package unxts-linalg pytest packages/unxts.linalg/src
           uv run --frozen --package unxts-linalg pytest packages/unxts.linalg/tests --cov=packages/unxts.linalg/src --cov-report=xml --cov-report=term
 
       - name: Upload coverage report
