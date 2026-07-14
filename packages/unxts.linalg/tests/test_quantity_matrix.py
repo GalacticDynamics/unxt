@@ -29,6 +29,7 @@ from unxts.linalg._src._register_primitives import (
     _check_contract,
     _wrap_operand,
     gather_qm,
+    transpose_qm,
 )
 
 import quaxed.numpy as qnp
@@ -2097,6 +2098,22 @@ class TestQuantityMatrixTranspose:
         # swapaxes(0, 1) permutes a batch axis into the logical block.
         with pytest.raises(NotImplementedError, match="last two axes"):
             quax.quaxify(lambda x: jnp.swapaxes(x, 0, 1))(a)
+
+    def test_identity_permutation_is_noop(self):
+        """An identity permutation is a no-op that preserves value and units.
+
+        Covers a 1-D vector (whose only permutation is ``(0,)``). ``jnp.transpose``
+        elides such no-ops before they reach the handler, so drive the handler
+        directly to confirm it does not raise on a valid identity transpose.
+        """
+        v = QMat(jnp.array([1.0, 2.0, 3.0]), unit=(_m, _s, _kg))
+        r = transpose_qm(v, permutation=(0,))
+        assert jnp.allclose(r.value, v.value)
+        assert r.unit == (_m, _s, _kg)
+        # jnp.transpose on a 1-D QuantityMatrix works end-to-end (no exception).
+        r2 = quax.quaxify(lambda a: jnp.transpose(a))(v)
+        assert jnp.allclose(r2.value, v.value)
+        assert r2.unit == (_m, _s, _kg)
 
 
 # ---------------------------------------------------------------------------

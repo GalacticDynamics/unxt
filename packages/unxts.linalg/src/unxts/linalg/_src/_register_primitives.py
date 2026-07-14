@@ -818,6 +818,12 @@ def transpose_qm(
 
     """
     ndim_val = len(permutation)  # full ndim of the value array (includes batch dims)
+    # An identity permutation is a no-op that preserves the unit structure — most
+    # relevant for a 1-D vector, whose only permutation is (0,). JAX normally
+    # elides such transposes before they bind ``transpose_p``, but handle them
+    # directly so correctness does not depend on that elision.
+    if tuple(permutation) == tuple(range(ndim_val)):
+        return x
     if ndim_val < 2:
         msg = f"transpose_qm requires ndim >= 2, got ndim={ndim_val}"
         raise NotImplementedError(msg)
