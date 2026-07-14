@@ -355,6 +355,83 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  # unxts-parametric package tests
+  tests-unxts-parametric:
+    name:
+      unxts-parametric Python ${{ matrix.python-version }} on ${{ matrix.runs-on
+      }}
+    runs-on: ${{ matrix.runs-on }}
+    needs: [setup, format]
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, '🧩 unxts-parametric') ||
+      startsWith(github.head_ref, 'unxts-parametric/')
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
+        runs-on: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          uv sync --no-default-groups --group test --locked --package unxts-parametric
+
+      - name: Test package
+        run: |
+          uv run --frozen --package unxts-parametric pytest packages/unxts.parametric/tests --cov=packages/unxts.parametric/src --cov-report=xml --cov-report=term
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # unxts-linalg package tests
+  tests-unxts-linalg:
+    name:
+      unxts-linalg Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
+    runs-on: ${{ matrix.runs-on }}
+    needs: [setup, format]
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, '🧩 unxts-linalg') ||
+      startsWith(github.head_ref, 'unxts-linalg/')
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
+        runs-on: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          uv sync --no-default-groups --group test --locked --package unxts-linalg
+
+      - name: Test package
+        run: |
+          uv run --frozen --package unxts-linalg pytest packages/unxts.linalg/tests --cov=packages/unxts.linalg/src --cov-report=xml --cov-report=term
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   test-oldest:
     name: Check Oldest Dependencies
     runs-on: ${{ matrix.runs-on }}
@@ -468,6 +545,8 @@ jobs:
         tests-unxts-interop-gala,
         tests-unxts-interop-matplotlib,
         tests-unxts-interop-xarray,
+        tests-unxts-parametric,
+        tests-unxts-linalg,
         test-oldest,
         test-newest,
         test-interoperability,
@@ -485,4 +564,5 @@ jobs:
           allowed-skips:
             tests-unxt-api, tests-unxt-hypothesis, tests-unxts-api,
             tests-unxts-hypothesis, tests-unxts-interop-gala,
-            tests-unxts-interop-matplotlib, tests-unxts-interop-xarray
+            tests-unxts-interop-matplotlib, tests-unxts-interop-xarray,
+            tests-unxts-parametric, tests-unxts-linalg
