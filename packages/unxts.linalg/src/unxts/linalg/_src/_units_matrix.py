@@ -1,5 +1,6 @@
 """Immutable, hashable unit structure for QuantityMatrix."""
 
+import operator
 from typing import Any, TypeAlias, TypeVar, final
 
 import numpy as np
@@ -280,6 +281,55 @@ class UnitsMatrix:
                     for j in range(m):
                         inv_data[i, j] = self._units[i, j] ** (-1)
         return UnitsMatrix(inv_data)
+
+    # ── Element-wise arithmetic ───────────────────────────────────────
+
+    def _elementwise(self, other: Any, op: Any, /) -> "UnitsMatrix":
+        """Apply a binary unit op element-wise against a unit or a UnitsMatrix."""
+        if isinstance(other, UnitsMatrix):
+            if self.shape != other.shape:
+                msg = f"UnitsMatrix shape mismatch: {self.shape} vs {other.shape}."
+                raise ValueError(msg)
+            other_units = other._units
+        elif isinstance(other, u.AbstractUnit):
+            # Broadcast the scalar unit into an object array so the op runs
+            # element-wise on unit objects (astropy mishandles ndarray * Unit).
+            other_units = np.empty(self._units.shape, dtype=object)
+            other_units[...] = other
+        else:
+            return NotImplemented  # ty: ignore[invalid-return-type]
+        return UnitsMatrix(op(self._units, other_units))
+
+    def __mul__(self, other: Any, /) -> "UnitsMatrix":
+        """Element-wise unit product (against a unit or another UnitsMatrix).
+
+        >>> from unxts.linalg import UnitsMatrix
+        >>> import unxt as u
+        >>> UnitsMatrix(("m", "s")) * u.unit("kg")
+        UnitsMatrix("(kg m, kg s)")
+        >>> UnitsMatrix(("m", "s")) * UnitsMatrix(("s", "s"))
+        UnitsMatrix("(m s, s2)")
+
+        """
+        return self._elementwise(other, operator.mul)
+
+    def __rmul__(self, other: Any, /) -> "UnitsMatrix":
+        # Unit multiplication commutes.
+        return self._elementwise(other, operator.mul)
+
+    def __truediv__(self, other: Any, /) -> "UnitsMatrix":
+        """Element-wise unit quotient (against a unit or another UnitsMatrix).
+
+        >>> from unxts.linalg import UnitsMatrix
+        >>> import unxt as u
+        >>> UnitsMatrix(("m2", "s2")) / u.unit("s")
+        UnitsMatrix("(m2 / s, s)")
+
+        """
+        return self._elementwise(other, operator.truediv)
+
+    def __rtruediv__(self, other: Any, /) -> "UnitsMatrix":
+        return self._elementwise(other, lambda a, b: operator.truediv(b, a))
 
     # ── Serialization ─────────────────────────────────────────────────
 

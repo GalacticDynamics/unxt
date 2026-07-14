@@ -697,6 +697,63 @@ class TestSubtraction:
 
 
 # ---------------------------------------------------------------------------
+# Element-wise multiply / divide  (quax lax.mul_p / div_p)
+# ---------------------------------------------------------------------------
+
+
+@quax.quaxify
+def _mul(a, b):
+    return a * b
+
+
+@quax.quaxify
+def _div(a, b):
+    return a / b
+
+
+class TestElementwiseMulDiv:
+    """Element-wise mul/div keep the QuantityMatrix type and compose units."""
+
+    def test_qm_times_quantity_both_orders(self):
+        qm = QMat(jnp.array([[1.0, 2.0], [3.0, 4.0]]), unit=((_m, _s), (_kg, _rad)))
+        for r in (_mul(qm, u.Q(2.0, "s")), _mul(u.Q(2.0, "s"), qm)):  # commutes
+            assert isinstance(r, QMat)
+            assert jnp.allclose(r.value, jnp.array([[2.0, 4.0], [6.0, 8.0]]))
+            assert r.unit == ((_m * _s, _s * _s), (_kg * _s, _rad * _s))
+
+    def test_qm_times_qm_hadamard(self):
+        qm = QMat(jnp.array([[1.0, 2.0], [3.0, 4.0]]), unit=((_m, _s), (_kg, _rad)))
+        r = _mul(qm, qm)
+        assert isinstance(r, QMat)
+        assert jnp.allclose(r.value, jnp.array([[1.0, 4.0], [9.0, 16.0]]))
+        assert r.unit == ((_m * _m, _s * _s), (_kg * _kg, _rad * _rad))
+
+    def test_scalar_leaves_units(self):
+        qv = QMat(jnp.array([1.0, 2.0, 3.0]), unit=(_m, _s, _kg))
+        r = _mul(qv, 2.0)
+        assert isinstance(r, QMat)
+        assert r.unit == (_m, _s, _kg)
+
+    def test_division(self):
+        qm = QMat(jnp.array([[2.0, 4.0], [6.0, 8.0]]), unit=((_m, _s), (_kg, _rad)))
+        r = _div(qm, u.Q(2.0, "s"))
+        assert isinstance(r, QMat)
+        assert jnp.allclose(r.value, jnp.array([[1.0, 2.0], [3.0, 4.0]]))
+        assert r.unit == ((_m / _s, _s / _s), (_kg / _s, _rad / _s))
+        # dimensionless / qm inverts units
+        r2 = _div(1.0, QMat(jnp.array([2.0, 4.0]), unit=(_m, _s)))
+        assert isinstance(r2, QMat)
+        assert r2.unit == (_m**-1, _s**-1)
+
+    def test_quantity_times_qm_is_usable_downstream(self):
+        """A quantity-on-left product is a real QuantityMatrix, not a Quantity."""
+        qm = QMat(jnp.ones((2, 2)), unit=((_m, _s), (_kg, _rad)))
+        r = _mul(u.Q(2.0, "s"), qm)
+        r2 = _add(r, r)  # would raise if r were a plain Quantity holding a UnitsMatrix
+        assert jnp.allclose(r2.value, 2 * r.value)
+
+
+# ---------------------------------------------------------------------------
 # Dot product / matmul  (quax lax.dot_general_p)
 # ---------------------------------------------------------------------------
 

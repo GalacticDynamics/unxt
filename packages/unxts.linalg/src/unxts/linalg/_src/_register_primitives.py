@@ -3,6 +3,8 @@
 Registers handlers for the following JAX primitives:
 - ``lax.add_p`` — element-wise addition
 - ``lax.sub_p`` — element-wise subtraction
+- ``lax.mul_p`` — element-wise multiplication
+- ``lax.div_p`` — element-wise division
 - ``lax.dot_general_p`` — dot product / matrix multiply
 - ``lax.transpose_p`` — matrix transpose
 - ``lax.gather_p`` — element-selection gather (e.g. jnp.diag)
@@ -121,6 +123,90 @@ def sub_qm_qm(x: QuantityMatrix, y: QuantityMatrix, /) -> QuantityMatrix:
     """
     y_converted = _convert_value(y.value, y.unit, x.unit)
     return QuantityMatrix(value=lax.sub(x.value, y_converted), unit=x.unit)
+
+
+# ── mul / div (element-wise) ──────────────────────────────────────────────
+#
+# Element-wise (Hadamard) product / quotient. Unlike add/sub, the per-element
+# units *compose* multiplicatively (no unit conversion), so `m * s -> m s`.
+# QuantityMatrix subclasses AbstractQuantity, whose generic `mul_p` rule would
+# do `x.unit * y.unit` and build the *left operand's* type — producing a plain
+# Quantity wrapping a UnitsMatrix (a malformed object) when a Quantity is on the
+# left. These handlers keep the result a QuantityMatrix for every operand order.
+
+
+@quax.register(lax.mul_p)
+def mul_qm_qm(x: QuantityMatrix, y: QuantityMatrix, /, **kw: Any) -> QuantityMatrix:
+    """Element-wise product of two `QuantityMatrix` objects (units multiply)."""
+    return QuantityMatrix(x.value * y.value, unit=x.unit * y.unit)
+
+
+@quax.register(lax.mul_p)
+def mul_qm_qty(
+    x: QuantityMatrix, y: u.AbstractQuantity, /, **kw: Any
+) -> QuantityMatrix:
+    """`QuantityMatrix` x uniform-unit Quantity: scale values, multiply units."""
+    y_unit = u.unit_of(y)
+    y_val = u.ustrip(AllowValue, y_unit, y)
+    return QuantityMatrix(x.value * y_val, unit=x.unit * y_unit)
+
+
+@quax.register(lax.mul_p)
+def mul_qty_qm(
+    x: u.AbstractQuantity, y: QuantityMatrix, /, **kw: Any
+) -> QuantityMatrix:
+    """Quantity x `QuantityMatrix` — multiplication commutes."""
+    return mul_qm_qty(y, x)
+
+
+@quax.register(lax.mul_p)
+def mul_qm_arr(x: QuantityMatrix, y: jax.Array, /, **kw: Any) -> QuantityMatrix:
+    """`QuantityMatrix` x dimensionless array: scale values, units unchanged."""
+    return QuantityMatrix(x.value * y, unit=x.unit)
+
+
+@quax.register(lax.mul_p)
+def mul_arr_qm(x: jax.Array, y: QuantityMatrix, /, **kw: Any) -> QuantityMatrix:
+    """Dimensionless array x `QuantityMatrix`."""
+    return QuantityMatrix(x * y.value, unit=y.unit)
+
+
+@quax.register(lax.div_p)
+def div_qm_qm(x: QuantityMatrix, y: QuantityMatrix, /, **kw: Any) -> QuantityMatrix:
+    """Element-wise quotient of two `QuantityMatrix` objects (units divide)."""
+    return QuantityMatrix(x.value / y.value, unit=x.unit / y.unit)
+
+
+@quax.register(lax.div_p)
+def div_qm_qty(
+    x: QuantityMatrix, y: u.AbstractQuantity, /, **kw: Any
+) -> QuantityMatrix:
+    """`QuantityMatrix` / uniform-unit Quantity."""
+    y_unit = u.unit_of(y)
+    y_val = u.ustrip(AllowValue, y_unit, y)
+    return QuantityMatrix(x.value / y_val, unit=x.unit / y_unit)
+
+
+@quax.register(lax.div_p)
+def div_qty_qm(
+    x: u.AbstractQuantity, y: QuantityMatrix, /, **kw: Any
+) -> QuantityMatrix:
+    """Uniform-unit Quantity / `QuantityMatrix` (not commutative)."""
+    x_unit = u.unit_of(x)
+    x_val = u.ustrip(AllowValue, x_unit, x)
+    return QuantityMatrix(x_val / y.value, unit=x_unit / y.unit)
+
+
+@quax.register(lax.div_p)
+def div_qm_arr(x: QuantityMatrix, y: jax.Array, /, **kw: Any) -> QuantityMatrix:
+    """`QuantityMatrix` / dimensionless array: scale values, units unchanged."""
+    return QuantityMatrix(x.value / y, unit=x.unit)
+
+
+@quax.register(lax.div_p)
+def div_arr_qm(x: jax.Array, y: QuantityMatrix, /, **kw: Any) -> QuantityMatrix:
+    """Dimensionless array / `QuantityMatrix` (units invert)."""
+    return QuantityMatrix(x / y.value, unit=_DMLS / y.unit)
 
 
 # ── dot_general helpers ───────────────────────────────────────────────────
