@@ -2,7 +2,7 @@
 
 Heterogeneous-unit matrices and vectors for [unxt](https://github.com/GalacticDynamics/unxt).
 
-This is the canonical package (`unxts.linalg`). It provides `QuantityMatrix` (alias `QM`): a quantity container whose elements may each carry a different unit, together with a static `UnitsMatrix` unit structure and unit-aware linear-algebra primitives (`det`, `inv`, and Quax-registered add/sub/matmul/transpose/diag).
+This is the canonical package (`unxts.linalg`). It provides `QuantityMatrix` (alias `QM`): a quantity container whose elements may each carry a different unit, together with a static `UnitsMatrix` unit structure and unit-aware linear-algebra primitives (`det`, `inv`, the `matmul`/`matvec`/`vecmat`/`vecdot` products, and Quax-registered add/sub, mul/div, matmul, transpose, diag, and reduce-sum rules).
 
 ## Install
 

@@ -3,8 +3,10 @@
 `QuantityMatrix` (alias `QM`) is a quantity container whose elements may each
 carry a different unit, backed by a single JAX array plus a static
 `UnitsMatrix`. It supports 1-D (vector) and 2-D (matrix) structures, with
-Quax-registered arithmetic (add/sub/matmul/transpose/diag) plus ``det`` and
-``inv`` primitives that track per-element units through the linear algebra.
+Quax-registered arithmetic (add/sub, mul/div, matmul, transpose, diag,
+reduce-sum) plus the ``matmul``/``matvec``/``vecmat``/``vecdot`` products and
+``det``/``inv`` primitives that track per-element units through the linear
+algebra.
 """
 
 __all__ = (

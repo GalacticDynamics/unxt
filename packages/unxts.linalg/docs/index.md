@@ -78,7 +78,8 @@ Quantity(Array(1., dtype=float32), unit='m')
 
 - `QuantityMatrix` — the heterogeneous-unit matrix/vector (alias `QM`).
 - `UnitsMatrix` — the immutable, hashable per-element unit structure.
+- `matmul`, `matvec`, `vecmat`, `vecdot` — the four Array-API matrix/vector products, each resolving the batched matrix-vs-vector ambiguity that `@` alone cannot.
 - `det`, `inv` — unit-tracking determinant and inverse (with their JAX primitives `det_p`, `inv_p`).
 - `cdict_units` — extract per-key units from a component dictionary.
 
-Importing `unxts.linalg` also registers, as import side effects, the Quax primitive rules (add/sub/matmul/transpose/gather/reduce-sum) and the `plum` conversions/dispatch that let `QuantityMatrix` interoperate with the rest of `unxt`.
+Importing `unxts.linalg` also registers, as import side effects, the Quax primitive rules (add/sub, mul/div, dot-general/matmul, transpose, gather/diag, reduce-sum) and the `plum` conversions/dispatch that let `QuantityMatrix` interoperate with the rest of `unxt`.

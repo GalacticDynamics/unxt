@@ -10,6 +10,7 @@ import plum
 import pytest
 import quax
 from astropy.units import imperial  # registers °F
+from jax import lax
 from unxts.linalg import (
     QuantityMatrix as QMat,
     UnitsMatrix,
@@ -24,7 +25,11 @@ from unxts.linalg._src import (
     det as qm_det,
     inv as qm_inv,
 )
-from unxts.linalg._src._register_primitives import _check_contract, _wrap_operand
+from unxts.linalg._src._register_primitives import (
+    _check_contract,
+    _wrap_operand,
+    gather_qm,
+)
 
 import quaxed.numpy as qnp
 
@@ -614,6 +619,22 @@ class TestAddition:
         assert jnp.isclose(result.value[0, 1], 2 + 2 * (180 / jnp.pi), atol=1e-8)
         assert jnp.isclose(result.value[1, 1], 4 + 720 / jnp.pi, atol=1e-8)
 
+    def test_per_element_conversion_with_logarithmic_unit(self):
+        """Conversion is per-element (`uconvert_value`), not one global scale.
+
+        A logarithmic unit (``mag``) converts as identity while a neighbouring
+        length element scales by 1000 — a single shared scale factor could not
+        produce both. Guards the ``_convert_value`` per-element contract that
+        add/sub rely on for non-scale (log/affine) units.
+        """
+        mag = u.unit("mag")
+        x = QMat(jnp.array([1.0, 1.0]), unit=(mag, _m))
+        y = QMat(jnp.array([2.0, 2.0]), unit=(mag, _km))  # 2 mag, 2 km
+        result = _add(x, y)
+        # mag: 1 + 2 = 3 (identity conversion); m: 1 + 2000 = 2001 (km→m).
+        assert jnp.allclose(result.value, jnp.array([3.0, 2001.0]))
+        assert result.unit == (mag, _m)
+
 
 # ---------------------------------------------------------------------------
 # Subtraction  (quax lax.sub_p)
@@ -1116,6 +1137,63 @@ class TestProducts:
         rv = jax.vmap(matvec)(Ab, vb)
         assert jnp.allclose(rv.value, jnp.array([[3.0, 7.0], [6.0, 14.0]]))
 
+    def test_matmul_under_transforms(self):
+        """Matmul composes with jit / grad / vmap (values + units preserved)."""
+        A = QMat(jnp.array([[1.0, 2.0], [3.0, 4.0]]), unit=((_m, _m), (_m, _m)))
+        B = QMat(jnp.array([[5.0, 6.0], [7.0, 8.0]]), unit=((_s, _s), (_s, _s)))
+
+        r = jax.jit(matmul)(A, B)
+        assert jnp.allclose(r.value, jnp.array([[19.0, 22.0], [43.0, 50.0]]))
+        assert r.unit == ((_m * _s, _m * _s), (_m * _s, _m * _s))
+
+        def loss(mat_val):
+            return jnp.sum(matmul(QMat(mat_val, unit=((_m, _m), (_m, _m))), B).value)
+
+        # d/dA_ik of sum(A @ B) is the row-sum of B over k: B row 0 = 11, row 1 = 15.
+        assert jnp.allclose(
+            jax.grad(loss)(A.value), jnp.array([[11.0, 15.0], [11.0, 15.0]])
+        )
+
+        Ab = QMat(jnp.stack([A.value, 2 * A.value]), unit=((_m, _m), (_m, _m)))
+        Bb = QMat(jnp.stack([B.value, B.value]), unit=((_s, _s), (_s, _s)))
+        assert jax.vmap(matmul)(Ab, Bb).value.shape == (2, 2, 2)
+
+    def test_vecmat_under_transforms(self):
+        """Vecmat composes with jit / grad / vmap."""
+        v = QMat(jnp.array([1.0, 1.0]), unit=(_s, _s))
+        a = QMat(jnp.array([[1.0, 2.0], [3.0, 4.0]]), unit=((_m, _m), (_m, _m)))
+
+        r = jax.jit(vecmat)(v, a)
+        assert jnp.allclose(r.value, jnp.array([4.0, 6.0]))
+        assert r.unit == (_s * _m, _s * _m)
+
+        def loss(vec_val):
+            return jnp.sum(vecmat(QMat(vec_val, unit=(_s, _s)), a).value)
+
+        # d/dv_i of sum(v @ a) is the row sums of a: [3, 7].
+        assert jnp.allclose(jax.grad(loss)(v.value), jnp.array([3.0, 7.0]))
+
+        vb = QMat(jnp.stack([v.value, v.value]), unit=(_s, _s))
+        ab = QMat(jnp.stack([a.value, a.value]), unit=((_m, _m), (_m, _m)))
+        assert jax.vmap(vecmat)(vb, ab).value.shape == (2, 2)
+
+    def test_vecdot_under_transforms(self):
+        """Vecdot composes with jit / grad / vmap (unit conversion preserved)."""
+        a = QMat(jnp.array([1.0, 2.0]), unit=(_m, _km))
+        b = QMat(jnp.array([3.0, 4.0]), unit=(_s, _s))
+
+        r = jax.jit(vecdot)(a, b)
+        assert jnp.isclose(r.value, 8003.0)
+        assert r.unit == _m * _s
+
+        # d/da_i of (a·b) carries the km→m conversion: [3, 4000] m·s.
+        grad_a = jax.grad(lambda av: vecdot(QMat(av, unit=(_m, _km)), b).value)(a.value)
+        assert jnp.allclose(grad_a, jnp.array([3.0, 4000.0]))
+
+        ab = QMat(jnp.stack([a.value, a.value]), unit=(_m, _km))
+        bb = QMat(jnp.stack([b.value, b.value]), unit=(_s, _s))
+        assert jax.vmap(vecdot)(ab, bb).value.shape == (2,)
+
     def test_batched_plain_and_quantity_operands(self):
         """A *batched* plain / Quantity vector is not mis-classified as a matrix."""
         A = QMat(jnp.ones((2, 2, 2)), unit=((_m, _m), (_m, _m)))
@@ -1274,7 +1352,24 @@ class TestAffineProductUnitsRejected:
     If astropy ever starts accepting affine product conversions, these
     tests will *fail* — that's intentional: it means the assumption
     behind ``scale_3d`` must be revisited.
+
+    The astropy-level checks below pin the *premise*; ``test_real_matmul_*``
+    pins the *conclusion* by driving a real ``QuantityMatrix @ QuantityMatrix``
+    through the actual dot-general code path.
     """
+
+    def test_real_matmul_affine_units_raises(self):
+        """A real QM @ QM whose contraction needs an affine conversion raises.
+
+        The contraction reference unit is ``°C·s`` (k=0); the ``°F·s`` term
+        (k=1) must convert to it, which astropy rejects — so the whole
+        product raises rather than silently mis-scaling.
+        """
+        degC, degF = apu.deg_C, imperial.deg_F
+        a = QMat(jnp.array([[1.0, 1.0]]), unit=((degC, degF),))
+        b = QMat(jnp.array([[1.0], [1.0]]), unit=((_s,), (_s,)))
+        with pytest.raises(apu.UnitConversionError, match="not convertible"):
+            _matmul(a, b)
 
     def test_degC_times_s_not_convertible(self):
         """°C·s → °F·s must fail (affine offset is undefined for products)."""
@@ -1527,6 +1622,27 @@ class TestDiagAndGather:
         assert jnp.allclose(d.value, jnp.array([1, 4, 9]))
         assert d.unit.ndim == 1
         assert all(d.unit[i] == _m for i in range(3))
+
+    def test_diag_under_jit_heterogeneous_units_rejected(self):
+        """qnp.diag under jit cannot resolve traced indices for mixed units."""
+        A = QMat(jnp.eye(2), unit=((_m, _s), (_m, _s)))
+        with pytest.raises(ValueError, match="units to be equal"):
+            jax.jit(_diag)(A)
+
+    def test_gather_non_element_selection_rejected(self):
+        """A window (non element-selection) gather is rejected, not mislabelled."""
+        qm = QMat(jnp.arange(8.0).reshape(4, 2), unit=(_m, _m))
+        # A slice/window gather: offset_dims is non-empty (selects full rows).
+        dnums = lax.GatherDimensionNumbers(
+            offset_dims=(1,), collapsed_slice_dims=(0,), start_index_map=(0,)
+        )
+        with pytest.raises(NotImplementedError, match="element-selection"):
+            gather_qm(
+                qm,
+                jnp.array([[0], [2]]),
+                dimension_numbers=dnums,
+                slice_sizes=(1, 2),
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -1945,6 +2061,13 @@ class TestQuantityMatrixTranspose:
         with pytest.raises(ValueError, match="requires a 2-D matrix"):
             _ = qm_1d.T
 
+    def test_nonstandard_permutation_rejected(self):
+        """A transpose that reorders batch axes (not the last two) is rejected."""
+        a = QMat(jnp.ones((3, 2, 2)), unit=((_m, _s), (_kg, _rad)))
+        # swapaxes(0, 1) permutes a batch axis into the logical block.
+        with pytest.raises(NotImplementedError, match="last two axes"):
+            quax.quaxify(lambda x: jnp.swapaxes(x, 0, 1))(a)
+
 
 # ---------------------------------------------------------------------------
 # det_p custom primitive + Quax dispatch for QuantityMatrix
@@ -2084,6 +2207,30 @@ class TestDetQuantityMatrix:
         assert jnp.allclose(result.value, 6)
         assert result.unit == u.unit("m2")
 
+    def test_grad_QuantityMatrix(self):
+        """Grad flows through the QuantityMatrix det dispatch, not just plain arrays."""
+
+        def loss(mat_val):
+            A = QMat(mat_val, unit=((_m, _m), (_m, _m)))
+            return quax.quaxify(qm_det)(A).value
+
+        base = jnp.array([[2.0, 0.0], [0.0, 3.0]])
+        # ∂det/∂A = det(A)·A⁻ᵀ = diag(3, 2) for diag(2, 3).
+        assert jnp.allclose(jax.grad(loss)(base), jnp.array([[3.0, 0.0], [0.0, 2.0]]))
+
+    def test_vmap_QuantityMatrix(self):
+        """Vmap maps det over a batch of QuantityMatrix values (unit preserved)."""
+        vals = jnp.stack(
+            [jnp.diag(jnp.array([2.0, 3.0])), jnp.diag(jnp.array([4.0, 5.0]))]
+        )
+
+        def one(mat_val):
+            return quax.quaxify(qm_det)(QMat(mat_val, unit=((_m, _m), (_m, _m))))
+
+        out = jax.vmap(one)(vals)
+        assert jnp.allclose(out.value, jnp.array([6.0, 20.0]))
+        assert out.unit == u.unit("m2")
+
 
 # ---------------------------------------------------------------------------
 # inv_p custom primitive + Quax dispatch for QuantityMatrix
@@ -2208,6 +2355,12 @@ class TestInvQuantityMatrix:
         with pytest.raises(ValueError, match="uniform units"):
             quax.quaxify(qm_inv)(A)
 
+    def test_non_2d_rejected(self):
+        """Inv of a 1-D (vector) QuantityMatrix raises: a matrix inverse needs 2-D."""
+        v = QMat(jnp.array([1.0, 2.0]), unit=(_m, _m))
+        with pytest.raises(ValueError, match="2-D unit structure"):
+            quax.quaxify(qm_inv)(v)
+
     def test_returns_QuantityMatrix(self):
         """Inv of a 2×2 QuantityMatrix returns a QuantityMatrix."""
         A = QMat(jnp.array([[4, 0], [0, 1]]), unit=((_m, _m), (_m, _m)))
@@ -2242,6 +2395,31 @@ class TestInvQuantityMatrix:
         result = jax.jit(quax.quaxify(qm_inv))(A)
         assert jnp.allclose(result.value, jnp.array([[0.25, 0.0], [0.0, 1.0]]))
         assert result.unit[0, 0] == u.unit("1 / m")
+
+    def test_grad_QuantityMatrix(self):
+        """Grad flows through the QuantityMatrix inv dispatch (value path)."""
+
+        def loss(mat_val):
+            A = QMat(mat_val, unit=((_m, _m), (_m, _m)))
+            return jnp.sum(quax.quaxify(qm_inv)(A).value)
+
+        base = jnp.array([[2.0, 0.0], [0.0, 4.0]])
+        # Compare against grad of the plain-array reference.
+        expected = jax.grad(lambda a: jnp.sum(jnp.linalg.inv(a)))(base)
+        assert jnp.allclose(jax.grad(loss)(base), expected, atol=1e-6)
+
+    def test_vmap_QuantityMatrix(self):
+        """Vmap maps inv over a batch of QuantityMatrix values (unit preserved)."""
+        vals = jnp.stack(
+            [jnp.diag(jnp.array([2.0, 4.0])), jnp.diag(jnp.array([1.0, 2.0]))]
+        )
+
+        def one(mat_val):
+            return quax.quaxify(qm_inv)(QMat(mat_val, unit=((_m, _m), (_m, _m))))
+
+        out = jax.vmap(one)(vals)
+        assert jnp.allclose(out.value, jax.vmap(jnp.linalg.inv)(vals))
+        assert out.unit[0, 0] == u.unit("1 / m")
 
     def test_roundtrip_identity(self):
         """A @ inv(A) ≈ I for a QuantityMatrix (value check)."""
