@@ -112,6 +112,14 @@ class TestConstruction:
         assert qm.shape == (5, 3, 2, 2)
         assert qm.ndim == 2  # logical
 
+    def test_from_cdict_rejects_matrix_values(self):
+        """from_cdict rejects QuantityMatrix / UnitsMatrix values with a clear error."""
+        inner = QMat(jnp.array([1.0, 2.0]), unit=(_m, _s))
+        with pytest.raises(TypeError, match="scalar-unit"):
+            QMat.from_cdict({"a": inner})
+        with pytest.raises(TypeError, match="scalar-unit"):
+            QMat.from_cdict({"a": UnitsMatrix((_m, _s))})
+
     def test_batched_indexing_leaves_unit(self):
         """Indexing a batch axis reduces the value but keeps the unit structure."""
         qm = QMat(jnp.arange(12.0).reshape(3, 2, 2), unit=((_m, _s), (_kg, _m)))

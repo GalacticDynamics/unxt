@@ -172,6 +172,23 @@ class QuantityMatrix(u.AbstractQuantity):
         """
         keys = tuple(v) if keys is None else keys
         vs = [v[k] for k in keys]
+        # Each value must have a *scalar* unit (a plain Quantity or a
+        # dimensionless array). A QuantityMatrix/UnitsMatrix value has a
+        # UnitsMatrix unit, for which `unit_of`/`ustrip` have no scalar-unit
+        # dispatch — reject it up front with a clear message rather than the
+        # confusing downstream dispatch error.
+        bad = [
+            k
+            for k, x in strict_zip(keys, vs)
+            if isinstance(x, (QuantityMatrix, UnitsMatrix))
+        ]
+        if bad:
+            msg = (
+                f"from_cdict values must be scalar-unit quantities or plain "
+                f"arrays; key(s) {bad} are QuantityMatrix/UnitsMatrix, which are "
+                f"not supported."
+            )
+            raise TypeError(msg)
         us = [u.unit_of(x) or _DMLS for x in vs]
         svs = jnp.stack([u.ustrip(AllowValue, unt, x) for x, unt in strict_zip(vs, us)])
         return cls(svs, unit=UnitsMatrix(us))
