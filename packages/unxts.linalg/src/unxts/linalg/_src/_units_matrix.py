@@ -26,6 +26,51 @@ def _normalize_unit(x: Any, /) -> u.AbstractUnit:
     raise TypeError(msg)
 
 
+def _split_top_level(inner: str, /) -> list[str]:
+    """Split *inner* on commas that are not enclosed in parentheses.
+
+    Unit strings never contain commas but may contain (balanced) parentheses
+    — e.g. ``"m / (kg s)"`` — so a depth-aware split unambiguously separates the
+    elements/rows of a structural string.
+    """
+    parts: list[str] = []
+    depth = 0
+    buf: list[str] = []
+    for ch in inner:
+        if ch == "(":
+            depth += 1
+            buf.append(ch)
+        elif ch == ")":
+            depth -= 1
+            buf.append(ch)
+        elif ch == "," and depth == 0:
+            parts.append("".join(buf).strip())
+            buf = []
+        else:
+            buf.append(ch)
+    tail = "".join(buf).strip()
+    if tail:  # drop the empty tail from a trailing comma, e.g. "(m,)"
+        parts.append(tail)
+    return parts
+
+
+def _parse_structure_string(s: str, /) -> tuple[Any, ...]:
+    """Parse a `to_string()` / `__repr__` structural string into a nested tuple.
+
+    e.g. ``"(m, s)" -> ("m", "s")`` and
+    ``"((m, s), (kg, rad))" -> (("m", "s"), ("kg", "rad"))``. A top-level part
+    that is itself parenthesized is a nested row (2-D); otherwise it is a unit
+    string (units never begin with ``"("``).
+    """
+    out: list[Any] = []
+    for part in _split_top_level(s[1:-1]):  # drop the outer parentheses
+        if part.startswith("(") and part.endswith(")"):
+            out.append(_parse_structure_string(part))
+        else:
+            out.append(part)
+    return tuple(out)
+
+
 def _build_object_array(iterable: Any, /) -> np.ndarray:  # noqa: C901
     """Build a 1-D or 2-D numpy object array of ``AbstractUnit`` from *iterable*.
 
@@ -47,13 +92,17 @@ def _build_object_array(iterable: Any, /) -> np.ndarray:  # noqa: C901
         data.flat[:] = flat
         return data
 
-    # A bare string is iterable but almost never intended: it would be split
-    # into per-character "units" (e.g. "ms" -> ("m", "s")). Require a single
-    # unit to be wrapped in a tuple.
     if isinstance(iterable, str):
+        # Accept the structural form produced by ``to_string()`` / ``__repr__``
+        # (e.g. "(m, s)"), so a repr round-trips. A *bare* unit string is
+        # rejected: it is iterable and would otherwise be split into
+        # per-character "units" (e.g. "ms" -> ("m", "s")); wrap it in a tuple.
+        stripped = iterable.strip()
+        if stripped.startswith("(") and stripped.endswith(")"):
+            return _build_object_array(_parse_structure_string(stripped))
         msg = (
-            f"UnitsMatrix does not accept a bare string ({iterable!r}); wrap a "
-            f"single unit in a tuple, e.g. ({iterable!r},)."
+            f"UnitsMatrix does not accept a bare unit string ({iterable!r}); wrap "
+            f"a single unit in a tuple, e.g. ({iterable!r},)."
         )
         raise TypeError(msg)
 

@@ -221,13 +221,23 @@ class TestUnitsMatrix:
     """Tests for the ``UnitsMatrix`` object-array-backed unit structure."""
 
     def test_bare_string_rejected(self):
-        """A bare string is rejected (would otherwise split into per-char units)."""
-        with pytest.raises(TypeError, match="bare string"):
+        """A bare unit string is rejected (else it splits into per-char units)."""
+        with pytest.raises(TypeError, match="bare unit string"):
             UnitsMatrix("ms")
-        with pytest.raises(TypeError, match="bare string"):
+        with pytest.raises(TypeError, match="bare unit string"):
             UnitsMatrix("m")
         # The intended single-unit form works.
         assert UnitsMatrix(("ms",)).shape == (1,)
+
+    def test_repr_roundtrips(self):
+        """The structural repr / to_string form is accepted back as a constructor."""
+        for m in (
+            UnitsMatrix((_m, _s, _kg)),
+            UnitsMatrix(((_m, _s), (_kg, _m))),
+            UnitsMatrix((_m,)),
+        ):
+            assert UnitsMatrix(m.to_string()) == m
+            assert eval(repr(m)) == m  # noqa: S307
 
     def test_not_isinstance_structured_unit(self):
         """UnitsMatrix is NOT a StructuredUnit — it is a standalone class."""
