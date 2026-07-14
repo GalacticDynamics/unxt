@@ -820,19 +820,38 @@ class TestProducts:
         assert jnp.allclose(w.value, jnp.array([[3.0, 7.0], [11.0, 15.0]]))
         assert w.unit == (_m * _s, _m * _s)
 
-    def test_matmul_cannot_do_batched_matvec(self):
-        """Matmul can't express a batched matrix-vector product.
+    def test_matmul_rejects_batched_matvec(self):
+        """Matmul rejects a batched vector operand with a pointer to matvec.
 
-        A batched vector's value ``(B, K)`` is indistinguishable from a matrix,
-        so matmul tries to contract mismatched axes (here N=2 != K=3) and raises.
-        This is exactly why ``matvec`` exists.
+        A batched vector's value ``(B, K)`` is indistinguishable from a matrix.
+        Without the guard, matmul silently returns the matvec answer for square
+        batches (N==K==B) but raises for non-square shapes — an inconsistent
+        trap. The guard makes it consistently error in both cases.
         """
-        a = QMat(jnp.ones((2, 2, 3)), unit=((_m, _m, _m), (_m, _m, _m)))
-        v = QMat(jnp.ones((2, 3)), unit=(_s, _s, _s))
-        with pytest.raises(TypeError):
-            matmul(a, v)
-        # matvec handles it fine.
-        assert matvec(a, v).shape == (2, 2)
+        # Square batch (N==K==B) — this used to *silently succeed*.
+        a_sq = QMat(jnp.ones((2, 2, 2)), unit=((_m, _m), (_m, _m)))
+        v_sq = QMat(jnp.ones((2, 2)), unit=(_s, _s))
+        with pytest.raises(ValueError, match="matvec"):
+            matmul(a_sq, v_sq)
+        # Non-square batch.
+        a_ns = QMat(jnp.ones((2, 2, 3)), unit=((_m, _m, _m), (_m, _m, _m)))
+        v_ns = QMat(jnp.ones((2, 3)), unit=(_s, _s, _s))
+        with pytest.raises(ValueError, match="matvec"):
+            matmul(a_ns, v_ns)
+        # matvec handles both.
+        assert matvec(a_sq, v_sq).shape == (2, 2)
+        assert matvec(a_ns, v_ns).shape == (2, 2)
+
+    def test_matmul_guard_is_narrow(self):
+        """The guard only rejects *batched* vectors, not the valid matmul cases."""
+        # Unbatched matrix @ vector: matmul promotes the 1-D vector — allowed.
+        A = QMat(jnp.array([[1.0, 2.0], [3.0, 4.0]]), unit=((_m, _m), (_m, _m)))
+        v = QMat(jnp.array([1.0, 1.0]), unit=(_s, _s))
+        assert matmul(A, v).value.shape == (2,)
+        # Batched matrix @ matrix — allowed.
+        Ab = QMat(jnp.ones((3, 2, 2)), unit=((_m, _m), (_m, _m)))
+        Bb = QMat(jnp.ones((3, 2, 2)), unit=((_s, _s), (_s, _s)))
+        assert matmul(Ab, Bb).value.shape == (3, 2, 2)
 
     def test_vecmat_unbatched(self):
         """vecmat(vector, matrix) → vector (transpose of matvec)."""
@@ -868,6 +887,38 @@ class TestProducts:
         d = vecdot(a, b)
         assert d.value.shape == (2,)
         assert jnp.allclose(d.value, jnp.array([8003.0, 8003.0]))
+
+    def test_vecmat_unit_conversion(self):
+        """Vecmat converts mixed units within each output column."""
+        v = QMat(jnp.array([1.0, 1.0]), unit=(_kg, _kg))
+        # Column 0 mixes m (row 0) and km (row 1) -> km converted to m.
+        a = QMat(jnp.array([[1.0, 2.0], [3.0, 4.0]]), unit=((_m, _s), (_km, _s)))
+        w = vecmat(v, a)
+        # col 0: 1*1 kg*m + 1*3 kg*km -> 1 + 3000 = 3001 (in kg*m)
+        # col 1: 1*2 kg*s + 1*4 kg*s = 6 (in kg*s)
+        assert jnp.allclose(w.value, jnp.array([3001.0, 6.0]))
+        assert w.unit == (_kg * _m, _kg * _s)
+
+    def test_matvec_under_transforms(self):
+        """Matvec composes with jit / grad / vmap (values + units preserved)."""
+        A = QMat(jnp.array([[1.0, 2.0], [3.0, 4.0]]), unit=((_m, _m), (_m, _m)))
+        v = QMat(jnp.array([1.0, 1.0]), unit=(_s, _s))
+
+        r = jax.jit(matvec)(A, v)
+        assert jnp.allclose(r.value, jnp.array([3.0, 7.0]))
+        assert r.unit == (_m * _s, _m * _s)
+
+        def loss(mat_val):
+            AA = QMat(mat_val, unit=((_m, _m), (_m, _m)))
+            return jnp.sum(matvec(AA, v).value)
+
+        # d/dA_ij of sum(A @ [1, 1]) is 1 everywhere.
+        assert jnp.allclose(jax.grad(loss)(A.value), jnp.ones((2, 2)))
+
+        Ab = QMat(jnp.stack([A.value, 2 * A.value]), unit=((_m, _m), (_m, _m)))
+        vb = QMat(jnp.stack([v.value, v.value]), unit=(_s, _s))
+        rv = jax.vmap(matvec)(Ab, vb)
+        assert jnp.allclose(rv.value, jnp.array([[3.0, 7.0], [6.0, 14.0]]))
 
 
 # ---------------------------------------------------------------------------

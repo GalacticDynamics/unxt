@@ -23,11 +23,36 @@ from typing import Any
 import jax.numpy as jnp
 import quax
 
+from ._quantity_matrix import QuantityMatrix
+
 __all__ = ("matmul", "matvec", "vecdot", "vecmat")
+
+
+def _reject_batched_vector(a: Any, b: Any, /) -> None:
+    """Raise if a `QuantityMatrix` operand is a *batched* (logically 1-D) vector.
+
+    ``matmul`` infers its contraction from NumPy shape-broadcasting, under which
+    a batched vector's value ``(*batch, K)`` is indistinguishable from a matrix.
+    So a batched matrix-vector product either contracts the wrong axes (raising
+    only when the sizes happen not to line up) or silently succeeds — a trap.
+    We reject it up front and point at the rank-explicit products instead.
+    """
+    for x in (a, b):
+        if isinstance(x, QuantityMatrix) and x.unit.ndim == 1 and x.value.ndim > 1:
+            msg = (
+                "matmul cannot express a batched matrix-vector product: a "
+                "batched vector's value shape (*batch, K) is ambiguous with a "
+                "matrix. Use unxts.linalg.matvec / vecmat / vecdot instead."
+            )
+            raise ValueError(msg)
 
 
 def matmul(a: Any, b: Any, /) -> Any:
     """Matrix-matrix product ``a @ b`` (batch dims broadcast over leading axes).
+
+    Only matrix operands may carry leading batch axes. A *batched* vector
+    operand is rejected (see :func:`matvec` / :func:`vecmat` / :func:`vecdot`),
+    because ``matmul`` cannot disambiguate its shape from a matrix.
 
     >>> import jax.numpy as jnp
     >>> import unxts.linalg as ul
@@ -41,7 +66,17 @@ def matmul(a: Any, b: Any, /) -> Any:
     >>> ul.matmul(A, B).unit.to_string()
     '((m s, m s), (m s, m s))'
 
+    A batched matrix-vector product is rejected with a helpful pointer:
+
+    >>> Ab = ul.QuantityMatrix(jnp.ones((2, 2, 2)), unit=(("m", "m"), ("m", "m")))
+    >>> vb = ul.QuantityMatrix(jnp.ones((2, 2)), unit=("s", "s"))
+    >>> ul.matmul(Ab, vb)
+    Traceback (most recent call last):
+    ...
+    ValueError: matmul cannot express a batched matrix-vector product: ...
+
     """
+    _reject_batched_vector(a, b)
     return quax.quaxify(jnp.matmul)(a, b)
 
 
