@@ -705,6 +705,26 @@ class TestDotProduct:
         assert jnp.isclose(result.value[0, 0], 21)
         assert result.unit == ((_m * _s,),)
 
+    def test_batched_matmul_2x2(self):
+        """Leading batch axis: (B, 2, 2) @ (B, 2, 2) contracts per batch element.
+
+        ``jnp.matmul`` lowers this to a ``dot_general`` with a non-empty batch
+        dimension; the handler must accept the standard (batched) matmul pattern
+        and broadcast the per-element units over the leading batch axis.
+        """
+        a_val = jnp.array(
+            [[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]
+        )  # (2, 2, 2)
+        b_val = jnp.broadcast_to(jnp.eye(2), (2, 2, 2))
+        a = QMat(a_val, unit=((_m, _m), (_m, _m)))
+        b = QMat(b_val, unit=((_s, _s), (_s, _s)))
+        result = _matmul(a, b)
+        assert result.shape == (2, 2, 2)
+        # Multiplying each batch element by the identity leaves values unchanged.
+        assert jnp.allclose(result.value, a_val)
+        ms = _m * _s
+        assert result.unit == ((ms, ms), (ms, ms))
+
     def test_matmul_rhs_unit_conversion(self):
         """Unit conversion needed on the RHS contraction axis."""
         # A: 1x2, units [[m, m]]
@@ -1092,8 +1112,8 @@ class TestDiagAndGather:
         d = _diag(A)
         assert d.unit.ndim == 1
         assert d.unit.shape == (3,)
-        assert "(" not in d.unit.to_string().replace("(", "").join([""])  # no nested (
-        # The string should be 1D style like '(, , )' not '((, , ), ...)'
+        # The string should be 1D style like '(, , )' not nested '((, , ), ...)',
+        # i.e. exactly one opening parenthesis.
         s = d.unit.to_string()
         assert s.count("(") == 1, f"Expected 1D unit string, got: {s!r}"
 

@@ -252,8 +252,10 @@ class QuantityMatrix(u.AbstractQuantity):
             raise ValueError(
                 f"QuantityMatrix.diag() requires a 2D matrix, got ndim={self.ndim}"
             )
-        n = min(self.shape[-2], self.shape[-1])
-        diag_value = jnp.stack([self.value[..., i, i] for i in range(n)], axis=-1)
+        # `jnp.diagonal` extracts the main diagonal of the last two axes in a
+        # single primitive (result diagonal is the trailing axis), avoiding an
+        # n-op Python loop; units come from the static `UnitsMatrix`.
+        diag_value = jnp.diagonal(self.value, axis1=-2, axis2=-1)
         diag_unit = UnitsMatrix(self.unit._units.diagonal())
         return QuantityMatrix(value=diag_value, unit=diag_unit)
 

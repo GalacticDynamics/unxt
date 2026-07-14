@@ -326,8 +326,10 @@ def dot_general_qm_qm(
     - 1D @ 1D → scalar (vector dot product)
     - 2D @ 2D → 2D (matrix-matrix multiply)
 
-    For the standard matmul contraction: contracting_dims = ((-1,), (-2,)),
-    with no batch dims (batch is handled by leading dims in QuantityMatrix).
+    For the standard matmul contraction: contracting_dims = ((-1,), (-2,)).
+    Leading *batch* axes on the value arrays are supported: ``jnp.matmul`` /
+    ``jnp.dot`` emit them as leading batch dimensions, which the
+    ``_dot_general_*`` helpers broadcast over via ``...``.
 
     >>> import jax.numpy as jnp
     >>> import quaxed.numpy as qnp
@@ -362,10 +364,17 @@ def dot_general_qm_qm(
            [3.e+00, 4.e+03]], dtype=float32)
 
     """
-    # For now, we only handle the standard matmul/dot contraction
+    # We handle the standard (optionally batched) matmul/dot contraction only.
+    # Batch dims, if present, must be the *leading* axes on both operands — this
+    # is exactly what jnp.matmul/jnp.dot emit for QuantityMatrix values that
+    # carry leading batch dimensions, and what the `_dot_general_*` helpers
+    # broadcast over via ``...``. Anything else is not a plain matmul/dot.
     (contract, batch) = dimension_numbers
+    lhs_batch, rhs_batch = batch
     assert len(contract[0]) == 1 and len(contract[1]) == 1  # noqa: PT018, S101
-    assert len(batch[0]) == 0 and len(batch[1]) == 0  # noqa: PT018, S101
+    assert lhs_batch == tuple(range(len(lhs_batch)))  # noqa: S101
+    assert rhs_batch == tuple(range(len(rhs_batch)))  # noqa: S101
+    assert len(lhs_batch) == len(rhs_batch)  # noqa: S101
 
     # Delegate based on dimensionality
     if lhs.ndim == 1 and rhs.ndim == 1:
