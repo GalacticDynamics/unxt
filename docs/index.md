@@ -14,6 +14,7 @@ unxt <self>
 unxt-hypothesis <packages/unxt-hypothesis/index>
 unxts.api <packages/unxts.api/index>
 unxts.hypothesis <packages/unxts.hypothesis/index>
+unxts.linalg <packages/unxts.linalg/index>
 unxts.parametric <packages/unxts.parametric/index>
 unxts.interop.gala <packages/unxts.interop.gala/index>
 unxts.interop.matplotlib <packages/unxts.interop.matplotlib/index>

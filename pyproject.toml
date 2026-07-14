@@ -61,10 +61,12 @@ backend-astropy = ["astropy>=6.0"]
 interop-gala = ["unxts.interop.gala"]
 interop-mpl = ["unxts.interop.matplotlib"]
 interop-xarray = ["unxts.interop.xarray"]
+linalg = ["unxts.linalg"]
 workspace = [
   "unxt[interop-gala,interop-mpl,interop-xarray]",
   "unxts.api",
   "unxts.hypothesis",
+  "unxts.linalg",
   "unxts.parametric",
 ]
 
@@ -140,6 +142,7 @@ workspace = [
   "unxts.interop.gala",
   "unxts.interop.matplotlib",
   "unxts.interop.xarray",
+  "unxts.linalg",
   "unxts.parametric",
 ]
 
@@ -338,6 +341,7 @@ namespace-packages = [
   "packages/unxts.interop.matplotlib/src/unxts/interop",
   "packages/unxts.interop.xarray/src/unxts",
   "packages/unxts.interop.xarray/src/unxts/interop",
+  "packages/unxts.linalg/src/unxts",
 ]
 
 [tool.ruff.lint]
@@ -378,6 +382,25 @@ ignore = [
   "N803",
   "N806",
   "PLC0415",
+]
+# `unxts.linalg` ports dense, doctest-heavy internal linear-algebra code. These
+# relaxations match how the module was written (private unit-array access, JAX
+# primitive registrations named `*_p_QuantityMatrix`, the `.T` transpose
+# property, and long doctest-output/error-message lines).
+"**packages/unxts.linalg/src/**" = [
+  "E501",   # Line too long (doctest output / error messages)
+  "EM101",  # Exception must not use a string literal
+  "EM102",  # Exception must not use an f-string literal
+  "N802",   # Function name should be lowercase (`.T`, `*_p_QuantityMatrix`)
+  "SLF001", # Private member access (`UnitsMatrix._units`, by design)
+  "TRY003", # Avoid specifying long messages outside the exception class
+  "TRY004", # Prefer `TypeError` (intentional `ValueError` for ragged/units)
+]
+"**packages/unxts.linalg/tests/**" = [
+  "D102",   # Missing docstring in public method
+  "N802",   # Test names embed `QuantityMatrix`/`1D`/`2D`
+  "RUF002", # Docstring contains ambiguous `×` (math notation)
+  "RUF003", # Comment contains ambiguous character
 ]
 "__init__.py" = ["F403"]
 "noxfile.py" = ["T20"]
@@ -429,6 +452,7 @@ unxt-hypothesis            = { workspace = true }
 "unxts.interop.gala"       = { workspace = true }
 "unxts.interop.matplotlib" = { workspace = true }
 "unxts.interop.xarray"     = { workspace = true }
+"unxts.linalg"             = { workspace = true }
 "unxts.parametric"         = { workspace = true }
 
 [tool.uv.workspace]
