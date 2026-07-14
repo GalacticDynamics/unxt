@@ -1597,6 +1597,36 @@ class TestDiagAndGather:
         assert d.unit[1] == _s  # unit[1, 1]
         assert d.unit[2] == _kg  # unit[2, 2]
 
+    def test_multidim_advanced_indexing_units(self):
+        """2-D index arrays give a 2-D output whose units match element-by-element.
+
+        JAX packs the indices as ``(*index_shape, index_vector_dim)``; the unit
+        lookup must index the last axis (``idx[..., k]``) and carry the full
+        ``index_shape``, not just its first entry.
+        """
+        A = QMat(jnp.arange(4.0).reshape(2, 2), unit=((_m, _s), (_kg, _rad)))
+        ii = jnp.array([[0, 1], [1, 0]])
+        jj = jnp.array([[0, 0], [1, 1]])
+
+        r = quax.quaxify(lambda a: a[ii, jj])(A)
+        # value[a,b] = A.value[ii[a,b], jj[a,b]]
+        assert jnp.allclose(r.value, jnp.array([[0.0, 2.0], [3.0, 1.0]]))
+        # unit[a,b] = A.unit[ii[a,b], jj[a,b]]
+        assert r.unit.shape == (2, 2)
+        assert r.unit[0, 0] == _m  # (0,0)
+        assert r.unit[0, 1] == _kg  # (1,0)
+        assert r.unit[1, 0] == _rad  # (1,1)
+        assert r.unit[1, 1] == _s  # (0,1)
+
+    def test_2d_index_into_1d_quantity_matrix(self):
+        """A 2-D index array on a 1-D QuantityMatrix yields a 2-D unit structure."""
+        v = QMat(jnp.arange(4.0), unit=(_m, _s, _kg, _rad))
+        r = quax.quaxify(lambda a: a[jnp.array([[0, 1], [2, 3]])])(v)
+        assert jnp.allclose(r.value, jnp.array([[0.0, 1.0], [2.0, 3.0]]))
+        assert r.unit.shape == (2, 2)
+        assert r.unit[0, 0] == _m
+        assert r.unit[1, 1] == _rad
+
     def test_diag_dimensionless_unit_string(self):
         """Dimensionless diagonal has '(, , )'-style repr, not '((, , ), ...)'."""
         A = QMat(

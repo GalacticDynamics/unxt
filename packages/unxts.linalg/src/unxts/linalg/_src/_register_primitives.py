@@ -836,8 +836,10 @@ def transpose_qm(
 # ── gather ───────────────────────────────────────────────────────────────
 
 
-def _jit_fallback_uniform_unit(units: UnitsMatrix, out_size: int) -> UnitsMatrix:
-    """Return a 1-D ``UnitsMatrix`` of length *out_size* if all units are equal.
+def _jit_fallback_uniform_unit(
+    units: UnitsMatrix, out_shape: tuple[int, ...]
+) -> UnitsMatrix:
+    """Return a ``UnitsMatrix`` of shape *out_shape* if all units are equal.
 
     Used as a JIT-mode fallback inside ``gather_qm`` when the concrete gather
     indices are not available.  Raises ``ValueError`` for heterogeneous inputs.
@@ -851,7 +853,7 @@ def _jit_fallback_uniform_unit(units: UnitsMatrix, out_size: int) -> UnitsMatrix
             "Call eagerly (outside jit) for heterogeneous-unit QuantityMatrix."
         )
         raise ValueError(msg)
-    return UnitsMatrix(np.full((out_size,), first, dtype=object))
+    return UnitsMatrix(np.full(out_shape, first, dtype=object))
 
 
 @quax.register(lax.gather_p)
@@ -942,19 +944,24 @@ def gather_qm(
         )
         raise NotImplementedError(msg)
 
-    # Number of output elements — start_indices.shape is always concrete in JAX.
-    out_size = start_indices.shape[0]
+    # Output index-batch shape. For an element-selection gather JAX packs the
+    # indices as ``start_indices.shape == (*index_shape, index_vector_dim)``, so
+    # the output (and its unit structure) has shape ``index_shape``. This holds
+    # for 1-D index arrays (``index_shape`` 1-D, e.g. jnp.diag) *and* for
+    # multi-dimensional advanced indexing (``index_shape`` 2-D+). The last axis
+    # is the index vector, indexed via ``idx_np[..., k]``.
+    out_shape = start_indices.shape[:-1]
 
     if isinstance(start_indices, jax.core.Tracer):  # ty: ignore[possibly-missing-submodule]
         # JIT path: indices are traced — fall back to uniform-unit check.
-        out_unit = _jit_fallback_uniform_unit(x.unit, out_size)
+        out_unit = _jit_fallback_uniform_unit(x.unit, out_shape)
     else:
         # Eager path: indices are concrete — look up units directly.
         idx_np = np.asarray(start_indices)
         if x.unit.ndim == 1:
-            out_unit = UnitsMatrix(x.unit._units[idx_np[:, 0]])
+            out_unit = UnitsMatrix(x.unit._units[idx_np[..., 0]])
         else:  # x.unit.ndim == 2
-            out_unit = UnitsMatrix(x.unit._units[idx_np[:, 0], idx_np[:, 1]])
+            out_unit = UnitsMatrix(x.unit._units[idx_np[..., 0], idx_np[..., 1]])
 
     return QuantityMatrix(value=result_value, unit=out_unit)
 
