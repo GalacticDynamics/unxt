@@ -162,9 +162,11 @@ def _inv_p_QuantityMatrix(x: QuantityMatrix, /) -> QuantityMatrix:
     """Compute the inverse of a 2-D :class:`~unxts.linalg.QuantityMatrix`.
 
     The numeric value is computed via ``inv_p.bind(x.value)``.
-    Units are assumed uniform (all entries share the same physical unit,
-    as is the case for metrics produced by the Cartesian-Jacobian pullback);
-    the inverse carries the reciprocal unit throughout.
+    Units must be uniform (all entries share the same physical unit, as is the
+    case for metrics produced by the Cartesian-Jacobian pullback); the inverse
+    then carries the reciprocal unit throughout. A matrix inverse mixes the
+    entries, so for heterogeneous units the per-element reciprocal is not the
+    correct unit structure — that case raises ``ValueError``.
 
     Examples
     --------
@@ -190,6 +192,18 @@ def _inv_p_QuantityMatrix(x: QuantityMatrix, /) -> QuantityMatrix:
         raise ValueError(
             f"inv_p QuantityMatrix dispatch requires a 2-D unit structure, got ndim={x.ndim}"
         )
+
+    # The reciprocal-unit result is only correct when the units are uniform;
+    # a matrix inverse mixes entries, so heterogeneous units are not simply
+    # reciprocated element-by-element.
+    flat = x.unit._units.ravel()
+    if any(unit_i != flat[0] for unit_i in flat[1:]):
+        msg = (
+            "inv on a QuantityMatrix requires uniform units (all entries equal); "
+            "the inverse of a heterogeneous-unit matrix is not an element-wise "
+            f"reciprocal. Got units: {x.unit.to_string()}."
+        )
+        raise ValueError(msg)
 
     inv_val = inv_p.bind(x.value)
     return QuantityMatrix(inv_val, unit=x.unit.inverse())

@@ -22,9 +22,9 @@ The unit structure is limited to 1-D (vector) and 2-D (matrix); there is no supp
 rejected
 ```
 
-## `det` and `inv` assume compatible units
+## `det` and `inv` and their unit assumptions
 
-`det` uses the product of the **main-diagonal** units, and `inv` assumes a **uniform** unit that it can reciprocate. These are exactly right for diagonal metrics and for matrices whose cofactor products share one physical dimension (the common case for coordinate metrics), but they are not general heterogeneous-unit determinants/inverses. Both require a 2-D matrix:
+`det` uses the product of the **main-diagonal** units, and `inv` requires a **uniform** unit that it can reciprocate — it raises `ValueError` on a heterogeneous-unit matrix, because a matrix inverse mixes entries and the per-element reciprocal would be wrong. These are exactly right for diagonal metrics and for matrices whose cofactor products share one physical dimension (the common case for coordinate metrics), but they are not general heterogeneous-unit determinants/inverses. Both require a 2-D matrix:
 
 ```{code-block} python
 >>> import quax

@@ -433,17 +433,33 @@ def dot_general_qm_qm(
            [3.e+00, 4.e+03]], dtype=float32)
 
     """
-    # We handle the standard (optionally batched) matmul/dot contraction only.
-    # Batch dims, if present, must be the *leading* axes on both operands — this
-    # is exactly what jnp.matmul/jnp.dot emit for QuantityMatrix values that
-    # carry leading batch dimensions, and what the `_dot_general_*` helpers
-    # broadcast over via ``...``. Anything else is not a plain matmul/dot.
-    (contract, batch) = dimension_numbers
-    lhs_batch, rhs_batch = batch
-    assert len(contract[0]) == 1 and len(contract[1]) == 1  # noqa: PT018, S101
-    assert lhs_batch == tuple(range(len(lhs_batch)))  # noqa: S101
-    assert rhs_batch == tuple(range(len(rhs_batch)))  # noqa: S101
-    assert len(lhs_batch) == len(rhs_batch)  # noqa: S101
+    # The `_dot_general_*` helpers ignore `dimension_numbers` and assume the
+    # standard (optionally batched) matmul/matvec/vecmat/vecdot contraction:
+    # lhs contracts its last axis; rhs its last axis for a vector or its
+    # second-last for a matrix; batch dims are the *leading* axes on both
+    # operands. Anything else (e.g. a general einsum/tensordot) would get
+    # incorrect unit propagation, so reject it explicitly. This is a user-facing
+    # precondition, so it raises rather than `assert` (which `-O` strips).
+    (lhs_c, rhs_c), (lhs_b, rhs_b) = dimension_numbers
+    rhs_contract_expected = rhs.value.ndim - (1 if rhs.unit.ndim == 1 else 2)
+    is_standard = (
+        len(lhs_c) == 1
+        and len(rhs_c) == 1
+        and lhs_c[0] == lhs.value.ndim - 1
+        and rhs_c[0] == rhs_contract_expected
+        and lhs_b == tuple(range(len(lhs_b)))
+        and rhs_b == tuple(range(len(rhs_b)))
+        and len(lhs_b) == len(rhs_b)
+    )
+    if not is_standard:
+        msg = (
+            "QuantityMatrix supports only the standard (optionally batched) "
+            "matmul/matvec/vecmat/vecdot contraction — lhs contracts its last "
+            "axis, rhs its last (vector) or second-last (matrix) axis, with "
+            "batch dims leading. Got dimension_numbers="
+            f"{dimension_numbers!r}."
+        )
+        raise NotImplementedError(msg)
 
     # Delegate based on dimensionality
     if lhs.ndim == 1 and rhs.ndim == 1:

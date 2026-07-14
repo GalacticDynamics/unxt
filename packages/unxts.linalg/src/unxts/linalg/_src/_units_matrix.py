@@ -47,6 +47,16 @@ def _build_object_array(iterable: Any, /) -> np.ndarray:  # noqa: C901
         data.flat[:] = flat
         return data
 
+    # A bare string is iterable but almost never intended: it would be split
+    # into per-character "units" (e.g. "ms" -> ("m", "s")). Require a single
+    # unit to be wrapped in a tuple.
+    if isinstance(iterable, str):
+        msg = (
+            f"UnitsMatrix does not accept a bare string ({iterable!r}); wrap a "
+            f"single unit in a tuple, e.g. ({iterable!r},)."
+        )
+        raise TypeError(msg)
+
     # Sequence path: tuple, list, or any iterable
     items = list(iterable)  # raises TypeError if not iterable
 

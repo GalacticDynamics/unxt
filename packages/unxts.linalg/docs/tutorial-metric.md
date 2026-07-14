@@ -48,21 +48,29 @@ The determinant of a diagonal metric is the product of its diagonal units — he
 
 ## Inverse
 
-The inverse metric carries the reciprocal of each unit, ready to _raise_ an index again:
+`inv` mixes the matrix entries, so it is only unit-correct when the units are **uniform** (the reciprocal then applies throughout). Our metric is heterogeneous, so `inv` refuses it rather than return a misleading per-element reciprocal:
 
 ```{code-block} python
->>> ginv = quax.quaxify(ul.inv)(g)
->>> ginv.value
-Array([[1.  , 0.  ],
-       [0.  , 0.25]], dtype=float32)
->>> ginv.unit.to_string()
-'((1 / m2, 1 / m2), (1 / m2, rad2 / m2))'
+>>> try:
+...     quax.quaxify(ul.inv)(g)
+... except ValueError as e:
+...     print(str(e).split(";")[0])
+inv on a QuantityMatrix requires uniform units (all entries equal)
+```
+
+For a uniform-unit metric the inverse carries the single reciprocal unit:
+
+```{code-block} python
+>>> h = ul.QuantityMatrix(jnp.array([[4.0, 0.0], [0.0, 1.0]]),
+...                       unit=(("m2", "m2"), ("m2", "m2")))
+>>> quax.quaxify(ul.inv)(h).unit.to_string()
+'((1 / m2, 1 / m2), (1 / m2, 1 / m2))'
 ```
 
 ## Recap
 
 - A `QuantityMatrix` let us attach a distinct unit to every entry of the metric — impossible with a single-unit `unxt.Quantity`.
-- `.diag()`, `det`, and `inv` all propagated those per-element units automatically.
+- `.diag()` and `det` propagated those per-element units automatically; `inv` is defined for uniform units (see [Sharp bits](sharp-bits.md)).
 - Everything is plain JAX underneath, so the same objects flow through `jax.jit`, `jax.grad`, and `jax.vmap`.
 
-See [Sharp bits](sharp-bits.md) for the current restrictions (1-D/2-D only, and the uniform-unit requirements of some operations under `jax.jit`).
+See [Sharp bits](sharp-bits.md) for the current restrictions (1-D/2-D only, and the uniform-unit requirements of `inv` and of `diag` under `jax.jit`).

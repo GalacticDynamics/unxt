@@ -93,6 +93,24 @@ def unit_1d_alt():
 class TestConstruction:
     """Tests for QuantityMatrix construction and basic properties."""
 
+    def test_value_unit_shape_mismatch_rejected(self):
+        """Value's trailing shape must match the unit structure."""
+        # 1-D: value length 3 vs unit length 2
+        with pytest.raises(ValueError, match="does not match"):
+            QMat(jnp.array([1.0, 2.0, 3.0]), unit=(_m, _s))
+        # 2-D: value (2, 2) vs unit (2, 3)
+        with pytest.raises(ValueError, match="does not match"):
+            QMat(jnp.ones((2, 2)), unit=((_m, _s, _kg), (_m, _s, _kg)))
+        # value has fewer dims than the unit structure
+        with pytest.raises(ValueError, match="fewer"):
+            QMat(jnp.array([1.0, 2.0]), unit=((_m, _s),))
+
+    def test_leading_batch_dims_allowed(self):
+        """Extra *leading* axes are batch dims and are accepted."""
+        qm = QMat(jnp.ones((5, 3, 2, 2)), unit=((_m, _s), (_kg, _m)))
+        assert qm.shape == (5, 3, 2, 2)
+        assert qm.ndim == 2  # logical
+
     def test_shape(self, qm_2x2):
         assert qm_2x2.shape == (2, 2)
 
@@ -201,6 +219,15 @@ class TestConstruction:
 
 class TestUnitsMatrix:
     """Tests for the ``UnitsMatrix`` object-array-backed unit structure."""
+
+    def test_bare_string_rejected(self):
+        """A bare string is rejected (would otherwise split into per-char units)."""
+        with pytest.raises(TypeError, match="bare string"):
+            UnitsMatrix("ms")
+        with pytest.raises(TypeError, match="bare string"):
+            UnitsMatrix("m")
+        # The intended single-unit form works.
+        assert UnitsMatrix(("ms",)).shape == (1,)
 
     def test_not_isinstance_structured_unit(self):
         """UnitsMatrix is NOT a StructuredUnit — it is a standalone class."""
@@ -887,6 +914,15 @@ class TestProducts:
         d = vecdot(a, b)
         assert d.value.shape == (2,)
         assert jnp.allclose(d.value, jnp.array([8003.0, 8003.0]))
+
+    def test_nonstandard_dot_general_rejected(self):
+        """A non-matmul dot_general contraction is rejected, not mis-propagated."""
+        A = QMat(jnp.array([[1.0, 2.0], [3.0, 4.0]]), unit=((_m, _m), (_m, _m)))
+        B = QMat(jnp.array([[1.0, 0.0], [0.0, 1.0]]), unit=((_s, _s), (_s, _s)))
+        # Contract the *first* axes (not the standard last/second-last).
+        bad = quax.quaxify(lambda a, b: jnp.tensordot(a, b, axes=([0], [0])))
+        with pytest.raises(NotImplementedError, match="standard"):
+            bad(A, B)
 
     def test_vecmat_unit_conversion(self):
         """Vecmat converts mixed units within each output column."""
@@ -1970,6 +2006,12 @@ class TestInvPrimitive:
 
 class TestInvQuantityMatrix:
     """Tests for inv_p Quax dispatch on QuantityMatrix."""
+
+    def test_heterogeneous_units_rejected(self):
+        """Inv requires uniform units; a matrix inverse isn't elementwise."""
+        A = QMat(jnp.array([[2.0, 0.0], [0.0, 3.0]]), unit=((_m, _s), (_kg, _m)))
+        with pytest.raises(ValueError, match="uniform units"):
+            quax.quaxify(qm_inv)(A)
 
     def test_returns_QuantityMatrix(self):
         """Inv of a 2×2 QuantityMatrix returns a QuantityMatrix."""

@@ -95,6 +95,29 @@ class QuantityMatrix(u.AbstractQuantity):
     value: Shaped[Array, "..."] = eqx.field()
     unit: UnitsMatrix = eqx.field(static=True, converter=u.unit)  # ty: ignore[invalid-assignment]
 
+    def __check_init__(self) -> None:
+        """Check the value's trailing shape matches the unit structure.
+
+        The trailing ``unit.ndim`` axes of ``value`` are the logical (vector /
+        matrix) axes and must equal ``unit.shape``; any further *leading* axes
+        are batch dimensions.
+        """
+        un = self.unit.ndim
+        if self.value.ndim < un:
+            msg = (
+                f"QuantityMatrix value has ndim={self.value.ndim}, fewer than the "
+                f"{un}-D unit structure {self.unit.to_string()}."
+            )
+            raise ValueError(msg)
+        logical = tuple(self.value.shape[-un:])
+        if logical != self.unit.shape:
+            msg = (
+                f"QuantityMatrix value trailing shape {logical} does not match the "
+                f"unit structure shape {self.unit.shape} "
+                f"(value.shape={self.value.shape}, unit={self.unit.to_string()})."
+            )
+            raise ValueError(msg)
+
     @property
     def ndim(self) -> int:
         """Number of real dimensions (1 for vector, 2 for matrix)."""
