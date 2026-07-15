@@ -217,6 +217,30 @@ class TestUconvertValueAstropyDistanceAngle:
         assert jnp.isclose(result, jnp.pi)
 
 
+class TestUconvertRelabelsEquivalentNamedUnit:
+    """`uconvert` to an equal-but-differently-named unit must relabel."""
+
+    def test_uconvert_to_named_energy_unit_relabels(self) -> None:
+        """`m2 kg / s2` converted to the equal named unit `J` becomes `J`.
+
+        Astropy treats ``m2 kg / s2 == J``, so a naive ``if x.unit == u``
+        hot-path would silently return the quantity unchanged (keeping the
+        composite label) instead of relabeling to the requested named unit.
+        """
+        energy = u.Q(2.0, "kg") * (u.Q(3.0, "m") / u.Q(1.0, "s")) ** 2
+        assert str(energy.unit) == "m2 kg / s2"
+
+        result = u.uconvert("J", energy)
+
+        assert str(result.unit) == "J"
+        assert jnp.isclose(result.value, 18.0)
+
+    def test_uconvert_to_identical_unit_is_noop_identity(self) -> None:
+        """Converting to the identical unit still returns the same object."""
+        q = u.Q(5.0, "J")
+        assert u.uconvert(apyu.Unit("J"), q) is q
+
+
 class TestUconvertValueAstropyErrorHandling:
     """Test error handling in uconvert_value with Astropy units."""
 
