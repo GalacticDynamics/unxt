@@ -99,7 +99,7 @@ Quantity(Array(100., dtype=float32...), unit='m2 kg / s2')
 Convert to standard energy units
 
 >>> u.uconvert("J", energy)
-Quantity(Array(100., dtype=float32...), unit='m2 kg / s2')
+Quantity(Array(100., dtype=float32...), unit='J')
 
 JIT compilation works seamlessly
 

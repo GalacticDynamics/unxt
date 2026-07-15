@@ -325,6 +325,11 @@ xfail_strict = true
 
 [tool.pytest_env]
 UNXT_ENABLE_RUNTIME_TYPECHECKING = "beartype.beartype"
+# Force matplotlib's non-interactive backend so the interop tests never load a
+# GUI toolkit (e.g. Tk). The Windows hosted-runner Pythons (3.13/3.14) ship a
+# broken Tcl, so an auto-selected TkAgg backend raised `_tkinter.TclError` at
+# figure creation; Agg is also what `pytest-mpl` renders with.
+MPLBACKEND = "Agg"
 
 
 [tool.repo-review]
