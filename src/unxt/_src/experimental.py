@@ -48,7 +48,7 @@ def grad(
     fun: Callable[[Unpack[Args]], R],
     argnums: int = 0,
     *,
-    units: tuple[AbstractUnit | str, ...],
+    units: tuple[AbstractUnit | str | None, ...],
 ) -> Callable[[Unpack[Args]], R]:
     """Gradient of a function with units.
 
@@ -74,6 +74,16 @@ def grad(
     >>> grad_cube_volume = u.experimental.grad(cube_volume, units=("m",))
     >>> grad_cube_volume(u.Q(2.0, "m"))
     Quantity(Array(12., dtype=float32...), unit='m2')
+
+    A ``None`` entry in ``units`` marks an argument as a plain (unitless) value
+    rather than a `Quantity`, so functions can mix the two:
+
+    >>> def scaled_area(distance, factor):
+    ...     return distance**2 * factor
+
+    >>> g = u.experimental.grad(scaled_area, argnums=0, units=("m", None))
+    >>> g(u.Q(3.0, "m"), 2.0)
+    Quantity(Array(12., dtype=float32...), unit='m')
 
     """
     theunits: tuple[AbstractUnit | None, ...] = tuple(map(unit_or_none, units))
@@ -112,7 +122,7 @@ def jacfwd(
     fun: Callable[[Unpack[Args]], R],
     argnums: int = 0,
     *,
-    units: tuple[AbstractUnit | str, ...],
+    units: tuple[AbstractUnit | str | None, ...],
 ) -> Callable[[Unpack[Args]], R]:
     """Jacobian of ``fun`` evaluated column-by-column using forward-mode AD.
 
@@ -181,7 +191,7 @@ def hessian(
     fun: Callable[[Unpack[Args]], R],
     argnums: int = 0,
     *,
-    units: tuple[AbstractUnit | str, ...],
+    units: tuple[AbstractUnit | str | None, ...],
 ) -> Callable[[Unpack[Args]], R]:
     """Hessian.
 
