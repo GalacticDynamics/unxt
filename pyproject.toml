@@ -342,6 +342,7 @@ namespace-packages = [
   "packages/unxts.interop.xarray/src/unxts",
   "packages/unxts.interop.xarray/src/unxts/interop",
   "packages/unxts.linalg/src/unxts",
+  "packages/unxts.parametric/src/unxts",
 ]
 
 [tool.ruff.lint]

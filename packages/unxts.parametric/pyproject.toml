@@ -19,16 +19,18 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
 ]
-dependencies = ["unxt", "plum-dispatch>=2.5.7"]
+dependencies = [
+  "astropy>=7.0.0",
+  "plum-dispatch>=2.5.7",
+  "unxt",
+  "unxts.api>=2.0.0",
+]
 description = "Dimension-parametrized quantities for unxt (canonical: unxts.parametric)"
 dynamic = ["version"]
 license.text = "BSD-3-Clause"
 name = "unxts.parametric"
 readme = "README.md"
 requires-python = ">=3.11"
-
-[project.optional-dependencies]
-astropy = ["astropy"]
 
 [project.urls]
 "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"

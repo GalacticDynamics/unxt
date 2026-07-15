@@ -4930,13 +4930,10 @@ test = [
 name = "unxts-parametric"
 source = { editable = "packages/unxts.parametric" }
 dependencies = [
+    { name = "astropy" },
     { name = "plum-dispatch" },
     { name = "unxt" },
-]
-
-[package.optional-dependencies]
-astropy = [
-    { name = "astropy" },
+    { name = "unxts-api" },
 ]
 
 [package.dev-dependencies]
@@ -4952,11 +4949,11 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "astropy", marker = "extra == 'astropy'" },
+    { name = "astropy", specifier = ">=7.0.0" },
     { name = "plum-dispatch", specifier = ">=2.5.7" },
     { name = "unxt", editable = "." },
+    { name = "unxts-api", editable = "packages/unxts.api" },
 ]
-provides-extras = ["astropy"]
 
 [package.metadata.requires-dev]
 test = [
