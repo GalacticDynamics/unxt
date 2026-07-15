@@ -208,10 +208,20 @@ def hessian(
     >>> hessian_cubbe_volume(u.Q(2.0, "m"))
     Quantity(Array(12., dtype=float32...), unit='m')
 
+    ``argnums`` selects the argument to differentiate with respect to. For
+    ``f(x, y) = x y**2``, the second derivative w.r.t. ``y`` is ``2 x``:
+
+    >>> def f(x, y):
+    ...     return x * y**2
+
+    >>> hess_y = u.experimental.hessian(f, argnums=1, units=("m", "s"))
+    >>> hess_y(u.Q(3.0, "m"), u.Q(4.0, "s"))
+    Quantity(Array(6., dtype=float32...), unit='m')
+
     """
     theunits: tuple[AbstractUnit | None, ...] = tuple(map(unit_or_none, units))
 
-    @ft.partial(jax.hessian)
+    @ft.partial(jax.hessian, argnums=argnums)
     def hessfun_mag(*args: Any) -> R:
         args_ = tuple(
             (a if unit is None else Quantity(a, unit))
