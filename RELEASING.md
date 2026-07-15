@@ -13,7 +13,7 @@ This workspace contains the following releasable packages. A `vX.Y.0` coordinato
 - `unxts.interop.matplotlib` - matplotlib interoperability
 - `unxts.interop.xarray` - xarray interoperability
 
-The authoritative list of released packages is the `PACKAGES` array in `.github/workflows/create-package-tags.yml`.
+The authoritative list of which packages are released is the `PACKAGES` array in `.github/workflows/create-package-tags.yml` — its entries are each package's **release tag prefix** (e.g. `unxts-api`), not the dotted package/PyPI name (e.g. `unxts.api`).
 
 > **Tag prefixes are hyphenated.** Release tags and CD workflows use the hyphenated form of each package name — dots become hyphens. For example the `unxts.api` package is tagged `unxts-api-vX.Y.Z` and `unxts.interop.gala` is tagged `unxts-interop-gala-vX.Y.Z`. A dotted tag such as `unxts.api-vX.Y.Z` will **not** match the CD workflow triggers.
 
