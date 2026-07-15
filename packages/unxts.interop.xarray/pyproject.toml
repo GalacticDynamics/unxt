@@ -18,7 +18,7 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
 ]
-dependencies = ["unxt", "xarray>=2024.1.0"]
+dependencies = ["unxt>=2.0.0", "xarray>=2024.1.0"]
 description = "xarray integration for unxt (canonical: unxts.interop.xarray)"
 dynamic = ["version"]
 license.text = "BSD-3-Clause"

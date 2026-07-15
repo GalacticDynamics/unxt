@@ -18,7 +18,7 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
 ]
-dependencies = ["matplotlib>=3.8", "unxt", "zeroth>=1.0.0"]
+dependencies = ["matplotlib>=3.8", "unxt>=2.0.0", "zeroth>=1.0.0"]
 description = "matplotlib integration for unxt (canonical: unxts.interop.matplotlib)"
 dynamic = ["version"]
 license.text = "BSD-3-Clause"

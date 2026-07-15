@@ -21,12 +21,16 @@ classifiers = [
 # gala has no Windows wheels and its sdist needs GSL/a C compiler, so it can
 # only be required off-Windows. unxt guards the gala interop import on gala
 # actually being importable, so this package is simply inert on Windows.
-dependencies    = ["astropy>=6.0", "gala>=1.8; sys_platform != 'win32'", "unxt"]
-description     = "gala integration for unxt (canonical: unxts.interop.gala)"
-dynamic         = ["version"]
-license.text    = "BSD-3-Clause"
-name            = "unxts.interop.gala"
-readme          = "README.md"
+dependencies = [
+  "astropy>=6.0",
+  "gala>=1.8; sys_platform != 'win32'",
+  "unxt>=2.0.0",
+]
+description = "gala integration for unxt (canonical: unxts.interop.gala)"
+dynamic = ["version"]
+license.text = "BSD-3-Clause"
+name = "unxts.interop.gala"
+readme = "README.md"
 requires-python = ">=3.11"
 
 [project.urls]
