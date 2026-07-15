@@ -30,17 +30,11 @@ import jax.core
 import numpy as np
 import quax_blocks
 import wadler_lindig as wl
+from astropy.units import Quantity as AstropyQuantity
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Bool, ScalarLike, Shaped
 from plum import add_promotion_rule, convert, dispatch, type_nonparametric
 from quax import ArrayValue
-
-try:  # ``astropy`` is an optional dependency; coerce its quantities when present.
-    from astropy.units import Quantity as _AstropyQuantity
-
-    _ASTROPY_QUANTITY_TYPES: tuple[type, ...] = (_AstropyQuantity,)
-except ImportError:  # pragma: no cover
-    _ASTROPY_QUANTITY_TYPES = ()
 
 import quaxed.numpy as jnp
 from dataclassish import field_items, replace
@@ -65,7 +59,7 @@ def _coerce_foreign_quantity(other: Any) -> Any:
     that a foreign astropy quantity combines by its unit instead of being
     stripped to a bare array by `quax`.
     """
-    if _ASTROPY_QUANTITY_TYPES and isinstance(other, _ASTROPY_QUANTITY_TYPES):
+    if isinstance(other, AstropyQuantity):
         from .quantity import Quantity  # noqa: PLC0415  # avoids an import cycle
 
         return convert(other, Quantity)

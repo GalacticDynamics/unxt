@@ -295,5 +295,5 @@ class TestMixedUnxtAstropyArithmetic:
 
     def test_add_incompatible_units_raises(self) -> None:
         """Adding an incompatible astropy quantity still raises."""
-        with pytest.raises(Exception, match="convert"):
+        with pytest.raises(apyu.UnitConversionError, match="not convertible"):
             _ = u.Q(1.0, "m") + apyu.Quantity(2.0, "s")
