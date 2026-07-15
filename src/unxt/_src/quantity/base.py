@@ -719,31 +719,50 @@ class AbstractQuantity(
         >>> u.Q(sv1, "m") == u.Q(sv3, "m")
         False
 
-        Unit conversion is applied before comparing, so equivalent quantities in
-        different units compare equal:
+        Equality is **unit-blind**: quantities are equal only when their unit
+        labels match. Unit-aware equality (``1000 m == 1 km``) is incompatible
+        with using a static quantity as a ``jax.jit`` ``static_argnames``
+        argument, where distinct units must remain distinct compilation cache
+        keys; it would also break the ``__eq__``/``__hash__`` contract, since the
+        hash is unit-label sensitive. Convert first if you want to compare
+        across units (e.g. ``a == b.uconvert(a.unit)``).
 
         >>> sv_km = u.quantity.StaticValue(np.array([0.001, 0.002]))
         >>> u.Q(sv1, "m") == u.Q(sv_km, "km")
-        True
-
-        Quantities with incompatible dimensions are never equal:
+        False
 
         >>> sv_s = u.quantity.StaticValue(np.array([1.0, 2.0]))
         >>> u.Q(sv1, "m") == u.Q(sv_s, "s")
         False
 
         """
-        if (
+        if self._is_static_backed(other):
+            return bool(
+                self.unit == other.unit
+                and np.array_equal(self.value.array, other.value.array)
+            )
+
+        return quax_blocks.NumpyEqMixin.__eq__(self, other)
+
+    def __ne__(self, other: object, /) -> Any:
+        """Return inequality, mirroring :meth:`__eq__`.
+
+        For two `StaticValue`-backed quantities this returns the scalar-`bool`
+        negation of the unit-blind equality, so ``==`` and ``!=`` stay
+        consistent (and usable as ``jax.jit`` static args). Otherwise it defers
+        to the element-wise NumPy comparison.
+        """
+        if self._is_static_backed(other):
+            return not self.__eq__(other)
+        return quax_blocks.NumpyNeMixin.__ne__(self, other)
+
+    def _is_static_backed(self, other: object, /) -> bool:
+        """Whether ``self`` and ``other`` are both `StaticValue`-backed."""
+        return (
             isinstance(self.value, StaticValue)
             and isinstance(other, AbstractQuantity)
             and isinstance(other.value, StaticValue)
-        ):
-            if not uapi.is_unit_convertible(other.unit, self.unit):
-                return False
-            converted = uapi.uconvert_value(self.unit, other.unit, other.value.array)
-            return bool(np.array_equal(self.value.array, converted))
-
-        return quax_blocks.NumpyEqMixin.__eq__(self, other)
+        )
 
     def __hash__(self) -> int:
         """Return the hash of the quantity.

@@ -424,6 +424,65 @@ def test_static_value_eq_hash() -> None:
     assert hash(sv1) == hash(sv2)
 
 
+def test_static_backed_equality_is_unit_blind() -> None:
+    """StaticValue-backed equality requires the same unit label.
+
+    Unit-aware equality (``1000 m == 1 km``) is incompatible with using a
+    static quantity as a ``jax.jit`` static arg, where different units must
+    stay distinct cache keys. Equality is therefore unit-blind for
+    StaticValue-backed quantities, and the base class agrees with
+    ``StaticQuantity``.
+    """
+    sv_m = u.quantity.StaticValue(np.array([1000.0, 2000.0]))
+    sv_km = u.quantity.StaticValue(np.array([1.0, 2.0]))
+
+    # Physically equal but different unit labels -> not equal (unit-blind).
+    assert bool(u.Q(sv_m, "m") == u.Q(sv_km, "km")) is False
+    sq_m = u.StaticQuantity(np.array([1000.0]), "m")
+    sq_km = u.StaticQuantity(np.array([1.0]), "km")
+    assert bool(sq_m == sq_km) is False
+
+    # Same unit + equal values -> equal.
+    assert bool(u.Q(sv_m, "m") == u.Q(sv_m, "m")) is True
+
+    # Base Quantity(StaticValue) and StaticQuantity agree.
+    base_eq = bool(u.Q(sv_m, "m") == u.Q(sv_km, "km"))
+    static_eq = bool(
+        u.StaticQuantity(np.array([1000.0, 2000.0]), "m")
+        == u.StaticQuantity(np.array([1.0, 2.0]), "km")
+    )
+    assert base_eq == static_eq
+
+
+def test_static_backed_eq_hash_contract() -> None:
+    """Equal StaticValue-backed quantities hash equal (eq/hash contract)."""
+    a = u.StaticQuantity(np.array([1000.0]), "m")
+    b = u.StaticQuantity(np.array([1000.0]), "m")
+    assert a == b
+    assert hash(a) == hash(b)
+
+    # A physically-equal but differently-labelled quantity is neither equal
+    # nor forced to share a hash -- so it stays a distinct jit static arg.
+    c = u.StaticQuantity(np.array([1.0]), "km")
+    assert a != c
+    # __ne__ mirrors __eq__ for static-backed quantities (scalar bool).
+    assert (a != b) is False
+    assert (a != c) is True
+
+
+def test_static_quantity_jit_distinguishes_units() -> None:
+    """Different-unit static args must not collapse to one jit compilation."""
+
+    @partial(jax.jit, static_argnames=("q",))
+    def f(x, q):
+        return u.Q(x, q.unit)
+
+    out_km = f(5.0, u.StaticQuantity(np.array(1.0), "km"))
+    out_m = f(5.0, u.StaticQuantity(np.array(1000.0), "m"))
+    assert out_km.unit == u.unit("km")
+    assert out_m.unit == u.unit("m")
+
+
 def test_static_value_rich_comparisons() -> None:
     """StaticValue supports all rich comparison operators."""
     sv1 = u.quantity.StaticValue(np.array([1.0, 2.0, 3.0]))
