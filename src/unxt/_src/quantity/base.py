@@ -7,7 +7,6 @@ __all__ = ("AbstractQuantity", "is_any_quantity")
 
 import contextlib
 import functools as ft
-import warnings
 from collections.abc import Mapping
 from types import ModuleType
 from typing import (
@@ -301,9 +300,6 @@ class AbstractQuantity(
 
         """
         return replace(self, value=self.value.T)
-
-    # required to override mixin methods
-    __eq__ = quax_blocks.NumpyEqMixin.__eq__  # type: ignore[assignment,unused-ignore]
 
     # ---------------------------------------------------------------
     # methods
@@ -822,17 +818,7 @@ class AbstractQuantity(
         del fs["value"]
         del fs["unit"]
 
-        # Customize value representation
-        # (backward compatibility for `compact_arrays` argument)
-        # TODO: remove in v2.0
-        if "compact_arrays" in kwargs:
-            short_arrays = kwargs.pop("compact_arrays")
-            warnings.warn(
-                "`compact_arrays` argument is deprecated; use "
-                "`short_arrays='compact'` instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
+        # Customize value representation.
         # If the value is a tracer, then we ALWAYS use the short array
         # representation since we only have the dtype and shape at trace-time
         # and trying to print out the values will error.
