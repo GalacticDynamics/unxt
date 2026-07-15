@@ -111,7 +111,7 @@ def unitsystem(*args: Any) -> AbstractUnitSystem:
     # dimension names of all the units
     du = {parse_dimlike_name(x).replace(" ", "_"): dimension_of(x) for x in args}
     # name: physical types
-    cls_name = "".join(k.title().replace("_", "") for k in du) + "UnitSystem"  # pylint: disable=unreachable
+    cls_name = "".join(k.title().replace("_", "") for k in du) + "UnitSystem"
     # fields: name, unit
     fields = [
         (
@@ -195,7 +195,7 @@ def unitsystem(usys: AbstractUnitSystem, *args: Any) -> AbstractUnitSystem:
     current_units = [
         u for u in usys.base_units if dimension_of(u) not in new_usys.base_dimensions
     ]
-    return unitsystem(*current_units, *args)  # pylint: disable=unreachable
+    return unitsystem(*current_units, *args)
 
 
 @dispatch

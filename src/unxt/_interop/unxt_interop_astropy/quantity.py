@@ -252,7 +252,7 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
     # the dimensions can be part of the type. This won't work if the quantity
     # type itself needs to be changed, e.g. `unxt.Angle` -> `unxt.Quantity`.
     # These cases are handled separately, in other dispatches.
-    fs = dict(dc.field_items(x))  # pylint: disable=unreachable
+    fs = dict(dc.field_items(x))
     fs["value"] = value
     fs["unit"] = u
 
