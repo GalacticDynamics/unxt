@@ -30,7 +30,6 @@ import jax.core
 import numpy as np
 import quax_blocks
 import wadler_lindig as wl
-from astropy.units import Quantity as AstropyQuantity
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Bool, ScalarLike, Shaped
 from plum import add_promotion_rule, convert, dispatch, type_nonparametric
@@ -52,6 +51,24 @@ if TYPE_CHECKING:
 ArrayLikeSequence: TypeAlias = list[ScalarLike] | tuple[ScalarLike, ...]
 
 
+@ft.cache
+def _astropy_quantity_types() -> tuple[type, ...]:
+    """Return the astropy ``Quantity`` types to coerce, else ``()``.
+
+    Astropy is an optional backend, gated through the ``OptDeps`` mechanism.
+    The lookup is done lazily and cached (``functools.cache``): importing
+    ``unxt._interop`` (where ``OptDeps`` lives) at module scope would cycle back
+    through the interop registration into this package.
+    """
+    from unxt._interop import OptDeps  # noqa: PLC0415  # avoids an import cycle
+
+    if OptDeps.ASTROPY.installed:
+        from astropy.units import Quantity  # noqa: PLC0415
+
+        return (Quantity,)
+    return ()
+
+
 def _coerce_foreign_quantity(other: Any) -> Any:
     """Convert an `astropy.units.Quantity` operand to an `unxt` quantity.
 
@@ -59,7 +76,7 @@ def _coerce_foreign_quantity(other: Any) -> Any:
     that a foreign astropy quantity combines by its unit instead of being
     stripped to a bare array by `quax`.
     """
-    if isinstance(other, AstropyQuantity):
+    if isinstance(other, _astropy_quantity_types()):
         from .quantity import Quantity  # noqa: PLC0415  # avoids an import cycle
 
         return convert(other, Quantity)
