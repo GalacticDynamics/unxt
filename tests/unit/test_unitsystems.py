@@ -174,9 +174,37 @@ class TestDimensionlessUnitSystem:
         assert str(dimensionless) == "DimensionlessUnitSystem()"
 
 
-def test_dimensionless_singleton():
-    """Test that the dimensionless unit system is a singleton."""
-    assert DimensionlessUnitSystem() is dimensionless
+def test_dimensionless_value_equality():
+    """A freshly-built dimensionless system equals the ``dimensionless`` realization."""
+    assert DimensionlessUnitSystem() == dimensionless
+
+
+def test_building_system_does_not_mutate_realizations():
+    """Building a system must never mutate the global si/cgs/dimensionless.
+
+    Regression test: the built-in realizations were ``SingletonMixin`` frozen
+    dataclasses, so constructing any SI/CGS/dimensionless-dimensioned system via
+    the public ``unitsystem(...)`` API ran ``__init__`` on the cached singleton
+    and overwrote its fields process-wide.
+    """
+    si_before = unitsystems.si.base_units
+    cgs_before = unitsystems.cgs.base_units
+    dimensionless_before = dimensionless.base_units
+
+    # Build unrelated systems with the same dimensions but different units.
+    custom_si = unitsystem("km", "g", "minute", "mol", "A", "K", "cd", "deg")
+    custom_cgs = unitsystem("m", "kg", "s", "N", "J", "Pa", "Pa s", "m2 / s", "deg")
+    custom_dimensionless = unitsystem(unit("percent"))
+
+    # The globals are untouched.
+    assert unitsystems.si.base_units == si_before
+    assert unitsystems.cgs.base_units == cgs_before
+    assert dimensionless.base_units == dimensionless_before
+
+    # And the custom systems really do carry their own (different) units.
+    assert custom_si.base_units != si_before
+    assert custom_cgs.base_units != cgs_before
+    assert custom_dimensionless.base_units != dimensionless_before
 
 
 def test_equivalent():
