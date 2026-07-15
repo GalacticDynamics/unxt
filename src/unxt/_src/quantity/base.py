@@ -2,6 +2,9 @@
 
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
+# pylint: disable=import-outside-toplevel
+#    the astropy-coercion helper imports the concrete Quantity lazily to avoid
+#    an import cycle
 
 __all__ = ("AbstractQuantity", "is_any_quantity")
 
@@ -29,8 +32,15 @@ import quax_blocks
 import wadler_lindig as wl
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Bool, ScalarLike, Shaped
-from plum import add_promotion_rule, dispatch, type_nonparametric
+from plum import add_promotion_rule, convert, dispatch, type_nonparametric
 from quax import ArrayValue
+
+try:  # ``astropy`` is an optional dependency; coerce its quantities when present.
+    from astropy.units import Quantity as _AstropyQuantity
+
+    _ASTROPY_QUANTITY_TYPES: tuple[type, ...] = (_AstropyQuantity,)
+except ImportError:  # pragma: no cover
+    _ASTROPY_QUANTITY_TYPES = ()
 
 import quaxed.numpy as jnp
 from dataclassish import field_items, replace
@@ -46,6 +56,20 @@ if TYPE_CHECKING:
 
 
 ArrayLikeSequence: TypeAlias = list[ScalarLike] | tuple[ScalarLike, ...]
+
+
+def _coerce_foreign_quantity(other: Any) -> Any:
+    """Convert an `astropy.units.Quantity` operand to an `unxt` quantity.
+
+    Any other operand is returned unchanged. Used by the arithmetic dunders so
+    that a foreign astropy quantity combines by its unit instead of being
+    stripped to a bare array by `quax`.
+    """
+    if _ASTROPY_QUANTITY_TYPES and isinstance(other, _ASTROPY_QUANTITY_TYPES):
+        from .quantity import Quantity  # noqa: PLC0415  # avoids an import cycle
+
+        return convert(other, Quantity)
+    return other
 
 
 class AbstractQuantity(
@@ -728,6 +752,28 @@ class AbstractQuantity(
 
         """
         return hash((self.value, self.unit))
+
+    # ---------------------------------------------------------------
+    # Arithmetic with foreign (astropy) quantities
+    #
+    # When an ``astropy.units.Quantity`` is the right operand, ``quax`` would
+    # materialise it via ``__array__`` -- stripping it to a bare array in its
+    # own unit -- so ``*``/``/`` silently dropped its unit and ``+``/``-`` saw
+    # it as dimensionless. Convert such an operand to an ``unxt`` quantity first
+    # so units combine correctly. (Reflected ops are unnecessary: astropy's own
+    # ``__array_ufunc__`` handles ``astropy_q <op> unxt_q``.)
+
+    def __mul__(self, other: Any) -> Any:
+        return super().__mul__(_coerce_foreign_quantity(other))
+
+    def __truediv__(self, other: Any) -> Any:
+        return super().__truediv__(_coerce_foreign_quantity(other))
+
+    def __add__(self, other: Any) -> Any:
+        return super().__add__(_coerce_foreign_quantity(other))
+
+    def __sub__(self, other: Any) -> Any:
+        return super().__sub__(_coerce_foreign_quantity(other))
 
     def __pdoc__(
         self,
