@@ -12,7 +12,7 @@ from .dimensions import named_dimensions
 
 
 @st.composite
-def derived_units(  # pylint: disable=unreachable
+def derived_units(
     draw: st.DrawFn,
     base: str | u.AbstractUnit | st.SearchStrategy[u.AbstractUnit],
     /,
@@ -49,7 +49,7 @@ def derived_units(  # pylint: disable=unreachable
     --------
     >>> import hypothesis.strategies as st
     >>> from hypothesis import given
-    >>> import unxt_hypothesis as ust
+    >>> import unxts.hypothesis as ust
     >>> import unxt as u
 
     Generate units derived from a base unit:
@@ -97,7 +97,6 @@ def derived_units(  # pylint: disable=unreachable
         # Get SI base decomposition
         decomposed = base_unit.decompose()
         si_bases = list(decomposed.bases)
-        list(decomposed.powers)
 
         # Get a pool of other SI base units to use as cancelling factors
         all_si_bases = [
@@ -183,7 +182,7 @@ def units(
     --------
     >>> import hypothesis.strategies as st
     >>> from hypothesis import given
-    >>> import unxt_hypothesis as ust
+    >>> import unxts.hypothesis as ust
     >>> import unxt as u
 
     >>> @given(unit=ust.units("velocity"))

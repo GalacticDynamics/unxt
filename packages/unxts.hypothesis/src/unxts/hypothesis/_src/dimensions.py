@@ -181,7 +181,7 @@ def named_dimensions(draw: st.DrawFn) -> u.AbstractDimension:
 
     >>> from hypothesis import given
     >>> import unxt as u
-    >>> import unxt_hypothesis as ust
+    >>> import unxts.hypothesis as ust
 
     >>> @given(dim=ust.named_dimensions())
     ... def test_physics_dimension(dim):
