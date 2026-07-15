@@ -152,6 +152,45 @@ def test_unsupported_method_raises():
         np.add.outer(q, q)
 
 
+def test_deg2rad_converts_angle_to_radians():
+    """``np.deg2rad``/``np.radians`` convert an angle quantity to radians.
+
+    Regression: these lower to ``x * (pi/180)`` (a bare ``mul``), so without an
+    explicit handler the value was scaled while the unit label was left as
+    ``deg`` -- a silently wrong result.
+    """
+    for fn in (np.deg2rad, np.radians):
+        got = fn(u.Q(180.0, "deg"))
+        assert isinstance(got, u.Q)
+        assert got.unit == u.unit("rad")
+        assert np.isclose(np.asarray(got.value), np.pi)
+
+        # radians in -> radians out (identity conversion), not re-scaled.
+        got_rad = fn(u.Q(np.pi, "rad"))
+        assert got_rad.unit == u.unit("rad")
+        assert np.isclose(np.asarray(got_rad.value), np.pi)
+
+
+def test_rad2deg_converts_angle_to_degrees():
+    """``np.rad2deg``/``np.degrees`` convert an angle quantity to degrees."""
+    for fn in (np.rad2deg, np.degrees):
+        got = fn(u.Q(np.pi, "rad"))
+        assert isinstance(got, u.Q)
+        assert got.unit == u.unit("deg")
+        assert np.isclose(np.asarray(got.value), 180.0)
+
+        got_deg = fn(u.Q(180.0, "deg"))
+        assert got_deg.unit == u.unit("deg")
+        assert np.isclose(np.asarray(got_deg.value), 180.0)
+
+
+def test_angle_ufuncs_reject_non_angle():
+    """Angle ufuncs raise on a non-angle quantity instead of mangling it."""
+    for fn in (np.deg2rad, np.rad2deg, np.radians, np.degrees):
+        with pytest.raises(Exception, match=r"convert|angle|dimension"):
+            fn(u.Q(5.0, "m"))
+
+
 def test_bare_quantity_also_supported():
     """``__array_ufunc__`` is inherited by all quantity types."""
     q = u.quantity.Quantity(5.0, "m")

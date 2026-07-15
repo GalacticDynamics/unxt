@@ -182,6 +182,30 @@ def my_function(x):
 result = my_function(positions)  # Works with quantities
 ```
 
+### ⚠️ Angle conversions: `deg2rad`, `rad2deg`, and friends
+
+`jnp.deg2rad`, `jnp.rad2deg`, `jnp.radians`, and `jnp.degrees` lower to a plain multiplication (`x * pi/180`). Under `quaxed`/`quax` that scales the _value_ but leaves the _unit label_ unchanged, so the quantity is silently mislabeled:
+
+```python
+import quaxed.numpy as jnp
+import unxt as u
+
+# ❌ scales the value but keeps 'deg' -> Quantity(3.14159, unit='deg')
+_ = jnp.deg2rad(u.Q(180.0, "deg"))
+```
+
+Convert angles with `uconvert` (or the `.uconvert` method), which tracks units correctly:
+
+```python
+# ✅ Quantity(3.14159, unit='rad')
+_ = u.Q(180.0, "deg").uconvert("rad")
+
+# ✅ Quantity(180., unit='deg')
+_ = u.uconvert("deg", u.Q(3.14159, "rad"))
+```
+
+The NumPy entry points (`np.deg2rad(q)`, `np.rad2deg(q)`, ...) are handled correctly: they convert the angle and raise on a non-angle quantity.
+
 ### ✅ Dimension Checking Works in JIT
 
 Good news! Dimensions are checked inside JIT:
