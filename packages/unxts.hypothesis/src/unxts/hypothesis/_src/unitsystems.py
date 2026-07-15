@@ -37,7 +37,7 @@ def unitsystems(
     --------
     >>> from hypothesis import given
     >>> import unxt as u
-    >>> import unxt_hypothesis as ust
+    >>> import unxts.hypothesis as ust
 
     Create a unit system with fixed units:
 
