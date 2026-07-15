@@ -3,6 +3,8 @@
 import equinox as eqx
 import jax
 import jax.numpy as jnp
+import numpy as np
+import pytest
 import wadler_lindig as wl
 
 import unxt as u
@@ -228,3 +230,18 @@ def test_format_empty_spec_matches_str() -> None:
     q = u.Q(3.14159, "m")
     assert f"{q}" == str(q)
     assert format(q, "") == str(q)
+
+
+def test_format_static_quantity() -> None:
+    """A ``StaticQuantity`` (value is a ``StaticValue``) formats like a scalar."""
+    q = u.StaticQuantity(3.14159, "m")
+    assert f"{q:.2f}" == "3.14 m"
+    assert f"{u.StaticQuantity(3.14159, ''):.2f}" == "3.14"
+    assert f"{q}" == str(q)
+
+
+def test_format_non_scalar_raises() -> None:
+    """A non-empty spec on a non-scalar quantity raises (NumPy semantics)."""
+    for q in (u.Q([1.5, 2.5], "m"), u.StaticQuantity(np.array([1.5, 2.5]), "m")):
+        with pytest.raises(TypeError, match="unsupported format string"):
+            format(q, ".2f")
