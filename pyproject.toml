@@ -36,7 +36,7 @@ dependencies = [
   "quax-blocks>=0.4.1",
   "quaxed>=0.10.5",
   "traitlets>=5.0.0",
-  "unxt-api>=1.10.0",                             # change to "unxts.api>=2.0.0" after release
+  "unxt-api>=2.0.0",
   "wadler-lindig>=0.1.5",
   "xmmutablemap>=0.1",
   "zeroth>=1.0.0",
