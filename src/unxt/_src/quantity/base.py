@@ -882,6 +882,31 @@ class AbstractQuantity(
             indent=config.quantity_str.indent,
         )
 
+    def __format__(self, format_spec: str, /) -> str:
+        """Format the quantity, applying ``format_spec`` to the value.
+
+        An empty spec preserves the default :meth:`__str__` representation. A
+        non-empty spec is applied to the value and the unit is appended (as in
+        `astropy.units.Quantity`); a dimensionless quantity has no unit suffix.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Q(3.14159, "m")
+        >>> f"{q:.2f}"
+        '3.14 m'
+        >>> format(q, ".3e")
+        '3.142e+00 m'
+        >>> format(u.Q(3.14159, ""), ".2f")
+        '3.14'
+
+        """
+        if not format_spec:
+            return str(self)
+        value_str = format(self.value, format_spec)
+        unit_str = str(self.unit)
+        return f"{value_str} {unit_str}" if unit_str else value_str
+
 
 def _is_different_from_default(value: Any, default: Any) -> bool:
     """Check if value differs from default using equality when safe."""

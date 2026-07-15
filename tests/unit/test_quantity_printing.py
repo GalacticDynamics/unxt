@@ -208,3 +208,23 @@ class TestStringConversionWithJIT:
         assert result.unit == q.unit
 
         assert jnp.allclose(result.value, q.value * 2)
+
+
+def test_format_spec_applies_to_value_and_appends_unit() -> None:
+    """``f"{q:.2f}"`` formats the value per the spec and appends the unit."""
+    q = u.Q(3.14159, "m")
+    assert f"{q:.2f}" == "3.14 m"
+    assert format(q, ".3e") == "3.142e+00 m"
+
+
+def test_format_dimensionless_has_no_trailing_unit() -> None:
+    """A dimensionless quantity formats to just the value (no trailing space)."""
+    q = u.Q(3.14159, "")
+    assert f"{q:.2f}" == "3.14"
+
+
+def test_format_empty_spec_matches_str() -> None:
+    """An empty format spec preserves the existing ``str`` representation."""
+    q = u.Q(3.14159, "m")
+    assert f"{q}" == str(q)
+    assert format(q, "") == str(q)
