@@ -8,7 +8,6 @@ classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: BSD License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3",
@@ -43,7 +42,8 @@ dependencies = [
 ]
 description = "Quantities in JAX"
 dynamic = ["version"]
-license.file = "LICENSE"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 name = "unxt"
 readme = "README.md"
 requires-python = ">=3.11"

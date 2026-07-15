@@ -7,7 +7,6 @@ classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: BSD License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3",
@@ -28,7 +27,7 @@ dependencies = [
 ]
 description = "gala integration for unxt (canonical: unxts.interop.gala)"
 dynamic = ["version"]
-license.text = "BSD-3-Clause"
+license = "BSD-3-Clause"
 name = "unxts.interop.gala"
 readme = "README.md"
 requires-python = ">=3.11"
