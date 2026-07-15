@@ -15,6 +15,7 @@ __all__ = (
 import contextlib
 import threading
 import tomllib
+import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import TracebackType
@@ -557,6 +558,24 @@ class UnxtConfig(AbstractUnxtConfig, SingletonConfigurable):
         self.quantity_repr = QuantityReprConfig(config=self.config, parent=self)
         self.quantity_str = QuantityStrConfig(config=self.config, parent=self)
 
+    def reload(self) -> None:
+        """Re-read configuration from the nearest project ``pyproject.toml``.
+
+        The ``[tool.unxts.unxt]`` section is auto-loaded once at import, using
+        the current working directory at that moment. If ``unxt`` was imported
+        before the process changed into the project directory (common in
+        notebooks and test runners), that section is missed; call this to pick
+        it up. Values already set on the config are overwritten by the file;
+        unset ones are left as-is.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> u.config.reload()  # re-read pyproject.toml from the current cwd
+
+        """
+        _auto_load_project_toml_config(self)
+
 
 @dataclass(slots=True)
 class _ConfigContext:
@@ -754,6 +773,30 @@ def _initialize_config_mapping(cfg: UnxtConfig) -> None:
     )
 
 
+def _warn_if_legacy_unxt_config(path: Path, /) -> None:
+    """Warn if the deprecated ``[tool.unxt]`` pyproject section is present.
+
+    Before the namespace rename (unxt#685), configuration lived under
+    ``[tool.unxt]``; it is now read from ``[tool.unxts.unxt]``. A leftover
+    ``[tool.unxt]`` section is silently ignored, so warn the user to migrate.
+    """
+    try:
+        with path.open("rb") as f:
+            data = tomllib.load(f)
+    except (OSError, tomllib.TOMLDecodeError):
+        return
+
+    tool = data.get("tool")
+    if isinstance(tool, dict) and isinstance(tool.get("unxt"), dict):
+        warnings.warn(
+            "The '[tool.unxt]' pyproject.toml section is deprecated and ignored; "
+            "unxt now reads its configuration from '[tool.unxts.unxt]'. Move your "
+            "settings there.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+
 def _auto_load_project_toml_config(cfg: UnxtConfig, /) -> None:
     """Auto-load nearest project TOML config without raising import-time errors.
 
@@ -767,6 +810,8 @@ def _auto_load_project_toml_config(cfg: UnxtConfig, /) -> None:
     pyproject = _find_pyproject(Path.cwd())
     if pyproject is None:
         return
+
+    _warn_if_legacy_unxt_config(pyproject)
 
     try:
         loaded = _load_toml_config_from_pyproject(pyproject)

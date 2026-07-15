@@ -6,6 +6,7 @@ import sys
 import textwrap
 import threading
 import time
+import warnings
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,7 @@ from unxt._src.config import (
     _find_pyproject,
     _load_toml_config_from_pyproject,
     _walk_toml_config,
+    _warn_if_legacy_unxt_config,
 )
 
 # =============================================================================
@@ -1017,3 +1019,50 @@ named_unit = false
     assert (package_root / "pyproject.toml").exists()
     assert (package_root / "src" / "my_physics_project" / "__init__.py").exists()
     assert (package_root / "README.md").exists()
+
+
+# =============================================================================
+# Reload and legacy-config-deprecation
+
+
+def test_config_has_reload() -> None:
+    """The config exposes a public ``reload`` method."""
+    assert callable(u.config.reload)
+
+
+def test_reload_picks_up_project_config(tmp_path: Path, monkeypatch) -> None:
+    """``config.reload()`` re-reads pyproject.toml from the current cwd."""
+    (tmp_path / "pyproject.toml").write_text(
+        "[tool.unxts.unxt.quantity.repr]\nuse_short_name = true\n",
+        encoding="utf-8",
+    )
+    before = u.config.quantity_repr.use_short_name
+    monkeypatch.chdir(tmp_path)
+    try:
+        u.config.reload()
+        assert u.config.quantity_repr.use_short_name is True
+    finally:
+        u.config.quantity_repr.use_short_name = before
+
+
+def test_legacy_tool_unxt_section_warns(tmp_path: Path) -> None:
+    """A deprecated ``[tool.unxt]`` section emits a DeprecationWarning."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        "[tool.unxt.quantity.repr]\nuse_short_name = true\n",
+        encoding="utf-8",
+    )
+    with pytest.warns(DeprecationWarning, match="tool.unxt"):
+        _warn_if_legacy_unxt_config(pyproject)
+
+
+def test_new_namespace_does_not_warn(tmp_path: Path) -> None:
+    """The current ``[tool.unxts.unxt]`` section does not warn."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        "[tool.unxts.unxt.quantity.repr]\nuse_short_name = true\n",
+        encoding="utf-8",
+    )
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        _warn_if_legacy_unxt_config(pyproject)  # must not raise
