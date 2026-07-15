@@ -42,6 +42,14 @@ class TestIsInstalled:
         assert is_installed("unxts.interop.does_not_exist") is False
         assert is_installed("unxt._this_module_does_not_exist_xyz") is False
 
+    def test_returns_false_when_find_spec_raises(self) -> None:
+        """A malformed path (parent is not a package) is caught, not raised.
+
+        ``importlib.util.find_spec("os.foo")`` raises ``ModuleNotFoundError``
+        because ``os`` is a module, not a package; ``is_installed`` swallows it.
+        """
+        assert is_installed("os.nonexistent_sub") is False
+
     @pytest.mark.parametrize(
         "module",
         ["unxts.interop.gala", "unxts.interop.matplotlib", "unxts.interop.xarray"],
