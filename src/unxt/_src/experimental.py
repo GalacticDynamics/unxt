@@ -97,12 +97,13 @@ def grad(
         # Call the grad, returning a Quantity
         value = fun(*args)
         grad_value = gradfun_mag(*args_)
-        # Adjust the Quantity by the units of the derivative
+        # Adjust the Quantity by the units of the derivative. A dimensionless
+        # differentiation argument (unit ``None``) contributes no unit.
         # TODO: get Quantity[unit] / unit2 ->
         # Quantity[unit/unit2] working
-        return type_unparametrized(value)(
-            grad_value, unit_of(value) / theunits[argnums]
-        )
+        du = theunits[argnums]
+        new_unit = unit_of(value) if du is None else unit_of(value) / du
+        return type_unparametrized(value)(grad_value, new_unit)
 
     return gradfun
 
@@ -164,13 +165,14 @@ def jacfwd(
         )
         # Call the Jacobian, returning a Quantity
         value = jacfun_mag(*args_)
-        # Adjust the Quantity by the units of the derivative
+        # Adjust the Quantity by the units of the derivative. A dimensionless
+        # differentiation argument (unit ``None``) contributes no unit.
         # TODO: check the unit correction
         # TODO: get Quantity[unit] / unit2 ->
         # Quantity[unit/unit2] working
-        return type_unparametrized(value)(
-            ustrip(value), unit_of(value) / theunits[argnums]
-        )
+        du = theunits[argnums]
+        new_unit = unit_of(value) if du is None else unit_of(value) / du
+        return type_unparametrized(value)(ustrip(value), new_unit)
 
     return jacfun
 
@@ -207,7 +209,7 @@ def hessian(
     Quantity(Array(12., dtype=float32...), unit='m')
 
     """
-    theunits: tuple[AbstractUnit, ...] = tuple(map(unit_or_none, units))
+    theunits: tuple[AbstractUnit | None, ...] = tuple(map(unit_or_none, units))
 
     @ft.partial(jax.hessian)
     def hessfun_mag(*args: Any) -> R:
@@ -226,12 +228,13 @@ def hessian(
         )
         # Call the hessian, returning a Quantity
         value = hessfun_mag(*args_)
-        # Adjust the Quantity by the units of the derivative
+        # Adjust the Quantity by the units of the derivative. A dimensionless
+        # differentiation argument (unit ``None``) contributes no unit.
         # TODO: check the unit correction
         # TODO: get Quantity[unit] / unit2 ->
         # Quantity[unit/unit2] working
-        return type_unparametrized(value)(
-            ustrip(value), unit_of(value) / theunits[argnums] ** 2
-        )
+        du = theunits[argnums]
+        new_unit = unit_of(value) if du is None else unit_of(value) / du**2
+        return type_unparametrized(value)(ustrip(value), new_unit)
 
     return hessfun
