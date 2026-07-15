@@ -22,6 +22,9 @@ documentation.
 # The ``_MOVED_TO_PARAMETRIC`` shim in ``__getattr__`` mirrors the one in the
 # quantity subpackage on purpose; silence the duplicate-code check.
 # pylint: disable=duplicate-code
+# The ``BareQuantity`` deprecation shim in ``__getattr__`` imports ``warnings``
+# lazily on purpose; silence the module-level lint for that intentional pattern.
+# pylint: disable=import-outside-toplevel
 
 __all__ = (
     "__version__",
@@ -98,5 +101,17 @@ def __getattr__(name: str) -> object:
             f"`from unxts.parametric import {name}`."
         )
         raise AttributeError(msg)
+    if name == "BareQuantity":
+        import warnings  # noqa: PLC0415
+
+        warnings.warn(
+            "`BareQuantity` has been renamed to `Quantity` and is now the "
+            "default quantity class (unxt v2). The parametric class formerly "
+            "named `Quantity` is now `ParametricQuantity`. `BareQuantity` "
+            "will be removed in a future release.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return Quantity
     msg = f"module {__name__!r} has no attribute {name!r}"
     raise AttributeError(msg)
