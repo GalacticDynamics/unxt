@@ -104,7 +104,7 @@ uv add unxt
 :::{tab-item} source, via pip
 
 ```bash
-pip install git+https://https://github.com/GalacticDynamics/unxt.git
+pip install git+https://github.com/GalacticDynamics/unxt.git
 ```
 
 :::
@@ -113,7 +113,7 @@ pip install git+https://https://github.com/GalacticDynamics/unxt.git
 
 ```bash
 cd /path/to/parent
-git clone https://https://github.com/GalacticDynamics/unxt.git
+git clone https://github.com/GalacticDynamics/unxt.git
 cd unxt
 pip install -e .  # editable mode
 ```

@@ -55,7 +55,7 @@ uv add unxt
   <summary>from source, using pip</summary>
 
 ```bash
-pip install git+https://https://github.com/GalacticDynamics/unxt.git
+pip install git+https://github.com/GalacticDynamics/unxt.git
 ```
 
 </details>
@@ -64,7 +64,7 @@ pip install git+https://https://github.com/GalacticDynamics/unxt.git
 
 ```bash
 cd /path/to/parent
-git clone https://https://github.com/GalacticDynamics/unxt.git
+git clone https://github.com/GalacticDynamics/unxt.git
 cd unxt
 pip install -e .  # editable mode
 ```
