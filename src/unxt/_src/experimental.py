@@ -207,7 +207,7 @@ def hessian(
     Quantity(Array(12., dtype=float32...), unit='m')
 
     """
-    theunits: tuple[AbstractUnit, ...] = tuple(map(unit_or_none, units))
+    theunits: tuple[AbstractUnit | None, ...] = tuple(map(unit_or_none, units))
 
     @ft.partial(jax.hessian)
     def hessfun_mag(*args: Any) -> R:
@@ -222,7 +222,7 @@ def hessian(
         # inside the function we are taking the hessian of.
         args_ = tuple(  # type: ignore[var-annotated]
             (a if unit is None else ustrip(unit, a))
-            for a, unit in zip(args, units, strict=True)  # type: ignore[arg-type]
+            for a, unit in zip(args, theunits, strict=True)  # type: ignore[arg-type]
         )
         # Call the hessian, returning a Quantity
         value = hessfun_mag(*args_)
