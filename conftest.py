@@ -101,8 +101,9 @@ if not OptDeps.ASTROPY.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_astropy/*")
 # The package docs are collected through the docs/packages/<name> symlinks, so
 # ignore that (symlink) path, not the real package path.
-# gala is skipped where it cannot build (Windows), even though the
-# unxts.interop.gala package itself is installed; gate on gala being importable.
+# `unxts.interop.gala` is an optional extra, so it may be absent; and even when
+# it is present its `gala` dependency may be unimportable (gala is skipped where
+# it cannot build, e.g. Windows). Ignore its docs unless both are available.
 if not (_is_installed("unxts.interop.gala") and OptDeps.GALA.installed):
     collect_ignore_glob.append("docs/packages/unxts.interop.gala/*")
     collect_ignore_glob.append("packages/unxts.interop.gala/docs/*")
