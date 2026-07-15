@@ -1,6 +1,6 @@
 # Release Process for unxt Workspace
 
-This workspace contains the following packages that are released together:
+This workspace contains the following releasable packages. A `vX.Y.0` coordinator tag releases them all together; each can also be bug-fix-released on its own (see [Release Types](#release-types)):
 
 - `unxt` - the main package
 - `unxt-api` - abstract dispatch API (backward-compat shim; canonical: `unxts.api`)
@@ -374,24 +374,18 @@ git push origin v1.8.0
 
 ### Wrong version being detected
 
-Check which tags are present:
+Check which tags are present (substitute the package's tag prefix — see the intro for the full list):
 
 ```bash
-git tag -l "unxt-v*"
-git tag -l "unxt-api-v*"
-git tag -l "unxt-hypothesis-v*"
+git tag -l "<package>-v*"   # e.g. unxt-v*, unxts-api-v*, unxts-parametric-v*
 
-# See what git describe returns
-git describe --tags --match "unxt-v*"
+# See what git describe returns for that package
+git describe --tags --match "<package>-v*"
 ```
 
 ### Package not building after tag push
 
-Verify the tag matches the expected pattern:
-
-- Main package: `unxt-vX.Y.Z`
-- API package: `unxt-api-vX.Y.Z`
-- Hypothesis package: `unxt-hypothesis-vX.Y.Z`
+Verify the tag matches the package's expected pattern `<package>-vX.Y.Z` (e.g. `unxt-vX.Y.Z`, `unxts-api-vX.Y.Z`, `unxts-parametric-vX.Y.Z`); see the intro for the full list of tag prefixes.
 
 Check GitHub Actions for error messages.
 
