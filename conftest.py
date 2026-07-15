@@ -70,10 +70,12 @@ class OptDeps(OptionalDependencyEnum):
     """External backends for ``unxt``.
 
     Only genuine third-party backends belong here. ``OptionalDependencyEnum``
-    keys each member on its installed version, so members that share a version
-    silently become enum aliases. unxt's own ``unxts.*`` sub-packages all share
-    unxt's release version, so their presence is checked with ``_is_installed``
-    instead (see ``unxt._interop.optional_deps`` for the same reasoning).
+    keys each member on its installed version, so any two members that share a
+    version silently collapse into a single enum alias. unxt's own ``unxts.*``
+    sub-packages are released together and so usually share a version (bug-fix
+    releases can make them diverge), so their presence is checked by import with
+    ``_is_installed`` instead (see ``unxt._interop.optional_deps`` for the same
+    reasoning).
     """
 
     ASTROPY = auto()
