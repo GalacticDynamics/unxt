@@ -22,6 +22,9 @@ documentation.
 # The ``_MOVED_TO_PARAMETRIC`` shim in ``__getattr__`` mirrors the one in the
 # quantity subpackage on purpose; silence the duplicate-code check.
 # pylint: disable=duplicate-code
+# The ``BareQuantity`` deprecation shim in ``__getattr__`` imports ``warnings``
+# lazily on purpose; silence the module-level lint for that intentional pattern.
+# pylint: disable=import-outside-toplevel
 
 __all__ = (
     "__version__",
