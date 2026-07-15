@@ -15,9 +15,9 @@ class OptDeps(OptionalDependencyEnum):  # type: ignore[misc]  # pylint: disable=
     silently collapse into a single enum alias. Version is therefore an unsafe
     key for distinguishing packages: unxt's own ``unxts.*`` sub-packages are
     released together and so usually share a version (independent bug-fix
-    releases can make them diverge), so their presence is detected by import
-    with :func:`is_installed`, which resolves each module by name independent of
-    version.
+    releases can make them diverge), so their presence is detected with
+    :func:`is_installed` (an import-spec lookup via ``find_spec``) instead,
+    resolving each module by name independent of version.
     """
 
     ASTROPY = auto()

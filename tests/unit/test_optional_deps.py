@@ -30,10 +30,10 @@ class TestOptDepsExcludesNamespacePackages:
 
 
 class TestIsInstalled:
-    """`is_installed` detects modules by import presence."""
+    """`is_installed` detects modules by import-spec discovery (`find_spec`)."""
 
     def test_returns_true_for_an_installed_module(self) -> None:
-        """A module that is importable reports as installed."""
+        """A module with a discoverable import spec reports as installed."""
         assert is_installed("unxt") is True
         assert is_installed("importlib.util") is True
 
@@ -57,10 +57,11 @@ class TestIsInstalled:
     def test_detects_interop_package_independently(self, module: str) -> None:
         """Same-versioned interop packages are each detected on their own.
 
-        This is the behaviour the version-keyed enum could not provide: import
-        presence is resolved per-module, so packages sharing a version never
-        collapse together. The interop packages are optional extras, so skip
-        when the extra isn't installed.
+        This is the behaviour the version-keyed enum could not provide: the
+        import spec is resolved per-module, so packages sharing a version never
+        collapse together. The interop packages are optional extras;
+        ``pytest.importorskip`` skips the case where the module can't be
+        imported (e.g. the extra isn't installed).
         """
         pytest.importorskip(module)
         assert is_installed(module) is True
