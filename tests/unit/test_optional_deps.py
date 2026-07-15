@@ -1,5 +1,7 @@
 """Tests for the internal optional-dependency detection (`unxt._interop`)."""
 
+import pytest
+
 from unxt._interop.optional_deps import OptDeps, is_installed
 
 
@@ -18,20 +20,29 @@ class TestOptDepsNoAliasing:
 
 
 class TestIsInstalled:
-    """`is_installed` detects each interop package independently."""
+    """`is_installed` detects modules by import presence."""
 
-    def test_detects_each_interop_package_independently(self) -> None:
-        """Same-versioned interop packages are each detected on their own.
-
-        This is the behaviour the version-keyed enum could not provide: import
-        presence is resolved per-module, so packages sharing a version never
-        collapse together.
-        """
-        assert is_installed("unxts.interop.gala") is True
-        assert is_installed("unxts.interop.matplotlib") is True
-        assert is_installed("unxts.interop.xarray") is True
+    def test_returns_true_for_an_installed_module(self) -> None:
+        """A module that is importable reports as installed."""
+        assert is_installed("unxt") is True
+        assert is_installed("importlib.util") is True
 
     def test_returns_false_for_absent_module(self) -> None:
         """A module that cannot be imported reports as not installed."""
         assert is_installed("unxts.interop.does_not_exist") is False
         assert is_installed("a_package_that_is_not_installed_xyz") is False
+
+    @pytest.mark.parametrize(
+        "module",
+        ["unxts.interop.gala", "unxts.interop.matplotlib", "unxts.interop.xarray"],
+    )
+    def test_detects_interop_package_independently(self, module: str) -> None:
+        """Same-versioned interop packages are each detected on their own.
+
+        This is the behaviour the version-keyed enum could not provide: import
+        presence is resolved per-module, so packages sharing a version never
+        collapse together. The interop packages are optional extras, so skip
+        when the extra isn't installed.
+        """
+        pytest.importorskip(module)
+        assert is_installed(module) is True
