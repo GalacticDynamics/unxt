@@ -15,6 +15,8 @@ This workspace contains the following releasable packages. A `vX.Y.0` coordinato
 
 The authoritative list of released packages is the `PACKAGES` array in `.github/workflows/create-package-tags.yml`.
 
+> **Tag prefixes are hyphenated.** Release tags and CD workflows use the hyphenated form of each package name — dots become hyphens. For example the `unxts.api` package is tagged `unxts-api-vX.Y.Z` and `unxts.interop.gala` is tagged `unxts-interop-gala-vX.Y.Z`. A dotted tag such as `unxts.api-vX.Y.Z` will **not** match the CD workflow triggers.
+
 All releases are automated via GitHub Actions - **just push tags!**
 
 ---
@@ -180,7 +182,7 @@ git push origin vX.Y.0
 **Monitor the workflows:**
 
 - Check: <https://github.com/GalacticDynamics/unxt/actions>
-- Expect create-package-tags plus one CD workflow per workspace package
+- Expect create-package-tags, then **two** workflows per package: a build (`CD - <package>`, triggered by the tag) followed by its privileged publish (`CD Publish - <package>`, triggered via `workflow_run` when the build completes)
 
 ### Scenario 2: Bug-fix Release (Individual Package)
 
@@ -202,7 +204,7 @@ git push origin unxt-api-vX.Y.Z
 **Monitor the workflow:**
 
 - Check: <https://github.com/GalacticDynamics/unxt/actions>
-- Expect 1 CD workflow for that specific package
+- Expect two workflows for that package: its build (`CD - <package>`) followed by its publish (`CD Publish - <package>`)
 
 ### Creating a GitHub Release (Optional)
 
@@ -260,13 +262,15 @@ The release process is fully automated via GitHub Actions:
    - Creates package-specific tags automatically
    - Pushes a tag for every workspace package
 
-2. **Package Builds** (`.github/workflows/cd-*.yml`):
-   - Each package has its own CD workflow
+2. **Package build** (`.github/workflows/cd-<package>.yml`, "CD - \<package>"):
    - Triggers on that package's tags only (`unxt-v*`, `unxts-parametric-v*`, …)
-   - Validates tags with `scripts/validate_tag.py`
-   - Builds and publishes to TestPyPI, then PyPI
+   - Validates the tag with `scripts/validate_tag.py`, builds the package, and uploads it as a build artifact (runs unprivileged)
 
-3. **Version Detection**:
+3. **Package publish** (`.github/workflows/cd-publish-<package>.yml`, "CD Publish - \<package>"):
+   - Triggers via `workflow_run` when that package's build workflow completes
+   - Downloads the artifact and publishes to TestPyPI, then PyPI, in a privileged context, so no repository code runs with publish permissions
+
+4. **Version Detection**:
    - hatch-vcs uses standard `git describe` with package-specific `--match` patterns
    - Each package only sees its own tags
    - No custom scripts needed!
