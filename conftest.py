@@ -1,5 +1,6 @@
 """Doctest configuration."""
 
+import importlib.util
 import os
 from collections.abc import Callable, Iterable, Sequence
 from doctest import ELLIPSIS, NORMALIZE_WHITESPACE
@@ -89,14 +90,33 @@ def pytest_collect_file(file_path: Path, parent: object) -> object:
 
 
 class OptDeps(OptionalDependencyEnum):
-    """Optional dependencies for ``unxt``."""
+    """External backends for ``unxt``.
+
+    Only genuine third-party backends belong here. ``OptionalDependencyEnum``
+    keys each member on its installed version, so any two members that share a
+    version silently collapse into a single enum alias. unxt's own ``unxts.*``
+    sub-packages are released together and so usually share a version (bug-fix
+    releases can make them diverge), so their presence is checked with
+    ``_is_installed`` (an import-spec lookup via ``find_spec``) instead (see
+    ``unxt._interop.optional_deps`` for the same reasoning).
+    """
 
     ASTROPY = auto()
     GALA = auto()
-    UNXTS_INTEROP_GALA = auto()
-    UNXTS_INTEROP_MATPLOTLIB = auto()
-    UNXTS_LINALG = auto()
-    UNXTS_PARAMETRIC = auto()
+
+
+def _is_installed(module: str) -> bool:
+    """Return whether ``module`` has a discoverable import spec.
+
+    Uses :func:`importlib.util.find_spec` (reports installed / findable, not that
+    importing would succeed). Defined locally (rather than importing the
+    equivalent helper from ``unxt``) so that ``conftest`` never imports ``unxt``
+    before ``pytest_generate_tests`` sets ``UNXT_ENABLE_RUNTIME_TYPECHECKING``.
+    """
+    try:
+        return importlib.util.find_spec(module) is not None
+    except (ImportError, ValueError):
+        return False
 
 
 collect_ignore_glob = []
@@ -104,18 +124,19 @@ if not OptDeps.ASTROPY.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_astropy/*")
 # The package docs are collected through the docs/packages/<name> symlinks, so
 # ignore that (symlink) path, not the real package path.
-# gala is skipped where it cannot build (Windows), even though the
-# unxts.interop.gala package itself is installed; gate on gala being importable.
-if not (OptDeps.UNXTS_INTEROP_GALA.installed and OptDeps.GALA.installed):
+# `unxts.interop.gala` is an optional extra, so it may be absent; and even when
+# it is present its `gala` dependency may be unimportable (gala is skipped where
+# it cannot build, e.g. Windows). Ignore its docs unless both are available.
+if not (_is_installed("unxts.interop.gala") and OptDeps.GALA.installed):
     collect_ignore_glob.append("docs/packages/unxts.interop.gala/*")
     collect_ignore_glob.append("packages/unxts.interop.gala/docs/*")
-if not OptDeps.UNXTS_INTEROP_MATPLOTLIB.installed:
+if not _is_installed("unxts.interop.matplotlib"):
     collect_ignore_glob.append("docs/packages/unxts.interop.matplotlib/*")
     collect_ignore_glob.append("packages/unxts.interop.matplotlib/docs/*")
-if not OptDeps.UNXTS_LINALG.installed:
+if not _is_installed("unxts.linalg"):
     collect_ignore_glob.append("docs/packages/unxts.linalg/*")
     collect_ignore_glob.append("packages/unxts.linalg/docs/*")
-if not OptDeps.UNXTS_PARAMETRIC.installed:
+if not _is_installed("unxts.parametric"):
     collect_ignore_glob.append("docs/packages/unxts.parametric/*")
     collect_ignore_glob.append("packages/unxts.parametric/docs/*")
 
