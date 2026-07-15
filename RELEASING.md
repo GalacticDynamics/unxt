@@ -263,12 +263,12 @@ The release process is fully automated via GitHub Actions:
    - Pushes a tag for every workspace package
 
 2. **Package build** (`.github/workflows/cd-<package>.yml`, "CD - \<package>"):
-   - Triggers on that package's tags only (`unxt-v*`, `unxts-parametric-v*`, …)
+   - Triggers on that package's release tags (`unxt-v*`, `unxts-parametric-v*`, …), on pushes to `main` that touch the package (path-filtered), and on manual `workflow_dispatch` — so you'll also see a build run when a normal PR merges to `main`
    - Validates the tag with `scripts/validate_tag.py`, builds the package, and uploads it as a build artifact (runs unprivileged)
 
 3. **Package publish** (`.github/workflows/cd-publish-<package>.yml`, "CD Publish - \<package>"):
    - Triggers via `workflow_run` when that package's build workflow completes
-   - Downloads the artifact and publishes to TestPyPI, then PyPI, in a privileged context, so no repository code runs with publish permissions
+   - Runs in a privileged context (so no repository code runs with publish permissions) and routes by what triggered the build: a verified release tag publishes to **both** TestPyPI and PyPI, while a trusted push to `main` (no tag) publishes to **TestPyPI only**
 
 4. **Version Detection**:
    - hatch-vcs uses standard `git describe` with package-specific `--match` patterns
