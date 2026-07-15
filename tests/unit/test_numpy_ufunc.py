@@ -191,6 +191,14 @@ def test_angle_ufuncs_reject_non_angle():
             fn(u.Q(5.0, "m"))
 
 
+def test_angle_ufuncs_reject_unsupported_kwargs():
+    """Angle ufuncs raise on ufunc kwargs rather than silently ignoring them."""
+    q = u.Q(180.0, "deg")
+    for kwargs in ({"where": np.array([True])}, {"casting": "same_kind"}):
+        with pytest.raises(TypeError, match="does not support"):
+            np.deg2rad(q, **kwargs)
+
+
 def test_bare_quantity_also_supported():
     """``__array_ufunc__`` is inherited by all quantity types."""
     q = u.quantity.Quantity(5.0, "m")

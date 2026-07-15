@@ -135,9 +135,18 @@ _ANGLE_CONVERSIONS: dict[np.ufunc, str] = {
 
 
 def _make_angle_handler(to_unit: str) -> AnyCallable:
-    def handler(_ufunc: np.ufunc, method: str, x: Any, /, **_kwargs: Any) -> Any:
+    def handler(ufunc: np.ufunc, method: str, x: Any, /, **kwargs: Any) -> Any:
         if method != "__call__":
             return NotImplemented
+        # These handlers reduce to a unit conversion and do not honour ufunc
+        # keyword arguments (``out``, ``where``, ``casting``, ...). Raise loudly
+        # rather than silently ignore them and return a surprising result.
+        if kwargs:
+            msg = (
+                f"`np.{ufunc.__name__}` on a Quantity does not support the ufunc "
+                f"keyword argument(s) {sorted(kwargs)}."
+            )
+            raise TypeError(msg)
         return x.uconvert(to_unit)
 
     return handler
