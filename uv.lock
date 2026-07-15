@@ -34,6 +34,7 @@ members = [
     "unxts-interop-gala",
     "unxts-interop-matplotlib",
     "unxts-interop-xarray",
+    "unxts-linalg",
     "unxts-parametric",
 ]
 constraints = [{ name = "matplotlib", marker = "python_full_version >= '3.14'", specifier = ">=3.10.8" }]
@@ -4299,6 +4300,7 @@ all = [
     { name = "unxts-interop-gala" },
     { name = "unxts-interop-matplotlib" },
     { name = "unxts-interop-xarray" },
+    { name = "unxts-linalg" },
     { name = "unxts-parametric" },
 ]
 backend-astropy = [
@@ -4328,12 +4330,16 @@ interop-xarray = [
 k8s = [
     { name = "jax", extra = ["k8s"], marker = "extra == 'extra-4-unxt-k8s' or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cpu' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12') or (extra == 'extra-4-unxt-cuda' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12' and extra == 'extra-4-unxt-cuda12-local') or (extra == 'extra-4-unxt-cuda12-local' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cpu' and extra != 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda' and extra != 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm') or (extra == 'extra-4-unxt-cuda12' and extra != 'extra-4-unxt-k8s' and extra == 'extra-4-unxt-rocm')" },
 ]
+linalg = [
+    { name = "unxts-linalg" },
+]
 workspace = [
     { name = "unxts-api" },
     { name = "unxts-hypothesis" },
     { name = "unxts-interop-gala" },
     { name = "unxts-interop-matplotlib" },
     { name = "unxts-interop-xarray" },
+    { name = "unxts-linalg" },
     { name = "unxts-parametric" },
 ]
 
@@ -4389,6 +4395,7 @@ dev = [
     { name = "unxts-interop-gala" },
     { name = "unxts-interop-matplotlib" },
     { name = "unxts-interop-xarray" },
+    { name = "unxts-linalg" },
     { name = "unxts-parametric" },
 ]
 docs = [
@@ -4462,6 +4469,7 @@ workspace = [
     { name = "unxts-interop-gala" },
     { name = "unxts-interop-matplotlib" },
     { name = "unxts-interop-xarray" },
+    { name = "unxts-linalg" },
     { name = "unxts-parametric" },
 ]
 
@@ -4503,13 +4511,16 @@ requires-dist = [
     { name = "unxts-interop-xarray", marker = "extra == 'all'", editable = "packages/unxts.interop.xarray" },
     { name = "unxts-interop-xarray", marker = "extra == 'interop-xarray'", editable = "packages/unxts.interop.xarray" },
     { name = "unxts-interop-xarray", marker = "extra == 'workspace'", editable = "packages/unxts.interop.xarray" },
+    { name = "unxts-linalg", marker = "extra == 'all'", editable = "packages/unxts.linalg" },
+    { name = "unxts-linalg", marker = "extra == 'linalg'", editable = "packages/unxts.linalg" },
+    { name = "unxts-linalg", marker = "extra == 'workspace'", editable = "packages/unxts.linalg" },
     { name = "unxts-parametric", marker = "extra == 'all'", editable = "packages/unxts.parametric" },
     { name = "unxts-parametric", marker = "extra == 'workspace'", editable = "packages/unxts.parametric" },
     { name = "wadler-lindig", specifier = ">=0.1.5" },
     { name = "xmmutablemap", specifier = ">=0.1" },
     { name = "zeroth", specifier = ">=1.0.0" },
 ]
-provides-extras = ["all", "backend-astropy", "cpu", "cuda", "cuda12", "cuda12-local", "interop-gala", "interop-mpl", "interop-xarray", "k8s", "workspace"]
+provides-extras = ["all", "backend-astropy", "cpu", "cuda", "cuda12", "cuda12-local", "interop-gala", "interop-mpl", "interop-xarray", "k8s", "linalg", "workspace"]
 
 [package.metadata.requires-dev]
 build = [{ name = "build", specifier = ">=1.3.0" }]
@@ -4559,6 +4570,7 @@ dev = [
     { name = "unxts-interop-gala", editable = "packages/unxts.interop.gala" },
     { name = "unxts-interop-matplotlib", editable = "packages/unxts.interop.matplotlib" },
     { name = "unxts-interop-xarray", editable = "packages/unxts.interop.xarray" },
+    { name = "unxts-linalg", editable = "packages/unxts.linalg" },
     { name = "unxts-parametric", editable = "packages/unxts.parametric" },
 ]
 docs = [
@@ -4628,6 +4640,7 @@ workspace = [
     { name = "unxts-interop-gala", editable = "packages/unxts.interop.gala" },
     { name = "unxts-interop-matplotlib", editable = "packages/unxts.interop.matplotlib" },
     { name = "unxts-interop-xarray", editable = "packages/unxts.interop.xarray" },
+    { name = "unxts-linalg", editable = "packages/unxts.linalg" },
     { name = "unxts-parametric", editable = "packages/unxts.parametric" },
 ]
 
@@ -4863,6 +4876,48 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 test = [
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-arraydiff", specifier = ">=0.6.1" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
+    { name = "pytest-env", specifier = ">=1.1.5" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
+]
+
+[[package]]
+name = "unxts-linalg"
+source = { editable = "packages/unxts.linalg" }
+dependencies = [
+    { name = "equinox" },
+    { name = "jaxtyping" },
+    { name = "plum-dispatch" },
+    { name = "quax" },
+    { name = "unxt" },
+]
+
+[package.dev-dependencies]
+test = [
+    { name = "optional-dependencies" },
+    { name = "pytest" },
+    { name = "pytest-arraydiff" },
+    { name = "pytest-cov" },
+    { name = "pytest-env" },
+    { name = "pytest-github-actions-annotate-failures" },
+    { name = "sybil", extra = ["pytest"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "equinox", specifier = ">=0.11.8" },
+    { name = "jaxtyping", specifier = ">=0.2.34" },
+    { name = "plum-dispatch", specifier = ">=2.5.7" },
+    { name = "quax", specifier = ">=0.2.0" },
+    { name = "unxt", editable = "." },
+]
+
+[package.metadata.requires-dev]
+test = [
+    { name = "optional-dependencies", specifier = ">=0.3.2" },
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-arraydiff", specifier = ">=0.6.1" },
     { name = "pytest-cov", specifier = ">=6.2.1" },

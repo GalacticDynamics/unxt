@@ -337,3 +337,11 @@
 - name: "🧩 unxts-interop-xarray"
   color: "0366d6"
   description: "Issues/PRs affecting the unxts.interop.xarray namespace package"
+
+- name: "🧩 unxts-linalg"
+  color: "0366d6"
+  description: "Issues/PRs affecting the unxts.linalg namespace package"
+
+- name: "🧩 unxts-parametric"
+  color: "0366d6"
+  description: "Issues/PRs affecting the unxts.parametric namespace package"
