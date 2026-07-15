@@ -445,6 +445,13 @@ def test_static_backed_equality_is_unit_blind() -> None:
     # Same unit + equal values -> equal.
     assert bool(u.Q(sv_m, "m") == u.Q(sv_m, "m")) is True
 
+    # ``!=`` mirrors ``==`` as a scalar bool for the base ``Q(StaticValue)``
+    # path too (not just ``StaticQuantity``).
+    ne_diff_unit = u.Q(sv_m, "m") != u.Q(sv_km, "km")
+    ne_same = u.Q(sv_m, "m") != u.Q(sv_m, "m")
+    assert ne_diff_unit is True
+    assert ne_same is False
+
     # Base Quantity(StaticValue) and StaticQuantity agree.
     base_eq = bool(u.Q(sv_m, "m") == u.Q(sv_km, "km"))
     static_eq = bool(

@@ -719,8 +719,10 @@ class AbstractQuantity(
         >>> u.Q(sv1, "m") == u.Q(sv3, "m")
         False
 
-        Equality is **unit-blind**: quantities are equal only when their unit
-        labels match. Unit-aware equality (``1000 m == 1 km``) is incompatible
+        For `StaticValue`-backed quantities this comparison is **unit-blind**:
+        they are equal only when their unit labels match (unlike the
+        array-backed path above, which returns an element-wise mask after unit
+        conversion). Unit-aware equality (``1000 m == 1 km``) is incompatible
         with using a static quantity as a ``jax.jit`` ``static_argnames``
         argument, where distinct units must remain distinct compilation cache
         keys; it would also break the ``__eq__``/``__hash__`` contract, since the
