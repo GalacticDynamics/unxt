@@ -65,14 +65,6 @@ describe_command = [
   "unxt-hypothesis-v*",
 ]
 
-[tool.hatch.build.hooks.vcs]
-version-file = "src/unxt_hypothesis/_version.py"
-version-file-template = """\
-version: str = {version!r}
-version_tuple: tuple[int, int, int] | tuple[int, int, int, str, str]
-version_tuple = {version_tuple!r}
-"""
-
 
 [tool.uv.sources]
 "unxts.hypothesis" = { workspace = true }
