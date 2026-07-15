@@ -83,11 +83,12 @@ class OptDeps(OptionalDependencyEnum):
 
 
 def _is_installed(module: str) -> bool:
-    """Return whether ``module`` can be imported.
+    """Return whether ``module`` has a discoverable import spec.
 
-    Defined locally (rather than importing the equivalent helper from ``unxt``)
-    so that ``conftest`` never imports ``unxt`` before ``pytest_generate_tests``
-    sets ``UNXT_ENABLE_RUNTIME_TYPECHECKING``.
+    Uses :func:`importlib.util.find_spec` (reports installed / findable, not that
+    importing would succeed). Defined locally (rather than importing the
+    equivalent helper from ``unxt``) so that ``conftest`` never imports ``unxt``
+    before ``pytest_generate_tests`` sets ``UNXT_ENABLE_RUNTIME_TYPECHECKING``.
     """
     try:
         return importlib.util.find_spec(module) is not None

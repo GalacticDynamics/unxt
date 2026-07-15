@@ -38,9 +38,9 @@ class TestIsInstalled:
         assert is_installed("importlib.util") is True
 
     def test_returns_false_for_absent_module(self) -> None:
-        """A module that cannot be imported reports as not installed."""
+        """A module without a discoverable spec reports as not installed."""
         assert is_installed("unxts.interop.does_not_exist") is False
-        assert is_installed("a_package_that_is_not_installed_xyz") is False
+        assert is_installed("unxt._this_module_does_not_exist_xyz") is False
 
     @pytest.mark.parametrize(
         "module",

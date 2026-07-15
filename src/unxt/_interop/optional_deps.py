@@ -25,7 +25,13 @@ class OptDeps(OptionalDependencyEnum):  # type: ignore[misc]  # pylint: disable=
 
 
 def is_installed(module: str) -> bool:
-    """Return whether ``module`` can be imported.
+    """Return whether ``module`` has a discoverable import spec.
+
+    Uses :func:`importlib.util.find_spec`, so it reports whether the module is
+    installed / findable -- not whether importing it would succeed (its own
+    dependencies may be missing; e.g. ``unxts.interop.gala`` has a spec even
+    where ``gala`` itself cannot be imported, which is why the gala guard also
+    checks ``OptDeps.GALA.installed``).
 
     Used to detect unxt's optional interop sub-packages (``unxts.interop.*``),
     which cannot be reliably told apart by :class:`OptDeps` -- its members alias
