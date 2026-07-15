@@ -283,8 +283,8 @@ def ustrip(flag: type[AllowValue], u: Any, x: AstropyQuantity, /) -> Any:
     >>> import astropy.units as apyu
     >>> import unxt as u
     >>> q = apyu.Quantity(1000, "m")
-    >>> u.ustrip(AllowValue, "km", q)
-    np.float64(1.0)
+    >>> float(u.ustrip(AllowValue, "km", q))
+    1.0
 
     """
     return uapi.ustrip(u, x)

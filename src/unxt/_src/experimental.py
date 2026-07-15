@@ -207,7 +207,7 @@ def hessian(
     Quantity(Array(12., dtype=float32...), unit='m')
 
     """
-    theunits: tuple[AbstractUnit | None, ...] = tuple(map(unit_or_none, units))
+    theunits: tuple[AbstractUnit, ...] = tuple(map(unit_or_none, units))
 
     @ft.partial(jax.hessian)
     def hessfun_mag(*args: Any) -> R:
