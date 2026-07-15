@@ -64,8 +64,5 @@ describe_command = [
   "unxt-api-v*",
 ]
 
-[tool.hatch.build.hooks.vcs]
-version-file = "src/unxt_api/_version.py"
-
 [tool.uv.sources]
 "unxts.api" = { workspace = true }
