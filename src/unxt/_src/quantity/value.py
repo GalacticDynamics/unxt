@@ -346,9 +346,11 @@ def convert_to_quantity_value(obj: ArrayLike | list[Any] | tuple[Any, ...], /) -
 
     # JAX 0.7.2+ introduces TypedInt, TypedFloat, TypedComplex for
     # type-preserving operations. These are not jax.Array instances but carry
-    # dtype information. We need to explicitly convert them to proper arrays
-    # while preserving dtype.
+    # dtype information. Materialise them via ``jax.numpy.asarray`` (not the
+    # quaxed one), which converts a weak Python scalar into a *weak* ``jax.Array``
+    # -- passing an explicit ``dtype`` would force ``weak_type=False`` and make
+    # ``Quantity(1.0, ...)`` over-promote relative to native JAX.
     if not isinstance(out, jax.Array):
-        out = jnp.asarray(out, dtype=out.dtype)
+        out = jax.numpy.asarray(out)
 
     return out
