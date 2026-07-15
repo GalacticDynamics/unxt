@@ -5,18 +5,28 @@ import pytest
 from unxt._interop.optional_deps import OptDeps, is_installed
 
 
-class TestOptDepsNoAliasing:
-    """`OptDeps` members must never silently alias each other."""
+class TestOptDepsExcludesNamespacePackages:
+    """`OptDeps` must not contain unxt's own version-colliding `unxts.*`."""
 
-    def test_optdeps_has_no_aliased_members(self) -> None:
-        """Members sharing a value must not collapse into aliases.
+    def test_optdeps_has_no_unxts_members(self) -> None:
+        """Guard against reintroducing ``unxts.*`` packages into ``OptDeps``.
 
-        Enum members with equal values become aliases: the second is silently
-        dropped from ``list(OptDeps)`` while remaining in ``__members__``. This
-        happened when several ``unxts.interop.*`` packages shared the monorepo
-        version, so matplotlib/xarray aliased gala.
+        ``OptionalDependencyEnum`` keys each member on its installed *version*,
+        so any two members that share a version silently collapse into one enum
+        alias. unxt's own ``unxts.*`` packages are released together and so
+        typically share a version; that is the concrete aliasing this PR fixed
+        (matplotlib/xarray aliasing gala). They must be detected with
+        ``is_installed`` instead of being ``OptDeps`` members.
+
+        Asserting on the aliasing directly (``len(__members__) == len(OptDeps)``)
+        is version/environment-dependent, so assert the underlying invariant: no
+        member is a ``unxts.*`` package.
         """
-        assert len(OptDeps.__members__) == len(list(OptDeps))
+        offenders = [n for n in OptDeps.__members__ if n.startswith("UNXTS")]
+        assert not offenders, (
+            "unxts.* packages must not be OptDeps members (they alias by shared "
+            f"version); detect them with is_installed() instead. Found: {offenders}"
+        )
 
 
 class TestIsInstalled:
