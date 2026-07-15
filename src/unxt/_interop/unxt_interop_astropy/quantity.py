@@ -166,7 +166,7 @@ def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAng
 
 
 @plum.conversion_method(type_from=AstropyQuantity, type_to=Quantity)  # type: ignore[arg-type]
-def convert_astropy_quantity_to_unxt_barequantity(q: AstropyQuantity, /) -> Quantity:
+def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity:
     """Convert a `astropy.units.Quantity` to a `unxt.Quantity`.
 
     Examples
@@ -285,10 +285,12 @@ def ustrip(flag: type[AllowValue], u: Any, x: AstropyQuantity, /) -> Any:
 
     Examples
     --------
+    >>> import astropy.units as apyu
     >>> import unxt as u
-    >>> q = u.Q(1000, "m")
-    >>> u.ustrip(AllowValue, "km", q)
-    Array(1., dtype=float32, ...)
+    >>> from unxt.quantity import AllowValue
+    >>> q = apyu.Quantity(1000, "m")
+    >>> float(u.ustrip(AllowValue, "km", q))
+    1.0
 
     """
     return uapi.ustrip(u, x)
