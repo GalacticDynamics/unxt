@@ -8,12 +8,13 @@ correctness.
 
 - **`Quantity`**: The default quantity class, no dimension parametrization,
   aliased as `Q`.
-- **`ParametricQuantity`**: Dimension-parametrized with runtime checking,
-  aliased as `PQ`.
-- **`StaticQuantity`**: Parametric quantity with static NumPy values for JAX
-  static arguments.
+- **`StaticQuantity`**: Quantity holding a static NumPy value, for use as a JAX
+  static argument.
 - **`Angle`**: Specialized quantity type for angular measurements with wrapping
   support.
+
+Dimension-parametrized quantities with runtime checking (`ParametricQuantity`,
+aliased `PQ`) now live in the separate `unxts.parametric` package.
 
 ## Key Functions
 
