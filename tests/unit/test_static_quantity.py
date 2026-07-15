@@ -1,5 +1,7 @@
 """Tests for StaticQuantity."""
 
+import copy
+import pickle
 from functools import partial
 
 import equinox as eqx
@@ -13,6 +15,51 @@ from hypothesis.extra.numpy import arrays as np_arrays
 from plum import promote
 
 import unxt as u
+from unxt.quantity import StaticValue
+
+
+def test_static_value_pickle_roundtrip() -> None:
+    """A `StaticValue` survives a pickle round-trip unchanged.
+
+    Regression: `StaticValue.__getattr__` forwarded ``__setstate__`` to the
+    wrapped array, and dereferenced ``_array`` before it was restored, so
+    unpickling recursed infinitely (`RecursionError`).
+    """
+    sv = StaticValue(np.array([1.0, 2.0], dtype=np.float64))
+    got = pickle.loads(pickle.dumps(sv))  # noqa: S301
+    assert isinstance(got, StaticValue)
+    assert np.array_equal(np.asarray(got), np.asarray(sv))
+    assert np.asarray(got).dtype == np.float64
+
+
+def test_static_value_deepcopy_preserves_type_and_dtype() -> None:
+    """`copy.deepcopy` returns an equal `StaticValue`, not the bare array.
+
+    Regression: numpy arrays define ``__deepcopy__``, so ``__getattr__``
+    forwarded the lookup and deepcopy returned the wrapped array (a
+    ``TypedNdArray``, silently downcast to float32) instead of a `StaticValue`.
+    """
+    sv = StaticValue(np.array([1.0, 2.0], dtype=np.float64))
+    got = copy.deepcopy(sv)
+    assert isinstance(got, StaticValue)
+    assert np.array_equal(np.asarray(got), np.asarray(sv))
+    assert np.asarray(got).dtype == np.float64
+    # deepcopy is independent: the copy is its own read-only buffer.
+    assert not np.shares_memory(np.asarray(got), np.asarray(sv))
+
+    shallow = copy.copy(sv)
+    assert isinstance(shallow, StaticValue)
+    assert np.array_equal(np.asarray(shallow), np.asarray(sv))
+
+
+def test_static_quantity_pickle_roundtrip() -> None:
+    """A `StaticQuantity` survives a pickle round-trip unchanged."""
+    sq = u.StaticQuantity(np.array([1.0, 2.0], dtype=np.float64), "m")
+    got = pickle.loads(pickle.dumps(sq))  # noqa: S301
+    assert isinstance(got, u.StaticQuantity)
+    assert got.unit == u.unit("m")
+    assert np.array_equal(np.asarray(got.value), np.asarray(sq.value))
+    assert hash(got) == hash(sq)
 
 
 def test_static_quantity_accepts_numpy() -> None:

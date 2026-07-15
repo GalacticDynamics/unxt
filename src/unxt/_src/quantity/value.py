@@ -133,6 +133,15 @@ class StaticValue:
         return self._array[key]
 
     def __getattr__(self, name: str) -> Any:
+        # Only forward *public* attributes to the wrapped array. Dunder and
+        # private names must raise ``AttributeError`` so that (a) the copy /
+        # pickle protocol (``__deepcopy__``, ``__setstate__``, ...) falls back
+        # to the correct slot-based default instead of being answered by the
+        # wrapped array, and (b) a lookup during reconstruction -- when the
+        # ``_array`` slot is not yet set -- cannot recurse through this method.
+        if name.startswith("_"):
+            msg = f"{type(self).__name__!r} object has no attribute {name!r}"
+            raise AttributeError(msg)
         return getattr(jnp.asarray(self._array), name)
 
     def __repr__(self) -> str:
