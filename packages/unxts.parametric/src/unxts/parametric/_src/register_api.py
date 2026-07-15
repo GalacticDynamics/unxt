@@ -3,6 +3,7 @@
 __all__: tuple[str, ...] = ()
 
 import equinox as eqx
+
 from unxts.api import dimension_of
 
 from .base_parametric import AbstractParametricQuantity

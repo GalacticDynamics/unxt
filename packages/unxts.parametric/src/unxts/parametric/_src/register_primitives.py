@@ -19,10 +19,11 @@ from jax import lax
 from jaxtyping import ArrayLike
 from plum import type_unparametrized as type_np
 
+from unxts.api import ustrip
+
 from .base_parametric import AbstractParametricQuantity as ABCPQ  # noqa: N814
 from .parametric import ParametricQuantity
 from unxt.quantity import AbstractQuantity as ABCQ  # noqa: N814
-from unxt_api import ustrip
 
 # ==============================================================================
 # clamp
