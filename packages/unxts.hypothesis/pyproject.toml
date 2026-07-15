@@ -7,7 +7,6 @@ classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: BSD License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3",
@@ -22,7 +21,7 @@ classifiers = [
 dependencies = ["unxt>=2.0.0", "hypothesis[numpy]>=6.138.14", "jax>=0.5.3"]
 description = "Hypothesis strategies for unxt (canonical: unxts.hypothesis)"
 dynamic = ["version"]
-license.text = "BSD-3-Clause"
+license = "BSD-3-Clause"
 name = "unxts.hypothesis"
 readme = "README.md"
 requires-python = ">=3.11"
