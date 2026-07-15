@@ -75,6 +75,12 @@ def grad(
     >>> grad_cube_volume(u.Q(2.0, "m"))
     Quantity(Array(12., dtype=float32...), unit='m2')
 
+    Inputs are converted to ``units`` first, so a convertible input gives the
+    same result (``200 cm`` is ``2 m``):
+
+    >>> grad_cube_volume(u.Q(200.0, "cm"))
+    Quantity(Array(12., dtype=float32...), unit='m2')
+
     A ``None`` entry in ``units`` marks an argument as a plain (unitless) value
     rather than a `Quantity`, so functions can mix the two:
 
@@ -104,8 +110,15 @@ def grad(
             (a if unit is None else ustrip(unit, a))
             for a, unit in zip(args, theunits, strict=True)  # type: ignore[arg-type]
         )
-        # Call the grad, returning a Quantity
-        value = fun(*args)
+        # Evaluate the value on the same args normalized to ``units`` that the
+        # gradient is computed from, so its unit is consistent — an input given
+        # in a convertible unit (e.g. cm for ``units=("m",)``) yields the same
+        # result as the normalized unit.
+        qargs = tuple(  # type: ignore[var-annotated]
+            (a if unit is None else Quantity(ustrip(unit, a), unit))
+            for a, unit in zip(args, theunits, strict=True)  # type: ignore[arg-type]
+        )
+        value = fun(*qargs)
         grad_value = gradfun_mag(*args_)
         # Adjust the Quantity by the units of the derivative. A dimensionless
         # differentiation argument (unit ``None``) contributes no unit.
