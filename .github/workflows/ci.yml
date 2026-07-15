@@ -192,6 +192,7 @@ jobs:
 
       - name: Test package
         run: |
+          uv run --frozen --package unxts-api pytest packages/unxts.api/src
           uv run --frozen --package unxts-api pytest packages/unxts.api/tests --cov=packages/unxts.api/src --cov-report=xml --cov-report=term
 
       - name: Upload coverage report
@@ -231,6 +232,11 @@ jobs:
 
       - name: Test package
         run: |
+          # src doctests: leaf dir `unxts/hypothesis` shadows the installed
+          # `hypothesis`, so sybil mis-imports it. Run these via pytest's
+          # namespace-aware --doctest-modules (doctest plugin re-enabled by
+          # overriding addopts, which otherwise sets `-p no:doctest`).
+          uv run --frozen --package unxts-hypothesis pytest packages/unxts.hypothesis/src --doctest-modules -o addopts="--import-mode=importlib" -o consider_namespace_packages=true -o doctest_optionflags="ELLIPSIS NORMALIZE_WHITESPACE"
           uv run --frozen --package unxts-hypothesis pytest packages/unxts.hypothesis/tests --cov=packages/unxts.hypothesis/src --cov-report=xml --cov-report=term
 
       - name: Upload coverage report
@@ -270,6 +276,9 @@ jobs:
 
       - name: Test package
         run: |
+          # src doctests: leaf dir `unxts/interop/gala` shadows the installed
+          # `gala`, so sybil mis-imports it; use namespace-aware --doctest-modules.
+          uv run --frozen --package unxts-interop-gala pytest packages/unxts.interop.gala/src --doctest-modules -o addopts="--import-mode=importlib" -o consider_namespace_packages=true -o doctest_optionflags="ELLIPSIS NORMALIZE_WHITESPACE"
           uv run --frozen --package unxts-interop-gala pytest packages/unxts.interop.gala/tests --cov=packages/unxts.interop.gala/src --cov-report=xml --cov-report=term
 
       - name: Upload coverage report
@@ -348,6 +357,9 @@ jobs:
 
       - name: Test package
         run: |
+          # src doctests: leaf dir `unxts/interop/xarray` shadows the installed
+          # `xarray`, so sybil mis-imports it; use namespace-aware --doctest-modules.
+          uv run --frozen --package unxts-interop-xarray pytest packages/unxts.interop.xarray/src --doctest-modules -o addopts="--import-mode=importlib" -o consider_namespace_packages=true -o doctest_optionflags="ELLIPSIS NORMALIZE_WHITESPACE"
           uv run --frozen --package unxts-interop-xarray pytest packages/unxts.interop.xarray/tests --cov=packages/unxts.interop.xarray/src --cov-report=xml --cov-report=term
 
       - name: Upload coverage report

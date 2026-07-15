@@ -3,6 +3,7 @@
 import os
 from collections.abc import Callable, Iterable, Sequence
 from doctest import ELLIPSIS, NORMALIZE_WHITESPACE
+from pathlib import Path
 from typing import Any
 
 from sybil import Document, Region, Sybil
@@ -62,7 +63,29 @@ python = Sybil(
 )
 
 
-pytest_collect_file = (docs + python).pytest()
+_sybil_collect_file = (docs + python).pytest()
+
+# Sybil imports a doctest module by walking up through ``__init__.py`` dirs, so
+# at a PEP 420 namespace boundary it computes a leaf-based module name. For the
+# ``unxts.*`` packages whose leaf shadows an installed library
+# (gala/xarray/hypothesis) that name collides with the real library and the
+# import fails. Their ``src`` doctests are instead run with pytest's
+# ``--doctest-modules --import-mode=importlib`` (namespace-aware) in each
+# package's CI job, so skip them here to avoid the failing sybil import.
+# (unxts.interop.matplotlib also collides but has no ``src`` doctests, so sybil
+# never imports it; it stays on the normal path.)
+_DOCTEST_MODULE_SRC = (
+    "packages/unxts.interop.gala/src/",
+    "packages/unxts.interop.xarray/src/",
+    "packages/unxts.hypothesis/src/",
+)
+
+
+def pytest_collect_file(file_path: Path, parent: object) -> object:
+    """Collect doctests with Sybil, except the namespace ``src`` handled above."""
+    if any(marker in file_path.as_posix() for marker in _DOCTEST_MODULE_SRC):
+        return None
+    return _sybil_collect_file(file_path, parent)
 
 
 class OptDeps(OptionalDependencyEnum):
