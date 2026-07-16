@@ -2591,12 +2591,12 @@ def gt_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
     >>> import unxt as u
     >>> q1 = u.quantity.Quantity(1_001.0, "m")
     >>> q2 = u.quantity.Quantity(1.0, "km")
-    >>> jnp.greater_equal(q1, q2)
+    >>> jnp.greater(q1, q2)
     Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
-    >>> jnp.greater_equal(q1, q2)
+    >>> jnp.greater(q1, q2)
     Quantity(Array(True, dtype=bool...), unit='')
 
     """
@@ -2623,16 +2623,16 @@ def gt_p_vq(x: ArrayLike, y: ABCQ) -> ABCQ:
     >>> x = jnp.asarray(1_001.0)
 
     >>> q2 = u.quantity.Quantity(1.0, "")
-    >>> jnp.greater_equal(x, q2)
+    >>> jnp.greater(x, q2)
     Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1.0, "")
-    >>> jnp.greater_equal(x, q2)
+    >>> jnp.greater(x, q2)
     Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
-    ...     jnp.greater_equal(x, q2)
+    ...     jnp.greater(x, q2)
     ... except Exception as e:
     ...     print("can't compare")
     can't compare
@@ -2659,16 +2659,16 @@ def gt_p_qv(x: ABCQ, y: ArrayLike) -> ABCQ:
     >>> y = jnp.asarray(0.9)
 
     >>> q1 = u.quantity.Quantity(1.0, "")
-    >>> jnp.greater_equal(q1, y)
+    >>> jnp.greater(q1, y)
     Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1.0, "")
-    >>> jnp.greater_equal(q1, y)
+    >>> jnp.greater(q1, y)
     Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
-    ...     jnp.greater_equal(q1, y)
+    ...     jnp.greater(q1, y)
     ... except Exception as e:
     ...     print("can't compare")
     can't compare
