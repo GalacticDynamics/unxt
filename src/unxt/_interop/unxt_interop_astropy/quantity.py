@@ -183,6 +183,30 @@ def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity
     return Quantity(uapi.ustrip(u, q), u)
 
 
+@plum.conversion_method(type_from=AstropyQuantity, type_to=AbstractQuantity)  # type: ignore[arg-type]
+def convert_astropy_quantity_to_unxt_abstractquantity(
+    q: AstropyQuantity, /
+) -> AbstractQuantity:
+    """Convert a `astropy.units.Quantity` to a `unxt.Quantity`.
+
+    Registered against the abstract base so callers that only have
+    `~unxt.quantity.AbstractQuantity` in scope (e.g. arithmetic coercion in
+    ``AbstractQuantity``) can request the conversion without importing the
+    concrete `~unxt.Quantity`. The result is a concrete `unxt.Quantity`.
+
+    Examples
+    --------
+    >>> from astropy.units import Quantity as AstropyQuantity
+    >>> from plum import convert
+    >>> from unxt.quantity import AbstractQuantity
+
+    >>> convert(AstropyQuantity(1.0, "cm"), AbstractQuantity)
+    Quantity(Array(1., dtype=float32), unit='cm')
+
+    """
+    return convert_astropy_quantity_to_unxt_quantity(q)
+
+
 ###############################################################################
 
 

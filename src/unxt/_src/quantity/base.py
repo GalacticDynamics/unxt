@@ -77,9 +77,10 @@ def _coerce_foreign_quantity(other: Any) -> Any:
     stripped to a bare array by `quax`.
     """
     if isinstance(other, _astropy_quantity_types()):
-        from .quantity import Quantity  # noqa: PLC0415  # avoids an import cycle
-
-        return convert(other, Quantity)
+        # A conversion to the abstract base is registered in the astropy interop
+        # (loaded whenever astropy is present), returning a concrete Quantity --
+        # so we needn't import the concrete class here.
+        return convert(other, AbstractQuantity)
     return other
 
 
