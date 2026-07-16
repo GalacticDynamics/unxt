@@ -5,8 +5,10 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
+from plum import convert
 
 import unxt as u
+from unxt.quantity import AbstractQuantity
 
 
 class TestUconvertValueWithAstropyUnits:
@@ -255,3 +257,60 @@ class TestUconvertValueAstropyErrorHandling:
         # Try to convert to incompatible unit (time)
         with pytest.raises(apyu.UnitConversionError, match="not convertible"):
             u.uconvert_value("s", "m", apy_q)
+
+
+class TestMixedUnxtAstropyArithmetic:
+    """Arithmetic with an ``unxt.Quantity`` on the left and an astropy one on the right.
+
+    Regression: quax materialised the astropy operand via ``__array__`` (in its
+    own unit, stripped), so ``*``/``/`` silently dropped its unit and ``+``/``-``
+    raised as if it were dimensionless.
+    """
+
+    def test_mul_combines_units(self) -> None:
+        """``unxt_q * astropy_q`` keeps both units."""
+        got = u.Q(1.0, "m") * apyu.Quantity(2.0, "km")
+        assert isinstance(got, u.Q)
+        assert np.isclose(np.asarray(got.value), 2.0)
+        assert got.unit == u.unit("m km")
+
+    def test_truediv_combines_units(self) -> None:
+        """``unxt_q / astropy_q`` keeps both units."""
+        got = u.Q(1.0, "m") / apyu.Quantity(2.0, "km")
+        assert isinstance(got, u.Q)
+        assert np.isclose(np.asarray(got.value), 0.5)
+        assert got.unit == u.unit("m / km")
+
+    def test_add_converts_and_combines(self) -> None:
+        """``unxt_q + astropy_q`` converts the astropy operand first."""
+        got = u.Q(1.0, "m") + apyu.Quantity(2.0, "km")
+        assert isinstance(got, u.Q)
+        assert got.unit == u.unit("m")
+        assert np.isclose(np.asarray(got.value), 2001.0)
+
+    def test_sub_converts_and_combines(self) -> None:
+        """``unxt_q - astropy_q`` converts the astropy operand first."""
+        got = u.Q(1.0, "m") - apyu.Quantity(2.0, "km")
+        assert isinstance(got, u.Q)
+        assert got.unit == u.unit("m")
+        assert np.isclose(np.asarray(got.value), -1999.0)
+
+    def test_add_incompatible_units_raises(self) -> None:
+        """Adding an incompatible astropy quantity still raises."""
+        with pytest.raises(apyu.UnitConversionError, match="not convertible"):
+            _ = u.Q(1.0, "m") + apyu.Quantity(2.0, "s")
+
+    def test_plum_convert_astropy_to_unxt(self) -> None:
+        """`plum.convert` from an astropy Quantity yields an ``unxt`` Quantity.
+
+        The astropy->unxt conversion is registered against the abstract base
+        (``type_to=AbstractQuantity``); `plum` resolves a conversion whose
+        ``type_to`` is a supertype of the requested target, so both the concrete
+        ``Quantity`` and the base ``AbstractQuantity`` targets must resolve.
+        """
+        aq = apyu.Quantity(2.0, "km")
+        for target in (u.quantity.Quantity, AbstractQuantity):
+            got = convert(aq, target)
+            assert isinstance(got, u.quantity.Quantity)
+            assert got.unit == u.unit("km")
+            assert np.isclose(np.asarray(got.value), 2.0)
