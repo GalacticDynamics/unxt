@@ -29,7 +29,7 @@ What `ParametricQuantity` _does_ add is a new Python class — and a new registe
 
 ## Equality with `StaticValue`
 
-A normal `ParametricQuantity` (backed by a JAX array) follows NumPy broadcasting: `==` returns an **element-wise boolean array**, not a scalar `bool`. That makes it unusable as a `jax.jit` `static_argnames` argument. Wrapping the value in a `StaticValue` makes `==` return a **scalar `bool`** (structural equality, like a tuple), so the whole quantity is hashable and safe as a static argument. This comparison is **unit-blind** — quantities are equal only when their unit labels match, so physically-equal but differently-labelled quantities stay distinct static-arg cache keys; convert first to compare across units:
+A normal `ParametricQuantity` (backed by a JAX array) follows NumPy broadcasting: `==` returns an **element-wise boolean array**, not a scalar `bool`. That makes it unusable as a `jax.jit` `static_argnames` argument. Wrapping the value in a `StaticValue` makes `==` return a **scalar `bool`** (structural equality, like a tuple), so the whole quantity is hashable and safe as a static argument. This comparison is **unit-blind** — quantities are equal only when their unit labels match, so physically-equal but differently-labelled quantities stay distinct static-arg cache keys. Use {func}`unxt.equivalent` (or the `.is_equivalent` method) for a unit-aware "same physical quantity" check; the example below shows the unit-blind `==`:
 
 ```{code-block} python
 >>> import numpy as np

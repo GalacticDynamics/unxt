@@ -6,6 +6,8 @@
 #    `_astropy_quantity_types` lazily imports `unxt._interop.OptDeps` and
 #    `astropy.units.Quantity`; importing `_interop` at module scope would cycle
 #    back through the interop registration into this package.
+#    `is_equivalent` imports `equivalent` from `register_compare` lazily to avoid
+#    an import cycle (register_compare imports this module)
 
 __all__ = ("AbstractQuantity", "is_any_quantity")
 
@@ -766,6 +768,23 @@ class AbstractQuantity(
             and isinstance(other, AbstractQuantity)
             and isinstance(other.value, StaticValue)
         )
+
+    def is_equivalent(self, other: "AbstractQuantity", /) -> Any:
+        """Whether ``self`` and ``other`` are physically equal (unit-aware).
+
+        The method form of `unxt.equivalent`; unlike ``==`` (which is unit-blind
+        for `StaticValue`-backed quantities) this accounts for unit conversion.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> u.Q(1000.0, "m").is_equivalent(u.Q(1.0, "km"))
+        Quantity(Array(True, dtype=bool...), unit='')
+
+        """
+        from .register_compare import equivalent  # noqa: PLC0415
+
+        return equivalent(self, other)
 
     def __hash__(self) -> int:
         """Return the hash of the quantity.

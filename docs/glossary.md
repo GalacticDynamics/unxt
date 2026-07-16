@@ -53,4 +53,10 @@ Non-parametric Class
   A non-parametric class is a class that is not defined by a set of parameters.
   The `unxt.quantity.Quantity` class is an example of a non-parametric class; it does not use any parameter.
 
+Equality
+  For quantities, `==`. On a `StaticValue`-backed quantity it is **unit-blind** — two quantities are equal only when their unit *labels* match (so they remain distinct `jax.jit` `static_argnames` keys). Array-backed quantities compare element-wise and unit-aware. See {term}`Equivalence` for a cross-unit comparison.
+
+Equivalence
+  Whether two quantities are the **same physical amount**, accounting for unit conversion — e.g. `1000 m` and `1 km` are equivalent though not equal. Exposed as {func}`unxt.equivalent` and the `is_equivalent` method. The same `equivalent` function also reports whether two {term}`Unit System`\ s span the same dimensions.
+
 ```

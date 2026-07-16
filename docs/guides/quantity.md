@@ -565,6 +565,30 @@ This contrasts with a regular `Quantity` (JAX array value), where `==` follows N
 Quantity(Array([ True, False], dtype=bool), unit='')
 ```
 
+### Equality vs. equivalence
+
+Because `==` on a `StaticValue`-backed quantity is **unit-blind**, reach for {func}`unxt.equivalent` (or the {meth}`~unxt.quantity.AbstractQuantity.is_equivalent` method) when you want a **unit-aware** "same physical quantity" check:
+
+```{code-block} python
+>>> u.Q(sv1, "m") == u.Q(sv_km, "km")               # unit-blind: labels differ
+False
+>>> u.equivalent(u.Q(sv1, "m"), u.Q(sv_km, "km"))   # unit-aware: same amount
+True
+>>> u.Q(sv1, "m").is_equivalent(u.Q(sv_km, "km"))
+True
+```
+
+`equivalent` mirrors `==`'s shape — a scalar `bool` for `StaticValue`-backed operands, an element-wise dimensionless `Quantity` for array-backed ones — and returns `False` (never raises) for incompatible dimensions:
+
+```{code-block} python
+>>> u.equivalent(u.Q([1.0, 2.0], "m"), u.Q([0.001, 0.009], "km"))
+Quantity(Array([ True, False], dtype=bool), unit='')
+>>> u.equivalent(u.Q(1.0, "m"), u.Q(1.0, "s"))       # incompatible dimensions
+False
+```
+
+**Rule of thumb:** use `==` for structural identity (and as a `jax.jit` `static_argnames` key); use `equivalent` to ask whether two quantities represent the same physical amount regardless of unit. The same `equivalent` function also compares unit systems (see {doc}`units_and_systems`).
+
 ### Using `Quantity(StaticValue)` as a `jax.jit` static argument
 
 Because equality returns `bool` and `StaticValue` is hashable, the whole `Quantity` is hashable, which lets JAX use it as a compile-time constant:

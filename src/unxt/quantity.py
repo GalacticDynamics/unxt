@@ -137,6 +137,8 @@ __all__ = (
     "is_any_quantity",
     "convert_to_quantity_value",
     "AllowValue",
+    # Comparison
+    "equivalent",
     # NumPy ufunc registry
     "register_ufunc",
 )
@@ -155,6 +157,7 @@ with install_import_hook("unxt.quantity"):
         StaticQuantity,
         StaticValue,
         convert_to_quantity_value,
+        equivalent,
         is_any_quantity,
         register_ufunc,
     )

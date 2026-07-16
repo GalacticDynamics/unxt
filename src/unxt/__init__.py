@@ -56,6 +56,7 @@ __all__ = (
     "uconvert",  # convert units
     "ustrip",  # strip units
     "is_unit_convertible",  # check if units can be converted
+    "equivalent",  # physical equivalence (unit-aware), incl. unit systems
 )
 
 from .setup_package import install_import_hook
@@ -77,7 +78,12 @@ with install_import_hook("unxt"):
         ustrip,
     )
     from .units import AbstractUnit, unit, unit_of
-    from .unitsystems import AbstractUnitSystem, unitsystem, unitsystem_of
+    from .unitsystems import (
+        AbstractUnitSystem,
+        equivalent,
+        unitsystem,
+        unitsystem_of,
+    )
 
 from ._src import experimental  # noqa: F401
 
