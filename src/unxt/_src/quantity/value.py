@@ -147,6 +147,15 @@ class StaticValue:
     def __repr__(self) -> str:
         return wl.pformat(self, short_arrays=False, max_width=80)
 
+    def __format__(self, format_spec: str, /) -> str:
+        """Format the wrapped value, delegating to the NumPy array.
+
+        This makes ``format(sv, spec)`` (and hence formatting a
+        ``StaticQuantity``) behave like formatting the underlying scalar; a
+        non-scalar value raises ``TypeError`` as NumPy does.
+        """
+        return format(self._array, format_spec)
+
     @override
     def __eq__(self, other: object, /) -> bool | np.ndarray:  # type: ignore[override]
         if isinstance(other, StaticValue):
