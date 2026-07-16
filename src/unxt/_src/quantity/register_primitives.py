@@ -1582,6 +1582,14 @@ def custom_linear_solve_q(
         **kw,
     )
 
+    # ``linear_solve_p`` has ``multiple_results=True`` and returns a
+    # single-element list ``[solution]``. Passing that list straight to the
+    # quantity constructor made ``jnp.asarray([arr])`` add a spurious leading
+    # axis (e.g. ``(1, n)`` for a 1-D ``b``); unwrap it so the solution keeps
+    # the RHS shape.
+    if isinstance(result_value, (list, tuple)):
+        (result_value,) = result_value
+
     # Cannot use replace() because physical type may change (e.g., m*s -> s when
     # dividing by m) Use type_np to get non-parametric Quantity constructor
     # Return as list to match JAX primitive conventions
@@ -1612,6 +1620,11 @@ def custom_linear_solve_q_array_arg6(
     result_value = lax.linear_solve_p.bind(  # type: ignore[no-untyped-call]
         ustrip(u0, x0), ustrip(u0, x1), ustrip(u0, x2), x3, ustrip(u0, x4), x5, x6, **kw
     )
+
+    # ``linear_solve_p`` returns a single-element list ``[solution]``; unwrap it
+    # so wrapping into a quantity does not add a spurious leading axis.
+    if isinstance(result_value, (list, tuple)):
+        (result_value,) = result_value
 
     # Cannot use replace() because physical type changes (m -> 1/m)
     # Use type_np to get non-parametric Quantity constructor
