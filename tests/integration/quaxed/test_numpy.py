@@ -1963,7 +1963,6 @@ def test_linalg_eigvalsh():
     assert jnp.allclose(got.value, exp.value)
 
 
-@pytest.mark.xfail(reason="TODO: fix")
 def test_linalg_inv():
     """Test `linalg.inv`."""
     # Inverse of matrix with unit m has unit 1/m
@@ -1973,6 +1972,7 @@ def test_linalg_inv():
 
     assert isinstance(got, u.Q)
     assert got.unit == exp.unit
+    assert got.value.shape == exp.value.shape
     assert jnp.allclose(got.value, exp.value)
 
 
@@ -2088,7 +2088,7 @@ def test_linalg_slogdet():
 
 
 def test_linalg_solve():
-    """Test `linalg.solve`."""
+    """Test `linalg.solve` with a 1-D right-hand side."""
     # Solve Ax = b where A has unit m and b has unit m*s, x has unit s
     a = u.Q(jnp.asarray([[1.0, 2.0], [3.0, 5.0]]), "m")
     b = u.Q(jnp.asarray([1.0, 2.0]), "m*s")
@@ -2097,6 +2097,21 @@ def test_linalg_solve():
 
     assert isinstance(got, u.Q)
     assert got.unit == exp.unit
+    # The solution has the same shape as the RHS (regression: was ``(1, n)``).
+    assert got.value.shape == exp.value.shape == (2,)
+    assert jnp.allclose(got.value, exp.value)
+
+
+def test_linalg_solve_2d_rhs():
+    """Test `linalg.solve` with a 2-D right-hand side (regression: crashed)."""
+    a = u.Q(jnp.asarray([[1.0, 2.0], [3.0, 5.0]]), "m")
+    b = u.Q(jnp.asarray([[1.0, 2.0], [3.0, 4.0]]), "m*s")
+    got = jnp.linalg.solve(a, b)
+    exp = u.Q(jnp.linalg.solve(a.value, b.value), "s")
+
+    assert isinstance(got, u.Q)
+    assert got.unit == exp.unit
+    assert got.value.shape == exp.value.shape == (2, 2)
     assert jnp.allclose(got.value, exp.value)
 
 
