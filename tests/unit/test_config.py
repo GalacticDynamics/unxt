@@ -6,6 +6,8 @@ import sys
 import textwrap
 import threading
 import time
+import tomllib
+import warnings
 from pathlib import Path
 
 import pytest
@@ -16,6 +18,7 @@ from unxt._src.config import (
     _find_pyproject,
     _load_toml_config_from_pyproject,
     _walk_toml_config,
+    _warn_if_legacy_unxt_config,
 )
 
 # =============================================================================
@@ -1017,3 +1020,66 @@ named_unit = false
     assert (package_root / "pyproject.toml").exists()
     assert (package_root / "src" / "my_physics_project" / "__init__.py").exists()
     assert (package_root / "README.md").exists()
+
+
+# =============================================================================
+# Reload and legacy-config-deprecation
+
+
+def test_config_has_reload() -> None:
+    """The config exposes a public ``reload`` method."""
+    assert callable(u.config.reload)
+
+
+def test_reload_picks_up_project_config(tmp_path: Path, monkeypatch) -> None:
+    """``config.reload()`` re-reads pyproject.toml from the current cwd."""
+    (tmp_path / "pyproject.toml").write_text(
+        "[tool.unxts.unxt.quantity.repr]\nuse_short_name = true\n",
+        encoding="utf-8",
+    )
+    before = u.config.quantity_repr.use_short_name
+    monkeypatch.chdir(tmp_path)
+    try:
+        loaded = u.config.reload()
+        assert loaded is True  # reports that it applied configuration
+        assert u.config.quantity_repr.use_short_name is True
+    finally:
+        u.config.quantity_repr.use_short_name = before
+
+
+def test_reload_returns_false_without_config(tmp_path: Path, monkeypatch) -> None:
+    """``config.reload()`` returns ``False`` when there's nothing to load."""
+    (tmp_path / "pyproject.toml").write_text(
+        "[project]\nname = 'x'\n", encoding="utf-8"
+    )
+    monkeypatch.chdir(tmp_path)
+    assert u.config.reload() is False
+
+
+def test_reload_returns_false_when_only_unknown_keys(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """A recognized section with only unknown keys applies nothing -> ``False``."""
+    (tmp_path / "pyproject.toml").write_text(
+        "[tool.unxts.unxt.quantity.repr]\nnot_a_real_key = true\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    assert u.config.reload() is False
+
+
+def test_legacy_tool_unxt_section_warns() -> None:
+    """A deprecated ``[tool.unxt]`` section emits a DeprecationWarning."""
+    data = tomllib.loads("[tool.unxt.quantity.repr]\nuse_short_name = true\n")
+    with pytest.warns(DeprecationWarning, match=r"tool\.unxt"):
+        _warn_if_legacy_unxt_config(data)
+
+
+def test_new_namespace_does_not_warn() -> None:
+    """The current ``[tool.unxts.unxt]`` section does not warn."""
+    data = tomllib.loads("[tool.unxts.unxt.quantity.repr]\nuse_short_name = true\n")
+    with warnings.catch_warnings():
+        # Only turn DeprecationWarning into an error so the test stays targeted
+        # and isn't made fragile by unrelated warnings.
+        warnings.simplefilter("error", DeprecationWarning)
+        _warn_if_legacy_unxt_config(data)  # must not raise
