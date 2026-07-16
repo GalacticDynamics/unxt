@@ -6,6 +6,8 @@
 #    `_astropy_quantity_types` lazily imports `unxt._interop.OptDeps` and
 #    `astropy.units.Quantity`; importing `_interop` at module scope would cycle
 #    back through the interop registration into this package.
+#    `is_equivalent` imports `equivalent` from `register_compare` lazily to avoid
+#    an import cycle (register_compare imports this module)
 
 __all__ = ("AbstractQuantity", "is_any_quantity")
 
@@ -691,9 +693,10 @@ class AbstractQuantity(
 
         When both operands carry a `StaticValue`, structural (scalar bool)
         equality is returned so that the quantity can be used safely as a
-        ``static_argnames`` argument in `jax.jit`. Units are accounted for by
-        converting `other` to `self`'s units before comparing. In all other
-        cases the element-wise `NumpyEqMixin` behaviour is preserved.
+        ``static_argnames`` argument in `jax.jit`; this comparison is
+        **unit-blind** -- the operands are equal only when their unit labels
+        match, with no unit conversion (see below). In all other cases the
+        element-wise `NumpyEqMixin` behaviour is preserved.
 
         Examples
         --------
@@ -719,31 +722,69 @@ class AbstractQuantity(
         >>> u.Q(sv1, "m") == u.Q(sv3, "m")
         False
 
-        Unit conversion is applied before comparing, so equivalent quantities in
-        different units compare equal:
+        For `StaticValue`-backed quantities this comparison is **unit-blind**:
+        they are equal only when their unit labels match (unlike the
+        array-backed path above, which returns an element-wise mask after unit
+        conversion). Unit-aware equality (``1000 m == 1 km``) is incompatible
+        with using a static quantity as a ``jax.jit`` ``static_argnames``
+        argument, where distinct units must remain distinct compilation cache
+        keys; it would also break the ``__eq__``/``__hash__`` contract, since the
+        hash is unit-label sensitive. Convert first if you want to compare
+        across units (e.g. ``a == b.uconvert(a.unit)``).
 
         >>> sv_km = u.quantity.StaticValue(np.array([0.001, 0.002]))
         >>> u.Q(sv1, "m") == u.Q(sv_km, "km")
-        True
-
-        Quantities with incompatible dimensions are never equal:
+        False
 
         >>> sv_s = u.quantity.StaticValue(np.array([1.0, 2.0]))
         >>> u.Q(sv1, "m") == u.Q(sv_s, "s")
         False
 
         """
-        if (
+        if self._is_static_backed(other):
+            return bool(
+                self.unit == other.unit
+                and np.array_equal(self.value.array, other.value.array)
+            )
+
+        return quax_blocks.NumpyEqMixin.__eq__(self, other)
+
+    def __ne__(self, other: object, /) -> Any:
+        """Return inequality, mirroring :meth:`__eq__`.
+
+        For two `StaticValue`-backed quantities this returns the scalar-`bool`
+        negation of the unit-blind equality, so ``==`` and ``!=`` stay
+        consistent (and usable as ``jax.jit`` static args). Otherwise it defers
+        to the element-wise NumPy comparison.
+        """
+        if self._is_static_backed(other):
+            return not self.__eq__(other)
+        return quax_blocks.NumpyNeMixin.__ne__(self, other)
+
+    def _is_static_backed(self, other: object, /) -> bool:
+        """Whether ``self`` and ``other`` are both `StaticValue`-backed."""
+        return (
             isinstance(self.value, StaticValue)
             and isinstance(other, AbstractQuantity)
             and isinstance(other.value, StaticValue)
-        ):
-            if not uapi.is_unit_convertible(other.unit, self.unit):
-                return False
-            converted = uapi.uconvert_value(self.unit, other.unit, other.value.array)
-            return bool(np.array_equal(self.value.array, converted))
+        )
 
-        return quax_blocks.NumpyEqMixin.__eq__(self, other)
+    def is_equivalent(self, other: "AbstractQuantity", /) -> Any:
+        """Whether ``self`` and ``other`` are physically equal (unit-aware).
+
+        The method form of `unxt.equivalent`; unlike ``==`` (which is unit-blind
+        for `StaticValue`-backed quantities) this accounts for unit conversion.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> u.Q(1000.0, "m").is_equivalent(u.Q(1.0, "km"))
+        Quantity(Array(True, dtype=bool...), unit='')
+
+        """
+        from .register_compare import equivalent  # noqa: PLC0415
+
+        return equivalent(self, other)
 
     def __hash__(self) -> int:
         """Return the hash of the quantity.

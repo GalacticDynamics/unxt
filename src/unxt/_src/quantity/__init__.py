@@ -13,6 +13,7 @@ from .value import *
 
 # isort: split
 from .register_api import *
+from .register_compare import *
 from .register_conversions import *
 from .register_dispatches import *
 from .register_primitives import *
