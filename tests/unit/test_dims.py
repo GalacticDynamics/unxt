@@ -25,6 +25,15 @@ class TestDimensionSimple:
         """Test dimension identity."""
         assert u.dimension(dim) is dim
 
+    def test_simple_name_is_whitespace_stripped(self):
+        """A simple dimension name with surrounding whitespace is stripped.
+
+        The operator path already strips; the simple-name path must too, so
+        ``dimension(" length ")`` matches ``dimension("length")``.
+        """
+        assert u.dimension(" length ") == u.dimension("length")
+        assert u.dimension("  mass\t") == u.dimension("mass")
+
 
 class TestDimensionMathematicalParsing:
     """Test dimension construction from mathematical expressions."""
@@ -127,6 +136,15 @@ class TestDimensionErrors:
         """Test that non-numeric exponents raise TypeError."""
         with pytest.raises(TypeError, match="Power exponent must be a number"):
             u.dimension("length**time")
+
+    def test_unary_minus_raises(self):
+        """A standalone unary ``-`` raises instead of meaning reciprocal.
+
+        Dimensions are invariant under negation; ``-(length)`` must not be
+        silently interpreted as ``1/length`` (``wavenumber``).
+        """
+        with pytest.raises(ValueError, match=r"[Uu]nary"):
+            u.dimension("-(length)")
 
 
 class TestDimensionOperatorDetection:
