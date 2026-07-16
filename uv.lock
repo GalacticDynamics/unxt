@@ -4724,6 +4724,7 @@ test = [
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
     { name = "sybil", extra = ["pytest"] },
+    { name = "unxt" },
 ]
 
 [package.metadata]
@@ -4738,6 +4739,7 @@ test = [
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
+    { name = "unxt", editable = "." },
 ]
 
 [[package]]
