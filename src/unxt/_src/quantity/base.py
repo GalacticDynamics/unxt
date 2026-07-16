@@ -691,9 +691,10 @@ class AbstractQuantity(
 
         When both operands carry a `StaticValue`, structural (scalar bool)
         equality is returned so that the quantity can be used safely as a
-        ``static_argnames`` argument in `jax.jit`. Units are accounted for by
-        converting `other` to `self`'s units before comparing. In all other
-        cases the element-wise `NumpyEqMixin` behaviour is preserved.
+        ``static_argnames`` argument in `jax.jit`; this comparison is
+        **unit-blind** -- the operands are equal only when their unit labels
+        match, with no unit conversion (see below). In all other cases the
+        element-wise `NumpyEqMixin` behaviour is preserved.
 
         Examples
         --------
