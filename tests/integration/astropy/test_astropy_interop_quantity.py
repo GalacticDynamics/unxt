@@ -5,8 +5,10 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
+from plum import convert
 
 import unxt as u
+from unxt.quantity import AbstractQuantity
 
 
 class TestUconvertValueWithAstropyUnits:
@@ -297,3 +299,18 @@ class TestMixedUnxtAstropyArithmetic:
         """Adding an incompatible astropy quantity still raises."""
         with pytest.raises(apyu.UnitConversionError, match="not convertible"):
             _ = u.Q(1.0, "m") + apyu.Quantity(2.0, "s")
+
+    def test_plum_convert_astropy_to_unxt(self) -> None:
+        """`plum.convert` from an astropy Quantity yields an ``unxt`` Quantity.
+
+        The astropy->unxt conversion is registered against the abstract base
+        (``type_to=AbstractQuantity``); `plum` resolves a conversion whose
+        ``type_to`` is a supertype of the requested target, so both the concrete
+        ``Quantity`` and the base ``AbstractQuantity`` targets must resolve.
+        """
+        aq = apyu.Quantity(2.0, "km")
+        for target in (u.quantity.Quantity, AbstractQuantity):
+            got = convert(aq, target)
+            assert isinstance(got, u.quantity.Quantity)
+            assert got.unit == u.unit("km")
+            assert np.isclose(np.asarray(got.value), 2.0)
