@@ -3,8 +3,9 @@
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
 # pylint: disable=import-outside-toplevel
-#    the astropy-coercion helper imports the concrete Quantity lazily to avoid
-#    an import cycle
+#    `_astropy_quantity_types` lazily imports `unxt._interop.OptDeps` and
+#    `astropy.units.Quantity`; importing `_interop` at module scope would cycle
+#    back through the interop registration into this package.
 
 __all__ = ("AbstractQuantity", "is_any_quantity")
 
