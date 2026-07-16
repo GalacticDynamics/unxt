@@ -120,9 +120,10 @@ def apply_ufunc(
 # Built-in overrides
 #
 # ``deg2rad``/``rad2deg``/``radians``/``degrees`` are angle *conversions*, but
-# JAX lowers them to ``x * (pi/180)`` (a bare ``mul``). The default delegation
-# to ``quaxed.numpy`` therefore scales the value while leaving the unit label
-# unchanged -- a silently wrong result (``deg2rad(180 deg) -> 3.14159 deg``).
+# JAX lowers them to a bare scalar ``mul`` (``x * pi/180`` for deg->rad,
+# ``x * 180/pi`` for rad->deg). The default delegation to ``quaxed.numpy``
+# therefore scales the value while leaving the unit label unchanged -- a
+# silently wrong result (``deg2rad(180 deg) -> 3.14159 deg``).
 # Register explicit handlers that convert an angle quantity to the target unit
 # (and raise on a non-angle quantity, matching astropy).
 

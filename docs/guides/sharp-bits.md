@@ -197,10 +197,10 @@ _ = jnp.deg2rad(u.Q(180.0, "deg"))
 Convert angles with `uconvert` (or the `.uconvert` method), which tracks units correctly:
 
 ```python
-# ✅ Quantity(3.14159, unit='rad')
+# ✅ converts degrees -> radians (value rescaled, unit label becomes 'rad')
 _ = u.Q(180.0, "deg").uconvert("rad")
 
-# ✅ Quantity(180., unit='deg')
+# ✅ converts radians -> degrees (value rescaled, unit label becomes 'deg')
 _ = u.uconvert("deg", u.Q(3.14159, "rad"))
 ```
 
