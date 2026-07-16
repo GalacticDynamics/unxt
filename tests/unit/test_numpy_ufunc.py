@@ -162,7 +162,7 @@ def test_deg2rad_converts_angle_to_radians():
     """
     for fn in (np.deg2rad, np.radians):
         got = fn(u.Q(180.0, "deg"))
-        assert isinstance(got, u.Q)
+        assert isinstance(got, u.quantity.Quantity)
         assert got.unit == u.unit("rad")
         assert np.isclose(np.asarray(got.value), np.pi)
 
@@ -176,7 +176,7 @@ def test_rad2deg_converts_angle_to_degrees():
     """``np.rad2deg``/``np.degrees`` convert an angle quantity to degrees."""
     for fn in (np.rad2deg, np.degrees):
         got = fn(u.Q(np.pi, "rad"))
-        assert isinstance(got, u.Q)
+        assert isinstance(got, u.quantity.Quantity)
         assert got.unit == u.unit("deg")
         assert np.isclose(np.asarray(got.value), 180.0)
 
