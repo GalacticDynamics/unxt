@@ -6,6 +6,7 @@ import sys
 import textwrap
 import threading
 import time
+import tomllib
 import warnings
 from pathlib import Path
 
@@ -1045,24 +1046,16 @@ def test_reload_picks_up_project_config(tmp_path: Path, monkeypatch) -> None:
         u.config.quantity_repr.use_short_name = before
 
 
-def test_legacy_tool_unxt_section_warns(tmp_path: Path) -> None:
+def test_legacy_tool_unxt_section_warns() -> None:
     """A deprecated ``[tool.unxt]`` section emits a DeprecationWarning."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(
-        "[tool.unxt.quantity.repr]\nuse_short_name = true\n",
-        encoding="utf-8",
-    )
-    with pytest.warns(DeprecationWarning, match="tool.unxt"):
-        _warn_if_legacy_unxt_config(pyproject)
+    data = tomllib.loads("[tool.unxt.quantity.repr]\nuse_short_name = true\n")
+    with pytest.warns(DeprecationWarning, match=r"tool\.unxt"):
+        _warn_if_legacy_unxt_config(data)
 
 
-def test_new_namespace_does_not_warn(tmp_path: Path) -> None:
+def test_new_namespace_does_not_warn() -> None:
     """The current ``[tool.unxts.unxt]`` section does not warn."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(
-        "[tool.unxts.unxt.quantity.repr]\nuse_short_name = true\n",
-        encoding="utf-8",
-    )
+    data = tomllib.loads("[tool.unxts.unxt.quantity.repr]\nuse_short_name = true\n")
     with warnings.catch_warnings():
         warnings.simplefilter("error")
-        _warn_if_legacy_unxt_config(pyproject)  # must not raise
+        _warn_if_legacy_unxt_config(data)  # must not raise

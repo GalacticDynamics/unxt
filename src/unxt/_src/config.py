@@ -565,8 +565,8 @@ class UnxtConfig(AbstractUnxtConfig, SingletonConfigurable):
         the current working directory at that moment. If ``unxt`` was imported
         before the process changed into the project directory (common in
         notebooks and test runners), that section is missed; call this to pick
-        it up. Values already set on the config are overwritten by the file;
-        unset ones are left as-is.
+        it up. Only keys present in the file are applied (overwriting the
+        current value); any other settings keep their current value.
 
         Examples
         --------
@@ -728,11 +728,29 @@ def _load_toml_config_from_pyproject(
         Traitlets Config object with nested configuration
 
     """
-    if path_to_class is None:
-        path_to_class = _TOML_PATH_TO_CONFIG_CLASS
-
     with path.open("rb") as f:
         data = tomllib.load(f)
+    return _config_from_toml_data(
+        data, tool_path=tool_path, path_to_class=path_to_class
+    )
+
+
+def _config_from_toml_data(
+    data: dict[str, Any],
+    /,
+    *,
+    tool_path: tuple[str, ...] = ("unxts", "unxt"),
+    path_to_class: dict[tuple[str, ...], str] | None = None,
+) -> Config:
+    """Build a :class:`Config` from already-parsed ``pyproject.toml`` data.
+
+    Split from :func:`_load_toml_config_from_pyproject` so a caller that has
+    already parsed the file (e.g. :func:`_auto_load_project_toml_config`, which
+    also needs the raw data for the legacy-section check) can reuse it without
+    re-reading and re-parsing the file.
+    """
+    if path_to_class is None:
+        path_to_class = _TOML_PATH_TO_CONFIG_CLASS
 
     # Navigate to the tool.<tool_path> section
     section: Any = data.get("tool")
@@ -773,19 +791,14 @@ def _initialize_config_mapping(cfg: UnxtConfig) -> None:
     )
 
 
-def _warn_if_legacy_unxt_config(path: Path, /) -> None:
+def _warn_if_legacy_unxt_config(data: dict[str, Any], /) -> None:
     """Warn if the deprecated ``[tool.unxt]`` pyproject section is present.
 
-    Before the namespace rename (unxt#685), configuration lived under
-    ``[tool.unxt]``; it is now read from ``[tool.unxts.unxt]``. A leftover
-    ``[tool.unxt]`` section is silently ignored, so warn the user to migrate.
+    Takes the already-parsed ``pyproject.toml`` data. Before the namespace
+    rename (unxt#685), configuration lived under ``[tool.unxt]``; it is now read
+    from ``[tool.unxts.unxt]``. A leftover ``[tool.unxt]`` section is silently
+    ignored, so warn the user to migrate.
     """
-    try:
-        with path.open("rb") as f:
-            data = tomllib.load(f)
-    except (OSError, tomllib.TOMLDecodeError):
-        return
-
     tool = data.get("tool")
     if isinstance(tool, dict) and isinstance(tool.get("unxt"), dict):
         warnings.warn(
@@ -811,13 +824,17 @@ def _auto_load_project_toml_config(cfg: UnxtConfig, /) -> None:
     if pyproject is None:
         return
 
-    _warn_if_legacy_unxt_config(pyproject)
-
+    # Read and parse the file once, then reuse the data for both the legacy
+    # deprecation check and the config load.
     try:
-        loaded = _load_toml_config_from_pyproject(pyproject)
-    except (OSError, tomllib.TOMLDecodeError, TypeError, KeyError):
+        with pyproject.open("rb") as f:
+            data = tomllib.load(f)
+    except (OSError, tomllib.TOMLDecodeError):
         # Never fail import because project config is missing or malformed.
         return
+
+    _warn_if_legacy_unxt_config(data)
+    loaded = _config_from_toml_data(data)
 
     if not loaded:
         return
