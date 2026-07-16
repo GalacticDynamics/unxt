@@ -548,12 +548,12 @@ True
 False
 ```
 
-Unit conversion is applied before comparison, so equivalent quantities in different units compare equal:
+For a `StaticValue`-backed quantity this comparison is **unit-blind**: they are equal only when their unit labels match. Unit-aware equality would collapse physically-equal but differently-labelled quantities (e.g. `1000 m` and `1 km`) into one `jax.jit` `static_argnames` cache key and break the `__eq__`/`__hash__` contract, so convert first if you want to compare across units:
 
 ```{code-block} python
 >>> sv_km = u.quantity.StaticValue(np.array([0.001, 0.002]))
->>> u.Q(sv1, "m") == u.Q(sv_km, "km")  # 0.001 km == 1 m → True
-True
+>>> u.Q(sv1, "m") == u.Q(sv_km, "km")  # different unit labels → False
+False
 ```
 
 This contrasts with a regular `Quantity` (JAX array value), where `==` follows NumPy broadcasting and returns a per-element boolean array wrapped in a dimensionless `Quantity` (so the result shares a namespace with the input, per the Array API):

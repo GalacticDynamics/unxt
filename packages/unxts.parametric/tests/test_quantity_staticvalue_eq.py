@@ -17,9 +17,9 @@ def test_quantity_staticvalue_equality_scalar_bool():
     assert result is True
     assert (u.Q(sv1, "m") == u.Q(sv3, "m")) is False
 
-    # Unit conversion is applied before comparing.
+    # Equality is unit-blind: different unit labels compare not-equal.
     sv_km = u.quantity.StaticValue(np.array([0.001, 0.002]))
-    assert (u.Q(sv1, "m") == u.Q(sv_km, "km")) is True
+    assert (u.Q(sv1, "m") == u.Q(sv_km, "km")) is False
 
     # Incompatible dimensions are never equal.
     sv_s = u.quantity.StaticValue(np.array([1.0, 2.0]))
