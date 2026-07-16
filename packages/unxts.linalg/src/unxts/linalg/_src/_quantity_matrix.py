@@ -151,7 +151,7 @@ class QuantityMatrix(u.AbstractQuantity):
         >>> qv.unit.to_string()
         '(m, s, kg)'
         >>> qv.value
-        Array([1., 2., 3.], dtype=float32)
+        Array([1., 2., 3.], dtype=float32, weak_type=True)
 
         Selecting and reordering a subset of keys:
 
@@ -159,7 +159,7 @@ class QuantityMatrix(u.AbstractQuantity):
         >>> qv2.unit.to_string()
         '(kg, m)'
         >>> qv2.value
-        Array([3., 1.], dtype=float32)
+        Array([3., 1.], dtype=float32, weak_type=True)
 
         Dimensionless entries (bare arrays) are accepted:
 
