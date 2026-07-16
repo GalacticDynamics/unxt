@@ -221,14 +221,14 @@ def test_scalar_weak_type_preserved():
     over-promoted (e.g. against a float16 array) relative to native JAX.
     """
     q = u.Q(1.0, "m")
-    assert q.value.weak_type is True
+    assert q.value.weak_type
     # Weak scalar does not up-promote a float16 array (matches native JAX).
     h = u.Q(jnp.asarray([1.0, 2.0], dtype=jnp.float16), "m")
     assert (q + h).dtype == jnp.float16
 
     # A real (non-scalar) array stays strongly typed.
     arr = u.Q([1, 2, 3], "m")
-    assert arr.value.weak_type is False
+    assert not arr.value.weak_type
 
 
 def test_uconvert_value_preserves_dtype():
