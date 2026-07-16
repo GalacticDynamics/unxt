@@ -2,6 +2,10 @@
 
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
+# pylint: disable=import-outside-toplevel
+#    `_astropy_quantity_types` lazily imports `unxt._interop.OptDeps` and
+#    `astropy.units.Quantity`; importing `_interop` at module scope would cycle
+#    back through the interop registration into this package.
 
 __all__ = ("AbstractQuantity", "is_any_quantity")
 
@@ -29,7 +33,7 @@ import quax_blocks
 import wadler_lindig as wl
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Bool, ScalarLike, Shaped
-from plum import add_promotion_rule, dispatch, type_nonparametric
+from plum import add_promotion_rule, convert, dispatch, type_nonparametric
 from quax import ArrayValue
 
 import quaxed.numpy as jnp
@@ -46,6 +50,39 @@ if TYPE_CHECKING:
 
 
 ArrayLikeSequence: TypeAlias = list[ScalarLike] | tuple[ScalarLike, ...]
+
+
+@ft.cache
+def _astropy_quantity_types() -> tuple[type, ...]:
+    """Return the astropy ``Quantity`` types to coerce, else ``()``.
+
+    Astropy is an optional backend, gated through the ``OptDeps`` mechanism.
+    The lookup is done lazily and cached (``functools.cache``): importing
+    ``unxt._interop`` (where ``OptDeps`` lives) at module scope would cycle back
+    through the interop registration into this package.
+    """
+    from unxt._interop import OptDeps  # noqa: PLC0415  # avoids an import cycle
+
+    if OptDeps.ASTROPY.installed:
+        from astropy.units import Quantity  # noqa: PLC0415
+
+        return (Quantity,)
+    return ()
+
+
+def _coerce_foreign_quantity(other: Any) -> Any:
+    """Convert an `astropy.units.Quantity` operand to an `unxt` quantity.
+
+    Any other operand is returned unchanged. Used by the arithmetic dunders so
+    that a foreign astropy quantity combines by its unit instead of being
+    stripped to a bare array by `quax`.
+    """
+    if isinstance(other, _astropy_quantity_types()):
+        # A conversion to the abstract base is registered in the astropy interop
+        # (loaded whenever astropy is present), returning a concrete Quantity --
+        # so we needn't import the concrete class here.
+        return convert(other, AbstractQuantity)
+    return other
 
 
 class AbstractQuantity(
@@ -728,6 +765,28 @@ class AbstractQuantity(
 
         """
         return hash((self.value, self.unit))
+
+    # ---------------------------------------------------------------
+    # Arithmetic with foreign (astropy) quantities
+    #
+    # When an ``astropy.units.Quantity`` is the right operand, ``quax`` would
+    # materialise it via ``__array__`` -- stripping it to a bare array in its
+    # own unit -- so ``*``/``/`` silently dropped its unit and ``+``/``-`` saw
+    # it as dimensionless. Convert such an operand to an ``unxt`` quantity first
+    # so units combine correctly. (Reflected ops are unnecessary: astropy's own
+    # ``__array_ufunc__`` handles ``astropy_q <op> unxt_q``.)
+
+    def __mul__(self, other: Any) -> Any:
+        return super().__mul__(_coerce_foreign_quantity(other))
+
+    def __truediv__(self, other: Any) -> Any:
+        return super().__truediv__(_coerce_foreign_quantity(other))
+
+    def __add__(self, other: Any) -> Any:
+        return super().__add__(_coerce_foreign_quantity(other))
+
+    def __sub__(self, other: Any) -> Any:
+        return super().__sub__(_coerce_foreign_quantity(other))
 
     def __pdoc__(
         self,
