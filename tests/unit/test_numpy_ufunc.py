@@ -6,6 +6,7 @@ units instead of silently dropping them.
 
 from unittest.mock import Mock
 
+import astropy.units as apyu
 import numpy as np
 import pytest
 
@@ -187,7 +188,7 @@ def test_rad2deg_converts_angle_to_degrees():
 def test_angle_ufuncs_reject_non_angle():
     """Angle ufuncs raise on a non-angle quantity instead of mangling it."""
     for fn in (np.deg2rad, np.rad2deg, np.radians, np.degrees):
-        with pytest.raises(Exception, match=r"convert|angle|dimension"):
+        with pytest.raises(apyu.UnitConversionError, match="not convertible"):
             fn(u.Q(5.0, "m"))
 
 
