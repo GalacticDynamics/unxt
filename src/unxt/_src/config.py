@@ -558,7 +558,7 @@ class UnxtConfig(AbstractUnxtConfig, SingletonConfigurable):
         self.quantity_repr = QuantityReprConfig(config=self.config, parent=self)
         self.quantity_str = QuantityStrConfig(config=self.config, parent=self)
 
-    def reload(self) -> None:
+    def reload(self) -> bool:
         """Re-read configuration from the nearest project ``pyproject.toml``.
 
         The ``[tool.unxts.unxt]`` section is auto-loaded once at import, using
@@ -568,13 +568,22 @@ class UnxtConfig(AbstractUnxtConfig, SingletonConfigurable):
         it up. Only keys present in the file are applied (overwriting the
         current value); any other settings keep their current value.
 
+        Returns
+        -------
+        bool
+            Whether any configuration was found and applied. This is ``False``
+            if no ``pyproject.toml`` was found from the current directory, it
+            could not be read/parsed, or it had no ``[tool.unxts.unxt]``
+            settings -- letting callers detect a no-op reload. (A missing or
+            malformed file is never raised, matching the import-time behavior.)
+
         Examples
         --------
         >>> import unxt as u
-        >>> u.config.reload()  # re-read pyproject.toml from the current cwd
+        >>> loaded = u.config.reload()  # re-read pyproject.toml from the cwd
 
         """
-        _auto_load_project_toml_config(self)
+        return _auto_load_project_toml_config(self, stacklevel=3)
 
 
 @dataclass(slots=True)
@@ -791,13 +800,17 @@ def _initialize_config_mapping(cfg: UnxtConfig) -> None:
     )
 
 
-def _warn_if_legacy_unxt_config(data: dict[str, Any], /) -> None:
+def _warn_if_legacy_unxt_config(
+    data: dict[str, Any], /, *, stacklevel: int = 2
+) -> None:
     """Warn if the deprecated ``[tool.unxt]`` pyproject section is present.
 
     Takes the already-parsed ``pyproject.toml`` data. Before the namespace
     rename (unxt#685), configuration lived under ``[tool.unxt]``; it is now read
     from ``[tool.unxts.unxt]``. A leftover ``[tool.unxt]`` section is silently
-    ignored, so warn the user to migrate.
+    ignored, so warn the user to migrate. ``stacklevel`` is forwarded to
+    :func:`warnings.warn` so callers can attribute the warning to the user's
+    call site (e.g. their ``import`` or ``config.reload()``).
     """
     tool = data.get("tool")
     if isinstance(tool, dict) and isinstance(tool.get("unxt"), dict):
@@ -806,11 +819,11 @@ def _warn_if_legacy_unxt_config(data: dict[str, Any], /) -> None:
             "unxt now reads its configuration from '[tool.unxts.unxt]'. Move your "
             "settings there.",
             DeprecationWarning,
-            stacklevel=2,
+            stacklevel=stacklevel,
         )
 
 
-def _auto_load_project_toml_config(cfg: UnxtConfig, /) -> None:
+def _auto_load_project_toml_config(cfg: UnxtConfig, /, *, stacklevel: int = 2) -> bool:
     """Auto-load nearest project TOML config without raising import-time errors.
 
     This function:
@@ -819,10 +832,13 @@ def _auto_load_project_toml_config(cfg: UnxtConfig, /) -> None:
     3. Applies valid settings to config instances
     4. Silently ignores invalid values or missing files
 
+    ``stacklevel`` is the caller's distance from this function, forwarded (offset
+    by this frame) to the legacy-config `DeprecationWarning` so it points at the
+    user's site. Returns whether any configuration was found and applied.
     """
     pyproject = _find_pyproject(Path.cwd())
     if pyproject is None:
-        return
+        return False
 
     # Read and parse the file once, then reuse the data for both the legacy
     # deprecation check and the config load.
@@ -831,13 +847,13 @@ def _auto_load_project_toml_config(cfg: UnxtConfig, /) -> None:
             data = tomllib.load(f)
     except (OSError, tomllib.TOMLDecodeError):
         # Never fail import because project config is missing or malformed.
-        return
+        return False
 
-    _warn_if_legacy_unxt_config(data)
+    _warn_if_legacy_unxt_config(data, stacklevel=stacklevel + 1)
     loaded = _config_from_toml_data(data)
 
     if not loaded:
-        return
+        return False
 
     # Apply config values using the mapping
     for class_name, class_config in loaded.items():
@@ -853,6 +869,8 @@ def _auto_load_project_toml_config(cfg: UnxtConfig, /) -> None:
                 setattr(config_instance, key, value)
             except (TraitError, AttributeError):
                 continue
+
+    return True
 
 
 # Create the global singleton instance

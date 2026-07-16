@@ -1040,10 +1040,20 @@ def test_reload_picks_up_project_config(tmp_path: Path, monkeypatch) -> None:
     before = u.config.quantity_repr.use_short_name
     monkeypatch.chdir(tmp_path)
     try:
-        u.config.reload()
+        loaded = u.config.reload()
+        assert loaded is True  # reports that it applied configuration
         assert u.config.quantity_repr.use_short_name is True
     finally:
         u.config.quantity_repr.use_short_name = before
+
+
+def test_reload_returns_false_without_config(tmp_path: Path, monkeypatch) -> None:
+    """``config.reload()`` returns ``False`` when there's nothing to load."""
+    (tmp_path / "pyproject.toml").write_text(
+        "[project]\nname = 'x'\n", encoding="utf-8"
+    )
+    monkeypatch.chdir(tmp_path)
+    assert u.config.reload() is False
 
 
 def test_legacy_tool_unxt_section_warns() -> None:
@@ -1057,5 +1067,7 @@ def test_new_namespace_does_not_warn() -> None:
     """The current ``[tool.unxts.unxt]`` section does not warn."""
     data = tomllib.loads("[tool.unxts.unxt.quantity.repr]\nuse_short_name = true\n")
     with warnings.catch_warnings():
-        warnings.simplefilter("error")
+        # Only turn DeprecationWarning into an error so the test stays targeted
+        # and isn't made fragile by unrelated warnings.
+        warnings.simplefilter("error", DeprecationWarning)
         _warn_if_legacy_unxt_config(data)  # must not raise
