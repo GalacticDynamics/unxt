@@ -1056,7 +1056,9 @@ def test_reload_returns_false_without_config(tmp_path: Path, monkeypatch) -> Non
     assert u.config.reload() is False
 
 
-def test_reload_returns_false_when_only_unknown_keys(tmp_path: Path, monkeypatch):
+def test_reload_returns_false_when_only_unknown_keys(
+    tmp_path: Path, monkeypatch
+) -> None:
     """A recognized section with only unknown keys applies nothing -> ``False``."""
     (tmp_path / "pyproject.toml").write_text(
         "[tool.unxts.unxt.quantity.repr]\nnot_a_real_key = true\n",
