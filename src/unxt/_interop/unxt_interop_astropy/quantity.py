@@ -252,8 +252,13 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
     Quantity(Array([1., 2., 3.], dtype=float32, ...), unit='')
 
     """
-    # Hot-path: if no unit conversion is necessary
-    if x.unit == u:
+    # Hot-path: skip the conversion only when the unit is genuinely unchanged.
+    # NB: astropy treats physically-equal units as ``==`` (e.g. ``J == m2 kg /
+    # s2``), so ``x.unit == u`` alone would silently return ``x`` without
+    # relabeling to the requested (equal but differently-named) unit. Require
+    # the string forms to match too so the relabel still happens; the cheap
+    # ``==`` check short-circuits the common (unequal) case before formatting.
+    if x.unit == u and x.unit.to_string() == u.to_string():
         return x
 
     value = x.unit.to(u, uapi.ustrip(x))
