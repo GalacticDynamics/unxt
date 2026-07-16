@@ -25,7 +25,7 @@ class Quantity(AbstractQuantity):
     --------
     >>> import unxt as u
     >>> u.Quantity(1, "m")
-    Quantity(Array(1, dtype=int32), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     """
 

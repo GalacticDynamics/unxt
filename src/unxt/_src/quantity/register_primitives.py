@@ -2134,16 +2134,16 @@ def eq_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
     >>> q1 = u.quantity.Quantity(1, "m")
     >>> q2 = u.quantity.Quantity(1, "m")
     >>> jnp.equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 == q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(1, "m")
     >>> jnp.equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 == q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     """
     xv = ustrip(x)
@@ -2485,16 +2485,16 @@ def ge_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
     >>> q1 = u.quantity.Quantity(1_001.0, "m")
     >>> q2 = u.quantity.Quantity(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 >= q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 >= q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     """
     xv = ustrip(x)
@@ -2519,11 +2519,11 @@ def ge_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     >>> q2 = u.quantity.Quantity(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
@@ -2555,11 +2555,11 @@ def ge_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q1 = u.quantity.Quantity(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
@@ -2592,12 +2592,12 @@ def gt_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
     >>> q1 = u.quantity.Quantity(1_001.0, "m")
     >>> q2 = u.quantity.Quantity(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     """
     xv = ustrip(x)
@@ -2624,11 +2624,11 @@ def gt_p_vq(x: ArrayLike, y: ABCQ) -> ABCQ:
 
     >>> q2 = u.quantity.Quantity(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
@@ -2660,11 +2660,11 @@ def gt_p_qv(x: ABCQ, y: ArrayLike) -> ABCQ:
 
     >>> q1 = u.quantity.Quantity(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
@@ -2813,7 +2813,7 @@ def is_finite_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.quantity.Quantity(1.0, "m")
     >>> jnp.isfinite(q)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> bool(jnp.isfinite(q))
     True
 
@@ -2823,7 +2823,7 @@ def is_finite_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.Q(1.0, "m")
     >>> jnp.isfinite(q)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> bool(jnp.isfinite(q))
     True
 
@@ -2849,12 +2849,12 @@ def le_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.quantity.Quantity(1_001.0, "m")
     >>> q2 = u.quantity.Quantity(1.0, "km")
     >>> jnp.less_equal(q1, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
     >>> jnp.less_equal(q1, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     """
     xv = ustrip(x)
@@ -2879,11 +2879,11 @@ def le_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     >>> q2 = u.quantity.Quantity(1.0, "")
     >>> jnp.less_equal(x1, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1.0, "")
     >>> jnp.less_equal(x1, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
@@ -2915,11 +2915,11 @@ def le_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q1 = u.quantity.Quantity(1.0, "")
     >>> jnp.less_equal(q1, y1)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1.0, "")
     >>> jnp.less_equal(q1, y1)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
@@ -3051,10 +3051,10 @@ def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> x = u.quantity.Quantity(1.0, "km")
     >>> y = u.quantity.Quantity(2000.0, "m")
     >>> x < y
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> jnp.less(x, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> x = u.quantity.Quantity([1.0, 2, 3], "km")
     >>> x < y
@@ -3068,10 +3068,10 @@ def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> x = u.Q(1.0, "km")
     >>> y = u.Q(2000.0, "m")
     >>> x < y
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> jnp.less(x, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> x = u.Q([1.0, 2, 3], "km")
     >>> x < y
@@ -3165,10 +3165,10 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> x = u.quantity.Quantity(1, "")
     >>> y = 2
     >>> x < y
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> jnp.less(x, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> x = u.quantity.Quantity([1, 2, 3], "")
     >>> x < y
@@ -3182,10 +3182,10 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> x = u.Q(1, "")
     >>> y = 2
     >>> x < y
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> jnp.less(x, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> x = u.Q([1, 2, 3], "")
     >>> x < y
@@ -3543,28 +3543,28 @@ def ne_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.quantity.Quantity(1, "m")
     >>> q2 = u.quantity.Quantity(2, "m")
     >>> jnp.not_equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 != q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.quantity.Quantity(1, "m")
     >>> jnp.not_equal(q1, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
     >>> q1 != q2
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(2, "m")
     >>> jnp.not_equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 != q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1, "m")
     >>> jnp.not_equal(q1, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
     >>> q1 != q2
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     """
     if not is_unit_convertible(x.unit, y.unit):
@@ -3587,28 +3587,28 @@ def ne_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     >>> x = 1
     >>> q2 = u.quantity.Quantity(2, "")
     >>> jnp.not_equal(x, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> x != q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.quantity.Quantity(1, "")
     >>> jnp.not_equal(x, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
     >>> x != q2
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> x = u.Q(1, "")
     >>> q2 = u.Q(2, "")
     >>> jnp.not_equal(x, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> x != q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1, "")
     >>> jnp.not_equal(x, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
     >>> x != q2
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     """
     yv = ustrip(y)
@@ -3632,28 +3632,28 @@ def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> x = 1
     >>> q1 = u.quantity.Quantity(2, "")
     >>> jnp.not_equal(q1, x)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 != x
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.quantity.Quantity(1, "")
     >>> jnp.not_equal(q1, x)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
     >>> q1 != x
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> x = u.Q(1, "")
     >>> q1 = u.Q(2, "")
     >>> jnp.not_equal(q1, x)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 != x
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1, "")
     >>> jnp.not_equal(q1, x)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
     >>> q1 != x
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     """
     xv = ustrip(x)
@@ -4254,7 +4254,7 @@ def rem_p_qv(x: Quantity, y: ArrayLike, /) -> Quantity:
     >>> import quaxed.numpy as jnp
     >>> q = u.Quantity(10, "")
     >>> jnp.remainder(q, 3)
-    Quantity(Array(1, dtype=int32), unit='')
+    Quantity(Array(1, dtype=int32...), unit='')
 
     """
     # Construct fresh (not replace): forces the dimensionless unit and rejects
@@ -5274,11 +5274,11 @@ def zeta_p(x: ABCQ, q: ArrayLike, /) -> ABCQ:
 
     >>> x = u.quantity.Quantity(2.0, "")
     >>> qlax.zeta(x, 1.0).round(4)
-    Quantity(Array(1.6449, dtype=float32), unit='')
+    Quantity(Array(1.6449, dtype=float32...), unit='')
 
     >>> x = u.Q(2.0, "")
     >>> qlax.zeta(x, 1.0).round(4)
-    Quantity(Array(1.6449, dtype=float32), unit='')
+    Quantity(Array(1.6449, dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.zeta_p.bind(ustrip(x), q))
