@@ -213,6 +213,27 @@ def test_uconvert_value_with_array_quantities():
     assert result.unit == u.unit("m")
 
 
+def test_scalar_weak_type_preserved():
+    """A `Quantity` from a Python scalar keeps JAX's ``weak_type``.
+
+    Regression: the value converter re-materialised the weak scalar with an
+    explicit dtype, forcing ``weak_type=False`` so ``Quantity(1.0, ...)``
+    over-promoted (e.g. against a float16 array) relative to native JAX.
+    """
+    q = u.Q(1.0, "m")
+    assert q.value.weak_type
+    # Weak scalar does not up-promote a float16 array (matches native JAX).
+    h = u.Q(jnp.asarray([1.0, 2.0], dtype=jnp.float16), "m")
+    assert (q + h).dtype == jnp.float16
+
+    # An int Python scalar is likewise weak.
+    assert u.Q(1, "m").value.weak_type
+
+    # A real (non-scalar) array stays strongly typed.
+    arr = u.Q([1, 2, 3], "m")
+    assert not arr.value.weak_type
+
+
 def test_uconvert_value_preserves_dtype():
     """Test that uconvert_value preserves input dtype."""
     # Float32 input

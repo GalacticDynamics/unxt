@@ -261,10 +261,10 @@ class NumPyCompatMixin:
         >>> import unxt as u
 
         >>> np.multiply(u.Q(5.0, "m"), u.Q(3.0, "m"))
-        Quantity(Array(15., dtype=float32), unit='m2')
+        Quantity(Array(15., dtype=float32...), unit='m2')
 
         >>> np.sqrt(u.Q(4.0, "m2"))
-        Quantity(Array(2., dtype=float32), unit='m')
+        Quantity(Array(2., dtype=float32...), unit='m')
 
         """
         return apply_ufunc(ufunc, method, inputs, kwargs)
