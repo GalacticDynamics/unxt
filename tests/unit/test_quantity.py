@@ -222,9 +222,14 @@ def test_scalar_weak_type_preserved():
     """
     q = u.Q(1.0, "m")
     assert q.value.weak_type
+    # Matches native JAX: a Python scalar is weak.
+    assert q.value.weak_type == jnp.asarray(1.0).weak_type
     # Weak scalar does not up-promote a float16 array (matches native JAX).
     h = u.Q(jnp.asarray([1.0, 2.0], dtype=jnp.float16), "m")
     assert (q + h).dtype == jnp.float16
+
+    # An int Python scalar is likewise weak.
+    assert u.Q(1, "m").value.weak_type
 
     # A real (non-scalar) array stays strongly typed.
     arr = u.Q([1, 2, 3], "m")
