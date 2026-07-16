@@ -855,7 +855,10 @@ def _auto_load_project_toml_config(cfg: UnxtConfig, /, *, stacklevel: int = 2) -
     if not loaded:
         return False
 
-    # Apply config values using the mapping
+    # Apply config values using the mapping, tracking whether any value was
+    # actually applied (a non-empty section whose keys are all unknown or whose
+    # every ``setattr`` fails must not report success).
+    applied = False
     for class_name, class_config in loaded.items():
         if class_name not in _CONFIG_CLASS_TO_INSTANCE:
             continue
@@ -869,8 +872,9 @@ def _auto_load_project_toml_config(cfg: UnxtConfig, /, *, stacklevel: int = 2) -
                 setattr(config_instance, key, value)
             except (TraitError, AttributeError):
                 continue
+            applied = True
 
-    return True
+    return applied
 
 
 # Create the global singleton instance

@@ -1056,6 +1056,16 @@ def test_reload_returns_false_without_config(tmp_path: Path, monkeypatch) -> Non
     assert u.config.reload() is False
 
 
+def test_reload_returns_false_when_only_unknown_keys(tmp_path: Path, monkeypatch):
+    """A recognized section with only unknown keys applies nothing -> ``False``."""
+    (tmp_path / "pyproject.toml").write_text(
+        "[tool.unxts.unxt.quantity.repr]\nnot_a_real_key = true\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    assert u.config.reload() is False
+
+
 def test_legacy_tool_unxt_section_warns() -> None:
     """A deprecated ``[tool.unxt]`` section emits a DeprecationWarning."""
     data = tomllib.loads("[tool.unxt.quantity.repr]\nuse_short_name = true\n")
