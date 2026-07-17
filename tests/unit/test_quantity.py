@@ -767,6 +767,24 @@ def test_ne():
     assert np.array_equal(u.Q([-1, 0, 1], "m") != 0, [True, False, True])
 
 
+def test_int_dtype_comparison_across_units():
+    """Compare integer-dtype quantities whose units differ but are convertible.
+
+    Converting the RHS into the LHS unit turns its integer value into a float
+    (``1000 m`` -> ``1.0 km``), so the two operands reach ``lax.eq``/``le``/``ge``
+    with mismatched dtypes. Every comparison operator must promote first and
+    return the physically correct answer instead of crashing or silently
+    falling back to Python identity comparison.
+    """
+    lo, hi = u.Q(1, "km"), u.Q(1000, "m")  # equal amounts, int dtype
+    assert bool((lo == hi).value) is True
+    assert bool((lo != hi).value) is False
+    assert bool((lo <= hi).value) is True
+    assert bool((lo >= hi).value) is True
+    assert bool((u.Q(2, "km") > hi).value) is True
+    assert bool((u.Q(0, "km") < hi).value) is True
+
+
 def test_neg():
     """Test the ``Quantity.__neg__`` method."""
     # Test with a scalar
