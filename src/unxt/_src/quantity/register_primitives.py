@@ -46,14 +46,19 @@ def _to_val_rad_or_one(q: ABCQ) -> ArrayLike:
 
 
 def _as_dimensionless_like(q: ABCQ, value: ArrayLike) -> ABCQ:
-    """Wrap a comparison result as a dimensionless quantity like ``q``.
+    """Wrap a dimensionless-valued result as a dimensionless quantity like ``q``.
 
-    Comparison primitives return a dimensionless quantity sharing the namespace
-    of the quantity operand (per the Array API). Some quantity subtypes (e.g.
-    ``Angle``, ``StaticQuantity``) constrain their units and cannot be
-    dimensionless; for those — which only arise from internal, value-level
-    comparisons inside composite functions (``mod``, ``floor_divide``, ...) — we
-    fall back to a plain dimensionless :class:`Quantity`.
+    Used by primitives whose result is genuinely dimensionless -- comparisons,
+    and transcendental / bitwise functions of a dimensionless input. The input
+    is stripped to true-dimensionless (``ustrip(one, x)``) before the operation,
+    so the result must carry ``unit=one``; returning it via ``replace(q, ...)``
+    would instead keep ``q``'s (possibly *scaled*, e.g. ``%`` or ``km / m``)
+    unit label and silently re-apply that scale on read-back.
+
+    The result shares the namespace of the quantity operand (per the Array API).
+    Some quantity subtypes (e.g. ``Angle``, ``StaticQuantity``) constrain their
+    units and cannot be dimensionless; for those we fall back to a plain
+    dimensionless :class:`Quantity`.
     """
     try:
         return type_np(q)(value, unit=one)
@@ -719,7 +724,7 @@ def bessel_i0e_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
     Quantity(Array(0.46575963, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.bessel_i0e_p.bind(ustrip(one, x), **kwargs))
+    return _as_dimensionless_like(x, lax.bessel_i0e_p.bind(ustrip(one, x), **kwargs))
 
 
 @quax.register(lax.bessel_i1e_p)
@@ -739,7 +744,7 @@ def bessel_i1e_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
     Quantity(Array(0.20791042, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.bessel_i1e_p.bind(ustrip(one, x), **kwargs))
+    return _as_dimensionless_like(x, lax.bessel_i1e_p.bind(ustrip(one, x), **kwargs))
 
 
 # ==============================================================================
@@ -1784,7 +1789,7 @@ def digamma_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(-0.5772154, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.digamma(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.digamma(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2321,7 +2326,7 @@ def erf_inv_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return replace(x, value=lax.erf_inv(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.erf_inv(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2346,7 +2351,7 @@ def erf_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return replace(x, value=lax.erf(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.erf(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2371,7 +2376,7 @@ def erfc_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return replace(x, value=lax.erfc(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.erfc(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2395,7 +2400,7 @@ def exp2_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(8., dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.exp2_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.exp2_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -2427,7 +2432,7 @@ def exp_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     """
     # TODO: more meaningful error message.
-    return replace(x, value=lax.exp_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.exp_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -2451,7 +2456,7 @@ def expm1_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(0., dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.expm1_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.expm1_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -2760,7 +2765,9 @@ def igamma_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
     Quantity(Array(0.6321202, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.igamma(ustrip(AllowValue, one, a), ustrip(one, x)))
+    return _as_dimensionless_like(
+        x, lax.igamma(ustrip(AllowValue, one, a), ustrip(one, x))
+    )
 
 
 # ==============================================================================
@@ -2789,7 +2796,9 @@ def igammac_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
     Quantity(Array(0.36787927, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.igammac(ustrip(AllowValue, one, a), ustrip(one, x)))
+    return _as_dimensionless_like(
+        x, lax.igammac(ustrip(AllowValue, one, a), ustrip(one, x))
+    )
 
 
 # ==============================================================================
@@ -3011,7 +3020,7 @@ def lgamma_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: are there any units that this can support?
-    return replace(x, value=lax.lgamma(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.lgamma(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -3035,7 +3044,7 @@ def log1p_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(-inf, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.log1p_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.log1p_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -3059,7 +3068,7 @@ def log_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(0., dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.log_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.log_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -3083,7 +3092,7 @@ def logistic_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(0.7310586, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.logistic_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.logistic_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -3830,7 +3839,7 @@ def not_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(-2, dtype=int32...), unit='')
 
     """
-    return replace(x, value=lax.bitwise_not(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.bitwise_not(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -3855,7 +3864,7 @@ def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     Quantity(Array(3, dtype=int32...), unit='')
 
     """
-    return replace(x, value=lax.bitwise_or(ustrip(one, x), ustrip(one, y)))
+    return _as_dimensionless_like(x, lax.bitwise_or(ustrip(one, x), ustrip(one, y)))
 
 
 @quax.register(lax.or_p)
@@ -4007,7 +4016,7 @@ def polygamma_p(m: ArrayLike, x: ABCQ, /) -> ABCQ:
     Quantity(Array(0.39493403, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.polygamma(m, ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.polygamma(m, ustrip(one, x)))
 
 
 # ==============================================================================
@@ -4030,7 +4039,7 @@ def population_count_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(2, dtype=int32...), unit='')
 
     """
-    return replace(x, value=lax.population_count(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.population_count(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -5330,7 +5339,7 @@ def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     Quantity(Array(3, dtype=int32...), unit='')
 
     """
-    return replace(x, value=lax.bitwise_xor(ustrip(one, x), ustrip(one, y)))
+    return _as_dimensionless_like(x, lax.bitwise_xor(ustrip(one, x), ustrip(one, y)))
 
 
 @quax.register(lax.xor_p)

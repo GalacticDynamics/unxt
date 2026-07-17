@@ -1499,3 +1499,43 @@ def test_zero_d_quantity_is_not_iterable():
     vec = u.Q([1.0, 2.0, 3.0], "m")
     assert np.iterable(vec) is True
     assert [float(x.value) for x in vec] == [1.0, 2.0, 3.0]
+
+
+# ==============================================================================
+# Dimensionless-input math must not keep a scaled unit label
+# ==============================================================================
+
+
+@pytest.mark.parametrize(
+    ("fn", "expected"),
+    [
+        (jnp.exp, math.e),  # exp(1) = e
+        (jnp.log, 0.0),  # log(1) = 0
+        (jnp.exp2, 2.0),  # 2**1 = 2
+        (jnp.expm1, math.e - 1.0),  # exp(1) - 1
+        (jnp.log1p, math.log(2.0)),  # log(1 + 1) = ln 2
+    ],
+)
+def test_transcendental_of_scaled_dimensionless_is_unscaled(fn, expected):
+    """A transcendental of a scaled-dimensionless quantity is unscaled.
+
+    Regression: the rule stripped the value to true-dimensionless
+    (``ustrip(one, x)``) but returned it via ``replace(x, ...)``, which kept the
+    input's scaled unit label. ``exp(100 %)`` then read back as ``e / 100``
+    instead of ``e`` because the ``%`` scale was re-applied on the way out.
+    """
+    q = u.Q(100.0, "percent")  # == 1.0 dimensionless
+    result = fn(q)
+    assert math.isclose(float(u.ustrip("", result)), expected, rel_tol=1e-5)
+
+
+def test_minmax_against_bare_array_of_scaled_dimensionless_is_unscaled():
+    """``minimum``/``maximum`` vs a bare array do not re-apply the scaled unit.
+
+    The result of comparing a scaled-dimensionless quantity (e.g. ``%``) with a
+    plain array must be unscaled dimensionless, not relabelled with the input's
+    scaled unit.
+    """
+    q = u.Q(100.0, "percent")  # == 1.0 dimensionless
+    assert math.isclose(float(u.ustrip("", jnp.maximum(q, 0.3))), 1.0, rel_tol=1e-5)
+    assert math.isclose(float(u.ustrip("", jnp.minimum(q, 0.3))), 0.3, rel_tol=1e-5)
