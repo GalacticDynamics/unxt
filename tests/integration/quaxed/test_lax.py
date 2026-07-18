@@ -3,6 +3,7 @@
 
 import operator as ops
 
+import jax
 import jax.numpy as jnp
 import jax.tree as jtu
 import pytest
@@ -59,7 +60,7 @@ xround = u.Q(xround_val, unit="m")
             "approx_max_k",
             (x_L,),
             {"k": 2},
-            [u.Q([[2.0, 1], [4, 3]], unit="m"), u.Q([[1.0, 0], [1, 0]], unit="m")],
+            [u.Q([[2.0, 1], [4, 3]], unit="m"), jnp.asarray([[1, 0], [1, 0]])],
         ),
         (
             "approx_min_k",
@@ -67,7 +68,7 @@ xround = u.Q(xround_val, unit="m")
             {"k": 2},
             [
                 u.Q([[1.0, 2.0], [3.0, 4.0]], unit="m"),
-                u.Q([[0.0, 1.0], [0.0, 1.0]], unit="m"),
+                jnp.asarray([[0, 1], [0, 1]]),
             ],
         ),
         ("argmax", (x_L,), {"axis": 0, "index_dtype": int}, jnp.array([1, 1])),
@@ -340,7 +341,7 @@ xround = u.Q(xround_val, unit="m")
         ("sub", (x_L, y_L), {}, u.Q(lax.sub(x_val, y_val), "m")),
         ("tan", (x_ND,), {}, u.Q(lax.tan(x_val), "")),
         ("tanh", (x_ND,), {}, u.Q(lax.tanh(x_val), "")),
-        ("top_k", (x_L, 1), {}, [u.Q([[2.0], [4.0]], "m"), u.Q([[1.0], [1.0]], "m")]),
+        ("top_k", (x_L, 1), {}, [u.Q([[2.0], [4.0]], "m"), jnp.asarray([[1], [1]])]),
         (
             "transpose",
             (x_L, (1, 0)),
@@ -411,3 +412,29 @@ def test_lax_functions(func_name, args, kw, expected):
     assert jtu.all(
         jtu.map(ops.eq, got_units, exp_units, is_leaf=lambda x: isinstance(x, UnitBase))
     )
+
+
+def test_top_k_indices_are_raw_int_arrays():
+    """``top_k`` returns unit-carrying values but raw dimensionless int indices.
+
+    Regression: ``top_k_p`` is a multiple-results primitive returning
+    ``[values, indices]``, but the rule wrapped the whole ``[values, indices]``
+    list in the operand's unit -- so the indices came back as float, unit-'m'
+    quantities (unusable for indexing) and the call crashed under ``jax.jit``.
+    """
+    q = u.Q([1.0, 2.0, 3.0], "m")
+
+    vals, idx = qlax.top_k(q, k=2)
+    assert is_any_quantity(vals)
+    assert vals.unit == u.unit("m")
+    # Indices are a raw JAX int array, not a quantity.
+    assert not is_any_quantity(idx)
+    assert jnp.issubdtype(idx.dtype, jnp.integer)
+    assert jnp.array_equal(idx, jnp.asarray([2, 1]))
+    # They can actually index the quantity.
+    assert jnp.array_equal(u.ustrip(q[idx]), jnp.asarray([3.0, 2.0]))
+
+    # And it survives jit (previously raised UnexpectedTracerError).
+    jvals, jidx = jax.jit(lambda x: qlax.top_k(x, k=2))(q)
+    assert jvals.unit == u.unit("m")
+    assert jnp.array_equal(jidx, jnp.asarray([2, 1]))
