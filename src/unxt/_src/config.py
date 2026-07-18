@@ -257,9 +257,12 @@ class QuantityReprConfig(LocalConfigurable):
                 section = cfg.get(klass.__name__, None)
                 if section:
                     specified |= set(section)
+            # Intersect with the *override allowlist*, not all traits:
+            # ``__getattribute__`` only consults these keys, so an entry outside
+            # it could never be observed -- it would just be a dead push.
             overrides = {
                 name: object.__getattribute__(temp_instance, name)
-                for name in specified & set(self.trait_names())
+                for name in specified & QUANTITY_REPR_CONFIG_KEYS
             }
             kwargs = overrides
 
@@ -433,9 +436,12 @@ class QuantityStrConfig(LocalConfigurable):
                 section = cfg.get(klass.__name__, None)
                 if section:
                     specified |= set(section)
+            # Intersect with the *override allowlist*, not all traits:
+            # ``__getattribute__`` only consults these keys, so an entry outside
+            # it could never be observed -- it would just be a dead push.
             overrides = {
                 name: object.__getattribute__(temp_instance, name)
-                for name in specified & set(self.trait_names())
+                for name in specified & QUANTITY_STR_CONFIG_KEYS
             }
             kwargs = overrides
 
