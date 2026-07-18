@@ -1933,6 +1933,24 @@ def div_p_a(x: AbstractAngle, y: AbstractAngle, /) -> ABCQ:
     return div_p_qq(convert(x, Quantity), convert(y, Quantity))
 
 
+@quax.register(lax.div_p)
+def div_p_va(x: ArrayLike, y: AbstractAngle, /) -> ABCQ:
+    """Division of an array by an Angle.
+
+    The quotient is not angular (``1 / rad``), so it degrades to a plain
+    `Quantity`, mirroring ``Angle / Angle``.
+
+    Examples
+    --------
+    >>> import unxt as u
+
+    >>> 1.0 / u.Angle(2.0, "rad")
+    Quantity(Array(0.5, dtype=float32, weak_type=True), unit='1 / rad')
+
+    """
+    return div_p_vq(x, convert(y, Quantity))
+
+
 # ==============================================================================
 
 
@@ -3493,6 +3511,30 @@ def mul_p_qq(x: ABCQ, y: ABCQ, /, **kw: Any) -> ABCQ:
 
 
 @quax.register(lax.mul_p)
+def mul_p_aa(x: AbstractAngle, y: AbstractAngle, /, **kw: Any) -> ABCQ:
+    """Multiplication of an Angle by an Angle.
+
+    The product of two angles is not itself angular (``rad**2``), so it degrades
+    to a plain `Quantity`, mirroring ``Angle / Angle``.
+
+    Examples
+    --------
+    >>> import unxt as u
+
+    >>> u.Angle(2.0, "rad") * u.Angle(3.0, "rad")
+    Quantity(Array(6., dtype=float32, weak_type=True), unit='rad2')
+
+    """
+    # Convert to plain quantities and multiply; done inline rather than calling
+    # ``mul_p_qq`` because that name is shadowed at module scope by the later
+    # ``StaticQuantity`` registration of the same primitive.
+    xq = convert(x, Quantity)
+    yq = convert(y, Quantity)
+    u = unit(xq.unit * yq.unit)
+    return type_np(xq)(mul_qbind(ustrip(xq), ustrip(yq), **kw), unit=u)
+
+
+@quax.register(lax.mul_p)
 def mul_p_vq(x: ArrayLike, y: ABCQ, /, **kw: Any) -> ABCQ:
     """Multiplication of an array-like and a quantity.
 
@@ -4175,6 +4217,16 @@ def reduce_prod_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
     value = lax.reduce_prod_p.bind(ustrip(operand), axes=axes)
     u = operand.unit ** prod(operand.shape[ax] for ax in axes)
     return type_np(operand)(value, unit=u)
+
+
+@quax.register(lax.reduce_prod_p)
+def reduce_prod_p_a(operand: AbstractAngle, /, *, axes: Axes) -> ABCQ:
+    """Product-reduction of an Angle array.
+
+    The product of N angles is not angular (``rad**N``), so it degrades to a
+    plain `Quantity`, mirroring ``Angle * Angle``.
+    """
+    return reduce_prod_p(convert(operand, Quantity), axes=axes)
 
 
 # ==============================================================================

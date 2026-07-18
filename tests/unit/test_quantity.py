@@ -1418,3 +1418,30 @@ def test_rem_p_preserves_staticness_and_truncated_semantics():
     )
     assert isinstance(got, u.StaticQuantity)
     assert float(np.asarray(got.value)) == -1.0  # truncated, not 2.0 (floor-mod)
+
+
+def test_angle_products_degrade_to_quantity():
+    """Angle * Angle, 1 / Angle and prod(Angle) degrade to a plain Quantity.
+
+    An ``Angle``'s unit must be angular, so a product/quotient/reduction that
+    yields a non-angular unit (``rad**2``, ``1 / rad``) must return a plain
+    ``Quantity`` rather than raising -- consistent with ``Angle / Angle``,
+    ``Angle**2`` and ``sqrt(Angle)``, which already degrade.
+    """
+    a = u.Angle(2.0, "rad")
+    b = u.Angle(3.0, "rad")
+
+    ab = a * b
+    assert type(ab) is u.Quantity
+    assert ab.unit == u.unit("rad") ** 2
+    assert float(ab.value) == 6.0
+
+    inv = 1.0 / a
+    assert type(inv) is u.Quantity
+    assert inv.unit == 1 / u.unit("rad")
+    assert float(inv.value) == 0.5
+
+    prod = jnp.prod(jnp.stack([a, b]))
+    assert type(prod) is u.Quantity
+    assert prod.unit == u.unit("rad") ** 2
+    assert float(prod.value) == 6.0
