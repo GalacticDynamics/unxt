@@ -40,8 +40,9 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
         # Hot-path Quantity
         if isinstance(obj, AbstractQuantity):
             return ustrip(unit, obj)
-        # Need to recurse (singly) into iterables
-        if isinstance(obj, Iterable):
+        # Need to recurse (singly) into iterables, but a 0-d array is nominally
+        # `Iterable` yet raises when iterated, so treat it as a scalar value.
+        if isinstance(obj, Iterable) and getattr(obj, "ndim", None) != 0:
             return [self._convert_value(v, unit, axis) for v in obj]
 
         return self._convert_value(obj, unit, axis)
@@ -56,6 +57,9 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
 
     def axisinfo(self, unit: Any, _: Axes) -> matplotlib.units.AxisInfo:
         """Return axis information for this particular unit."""
+        # matplotlib may query axisinfo before any unit has been set on the axis.
+        if unit is None:
+            return matplotlib.units.AxisInfo()
         fmt = self.axisinfo_kw.get("format", "latex_inline")
         return matplotlib.units.AxisInfo(label=unit.to_string(fmt))
 
@@ -66,7 +70,9 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
             return x.unit
         if isinstance(x, Iterable) and isinstance(x, Sized):
             x = zeroth(x)
-        return getattr(x, "units", None)
+        # `unxt` quantities expose the singular `.unit` (not the astropy/pint
+        # `.units`), so an unwrapped element must be checked with `.unit`.
+        return getattr(x, "unit", getattr(x, "units", None))
 
 
 def setup_matplotlib_support_for_unxt(*, enable: bool = True) -> None:
