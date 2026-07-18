@@ -898,8 +898,13 @@ def clamp_p_vaqaq(min: ArrayLike, x: ABCQ, max: ABCQ) -> ABCQ:
     >>> lax.clamp(min, q, max)
     Quantity(Array([0, 1, 2], dtype=int32), unit='')
 
+    A scaled-dimensionless quantity is clamped in true units, not its own:
+
+    >>> lax.clamp(jnp.asarray(0.0), u.Q(100.0, "percent"), u.Q(0.5, ""))
+    Quantity(Array(0.5, dtype=float32), unit='')
+
     """
-    return replace(x, value=lax.clamp(min, ustrip(one, x), ustrip(one, max)))
+    return _as_dimensionless_like(x, lax.clamp(min, ustrip(one, x), ustrip(one, max)))
 
 
 # ---------------------------
@@ -941,8 +946,13 @@ def clamp_p_aqaqv(min: ABCQ, x: ABCQ, max: ArrayLike) -> ABCQ:
     >>> lax.clamp(min, q, max)
     Quantity(Array([0, 1, 2], dtype=int32), unit='')
 
+    A scaled-dimensionless quantity is clamped in true units, not its own:
+
+    >>> lax.clamp(u.Q(0.0, ""), u.Q(100.0, "percent"), jnp.asarray(0.5))
+    Quantity(Array(0.5, dtype=float32), unit='')
+
     """
-    return replace(x, value=lax.clamp(ustrip(one, min), ustrip(one, x), max))
+    return _as_dimensionless_like(x, lax.clamp(ustrip(one, min), ustrip(one, x), max))
 
 
 # ==============================================================================
@@ -3280,9 +3290,14 @@ def max_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     >>> jnp.maximum(x, q2)
     Quantity(Array([2.], dtype=float32), unit='')
 
+    A scaled-dimensionless quantity is compared in true units, not its own:
+
+    >>> jnp.maximum(x, u.Q(100.0, "percent"))
+    Quantity(Array([1.], dtype=float32), unit='')
+
     """
     yv = ustrip(one, y)
-    return replace(y, value=lax.max(x, yv))
+    return _as_dimensionless_like(y, lax.max(x, yv))
 
 
 @quax.register(lax.max_p)
@@ -3302,9 +3317,14 @@ def max_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> jnp.maximum(q1, y)
     Quantity(Array([2.], dtype=float32), unit='')
 
+    A scaled-dimensionless quantity is compared in true units, not its own:
+
+    >>> jnp.maximum(u.Q(100.0, "percent"), y)
+    Quantity(Array([1.], dtype=float32), unit='')
+
     """
     xv = ustrip(one, x)
-    return replace(x, value=lax.max(xv, y))
+    return _as_dimensionless_like(x, lax.max(xv, y))
 
 
 @quax.register(lax.max_p)
@@ -3375,8 +3395,13 @@ def min_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     >>> jnp.minimum(x, q)
     Quantity(Array([1, 2, 2], dtype=int32), unit='')
 
+    A scaled-dimensionless quantity is compared in true units, not its own:
+
+    >>> jnp.minimum(jnp.array([0.5]), u.Q(100.0, "percent"))
+    Quantity(Array([0.5], dtype=float32), unit='')
+
     """
-    return replace(y, value=lax.min(x, ustrip(one, y)))
+    return _as_dimensionless_like(y, lax.min(x, ustrip(one, y)))
 
 
 @quax.register(lax.min_p)
@@ -3397,8 +3422,13 @@ def min_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> jnp.minimum(q, x)
     Quantity(Array([1, 2, 2], dtype=int32), unit='')
 
+    A scaled-dimensionless quantity is compared in true units, not its own:
+
+    >>> jnp.minimum(u.Q(100.0, "percent"), jnp.array([0.5]))
+    Quantity(Array([0.5], dtype=float32), unit='')
+
     """
-    return replace(x, value=lax.min(ustrip(one, x), y))
+    return _as_dimensionless_like(x, lax.min(ustrip(one, x), y))
 
 
 # ==============================================================================
