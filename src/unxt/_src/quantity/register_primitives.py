@@ -3076,7 +3076,7 @@ def log_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
 @quax.register(lax.logistic_p)
 def logistic_p(x: ABCQ, /, **kw: Any) -> ABCQ:
-    """Logarithm of a quantity.
+    """Logistic (sigmoid) of a quantity.
 
     Examples
     --------
@@ -5321,7 +5321,7 @@ def transpose_p(operand: ABCQ, /, *, permutation: Any) -> ABCQ:
 
 @quax.register(lax.xor_p)
 def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
-    """Logical or of two quantities.
+    """Logical XOR of two quantities.
 
     Examples
     --------
