@@ -56,6 +56,8 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
 
     def axisinfo(self, unit: Any, _: Axes) -> matplotlib.units.AxisInfo:
         """Return axis information for this particular unit."""
+        if unit is None:
+            return matplotlib.units.AxisInfo()
         fmt = self.axisinfo_kw.get("format", "latex_inline")
         return matplotlib.units.AxisInfo(label=unit.to_string(fmt))
 
@@ -66,7 +68,10 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
             return x.unit
         if isinstance(x, Iterable) and isinstance(x, Sized):
             x = zeroth(x)
-        return getattr(x, "units", None)
+        # unxt quantities expose ``.unit`` (``.units`` is pint's attribute), so
+        # this is the branch that resolves the unit for a list/tuple of
+        # quantities passed to a plotting call.
+        return getattr(x, "unit", None)
 
 
 def setup_matplotlib_support_for_unxt(*, enable: bool = True) -> None:
