@@ -187,6 +187,15 @@ def test_static_quantity_from_matches_constructor_on_jax_input() -> None:
     assert ctor_err is from_err
 
 
+def test_static_quantity_from_honours_explicit_dtype() -> None:
+    """An explicit ``dtype=`` re-casts the value (and stays on NumPy)."""
+    got = u.StaticQuantity.from_(
+        np.array([1, 2, 3], dtype=np.int64), "m", dtype=np.float64
+    )
+    assert got.value.array.dtype == np.float64
+    assert np.array_equal(np.asarray(got.value), np.array([1.0, 2.0, 3.0]))
+
+
 def test_static_quantity_hashable_python() -> None:
     """StaticQuantity can be hashed in Python."""
     q1 = u.StaticQuantity(1, "m")
