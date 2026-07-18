@@ -494,7 +494,10 @@ class AbstractQuantity(
         # runs on the first ``next()``), so ``np.iterable(0-d q)`` returned True
         # -- unlike numpy/jax/astropy -- breaking scalar plotting in matplotlib.
         # Validate eagerly and return the iterator.
-        if self.value.ndim == 0:
+        # ``np.ndim`` rather than ``self.value.ndim``: during a ``jax.tree`` map
+        # the value can transiently be a plain list (which has no ``.ndim``),
+        # and it also handles tracers, NumPy/JAX arrays and ``StaticValue``.
+        if np.ndim(self.value) == 0:
             msg = "iteration over a 0-d array"
             raise TypeError(msg)
         return (self[i] for i in range(len(self.value)))
