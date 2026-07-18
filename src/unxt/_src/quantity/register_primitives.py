@@ -901,7 +901,7 @@ def clamp_p_vaqaq(min: ArrayLike, x: ABCQ, max: ABCQ) -> ABCQ:
     A scaled-dimensionless quantity is clamped in true units, not its own:
 
     >>> lax.clamp(jnp.asarray(0.0), u.Q(100.0, "percent"), u.Q(0.5, ""))
-    Quantity(Array(0.5, dtype=float32), unit='')
+    Quantity(Array(0.5, dtype=float32...), unit='')
 
     """
     return _as_dimensionless_like(x, lax.clamp(min, ustrip(one, x), ustrip(one, max)))
@@ -949,7 +949,7 @@ def clamp_p_aqaqv(min: ABCQ, x: ABCQ, max: ArrayLike) -> ABCQ:
     A scaled-dimensionless quantity is clamped in true units, not its own:
 
     >>> lax.clamp(u.Q(0.0, ""), u.Q(100.0, "percent"), jnp.asarray(0.5))
-    Quantity(Array(0.5, dtype=float32), unit='')
+    Quantity(Array(0.5, dtype=float32...), unit='')
 
     """
     return _as_dimensionless_like(x, lax.clamp(ustrip(one, min), ustrip(one, x), max))

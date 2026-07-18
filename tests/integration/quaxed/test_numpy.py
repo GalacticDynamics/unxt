@@ -1658,6 +1658,7 @@ def test_clip_scaled_dimensionless():
 
     got = jnp.clip(q, 0.0, 0.5)
 
+    assert got.unit == u.unit("")
     assert u.ustrip("", got) == 0.5
 
 
@@ -1665,16 +1666,18 @@ def test_maximum_scaled_dimensionless():
     """``maximum`` with a bare bound on a scaled-dimensionless quantity."""
     q = u.Q(100.0, "percent")  # == 1.0 dimensionless
 
-    assert u.ustrip("", jnp.maximum(0.0, q)) == 1.0
-    assert u.ustrip("", jnp.maximum(q, 0.0)) == 1.0
+    for got in (jnp.maximum(0.0, q), jnp.maximum(q, 0.0)):
+        assert got.unit == u.unit("")
+        assert u.ustrip("", got) == 1.0
 
 
 def test_minimum_scaled_dimensionless():
     """``minimum`` with a bare bound on a scaled-dimensionless quantity."""
     q = u.Q(100.0, "percent")  # == 1.0 dimensionless
 
-    assert u.ustrip("", jnp.minimum(0.5, q)) == 0.5
-    assert u.ustrip("", jnp.minimum(q, 0.5)) == 0.5
+    for got in (jnp.minimum(0.5, q), jnp.minimum(q, 0.5)):
+        assert got.unit == u.unit("")
+        assert u.ustrip("", got) == 0.5
 
 
 def test_clamp_scaled_dimensionless():
@@ -1686,8 +1689,9 @@ def test_clamp_scaled_dimensionless():
     """
     q = u.Q(100.0, "percent")  # == 1.0 dimensionless
 
-    assert u.ustrip("", qlax.clamp(0.0, q, u.Q(0.5, ""))) == 0.5
-    assert u.ustrip("", qlax.clamp(u.Q(0.0, ""), q, 0.5)) == 0.5
+    for got in (qlax.clamp(0.0, q, u.Q(0.5, "")), qlax.clamp(u.Q(0.0, ""), q, 0.5)):
+        assert got.unit == u.unit("")
+        assert u.ustrip("", got) == 0.5
 
 
 @pytest.mark.filterwarnings("ignore:Explicitly requested dtype")  # TODO: Why?
