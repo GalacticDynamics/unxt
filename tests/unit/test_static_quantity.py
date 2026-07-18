@@ -140,6 +140,30 @@ def test_static_quantity_accepts_array_like() -> None:
     assert np.array_equal(np.asarray(q.value), np.array([1.0, 2.0]))
 
 
+def test_static_quantity_from_preserves_dtype() -> None:
+    """``StaticQuantity.from_`` keeps NumPy dtypes, agreeing with ``__init__``.
+
+    Regression: the generic ``from_`` routed the value through ``jnp.asarray``,
+    which applies JAX's x64-disabled dtype rules and silently downcast
+    int64 / float64 to int32 / float32 -- so ``.from_`` disagreed with the
+    constructor, which stores the value verbatim.
+    """
+    a64 = np.array([1, 2, 3], dtype=np.int64)
+    got = u.StaticQuantity.from_(a64, "m")
+    assert got.value.array.dtype == np.int64
+    assert np.array_equal(np.asarray(got.value), a64)
+
+    f64 = np.array([1.5, 2.5], dtype=np.float64)
+    assert u.StaticQuantity.from_(f64, "m").value.array.dtype == np.float64
+    # ``.from_`` and ``__init__`` agree.
+    assert (
+        u.StaticQuantity.from_(f64, "m").value.array.dtype
+        == u.StaticQuantity(f64, "m").value.array.dtype
+    )
+    # The keyword-unit form delegates to the same path.
+    assert u.StaticQuantity.from_(a64, unit="m").value.array.dtype == np.int64
+
+
 def test_static_quantity_hashable_python() -> None:
     """StaticQuantity can be hashed in Python."""
     q1 = u.StaticQuantity(1, "m")

@@ -10,9 +10,10 @@ from typing import Any, final
 import equinox as eqx
 import numpy as np
 import wadler_lindig as wl
+from jaxtyping import ArrayLike
 from plum import add_promotion_rule
 
-from .base import AbstractQuantity
+from .base import AbstractQuantity, ArrayLikeSequence
 from .quantity import Quantity
 from .value import StaticValue
 from unxt.units import AbstractUnit, unit as parse_unit
@@ -85,3 +86,35 @@ class StaticQuantity(AbstractQuantity):
 
 add_promotion_rule(StaticQuantity, StaticQuantity, StaticQuantity)
 add_promotion_rule(StaticQuantity, Quantity, Quantity)
+
+
+@AbstractQuantity.from_.dispatch
+def from_(
+    cls: type[StaticQuantity],
+    value: ArrayLike | ArrayLikeSequence,
+    unit: Any,
+    /,
+    *,
+    dtype: Any = None,
+) -> StaticQuantity:
+    """Construct a `StaticQuantity`, keeping the value on NumPy dtypes.
+
+    The generic ``AbstractQuantity.from_`` routes the value through
+    ``jnp.asarray``, which applies JAX's x64-disabled dtype rules and silently
+    downcasts int64 / float64 to int32 / float32. A `StaticQuantity` stores its
+    value verbatim, so use ``np.asarray`` here -- ``.from_`` then agrees with the
+    ``__init__`` converter. (The keyword-``unit`` overload delegates here, so
+    it is covered too.)
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import unxt as u
+
+    >>> u.StaticQuantity.from_(
+    ...     np.array([1, 2, 3], dtype=np.int64), "m"
+    ... ).value.array.dtype
+    dtype('int64')
+
+    """
+    return cls(np.asarray(value, dtype=dtype), unit)
