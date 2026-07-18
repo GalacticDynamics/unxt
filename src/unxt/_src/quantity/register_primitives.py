@@ -428,7 +428,7 @@ def and_p_vq(x1: ArrayLike, x2: ABCQ, /) -> ABCQ:
 
 
 @quax.register(lax.approx_top_k_p)
-def approx_top_k_p(x: ABCQ, /, **kwargs: Any) -> list[Any]:
+def approx_top_k_p(x: ABCQ, /, **kwargs: Any) -> list[ABCQ | Array]:
     """Approximate top-k of a quantity.
 
     ``approx_top_k_p`` has ``multiple_results=True``: it returns
@@ -5158,7 +5158,7 @@ def tanh_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
 
 @quax.register(lax.top_k_p)
-def top_k_p(operand: ABCQ, /, **kw: Any) -> list[Any]:
+def top_k_p(operand: ABCQ, /, **kw: Any) -> list[ABCQ | Array]:
     """Top k elements of a quantity.
 
     ``top_k_p`` has ``multiple_results=True``: it returns ``[values, indices]``.
