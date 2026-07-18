@@ -926,13 +926,18 @@ class TestDotProduct:
         got = _matmul(q_mat, vec)
         assert isinstance(got, QMat)
         assert isinstance(got.unit, UnitsMatrix)
-        assert got.unit[0] == _kg * _m
+        # Every element's unit, not just the first, so a partial/batched
+        # unit-propagation bug can't slip through.
+        assert tuple(got.unit) == (_kg * _m, _kg * _m)
+        assert jnp.allclose(got.value, jnp.array([2.0, 3.0]))
 
         # Consistent with the already-working reverse order.
         mat = QMat(jnp.eye(2), unit=((_kg, _kg), (_kg, _kg)))
         rev = _matmul(mat, u.Q(jnp.array([2.0, 3.0]), "s"))
         assert isinstance(rev, QMat)
         assert isinstance(rev.unit, UnitsMatrix)
+        assert tuple(rev.unit) == (_kg * _s, _kg * _s)
+        assert jnp.allclose(rev.value, jnp.array([2.0, 3.0]))
 
     def test_batched_matmul_2x2(self):
         """Leading batch axis: (B, 2, 2) @ (B, 2, 2) contracts per batch element.

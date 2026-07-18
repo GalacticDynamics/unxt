@@ -761,7 +761,8 @@ def dot_general_qty_qm(
     a uniform-unit :class:`QuantityMatrix` and delegated to
     :func:`dot_general_qm_qm`. Without this rule a plain Quantity on the left
     fell through to unxt's generic ``AbstractQuantity`` dot_general, which built
-    a `~unxt.Quantity` whose ``.unit`` was a `UnitsMatrix` -- a malformed object.
+    a :class:`~unxt.Quantity` whose ``.unit`` was a
+    :class:`~unxts.linalg.UnitsMatrix` -- a malformed object.
 
     (:class:`QuantityMatrix` is itself an :class:`~unxt.AbstractQuantity`
     subtype, so :func:`dot_general_qm_qm` still takes precedence when both sides
