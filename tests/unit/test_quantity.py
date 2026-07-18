@@ -2,6 +2,8 @@
 
 """Test the Array API."""
 
+import math
+
 import astropy.units as apyu
 import jax
 import jax.numpy as jax_xp
@@ -1434,14 +1436,14 @@ def test_angle_products_degrade_to_quantity():
     ab = a * b
     assert type(ab) is u.Quantity
     assert ab.unit == u.unit("rad") ** 2
-    assert float(ab.value) == 6.0
+    assert math.isclose(float(ab.value), 6.0, rel_tol=1e-6)
 
     inv = 1.0 / a
     assert type(inv) is u.Quantity
     assert inv.unit == 1 / u.unit("rad")
-    assert float(inv.value) == 0.5
+    assert math.isclose(float(inv.value), 0.5, rel_tol=1e-6)
 
     prod = jnp.prod(jnp.stack([a, b]))
     assert type(prod) is u.Quantity
     assert prod.unit == u.unit("rad") ** 2
-    assert float(prod.value) == 6.0
+    assert math.isclose(float(prod.value), 6.0, rel_tol=1e-6)

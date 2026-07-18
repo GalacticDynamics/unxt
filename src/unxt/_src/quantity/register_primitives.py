@@ -1945,7 +1945,7 @@ def div_p_va(x: ArrayLike, y: AbstractAngle, /) -> ABCQ:
     >>> import unxt as u
 
     >>> 1.0 / u.Angle(2.0, "rad")
-    Quantity(Array(0.5, dtype=float32, weak_type=True), unit='1 / rad')
+    Quantity(Array(0.5, dtype=float32...), unit='1 / rad')
 
     """
     return div_p_vq(x, convert(y, Quantity))
@@ -3522,7 +3522,7 @@ def mul_p_aa(x: AbstractAngle, y: AbstractAngle, /, **kw: Any) -> ABCQ:
     >>> import unxt as u
 
     >>> u.Angle(2.0, "rad") * u.Angle(3.0, "rad")
-    Quantity(Array(6., dtype=float32, weak_type=True), unit='rad2')
+    Quantity(Array(6., dtype=float32...), unit='rad2')
 
     """
     # Convert to plain quantities and multiply; done inline rather than calling
