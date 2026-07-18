@@ -164,6 +164,29 @@ def test_static_quantity_from_preserves_dtype() -> None:
     assert u.StaticQuantity.from_(a64, unit="m").value.array.dtype == np.int64
 
 
+def test_static_quantity_from_matches_constructor_on_jax_input() -> None:
+    """``.from_`` applies the same JAX-input policy as ``__init__``.
+
+    ``.from_`` must not bypass the ``StaticValue.from_`` converter: whatever the
+    constructor does with a JAX array, ``.from_`` must do too.
+    """
+    arr = jnp.array([1.0, 2.0])
+
+    ctor_err = None
+    try:
+        u.StaticQuantity(arr, "m")
+    except TypeError as e:  # pragma: no cover - depends on converter policy
+        ctor_err = type(e)
+
+    from_err = None
+    try:
+        u.StaticQuantity.from_(arr, "m")
+    except TypeError as e:  # pragma: no cover - depends on converter policy
+        from_err = type(e)
+
+    assert ctor_err is from_err
+
+
 def test_static_quantity_hashable_python() -> None:
     """StaticQuantity can be hashed in Python."""
     q1 = u.StaticQuantity(1, "m")

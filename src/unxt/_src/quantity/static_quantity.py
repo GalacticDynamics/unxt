@@ -102,9 +102,12 @@ def from_(
     The generic ``AbstractQuantity.from_`` routes the value through
     ``jnp.asarray``, which applies JAX's x64-disabled dtype rules and silently
     downcasts int64 / float64 to int32 / float32. A `StaticQuantity` stores its
-    value verbatim, so use ``np.asarray`` here -- ``.from_`` then agrees with the
-    ``__init__`` converter. (The keyword-``unit`` overload delegates here, so
-    it is covered too.)
+    value verbatim, so hand the value straight to ``__init__`` and let the
+    ``StaticValue.from_`` converter convert it -- that preserves the NumPy
+    dtype. Delegating (rather than calling ``np.asarray`` here) also keeps
+    ``.from_`` and ``__init__`` under the *same* policy for JAX inputs, instead
+    of materialising an array the constructor would reject.
+    (The keyword-``unit`` overload delegates here, so it is covered too.)
 
     Examples
     --------
@@ -116,5 +119,18 @@ def from_(
     ... ).value.array.dtype
     dtype('int64')
 
+    ``.from_`` and ``__init__`` agree on a JAX input:
+
+    >>> import jax.numpy as jnp
+    >>> try:
+    ...     u.StaticQuantity.from_(jnp.array([1.0, 2.0]), "m")
+    ... except TypeError as e:
+    ...     print("rejected, same as the constructor")
+    rejected, same as the constructor
+
     """
-    return cls(np.asarray(value, dtype=dtype), unit)
+    # ``dtype=None`` means "keep the value's own dtype"; only re-cast when the
+    # caller explicitly asks. The converter does the array conversion.
+    if dtype is not None:
+        value = np.asarray(value, dtype=dtype)
+    return cls(value, unit)
