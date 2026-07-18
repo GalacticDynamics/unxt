@@ -25,7 +25,9 @@ class StaticQuantity(AbstractQuantity):
     Unlike `~unxt.Quantity`, its value is stored as a static (hashable) NumPy
     array, which lets a `StaticQuantity` be passed as a static argument to a
     `jax.jit`-compiled function. It accepts Python scalars and array-like
-    inputs convertible to NumPy arrays, and rejects JAX arrays.
+    inputs convertible to NumPy arrays; a concrete (eager) JAX array is
+    materialised back to NumPy, and only a *traced* value -- which cannot be
+    static -- is rejected.
 
     Examples
     --------

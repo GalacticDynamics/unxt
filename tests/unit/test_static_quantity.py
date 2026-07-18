@@ -111,7 +111,7 @@ def test_static_quantity_rejects_traced_value() -> None:
     def make(x):
         return u.StaticQuantity(x, "m")
 
-    with pytest.raises(TypeError, match="trac"):
+    with pytest.raises(TypeError, match="cannot hold a traced JAX value"):
         make(jnp.array([1.0, 2.0]))
 
 
