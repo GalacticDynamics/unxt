@@ -43,14 +43,12 @@ class StaticQuantity(AbstractQuantity):
     >>> isinstance(hash(q), int)
     True
 
-    JAX arrays are rejected:
+    A concrete JAX array is materialised back to NumPy (a static value is just
+    data); only *traced* values (under ``jit``/``vmap``/``grad``) are rejected:
 
     >>> import jax.numpy as jnp
-    >>> try:
-    ...     u.StaticQuantity(jnp.array([1.0, 2.0]), "m")
-    ... except TypeError as e:
-    ...     print(e)
-    StaticQuantity does not accept JAX arrays. Use Quantity for traced values.
+    >>> u.StaticQuantity(jnp.array([1.0, 2.0]), "m")
+    StaticQuantity(array([1., 2.], dtype=float32), unit='m')
 
     The Wadler-Lindig representation hides the internal static wrapper:
 

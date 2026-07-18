@@ -289,9 +289,23 @@ def from_(cls: type[StaticValue], value: StaticValue, /) -> StaticValue:
 
 @StaticValue.from_.dispatch
 def from_(cls: type[StaticValue], value: jax.Array | jax.core.Tracer, /) -> StaticValue:
-    """Reject JAX arrays for `StaticQuantity`."""
-    msg = "StaticQuantity does not accept JAX arrays. Use Quantity for traced values."
-    raise TypeError(msg)
+    """Materialise a concrete JAX array to NumPy, or reject a traced value.
+
+    A concrete (eager) ``jax.Array`` is just data, so it can back a static
+    value -- materialise it. This also lets ops on a ``StaticQuantity`` stay
+    static: the primitive rules rebuild via ``replace(x, value=<jax array>)``,
+    and that concrete array round-trips back to NumPy here instead of raising.
+
+    A *tracer* (under ``jit``/``vmap``/``grad``) is a placeholder for a value
+    that does not exist yet, so it genuinely cannot be static and is rejected.
+    """
+    if isinstance(value, jax.core.Tracer):
+        msg = (
+            "StaticQuantity cannot hold a traced JAX value; "
+            "use Quantity under jit/vmap/grad."
+        )
+        raise TypeError(msg)
+    return cls(np.asarray(value))
 
 
 # ==================================================================
