@@ -16,6 +16,7 @@ from jax.dtypes import canonicalize_dtype
 from jaxtyping import TypeCheckError
 from plum import convert
 
+import quaxed.lax as qlax
 import quaxed.numpy as jnp
 
 import unxt as u
@@ -1370,3 +1371,26 @@ def test_remainder_bare_quantity_dimensionful_raises():
     q = u.Quantity(jnp.asarray([5.0, 7.0]), "m")
     with pytest.raises(UnitConversionError):
         _ = jnp.remainder(q, jnp.asarray(3.0))
+
+
+@pytest.mark.parametrize(("xv", "yv"), [(-10, 3), (-10, -3), (10, 3), (10, -3)])
+def test_rem_p_matches_lax_rem_truncated_semantics(xv, yv):
+    """`lax.rem_p` on a Quantity is truncated remainder, like raw `lax.rem`.
+
+    Regression: the rule used the ``%`` operator (numpy floor-mod, result takes
+    the divisor's sign), but ``lax.rem_p`` is C-style truncated remainder
+    (result takes the dividend's sign). The two disagree whenever the operands
+    have opposite signs.
+    """
+    got = float(u.ustrip("m", qlax.rem(u.Q(float(xv), "m"), u.Q(float(yv), "m"))))
+    expected = float(jax.lax.rem(jnp.asarray(float(xv)), jnp.asarray(float(yv))))
+    assert got == expected
+
+
+def test_rem_p_preserves_staticness_and_truncated_semantics():
+    """`rem` on a StaticQuantity stays static and uses truncated semantics."""
+    got = qlax.rem(
+        u.StaticQuantity(np.array(-10.0), "m"), u.StaticQuantity(np.array(3.0), "m")
+    )
+    assert isinstance(got, u.StaticQuantity)
+    assert float(np.asarray(got.value)) == -1.0  # truncated, not 2.0 (floor-mod)

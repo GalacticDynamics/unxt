@@ -4261,8 +4261,9 @@ def rem_p_aa(x: AbstractAngle, y: ABCQ, /) -> AbstractAngle:
     Angle(Array([1, 2, 3], dtype=int32), unit='deg')
 
     """
-    # Don't promote - preserve the Angle type
-    return replace(x, value=ustrip(x) % ustrip(x.unit, y))
+    # Don't promote - preserve the Angle type. Use lax.rem (truncated
+    # remainder) to match lax.rem_p, unlike ``%`` which is floor-mod.
+    return replace(x, value=lax.rem(ustrip(x), ustrip(x.unit, y)))
 
 
 @quax.register(lax.rem_p)
@@ -4285,8 +4286,18 @@ def rem_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 
     """
     x, y = promote(x, y)
-    # Use % to preserve numpy arrays for StaticQuantity
-    return replace(x, value=ustrip(x) % ustrip(x.unit, y))
+    xv = ustrip(x)
+    yv = ustrip(x.unit, y)
+    # ``lax.rem_p`` is C-style *truncated* remainder (result takes the
+    # dividend's sign); ``%`` is floor-mod (divisor's sign), which disagrees
+    # whenever the operands' signs differ. Use ``lax.rem`` to match the
+    # primitive, and ``np.fmod`` (also truncated) for a StaticQuantity so it
+    # stays static instead of materialising to a JAX array.
+    if isinstance(x.value, StaticValue):
+        value = np.fmod(np.asarray(xv), np.asarray(yv))
+    else:
+        value = lax.rem(xv, yv)
+    return replace(x, value=value)
 
 
 @quax.register(lax.rem_p)
