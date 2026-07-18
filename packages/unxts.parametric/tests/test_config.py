@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 import unxts.parametric as up
+from traitlets.config import Config
 
 import unxt as u
 
@@ -41,6 +42,24 @@ def test_nested_override() -> None:
         assert str(q).startswith("ParametricQuantity(")  # no ['length']
     # restored
     assert str(q).startswith("ParametricQuantity['length']")
+
+
+def test_override_with_config_preserves_unmentioned_traits() -> None:
+    """``override(cfg)`` must not reset traits the Config does not mention.
+
+    Regression: the ``cfg`` branch overrode every trait, reading the class
+    default for traits absent from the Config, so entering with an empty (or
+    unrelated) Config silently discarded a globally-set value.
+    """
+    original = up.config.quantity_repr.include_params
+    try:
+        up.config.quantity_repr.include_params = True
+        with up.config.quantity_repr.override(Config()):
+            # Empty Config mentions nothing -> the global value must survive.
+            assert up.config.quantity_repr.include_params is True
+        assert up.config.quantity_repr.include_params is True
+    finally:
+        up.config.quantity_repr.include_params = original
 
 
 def test_override_rejects_unknown_option() -> None:

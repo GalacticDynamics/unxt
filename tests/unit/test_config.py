@@ -742,6 +742,37 @@ def test_nested_config_override() -> None:
         u.config.quantity_repr.use_short_name = original_use_short_name
 
 
+def test_override_with_config_preserves_unmentioned_traits() -> None:
+    """``override(cfg)`` must not reset traits the Config does not mention.
+
+    Regression: the ``cfg`` branch looped over every trait and pushed an
+    override for each, reading the class default for traits absent from the
+    Config -- so entering the context silently discarded any globally-set value
+    for those traits.
+    """
+    original_short_arrays = u.config.quantity_repr.short_arrays
+    original_use_short_name = u.config.quantity_repr.use_short_name
+
+    try:
+        # A globally-set value on a trait the Config does not mention.
+        u.config.quantity_repr.use_short_name = True
+
+        cfg = Config()
+        cfg.QuantityReprConfig.short_arrays = "compact"
+
+        with u.config.quantity_repr.override(cfg):
+            # The mentioned trait takes the Config value ...
+            assert u.config.quantity_repr.short_arrays == "compact"
+            # ... and the unmentioned one keeps its globally-set value.
+            assert u.config.quantity_repr.use_short_name is True
+
+        # After exit, the global value is still there.
+        assert u.config.quantity_repr.use_short_name is True
+    finally:
+        u.config.quantity_repr.short_arrays = original_short_arrays
+        u.config.quantity_repr.use_short_name = original_use_short_name
+
+
 def test_nested_str_config_override() -> None:
     """Test that QuantityStrConfig override() is applied and restored."""
     original_short_arrays = u.config.quantity_str.short_arrays

@@ -113,11 +113,18 @@ class _ParametricLocalConfig(LocalConfigurable):
 
         if cfg is not None:
             temp_instance = self.__class__(config=cfg)
-            overrides = {}
-            for trait_name in self.trait_names():
-                overrides[trait_name] = object.__getattribute__(
-                    temp_instance, trait_name
-                )
+            # Only override the traits the Config actually specifies. Iterating
+            # every trait would read the class default for traits absent from
+            # ``cfg`` and clobber any globally-configured value on entry.
+            specified: set[str] = set()
+            for klass in type(self).__mro__:
+                section = cfg.get(klass.__name__, None)
+                if section:
+                    specified |= set(section)
+            overrides = {
+                name: object.__getattribute__(temp_instance, name)
+                for name in specified & set(self.trait_names())
+            }
             kwargs = overrides
 
         return _NestedConfigContext(self, kwargs)
