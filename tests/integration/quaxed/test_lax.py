@@ -59,7 +59,7 @@ xround = u.Q(xround_val, unit="m")
             "approx_max_k",
             (x_L,),
             {"k": 2},
-            [u.Q([[2.0, 1], [4, 3]], unit="m"), u.Q([[1.0, 0], [1, 0]], unit="m")],
+            [u.Q([[2.0, 1], [4, 3]], unit="m"), jnp.array([[1, 0], [1, 0]])],
         ),
         (
             "approx_min_k",
@@ -67,7 +67,7 @@ xround = u.Q(xround_val, unit="m")
             {"k": 2},
             [
                 u.Q([[1.0, 2.0], [3.0, 4.0]], unit="m"),
-                u.Q([[0.0, 1.0], [0.0, 1.0]], unit="m"),
+                jnp.array([[0, 1], [0, 1]]),
             ],
         ),
         ("argmax", (x_L,), {"axis": 0, "index_dtype": int}, jnp.array([1, 1])),
@@ -340,7 +340,7 @@ xround = u.Q(xround_val, unit="m")
         ("sub", (x_L, y_L), {}, u.Q(lax.sub(x_val, y_val), "m")),
         ("tan", (x_ND,), {}, u.Q(lax.tan(x_val), "")),
         ("tanh", (x_ND,), {}, u.Q(lax.tanh(x_val), "")),
-        ("top_k", (x_L, 1), {}, [u.Q([[2.0], [4.0]], "m"), u.Q([[1.0], [1.0]], "m")]),
+        ("top_k", (x_L, 1), {}, [u.Q([[2.0], [4.0]], "m"), jnp.array([[1], [1]])]),
         (
             "transpose",
             (x_L, (1, 0)),
