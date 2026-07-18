@@ -89,13 +89,22 @@ def test_getitem_resolves_every_base_dimension() -> None:
 def test_uconvert_to_realization_all_base_dimensions() -> None:
     """``uconvert``/``ustrip`` to a realization work for every base dimension.
 
-    The four dimensions whose astropy alias differs from the field name
+    All four dimensions whose astropy alias differs from the declared field name
     (SI current/amount, CGS pressure/kinematic-viscosity) previously raised
     ``AttributeError`` from the ``__getitem__`` path.
+
+    Expected units are read from the realization's *attributes*, never via
+    ``__getitem__`` -- that is the path under test, so using it to compute the
+    expected value would let the assertions pass vacuously.
     """
-    assert u.uconvert(si, u.Q(3.0, "mA")).unit == u.unit("A")
-    assert u.uconvert(si, u.Q(1.0, "mmol")).unit == u.unit("mol")
-    assert u.uconvert(cgs, u.Q(2.0, "Pa")).unit == cgs["pressure"]
+    assert u.uconvert(si, u.Q(3.0, "mA")).unit == si.electric_current
+    assert u.uconvert(si, u.Q(1.0, "mmol")).unit == si.amount
+    assert u.uconvert(cgs, u.Q(2.0, "Pa")).unit == cgs.pressure
+    assert u.uconvert(cgs, u.Q(1.0, "m2 / s")).unit == cgs.kinematic_viscosity
+
+    # ``ustrip`` resolves the unit through the same ``__getitem__`` path.
+    assert np.isclose(u.ustrip(si, u.Q(3.0, "mA")), 0.003)
+    assert np.isclose(u.ustrip(cgs, u.Q(2.0, "Pa")), 20.0)
 
 
 def test_pickle(tmpdir: Path) -> None:

@@ -156,14 +156,18 @@ class AbstractUnitSystem:
 
         """
         key = dimension(key)
-        if key in self.base_dimensions:
-            # Use the stored dimension -> field-name pairing rather than
-            # re-deriving the field name from the dimension: astropy's first
-            # physical-type alias (what ``parse_dimlike_name`` returns) need not
-            # match the field declared on the class (e.g. the ``current``
-            # dimension aliases to ``electrical_current`` but ``SIUnitSystem``
-            # names the field ``electric_current``).
+        # Use the stored dimension -> field-name pairing rather than re-deriving
+        # the field name from the dimension: astropy's first physical-type alias
+        # (what ``parse_dimlike_name`` returns) need not match the field declared
+        # on the class (e.g. the ``current`` dimension aliases to
+        # ``electrical_current`` but ``SIUnitSystem`` names the field
+        # ``electric_current``). A single ``.index`` lookup also avoids scanning
+        # ``base_dimensions`` twice on this potentially hot path.
+        try:
             idx = self.base_dimensions.index(key)
+        except ValueError:
+            pass  # not a base dimension -- fall through to the derived path
+        else:
             return getattr(self, self._base_field_names[idx])
 
         out: AbstractUnit
