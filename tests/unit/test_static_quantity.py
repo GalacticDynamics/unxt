@@ -52,6 +52,24 @@ def test_static_value_deepcopy_preserves_type_and_dtype() -> None:
     assert np.array_equal(np.asarray(shallow), np.asarray(sv))
 
 
+def test_static_value_getattr_preserves_dtype() -> None:
+    """Attributes/methods forwarded through ``__getattr__`` keep the real dtype.
+
+    Regression: ``__getattr__`` forwarded to ``jnp.asarray(self._array)``, which
+    applies JAX's x64-disabled dtype rules, so ``sv.dtype`` / ``sv.min()`` on a
+    faithfully-stored int64 / float64 array reported (and returned) the
+    downcast int32 / float32 instead.
+    """
+    sv = StaticValue(np.array([3, 1, 2], dtype=np.int64))
+    assert sv.dtype == np.int64
+    assert np.asarray(sv.min()).dtype == np.int64
+    assert int(sv.min()) == 1
+
+    svf = StaticValue(np.array([3.0, 1.0, 2.0], dtype=np.float64))
+    assert svf.dtype == np.float64
+    assert np.asarray(svf.sum()).dtype == np.float64
+
+
 def test_static_quantity_pickle_roundtrip() -> None:
     """A `StaticQuantity` survives a pickle round-trip unchanged."""
     sq = u.StaticQuantity(np.array([1.0, 2.0], dtype=np.float64), "m")

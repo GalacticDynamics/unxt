@@ -142,7 +142,14 @@ class StaticValue:
         if name.startswith("_"):
             msg = f"{type(self).__name__!r} object has no attribute {name!r}"
             raise AttributeError(msg)
-        return getattr(jnp.asarray(self._array), name)
+        # Forward to the wrapped *NumPy* array, not ``jnp.asarray(self._array)``:
+        # the latter applies JAX's x64-disabled dtype rules and silently
+        # downcasts a faithfully-stored int64/float64 value (the whole point of
+        # StaticValue is to keep such values verbatim). NumPy implements
+        # ``dtype``/``min``/``max``/``mean``/``round``/``astype``/``flatten`` with
+        # the correct dtype semantics; the ``_jnparray`` property remains the
+        # JAX-conversion path for the arithmetic primitives.
+        return getattr(self._array, name)
 
     def __repr__(self) -> str:
         return wl.pformat(self, short_arrays=False, max_width=80)
