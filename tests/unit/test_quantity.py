@@ -777,6 +777,12 @@ def test_int_dtype_comparison_across_units():
     falling back to Python identity comparison.
     """
     lo, hi = u.Q(1, "km"), u.Q(1000, "m")  # equal amounts, int dtype
+    # Precondition: both operands really are integer dtype -- the bug only
+    # triggers when the dtypes match here and then diverge after the unit
+    # conversion floats one of them.
+    assert jnp.issubdtype(lo.dtype, jnp.integer)
+    assert jnp.issubdtype(hi.dtype, jnp.integer)
+
     assert bool((lo == hi).value) is True
     assert bool((lo != hi).value) is False
     assert bool((lo <= hi).value) is True
