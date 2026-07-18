@@ -909,6 +909,31 @@ class TestDotProduct:
         assert jnp.isclose(result.value[0, 0], 21)
         assert result.unit == ((_m * _s,),)
 
+    def test_matmul_quantity_left_quantitymatrix_right(self):
+        """`Quantity @ QuantityMatrix` yields a well-formed QuantityMatrix.
+
+        Regression: with a plain Quantity on the left there was no
+        ``(Quantity, QuantityMatrix)`` dot_general rule, so unxt's generic
+        ``AbstractQuantity`` rule won and built a `Quantity` whose ``.unit`` was
+        a `UnitsMatrix` -- a malformed object. Both operand orders must give a
+        `QuantityMatrix` with a `UnitsMatrix` unit.
+        """
+        # Uniform units along the contraction so the dot product is
+        # dimensionally valid; the bug was about the result *type*.
+        q_mat = u.Q(jnp.eye(2), "kg")  # plain Quantity, single unit
+        vec = QMat(jnp.array([2.0, 3.0]), unit=(_m, _m))
+
+        got = _matmul(q_mat, vec)
+        assert isinstance(got, QMat)
+        assert isinstance(got.unit, UnitsMatrix)
+        assert got.unit[0] == _kg * _m
+
+        # Consistent with the already-working reverse order.
+        mat = QMat(jnp.eye(2), unit=((_kg, _kg), (_kg, _kg)))
+        rev = _matmul(mat, u.Q(jnp.array([2.0, 3.0]), "s"))
+        assert isinstance(rev, QMat)
+        assert isinstance(rev.unit, UnitsMatrix)
+
     def test_batched_matmul_2x2(self):
         """Leading batch axis: (B, 2, 2) @ (B, 2, 2) contracts per batch element.
 

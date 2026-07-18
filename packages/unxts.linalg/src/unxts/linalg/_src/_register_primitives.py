@@ -744,6 +744,62 @@ def dot_general_qm_qty(
 
 
 @quax.register(lax.dot_general_p)
+def dot_general_qty_qm(
+    lhs: u.AbstractQuantity,
+    rhs: QuantityMatrix,
+    /,
+    *,
+    dimension_numbers: lax.DotDimensionNumbers,
+    precision: Any = None,
+    preferred_element_type: Any = None,
+    **kw: Any,
+) -> "QuantityMatrix | u.Q":
+    """Dot product of a :class:`~unxt.AbstractQuantity` with a :class:`QuantityMatrix`.
+
+    The mirror of :func:`dot_general_qm_qty`. The ``lhs`` Quantity carries a
+    single scalar unit that applies uniformly to all elements; it is wrapped as
+    a uniform-unit :class:`QuantityMatrix` and delegated to
+    :func:`dot_general_qm_qm`. Without this rule a plain Quantity on the left
+    fell through to unxt's generic ``AbstractQuantity`` dot_general, which built
+    a `~unxt.Quantity` whose ``.unit`` was a `UnitsMatrix` -- a malformed object.
+
+    (:class:`QuantityMatrix` is itself an :class:`~unxt.AbstractQuantity`
+    subtype, so :func:`dot_general_qm_qm` still takes precedence when both sides
+    are :class:`QuantityMatrix`.)
+
+    >>> import jax.numpy as jnp
+    >>> import unxt as u
+    >>> import quaxed.numpy as qnp
+    >>> from unxts.linalg import QuantityMatrix, UnitsMatrix
+
+    Uniform-unit Quantity vector @ 2D metric with units:
+
+    >>> v = u.Q(jnp.array([1.0, 1.0]), "rad")
+    >>> g = QuantityMatrix(
+    ...     jnp.array([[2.0, 0.0], [0.0, 3.0]]),
+    ...     unit=UnitsMatrix((("m2 / rad2", "m2 / rad2"), ("m2 / rad2", "m2 / rad2"))),
+    ... )
+    >>> w = qnp.matmul(v, g)
+    >>> isinstance(w, QuantityMatrix)
+    True
+    >>> w.value
+    Array([2., 3.], dtype=float32)
+
+    """
+    lhs_unit = u.unit_of(lhs)
+    lhs_val = cast("jax.Array", u.ustrip(AllowValue, lhs_unit, lhs))
+    lhs_qm = _wrap_operand(lhs_val, lhs_unit, dimension_numbers[1][0])
+    return dot_general_qm_qm(
+        lhs_qm,
+        rhs,
+        dimension_numbers=dimension_numbers,
+        precision=precision,
+        preferred_element_type=preferred_element_type,
+        **kw,
+    )
+
+
+@quax.register(lax.dot_general_p)
 def dot_general_arr_qm(
     lhs: jax.Array,
     rhs: QuantityMatrix,
