@@ -1447,3 +1447,21 @@ def test_angle_products_degrade_to_quantity():
     assert type(prod) is u.Quantity
     assert prod.unit == u.unit("rad") ** 2
     assert math.isclose(float(prod.value), 6.0, rel_tol=1e-6)
+
+
+def test_zero_d_quantity_is_not_iterable():
+    """A 0-d Quantity is not iterable, matching numpy / jax / astropy.
+
+    Regression: ``__iter__`` was a generator, so ``iter(q)`` succeeded even for
+    a 0-d quantity and the ``TypeError`` only surfaced on the first ``next()``.
+    ``np.iterable`` therefore reported a scalar quantity as iterable, which
+    broke e.g. ``matplotlib``'s ``ax.scatter`` / ``ax.axhline`` on scalars.
+    """
+    scalar = u.Q(3.0, "m")
+    assert np.iterable(scalar) is False
+    with pytest.raises(TypeError):
+        iter(scalar)  # must fail eagerly, not on first next()
+
+    vec = u.Q([1.0, 2.0, 3.0], "m")
+    assert np.iterable(vec) is True
+    assert [float(x.value) for x in vec] == [1.0, 2.0, 3.0]
