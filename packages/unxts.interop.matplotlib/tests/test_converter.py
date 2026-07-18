@@ -25,7 +25,10 @@ def test_default_units_for_iterable_of_quantities():
 
     Regression: the iterable branch probed pint's ``.units`` attribute, but
     unxt quantities expose ``.unit`` -- so it returned ``None`` and matplotlib
-    could not resolve the axis unit (crashing e.g. ``ax.set_xlim(Q, Q)``).
+    could not resolve the axis unit when plotting a sequence of quantities.
+
+    (Scalar plotting, e.g. ``ax.set_xlim(Q, Q)``, additionally needs the
+    separate 0-d non-iterable fix; it is not what this test covers.)
     """
     converter = uimpl.UnxtConverter()
     # Bare quantity already worked.
