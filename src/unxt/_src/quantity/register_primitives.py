@@ -48,12 +48,19 @@ def _to_val_rad_or_one(q: ABCQ) -> ArrayLike:
 def _as_dimensionless_like(q: ABCQ, value: ArrayLike) -> ABCQ:
     """Wrap a dimensionless-valued result as a dimensionless quantity like ``q``.
 
-    Used by primitives whose result is genuinely dimensionless -- comparisons,
-    and transcendental / bitwise functions of a dimensionless input. The input
-    is stripped to true-dimensionless (``ustrip(one, x)``) before the operation,
-    so the result must carry ``unit=one``; returning it via ``replace(q, ...)``
-    would instead keep ``q``'s (possibly *scaled*, e.g. ``%`` or ``km / m``)
-    unit label and silently re-apply that scale on read-back.
+    Used by primitives whose result is genuinely dimensionless, for either of
+    two reasons:
+
+    - **comparisons**, whose boolean result is dimensionless however the
+      operands were stripped (e.g. ``eq_p_qq`` strips to ``x``'s own unit via
+      ``ustrip(x)`` / ``ustrip(x.unit, y)``, not to ``one``); or
+    - **transcendental / bitwise** functions, whose operand *is* first stripped
+      to true-dimensionless via ``ustrip(one, x)``.
+
+    Either way the result must carry ``unit=one``. Returning it via
+    ``replace(q, ...)`` would instead keep ``q``'s (possibly *scaled*, e.g.
+    ``%`` or ``km / m``) unit label and silently re-apply that scale on
+    read-back.
 
     The result shares the namespace of the quantity operand (per the Array API).
     Some quantity subtypes (e.g. ``Angle``, ``StaticQuantity``) constrain their
@@ -3891,7 +3898,7 @@ def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
 @quax.register(lax.or_p)
 def or_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
-    """Logical OR of an array and a dimensionless quantity.
+    """Bitwise OR of an array and a dimensionless quantity.
 
     See :func:`or_p_qv`: a quantity operand keeps the result dimensionless.
 
@@ -5366,7 +5373,7 @@ def xor_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
 @quax.register(lax.xor_p)
 def xor_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
-    """Logical XOR of an array and a dimensionless quantity.
+    """Bitwise XOR of an array and a dimensionless quantity.
 
     See :func:`xor_p_qv`: a quantity operand keeps the result dimensionless.
 
