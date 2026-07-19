@@ -3824,7 +3824,7 @@ def nextafter_p(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
 
 @quax.register(lax.not_p)
 def not_p(x: ABCQ, /) -> ABCQ:
-    """Logical negation of a quantity.
+    """Bitwise NOT of a quantity.
 
     Examples
     --------
@@ -3847,7 +3847,7 @@ def not_p(x: ABCQ, /) -> ABCQ:
 
 @quax.register(lax.or_p)
 def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
-    """Logical or of two quantities.
+    """Bitwise OR of two quantities.
 
     Examples
     --------
@@ -3869,7 +3869,7 @@ def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 
 @quax.register(lax.or_p)
 def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
-    """Logical OR of a dimensionless quantity and an array.
+    """Bitwise OR of a dimensionless quantity and an array.
 
     A quantity operand keeps the result in the same quantity namespace:
     the result is a dimensionless quantity (per the Array API),
@@ -5321,7 +5321,7 @@ def transpose_p(operand: ABCQ, /, *, permutation: Any) -> ABCQ:
 
 @quax.register(lax.xor_p)
 def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
-    """Logical XOR of two quantities.
+    """Bitwise XOR of two quantities.
 
     Examples
     --------
@@ -5344,7 +5344,7 @@ def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 
 @quax.register(lax.xor_p)
 def xor_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
-    """Logical XOR of a dimensionless quantity and an array.
+    """Bitwise XOR of a dimensionless quantity and an array.
 
     A quantity operand keeps the result in the same quantity namespace:
     the result is a dimensionless quantity (per the Array API),
