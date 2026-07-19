@@ -249,8 +249,19 @@ def test_uconvert_identity_fastpath_still_relabels() -> None:
     j, comp = u.unit("J"), u.unit("m2 kg / s2")
     assert j == comp
     assert j is not comp
-    assert u.uconvert(comp, u.Q(1.0, "J")).unit == comp
-    assert u.uconvert(j, u.Q(1.0, "m2 kg / s2")).unit == j
+
+    # NB: assert on the *label*, not ``==``. astropy considers ``J == m2 kg/s2``,
+    # so an ``== comp`` assertion would pass even if uconvert wrongly
+    # short-circuited and handed back the original ``J``-labelled quantity --
+    # i.e. it could not fail for the bug it guards. ``to_string()`` distinguishes
+    # them ("J" vs "m2 kg / s2").
+    got = u.uconvert(comp, u.Q(1.0, "J"))
+    assert got.unit.to_string() == comp.to_string()
+    assert got.unit.to_string() != j.to_string()
+
+    back = u.uconvert(j, u.Q(1.0, "m2 kg / s2"))
+    assert back.unit.to_string() == j.to_string()
+    assert back.unit.to_string() != comp.to_string()
 
     # is: returns the same object untouched.
     q = u.Q(2.0, "m")
