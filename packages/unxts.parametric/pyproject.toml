@@ -21,7 +21,7 @@ classifiers = [
 dependencies = [
   "astropy>=7.0.0",
   "plum-dispatch>=2.5.7",
-  "unxt",
+  "unxt>=2.0.0",
   "unxts.api>=2.0.0",
 ]
 description = "Dimension-parametrized quantities for unxt (canonical: unxts.parametric)"
