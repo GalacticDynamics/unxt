@@ -3525,13 +3525,8 @@ def mul_p_aa(x: AbstractAngle, y: AbstractAngle, /, **kw: Any) -> ABCQ:
     Quantity(Array(6., dtype=float32...), unit='rad2')
 
     """
-    # Convert to plain quantities and multiply; done inline rather than calling
-    # ``mul_p_qq`` because that name is shadowed at module scope by the later
-    # ``StaticQuantity`` registration of the same primitive.
-    xq = convert(x, Quantity)
-    yq = convert(y, Quantity)
-    u = unit(xq.unit * yq.unit)
-    return type_np(xq)(mul_qbind(ustrip(xq), ustrip(yq), **kw), unit=u)
+    x, y = promote(x, y)
+    return mul_p_qq(convert(x, Quantity), convert(y, Quantity), **kw)
 
 
 @quax.register(lax.mul_p)
@@ -3604,8 +3599,8 @@ def mul_p_qv(x: ABCQ, y: ArrayLike, /, **kw: Any) -> ABCQ:
 
 
 @quax.register(lax.mul_p)
-def mul_p_qq(x: StaticQuantity, y: StaticQuantity, /, **kw: Any) -> ABCQ:
-    """Multiplication of two quantities.
+def mul_p_sqsq(x: StaticQuantity, y: StaticQuantity, /, **kw: Any) -> ABCQ:
+    """Multiplication of two static quantities.
 
     Examples
     --------
