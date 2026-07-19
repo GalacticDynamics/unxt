@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 from astropy.constants import G as const_G  # noqa: N811
 
+import unxt as u
 from unxt import dimension, unit, unitsystems
 from unxt._src.unitsystems.base import _UNITSYSTEMS_REGISTRY
 from unxt.unitsystems import (
@@ -19,8 +20,12 @@ from unxt.unitsystems import (
     DimensionlessUnitSystem,
     DynamicalSimUSysFlag,
     StandardUSysFlag,
+    cgs,
     dimensionless,
     equivalent,
+    galactic,
+    si,
+    solarsystem,
     unitsystem,
 )
 
@@ -64,6 +69,43 @@ def test_compare() -> None:
 def test_regression_dimension_aliases_spaces() -> None:
     usys = unitsystem("kpc", "Myr", "radian", "Msun", "mas / yr")
     assert usys["angular speed"] == usys["angular velocity"]
+
+
+def test_getitem_resolves_every_base_dimension() -> None:
+    """``usys[dim]`` must resolve for every base dimension of every realization.
+
+    Regression: ``__getitem__`` recomputed the field name from the dimension via
+    astropy's first physical-type alias, which does not match the field names
+    declared on ``SIUnitSystem`` / ``CGSUnitSystem`` (e.g. dimension ``current``
+    -> astropy alias ``electrical_current`` vs. field ``electric_current``), so
+    looking up those dimensions raised ``AttributeError``.
+    """
+    for usys in (si, cgs, galactic, solarsystem, dimensionless):
+        for dim, field in zip(
+            usys.base_dimensions, usys._base_field_names, strict=True
+        ):
+            assert usys[dim] is getattr(usys, field)
+
+
+def test_uconvert_to_realization_all_base_dimensions() -> None:
+    """``uconvert``/``ustrip`` to a realization work for every base dimension.
+
+    All four dimensions whose astropy alias differs from the declared field name
+    (SI current/amount, CGS pressure/kinematic-viscosity) previously raised
+    ``AttributeError`` from the ``__getitem__`` path.
+
+    Expected units are read from the realization's *attributes*, never via
+    ``__getitem__`` -- that is the path under test, so using it to compute the
+    expected value would let the assertions pass vacuously.
+    """
+    assert u.uconvert(si, u.Q(3.0, "mA")).unit == si.electric_current
+    assert u.uconvert(si, u.Q(1.0, "mmol")).unit == si.amount
+    assert u.uconvert(cgs, u.Q(2.0, "Pa")).unit == cgs.pressure
+    assert u.uconvert(cgs, u.Q(1.0, "m2 / s")).unit == cgs.kinematic_viscosity
+
+    # ``ustrip`` resolves the unit through the same ``__getitem__`` path.
+    assert np.isclose(u.ustrip(si, u.Q(3.0, "mA")), 0.003)
+    assert np.isclose(u.ustrip(cgs, u.Q(2.0, "Pa")), 20.0)
 
 
 def test_pickle(tmpdir: Path) -> None:
