@@ -8,7 +8,7 @@ import pytest
 from plum import convert
 
 import unxt as u
-from unxt.quantity import AbstractQuantity
+from unxt.quantity import AbstractQuantity, AllowValue
 
 
 class TestUconvertValueWithAstropyUnits:
@@ -314,3 +314,23 @@ class TestMixedUnxtAstropyArithmetic:
             assert isinstance(got, u.quantity.Quantity)
             assert got.unit == u.unit("km")
             assert np.isclose(np.asarray(got.value), 2.0)
+
+
+class TestUstripAllowValueAstropy:
+    """``ustrip(AllowValue, <astropy Quantity>)`` -- the 2-arg AllowValue form."""
+
+    def test_two_arg_allowvalue_strips_astropy_quantity(self) -> None:
+        """Two-arg ``ustrip(AllowValue, aq)`` returns the value, not an error.
+
+        Regression: no 2-arg ``(type[AllowValue], AstropyQuantity)`` dispatch
+        existed, so the call was ambiguous between the generic
+        ``ustrip(type[AllowValue], Any)`` and ``ustrip(Any, AstropyQuantity)``.
+        """
+        aq = apyu.Quantity(2.0, "km")
+        got = u.ustrip(AllowValue, aq)
+        assert not isinstance(got, apyu.Quantity)
+        assert np.isclose(np.asarray(got), 2.0)
+
+    def test_two_arg_allowvalue_passes_through_bare_value(self) -> None:
+        """A bare (non-quantity) value still passes through unchanged."""
+        assert u.ustrip(AllowValue, 5.0) == 5.0

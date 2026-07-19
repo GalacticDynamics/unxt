@@ -305,3 +305,27 @@ def ustrip(flag: type[AllowValue], u: Any, x: AstropyQuantity, /) -> Any:
 
     """
     return uapi.ustrip(u, x)
+
+
+@plum.dispatch
+def ustrip(flag: type[AllowValue], x: AstropyQuantity, /) -> Any:
+    """Strip the units from an astropy quantity, allowing bare values through.
+
+    The two-argument :class:`~unxt.quantity.AllowValue` form takes no target
+    unit, so it returns the value in the quantity's own unit. This dispatch
+    disambiguates ``ustrip(AllowValue, <astropy Quantity>)``, which otherwise
+    matched both ``ustrip(type[AllowValue], Any)`` and
+    ``ustrip(Any, AstropyQuantity)`` with neither dominating. It mirrors the
+    ``(type[AllowValue], AbstractQuantity)`` form for unxt quantities.
+
+    Examples
+    --------
+    >>> import astropy.units as apyu
+    >>> import unxt as u
+    >>> from unxt.quantity import AllowValue
+    >>> q = apyu.Quantity(1000, "m")
+    >>> float(u.ustrip(AllowValue, q))
+    1000.0
+
+    """
+    return x.value
