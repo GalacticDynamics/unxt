@@ -2180,7 +2180,9 @@ def eq_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) == Q(y, {y.unit}).",
     )
-    return _as_dimensionless_like(x, lax.eq(xv, ustrip(x.unit, y)))  # re-dispatch
+    yv = ustrip(x.unit, y)
+    xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
+    return _as_dimensionless_like(x, lax.eq(xv, yv))  # re-dispatch
 
 
 @quax.register(lax.eq_p)
@@ -2531,7 +2533,9 @@ def ge_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) >= Q(y, {y.unit}).",
     )
-    return _as_dimensionless_like(x, lax.ge(xv, ustrip(x.unit, y)))  # re-dispatch
+    yv = ustrip(x.unit, y)
+    xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
+    return _as_dimensionless_like(x, lax.ge(xv, yv))  # re-dispatch
 
 
 @quax.register(lax.ge_p)
@@ -2891,7 +2895,9 @@ def le_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) <= Q(y, {y.unit}).",
     )
-    return _as_dimensionless_like(x, lax.le(xv, ustrip(x.unit, y)))  # re-dispatch
+    yv = ustrip(x.unit, y)
+    xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
+    return _as_dimensionless_like(x, lax.le(xv, yv))  # re-dispatch
 
 
 @quax.register(lax.le_p)
