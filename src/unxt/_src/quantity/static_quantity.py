@@ -10,9 +10,10 @@ from typing import Any, final
 import equinox as eqx
 import numpy as np
 import wadler_lindig as wl
+from jaxtyping import ArrayLike
 from plum import add_promotion_rule
 
-from .base import AbstractQuantity
+from .base import AbstractQuantity, ArrayLikeSequence
 from .quantity import Quantity
 from .value import StaticValue
 from unxt.units import AbstractUnit, unit as parse_unit
@@ -85,3 +86,49 @@ class StaticQuantity(AbstractQuantity):
 
 add_promotion_rule(StaticQuantity, StaticQuantity, StaticQuantity)
 add_promotion_rule(StaticQuantity, Quantity, Quantity)
+
+
+@AbstractQuantity.from_.dispatch
+def from_(
+    cls: type[StaticQuantity],
+    value: ArrayLike | ArrayLikeSequence,
+    unit: Any,
+    /,
+    *,
+    dtype: Any = None,
+) -> StaticQuantity:
+    """Construct a `StaticQuantity`, keeping the value on NumPy dtypes.
+
+    The generic ``AbstractQuantity.from_`` routes the value through
+    ``jnp.asarray``, which applies JAX's x64-disabled dtype rules and silently
+    downcasts int64 / float64 to int32 / float32. A `StaticQuantity` stores its
+    value verbatim, so hand the value straight to ``__init__`` and let the
+    ``StaticValue.from_`` converter convert it -- that preserves the NumPy
+    dtype. Delegating (rather than calling ``np.asarray`` here) also keeps
+    ``.from_`` and ``__init__`` under the *same* policy for JAX inputs, instead
+    of materialising an array the constructor would reject.
+    (The keyword-``unit`` overload delegates here, so it is covered too.)
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import unxt as u
+
+    >>> u.StaticQuantity.from_(
+    ...     np.array([1, 2, 3], dtype=np.int64), "m"
+    ... ).value.array.dtype
+    dtype('int64')
+
+    ``.from_`` applies the *same* JAX-input policy as ``__init__`` -- it
+    delegates rather than converting first, so the two cannot drift:
+
+    >>> import jax.numpy as jnp
+    >>> u.StaticQuantity.from_(jnp.array([1.0, 2.0]), "m")
+    StaticQuantity(array([1., 2.], dtype=float32), unit='m')
+
+    """
+    # ``dtype=None`` means "keep the value's own dtype"; only re-cast when the
+    # caller explicitly asks. The converter does the array conversion.
+    if dtype is not None:
+        value = np.asarray(value, dtype=dtype)
+    return cls(value, unit)

@@ -140,6 +140,72 @@ def test_static_quantity_accepts_array_like() -> None:
     assert np.array_equal(np.asarray(q.value), np.array([1.0, 2.0]))
 
 
+def test_static_quantity_from_preserves_dtype() -> None:
+    """``StaticQuantity.from_`` keeps NumPy dtypes, agreeing with ``__init__``.
+
+    Regression: the generic ``from_`` routed the value through ``jnp.asarray``,
+    which applies JAX's x64-disabled dtype rules and silently downcast
+    int64 / float64 to int32 / float32 -- so ``.from_`` disagreed with the
+    constructor, which stores the value verbatim.
+    """
+    a64 = np.array([1, 2, 3], dtype=np.int64)
+    got = u.StaticQuantity.from_(a64, "m")
+    assert got.value.array.dtype == np.int64
+    assert np.array_equal(np.asarray(got.value), a64)
+
+    f64 = np.array([1.5, 2.5], dtype=np.float64)
+    assert u.StaticQuantity.from_(f64, "m").value.array.dtype == np.float64
+    # ``.from_`` and ``__init__`` agree.
+    assert (
+        u.StaticQuantity.from_(f64, "m").value.array.dtype
+        == u.StaticQuantity(f64, "m").value.array.dtype
+    )
+    # The keyword-unit form delegates to the same path.
+    assert u.StaticQuantity.from_(a64, unit="m").value.array.dtype == np.int64
+
+
+def test_static_quantity_from_matches_constructor_on_jax_input() -> None:
+    """``.from_`` applies the same JAX-input policy as ``__init__``.
+
+    ``.from_`` must not bypass the ``StaticValue.from_`` converter: whatever the
+    constructor does with a JAX array, ``.from_`` must do too.
+    """
+    arr = jnp.array([1.0, 2.0])
+
+    ctor_err = None
+    try:
+        u.StaticQuantity(arr, "m")
+    except TypeError as e:  # pragma: no cover - depends on converter policy
+        ctor_err = type(e)
+
+    from_err = None
+    try:
+        u.StaticQuantity.from_(arr, "m")
+    except TypeError as e:  # pragma: no cover - depends on converter policy
+        from_err = type(e)
+
+    assert ctor_err is from_err
+
+    # The ``dtype=`` path must not bypass that policy either: it re-casts the
+    # value but still hands it to ``__init__``.
+    dtype_err = None
+    try:
+        u.StaticQuantity.from_(arr, "m", dtype=np.float64)
+    except TypeError as e:  # pragma: no cover - depends on converter policy
+        dtype_err = type(e)
+
+    assert dtype_err is ctor_err
+
+
+def test_static_quantity_from_honours_explicit_dtype() -> None:
+    """An explicit ``dtype=`` re-casts the value (and stays on NumPy)."""
+    got = u.StaticQuantity.from_(
+        np.array([1, 2, 3], dtype=np.int64), "m", dtype=np.float64
+    )
+    assert got.value.array.dtype == np.float64
+    assert np.array_equal(np.asarray(got.value), np.array([1.0, 2.0, 3.0]))
+
+
 def test_static_quantity_hashable_python() -> None:
     """StaticQuantity can be hashed in Python."""
     q1 = u.StaticQuantity(1, "m")
