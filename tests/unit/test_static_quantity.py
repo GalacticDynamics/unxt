@@ -14,6 +14,8 @@ from hypothesis import given, strategies as st
 from hypothesis.extra.numpy import arrays as np_arrays
 from plum import promote
 
+import quaxed.numpy as qnp
+
 import unxt as u
 from unxt.quantity import StaticValue
 
@@ -52,6 +54,24 @@ def test_static_value_deepcopy_preserves_type_and_dtype() -> None:
     assert np.array_equal(np.asarray(shallow), np.asarray(sv))
 
 
+def test_static_value_getattr_preserves_dtype() -> None:
+    """Attributes/methods forwarded through ``__getattr__`` keep the real dtype.
+
+    Regression: ``__getattr__`` forwarded to ``jnp.asarray(self._array)``, which
+    applies JAX's x64-disabled dtype rules, so ``sv.dtype`` / ``sv.min()`` on a
+    faithfully-stored int64 / float64 array reported (and returned) the
+    downcast int32 / float32 instead.
+    """
+    sv = StaticValue(np.array([3, 1, 2], dtype=np.int64))
+    assert sv.dtype == np.int64
+    assert np.asarray(sv.min()).dtype == np.int64
+    assert int(sv.min()) == 1
+
+    svf = StaticValue(np.array([3.0, 1.0, 2.0], dtype=np.float64))
+    assert svf.dtype == np.float64
+    assert np.asarray(svf.sum()).dtype == np.float64
+
+
 def test_static_quantity_pickle_roundtrip() -> None:
     """A `StaticQuantity` survives a pickle round-trip unchanged."""
     sq = u.StaticQuantity(np.array([1.0, 2.0], dtype=np.float64), "m")
@@ -72,10 +92,46 @@ def test_static_quantity_accepts_numpy() -> None:
     assert np.array_equal(np.asarray(vec.value), arr)
 
 
-def test_static_quantity_rejects_jax_array() -> None:
-    """StaticQuantity rejects JAX arrays."""
-    with pytest.raises(TypeError, match="StaticQuantity does not accept JAX arrays"):
-        u.StaticQuantity(jnp.array([1.0, 2.0]), "m")
+def test_static_quantity_materialises_concrete_jax_array() -> None:
+    """A concrete (eager) JAX array is materialised to NumPy, not rejected.
+
+    A concrete array is just data, so it can back a static value; only a
+    *tracer* (under jit/vmap/grad) genuinely cannot.
+    """
+    sq = u.StaticQuantity(jnp.array([1.0, 2.0]), "m")
+    assert isinstance(sq.value, StaticValue)
+    assert isinstance(sq.value.array, np.ndarray)
+    assert np.array_equal(np.asarray(sq.value), np.array([1.0, 2.0]))
+
+
+def test_static_quantity_rejects_traced_value() -> None:
+    """A traced JAX value cannot be static and is rejected under jit."""
+
+    @jax.jit
+    def make(x):
+        return u.StaticQuantity(x, "m")
+
+    with pytest.raises(TypeError, match="cannot hold a traced JAX value"):
+        make(jnp.array([1.0, 2.0]))
+
+
+def test_static_quantity_ops_preserve_staticness() -> None:
+    """Ops on a StaticQuantity stay static (return a StaticQuantity).
+
+    Regression: unary/reduction/scalar-arithmetic rules rebuild via
+    ``replace(x, value=<jax array>)``; the converter rejected that concrete
+    JAX array, so ``-sq``, ``abs(sq)``, ``sq * 2`` etc. crashed.
+    """
+    sq = u.StaticQuantity(np.array([3.0, 1.0, 2.0]), "m")
+
+    for got in (-sq, abs(sq), sq * 2, 2 * sq, sq / 2):
+        assert isinstance(got, u.StaticQuantity)
+        assert isinstance(got.value, StaticValue)
+
+    assert isinstance(qnp.sum(sq), u.StaticQuantity)
+    assert float(np.asarray(qnp.sum(sq).value)) == 6.0
+    assert isinstance(qnp.sqrt(sq), u.StaticQuantity)
+    assert float(np.asarray((sq * 2).value.sum())) == 12.0
 
 
 def test_static_quantity_accepts_array_like() -> None:
@@ -568,8 +624,11 @@ def test_static_value_from_dispatch() -> None:
     sv2 = u.quantity.StaticValue.from_(sv)
     assert sv2 is sv
 
-    with pytest.raises(TypeError, match="StaticQuantity does not accept JAX arrays"):
-        u.quantity.StaticValue.from_(jnp.array([1.0, 2.0]))
+    # A concrete (eager) JAX array is materialised to NumPy, not rejected.
+    sv3 = u.quantity.StaticValue.from_(jnp.array([1.0, 2.0]))
+    assert isinstance(sv3, u.quantity.StaticValue)
+    assert isinstance(sv3.array, np.ndarray)
+    assert np.array_equal(np.asarray(sv3), np.array([1.0, 2.0]))
 
 
 def test_static_value_unary_ops() -> None:

@@ -25,7 +25,9 @@ class StaticQuantity(AbstractQuantity):
     Unlike `~unxt.Quantity`, its value is stored as a static (hashable) NumPy
     array, which lets a `StaticQuantity` be passed as a static argument to a
     `jax.jit`-compiled function. It accepts Python scalars and array-like
-    inputs convertible to NumPy arrays, and rejects JAX arrays.
+    inputs convertible to NumPy arrays; a concrete (eager) JAX array is
+    materialised back to NumPy, and only a *traced* value -- which cannot be
+    static -- is rejected.
 
     Examples
     --------
@@ -43,14 +45,12 @@ class StaticQuantity(AbstractQuantity):
     >>> isinstance(hash(q), int)
     True
 
-    JAX arrays are rejected:
+    A concrete JAX array is materialised back to NumPy (a static value is just
+    data); only *traced* values (under ``jit``/``vmap``/``grad``) are rejected:
 
     >>> import jax.numpy as jnp
-    >>> try:
-    ...     u.StaticQuantity(jnp.array([1.0, 2.0]), "m")
-    ... except TypeError as e:
-    ...     print(e)
-    StaticQuantity does not accept JAX arrays. Use Quantity for traced values.
+    >>> u.StaticQuantity(jnp.array([1.0, 2.0]), "m")
+    StaticQuantity(array([1., 2.], dtype=float32), unit='m')
 
     The Wadler-Lindig representation hides the internal static wrapper:
 

@@ -142,7 +142,14 @@ class StaticValue:
         if name.startswith("_"):
             msg = f"{type(self).__name__!r} object has no attribute {name!r}"
             raise AttributeError(msg)
-        return getattr(jnp.asarray(self._array), name)
+        # Forward to the wrapped *NumPy* array, not ``jnp.asarray(self._array)``:
+        # the latter applies JAX's x64-disabled dtype rules and silently
+        # downcasts a faithfully-stored int64/float64 value (the whole point of
+        # StaticValue is to keep such values verbatim). NumPy implements
+        # ``dtype``/``min``/``max``/``mean``/``round``/``astype``/``flatten`` with
+        # the correct dtype semantics; the ``_jnparray`` property remains the
+        # JAX-conversion path for the arithmetic primitives.
+        return getattr(self._array, name)
 
     def __repr__(self) -> str:
         return wl.pformat(self, short_arrays=False, max_width=80)
@@ -282,9 +289,23 @@ def from_(cls: type[StaticValue], value: StaticValue, /) -> StaticValue:
 
 @StaticValue.from_.dispatch
 def from_(cls: type[StaticValue], value: jax.Array | jax.core.Tracer, /) -> StaticValue:
-    """Reject JAX arrays for `StaticQuantity`."""
-    msg = "StaticQuantity does not accept JAX arrays. Use Quantity for traced values."
-    raise TypeError(msg)
+    """Materialise a concrete JAX array to NumPy, or reject a traced value.
+
+    A concrete (eager) ``jax.Array`` is just data, so it can back a static
+    value -- materialise it. This also lets ops on a ``StaticQuantity`` stay
+    static: the primitive rules rebuild via ``replace(x, value=<jax array>)``,
+    and that concrete array round-trips back to NumPy here instead of raising.
+
+    A *tracer* (under ``jit``/``vmap``/``grad``) is a placeholder for a value
+    that does not exist yet, so it genuinely cannot be static and is rejected.
+    """
+    if isinstance(value, jax.core.Tracer):
+        msg = (
+            "StaticQuantity cannot hold a traced JAX value; "
+            "use Quantity under jit/vmap/grad."
+        )
+        raise TypeError(msg)
+    return cls(np.asarray(value))
 
 
 # ==================================================================
