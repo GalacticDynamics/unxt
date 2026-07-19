@@ -383,8 +383,12 @@ def and_p_aq(x1: ABCQ, x2: ABCQ, /) -> ArrayLike:
 
 
 @quax.register(lax.approx_top_k_p)
-def approx_top_k_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
+def approx_top_k_p(x: ABCQ, /, **kwargs: Any) -> list[ABCQ | Array]:
     """Approximate top-k of a quantity.
+
+    ``approx_top_k_p`` has ``multiple_results=True``: it returns
+    ``[values, indices]``. Only the values carry the operand's unit; the indices
+    are a raw ``int`` array (dimensionless), like plain JAX.
 
     Examples
     --------
@@ -394,10 +398,11 @@ def approx_top_k_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
     >>> x = u.quantity.BareQuantity([1.0, 2, 3], "m")
     >>> qlax.approx_max_k(x, k=2)
     [BareQuantity(Array([3., 2.], dtype=float32), unit='m'),
-     BareQuantity(Array([2., 1.], dtype=float32), unit='m')]
+     Array([2, 1], dtype=int32)]
 
     """
-    return replace(x, value=lax.approx_top_k_p.bind(ustrip(x), **kwargs))  # type: ignore[no-untyped-call]
+    vals, idx = lax.approx_top_k_p.bind(ustrip(x), **kwargs)  # type: ignore[no-untyped-call]
+    return [replace(x, value=vals), idx]
 
 
 # ==============================================================================
@@ -5180,26 +5185,31 @@ def tanh_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
 
 @quax.register(lax.top_k_p)
-def top_k_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
+def top_k_p(operand: ABCQ, /, **kw: Any) -> list[ABCQ | Array]:
     """Top k elements of a quantity.
+
+    ``top_k_p`` has ``multiple_results=True``: it returns ``[values, indices]``.
+    Only the values carry the operand's unit; the indices are a raw ``int``
+    array (dimensionless), like plain JAX.
 
     Examples
     --------
     >>> import quaxed.lax as qlax
     >>> import unxt as u
 
-    >>> q = u.quantity.BareQuantity([1, 2, 3], "m")
+    >>> q = u.quantity.BareQuantity([1.0, 2, 3], "m")
     >>> qlax.top_k(q, k=2)
-    [BareQuantity(Array([3, 2], dtype=int32), unit='m'),
-     BareQuantity(Array([2, 1], dtype=int32), unit='m')]
+    [BareQuantity(Array([3., 2.], dtype=float32), unit='m'),
+     Array([2, 1], dtype=int32)]
 
-    >>> q = u.Q([1, 2, 3], "m")
+    >>> q = u.Q([1.0, 2, 3], "m")
     >>> qlax.top_k(q, k=2)
-    [Quantity(Array([3, 2], dtype=int32), unit='m'),
-     Quantity(Array([2, 1], dtype=int32), unit='m')]
+    [Quantity(Array([3., 2.], dtype=float32), unit='m'),
+     Array([2, 1], dtype=int32)]
 
     """
-    return replace(operand, value=lax.top_k_p.bind(ustrip(operand), **kw))  # type: ignore[no-untyped-call]
+    vals, idx = lax.top_k_p.bind(ustrip(operand), **kw)  # type: ignore[no-untyped-call]
+    return [replace(operand, value=vals), idx]
 
 
 # ==============================================================================
