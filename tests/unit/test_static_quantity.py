@@ -186,6 +186,16 @@ def test_static_quantity_from_matches_constructor_on_jax_input() -> None:
 
     assert ctor_err is from_err
 
+    # The ``dtype=`` path must not bypass that policy either: it re-casts the
+    # value but still hands it to ``__init__``.
+    dtype_err = None
+    try:
+        u.StaticQuantity.from_(arr, "m", dtype=np.float64)
+    except TypeError as e:  # pragma: no cover - depends on converter policy
+        dtype_err = type(e)
+
+    assert dtype_err is ctor_err
+
 
 def test_static_quantity_from_honours_explicit_dtype() -> None:
     """An explicit ``dtype=`` re-casts the value (and stays on NumPy)."""

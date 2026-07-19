@@ -119,14 +119,12 @@ def from_(
     ... ).value.array.dtype
     dtype('int64')
 
-    ``.from_`` and ``__init__`` agree on a JAX input:
+    ``.from_`` applies the *same* JAX-input policy as ``__init__`` -- it
+    delegates rather than converting first, so the two cannot drift:
 
     >>> import jax.numpy as jnp
-    >>> try:
-    ...     u.StaticQuantity.from_(jnp.array([1.0, 2.0]), "m")
-    ... except TypeError as e:
-    ...     print("rejected, same as the constructor")
-    rejected, same as the constructor
+    >>> u.StaticQuantity.from_(jnp.array([1.0, 2.0]), "m")
+    StaticQuantity(array([1., 2.], dtype=float32), unit='m')
 
     """
     # ``dtype=None`` means "keep the value's own dtype"; only re-cast when the
