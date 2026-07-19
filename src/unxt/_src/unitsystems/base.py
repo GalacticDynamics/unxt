@@ -2,7 +2,7 @@
 
 __all__ = ("UNITSYSTEMS_REGISTRY", "AbstractUnitSystem")
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import ClassVar, get_args, get_type_hints
@@ -86,6 +86,10 @@ class AbstractUnitSystem:
 
     _base_field_names: ClassVar[tuple[str, ...]]
     _base_dimensions: ClassVar[tuple[AbstractDimension, ...]]
+    #: Base dimension -> declared field name. Built once at class creation so
+    #: ``__getitem__`` is an O(1) lookup with no scan and no exception on the
+    #: derived-dimension (miss) path.
+    _dimension_to_field: ClassVar[Mapping[AbstractDimension, str]]
 
     def __init_subclass__(cls) -> None:
         # In Python 3.14+, annotations are stored via __annotate_func__ (PEP
@@ -117,6 +121,9 @@ class AbstractUnitSystem:
         # Add attributes to the class
         cls._base_field_names = tuple(field_names)
         cls._base_dimensions = dims
+        cls._dimension_to_field = MappingProxyType(
+            dict(zip(dims, field_names, strict=True))
+        )
 
         _UNITSYSTEMS_REGISTRY[dims] = cls
 
@@ -161,14 +168,12 @@ class AbstractUnitSystem:
         # (what ``parse_dimlike_name`` returns) need not match the field declared
         # on the class (e.g. the ``current`` dimension aliases to
         # ``electrical_current`` but ``SIUnitSystem`` names the field
-        # ``electric_current``). A single ``.index`` lookup also avoids scanning
-        # ``base_dimensions`` twice on this potentially hot path.
-        try:
-            idx = self.base_dimensions.index(key)
-        except ValueError:
-            pass  # not a base dimension -- fall through to the derived path
-        else:
-            return getattr(self, self._base_field_names[idx])
+        # ``electric_current``). The mapping is built once at class creation, so
+        # this is O(1) for base dimensions and costs a single failed dict lookup
+        # -- no scan, no exception -- for the derived-dimension path below.
+        field = self._dimension_to_field.get(key)
+        if field is not None:
+            return getattr(self, field)
 
         out: AbstractUnit
         for k, v in _physical_unit_mapping.items():

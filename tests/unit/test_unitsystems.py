@@ -25,6 +25,7 @@ from unxt.unitsystems import (
     equivalent,
     galactic,
     si,
+    solarsystem,
     unitsystem,
 )
 
@@ -79,7 +80,7 @@ def test_getitem_resolves_every_base_dimension() -> None:
     -> astropy alias ``electrical_current`` vs. field ``electric_current``), so
     looking up those dimensions raised ``AttributeError``.
     """
-    for usys in (si, cgs, galactic):
+    for usys in (si, cgs, galactic, solarsystem, dimensionless):
         for dim, field in zip(
             usys.base_dimensions, usys._base_field_names, strict=True
         ):
