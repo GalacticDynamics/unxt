@@ -5,7 +5,7 @@ __all__ = ("UNITSYSTEMS_REGISTRY", "AbstractUnitSystem")
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import ClassVar, get_args, get_type_hints
+from typing import Any, ClassVar, get_args, get_type_hints
 
 import jax.tree_util as jtu
 from astropy.units import PhysicalType, UnitBase as AstropyUnitBase
@@ -18,6 +18,23 @@ from unxt.dims import AbstractDimension, dimension
 from unxt.units import AbstractUnit, unit
 
 Unit = AstropyUnitBase
+
+
+class _classproperty:  # noqa: N801
+    """Read-only property that also works on the *class*.
+
+    ``AbstractUnitSystem`` subclasses expose ``_base_dimensions`` /
+    ``_base_field_names`` on the class (e.g. the unit-system registry keys off
+    ``cls._base_dimensions``), which a plain ``property`` cannot serve.
+    """
+
+    def __init__(self, fget: Any) -> None:
+        self.fget = fget
+        self.__doc__ = fget.__doc__
+
+    def __get__(self, obj: Any, owner: type | None = None) -> Any:
+        return self.fget(owner if owner is not None else type(obj))
+
 
 _UNITSYSTEMS_REGISTRY: dict[
     tuple[AbstractDimension, ...], type["AbstractUnitSystem"]
@@ -84,12 +101,21 @@ class AbstractUnitSystem:
     # ===============================================================
     # Class-level
 
-    _base_field_names: ClassVar[tuple[str, ...]]
-    _base_dimensions: ClassVar[tuple[AbstractDimension, ...]]
-    #: Base dimension -> declared field name. Built once at class creation so
-    #: ``__getitem__`` is an O(1) lookup with no scan and no exception on the
-    #: derived-dimension (miss) path.
+    #: The single source of truth: base dimension -> declared field name, in
+    #: declaration order. Built once at class creation, so ``__getitem__`` is an
+    #: O(1) lookup with no scan and no exception on the derived-dimension path.
+    #: ``_base_dimensions`` / ``_base_field_names`` are its keys / values.
     _dimension_to_field: ClassVar[Mapping[AbstractDimension, str]]
+
+    @_classproperty
+    def _base_dimensions(cls) -> tuple["AbstractDimension", ...]:  # noqa: N805
+        """Return the base dimensions, in declaration order."""
+        return tuple(cls._dimension_to_field)
+
+    @_classproperty
+    def _base_field_names(cls) -> tuple[str, ...]:  # noqa: N805
+        """Return the declared field names, in declaration order."""
+        return tuple(cls._dimension_to_field.values())
 
     def __init_subclass__(cls) -> None:
         # In Python 3.14+, annotations are stored via __annotate_func__ (PEP
@@ -118,9 +144,8 @@ class AbstractUnitSystem:
             msg = f"Unit system with dimensions {dims} already exists."
             raise ValueError(msg)
 
-        # Add attributes to the class
-        cls._base_field_names = tuple(field_names)
-        cls._base_dimensions = dims
+        # Store the single dimension -> field-name mapping; the
+        # ``_base_dimensions`` / ``_base_field_names`` tuples derive from it.
         cls._dimension_to_field = MappingProxyType(
             dict(zip(dims, field_names, strict=True))
         )
