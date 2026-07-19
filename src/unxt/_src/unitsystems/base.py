@@ -108,12 +108,16 @@ class AbstractUnitSystem:
     _dimension_to_field: ClassVar[Mapping[AbstractDimension, str]]
 
     @_classproperty
-    def _base_dimensions(cls) -> tuple["AbstractDimension", ...]:  # noqa: N805
+    def _base_dimensions(  # pylint: disable=no-self-argument
+        cls,  # noqa: N805
+    ) -> tuple["AbstractDimension", ...]:
         """Return the base dimensions, in declaration order."""
         return tuple(cls._dimension_to_field)
 
     @_classproperty
-    def _base_field_names(cls) -> tuple[str, ...]:  # noqa: N805
+    def _base_field_names(  # pylint: disable=no-self-argument
+        cls,  # noqa: N805
+    ) -> tuple[str, ...]:
         """Return the declared field names, in declaration order."""
         return tuple(cls._dimension_to_field.values())
 
