@@ -248,8 +248,15 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
     # NB: astropy treats physically-equal units as ``==`` (e.g. ``J == m2 kg /
     # s2``), so ``x.unit == u`` alone would silently return ``x`` without
     # relabeling to the requested (equal but differently-named) unit. Require
-    # the string forms to match too so the relabel still happens; the cheap
-    # ``==`` check short-circuits the common (unequal) case before formatting.
+    # the string forms to match too so the relabel still happens.
+    #
+    # Check identity first: astropy interns named units, so the common
+    # "convert to the unit it already has" case hits ``is`` and skips two
+    # ``to_string()`` calls (~116x the cost of the identity test). Identity
+    # implies identical string forms, so this cannot skip a needed relabel --
+    # the ``J`` vs ``m2 kg / s2`` case is ``==`` but *not* ``is``.
+    if x.unit is u:
+        return x
     if x.unit == u and x.unit.to_string() == u.to_string():
         return x
 
