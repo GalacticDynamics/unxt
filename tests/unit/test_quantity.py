@@ -1526,6 +1526,9 @@ def test_transcendental_of_scaled_dimensionless_is_unscaled(fn, expected):
     """
     q = u.Q(100.0, "percent")  # == 1.0 dimensionless
     result = fn(q)
+    # The label is the bug: assert the result is *unscaled* dimensionless, not
+    # merely that the number reads back correctly.
+    assert result.unit == u.unit("")
     got = float(u.ustrip("", result))
     assert math.isclose(got, expected, rel_tol=1e-5, abs_tol=1e-7)
 
@@ -1538,7 +1541,10 @@ def test_minmax_against_bare_array_of_scaled_dimensionless_is_unscaled():
     scaled unit.
     """
     q = u.Q(100.0, "percent")  # == 1.0 dimensionless
-    got_max = float(u.ustrip("", jnp.maximum(q, 0.3)))
-    assert math.isclose(got_max, 1.0, rel_tol=1e-5, abs_tol=1e-7)
-    got_min = float(u.ustrip("", jnp.minimum(q, 0.3)))
-    assert math.isclose(got_min, 0.3, rel_tol=1e-5, abs_tol=1e-7)
+    res_max = jnp.maximum(q, 0.3)
+    res_min = jnp.minimum(q, 0.3)
+    # The scaled label is the bug, so assert the unit as well as the number.
+    assert res_max.unit == u.unit("")
+    assert res_min.unit == u.unit("")
+    assert math.isclose(float(u.ustrip("", res_max)), 1.0, rel_tol=1e-5, abs_tol=1e-7)
+    assert math.isclose(float(u.ustrip("", res_min)), 0.3, rel_tol=1e-5, abs_tol=1e-7)
