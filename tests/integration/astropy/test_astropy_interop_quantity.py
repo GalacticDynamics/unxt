@@ -1,4 +1,9 @@
-"""Tests for astropy interop uconvert_value function."""
+"""Tests for astropy quantity interop.
+
+Covers `uconvert_value` and `uconvert` against astropy units and quantities,
+mixed unxt/astropy arithmetic (eager and under ``jax.jit``), and the
+``ustrip(AllowValue, ...)`` dispatches.
+"""
 
 from typing import Any
 
