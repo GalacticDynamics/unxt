@@ -7,7 +7,6 @@ from doctest import ELLIPSIS, NORMALIZE_WHITESPACE
 from pathlib import Path
 from typing import Any
 
-import hypothesis
 from sybil import Document, Region, Sybil
 from sybil.evaluators.doctest import DocTestEvaluator
 from sybil.evaluators.python import PythonEvaluator
@@ -25,8 +24,18 @@ optionflags = ELLIPSIS | NORMALIZE_WHITESPACE
 # reproduce on replay, so it surfaces as an unactionable `FlakyFailure`
 # ("unreliable results: Falsified on the first call but did not on a subsequent
 # one"). Turn it off globally; per-test `@settings` still override this.
-hypothesis.settings.register_profile("unxt", deadline=None)
-hypothesis.settings.load_profile("unxt")
+#
+# Imported defensively: `hypothesis` is declared only by the two `*hypothesis`
+# packages and the root dev env, while each per-package CI job installs a
+# minimal env (`uv sync --package <pkg>`) without it. An unconditional import
+# here makes *loading this conftest* fail, which pytest reports as a usage
+# error (exit code 4) before any test runs -- so it takes down every sibling
+# package job, not just the hypothesis-using ones.
+if importlib.util.find_spec("hypothesis") is not None:
+    import hypothesis
+
+    hypothesis.settings.register_profile("unxt", deadline=None)
+    hypothesis.settings.load_profile("unxt")
 
 
 class PlainDocTestParser:
