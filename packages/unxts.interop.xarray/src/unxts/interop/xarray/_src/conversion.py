@@ -54,8 +54,50 @@ def _array_attach_units(
     >>> _array_attach_units(data, None) is data
     True
 
+    Data that is already a Quantity cannot be re-quantified: attaching a unit
+    to it raises `ValueError` naming the unit the data already carries, rather
+    than the opaque "Cannot convert 'Quantity' to a value" `TypeError` that
+    `unxt.Quantity` would otherwise raise.
+
     """
-    return data if unit is None else u.Q(data, u.unit(unit))
+    if unit is None:
+        return data
+
+    if (existing := u.unit_of(data)) is not None:
+        msg = (
+            f"cannot attach unit '{unit}': the data is already a Quantity with "
+            f"unit '{existing}'. Convert it with `unxt.uconvert` instead of "
+            "re-quantifying."
+        )
+        raise ValueError(msg)
+
+    return u.Q(data, u.unit(unit))
+
+
+def _consume_unit_attrs(obj: DataArray | Dataset, /) -> None:
+    """Drop the unit attribute wherever the data itself now carries the unit.
+
+    Once a unit lives on the data as a `Quantity`, the ``units`` attribute is
+    a stale duplicate: a later conversion would leave it contradicting the data
+    (so plot labels and CF serialization report the pre-conversion unit), and it
+    would make a second ``quantify()`` try to re-quantify a `Quantity`.
+
+    The attribute is dropped only where the unit demonstrably survived onto the
+    data. xarray coerces *dimension* coordinates back to plain index arrays,
+    discarding the Quantity; there the attribute remains the only record of the
+    unit and must be kept. Mutates ``obj`` in place -- callers pass an object
+    they have just constructed.
+    """
+    variables = (
+        obj.data_vars.values() if isinstance(obj, Dataset) else [obj]  # type: ignore[list-item]
+    )
+    for var in variables:
+        if u.unit_of(var.data) is not None:
+            var.attrs.pop(UNIT_ATTR, None)
+
+    for coord in obj.coords.values():
+        if u.unit_of(coord.data) is not None:
+            coord.attrs.pop(UNIT_ATTR, None)
 
 
 @dispatch
@@ -240,6 +282,12 @@ def attach_units(
     >>> quantified.data
     Quantity(Array([1., 2.], dtype=float32), unit='m')
 
+    The consumed ``units`` attribute does not survive onto the result:
+
+    >>> da = xr.DataArray([1.0, 2.0], dims=["x"], attrs={"units": "m"})
+    >>> attach_units(da, {None: "m"}).attrs
+    {}
+
     """
     # Handle the data array itself (None key = the DataArray's own data)
     data_unit = units.get(None)
@@ -257,13 +305,15 @@ def attach_units(
             )
         )
 
-    return DataArray(
+    result = DataArray(
         data=new_data,
         coords=new_coords,
         dims=obj.dims,
         name=obj.name,
         attrs=dict(obj.attrs),
     )
+    _consume_unit_attrs(result)
+    return result
 
 
 @dispatch
@@ -303,7 +353,9 @@ def attach_units(
             )
         )
 
-    return Dataset(data_vars=new_vars, coords=new_coords, attrs=dict(obj.attrs))
+    result = Dataset(data_vars=new_vars, coords=new_coords, attrs=dict(obj.attrs))
+    _consume_unit_attrs(result)
+    return result
 
 
 @dispatch
