@@ -336,7 +336,7 @@ class TestUstripAllowValueAstropy:
         assert u.ustrip(AllowValue, 5.0) == 5.0
 
 
-class TestUconvertValueWithAstropyQuantity:
+class TestUconvertValueAstropyQuantityRelabelling:
     """``uconvert_value(uto, ufrom, <astropy Quantity>)`` relabels the unit.
 
     Regression: an astropy ``Quantity`` subclasses ``ndarray``, so it satisfied
@@ -386,3 +386,18 @@ class TestUconvertValueWithAstropyQuantity:
         )
         assert got.unit == apyu.Unit("m")
         assert np.isclose(got.value, 1000.0)
+
+    def test_incompatible_ufrom_raises(self) -> None:
+        """A ``ufrom`` of a different dimension to the quantity is rejected.
+
+        Mirrors the guard in the `AbstractQuantity` convenience dispatch: the
+        quantity carries its own unit, so a ``ufrom`` that cannot convert to it
+        signals a caller mistake rather than something to silently ignore.
+        """
+        with pytest.raises(ValueError, match="Cannot convert"):
+            u.uconvert_value("m", "s", apyu.Quantity(1.0, "km"))
+
+    def test_incompatible_uto_raises(self) -> None:
+        """A ``uto`` of a different dimension is rejected by astropy itself."""
+        with pytest.raises(apyu.UnitConversionError):
+            u.uconvert_value("s", "km", apyu.Quantity(1.0, "km"))

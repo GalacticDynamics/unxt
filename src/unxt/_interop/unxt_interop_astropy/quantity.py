@@ -226,9 +226,11 @@ def uconvert_value(
 
     This is a convenience dispatch mirroring the `AbstractQuantity` one: users
     may pass a quantity to the lower-level value function and it keeps working.
-    Like that dispatch, it checks that ``ufrom`` is convertible to the
-    quantity's own unit, then defers to the quantity's own unit for the
-    arithmetic -- returning a *relabelled quantity*, not a bare value.
+    Like that dispatch, it checks that the quantity's own unit is convertible
+    to the caller-supplied ``ufrom`` -- `~unxt.is_unit_convertible` takes the
+    *target* first, so ``is_unit_convertible(ufrom, x.unit)`` reads
+    "``x.unit`` -> ``ufrom``" -- then defers to the quantity's own unit for the
+    arithmetic, returning a *relabelled quantity* rather than a bare value.
 
     This dispatch is required: an astropy `~astropy.units.Quantity` subclasses
     `numpy.ndarray`, so it satisfies the ``x: ArrayLike`` annotation of the
