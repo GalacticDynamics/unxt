@@ -297,12 +297,16 @@ def attach_units(
     new_coords = {}
     for name, coord in obj.coords.items():
         unit = units.get(name)
-        new_coords[name] = (
-            coord
-            if unit is None
-            else Variable(
-                coord.dims, _array_attach_units(coord.data, unit), dict(coord.attrs)
-            )
+        # Always build a fresh Variable with a copied attrs dict, even when no
+        # unit is attached. ``_consume_unit_attrs`` mutates the result's attrs
+        # in place, so reusing ``coord`` would be safe only for as long as the
+        # DataArray/Dataset constructor keeps copying coordinate attrs -- an
+        # xarray implementation detail, not a guarantee. Copying here makes
+        # non-mutation of the caller's object structural instead.
+        new_coords[name] = Variable(
+            coord.dims,
+            coord.data if unit is None else _array_attach_units(coord.data, unit),
+            dict(coord.attrs),
         )
 
     result = DataArray(
@@ -345,12 +349,16 @@ def attach_units(
     new_coords = {}
     for name, coord in obj.coords.items():
         unit = units.get(name)
-        new_coords[name] = (
-            coord
-            if unit is None
-            else Variable(
-                coord.dims, _array_attach_units(coord.data, unit), dict(coord.attrs)
-            )
+        # Always build a fresh Variable with a copied attrs dict, even when no
+        # unit is attached. ``_consume_unit_attrs`` mutates the result's attrs
+        # in place, so reusing ``coord`` would be safe only for as long as the
+        # DataArray/Dataset constructor keeps copying coordinate attrs -- an
+        # xarray implementation detail, not a guarantee. Copying here makes
+        # non-mutation of the caller's object structural instead.
+        new_coords[name] = Variable(
+            coord.dims,
+            coord.data if unit is None else _array_attach_units(coord.data, unit),
+            dict(coord.attrs),
         )
 
     result = Dataset(data_vars=new_vars, coords=new_coords, attrs=dict(obj.attrs))

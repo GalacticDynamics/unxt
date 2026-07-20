@@ -11,10 +11,11 @@ object. Two symptoms followed:
   stale attribute made the second call try to re-quantify a `Quantity`.
 """
 
+import numpy as np
 import pytest
 import unxts.interop.xarray  # noqa: F401  # registers the .unxt accessor
 import xarray as xr
-from unxts.interop.xarray._src.conversion import UNIT_ATTR
+from unxts.interop.xarray._src.conversion import UNIT_ATTR, attach_units
 
 import unxt as u
 
@@ -178,3 +179,49 @@ def test_units_attr_kept_when_no_unit_attached_to_data():
     assert u.unit_of(q.data) is None
     assert q.attrs[UNIT_ATTR] == "m"
     assert q.attrs["long_name"] == "distance"
+
+
+def test_quantify_does_not_mutate_the_caller():
+    """``quantify`` must not touch the input object's attrs.
+
+    ``_consume_unit_attrs`` mutates the *result*'s attrs in place. If a
+    coordinate were carried into the result by reference, that mutation would
+    reach through to the caller's object. `attach_units` therefore rebuilds
+    every coordinate as a fresh `Variable` with a copied attrs dict, rather
+    than relying on the DataArray/Dataset constructor to copy them -- which it
+    currently does, but as an implementation detail rather than a guarantee.
+
+    Exercised through `attach_units` rather than ``quantify``, because the two
+    conditions are mutually exclusive via the accessor: ``quantify`` merges the
+    attrs-derived units into its mapping, so a coord carrying a ``units`` attr
+    always gets an entry and is rebuilt anyway, while a coord without one has
+    nothing for ``_consume_unit_attrs`` to pop. Only a caller passing an
+    explicit mapping to `attach_units` that omits such a coord reaches the
+    by-reference branch.
+    """
+    q = u.Q(np.array([1.0, 2.0]), "km")
+
+    da = xr.DataArray(
+        [1.0, 2.0],
+        dims=["x"],
+        coords={"x": ("x", [0.0, 1.0]), "c": ("x", q, {UNIT_ATTR: "km"})},
+        attrs={UNIT_ATTR: "m"},
+    )
+    before = dict(da.coords["c"].attrs)
+    # "c" is deliberately absent from the mapping -> the ``unit is None`` branch.
+    attached = attach_units(da, {None: "m"})
+
+    assert dict(da.coords["c"].attrs) == before  # caller untouched ...
+    assert UNIT_ATTR not in attached.coords["c"].attrs  # ... result consumed
+    assert da.attrs == {UNIT_ATTR: "m"}
+
+    ds = xr.Dataset(
+        {"v": ("x", [1.0, 2.0], {UNIT_ATTR: "m"})},
+        coords={"x": ("x", [0.0, 1.0]), "c": ("x", q, {UNIT_ATTR: "km"})},
+    )
+    ds_before = dict(ds.coords["c"].attrs)
+    ds_attached = attach_units(ds, {"v": "m"})
+
+    assert dict(ds.coords["c"].attrs) == ds_before
+    assert UNIT_ATTR not in ds_attached.coords["c"].attrs
+    assert ds["v"].attrs == {UNIT_ATTR: "m"}
