@@ -1533,6 +1533,21 @@ def test_transcendental_of_scaled_dimensionless_is_unscaled(fn, expected):
     assert math.isclose(got, expected, rel_tol=1e-5, abs_tol=1e-7)
 
 
+def test_cumprod_of_scaled_dimensionless_is_unscaled():
+    """``cumprod`` of a scaled-dimensionless quantity is unscaled.
+
+    Same class of bug as the transcendental rules: the value is stripped to
+    true-dimensionless via ``ustrip(one, operand)`` but was rebuilt with
+    ``replace(operand, ...)``, which kept the ``%`` label and re-applied its
+    scale on read-back.
+    """
+    q = u.Q([100.0, 100.0], "percent")  # each == 1.0 dimensionless
+    res = jnp.cumprod(q)
+    # The scaled label is the bug, so assert the unit as well as the numbers.
+    assert res.unit == u.unit("")
+    assert np.allclose(np.asarray(u.ustrip("", res)), [1.0, 1.0])
+
+
 def test_minmax_against_bare_array_of_scaled_dimensionless_is_unscaled():
     """``minimum``/``maximum`` vs a bare array do not re-apply the scaled unit.
 

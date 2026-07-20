@@ -1473,8 +1473,8 @@ def cumprod_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
     Quantity(Array([1, 2, 6], dtype=int32), unit='')
 
     """
-    return replace(
-        operand, value=lax.cumprod(ustrip(one, operand), axis=axis, reverse=reverse)
+    return _as_dimensionless_like(
+        operand, lax.cumprod(ustrip(one, operand), axis=axis, reverse=reverse)
     )
 
 
@@ -4764,8 +4764,8 @@ def shift_right_arithmetic_p(x: ABCQ, y: ABCQ | float | int, /) -> ABCQ:
     Quantity(Array(0, dtype=int32...), unit='')
 
     """
-    return replace(
-        x, value=lax.shift_right_arithmetic(ustrip(one, x), ustrip(AllowValue, one, y))
+    return _as_dimensionless_like(
+        x, lax.shift_right_arithmetic(ustrip(one, x), ustrip(AllowValue, one, y))
     )
 
 
