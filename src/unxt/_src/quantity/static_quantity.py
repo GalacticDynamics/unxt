@@ -13,7 +13,7 @@ import wadler_lindig as wl
 from jaxtyping import ArrayLike
 from plum import add_promotion_rule
 
-from .base import AbstractQuantity, ArrayLikeSequence
+from .base import AbstractQuantity, ArrayLikeSequence, same_unit_label
 from .quantity import Quantity
 from .value import StaticValue
 from unxt.units import AbstractUnit, unit as parse_unit
@@ -76,7 +76,8 @@ class StaticQuantity(AbstractQuantity):
     def __eq__(self, other: Any, /) -> bool | np.ndarray:  # type: ignore[override]
         """Return structural equality for static quantities."""
         if isinstance(other, StaticQuantity):
-            return self.unit == other.unit and self.value == other.value
+            # Label, not physical, equality -- see `same_unit_label`.
+            return same_unit_label(self.unit, other.unit) and self.value == other.value
         return super().__eq__(other)
 
     def __pdoc__(self, *, show_wrapper: bool = False, **kwargs: Any) -> wl.AbstractDoc:

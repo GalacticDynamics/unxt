@@ -599,6 +599,45 @@ def test_static_backed_eq_hash_contract() -> None:
     assert (a != c) is True
 
 
+@pytest.mark.parametrize(
+    ("lhs", "rhs"),
+    [
+        ("J", "m2 kg / s2"),  # energy
+        ("N", "kg m / s2"),  # force
+        ("W", "J / s"),  # power
+    ],
+)
+def test_static_backed_eq_is_label_based_not_physical(lhs, rhs) -> None:
+    """Physically-equal but differently-spelled units compare unequal.
+
+    Regression: the static path compared units with ``self.unit == other.unit``,
+    which is astropy's *physical* equality (``Unit('J') == Unit('m2 kg / s2')``
+    is True), while ``__hash__`` hashes the unit *label* (those two hash
+    differently). So ``a == b`` was True while ``hash(a) != hash(b)`` -- the
+    eq/hash contract broken, and ``{a, b}`` held two elements.
+
+    The existing contract test above cannot catch this: it uses ``1000 m`` vs
+    ``1 km``, whose *values* also differ, so it passes under either semantics.
+    Here the values are identical and only the unit spelling differs.
+    """
+    value = np.array([1.0])
+    a = u.StaticQuantity(value, lhs)
+    b = u.StaticQuantity(value, rhs)
+
+    # The units really are physically equal -- this is the trap.
+    assert u.unit(lhs) == u.unit(rhs)
+
+    assert a != b
+    assert hash(a) != hash(b)
+    assert len({a, b}) == 2
+
+    # ... and the same holds for a StaticValue-backed plain Quantity.
+    qa = u.Q(StaticValue(value), lhs)
+    qb = u.Q(StaticValue(value), rhs)
+    assert qa != qb
+    assert hash(qa) != hash(qb)
+
+
 def test_static_quantity_jit_distinguishes_units() -> None:
     """Different-unit static args must not collapse to one jit compilation."""
 
