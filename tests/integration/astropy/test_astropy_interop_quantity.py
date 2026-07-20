@@ -334,6 +334,30 @@ _JIT_REFLECTED_XFAIL = pytest.mark.xfail(
 )
 
 
+_REFLECTED_MODES = ["eager", "jit-arg", "jit-closure"]
+
+
+def _apply_reflected(mode: str, op: Any, apy: Any, q: Any) -> Any:
+    """Apply ``op(apy, q)`` with the astropy operand entering three ways.
+
+    The two jit modes are genuinely distinct failure mechanisms, not two
+    spellings of one. As a jit *argument* the astropy quantity is converted to
+    a unitless tracer at aval conversion, before any unxt code runs. As a
+    *closure constant* it never becomes a tracer at all -- astropy's
+    ``__array_ufunc__`` returns ``NotImplemented`` for the traced operand and
+    numpy falls back into unxt's ``__array_ufunc__``. Both lose the unit, by
+    different routes, so both need covering.
+    """
+    if mode == "eager":
+        return op(apy, q)
+    if mode == "jit-arg":
+        return jax.jit(op)(apy, q)
+    if mode == "jit-closure":
+        return jax.jit(lambda b: op(apy, b))(q)
+    msg = f"unknown mode {mode!r}"
+    raise AssertionError(msg)
+
+
 class TestReflectedMixedArithmeticUnderJit:
     """Astropy quantity on the LEFT, ``unxt`` on the right, under ``jax.jit``.
 
@@ -341,46 +365,51 @@ class TestReflectedMixedArithmeticUnderJit:
     ``astropy_q <op> unxt_q``. Under ``jit`` they do not -- these tests encode the
     *desired* behaviour and are strict-xfail, so if the underlying jax/astropy
     behaviour ever changes they fail loudly and prompt removing the marker.
+
+    Both jit entry paths are covered (argument and closure constant) so that a
+    future change cannot make correctness depend on which side of the jit
+    boundary the astropy value came from -- a half-fix that worked for only one
+    would be worse than the uniform breakage documented here.
     """
 
-    @pytest.mark.parametrize("mode", ["eager", "jit"])
+    @pytest.mark.parametrize("mode", _REFLECTED_MODES)
     def test_mul_keeps_both_units(self, mode: str, request: Any) -> None:
         """``astropy_q * unxt_q`` keeps both units."""
-        jit = mode == "jit"
-        if jit:
+        if mode != "eager":
             request.applymarker(_JIT_REFLECTED_XFAIL)
-        op = (lambda a, b: a * b) if not jit else jax.jit(lambda a, b: a * b)
-        got = op(apyu.Quantity(2.0, "km"), u.Q(3.0, "m"))
+        got = _apply_reflected(
+            mode, lambda a, b: a * b, apyu.Quantity(2.0, "km"), u.Q(3.0, "m")
+        )
         assert np.isclose(np.asarray(u.ustrip(AllowValue, "km m", got)), 6.0)
 
-    @pytest.mark.parametrize("mode", ["eager", "jit"])
+    @pytest.mark.parametrize("mode", _REFLECTED_MODES)
     def test_truediv_keeps_both_units(self, mode: str, request: Any) -> None:
         """``astropy_q / unxt_q`` keeps both units."""
-        jit = mode == "jit"
-        if jit:
+        if mode != "eager":
             request.applymarker(_JIT_REFLECTED_XFAIL)
-        op = (lambda a, b: a / b) if not jit else jax.jit(lambda a, b: a / b)
-        got = op(apyu.Quantity(2.0, "km"), u.Q(3.0, "m"))
+        got = _apply_reflected(
+            mode, lambda a, b: a / b, apyu.Quantity(2.0, "km"), u.Q(3.0, "m")
+        )
         assert np.isclose(np.asarray(u.ustrip(AllowValue, "km / m", got)), 2.0 / 3.0)
 
-    @pytest.mark.parametrize("mode", ["eager", "jit"])
+    @pytest.mark.parametrize("mode", _REFLECTED_MODES)
     def test_add_converts_and_combines(self, mode: str, request: Any) -> None:
         """``astropy_q + unxt_q`` converts the unxt operand first."""
-        jit = mode == "jit"
-        if jit:
+        if mode != "eager":
             request.applymarker(_JIT_REFLECTED_XFAIL)
-        op = (lambda a, b: a + b) if not jit else jax.jit(lambda a, b: a + b)
-        got = op(apyu.Quantity(2.0, "km"), u.Q(3.0, "m"))
+        got = _apply_reflected(
+            mode, lambda a, b: a + b, apyu.Quantity(2.0, "km"), u.Q(3.0, "m")
+        )
         assert np.isclose(np.asarray(u.ustrip(AllowValue, "km", got)), 2.003)
 
-    @pytest.mark.parametrize("mode", ["eager", "jit"])
+    @pytest.mark.parametrize("mode", _REFLECTED_MODES)
     def test_sub_converts_and_combines(self, mode: str, request: Any) -> None:
         """``astropy_q - unxt_q`` converts the unxt operand first."""
-        jit = mode == "jit"
-        if jit:
+        if mode != "eager":
             request.applymarker(_JIT_REFLECTED_XFAIL)
-        op = (lambda a, b: a - b) if not jit else jax.jit(lambda a, b: a - b)
-        got = op(apyu.Quantity(2.0, "km"), u.Q(3.0, "m"))
+        got = _apply_reflected(
+            mode, lambda a, b: a - b, apyu.Quantity(2.0, "km"), u.Q(3.0, "m")
+        )
         assert np.isclose(np.asarray(u.ustrip(AllowValue, "km", got)), 1.997)
 
 
