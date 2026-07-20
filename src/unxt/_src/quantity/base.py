@@ -862,6 +862,18 @@ class AbstractQuantity(
     def __sub__(self, other: Any) -> Any:
         return super().__sub__(_coerce_foreign_quantity(other))
 
+    def __floordiv__(self, other: Any) -> Any:
+        return super().__floordiv__(_coerce_foreign_quantity(other))
+
+    def __mod__(self, other: Any) -> Any:
+        return super().__mod__(_coerce_foreign_quantity(other))
+
+    def __pow__(self, other: Any) -> Any:
+        return super().__pow__(_coerce_foreign_quantity(other))
+
+    def __matmul__(self, other: Any) -> Any:
+        return super().__matmul__(_coerce_foreign_quantity(other))
+
     def __pdoc__(
         self,
         *,
