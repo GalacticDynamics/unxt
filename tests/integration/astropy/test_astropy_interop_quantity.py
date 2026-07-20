@@ -334,3 +334,55 @@ class TestUstripAllowValueAstropy:
     def test_two_arg_allowvalue_passes_through_bare_value(self) -> None:
         """A bare (non-quantity) value still passes through unchanged."""
         assert u.ustrip(AllowValue, 5.0) == 5.0
+
+
+class TestUconvertValueWithAstropyQuantity:
+    """``uconvert_value(uto, ufrom, <astropy Quantity>)`` relabels the unit.
+
+    Regression: an astropy ``Quantity`` subclasses ``ndarray``, so it satisfied
+    the ``x: ArrayLike`` annotation of the bare-value dispatch and was not
+    rejected. That body called ``ufrom.to(uto, x)``, which converts the
+    magnitude but returns a ``Quantity`` still labelled with ``ufrom`` -- so
+    ``uconvert_value("m", "km", 1 km)`` produced ``1000.0 km``.
+    """
+
+    def test_different_units_relabels(self) -> None:
+        """The magnitude is converted *and* the unit label follows it."""
+        got = u.uconvert_value("m", "km", apyu.Quantity(1.0, "km"))
+        assert isinstance(got, apyu.Quantity)
+        assert got.unit == apyu.Unit("m")
+        assert np.isclose(got.value, 1000.0)
+
+    def test_different_units_relabels_downscale(self) -> None:
+        """The reverse direction (m -> km) relabels too."""
+        got = u.uconvert_value("km", "m", apyu.Quantity(1000.0, "m"))
+        assert isinstance(got, apyu.Quantity)
+        assert got.unit == apyu.Unit("km")
+        assert np.isclose(got.value, 1.0)
+
+    def test_same_unit_is_unchanged(self) -> None:
+        """The same-unit case keeps both value and unit."""
+        got = u.uconvert_value("m", "m", apyu.Quantity(5.0, "m"))
+        assert isinstance(got, apyu.Quantity)
+        assert got.unit == apyu.Unit("m")
+        assert np.isclose(got.value, 5.0)
+
+    def test_array_quantity_relabels(self) -> None:
+        """Array-valued astropy quantities convert elementwise and relabel."""
+        got = u.uconvert_value("m", "km", apyu.Quantity([1.0, 2.0], "km"))
+        assert got.unit == apyu.Unit("m")
+        assert np.allclose(got.value, [1000.0, 2000.0])
+
+    def test_bare_value_control_returns_plain_value(self) -> None:
+        """Control: a bare value is still returned bare, not as a Quantity."""
+        got = u.uconvert_value("m", "km", 1.0)
+        assert not isinstance(got, apyu.Quantity)
+        assert np.isclose(got, 1000.0)
+
+    def test_astropy_units_objects_relabel(self) -> None:
+        """The same holds when passing astropy ``Unit`` objects, not strings."""
+        got = u.uconvert_value(
+            apyu.Unit("m"), apyu.Unit("km"), apyu.Quantity(1.0, "km")
+        )
+        assert got.unit == apyu.Unit("m")
+        assert np.isclose(got.value, 1000.0)
