@@ -827,27 +827,11 @@ class AbstractQuantity(
     # it as dimensionless. Convert such an operand to an ``unxt`` quantity first
     # so units combine correctly.
     #
-    # No reflected counterparts are defined, because they could not help. With the
-    # astropy quantity on the LEFT, astropy's own ``__array_ufunc__`` handles
-    # ``astropy_q <op> unxt_q`` correctly -- but ONLY eagerly. Under ``jax.jit``
-    # the unit is destroyed before any code here runs, in two distinct ways:
-    #
-    #   * passed as a jit argument -- jax converts the ``ndarray`` subclass to a
-    #     unitless tracer at aval conversion, so ``__rmul__`` & co. are reached
-    #     but ``other`` is already a bare tracer and there is no unit to recover;
-    #   * captured as a closure constant -- astropy's ``__array_ufunc__`` returns
-    #     ``NotImplemented`` (it cannot handle a traced operand), numpy falls back
-    #     to ``ndarray.__mul__``, which routes to unxt's ``__array_ufunc__``, and
-    #     that materialises the astropy operand in its own unit.
-    #
-    # So under jit ``*``/``/`` silently drop the foreign unit and ``+``/``-`` raise
-    # ``UnitConversionError``. This is a known, tested sharp edge -- see
-    # ``TestReflectedMixedArithmeticUnderJit`` (strict-xfail) in
-    # ``tests/integration/astropy/test_astropy_interop_quantity.py``. Fixing the
-    # argument case would mean registering ``astropy.units.Quantity`` as a jax
-    # pytree node: a process-wide hijack of a type unxt does not own, which would
-    # change the result type of *any* astropy quantity crossing *any* ``jit``
-    # boundary (even in code not using unxt). That cure is worse than the disease.
+    # No reflected counterparts: they cannot help. Astropy's own
+    # ``__array_ufunc__`` handles ``astropy_q <op> unxt_q`` eagerly, and under
+    # ``jax.jit`` the unit is already destroyed before any code here runs.
+    # See the "Mixing Astropy and unxt Quantities Under jit" sharp bit, and the
+    # strict-xfail ``TestReflectedMixedArithmeticUnderJit``.
 
     def __mul__(self, other: Any) -> Any:
         return super().__mul__(_coerce_foreign_quantity(other))

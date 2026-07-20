@@ -321,15 +321,9 @@ class TestMixedUnxtAstropyArithmetic:
 _JIT_REFLECTED_XFAIL = pytest.mark.xfail(
     strict=True,
     reason=(
-        "Known sharp edge: under `jax.jit` an astropy Quantity operand loses its unit "
-        "before any unxt code runs. Passed as a jit argument, jax converts the ndarray "
-        "subclass to a unitless tracer at aval conversion; captured as a closure "
-        "constant, numpy routes the binop to unxt's `__array_ufunc__`, which "
-        "materialises the astropy operand in its own unit. `*` and `/` silently drop "
-        "the unit; `+` and `-` raise UnitConversionError. Fixing the argument case "
-        "would require registering `astropy.units.Quantity` as a jax pytree node -- a "
-        "global, process-wide hijack of a type unxt does not own. See the note in "
-        "`unxt._src.quantity.base`."
+        "Known sharp edge: under `jax.jit` an astropy Quantity operand loses its "
+        "unit before any unxt code runs -- `*`/`/` drop it silently, `+`/`-` raise. "
+        "See the 'Mixing Astropy and unxt Quantities Under jit' sharp bit."
     ),
 )
 
@@ -340,13 +334,8 @@ _REFLECTED_MODES = ["eager", "jit-arg", "jit-closure"]
 def _apply_reflected(mode: str, op: Any, apy: Any, q: Any) -> Any:
     """Apply ``op(apy, q)`` with the astropy operand entering three ways.
 
-    The two jit modes are genuinely distinct failure mechanisms, not two
-    spellings of one. As a jit *argument* the astropy quantity is converted to
-    a unitless tracer at aval conversion, before any unxt code runs. As a
-    *closure constant* it never becomes a tracer at all -- astropy's
-    ``__array_ufunc__`` returns ``NotImplemented`` for the traced operand and
-    numpy falls back into unxt's ``__array_ufunc__``. Both lose the unit, by
-    different routes, so both need covering.
+    The two jit modes lose the unit by *different* mechanisms, so both need
+    covering; ``jit-closure`` never becomes a tracer at all.
     """
     if mode == "eager":
         return op(apy, q)
