@@ -124,12 +124,17 @@ def test_dataarray_quantify_preserves_unrelated_attrs():
     assert UNIT_ATTR not in q.attrs
 
 
-def test_dimension_coord_keeps_units_attr():
-    """A dimension coordinate keeps its attr: xarray drops the Quantity there.
+def test_dimension_coord_units_attr_follows_attachment():
+    """The coord attr is consumed iff the unit survived onto the coord data.
 
-    xarray coerces dimension coordinates to plain index arrays, discarding the
-    `Quantity`. The attribute is then the only surviving record of the unit, so
-    consuming it would lose the unit outright.
+    xarray currently coerces dimension coordinates to plain index arrays,
+    discarding the `Quantity` -- so the attribute is the only surviving record
+    of the unit and must be preserved, which is why the pop is gated.
+
+    Asserted as that conditional rather than by pinning xarray's present
+    behaviour: if a future xarray preserves the `Quantity` on dimension
+    coordinates, the contract (pop iff attached) still holds and this test
+    still checks it, instead of failing for an unrelated reason.
     """
     da = xr.DataArray(
         [1.0, 2.0],
@@ -139,20 +144,37 @@ def test_dimension_coord_keeps_units_attr():
     )
 
     q = da.unxt.quantify()
+    coord = q.coords["x"]
 
-    # Precondition: xarray really did drop the Quantity on the dim coordinate.
-    assert u.unit_of(q.coords["x"].data) is None
-    # So the attribute must be preserved.
-    assert q.coords["x"].attrs[UNIT_ATTR] == "s"
-    # The data variable, which did keep its Quantity, still drops the attr.
+    if u.unit_of(coord.data) is None:
+        # The unit did not survive, so the attr is the only record of it.
+        assert coord.attrs[UNIT_ATTR] == "s"
+    else:
+        # The unit did survive, so the attr was redundant and is consumed.
+        assert u.unit_of(coord.data) == u.unit("s")
+        assert UNIT_ATTR not in coord.attrs
+
+    # The data variable does keep its Quantity, so its attr is always consumed.
+    assert u.unit_of(q.data) is not None
     assert UNIT_ATTR not in q.attrs
 
 
-def test_dataarray_attrs_untouched_when_no_unit_attached():
-    """An unrelated ``units`` attr on a variable with no unit is left alone."""
-    da = xr.DataArray([1.0, 2.0], dims=["x"])
-    attached = xr.DataArray(da.data, dims=["x"], attrs={"long_name": "count"})
+def test_units_attr_kept_when_no_unit_attached_to_data():
+    """The attr survives when quantification is explicitly suppressed.
 
-    q = attached.unxt.quantify()
+    This is the negative half of the conditional pop -- the positive half is
+    `test_dataarray_quantify_consumes_units_attr`. Passing ``{None: None}``
+    suppresses attachment for the data variable, so no unit reaches the data
+    and the ``units`` attr remains its only record.
+    """
+    da = xr.DataArray(
+        [1.0, 2.0],
+        dims=["x"],
+        attrs={UNIT_ATTR: "m", "long_name": "distance"},
+    )
 
-    assert q.attrs == {"long_name": "count"}
+    q = da.unxt.quantify({None: None})
+
+    assert u.unit_of(q.data) is None
+    assert q.attrs[UNIT_ATTR] == "m"
+    assert q.attrs["long_name"] == "distance"
