@@ -219,6 +219,46 @@ def uconvert_value(uto: APYUnits, ufrom: APYUnits, x: ArrayLike, /) -> ArrayLike
 
 
 @plum.dispatch
+def uconvert_value(
+    uto: APYUnits, ufrom: APYUnits, x: AstropyQuantity, /
+) -> AstropyQuantity:
+    """Convert an astropy quantity to the specified units.
+
+    This is a convenience dispatch mirroring the `AbstractQuantity` one: users
+    may pass a quantity to the lower-level value function and it keeps working.
+    Like that dispatch, it checks that the quantity's own unit is convertible
+    to the caller-supplied ``ufrom`` -- `~unxt.is_unit_convertible` takes the
+    *target* first, so ``is_unit_convertible(ufrom, x.unit)`` reads
+    "``x.unit`` -> ``ufrom``" -- then defers to the quantity's own unit for the
+    arithmetic, returning a *relabelled quantity* rather than a bare value.
+
+    This dispatch is required: an astropy `~astropy.units.Quantity` subclasses
+    `numpy.ndarray`, so it satisfies the ``x: ArrayLike`` annotation of the
+    bare-value dispatch above and is not rejected even under `beartype`. That
+    body's ``ufrom.to(uto, x)`` converts the magnitude but returns a quantity
+    still carrying ``ufrom``'s unit, mislabelling the result (e.g.
+    ``uconvert_value("m", "km", 1 km)`` gave ``1000.0 km``).
+
+    Examples
+    --------
+    >>> import astropy.units as apyu
+    >>> import unxt as u
+
+    >>> u.uconvert_value(apyu.Unit("m"), apyu.Unit("km"), apyu.Quantity(1.0, "km"))
+    <Quantity 1000. m>
+
+    >>> u.uconvert_value(apyu.Unit("m"), apyu.Unit("m"), apyu.Quantity(5.0, "m"))
+    <Quantity 5. m>
+
+    """
+    if not uapi.is_unit_convertible(ufrom, x.unit):
+        msg = f"Cannot convert from {x.unit} to {ufrom}"
+        raise ValueError(msg)
+
+    return x.to(uto)
+
+
+@plum.dispatch
 def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
     """Convert the quantity to the specified units.
 
