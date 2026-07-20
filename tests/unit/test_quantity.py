@@ -237,6 +237,40 @@ def test_scalar_weak_type_preserved():
     assert not arr.value.weak_type
 
 
+def test_uconvert_identity_fastpath_still_relabels() -> None:
+    """The identity fast path must not skip an equal-but-differently-named unit.
+
+    ``uconvert`` short-circuits on ``x.unit is u`` (astropy interns named units,
+    so "convert to the unit it already has" is the common case). Identity implies
+    identical string forms, so the relabel for units that are ``==`` but not
+    ``is`` -- e.g. ``J`` vs ``m2 kg / s2`` -- must still happen.
+    """
+    # == but NOT is: must relabel, not short-circuit.
+    j, comp = u.unit("J"), u.unit("m2 kg / s2")
+    assert j == comp
+    assert j is not comp
+
+    # NB: assert on the *label*, not ``==``. astropy considers ``J == m2 kg/s2``,
+    # so an ``== comp`` assertion would pass even if uconvert wrongly
+    # short-circuited and handed back the original ``J``-labelled quantity --
+    # i.e. it could not fail for the bug it guards. ``to_string()`` distinguishes
+    # them ("J" vs "m2 kg / s2").
+    got = u.uconvert(comp, u.Q(1.0, "J"))
+    assert got.unit.to_string() == comp.to_string()
+    assert got.unit.to_string() != j.to_string()
+
+    back = u.uconvert(j, u.Q(1.0, "m2 kg / s2"))
+    assert back.unit.to_string() == j.to_string()
+    assert back.unit.to_string() != comp.to_string()
+
+    # is: returns the same object untouched.
+    q = u.Q(2.0, "m")
+    assert u.uconvert(u.unit("m"), q) is q
+
+    # a genuine conversion is unaffected.
+    assert jnp.isclose(u.uconvert(u.unit("km"), u.Q(1000.0, "m")).value, 1.0)
+
+
 def test_uconvert_value_preserves_dtype():
     """Test that uconvert_value preserves input dtype."""
     # Float32 input
