@@ -334,6 +334,57 @@ def function(x, *, constant=u.StaticQuantity(3.26, "lyr")):
 
 `ParametricQuantity` lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package; see its [guide](../packages/unxts.parametric/quantity.md) for construction, dimension checking, and dispatch.
 
+## Mixing Astropy and `unxt` Quantities Under `jit`
+
+### ❌ Problem: The Astropy Unit Disappears Inside `jit`
+
+Arithmetic between an `astropy.units.Quantity` and a `unxt` quantity works **eagerly**, because astropy's `__array_ufunc__` handles the operation. Inside `jax.jit` it does not, and the failure is quiet:
+
+```python
+import astropy.units as apyu
+import jax
+import unxt as u
+
+apy = apyu.Quantity(2.0, "km")
+q = u.Q(3.0, "m")
+
+# Eager: astropy handles it, both units survive.
+print(apy * q)  # <Quantity 6. km m>
+
+# Under jit: 'km' is silently dropped, and the result claims 'm'.
+print(jax.jit(lambda a, b: a * b)(apy, q))
+# Quantity(Array(6., dtype=float32), unit='m')
+```
+
+The magnitude survives but the unit does not, so `*` and `/` return a plausible-looking result that is wrong by the conversion factor — here a factor of 1000. `+` and `-` at least fail loudly:
+
+```python
+try:
+    jax.jit(lambda a, b: a + b)(apy, q)
+except apyu.UnitConversionError as e:
+    print(f"UnitConversionError: {e}")
+```
+
+This is not something `unxt` can intercept: `jax` converts the astropy `ndarray` subclass to a unitless tracer before any `unxt` code runs, so the unit is already gone by then. (Capturing the astropy quantity as a closure constant rather than passing it as an argument loses it too, by a different route.)
+
+### ✅ Solution: Convert at the Boundary
+
+Turn foreign quantities into `unxt` quantities _before_ they cross into a jitted function, with `u.Q.from_`:
+
+```python
+qa = u.Q.from_(apy)  # 2.0 km, now a unxt Quantity
+print(qa)  # Quantity(Array(2., dtype=float32), unit='km')
+
+# Both operators now behave, and agree with the eager result.
+print(jax.jit(lambda a, b: a * b)(qa, q))
+# Quantity(Array(6., dtype=float32), unit='km m')
+
+print(jax.jit(lambda a, b: a + b)(qa, q))
+# Quantity(Array(2.003, dtype=float32), unit='km')
+```
+
+As a rule: keep astropy quantities at the edges of your program and convert once on the way in. Mixed-library arithmetic working eagerly is not evidence that it will work under `jit`.
+
 ## Dimension Checking Overhead
 
 ### ❌ Problem: Slow Tests or Development
