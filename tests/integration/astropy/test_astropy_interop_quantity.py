@@ -5,6 +5,7 @@ mixed unxt/astropy arithmetic (eager and under ``jax.jit``), and the
 ``ustrip(AllowValue, ...)`` dispatches.
 """
 
+import operator
 from typing import Any
 
 import astropy.units as apyu
@@ -306,6 +307,49 @@ class TestMixedUnxtAstropyArithmetic:
         """Adding an incompatible astropy quantity still raises."""
         with pytest.raises(apyu.UnitConversionError, match="not convertible"):
             _ = u.Q(1.0, "m") + apyu.Quantity(2.0, "s")
+
+    @pytest.mark.parametrize(
+        ("name", "op", "lhs", "rhs"),
+        [
+            (
+                "floordiv",
+                operator.floordiv,
+                u.Q(6.0, ""),
+                apyu.Quantity(2.0, "percent"),
+            ),
+            ("mod", operator.mod, u.Q(6.0, ""), apyu.Quantity(2.0, "percent")),
+            ("pow", operator.pow, u.Q(3.0, "m"), apyu.Quantity(2.0, "percent")),
+            (
+                "matmul",
+                operator.matmul,
+                u.Q([1.0, 2.0], "m"),
+                apyu.Quantity([3.0, 4.0], "km"),
+            ),
+        ],
+    )
+    def test_operator_matches_explicitly_converted_operand(
+        self, name: str, op: Any, lhs: Any, rhs: Any
+    ) -> None:
+        """Every binary operator treats an astropy operand as a converted quantity.
+
+        Asserted as an invariant rather than a hand-computed "right answer":
+        whatever ``q <op> convert(apy_q, Quantity)`` gives, ``q <op> apy_q``
+        must give too. That is precisely what ``_coerce_foreign_quantity``
+        already guarantees for ``*``, ``/``, ``+`` and ``-``.
+
+        Regression: only those four dunders were overridden to coerce. ``//``,
+        ``%``, ``**`` and ``@`` were inherited unchanged, so quax materialised
+        the astropy operand via ``__array__`` -- stripping it to a bare array in
+        its own unit and silently dropping the unit. ``**`` was wrong in every
+        case (``Q(3, "m") ** apy(2, "percent")`` gave ``9 m2`` rather than
+        ``1.0222 m(1/50)``); ``@`` dropped the ``km``.
+        """
+        expected = op(lhs, convert(rhs, u.quantity.Quantity))
+        got = op(lhs, rhs)
+
+        assert got.unit == expected.unit, f"{name}: unit"
+        msg = f"{name}: value"
+        assert np.allclose(np.asarray(got.value), np.asarray(expected.value)), msg
 
     def test_plum_convert_astropy_to_unxt(self) -> None:
         """`plum.convert` from an astropy Quantity yields an ``unxt`` Quantity.
