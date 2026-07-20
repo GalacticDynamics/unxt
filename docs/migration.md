@@ -43,37 +43,41 @@ Accessing the moved names on `unxt` now raises `AttributeError` with a message p
 | `from unxt.quantity import AbstractParametricQuantity` | `from unxts.parametric import AbstractParametricQuantity` |
 | `u.PQ(...)` / `u.ParametricQuantity(...)` | `up.PQ(...)` (with `import unxts.parametric as up`) |
 
+The v1 form (shown for reference — this raises `AttributeError` on v2):
+
 <!-- skip: start -->
 
 ```python
-# Before (v1)
 import unxt as u
 
 q = u.PQ(1, "m")
-
-# After (v2)
-import unxts.parametric as up
-
-q = up.PQ(1, "m")
 ```
 
 <!-- skip: end -->
+
+The v2 form:
+
+```{code-block} python
+>>> import unxts.parametric as up
+
+>>> up.PQ(1, "m")
+ParametricQuantity(Array(1, dtype=int32...), unit='m')
+```
 
 ### Angle operations now return the default `Quantity`
 
 Trigonometric and product operations on an `Angle` (`cos`, `sin`, `tan`, `cbrt`, `Angle @ Angle`, `Angle * Angle`, integer/array powers, etc.) previously produced a `ParametricQuantity`. Because core `unxt` can no longer reference the parametric class, in v2 they produce the lightweight default `Quantity`:
 
-<!-- skip: start -->
+```{code-block} python
+>>> import unxt as u
+>>> import quaxed.numpy as jnp
 
-```python
-import unxt as u
-import quaxed.numpy as jnp
+>>> jnp.cos(u.Angle(0, "deg"))  # v1: ParametricQuantity
+Quantity(Array(1., dtype=float32...), unit='')
 
-jnp.cos(u.Angle(0, "deg"))  # v1: ParametricQuantity(...) -> v2: Quantity(...)
-u.Angle([1, 2, 3], "deg") @ u.Angle([4, 5, 6], "deg")  # now a Quantity
+>>> u.Angle([1, 2, 3], "deg") @ u.Angle([4, 5, 6], "deg")  # v1: ParametricQuantity
+Quantity(Array(32, dtype=int32), unit='deg2')
 ```
-
-<!-- skip: end -->
 
 The value and unit are unchanged — only the wrapping class differs. If you specifically need a parametric result, convert explicitly with `convert(result, up.PQ)`.
 
@@ -85,19 +89,18 @@ A few JAX primitive rules fire only when a _parametric_ quantity is involved —
 
 Converting an `astropy.units.Quantity` **to a `ParametricQuantity`** is now registered by `unxts.parametric` (import it to enable). Conversion to the default `Quantity` remains in core `unxt`:
 
-<!-- skip: start -->
+```{code-block} python
+>>> from astropy.units import Quantity as AstropyQuantity
+>>> from plum import convert
+>>> import unxt as u
+>>> import unxts.parametric as up
 
-```python
-from astropy.units import Quantity as AstropyQuantity
-from plum import convert
-import unxt as u
-import unxts.parametric as up
+>>> convert(AstropyQuantity(1.0, "cm"), u.Quantity)  # core unxt
+Quantity(Array(1., dtype=float32), unit='cm')
 
-convert(AstropyQuantity(1.0, "cm"), u.Quantity)  # core unxt
-convert(AstropyQuantity(1.0, "cm"), up.PQ)  # needs unxts.parametric
+>>> convert(AstropyQuantity(1.0, "cm"), up.PQ)  # needs unxts.parametric
+ParametricQuantity(Array(1., dtype=float32), unit='cm')
 ```
-
-<!-- skip: end -->
 
 ### Config: `include_params` moved to `unxts.parametric.config`
 
@@ -128,39 +131,41 @@ In-code configuration via `u.config` is unchanged.
 
 `BareQuantity` is now a **deprecated alias** of `Quantity`. Accessing it emits a `DeprecationWarning` and returns the (new) `Quantity` class:
 
-<!-- skip: start -->
+```{code-block} python
+>>> import warnings
+>>> import unxt as u
 
-```python
-import warnings
-import unxt as u
+>>> with warnings.catch_warnings(record=True) as w:
+...     warnings.simplefilter("always")
+...     BQ = u.quantity.BareQuantity  # DeprecationWarning
+...     assert BQ is u.Quantity  # same class
 
-with warnings.catch_warnings(record=True) as w:
-    warnings.simplefilter("always")
-    BQ = u.quantity.BareQuantity  # DeprecationWarning
-    assert BQ is u.Quantity  # same class
-
-print(w[0].category.__name__)  # DeprecationWarning
+>>> w[0].category.__name__
+'DeprecationWarning'
 ```
-
-<!-- skip: end -->
 
 `BareQuantity` **will be removed in a future release**. Update your code now:
 
+The v1 form (deprecated; still works, but warns):
+
 <!-- skip: start -->
 
 ```python
-# Before (v1)
 from unxt import BareQuantity
 
 q = BareQuantity(1.0, "m")
-
-# After (v2)
-from unxt import Quantity  # or: import unxt as u; u.Q(...)
-
-q = Quantity(1.0, "m")
 ```
 
 <!-- skip: end -->
+
+The v2 form:
+
+```{code-block} python
+>>> from unxt import Quantity  # or: import unxt as u; u.Q(...)
+
+>>> Quantity(1.0, "m")
+Quantity(Array(1., dtype=float32...), unit='m')
+```
 
 ---
 
@@ -172,53 +177,99 @@ If you used the old parametric `Quantity`, two behaviors have changed:
 
 In v1, `Quantity["length"](1, "s")` would raise a `ValueError` because `"s"` (seconds) is not a length unit. In v2, the same call on the new default `Quantity` accepts any unit without checking:
 
-<!-- skip: start -->
+On the v2 default `Quantity` the subscript is a no-op, so no check happens:
 
-```python
-import unxt as u
-import unxts.parametric as up
+```{code-block} python
+>>> import unxt as u
+>>> import unxts.parametric as up
 
-# v2 default Quantity — subscript is a no-op, no check
-u.Q["length"](1, "s")  # Quantity(1, unit='s') — no error
-
-# ParametricQuantity — still raises on mismatch
-try:
-    up.PQ["length"](1, "s")
-except ValueError as e:
-    print(e)  # Physical type mismatch.
+>>> u.Q["length"](1, "s")
+Quantity(Array(1, dtype=int32...), unit='s')
 ```
 
-<!-- skip: end -->
+`ParametricQuantity` still raises on a mismatch:
+
+```{code-block} python
+>>> try:
+...     up.PQ["length"](1, "s")
+... except ValueError as e:
+...     print(e)
+Physical type mismatch.
+```
 
 **Migration:** Replace `Quantity["<dim>"](...)` calls that relied on dimension checking with `ParametricQuantity["<dim>"](...)` (or `up.PQ["<dim>"](...)`).
+
+### (a2) `isinstance` checks against `Quantity` no longer match parametric quantities
+
+```{warning}
+This is the one v1 break that gives you **neither a warning nor an error** — the
+check simply returns `False` and your code takes the other branch.
+```
+
+In v1, `u.Quantity` _was_ the parametric class, so `isinstance(x, u.Quantity)` matched parametric instances. In v2 they are unrelated concrete classes, and neither is a subclass of the other:
+
+```{code-block} python
+>>> import unxt as u
+>>> import unxts.parametric as up
+
+>>> pq = up.PQ(1.0, "m")
+>>> q = u.Q(1.0, "m")
+
+>>> isinstance(pq, u.Quantity)   # v1: True
+False
+
+>>> isinstance(q, up.PQ)
+False
+```
+
+**Migration:** check against the abstract base, which both concrete classes share:
+
+```{code-block} python
+>>> isinstance(pq, u.AbstractQuantity)
+True
+
+>>> isinstance(q, u.AbstractQuantity)
+True
+```
+
+The same applies to `issubclass`, to `plum`/`beartype` annotations written as `Quantity`, and to any runtime validation (`pydantic`, `attrs` validators, manual type guards) that narrows on `u.Quantity`. If you want "any quantity", use `u.AbstractQuantity` (or `u.quantity.is_any_quantity`); reserve `u.Quantity` for "specifically the non-parametric class".
 
 ### (b) Plum dispatch on dimension-specific types requires `ParametricQuantity`
 
 In v1, `Quantity["length"]` was a distinct class usable in `plum` dispatch annotations. In v2, `u.Q["length"] is u.Quantity` — subscripting the default `Quantity` returns the same class, making it useless for dimension-based dispatch.
 
+So an annotation written this way no longer selects on dimension:
+
 <!-- skip: start -->
 
 ```python
-# v1 dispatch on old Quantity (broken in v2)
-# @dispatch
-# def f(x: Quantity["length"]): ...  # was a distinct type in v1
-
-# v2 — use ParametricQuantity for dimension-specific dispatch
-from plum import dispatch
-import unxts.parametric as up
-
-
 @dispatch
-def f(x: up.PQ["length"]):
-    return "length!"
-
-
-@dispatch
-def f(x: up.PQ["time"]):
-    return "time!"
+def f(x: Quantity["length"]):
+    ...  # was a distinct type in v1
 ```
 
 <!-- skip: end -->
+
+Use `ParametricQuantity` for dimension-specific dispatch instead:
+
+```{code-block} python
+>>> from plum import dispatch
+>>> import unxts.parametric as up
+
+>>> @dispatch
+... def f(x: up.PQ["length"]):
+...     return "length!"
+
+>>> @dispatch
+... def f(x: up.PQ["time"]):
+...     return "time!"
+
+>>> f(up.PQ(1.0, "m"))
+'length!'
+
+>>> f(up.PQ(1.0, "s"))
+'time!'
+```
 
 ---
 
