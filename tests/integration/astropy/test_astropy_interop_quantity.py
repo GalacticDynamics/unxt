@@ -1,5 +1,7 @@
 """Tests for astropy interop uconvert_value function."""
 
+from typing import Any
+
 import astropy.units as apyu
 import jax
 import jax.numpy as jnp
@@ -314,6 +316,72 @@ class TestMixedUnxtAstropyArithmetic:
             assert isinstance(got, u.quantity.Quantity)
             assert got.unit == u.unit("km")
             assert np.isclose(np.asarray(got.value), 2.0)
+
+
+_JIT_REFLECTED_XFAIL = pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "Known sharp edge: under `jax.jit` an astropy Quantity operand loses its unit "
+        "before any unxt code runs. Passed as a jit argument, jax converts the ndarray "
+        "subclass to a unitless tracer at aval conversion; captured as a closure "
+        "constant, numpy routes the binop to unxt's `__array_ufunc__`, which "
+        "materialises the astropy operand in its own unit. `*` and `/` silently drop "
+        "the unit; `+` and `-` raise UnitConversionError. Fixing the argument case "
+        "would require registering `astropy.units.Quantity` as a jax pytree node -- a "
+        "global, process-wide hijack of a type unxt does not own. See the note in "
+        "`unxt._src.quantity.base`."
+    ),
+)
+
+
+class TestReflectedMixedArithmeticUnderJit:
+    """Astropy quantity on the LEFT, ``unxt`` on the right, under ``jax.jit``.
+
+    Eagerly these all work, because astropy's own ``__array_ufunc__`` handles
+    ``astropy_q <op> unxt_q``. Under ``jit`` they do not -- these tests encode the
+    *desired* behaviour and are strict-xfail, so if the underlying jax/astropy
+    behaviour ever changes they fail loudly and prompt removing the marker.
+    """
+
+    @pytest.mark.parametrize("mode", ["eager", "jit"])
+    def test_mul_keeps_both_units(self, mode: str, request: Any) -> None:
+        """``astropy_q * unxt_q`` keeps both units."""
+        jit = mode == "jit"
+        if jit:
+            request.applymarker(_JIT_REFLECTED_XFAIL)
+        op = (lambda a, b: a * b) if not jit else jax.jit(lambda a, b: a * b)
+        got = op(apyu.Quantity(2.0, "km"), u.Q(3.0, "m"))
+        assert np.isclose(np.asarray(u.ustrip(AllowValue, "km m", got)), 6.0)
+
+    @pytest.mark.parametrize("mode", ["eager", "jit"])
+    def test_truediv_keeps_both_units(self, mode: str, request: Any) -> None:
+        """``astropy_q / unxt_q`` keeps both units."""
+        jit = mode == "jit"
+        if jit:
+            request.applymarker(_JIT_REFLECTED_XFAIL)
+        op = (lambda a, b: a / b) if not jit else jax.jit(lambda a, b: a / b)
+        got = op(apyu.Quantity(2.0, "km"), u.Q(3.0, "m"))
+        assert np.isclose(np.asarray(u.ustrip(AllowValue, "km / m", got)), 2.0 / 3.0)
+
+    @pytest.mark.parametrize("mode", ["eager", "jit"])
+    def test_add_converts_and_combines(self, mode: str, request: Any) -> None:
+        """``astropy_q + unxt_q`` converts the unxt operand first."""
+        jit = mode == "jit"
+        if jit:
+            request.applymarker(_JIT_REFLECTED_XFAIL)
+        op = (lambda a, b: a + b) if not jit else jax.jit(lambda a, b: a + b)
+        got = op(apyu.Quantity(2.0, "km"), u.Q(3.0, "m"))
+        assert np.isclose(np.asarray(u.ustrip(AllowValue, "km", got)), 2.003)
+
+    @pytest.mark.parametrize("mode", ["eager", "jit"])
+    def test_sub_converts_and_combines(self, mode: str, request: Any) -> None:
+        """``astropy_q - unxt_q`` converts the unxt operand first."""
+        jit = mode == "jit"
+        if jit:
+            request.applymarker(_JIT_REFLECTED_XFAIL)
+        op = (lambda a, b: a - b) if not jit else jax.jit(lambda a, b: a - b)
+        got = op(apyu.Quantity(2.0, "km"), u.Q(3.0, "m"))
+        assert np.isclose(np.asarray(u.ustrip(AllowValue, "km", got)), 1.997)
 
 
 class TestUstripAllowValueAstropy:
