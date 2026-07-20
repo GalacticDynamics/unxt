@@ -591,8 +591,10 @@ jobs:
           # skip instead of treating it as a failure.
           #
           # `tests-unxts-parametric` is deliberately NOT listed: it has no `if:`
-          # gate and must run on every PR, so a skip there is a real failure
-          # (e.g. a malformed gate) and should fail this check loudly.
+          # gate and must run on every PR, so a skip there is a real failure --
+          # e.g. an `if:` gate reintroduced on the job, or its `needs:`
+          # (`setup`/`format`) failing -- and should fail this check loudly
+          # rather than pass silently.
           allowed-skips:
             tests-unxt-api, tests-unxt-hypothesis, tests-unxts-api,
             tests-unxts-hypothesis, tests-unxts-interop-gala,
