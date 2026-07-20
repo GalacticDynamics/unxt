@@ -10,6 +10,12 @@ on:
   push:
     branches:
       - main
+  schedule:
+    # Weekly, Mondays at midnight UTC. This is the ecosystem check: the
+    # per-package jobs below are gated off on ordinary PRs, so this run is what
+    # exercises every sibling package against current upstream releases and
+    # catches breakage that lands without any change to this repo.
+    - cron: "0 0 * * 1"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -93,6 +99,7 @@ jobs:
     needs: [setup, format]
     if: |
       github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, '🧩 unxt-api') ||
       startsWith(github.head_ref, 'unxt-api/')
@@ -132,6 +139,7 @@ jobs:
     needs: [setup, format]
     if: |
       github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, '🧩 unxt-hypothesis') ||
       startsWith(github.head_ref, 'unxt-hypothesis/')
@@ -169,6 +177,7 @@ jobs:
     needs: [setup, format]
     if: |
       github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, '🧩 unxts-api') ||
       startsWith(github.head_ref, 'unxts-api/')
@@ -209,6 +218,7 @@ jobs:
     needs: [setup, format]
     if: |
       github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, '🧩 unxts-hypothesis') ||
       startsWith(github.head_ref, 'unxts-hypothesis/')
@@ -253,6 +263,7 @@ jobs:
     needs: [setup, format]
     if: |
       github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, '🧩 unxts-interop-gala') ||
       startsWith(github.head_ref, 'unxts-interop-gala/')
@@ -295,6 +306,7 @@ jobs:
     needs: [setup, format]
     if: |
       github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, '🧩 unxts-interop-matplotlib') ||
       startsWith(github.head_ref, 'unxts-interop-matplotlib/')
@@ -334,6 +346,7 @@ jobs:
     needs: [setup, format]
     if: |
       github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, '🧩 unxts-interop-xarray') ||
       startsWith(github.head_ref, 'unxts-interop-xarray/')
@@ -369,24 +382,26 @@ jobs:
 
   # unxts-parametric package tests
   #
-  # Unlike its sibling package jobs, this one has NO `if:` gate: it runs on
-  # every event the workflow fires on, including ordinary pull requests.
-  # `unxts.parametric` depends on core `unxt` and is the migration target for
-  # every v1 user, so a core change that breaks it must fail the PR rather than
-  # be discovered after merge.
-  #
-  # The label/branch-prefix gate the siblings use cannot close this gap: the
-  # `🧩 unxts-parametric` label is applied by the `Auto-label PRs` workflow,
-  # which runs on `workflow_run` *after* `Collect PR labels` completes, while
-  # CI evaluates `github.event.pull_request.labels` from the original
-  # `pull_request` payload. The label therefore lands too late to affect the
-  # run it would need to gate, and CI does not trigger on `types: [labeled]`.
+  # NB: the label clause below is weaker than it looks. The `🧩 unxts-parametric`
+  # label is applied by the `Auto-label PRs` workflow, which runs on
+  # `workflow_run` *after* `Collect PR labels` completes, while CI evaluates
+  # `github.event.pull_request.labels` from the original `pull_request` payload.
+  # The label therefore lands too late to gate the run it would need to gate,
+  # and CI does not trigger on `types: [labeled]` -- so in practice it only
+  # takes effect on the *next* push to the PR. Coverage for core changes that
+  # break this package comes from the push-to-main and weekly `schedule` runs.
   tests-unxts-parametric:
     name:
       unxts-parametric Python ${{ matrix.python-version }} on ${{ matrix.runs-on
       }}
     runs-on: ${{ matrix.runs-on }}
     needs: [setup, format]
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, '🧩 unxts-parametric') ||
+      startsWith(github.head_ref, 'unxts-parametric/')
     strategy:
       fail-fast: false
       matrix:
@@ -426,6 +441,7 @@ jobs:
     needs: [setup, format]
     if: |
       github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, '🧩 unxts-linalg') ||
       startsWith(github.head_ref, 'unxts-linalg/')
@@ -585,18 +601,13 @@ jobs:
         uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # v1.2.2
         with:
           jobs: ${{ toJSON(needs) }}
-          # These per-package jobs only run on push / workflow_dispatch / a
-          # package label / `unxt-api|unxt-hypothesis/*` branches (see their
+          # These per-package jobs only run on push / schedule /
+          # workflow_dispatch / a package label / `<pkg>/*` branches (see their
           # `if:`), so on a normal PR they are intentionally skipped. Allow the
-          # skip instead of treating it as a failure.
-          #
-          # `tests-unxts-parametric` is deliberately NOT listed: it has no `if:`
-          # gate and must run on every PR, so a skip there is a real failure --
-          # e.g. an `if:` gate reintroduced on the job, or its `needs:`
-          # (`setup`/`format`) failing -- and should fail this check loudly
-          # rather than pass silently.
+          # skip instead of treating it as a failure. On the weekly `schedule`
+          # run they all execute, so nothing here is permanently unchecked.
           allowed-skips:
             tests-unxt-api, tests-unxt-hypothesis, tests-unxts-api,
             tests-unxts-hypothesis, tests-unxts-interop-gala,
             tests-unxts-interop-matplotlib, tests-unxts-interop-xarray,
-            tests-unxts-linalg
+            tests-unxts-linalg, tests-unxts-parametric
