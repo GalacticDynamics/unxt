@@ -88,16 +88,23 @@ def _consume_unit_attrs(obj: DataArray | Dataset, /) -> None:
     unit and must be kept. Mutates ``obj`` in place -- callers pass an object
     they have just constructed.
     """
-    variables = (
-        obj.data_vars.values() if isinstance(obj, Dataset) else [obj]  # type: ignore[list-item]
-    )
-    for var in variables:
-        if u.unit_of(var.data) is not None:
-            var.attrs.pop(UNIT_ATTR, None)
+
+    def drop_if_carried(node: Any, /) -> None:
+        """Drop the attr from one variable/coordinate if its data carries a unit."""
+        if u.unit_of(node.data) is not None:
+            node.attrs.pop(UNIT_ATTR, None)
+
+    # A Dataset holds many data variables; a DataArray *is* the single one.
+    # Branching explicitly (rather than unifying into one list) keeps the two
+    # element types apart, so this needs no ``type: ignore``.
+    if isinstance(obj, Dataset):
+        for var in obj.data_vars.values():
+            drop_if_carried(var)
+    else:
+        drop_if_carried(obj)
 
     for coord in obj.coords.values():
-        if u.unit_of(coord.data) is not None:
-            coord.attrs.pop(UNIT_ATTR, None)
+        drop_if_carried(coord)
 
 
 @dispatch
