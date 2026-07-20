@@ -63,9 +63,16 @@ def _as_dimensionless_like(q: ABCQ, value: ArrayLike) -> ABCQ:
     read-back.
 
     The result shares the namespace of the quantity operand (per the Array API).
-    Some quantity subtypes (e.g. ``Angle``, ``StaticQuantity``) constrain their
-    units and cannot be dimensionless; for those we fall back to a plain
-    dimensionless :class:`Quantity`.
+    Some subtypes cannot represent the result, though, and for those we fall
+    back to a plain dimensionless :class:`Quantity` -- which is why the
+    construction below catches both exception types:
+
+    - :class:`Angle` constrains its *unit* (it must be angular), so building one
+      with ``unit=one`` raises :exc:`ValueError`.
+    - :class:`StaticQuantity` constrains its *value* (a static NumPy array, not
+      a tracer) -- it is perfectly happy being dimensionless. It only reaches
+      the fallback under ``jit``/``vmap``, where the traced value raises
+      :exc:`TypeError`.
     """
     try:
         return type_np(q)(value, unit=one)
