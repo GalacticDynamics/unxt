@@ -628,14 +628,27 @@ def test_static_backed_eq_is_label_based_not_physical(lhs, rhs) -> None:
     assert u.unit(lhs) == u.unit(rhs)
 
     assert a != b
-    assert hash(a) != hash(b)
+    # Collision-safe: a set falls back to ``__eq__`` when hashes collide, so
+    # two unequal objects always occupy two slots regardless of hashing.
     assert len({a, b}) == 2
+
+    # They are unequal *because the labels differ* -- that is the semantics
+    # under test. (Asserting ``hash(a) != hash(b)`` would be asserting more
+    # than Python guarantees: unequal objects are permitted to collide.)
+    assert str(a.unit) != str(b.unit)
+
+    # The eq/hash contract, in the direction Python actually requires:
+    # equal objects must hash equal. This is what the bug violated.
+    same = u.StaticQuantity(value, lhs)
+    assert a == same
+    assert hash(a) == hash(same)
 
     # ... and the same holds for a StaticValue-backed plain Quantity.
     qa = u.Q(StaticValue(value), lhs)
     qb = u.Q(StaticValue(value), rhs)
     assert qa != qb
-    assert hash(qa) != hash(qb)
+    assert str(qa.unit) != str(qb.unit)
+    assert qa == u.Q(StaticValue(value), lhs)
 
 
 def test_static_quantity_jit_distinguishes_units() -> None:
