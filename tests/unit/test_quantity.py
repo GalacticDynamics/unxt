@@ -1499,3 +1499,67 @@ def test_zero_d_quantity_is_not_iterable():
     vec = u.Q([1.0, 2.0, 3.0], "m")
     assert np.iterable(vec) is True
     assert [float(x.value) for x in vec] == [1.0, 2.0, 3.0]
+
+
+# ==============================================================================
+# Dimensionless-input math must not keep a scaled unit label
+# ==============================================================================
+
+
+@pytest.mark.parametrize(
+    ("fn", "expected"),
+    [
+        (jnp.exp, math.e),  # exp(1) = e
+        (jnp.log, 0.0),  # log(1) = 0
+        (jnp.exp2, 2.0),  # 2**1 = 2
+        (jnp.expm1, math.e - 1.0),  # exp(1) - 1
+        (jnp.log1p, math.log(2.0)),  # log(1 + 1) = ln 2
+    ],
+)
+def test_transcendental_of_scaled_dimensionless_is_unscaled(fn, expected):
+    """A transcendental of a scaled-dimensionless quantity is unscaled.
+
+    Regression: the rule stripped the value to true-dimensionless
+    (``ustrip(one, x)``) but returned it via ``replace(x, ...)``, which kept the
+    input's scaled unit label. ``exp(100 %)`` then read back as ``e / 100``
+    instead of ``e`` because the ``%`` scale was re-applied on the way out.
+    """
+    q = u.Q(100.0, "percent")  # == 1.0 dimensionless
+    result = fn(q)
+    # The label is the bug: assert the result is *unscaled* dimensionless, not
+    # merely that the number reads back correctly.
+    assert result.unit == u.unit("")
+    got = float(u.ustrip("", result))
+    assert math.isclose(got, expected, rel_tol=1e-5, abs_tol=1e-7)
+
+
+def test_cumprod_of_scaled_dimensionless_is_unscaled():
+    """``cumprod`` of a scaled-dimensionless quantity is unscaled.
+
+    Same class of bug as the transcendental rules: the value is stripped to
+    true-dimensionless via ``ustrip(one, operand)`` but was rebuilt with
+    ``replace(operand, ...)``, which kept the ``%`` label and re-applied its
+    scale on read-back.
+    """
+    q = u.Q([100.0, 100.0], "percent")  # each == 1.0 dimensionless
+    res = jnp.cumprod(q)
+    # The scaled label is the bug, so assert the unit as well as the numbers.
+    assert res.unit == u.unit("")
+    assert np.allclose(np.asarray(u.ustrip("", res)), [1.0, 1.0])
+
+
+def test_minmax_against_bare_array_of_scaled_dimensionless_is_unscaled():
+    """``minimum``/``maximum`` vs a bare array do not re-apply the scaled unit.
+
+    The result of comparing a scaled-dimensionless quantity (e.g. ``%``) with a
+    plain array must be unscaled dimensionless, not relabelled with the input's
+    scaled unit.
+    """
+    q = u.Q(100.0, "percent")  # == 1.0 dimensionless
+    res_max = jnp.maximum(q, 0.3)
+    res_min = jnp.minimum(q, 0.3)
+    # The scaled label is the bug, so assert the unit as well as the number.
+    assert res_max.unit == u.unit("")
+    assert res_min.unit == u.unit("")
+    assert math.isclose(float(u.ustrip("", res_max)), 1.0, rel_tol=1e-5, abs_tol=1e-7)
+    assert math.isclose(float(u.ustrip("", res_min)), 0.3, rel_tol=1e-5, abs_tol=1e-7)

@@ -46,14 +46,33 @@ def _to_val_rad_or_one(q: ABCQ) -> ArrayLike:
 
 
 def _as_dimensionless_like(q: ABCQ, value: ArrayLike) -> ABCQ:
-    """Wrap a comparison result as a dimensionless quantity like ``q``.
+    """Wrap a dimensionless-valued result as a dimensionless quantity like ``q``.
 
-    Comparison primitives return a dimensionless quantity sharing the namespace
-    of the quantity operand (per the Array API). Some quantity subtypes (e.g.
-    ``Angle``, ``StaticQuantity``) constrain their units and cannot be
-    dimensionless; for those — which only arise from internal, value-level
-    comparisons inside composite functions (``mod``, ``floor_divide``, ...) — we
-    fall back to a plain dimensionless :class:`Quantity`.
+    Used by primitives whose result is genuinely dimensionless, for either of
+    two reasons:
+
+    - **comparisons**, whose boolean result is dimensionless however the
+      operands were stripped (e.g. ``eq_p_qq`` strips to ``x``'s own unit via
+      ``ustrip(x)`` / ``ustrip(x.unit, y)``, not to ``one``); or
+    - **transcendental / bitwise** functions, whose operand *is* first stripped
+      to true-dimensionless via ``ustrip(one, x)``.
+
+    Either way the result must carry ``unit=one``. Returning it via
+    ``replace(q, ...)`` would instead keep ``q``'s (possibly *scaled*, e.g.
+    ``%`` or ``km / m``) unit label and silently re-apply that scale on
+    read-back.
+
+    The result shares the namespace of the quantity operand (per the Array API).
+    Some subtypes cannot represent the result, though, and for those we fall
+    back to a plain dimensionless :class:`Quantity` -- which is why the
+    construction below catches both exception types:
+
+    - :class:`Angle` constrains its *unit* (it must be angular), so building one
+      with ``unit=one`` raises :exc:`ValueError`.
+    - :class:`StaticQuantity` constrains its *value* (a static NumPy array, not
+      a tracer) -- it is perfectly happy being dimensionless. It only reaches
+      the fallback under ``jit``/``vmap``, where the traced value raises
+      :exc:`TypeError`.
     """
     try:
         return type_np(q)(value, unit=one)
@@ -719,7 +738,7 @@ def bessel_i0e_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
     Quantity(Array(0.46575963, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.bessel_i0e_p.bind(ustrip(one, x), **kwargs))
+    return _as_dimensionless_like(x, lax.bessel_i0e_p.bind(ustrip(one, x), **kwargs))
 
 
 @quax.register(lax.bessel_i1e_p)
@@ -739,7 +758,7 @@ def bessel_i1e_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
     Quantity(Array(0.20791042, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.bessel_i1e_p.bind(ustrip(one, x), **kwargs))
+    return _as_dimensionless_like(x, lax.bessel_i1e_p.bind(ustrip(one, x), **kwargs))
 
 
 # ==============================================================================
@@ -1454,8 +1473,8 @@ def cumprod_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
     Quantity(Array([1, 2, 6], dtype=int32), unit='')
 
     """
-    return replace(
-        operand, value=lax.cumprod(ustrip(one, operand), axis=axis, reverse=reverse)
+    return _as_dimensionless_like(
+        operand, lax.cumprod(ustrip(one, operand), axis=axis, reverse=reverse)
     )
 
 
@@ -1784,7 +1803,7 @@ def digamma_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(-0.5772154, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.digamma(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.digamma(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2321,7 +2340,7 @@ def erf_inv_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return replace(x, value=lax.erf_inv(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.erf_inv(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2346,7 +2365,7 @@ def erf_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return replace(x, value=lax.erf(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.erf(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2371,7 +2390,7 @@ def erfc_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return replace(x, value=lax.erfc(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.erfc(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2395,7 +2414,7 @@ def exp2_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(8., dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.exp2_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.exp2_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -2427,7 +2446,7 @@ def exp_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     """
     # TODO: more meaningful error message.
-    return replace(x, value=lax.exp_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.exp_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -2451,7 +2470,7 @@ def expm1_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(0., dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.expm1_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.expm1_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -2760,7 +2779,9 @@ def igamma_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
     Quantity(Array(0.6321202, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.igamma(ustrip(AllowValue, one, a), ustrip(one, x)))
+    return _as_dimensionless_like(
+        x, lax.igamma(ustrip(AllowValue, one, a), ustrip(one, x))
+    )
 
 
 # ==============================================================================
@@ -2789,7 +2810,9 @@ def igammac_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
     Quantity(Array(0.36787927, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.igammac(ustrip(AllowValue, one, a), ustrip(one, x)))
+    return _as_dimensionless_like(
+        x, lax.igammac(ustrip(AllowValue, one, a), ustrip(one, x))
+    )
 
 
 # ==============================================================================
@@ -3011,7 +3034,7 @@ def lgamma_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: are there any units that this can support?
-    return replace(x, value=lax.lgamma(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.lgamma(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -3035,7 +3058,7 @@ def log1p_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(-inf, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.log1p_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.log1p_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -3059,7 +3082,7 @@ def log_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(0., dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.log_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.log_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -3067,7 +3090,7 @@ def log_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
 @quax.register(lax.logistic_p)
 def logistic_p(x: ABCQ, /, **kw: Any) -> ABCQ:
-    """Logarithm of a quantity.
+    """Logistic (sigmoid) of a quantity.
 
     Examples
     --------
@@ -3083,7 +3106,7 @@ def logistic_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(0.7310586, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.logistic_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.logistic_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -3815,7 +3838,7 @@ def nextafter_p(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
 
 @quax.register(lax.not_p)
 def not_p(x: ABCQ, /) -> ABCQ:
-    """Logical negation of a quantity.
+    """Bitwise NOT of a quantity.
 
     Examples
     --------
@@ -3830,7 +3853,7 @@ def not_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(-2, dtype=int32...), unit='')
 
     """
-    return replace(x, value=lax.bitwise_not(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.bitwise_not(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -3838,7 +3861,7 @@ def not_p(x: ABCQ, /) -> ABCQ:
 
 @quax.register(lax.or_p)
 def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
-    """Logical or of two quantities.
+    """Bitwise OR of two quantities.
 
     Examples
     --------
@@ -3855,12 +3878,12 @@ def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     Quantity(Array(3, dtype=int32...), unit='')
 
     """
-    return replace(x, value=lax.bitwise_or(ustrip(one, x), ustrip(one, y)))
+    return _as_dimensionless_like(x, lax.bitwise_or(ustrip(one, x), ustrip(one, y)))
 
 
 @quax.register(lax.or_p)
 def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
-    """Logical OR of a dimensionless quantity and an array.
+    """Bitwise OR of a dimensionless quantity and an array.
 
     A quantity operand keeps the result in the same quantity namespace:
     the result is a dimensionless quantity (per the Array API),
@@ -3882,7 +3905,7 @@ def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
 @quax.register(lax.or_p)
 def or_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
-    """Logical OR of an array and a dimensionless quantity.
+    """Bitwise OR of an array and a dimensionless quantity.
 
     See :func:`or_p_qv`: a quantity operand keeps the result dimensionless.
 
@@ -4007,7 +4030,7 @@ def polygamma_p(m: ArrayLike, x: ABCQ, /) -> ABCQ:
     Quantity(Array(0.39493403, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.polygamma(m, ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.polygamma(m, ustrip(one, x)))
 
 
 # ==============================================================================
@@ -4030,7 +4053,7 @@ def population_count_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(2, dtype=int32...), unit='')
 
     """
-    return replace(x, value=lax.population_count(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.population_count(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -4741,8 +4764,8 @@ def shift_right_arithmetic_p(x: ABCQ, y: ABCQ | float | int, /) -> ABCQ:
     Quantity(Array(0, dtype=int32...), unit='')
 
     """
-    return replace(
-        x, value=lax.shift_right_arithmetic(ustrip(one, x), ustrip(AllowValue, one, y))
+    return _as_dimensionless_like(
+        x, lax.shift_right_arithmetic(ustrip(one, x), ustrip(AllowValue, one, y))
     )
 
 
@@ -5312,7 +5335,7 @@ def transpose_p(operand: ABCQ, /, *, permutation: Any) -> ABCQ:
 
 @quax.register(lax.xor_p)
 def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
-    """Logical or of two quantities.
+    """Bitwise XOR of two quantities.
 
     Examples
     --------
@@ -5330,12 +5353,12 @@ def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     Quantity(Array(3, dtype=int32...), unit='')
 
     """
-    return replace(x, value=lax.bitwise_xor(ustrip(one, x), ustrip(one, y)))
+    return _as_dimensionless_like(x, lax.bitwise_xor(ustrip(one, x), ustrip(one, y)))
 
 
 @quax.register(lax.xor_p)
 def xor_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
-    """Logical XOR of a dimensionless quantity and an array.
+    """Bitwise XOR of a dimensionless quantity and an array.
 
     A quantity operand keeps the result in the same quantity namespace:
     the result is a dimensionless quantity (per the Array API),
@@ -5357,7 +5380,7 @@ def xor_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
 @quax.register(lax.xor_p)
 def xor_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
-    """Logical XOR of an array and a dimensionless quantity.
+    """Bitwise XOR of an array and a dimensionless quantity.
 
     See :func:`xor_p_qv`: a quantity operand keeps the result dimensionless.
 
