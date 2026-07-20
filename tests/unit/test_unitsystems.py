@@ -48,6 +48,34 @@ def test_unitsystem_from_() -> None:
     assert np.isclose((8 * apyu.Myr).decompose(usys).value, 8 / 50)
 
 
+def test_no_arg_unitsystem_is_dimensionless() -> None:
+    """``unitsystem()`` with no arguments is the dimensionless system.
+
+    Previously it built a base-unit-less ``UnitSystem()`` that was **not**
+    ``dimensionless`` and, worse, answered every derived-dimension lookup with a
+    silent SI default (``unitsystem()["length"] == Unit("m")``). It now returns
+    the ``dimensionless`` singleton, matching ``unitsystem(None)`` and
+    ``unitsystem([])``, which already did.
+    """
+    usys = unitsystem()
+
+    assert usys is dimensionless
+    assert type(usys) is DimensionlessUnitSystem
+    assert usys == dimensionless
+    # Whatever ``dimensionless`` reports for base_units, the no-arg call agrees.
+    assert usys.base_units == dimensionless.base_units
+
+    # It must agree with the other empty spellings.
+    assert unitsystem() is unitsystem(None)
+    assert unitsystem() is unitsystem([])
+
+    # A derived-dimension lookup must NOT silently return an SI unit -- the empty
+    # system defines no length, so this raises just as ``dimensionless`` does
+    # (see ``TestDimensionlessUnitSystem.test_getitem``).
+    with pytest.raises(apyu.UnitConversionError):
+        _ = usys["length"]
+
+
 def test_compare() -> None:
     """Test the `unxt.AbstractUnitSystem.compare` method."""
     usys1 = unitsystem("kpc", "Myr", "radian", "Msun", "mas / yr")
