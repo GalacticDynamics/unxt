@@ -340,29 +340,35 @@ def function(x, *, constant=u.StaticQuantity(3.26, "lyr")):
 
 Arithmetic between an `astropy.units.Quantity` and a `unxt` quantity works **eagerly**, because astropy's `__array_ufunc__` handles the operation. Inside `jax.jit` it does not, and the failure is quiet:
 
-```python
-import astropy.units as apyu
-import jax
-import unxt as u
+Eagerly, astropy handles it and both units survive:
 
-apy = apyu.Quantity(2.0, "km")
-q = u.Q(3.0, "m")
+```{code-block} python
+>>> import astropy.units as apyu
+>>> import jax
+>>> import unxt as u
 
-# Eager: astropy handles it, both units survive.
-print(apy * q)  # <Quantity 6. km m>
+>>> apy = apyu.Quantity(2.0, "km")
+>>> q = u.Q(3.0, "m")
 
-# Under jit: 'km' is silently dropped, and the result claims 'm'.
-print(jax.jit(lambda a, b: a * b)(apy, q))
-# Quantity(Array(6., dtype=float32), unit='m')
+>>> apy * q
+<Quantity 6. km m>
+```
+
+Under `jit`, `km` is silently dropped and the result claims `m`:
+
+```{code-block} python
+>>> jax.jit(lambda a, b: a * b)(apy, q)
+Quantity(Array(6., dtype=float32), unit='m')
 ```
 
 The magnitude survives but the unit does not, so `*` and `/` return a plausible-looking result that is wrong by the conversion factor — here a factor of 1000. `+` and `-` at least fail loudly:
 
-```python
-try:
-    jax.jit(lambda a, b: a + b)(apy, q)
-except apyu.UnitConversionError as e:
-    print(f"UnitConversionError: {e}")
+```{code-block} python
+>>> try:
+...     jax.jit(lambda a, b: a + b)(apy, q)
+... except apyu.UnitConversionError as e:
+...     print(type(e).__name__)
+UnitConversionError
 ```
 
 This is not something `unxt` can intercept: `jax` converts the astropy `ndarray` subclass to a unitless tracer before any `unxt` code runs, so the unit is already gone by then. (Capturing the astropy quantity as a closure constant rather than passing it as an argument loses it too, by a different route.)
@@ -371,16 +377,20 @@ This is not something `unxt` can intercept: `jax` converts the astropy `ndarray`
 
 Turn foreign quantities into `unxt` quantities _before_ they cross into a jitted function, with `u.Q.from_`:
 
-```python
-qa = u.Q.from_(apy)  # 2.0 km, now a unxt Quantity
-print(qa)  # Quantity(Array(2., dtype=float32), unit='km')
+```{code-block} python
+>>> qa = u.Q.from_(apy)  # 2.0 km, now a unxt Quantity
+>>> qa
+Quantity(Array(2., dtype=float32), unit='km')
+```
 
-# Both operators now behave, and agree with the eager result.
-print(jax.jit(lambda a, b: a * b)(qa, q))
-# Quantity(Array(6., dtype=float32), unit='km m')
+Both operators now behave, and agree with the eager result:
 
-print(jax.jit(lambda a, b: a + b)(qa, q))
-# Quantity(Array(2.003, dtype=float32), unit='km')
+```{code-block} python
+>>> jax.jit(lambda a, b: a * b)(qa, q)
+Quantity(Array(6., dtype=float32), unit='km m')
+
+>>> jax.jit(lambda a, b: a + b)(qa, q)
+Quantity(Array(2.003, dtype=float32), unit='km')
 ```
 
 As a rule: keep astropy quantities at the edges of your program and convert once on the way in. Mixed-library arithmetic working eagerly is not evidence that it will work under `jit`.
