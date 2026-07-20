@@ -7,6 +7,7 @@ from doctest import ELLIPSIS, NORMALIZE_WHITESPACE
 from pathlib import Path
 from typing import Any
 
+import hypothesis
 from sybil import Document, Region, Sybil
 from sybil.evaluators.doctest import DocTestEvaluator
 from sybil.evaluators.python import PythonEvaluator
@@ -17,6 +18,15 @@ from sybil.parsers.abstract.doctest import DocTestStringParser
 from optional_dependencies import OptionalDependencyEnum, auto
 
 optionflags = ELLIPSIS | NORMALIZE_WHITESPACE
+
+# Hypothesis' 200ms per-example deadline is meaningless for tests that call into
+# jax: an example that trips a fresh trace/compile, or just lands on a busy CPU
+# during a full-suite run, blows past it. The deadline failure then does not
+# reproduce on replay, so it surfaces as an unactionable `FlakyFailure`
+# ("unreliable results: Falsified on the first call but did not on a subsequent
+# one"). Turn it off globally; per-test `@settings` still override this.
+hypothesis.settings.register_profile("unxt", deadline=None)
+hypothesis.settings.load_profile("unxt")
 
 
 class PlainDocTestParser:
