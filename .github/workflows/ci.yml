@@ -18,7 +18,13 @@ on:
     - cron: "0 0 * * 1"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Keyed on the event as well as the ref. A `schedule` run reports the default
+  # branch as `github.ref`, which is the same value a `push` to main reports --
+  # so without `event_name` the weekly ecosystem run and a Monday-morning push
+  # to main would share a group and, with `cancel-in-progress`, cancel each
+  # other. Including it keeps them independent while still collapsing repeated
+  # pushes to the same branch or PR.
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
