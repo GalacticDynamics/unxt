@@ -89,6 +89,12 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          # Pin to the version Read the Docs publishes on
+          # (.readthedocs.yaml build.tools.python), so this job builds the docs
+          # in the same environment they actually ship in -- rather than
+          # whatever ubuntu-latest happens to provide.
+          python-version: "3.12"
 
       - name: Install
         run: uv sync --no-default-groups --group nox --group docs --locked
