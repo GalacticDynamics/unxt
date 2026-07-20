@@ -1,4 +1,11 @@
-"""Tests for astropy interop uconvert_value function."""
+"""Tests for astropy quantity interop.
+
+Covers `uconvert_value` and `uconvert` against astropy units and quantities,
+mixed unxt/astropy arithmetic (eager and under ``jax.jit``), and the
+``ustrip(AllowValue, ...)`` dispatches.
+"""
+
+from typing import Any
 
 import astropy.units as apyu
 import jax
@@ -314,6 +321,90 @@ class TestMixedUnxtAstropyArithmetic:
             assert isinstance(got, u.quantity.Quantity)
             assert got.unit == u.unit("km")
             assert np.isclose(np.asarray(got.value), 2.0)
+
+
+_JIT_REFLECTED_XFAIL = pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "Known sharp edge: under `jax.jit` an astropy Quantity operand loses its "
+        "unit before any unxt code runs -- `*`/`/` drop it silently, `+`/`-` raise. "
+        "See the 'Mixing Astropy and unxt Quantities Under jit' sharp bit."
+    ),
+)
+
+
+_REFLECTED_MODES = ["eager", "jit-arg", "jit-closure"]
+
+
+def _apply_reflected(mode: str, op: Any, apy: Any, q: Any) -> Any:
+    """Apply ``op(apy, q)`` with the astropy operand entering three ways.
+
+    The two jit modes lose the unit by *different* mechanisms, so both need
+    covering; ``jit-closure`` never becomes a tracer at all.
+    """
+    if mode == "eager":
+        return op(apy, q)
+    if mode == "jit-arg":
+        return jax.jit(op)(apy, q)
+    if mode == "jit-closure":
+        return jax.jit(lambda b: op(apy, b))(q)
+    msg = f"unknown mode {mode!r}"
+    raise AssertionError(msg)
+
+
+class TestReflectedMixedArithmeticUnderJit:
+    """Astropy quantity on the LEFT, ``unxt`` on the right, under ``jax.jit``.
+
+    Eagerly these all work, because astropy's own ``__array_ufunc__`` handles
+    ``astropy_q <op> unxt_q``. Under ``jit`` they do not -- these tests encode the
+    *desired* behaviour and are strict-xfail, so if the underlying jax/astropy
+    behaviour ever changes they fail loudly and prompt removing the marker.
+
+    Both jit entry paths are covered (argument and closure constant) so that a
+    future change cannot make correctness depend on which side of the jit
+    boundary the astropy value came from -- a half-fix that worked for only one
+    would be worse than the uniform breakage documented here.
+    """
+
+    @pytest.mark.parametrize("mode", _REFLECTED_MODES)
+    def test_mul_keeps_both_units(self, mode: str, request: Any) -> None:
+        """``astropy_q * unxt_q`` keeps both units."""
+        if mode != "eager":
+            request.applymarker(_JIT_REFLECTED_XFAIL)
+        got = _apply_reflected(
+            mode, lambda a, b: a * b, apyu.Quantity(2.0, "km"), u.Q(3.0, "m")
+        )
+        assert np.isclose(np.asarray(u.ustrip(AllowValue, "km m", got)), 6.0)
+
+    @pytest.mark.parametrize("mode", _REFLECTED_MODES)
+    def test_truediv_keeps_both_units(self, mode: str, request: Any) -> None:
+        """``astropy_q / unxt_q`` keeps both units."""
+        if mode != "eager":
+            request.applymarker(_JIT_REFLECTED_XFAIL)
+        got = _apply_reflected(
+            mode, lambda a, b: a / b, apyu.Quantity(2.0, "km"), u.Q(3.0, "m")
+        )
+        assert np.isclose(np.asarray(u.ustrip(AllowValue, "km / m", got)), 2.0 / 3.0)
+
+    @pytest.mark.parametrize("mode", _REFLECTED_MODES)
+    def test_add_converts_and_combines(self, mode: str, request: Any) -> None:
+        """``astropy_q + unxt_q`` converts the unxt operand first."""
+        if mode != "eager":
+            request.applymarker(_JIT_REFLECTED_XFAIL)
+        got = _apply_reflected(
+            mode, lambda a, b: a + b, apyu.Quantity(2.0, "km"), u.Q(3.0, "m")
+        )
+        assert np.isclose(np.asarray(u.ustrip(AllowValue, "km", got)), 2.003)
+
+    @pytest.mark.parametrize("mode", _REFLECTED_MODES)
+    def test_sub_converts_and_combines(self, mode: str, request: Any) -> None:
+        """``astropy_q - unxt_q`` converts the unxt operand first."""
+        if mode != "eager":
+            request.applymarker(_JIT_REFLECTED_XFAIL)
+        got = _apply_reflected(
+            mode, lambda a, b: a - b, apyu.Quantity(2.0, "km"), u.Q(3.0, "m")
+        )
+        assert np.isclose(np.asarray(u.ustrip(AllowValue, "km", got)), 1.997)
 
 
 class TestUstripAllowValueAstropy:

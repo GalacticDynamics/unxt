@@ -825,8 +825,13 @@ class AbstractQuantity(
     # materialise it via ``__array__`` -- stripping it to a bare array in its
     # own unit -- so ``*``/``/`` silently dropped its unit and ``+``/``-`` saw
     # it as dimensionless. Convert such an operand to an ``unxt`` quantity first
-    # so units combine correctly. (Reflected ops are unnecessary: astropy's own
-    # ``__array_ufunc__`` handles ``astropy_q <op> unxt_q``.)
+    # so units combine correctly.
+    #
+    # No reflected counterparts: they cannot help. Astropy's own
+    # ``__array_ufunc__`` handles ``astropy_q <op> unxt_q`` eagerly, and under
+    # ``jax.jit`` the unit is already destroyed before any code here runs.
+    # See the "Mixing Astropy and unxt Quantities Under jit" sharp bit, and the
+    # strict-xfail ``TestReflectedMixedArithmeticUnderJit``.
 
     def __mul__(self, other: Any) -> Any:
         return super().__mul__(_coerce_foreign_quantity(other))
