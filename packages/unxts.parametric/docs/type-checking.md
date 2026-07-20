@@ -1,6 +1,6 @@
 # Type Checking
 
-Annotating and checking the physical **dimension** of an argument. For enabling runtime type checking and for dtype/shape annotations on the default `Quantity`, see the [unxt Type Checking guide](../../guides/type-checking.md).
+Annotating and checking the physical **dimension** of an argument. For enabling runtime type checking and for dtype/shape annotations on the default `Quantity`, see the [unxt Type Checking guide](../../guides/type-checking).
 
 ```{code-block} python
 >>> import unxt as u

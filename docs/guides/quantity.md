@@ -56,10 +56,10 @@ per-construction overhead. This is **not** about `jax.jit` cache misses — the
 about keeping a smaller, simpler type surface by default.
 
 `ParametricQuantity` moved to the separate
-[`unxts.parametric`](../packages/unxts.parametric/index.md) package in v2. Reach
+[`unxts.parametric`](../packages/unxts.parametric/index) package in v2. Reach
 for it when you need runtime dimension checking or dimension-specific `plum`
 dispatch; see the [parametric quantity
-guide](../packages/unxts.parametric/index.md) for details and the
+guide](../packages/unxts.parametric/index) for details and the
 {ref}`migration guide <migration-v2>` for the v1→v2 mapping. Everything else —
 arithmetic, unit conversion, JAX transforms, interop — works identically with
 either class.
@@ -81,7 +81,7 @@ List of 9 method(s):
     ...
 ```
 
-`Quantity.from_` assists with interfacing with other libraries, e.g. see [Interop with Astropy](../interop/astropy.md).
+`Quantity.from_` assists with interfacing with other libraries, e.g. see [Interop with Astropy](../interop/astropy).
 
 ## Converting to Different Units
 
@@ -417,7 +417,7 @@ Q([1, 2, 3], unit='m')
 
 ```
 
-(The `include_params=True` option adds a dimension parameter such as `['length']` to the representation. The default `Quantity` has no such parameter, so it only takes effect for a `ParametricQuantity`; see the [Configuration guide](../packages/unxts.parametric/configuration.md).)
+(The `include_params=True` option adds a dimension parameter such as `['length']` to the representation. The default `Quantity` has no such parameter, so it only takes effect for a `ParametricQuantity`; see the [Configuration guide](../packages/unxts.parametric/configuration).)
 
 See the [`wadler_lindig` documentation](https://docs.kidger.site/wadler_lindig) for more details on the pretty printing options.
 
@@ -620,7 +620,7 @@ distinction to live at the *value* level while keeping the `Quantity` type.
 
 :::{seealso}
 
-[API Documentation for Quantities](../api/quantity.md)
+[API Documentation for Quantities](../api/quantity)
 
 :::
 

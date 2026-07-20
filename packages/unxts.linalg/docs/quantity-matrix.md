@@ -1,6 +1,6 @@
 # Quantity matrices
 
-`QuantityMatrix` (alias `QM`) stores one numeric JAX array together with a static [`UnitsMatrix`](units-matrix.md) that gives the unit of **each** logical element. The shape of the unit structure decides whether the object behaves as a heterogeneous vector (1-D) or matrix (2-D).
+`QuantityMatrix` (alias `QM`) stores one numeric JAX array together with a static [`UnitsMatrix`](units-matrix) that gives the unit of **each** logical element. The shape of the unit structure decides whether the object behaves as a heterogeneous vector (1-D) or matrix (2-D).
 
 ```{code-block} python
 >>> import jax.numpy as jnp

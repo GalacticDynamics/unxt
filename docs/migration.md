@@ -2,7 +2,7 @@
 
 # Migrating to v2
 
-This guide covers the breaking changes introduced in `unxt` v2: the rename of the quantity classes and the extraction of the parametric quantity into the separate `unxts.parametric` package. If you are starting fresh with `unxt`, you do not need this guide — consult the [Quantity guide](guides/quantity.md) and the [parametric quantity guide](packages/unxts.parametric/index.md) for the current API.
+This guide covers the breaking changes introduced in `unxt` v2: the rename of the quantity classes and the extraction of the parametric quantity into the separate `unxts.parametric` package. If you are starting fresh with `unxt`, you do not need this guide — consult the [Quantity guide](guides/quantity) and the [parametric quantity guide](packages/unxts.parametric/index) for the current API.
 
 ---
 
@@ -112,7 +112,7 @@ The `include_params` display option — whether `repr()`/`str()` show the `['len
 | `u.config.override(quantity_repr__include_params=True)` | `up.config.override(quantity_repr__include_params=True)` |
 | `[tool.unxt.quantity.repr]` → `include_params` | `[tool.unxts.parametric.quantity.repr]` → `include_params` |
 
-Defaults are unchanged (`repr` hides the parameter, `str` shows it). The other display settings (`short_arrays`, `use_short_name`, `named_unit`, `indent`) remain in `unxt.config`. See the [parametric quantity guide](packages/unxts.parametric/index.md#configuration).
+Defaults are unchanged (`repr` hides the parameter, `str` shows it). The other display settings (`short_arrays`, `use_short_name`, `named_unit`, `indent`) remain in `unxt.config`. See the [parametric quantity guide](packages/unxts.parametric/configuration).
 
 ### Config file section renamed to `[tool.unxts.unxt]`
 
