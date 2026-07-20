@@ -343,7 +343,7 @@ Array([2., 3.], dtype=float32...)
 
 #### StaticValue
 
-If you want a `Quantity` that keeps a static value but still participates in regular arithmetic, wrap the value with `StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`. Comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) return NumPy boolean arrays for element-wise comparison:
+If you want a `Quantity` that keeps a static value but still participates in regular arithmetic, wrap the value with `StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`. Equality between two `StaticValue`s (`==` / `!=`) returns a scalar `bool` — which is what makes a `StaticValue`-backed quantity hashable and usable as a `jax.jit` static argument. Ordering (`<`, `<=`, `>`, `>=`), and `==` / `!=` against a raw array, return element-wise NumPy boolean arrays:
 
 ```{code-block} python
 >>> sv = u.quantity.StaticValue(np.array([1.0, 2.0]))
@@ -354,10 +354,19 @@ If you want a `Quantity` that keeps a static value but still participates in reg
 Quantity(Array([4., 6.], dtype=float32...), unit='m')
 ```
 
-Comparisons return NumPy boolean arrays, element-wise:
+Equality between two `StaticValue`s is a scalar `bool`:
 
 ```{code-block} python
 >>> sv2 = u.quantity.StaticValue(np.array([2.0, 1.0]))
+>>> sv == sv2
+False
+>>> sv == u.quantity.StaticValue(np.array([1.0, 2.0]))
+True
+```
+
+Ordering, and equality against a raw array, are element-wise NumPy boolean arrays:
+
+```{code-block} python
 >>> sv < sv2
 array([ True, False])
 
