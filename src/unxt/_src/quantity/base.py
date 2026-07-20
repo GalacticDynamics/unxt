@@ -87,7 +87,7 @@ def _coerce_foreign_quantity(other: Any) -> Any:
     return other
 
 
-def same_unit_label(a: Any, b: Any, /) -> bool:
+def same_unit_label(a: AbstractUnit, b: AbstractUnit, /) -> bool:
     """Return whether two units carry the same *label*.
 
     The static-value equality path must not use ``a == b``: astropy's unit

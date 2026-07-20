@@ -643,12 +643,19 @@ def test_static_backed_eq_is_label_based_not_physical(lhs, rhs) -> None:
     assert a == same
     assert hash(a) == hash(same)
 
-    # ... and the same holds for a StaticValue-backed plain Quantity.
+    # ... and the same holds for a StaticValue-backed plain Quantity, which
+    # goes through the `AbstractQuantity.__eq__` static path rather than
+    # `StaticQuantity.__eq__`. The bug was present on both, so assert the
+    # contract on both -- including the hash direction.
     qa = u.Q(StaticValue(value), lhs)
     qb = u.Q(StaticValue(value), rhs)
     assert qa != qb
     assert str(qa.unit) != str(qb.unit)
-    assert qa == u.Q(StaticValue(value), lhs)
+    assert len({qa, qb}) == 2
+
+    qsame = u.Q(StaticValue(value), lhs)
+    assert qa == qsame
+    assert hash(qa) == hash(qsame)
 
 
 def test_static_quantity_jit_distinguishes_units() -> None:
