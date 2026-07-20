@@ -368,17 +368,25 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   # unxts-parametric package tests
+  #
+  # Unlike its sibling package jobs, this one has NO `if:` gate: it runs on
+  # every event the workflow fires on, including ordinary pull requests.
+  # `unxts.parametric` depends on core `unxt` and is the migration target for
+  # every v1 user, so a core change that breaks it must fail the PR rather than
+  # be discovered after merge.
+  #
+  # The label/branch-prefix gate the siblings use cannot close this gap: the
+  # `🧩 unxts-parametric` label is applied by the `Auto-label PRs` workflow,
+  # which runs on `workflow_run` *after* `Collect PR labels` completes, while
+  # CI evaluates `github.event.pull_request.labels` from the original
+  # `pull_request` payload. The label therefore lands too late to affect the
+  # run it would need to gate, and CI does not trigger on `types: [labeled]`.
   tests-unxts-parametric:
     name:
       unxts-parametric Python ${{ matrix.python-version }} on ${{ matrix.runs-on
       }}
     runs-on: ${{ matrix.runs-on }}
     needs: [setup, format]
-    if: |
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch' ||
-      contains(github.event.pull_request.labels.*.name, '🧩 unxts-parametric') ||
-      startsWith(github.head_ref, 'unxts-parametric/')
     strategy:
       fail-fast: false
       matrix:
@@ -581,8 +589,12 @@ jobs:
           # package label / `unxt-api|unxt-hypothesis/*` branches (see their
           # `if:`), so on a normal PR they are intentionally skipped. Allow the
           # skip instead of treating it as a failure.
+          #
+          # `tests-unxts-parametric` is deliberately NOT listed: it has no `if:`
+          # gate and must run on every PR, so a skip there is a real failure
+          # (e.g. a malformed gate) and should fail this check loudly.
           allowed-skips:
             tests-unxt-api, tests-unxt-hypothesis, tests-unxts-api,
             tests-unxts-hypothesis, tests-unxts-interop-gala,
             tests-unxts-interop-matplotlib, tests-unxts-interop-xarray,
-            tests-unxts-parametric, tests-unxts-linalg
+            tests-unxts-linalg
