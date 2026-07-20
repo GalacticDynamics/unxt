@@ -100,9 +100,9 @@ jobs:
 
       - name: Fail on broken cross-references
         run: |
-          if grep -q 'myst.xref_missing' docs-build.log; then
+          if grep -qF 'myst.xref_missing' docs-build.log; then
             echo "::error::Broken cross-references in the docs:"
-            grep 'myst.xref_missing' docs-build.log
+            grep -F 'myst.xref_missing' docs-build.log
             echo
             echo "A relative link written with a '.md' suffix resolves through the"
             echo "filesystem, which follows the docs/packages/* symlinks out of the"

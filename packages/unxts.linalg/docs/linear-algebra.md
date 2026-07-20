@@ -42,6 +42,8 @@ Array([2001., 4003.], dtype=float32)
 
 A plain JAX array or an ordinary `unxt.Quantity` on one side is treated as dimensionless / uniform-unit respectively.
 
+(linalg-batches)=
+
 ### Batches
 
 A `QuantityMatrix` carries its logical 1-D/2-D units in the _trailing_ axes and treats _leading_ axes of the value array as batch dimensions. All four products — and the `@` operator — broadcast those batch axes. The `@` operator dispatches on the _logical_ rank (matrix vs vector), so a batch of matrices applied to a batch of vectors "just works":
