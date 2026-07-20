@@ -91,7 +91,20 @@ def unitsystem(*args: Any) -> AbstractUnitSystem:
     >>> unitsystem("kpc", "Myr", "Msun", "radian")
     unitsystem(kpc, Myr, solMass, rad)
 
+    With no arguments it is the dimensionless system, agreeing with
+    ``unitsystem(None)`` and ``unitsystem([])``:
+
+    >>> unitsystem()
+    DimensionlessUnitSystem()
+
     """
+    # No units -> the dimensionless system. Building an empty ``UnitSystem()``
+    # here would be a distinct, non-``dimensionless`` class that then answers
+    # every derived-dimension lookup with a silent SI default. Mirror the empty
+    # ``Sequence`` dispatch, which already returns ``dimensionless``.
+    if not args:
+        return dimensionless
+
     # Convert everything to a unit
     args = tuple(map(unit, args))
 
