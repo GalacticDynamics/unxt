@@ -599,6 +599,65 @@ def test_static_backed_eq_hash_contract() -> None:
     assert (a != c) is True
 
 
+@pytest.mark.parametrize(
+    ("lhs", "rhs"),
+    [
+        ("J", "m2 kg / s2"),  # energy
+        ("N", "kg m / s2"),  # force
+        ("W", "J / s"),  # power
+    ],
+)
+def test_static_backed_eq_is_label_based_not_physical(lhs, rhs) -> None:
+    """Physically-equal but differently-spelled units compare unequal.
+
+    Regression: the static path compared units with ``self.unit == other.unit``,
+    which is astropy's *physical* equality (``Unit('J') == Unit('m2 kg / s2')``
+    is True), while ``__hash__`` hashes the unit *label* (those two hash
+    differently). So ``a == b`` was True while ``hash(a) != hash(b)`` -- the
+    eq/hash contract broken, and ``{a, b}`` held two elements.
+
+    The existing contract test above cannot catch this: it uses ``1000 m`` vs
+    ``1 km``, whose *values* also differ, so it passes under either semantics.
+    Here the values are identical and only the unit spelling differs.
+    """
+    value = np.array([1.0])
+    a = u.StaticQuantity(value, lhs)
+    b = u.StaticQuantity(value, rhs)
+
+    # The units really are physically equal -- this is the trap.
+    assert u.unit(lhs) == u.unit(rhs)
+
+    assert a != b
+    # Collision-safe: a set falls back to ``__eq__`` when hashes collide, so
+    # two unequal objects always occupy two slots regardless of hashing.
+    assert len({a, b}) == 2
+
+    # They are unequal *because the labels differ* -- that is the semantics
+    # under test. (Asserting ``hash(a) != hash(b)`` would be asserting more
+    # than Python guarantees: unequal objects are permitted to collide.)
+    assert str(a.unit) != str(b.unit)
+
+    # The eq/hash contract, in the direction Python actually requires:
+    # equal objects must hash equal. This is what the bug violated.
+    same = u.StaticQuantity(value, lhs)
+    assert a == same
+    assert hash(a) == hash(same)
+
+    # ... and the same holds for a StaticValue-backed plain Quantity, which
+    # goes through the `AbstractQuantity.__eq__` static path rather than
+    # `StaticQuantity.__eq__`. The bug was present on both, so assert the
+    # contract on both -- including the hash direction.
+    qa = u.Q(StaticValue(value), lhs)
+    qb = u.Q(StaticValue(value), rhs)
+    assert qa != qb
+    assert str(qa.unit) != str(qb.unit)
+    assert len({qa, qb}) == 2
+
+    qsame = u.Q(StaticValue(value), lhs)
+    assert qa == qsame
+    assert hash(qa) == hash(qsame)
+
+
 def test_static_quantity_jit_distinguishes_units() -> None:
     """Different-unit static args must not collapse to one jit compilation."""
 

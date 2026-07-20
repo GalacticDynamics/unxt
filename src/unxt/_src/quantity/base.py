@@ -87,6 +87,23 @@ def _coerce_foreign_quantity(other: Any) -> Any:
     return other
 
 
+def same_unit_label(a: AbstractUnit, b: AbstractUnit, /) -> bool:
+    """Return whether two units carry the same *label*.
+
+    The static-value equality path must not use ``a == b``: astropy's unit
+    equality is *physical*, so ``Unit("J") == Unit("m2 kg / s2")`` is `True`,
+    whereas astropy hashes the label, so those two hash *differently*. Using
+    ``==`` there therefore broke the ``__eq__``/``__hash__`` contract -- equal
+    objects that hash apart, so ``{a, b}`` held two elements.
+
+    Comparing ``str`` keeps equality consistent with ``__hash__`` (which hashes
+    the unit itself), and preserves the property a `StaticQuantity` exists for:
+    distinct unit labels stay distinct ``jax.jit`` compilation cache keys. Use
+    `unxt.equivalent` for the unit-aware comparison.
+    """
+    return str(a) == str(b)
+
+
 class AbstractQuantity(
     AstropyQuantityCompatMixin,
     NumPyCompatMixin,
@@ -754,7 +771,7 @@ class AbstractQuantity(
         """
         if self._is_static_backed(other):
             return bool(
-                self.unit == other.unit
+                same_unit_label(self.unit, other.unit)
                 and np.array_equal(self.value.array, other.value.array)
             )
 
