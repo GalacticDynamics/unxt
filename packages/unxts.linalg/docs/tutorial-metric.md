@@ -70,7 +70,7 @@ For a uniform-unit metric the inverse carries the single reciprocal unit:
 ## Recap
 
 - A `QuantityMatrix` let us attach a distinct unit to every entry of the metric — impossible with a single-unit `unxt.Quantity`.
-- `.diag()` and `det` propagated those per-element units automatically; `inv` is defined for uniform units (see [Sharp bits](sharp-bits.md)).
+- `.diag()` and `det` propagated those per-element units automatically; `inv` is defined for uniform units (see [Sharp bits](sharp-bits)).
 - Everything is plain JAX underneath, so the same objects flow through `jax.jit`, `jax.grad`, and `jax.vmap`.
 
-See [Sharp bits](sharp-bits.md) for the current restrictions (1-D/2-D only, and the uniform-unit requirements of `inv` and of `diag` under `jax.jit`).
+See [Sharp bits](sharp-bits) for the current restrictions (1-D/2-D only, and the uniform-unit requirements of `inv` and of `diag` under `jax.jit`).

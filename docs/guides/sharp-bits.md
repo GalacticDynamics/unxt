@@ -3,7 +3,7 @@
 This guide covers common pitfalls and surprising behaviors when working with `unxt` quantities in JAX. Like JAX itself, `unxt` has some "sharp bits" — behaviors that might surprise you if you're coming from NumPy or non-JAX Python scientific computing.
 
 ```{tip}
-If you're new to `unxt`, start with the [Quantity guide](quantity.md) first.
+If you're new to `unxt`, start with the [Quantity guide](./quantity) first.
 This guide assumes you're familiar with basic `unxt` usage.
 ```
 
@@ -273,7 +273,7 @@ result = add_lengths_m(u.Q(5.0, "m"), length_m_input)
 
 ### ℹ️ Note: `ParametricQuantity` multiplies pytree _types_ (not jit compilations)
 
-Feeding `ParametricQuantity` (from the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package) of different dimensions into a jitted function does **not** add a recompilation per dimension — recompilation is driven by the **unit**, a static field for both classes. What the parametric class adds is a new Python class and pytree type per dimension. See [Parametric types multiply pytree types](../packages/unxts.parametric/sharp-bits.md) in the parametric guide for the full explanation.
+Feeding `ParametricQuantity` (from the separate [`unxts.parametric`](../packages/unxts.parametric/index) package) of different dimensions into a jitted function does **not** add a recompilation per dimension — recompilation is driven by the **unit**, a static field for both classes. What the parametric class adds is a new Python class and pytree type per dimension. See [Parametric types multiply pytree types](../packages/unxts.parametric/sharp-bits) in the parametric guide for the full explanation.
 
 ## Mixing Quantity Types
 
@@ -309,7 +309,7 @@ time = u.Q(2.0, "s")
 speed = length / time  # ✅ Fast; unit arithmetic without per-dimension classes
 ```
 
-**`ParametricQuantity`** — Opt in when you want the physical dimension carried in the type (for dimension-specific `plum` dispatch and runtime dimension checking). It lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package (`up.PQ`); see its [guide](../packages/unxts.parametric/quantity.md).
+**`ParametricQuantity`** — Opt in when you want the physical dimension carried in the type (for dimension-specific `plum` dispatch and runtime dimension checking). It lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index) package (`up.PQ`); see its [guide](../packages/unxts.parametric/quantity).
 
 **`StaticQuantity`** — For compile-time constants:
 
@@ -332,7 +332,7 @@ def function(x, *, constant=u.StaticQuantity(3.26, "lyr")):
 | `ParametricQuantity` | Dimension-parametrized dispatch / runtime checking | ✅ Yes | Good (a distinct type per dimension) |
 | `StaticQuantity` | Constants | ❌ None | Best (no tracer) |
 
-`ParametricQuantity` lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package; see its [guide](../packages/unxts.parametric/quantity.md) for construction, dimension checking, and dispatch.
+`ParametricQuantity` lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index) package; see its [guide](../packages/unxts.parametric/quantity) for construction, dimension checking, and dispatch.
 
 ## Mixing Astropy and `unxt` Quantities Under `jit`
 
@@ -429,7 +429,7 @@ os.environ["UNXT_ENABLE_RUNTIME_TYPECHECKING"] = "beartype.beartype"
 
 ## Quantity as a PyTree: JAX flattening overhead
 
-See the [Performance Guide](perf.md)
+See the [Performance Guide](perf)
 
 ### ❌ Problem: Quantity is slower than Array
 
@@ -470,11 +470,11 @@ This only applies to the outer-most function. Nesting jitted and quaxified funct
 
 ## `ParametricQuantity` Equality: Arrays vs. `StaticValue`
 
-A normal `ParametricQuantity` backed by a JAX array returns an element-wise boolean array from `==`, so it can't be a `jax.jit` `static_argnames` argument. Wrapping its value in a `StaticValue` makes `==` return a scalar `bool`, making the quantity hashable and usable as a static argument. This is a `ParametricQuantity` behavior (from the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package); see [Equality with `StaticValue`](../packages/unxts.parametric/sharp-bits.md#equality-with-staticvalue) in the parametric guide.
+A normal `ParametricQuantity` backed by a JAX array returns an element-wise boolean array from `==`, so it can't be a `jax.jit` `static_argnames` argument. Wrapping its value in a `StaticValue` makes `==` return a scalar `bool`, making the quantity hashable and usable as a static argument. This is a `ParametricQuantity` behavior (from the separate [`unxts.parametric`](../packages/unxts.parametric/index) package); see [Equality with `StaticValue`](../packages/unxts.parametric/sharp-bits) in the parametric guide.
 
 ## See Also
 
 - [JAX Common Gotchas](https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html)
-- [Quantity Guide](quantity.md)
-- [Type Checking Guide](type-checking.md)
-- [Testing Guide](../packages/unxt-hypothesis/testing-guide.md)
+- [Quantity Guide](./quantity)
+- [Type Checking Guide](./type-checking)
+- [Hypothesis strategies](../packages/unxts.hypothesis/index)

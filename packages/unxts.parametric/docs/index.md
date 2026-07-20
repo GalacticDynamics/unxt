@@ -13,7 +13,7 @@ sharp-bits
 
 `unxts.parametric` provides `ParametricQuantity` (alias `PQ`): a quantity that encodes its physical **dimension** in its _type_. It is the opt-in counterpart to the lightweight, non-parametric default `unxt.Quantity`.
 
-`ParametricQuantity` used to be the default `Quantity` in `unxt` v1. As of v2 the non-parametric class is the default and the parametric class lives here, in its own package. See the [migration guide](../../migration.md) for the full mapping.
+`ParametricQuantity` used to be the default `Quantity` in `unxt` v1. As of v2 the non-parametric class is the default and the parametric class lives here, in its own package. See the [migration guide](../../migration) for the full mapping.
 
 ## Install
 
@@ -69,11 +69,11 @@ Everything else — arithmetic, unit conversion, JAX transforms, interop — wor
 
 ## Guides
 
-- [Parametric Quantities](quantity.md) — construction, runtime dimension checking, dimension-specific dispatch.
-- [Dimensions](dimensions.md) — `dimension_of` on a parametric class.
-- [Type Checking](type-checking.md) — dimension annotations enforced at runtime.
-- [Configuration](configuration.md) — the `include_params` display option.
-- [Sharp Bits](sharp-bits.md) — pytree-type proliferation and `StaticValue` equality.
+- [Parametric Quantities](./quantity) — construction, runtime dimension checking, dimension-specific dispatch.
+- [Dimensions](dimensions) — `dimension_of` on a parametric class.
+- [Type Checking](type-checking) — dimension annotations enforced at runtime.
+- [Configuration](configuration) — the `include_params` display option.
+- [Sharp Bits](sharp-bits) — pytree-type proliferation and `StaticValue` equality.
 
 ## Public API
 
@@ -81,7 +81,7 @@ Everything else — arithmetic, unit conversion, JAX transforms, interop — wor
 
 - `ParametricQuantity` — the dimension-parametrized quantity (alias `PQ`).
 - `AbstractParametricQuantity` — its abstract base.
-- `config` — the `unxts.parametric.config` singleton (see [Configuration](configuration.md)).
+- `config` — the `unxts.parametric.config` singleton (see [Configuration](configuration)).
 
 Importing `unxts.parametric` also registers, as import side effects, the promotion rules, `plum` conversions, and JAX primitive rules that let `ParametricQuantity` interoperate with the rest of `unxt`.
 

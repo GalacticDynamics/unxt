@@ -1,6 +1,6 @@
 # Sharp Bits
 
-Gotchas specific to `ParametricQuantity`. For the core `unxt` sharp bits, see the [unxt Sharp Bits guide](../../guides/sharp-bits.md).
+Gotchas specific to `ParametricQuantity`. For the core `unxt` sharp bits, see the [unxt Sharp Bits guide](../../guides/sharp-bits).
 
 ```{code-block} python
 >>> import unxt as u

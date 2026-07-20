@@ -53,8 +53,8 @@ By contrast `qnp.diag` lowers to a `gather`, whose indices are traced under `jit
 
 ## The `matmul` _function_ can't do a batched matrix-vector product
 
-A batched vector's value `(B, K)` is shape-indistinguishable from a matrix. The **`@` operator is fine** — `QuantityMatrix.__matmul__` dispatches on the logical rank, so `A @ v` correctly does a (batched) matrix-vector product. But the raw **function** forms `jnp.matmul` / `quaxed.numpy.matmul` infer their contraction from the value shapes and so cannot; they silently succeed only when the sizes coincide and otherwise raise. `unxts.linalg.matmul` refuses a batched vector operand outright, pointing you at `matvec`. Prefer `@`, `ul.matvec`, or `ul.vecmat`. See [Linear algebra](linear-algebra.md#batches).
+A batched vector's value `(B, K)` is shape-indistinguishable from a matrix. The **`@` operator is fine** — `QuantityMatrix.__matmul__` dispatches on the logical rank, so `A @ v` correctly does a (batched) matrix-vector product. But the raw **function** forms `jnp.matmul` / `quaxed.numpy.matmul` infer their contraction from the value shapes and so cannot; they silently succeed only when the sizes coincide and otherwise raise. `unxts.linalg.matmul` refuses a batched vector operand outright, pointing you at `matvec`. Prefer `@`, `ul.matvec`, or `ul.vecmat`. See [Linear algebra](linear-algebra).
 
 ## It is a Quax type, not a materialisable array
 
-`QuantityMatrix` is a `quax` array-ish value: it flows through `quax.quaxify`-ed functions but refuses to _materialise_ into a plain array (its elements have no single dtype-plus-unit), so use `.value` / `.unit` to inspect it, and `plum.convert(..., u.Q)` only when every unit is identical (see [Quantity matrices](quantity-matrix.md)).
+`QuantityMatrix` is a `quax` array-ish value: it flows through `quax.quaxify`-ed functions but refuses to _materialise_ into a plain array (its elements have no single dtype-plus-unit), so use `.value` / `.unit` to inspect it, and `plum.convert(..., u.Q)` only when every unit is identical (see [Quantity matrices](quantity-matrix)).

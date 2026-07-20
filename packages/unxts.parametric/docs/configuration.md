@@ -1,6 +1,6 @@
 # Configuration
 
-`unxts.parametric.config` — the parametric counterpart to `unxt.config`. It controls whether the dimension type parameter (e.g. `['length']`) appears in a `ParametricQuantity`'s `repr()` / `str()`. The other display settings (`short_arrays`, `use_short_name`, `named_unit`, `indent`) are shared with all quantities and remain in `unxt.config`; see the [unxt Configuration guide](../../guides/configuration.md).
+`unxts.parametric.config` — the parametric counterpart to `unxt.config`. It controls whether the dimension type parameter (e.g. `['length']`) appears in a `ParametricQuantity`'s `repr()` / `str()`. The other display settings (`short_arrays`, `use_short_name`, `named_unit`, `indent`) are shared with all quantities and remain in `unxt.config`; see the [unxt Configuration guide](../../guides/configuration).
 
 ```{code-block} python
 >>> import unxt as u

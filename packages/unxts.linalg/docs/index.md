@@ -66,11 +66,11 @@ Quantity(Array(1., dtype=float32), unit='m')
 
 ## Guides
 
-- [Quantity matrices](quantity-matrix.md) — constructing `QuantityMatrix`, indexing, unit conversion, and arithmetic.
-- [Units matrices](units-matrix.md) — the immutable, hashable `UnitsMatrix` unit structure.
-- [Linear algebra](linear-algebra.md) — matmul, transpose, `diag`, `det`, and `inv` with per-element unit tracking.
-- [Tutorial: a heterogeneous metric](tutorial-metric.md) — a worked end-to-end example.
-- [Sharp bits](sharp-bits.md) — the 1-D/2-D restriction and the uniform-unit requirements under `jax.jit`.
+- [Quantity matrices](quantity-matrix) — constructing `QuantityMatrix`, indexing, unit conversion, and arithmetic.
+- [Units matrices](units-matrix) — the immutable, hashable `UnitsMatrix` unit structure.
+- [Linear algebra](linear-algebra) — matmul, transpose, `diag`, `det`, and `inv` with per-element unit tracking.
+- [Tutorial: a heterogeneous metric](tutorial-metric) — a worked end-to-end example.
+- [Sharp bits](sharp-bits) — the 1-D/2-D restriction and the uniform-unit requirements under `jax.jit`.
 
 ## Public API
 

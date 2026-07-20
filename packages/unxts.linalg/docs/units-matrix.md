@@ -1,6 +1,6 @@
 # Units matrices
 
-`UnitsMatrix` is the immutable, hashable unit structure carried by a [`QuantityMatrix`](quantity-matrix.md). It wraps a 1-D or 2-D structure of `unxt.AbstractUnit` objects and provides tuple-style indexing, transposition, and serialization. Because it is hashable and static, it lives in a `QuantityMatrix`'s pytree _aux data_, so it is available concretely even under `jax.jit`.
+`UnitsMatrix` is the immutable, hashable unit structure carried by a [`QuantityMatrix`](quantity-matrix). It wraps a 1-D or 2-D structure of `unxt.AbstractUnit` objects and provides tuple-style indexing, transposition, and serialization. Because it is hashable and static, it lives in a `QuantityMatrix`'s pytree _aux data_, so it is available concretely even under `jax.jit`.
 
 ```{code-block} python
 >>> import unxt as u

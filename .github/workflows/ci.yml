@@ -66,6 +66,52 @@ jobs:
       - name: Lint
         run: uv run --frozen nox -s lint
 
+  # Documentation build
+  #
+  # Nothing previously gated Sphinx output: there was no docs job here, and the
+  # `docs` nox session builds with `--keep-going` and no `-W`, so it exits 0
+  # whatever it reports. (`.readthedocs.yaml` does set `sphinx.fail_on_warning`,
+  # but that key is ignored when `build.commands` is present -- and it is.) 43
+  # broken cross-references had accumulated on main, invisible to readers: a
+  # dropped MyST link still renders as styled text, just not clickable.
+  #
+  # This gates the category that means "navigation is broken" --
+  # `myst.xref_missing` -- rather than `-W`, which would also fail on ~120
+  # nitpicky `ref.*` warnings for unresolvable third-party type annotations.
+  # Those are curated in `nitpick_ignore` in docs/conf.py; ratcheting them to
+  # zero is worth doing, but blocking every PR on that first is not.
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    needs: [setup]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+
+      - name: Install
+        run: uv sync --no-default-groups --group nox --group docs --locked
+
+      - name: Build docs
+        run: |
+          set -o pipefail
+          uv run --frozen nox -s docs -- --output-dir=_build 2>&1 | tee docs-build.log
+
+      - name: Fail on broken cross-references
+        run: |
+          if grep -q 'myst.xref_missing' docs-build.log; then
+            echo "::error::Broken cross-references in the docs:"
+            grep 'myst.xref_missing' docs-build.log
+            echo
+            echo "A relative link written with a '.md' suffix resolves through the"
+            echo "filesystem, which follows the docs/packages/* symlinks out of the"
+            echo "Sphinx srcdir and silently drops the link. Write the target"
+            echo "without the extension, e.g. '(../packages/x/index)'."
+            exit 1
+          fi
+          echo "No broken cross-references."
+
   # Main package tests
   tests-unxt:
     name: unxt Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
@@ -587,6 +633,7 @@ jobs:
       [
         setup,
         format,
+        docs,
         tests-unxt,
         tests-unxt-api,
         tests-unxt-hypothesis,
