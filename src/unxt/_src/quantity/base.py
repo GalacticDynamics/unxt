@@ -489,7 +489,18 @@ class AbstractQuantity(
          Quantity(Array(3, dtype=int32), unit='m')]
 
         """
-        yield from (self[i] for i in range(len(self.value)))
+        # NB: this is deliberately *not* a generator function. A generator
+        # would make ``iter(q)`` succeed even for a 0-d quantity (the body only
+        # runs on the first ``next()``), so ``np.iterable(0-d q)`` returned True
+        # -- unlike numpy/jax/astropy -- breaking scalar plotting in matplotlib.
+        # Validate eagerly and return the iterator.
+        # ``np.ndim`` rather than ``self.value.ndim``: during a ``jax.tree`` map
+        # the value can transiently be a plain list (which has no ``.ndim``),
+        # and it also handles tracers, NumPy/JAX arrays and ``StaticValue``.
+        if np.ndim(self.value) == 0:
+            msg = "iteration over a 0-d array"
+            raise TypeError(msg)
+        return (self[i] for i in range(len(self.value)))
 
     def argmax(self, *args: Any, **kwargs: Any) -> Array:
         """Return the indices of the maximum value.
