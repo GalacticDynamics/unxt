@@ -98,8 +98,10 @@ def where(condition: ArrayLike, x: R, y: AbstractQuantity, /) -> R:
             "wrap a raw array as unxt.Quantity(arr, unit)."
         )
         raise TypeError(msg)
-    # ``y`` -> ``x``'s unit (raises if not convertible); result in ``x``'s unit.
-    xv = ustrip(x.unit, x)
+    # Strip ``x`` in its own unit (no conversion); convert only ``y`` to
+    # ``x``'s unit (raises if not convertible). Converting ``x`` to its own unit
+    # would be needless work and can promote integer dtypes. Result in x's unit.
+    xv = ustrip(x)
     yv = ustrip(x.unit, y)
     return replace(x, value=jax.numpy.where(condition, xv, yv))
 
