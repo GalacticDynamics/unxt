@@ -206,6 +206,53 @@ _ = u.uconvert("deg", u.Q(3.14159, "rad"))
 
 The NumPy entry points (`np.deg2rad(q)`, `np.rad2deg(q)`, ...) are handled correctly: they convert the angle and raise on a non-angle quantity.
 
+### ⚠️ `jnp.where` adopts the quantity's unit for a raw-array branch
+
+Selecting between a quantity and a **raw array** with `jnp.where` silently treats the raw array as being _in the quantity's unit_ — it does **not** reject the mix the way `jnp.concat` does:
+
+```{code-block} python
+>>> import quaxed.numpy as jnp
+>>> import jax.numpy as jnp_raw
+>>> import unxt as u
+
+>>> cond = jnp_raw.asarray([True, False])
+>>> q = u.Q([1.0, 2.0], "m")
+>>> raw = jnp_raw.asarray([10.0, 20.0])
+```
+
+The raw `20.0` comes back as `20.0 m` — no error, no conversion:
+
+```{code-block} python
+>>> jnp.where(cond, q, raw)
+Quantity(Array([ 1., 20.], dtype=float32), unit='m')
+```
+
+Contrast `jnp.concat`, which treats the raw array as dimensionless and rejects the incompatible mix:
+
+```{code-block} python
+>>> try:
+...     jnp.concat([q, raw])
+... except Exception as e:
+...     print(type(e).__name__)
+UnitConversionError
+```
+
+This inconsistency is **inherent**, not an oversight. JAX lowers both a user `where` _and_ its own masking operations (`triu`, `tril`, `trace`, and `where(mask, q, 0.0)`) to the same `select_n` primitive with a raw-array operand — and masking _relies_ on that raw zero-fill adopting the quantity's unit (filling with `0` should keep `m`, since zero is unit-agnostic). At the primitive level a genuine raw-data operand is indistinguishable from a masking zero-fill, so unxt cannot reject one without breaking the other.
+
+Filling with a plain `0` is therefore fine and does the right thing:
+
+```{code-block} python
+>>> jnp.where(cond, q, 0.0)
+Quantity(Array([1., 0.], dtype=float32), unit='m')
+```
+
+**Rule:** never rely on `jnp.where` to unit-check a raw-array branch. Convert the raw array to a `Quantity` with the unit you mean _before_ the `where`, so the units are checked explicitly:
+
+```{code-block} python
+>>> jnp.where(cond, q, u.Q(raw, "m"))
+Quantity(Array([ 1., 20.], dtype=float32), unit='m')
+```
+
 ### ✅ Dimension Checking Works in JIT
 
 Good news! Dimensions are checked inside JIT:
