@@ -16,8 +16,8 @@ class TestUnitFunctionUnits:
     `apyu.Unit(...)` but failed its own `-> AbstractUnit` return annotation
     (`TypeCheckError` under beartype, `TypeError` otherwise), and passing a
     function-unit object raised `NotFoundLookupError`. The `APYUnits` interop
-    alias already listed `FunctionUnitBase`, so the type surface claimed a
-    support the constructor did not provide.
+    alias already listed `FunctionUnitBase`, so the type surface claimed support
+    the constructor did not provide.
     """
 
     @pytest.mark.parametrize(
