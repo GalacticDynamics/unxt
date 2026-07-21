@@ -413,6 +413,7 @@ def test_static_quantity_lax_div_truncates_like_lax() -> None:
     plain-``Quantity`` rule -- for negative operands. Floor and truncate agree
     for positives, which is why the existing doctest (6 / 2) did not catch it.
     """
+    unit = u.unit("m / s")
     for a, b in [(-7, 2), (7, 2), (-7, -2), (7, -2)]:
         expected = int(jax.lax.div(jnp.asarray(a), jnp.asarray(b)))  # truncated
 
@@ -421,11 +422,19 @@ def test_static_quantity_lax_div_truncates_like_lax() -> None:
         got = qlax.div(sa, sb)
         assert isinstance(got, u.StaticQuantity)
         assert int(np.asarray(got.value)) == expected, (a, b)
+        # Integer division stays integer and keeps the divided unit -- not
+        # promoted to float or relabelled.
+        assert got.unit == unit
+        assert np.issubdtype(np.asarray(got.value).dtype, np.integer)
 
-        # ... and it agrees with the plain Quantity rule on the same inputs.
+        # ... and it agrees with the plain Quantity rule on the same inputs,
+        # likewise integer-typed with the divided unit.
         qa = u.Q(jnp.asarray(a), "m")
         qb = u.Q(jnp.asarray(b), "s")
-        assert int(np.asarray(qlax.div(qa, qb).value)) == expected, (a, b)
+        qgot = qlax.div(qa, qb)
+        assert int(np.asarray(qgot.value)) == expected, (a, b)
+        assert qgot.unit == unit
+        assert np.issubdtype(np.asarray(qgot.value).dtype, np.integer)
 
 
 def test_static_quantity_modulo_with_quantity() -> None:
