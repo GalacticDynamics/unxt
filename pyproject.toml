@@ -11,7 +11,6 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
@@ -46,7 +45,7 @@ license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 name = "unxt"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 
 [project.optional-dependencies]
 # jax extras
@@ -200,7 +199,7 @@ disallow_untyped_defs    = false
 enable_error_code        = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 files                    = ["src", "tests"]
 namespace_packages       = true
-python_version           = "3.11"
+python_version           = "3.12"
 strict                   = true
 warn_return_any          = false
 warn_unreachable         = true
@@ -256,7 +255,7 @@ messages_control.disable = [
   "wrong-import-position",
   "W0221",                      # Arguments in function call differ from overridden method
 ]
-py-version = "3.11"
+py-version = "3.12"
 reports.output-format = "colorized"
 similarities.ignore-imports = "yes"
 
@@ -376,6 +375,12 @@ ignore = [
   "RUF022",  # `__all__` is not sorted
   "TD002",   # Missing author in TODO
   "TD003",   # Missing issue link on the line following this TODO
+  # PEP 695 `type X = ...` aliases become runtime `TypeAliasType` objects, which
+  # plum dispatch and beartype.door cannot resolve (they raise
+  # BeartypeDoorNonpepException). unxt's type aliases are used as dispatch keys
+  # and runtime-checked annotations, so they must stay `X: TypeAlias = ...`. (The
+  # `>=3.12` floor is what makes ruff start suggesting the incompatible form.)
+  "UP040", # Type alias uses `TypeAlias` instead of the `type` keyword
 ]
 
 [tool.ruff.lint.per-file-ignores]

@@ -24,8 +24,8 @@ from typing import (
     TypeAlias,
     TypeGuard,
     cast,
+    override,
 )
-from typing_extensions import override
 
 import equinox as eqx
 import jax
