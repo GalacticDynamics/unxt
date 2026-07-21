@@ -45,19 +45,20 @@ def unit_or_none(obj: Any) -> AbstractUnit | None:
     return obj if obj is None else unit(obj)
 
 
-def where(condition: ArrayLike, x: AbstractQuantity, y: AbstractQuantity, /) -> R:
+def where(condition: ArrayLike, x: R, y: AbstractQuantity, /) -> R:
     """Unit-checked ``where``: both branches must be quantities (experimental).
 
     A strict alternative to :func:`jax.numpy.where`. Both ``x`` and ``y`` must be
     quantities (a dimensionless ``Quantity`` is fine). ``y`` is converted to
     ``x``'s unit -- raising if they are not convertible -- and the result is
-    returned in ``x``'s unit.
+    returned in ``x``'s unit and concrete type (``x`` typed as ``R`` so a checker
+    sees, e.g., ``Angle`` in -> ``Angle`` out).
 
     Unlike ``jnp.where``, this will **not** silently reinterpret a raw array as
     being in the quantity's unit (see the "``jnp.where`` adopts the quantity's
     unit for a raw-array branch" sharp bit): a raw-array branch is rejected, so
-    wrap it as ``u.Q(arr, unit)`` first. ``jnp.where`` cannot itself be made
-    strict, because JAX lowers masking ops (``triu``/``tril``/``trace``,
+    wrap it as ``unxt.Quantity(arr, unit)`` first. ``jnp.where`` cannot itself be
+    made strict, because JAX lowers masking ops (``triu``/``tril``/``trace``,
     ``where(mask, q, 0)``) to the same primitive and relies on the raw zero-fill
     adopting the unit.
 
@@ -94,7 +95,7 @@ def where(condition: ArrayLike, x: AbstractQuantity, y: AbstractQuantity, /) -> 
     if not isinstance(x, AbstractQuantity) or not isinstance(y, AbstractQuantity):
         msg = (
             "unxt.experimental.where requires both branches to be Quantities; "
-            "wrap a raw array as u.Q(arr, unit)."
+            "wrap a raw array as unxt.Quantity(arr, unit)."
         )
         raise TypeError(msg)
     # ``y`` -> ``x``'s unit (raises if not convertible); result in ``x``'s unit.
