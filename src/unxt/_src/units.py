@@ -13,7 +13,10 @@ from plum import dispatch
 import unxt_api as uapi
 from unxt.dims import AbstractDimension
 
-AbstractUnit: TypeAlias = apyu.Unit | apyu.UnitBase | apyu.CompositeUnit
+# ``FunctionUnitBase`` (mag/dex/dB) is a separate hierarchy from ``UnitBase``, so
+# it is listed explicitly. ``StructuredUnit`` is intentionally excluded: it has
+# no single dimension, so ``dimension_of`` cannot handle it.
+AbstractUnit: TypeAlias = apyu.UnitBase | apyu.FunctionUnitBase
 
 
 # ===================================================================
@@ -46,6 +49,14 @@ def unit(obj: str, /) -> AbstractUnit:
     >>> m = u.unit("m")
     >>> m
     Unit("m")
+
+    Astropy function units (magnitudes, dex, decibels) are also supported:
+
+    >>> u.unit("mag(AB)")
+    Unit("mag(AB)")
+
+    >>> u.unit("dex(cm/s2)")
+    Unit("dex(cm / s2)")
 
     """
     return apyu.Unit(obj)
