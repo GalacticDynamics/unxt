@@ -14,6 +14,7 @@ from hypothesis import given, strategies as st
 from hypothesis.extra.numpy import arrays as np_arrays
 from plum import promote
 
+import quaxed.lax as qlax
 import quaxed.numpy as qnp
 
 import unxt as u
@@ -402,6 +403,29 @@ def test_static_quantity_division_integer_inputs() -> None:
     assert result.value.dtype == np.float32
     assert np.allclose(result.value, 3.0)
     assert result.unit == u.unit("m / s")
+
+
+def test_static_quantity_lax_div_truncates_like_lax() -> None:
+    """``qlax.div`` on integer StaticQuantities truncates toward zero.
+
+    Regression: the rule used ``np.floor_divide`` (rounds toward -inf), which
+    disagrees with ``lax.div_p`` -- and hence with both raw ``lax.div`` and the
+    plain-``Quantity`` rule -- for negative operands. Floor and truncate agree
+    for positives, which is why the existing doctest (6 / 2) did not catch it.
+    """
+    for a, b in [(-7, 2), (7, 2), (-7, -2), (7, -2)]:
+        expected = int(jax.lax.div(jnp.asarray(a), jnp.asarray(b)))  # truncated
+
+        sa = u.StaticQuantity(np.asarray(a), "m")
+        sb = u.StaticQuantity(np.asarray(b), "s")
+        got = qlax.div(sa, sb)
+        assert isinstance(got, u.StaticQuantity)
+        assert int(np.asarray(got.value)) == expected, (a, b)
+
+        # ... and it agrees with the plain Quantity rule on the same inputs.
+        qa = u.Q(jnp.asarray(a), "m")
+        qb = u.Q(jnp.asarray(b), "s")
+        assert int(np.asarray(qlax.div(qa, qb).value)) == expected, (a, b)
 
 
 def test_static_quantity_modulo_with_quantity() -> None:
