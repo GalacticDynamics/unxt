@@ -13,19 +13,9 @@ from plum import dispatch
 import unxt_api as uapi
 from unxt.dims import AbstractDimension
 
-# ``Unit`` and ``CompositeUnit`` are subclasses of ``UnitBase``, so the first
-# member already covers them (the previous alias listed all three redundantly).
-# ``FunctionUnitBase`` -- the base of ``mag`` / ``dex`` / ``dB`` -- is a
-# *separate* astropy hierarchy that does not subclass ``UnitBase``, so it must be
-# listed explicitly for ``unit()`` to accept and return it. Function units flow
-# through the rest of the machinery (``dimension_of``, ``Quantity``,
-# ``uconvert``, ``ustrip``) unchanged.
-#
-# ``StructuredUnit`` is deliberately NOT included yet: it is also outside
-# ``UnitBase``, but unlike function units it has no single physical dimension, so
-# ``dimension_of`` has no meaningful answer for it -- accepting it here would
-# build a ``Quantity`` that then raises deeper down. Supporting it is a separate
-# change (it needs a ``dimension_of`` design for structured dimensions).
+# ``FunctionUnitBase`` (mag/dex/dB) is a separate hierarchy from ``UnitBase``, so
+# it is listed explicitly. ``StructuredUnit`` is intentionally excluded: it has
+# no single dimension, so ``dimension_of`` cannot handle it.
 AbstractUnit: TypeAlias = apyu.UnitBase | apyu.FunctionUnitBase
 
 

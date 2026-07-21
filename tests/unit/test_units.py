@@ -11,13 +11,8 @@ from unxt.units import AbstractUnit
 class TestUnitFunctionUnits:
     """`unit()` accepts astropy function units (mag / dex / dB).
 
-    Regression: `AbstractUnit` was `Unit | UnitBase | CompositeUnit`, none of
-    which is a `FunctionUnitBase`. So `unit("mag(AB)")` built a `MagUnit` via
-    `apyu.Unit(...)` but failed its own `-> AbstractUnit` return annotation
-    (`TypeCheckError` under beartype, `TypeError` otherwise), and passing a
-    function-unit object raised `NotFoundLookupError`. The `APYUnits` interop
-    alias already listed `FunctionUnitBase`, so the type surface claimed support
-    the constructor did not provide.
+    Regression: `AbstractUnit` excluded `FunctionUnitBase`, so `unit("mag(AB)")`
+    failed its own return annotation and a function-unit object was unmatched.
     """
 
     @pytest.mark.parametrize(
@@ -44,12 +39,7 @@ class TestUnitFunctionUnits:
         assert isinstance(u.unit("mag(AB)"), AbstractUnit)
 
     def test_function_unit_flows_downstream(self) -> None:
-        """A function unit works end-to-end, not just in the constructor.
-
-        Widening the *type* would be hollow if the rest of the machinery choked
-        on it -- so pin the whole path: dimension, construction, and a
-        round-trip through ``ustrip``.
-        """
+        """A function unit works end-to-end: dimension, construction, ustrip."""
         mag = u.unit("mag(AB)")
         assert u.dimension_of(mag) is not None  # does not raise
         q = u.Q(1.0, mag)
@@ -58,13 +48,10 @@ class TestUnitFunctionUnits:
 
 
 class TestUnitStructuredIsNotYetSupported:
-    """`StructuredUnit` is intentionally still rejected -- see the alias comment.
+    """`StructuredUnit` is intentionally rejected -- see the alias comment.
 
-    Unlike function units it has no single physical dimension, so accepting it
-    would build a ``Quantity`` whose ``dimension_of`` raises. Until that is
-    designed, ``unit()`` should reject it *cleanly* at the boundary rather than
-    return a half-usable object. This test pins that boundary so a future
-    widening is a deliberate, tested change.
+    It has no single dimension, so accepting it would build a `Quantity` whose
+    `dimension_of` raises. This pins the boundary until that is designed.
     """
 
     def test_structured_unit_rejected(self) -> None:
