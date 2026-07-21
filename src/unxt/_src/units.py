@@ -5,13 +5,16 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 
 __all__ = ("unit", "unit_of", "AbstractUnit")
 
-from typing import Any, TypeAlias
+from typing import TYPE_CHECKING, Any, TypeAlias, cast
 
 import astropy.units as apyu
 from plum import dispatch
 
 import unxt_api as uapi
 from unxt.dims import AbstractDimension
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # ``FunctionUnitBase`` (mag/dex/dB) is a separate hierarchy from ``UnitBase``, so
 # it is listed explicitly. ``StructuredUnit`` is intentionally excluded: it has
@@ -60,6 +63,23 @@ def unit(obj: str, /) -> AbstractUnit:
 
     """
     return apyu.Unit(obj)
+
+
+def parse_unit(obj: AbstractUnit | str, /) -> AbstractUnit:
+    """Typed converter for the ``unit`` field of the quantity classes.
+
+    ``unit`` is a `plum` dispatch, which a static type checker (pyright) reads as
+    only its last registered overload. Using it directly as an
+    ``eqx.field(converter=...)`` therefore leaves the generated ``__init__``
+    typing the ``unit`` argument as the field type ``AbstractUnit`` -- so
+    ``Quantity(1, "m")`` is a type error, even though the string is accepted at
+    runtime. This thin wrapper gives the checker a readable ``AbstractUnit | str``
+    parameter while the field still reads back as ``AbstractUnit``. It delegates
+    to ``unit``; the ``cast`` restores the real (union-accepting) signature that
+    the checker cannot see through the dispatch.
+    """
+    construct = cast("Callable[[AbstractUnit | str], AbstractUnit]", unit)
+    return construct(obj)
 
 
 # ===================================================================

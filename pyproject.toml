@@ -134,6 +134,9 @@ test = [
 ]
 test-all = [{ include-group = "test" }, { include-group = "test-mpl" }]
 test-mpl = ["pytest-mpl>=0.17.0", "matplotlib>=3.8"]
+# Pinned so the `pyright` guard cannot drift as new pyright releases change
+# diagnostics. Scoped to the `tests/typing` fixture; see [tool.pyright].
+typecheck = ["pyright==1.1.411"]
 workspace = [
   "unxt-api",
   "unxt-hypothesis",
@@ -226,6 +229,16 @@ module = [
   "quaxed.*",
   "unxt.*",
 ]
+
+
+# Pyright is scoped to the typing smoke fixture only -- it guards the
+# `Quantity(1, "m")` constructor typing (see tests/typing/) without asking the
+# whole, not-yet-pyright-clean source tree to pass. Widen `include` when more of
+# the tree is type-checked.
+[tool.pyright]
+include          = ["tests/typing"]
+pythonVersion    = "3.11"
+typeCheckingMode = "basic"
 
 
 [tool.pylint]

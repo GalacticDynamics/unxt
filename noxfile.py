@@ -75,6 +75,17 @@ def precommit(s: nox.Session, /) -> None:
     s.run("prek", "run", "--all-files", *s.posargs)
 
 
+@session(uv_groups=["typecheck"], uv_extras=["all"], reuse_venv=True)
+def pyright(s: nox.Session, /) -> None:
+    """Type-check the typing smoke fixture with pyright.
+
+    Scoped (via ``[tool.pyright]`` ``include``) to ``tests/typing`` -- the guard
+    for the ``Quantity(1, "m")`` constructor typing. Not the whole tree, which
+    is not yet pyright-clean.
+    """
+    s.run("pyright", *s.posargs)
+
+
 def _parse_pylint_paths(package: PackageEnum, /) -> list[str]:
     # Lint each package in isolation so the ``duplicate-code`` checker does not
     # flag the intentional similarity between a shim and its canonical package.

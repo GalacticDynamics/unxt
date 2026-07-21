@@ -7,9 +7,9 @@ from typing import final
 import equinox as eqx
 from jaxtyping import Array, Real
 
-import unxt_api as uapi
 from .base_angle import AbstractAngle
 from .value import StaticValue, convert_to_quantity_value
+from unxt._src.units import parse_unit
 from unxt.units import AbstractUnit
 
 
@@ -54,5 +54,5 @@ class Angle(AbstractAngle):
     )
     """The value of the `unxt.AbstractQuantity`."""
 
-    unit: AbstractUnit = eqx.field(static=True, converter=uapi.unit)
+    unit: AbstractUnit = eqx.field(static=True, converter=parse_unit)
     """The unit associated with this value."""
