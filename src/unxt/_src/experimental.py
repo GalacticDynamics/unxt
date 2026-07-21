@@ -20,10 +20,11 @@ To import this experimental module
 """
 # pylint: disable=import-error
 
-__all__ = ("grad", "hessian", "jacfwd")
+__all__ = ("grad", "hessian", "jacfwd", "where")
 
 import functools as ft
 from collections.abc import Callable
+from dataclasses import replace
 from typing import Any, TypeVar, TypeVarTuple
 from typing_extensions import Unpack
 
@@ -42,6 +43,64 @@ R = TypeVar("R", bound=AbstractQuantity)
 
 def unit_or_none(obj: Any) -> AbstractUnit | None:
     return obj if obj is None else unit(obj)
+
+
+def where(condition: ArrayLike, x: AbstractQuantity, y: AbstractQuantity, /) -> R:
+    """Unit-checked ``where``: both branches must be quantities (experimental).
+
+    A strict alternative to :func:`jax.numpy.where`. Both ``x`` and ``y`` must be
+    quantities (a dimensionless ``Quantity`` is fine). ``y`` is converted to
+    ``x``'s unit -- raising if they are not convertible -- and the result is
+    returned in ``x``'s unit.
+
+    Unlike ``jnp.where``, this will **not** silently reinterpret a raw array as
+    being in the quantity's unit (see the "``jnp.where`` adopts the quantity's
+    unit for a raw-array branch" sharp bit): a raw-array branch is rejected, so
+    wrap it as ``u.Q(arr, unit)`` first. ``jnp.where`` cannot itself be made
+    strict, because JAX lowers masking ops (``triu``/``tril``/``trace``,
+    ``where(mask, q, 0)``) to the same primitive and relies on the raw zero-fill
+    adopting the unit.
+
+    Examples
+    --------
+    >>> import jax.numpy as jnp
+    >>> import unxt as u
+    >>> from unxt import experimental
+
+    >>> cond = jnp.asarray([True, False])
+
+    ``y`` is converted to ``x``'s unit; the result is in ``x``'s unit:
+
+    >>> experimental.where(cond, u.Q([1.0, 2.0], "m"), u.Q([0.003, 0.004], "km"))
+    Quantity(Array([1., 4.], dtype=float32), unit='m')
+
+    Incompatible units raise:
+
+    >>> try:
+    ...     experimental.where(cond, u.Q([1.0, 2.0], "m"), u.Q([1.0, 2.0], "s"))
+    ... except Exception as e:
+    ...     print(type(e).__name__)
+    UnitConversionError
+
+    A raw-array branch is rejected rather than silently adopting the unit:
+
+    >>> try:
+    ...     experimental.where(cond, u.Q([1.0, 2.0], "m"), jnp.asarray([3.0, 4.0]))
+    ... except TypeError as e:
+    ...     print(e)
+    unxt.experimental.where requires both branches to be Quantities; ...
+
+    """
+    if not isinstance(x, AbstractQuantity) or not isinstance(y, AbstractQuantity):
+        msg = (
+            "unxt.experimental.where requires both branches to be Quantities; "
+            "wrap a raw array as u.Q(arr, unit)."
+        )
+        raise TypeError(msg)
+    # ``y`` -> ``x``'s unit (raises if not convertible); result in ``x``'s unit.
+    xv = ustrip(x.unit, x)
+    yv = ustrip(x.unit, y)
+    return replace(x, value=jax.numpy.where(condition, xv, yv))
 
 
 def grad(
