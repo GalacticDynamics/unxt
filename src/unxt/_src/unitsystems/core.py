@@ -182,9 +182,10 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
     ...     unitsystem("m")
     ... except ValueError as e:
     ...     print(e)
-    'm' is not a registered unit system (available: cgs, dimensionless,
-    galactic, si, solarsystem). If you meant a unit, convert it first, e.g.
-    unitsystem(unxt.unit('m')).
+    'm' is not a registered unit system (available: ...).
+
+    (The exact message -- the full system list and the unit-path hint -- is
+    pinned in ``test_unitsystem_unknown_name_raises_clear_error``.)
 
     """
     try:

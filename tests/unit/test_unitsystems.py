@@ -67,8 +67,10 @@ def test_unitsystem_unknown_name_raises_clear_error() -> None:
     assert NAMED_UNIT_SYSTEMS  # guard: an empty registry would vacuously pass
     for name in NAMED_UNIT_SYSTEMS:
         assert name in msg, f"{name!r} missing from the error message"
-    # ... and points at the unit path for the likely intent.
-    assert "unit" in msg
+    # ... and points at the unit path for the likely intent. Match the specific
+    # hint, not a bare "unit" (which also occurs in "unit system").
+    assert "If you meant a unit" in msg
+    assert "unxt.unit(" in msg
 
 
 def test_unitsystem_known_name_still_resolves() -> None:
