@@ -11,7 +11,7 @@ xarray-guide
 
 :::{note}
 
-`unxts.interop.xarray` is the canonical package, superseding the deprecated `unxt-xarray` distribution. Importing either registers the same `.unxt` xarray accessor.
+`unxts.interop.xarray` is the canonical package, superseding the deprecated `unxt-xarray` distribution. Once installed, it registers the `.unxt` xarray accessor on import.
 
 :::
 
@@ -128,11 +128,11 @@ ds = xr.Dataset(
 # Quantify all variables
 q_ds = ds.unxt.quantify()
 print(q_ds["temperature"].data)
-# Quantity(Array([20., 25., 30.], dtype=float32), unit='degC')
+# Quantity(Array([20., 25., 30.], dtype=float32), unit='deg_C')
 
 # Dequantify back
 plain_ds = q_ds.unxt.dequantify()
-print(plain_ds["temperature"].attrs["units"])  # 'degC'
+print(plain_ds["temperature"].attrs["units"])  # 'deg_C'
 ```
 
 ## Advanced Usage
