@@ -9,6 +9,7 @@ from typing import Annotated
 import astropy.units as apyu
 import numpy as np
 import pytest
+from astropy import constants as const
 from astropy.constants import G as const_G  # noqa: N811
 
 import unxt as u
@@ -370,3 +371,122 @@ def test_simulation_usys():
                 f"usys[{dim!r}] for ({u1!r}, {u2!r}) returned {result!r}, "
                 f"expected an astropy UnitBase"
             )
+
+
+# ===================================================================
+# Natural unit systems (issues #228-#232)
+
+
+@pytest.mark.parametrize(
+    ("flag", "constants"),
+    [
+        (unitsystems.HEPUSysFlag, ("c", "hbar")),
+        (unitsystems.GeometrizedUSysFlag, ("c", "G")),
+        (unitsystems.PlanckUSysFlag, ("c", "hbar", "G", "k_B")),
+    ],
+)
+def test_natural_unitsystem_constants_are_unity(flag, constants):
+    """The defining constants of each natural system are numerically 1."""
+    usys = unitsystem(flag)
+    for name in constants:
+        value = getattr(const, name).decompose(usys).value
+        assert np.isclose(value, 1.0), (flag.__name__, name, value)
+
+
+def test_atomic_unitsystem_is_natural():
+    """Atomic units set m_e = hbar = e = 4*pi*eps0 = 1.
+
+    Verification strategy: m_e, e, and the Bohr radius are checked directly
+    against their base-unit SI values; hbar is checked with ``decompose`` in the
+    (length, mass, time) sub-basis; and 4*pi*eps0 by forming the electrostatic
+    combination explicitly. ``decompose`` is not used for the charge itself:
+    astropy cannot decompose a charge (``A s`` here, with ``A`` its irreducible
+    electromagnetic base) into a basis that also contains ``s``.
+    """
+    usys = unitsystems.atomic
+    length, mass, time = usys["length"], usys["mass"], usys["time"]
+    charge = usys["electrical charge"]
+    # base units carry the defining constants
+    assert np.isclose((1 * length).to_value("m"), const.a0.value)
+    assert np.isclose((1 * mass).to_value("kg"), const.m_e.value)
+    assert np.isclose((1 * charge).to_value("C"), const.e.si.value)
+    # hbar is unity in the (length, mass, time) sub-basis
+    hbar = const.hbar.decompose([length, mass, time]).value
+    assert np.isclose(hbar, 1.0)
+    # 4*pi*eps0 is unity: eps0 has dimension charge**2 time**2 / (mass length**3)
+    coulomb = (4 * np.pi * const.eps0) / (charge**2 * time**2 / mass / length**3)
+    assert np.isclose(coulomb.decompose().value, 1.0)
+
+
+@pytest.mark.parametrize(
+    ("name", "flag", "dims"),
+    [
+        ("hep", unitsystems.HEPUSysFlag, ["length", "mass", "time"]),
+        ("geometrized", unitsystems.GeometrizedUSysFlag, ["length", "mass", "time"]),
+        (
+            "planck",
+            unitsystems.PlanckUSysFlag,
+            ["length", "mass", "time", "temperature"],
+        ),
+        (
+            "atomic",
+            unitsystems.AtomicUSysFlag,
+            ["length", "mass", "time", "electrical charge"],
+        ),
+    ],
+)
+def test_natural_unitsystem_name_flag_and_dims(name, flag, dims):
+    """Name lookup, flag construction, and the realization all agree."""
+    from_name = unitsystem(name)
+    from_flag = unitsystem(flag)
+    realization = getattr(unitsystems, name)
+
+    assert from_name == from_flag
+    assert from_name == realization
+    assert [str(d) for d in from_name.base_dimensions] == dims
+
+
+def test_hep_energy_scale_override():
+    """The HEP energy scale is configurable (default 1 GeV)."""
+    gev = unitsystem(unitsystems.HEPUSysFlag)
+    tev = unitsystem(unitsystems.HEPUSysFlag, energy="TeV")
+    # larger energy -> smaller length/time, larger mass (hbar = c = 1)
+    assert tev["time"] == gev["time"] / 1000
+    assert tev["mass"] == gev["mass"] * 1000
+
+
+def test_geometrized_length_scale_override():
+    """The geometrized length scale is configurable (default 1 m)."""
+    usys = unitsystem(unitsystems.GeometrizedUSysFlag, length="km")
+    assert usys["length"] == unit("km")
+
+
+@pytest.mark.parametrize(
+    "flag",
+    [
+        unitsystems.HEPUSysFlag,
+        unitsystems.GeometrizedUSysFlag,
+        unitsystems.PlanckUSysFlag,
+        unitsystems.AtomicUSysFlag,
+    ],
+)
+def test_natural_unitsystem_rejects_extra_positional_args(flag):
+    """Stray positional arguments fail fast rather than being silently ignored."""
+    with pytest.raises(TypeError, match="does not take positional arguments"):
+        unitsystem(flag, "km")
+
+
+def test_natural_unitsystem_pickle(tmp_path: Path) -> None:
+    """Natural unit systems round-trip through pickle."""
+    for usys in (
+        unitsystems.hep,
+        unitsystems.geometrized,
+        unitsystems.planck,
+        unitsystems.atomic,
+    ):
+        path = tmp_path / "usys.pkl"
+        with path.open(mode="wb") as f:
+            pickle.dump(usys, f)
+        with path.open(mode="rb") as f:
+            usys2 = pickle.load(f)  # noqa: S301
+        assert usys == usys2

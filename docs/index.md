@@ -30,6 +30,7 @@ guides/quantity
 guides/configuration
 guides/dimensions
 guides/units_and_systems
+guides/natural-units
 guides/type-checking
 guides/sharp-bits
 Performance Optimization <guides/perf.ipynb>

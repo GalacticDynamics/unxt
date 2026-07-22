@@ -112,6 +112,51 @@ unitsystem(kpc, Myr, solMass, rad)
 unitsystem(AU, yr, solMass, rad)
 ```
 
+### Natural unit systems
+
+[Natural unit systems](https://en.wikipedia.org/wiki/Natural_units) fix a chosen set of fundamental physical constants to the dimensionless value 1. `unxt` realizes this _numerically_: the base units are chosen so that the named constants evaluate to `1.0`, while the full dimensional structure is preserved. Four systems are built in, available both as named realizations and by string:
+
+```{code-block} python
+>>> from unxt.unitsystems import hep, geometrized, planck, atomic
+
+>>> hep  # high-energy physics: hbar = c = 1  (1 GeV scale)
+LengthMassTimeUnitSystem(length=Unit("...e-16 m"), mass=Unit("...e-27 kg"), time=Unit("...e-25 s"))
+
+>>> geometrized  # general relativity: c = G = 1  (1 m scale)
+LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("...e+27 kg"), time=Unit("...e-09 s"))
+
+>>> planck  # hbar = c = G = k_B = 1
+LengthMassTimeTemperatureUnitSystem(length=Unit("...e-35 m"), mass=Unit("...e-08 kg"), time=Unit("...e-44 s"), temperature=Unit("...e+32 K"))
+
+>>> atomic  # Hartree: m_e = hbar = e = 4*pi*eps0 = 1
+LengthMassTimeElectricalChargeUnitSystem(length=Unit("...e-11 m"), mass=Unit("...e-31 kg"), time=Unit("...e-17 s"), electrical_charge=Unit("...e-19 A s"))
+```
+
+The defining constants come out to 1 by construction. For example, decomposing the speed of light and Newton's constant into the geometrized system:
+
+```{code-block} python
+>>> import numpy as np
+>>> from astropy.constants import c, G
+
+>>> bool(np.isclose(c.decompose(geometrized).value, 1.0))
+True
+
+>>> bool(np.isclose(G.decompose(geometrized).value, 1.0))
+True
+```
+
+The two systems with a remaining free scale accept it as a keyword — `energy` for `HEPUSysFlag` (default `"GeV"`) and `length` for `GeometrizedUSysFlag` (default `"m"`):
+
+```{code-block} python
+>>> from unxt.unitsystems import unitsystem, HEPUSysFlag, GeometrizedUSysFlag
+
+>>> unitsystem(HEPUSysFlag, energy="TeV")["time"] == hep["time"] / 1000
+True
+
+>>> unitsystem(GeometrizedUSysFlag, length="km")["length"]
+Unit("km")
+```
+
 ## Functions for Unit Systems
 
 `unxt` has two primary functions for working with units: `unitsystem` and `unitsystem_of`.
