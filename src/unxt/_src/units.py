@@ -3,7 +3,7 @@
 Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 """
 
-__all__ = ("unit", "unit_of", "AbstractUnit")
+__all__ = ("unit", "unit_of", "parse_unit", "AbstractUnit")
 
 from typing import TYPE_CHECKING, Any, TypeAlias, cast
 
