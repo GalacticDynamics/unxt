@@ -11,9 +11,9 @@ from unxts.interop.matplotlib import (
 
 ## `setup_matplotlib_support_for_unxt(*, enable=True)`
 
-Register (or unregister) the `unxt.Quantity` converter with `matplotlib`. It is called with `enable=True` when the package is imported.
+Register (or unregister) the `unxt` quantity converter with `matplotlib`. It is called with `enable=True` when the package is imported.
 
-- `enable` (bool, keyword-only, default `True`): if `True`, register {class}`UnxtConverter` for `unxt.Quantity` so quantities can be plotted; if `False`, remove the registration.
+- `enable` (bool, keyword-only, default `True`): if `True`, register `UnxtConverter` for `unxt.quantity.AbstractQuantity` (which covers `Quantity` and the other quantity types) so quantities can be plotted; if `False`, remove the registration.
 
 ```{code-block} python
 
@@ -28,4 +28,4 @@ setup_matplotlib_support_for_unxt(enable=True)
 
 ## `UnxtConverter`
 
-A `matplotlib.units.ConversionInterface` subclass that teaches `matplotlib` how to turn a `unxt.Quantity` into plottable magnitudes (and to label axes with the unit). It is registered by `setup_matplotlib_support_for_unxt`; you rarely instantiate it yourself.
+A `matplotlib.units.ConversionInterface` subclass that teaches `matplotlib` how to turn an `unxt` quantity (any `AbstractQuantity`) into plottable magnitudes (and to label axes with the unit). It is registered — for `AbstractQuantity` — by `setup_matplotlib_support_for_unxt`; you rarely instantiate it yourself.
