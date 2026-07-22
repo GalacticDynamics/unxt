@@ -1819,12 +1819,16 @@ def div_p_sqsq(x: StaticQuantity, y: StaticQuantity, /) -> StaticQuantity:
     >>> import unxt as u
     >>> import quaxed.lax as qlax
 
-    Integer division for integer dtypes:
+    Integer division for integer dtypes, truncating toward zero (like
+    ``lax.div``, so a negative operand does not floor):
 
     >>> q1 = u.StaticQuantity(6, "m")
     >>> q2 = u.StaticQuantity(2, "s")
     >>> qlax.div(q1, q2)
     StaticQuantity(array(3), unit='m / s')
+
+    >>> qlax.div(u.StaticQuantity(-7, "m"), u.StaticQuantity(2, "s"))
+    StaticQuantity(array(-3), unit='m / s')
 
     True division for float dtypes:
 
@@ -1837,9 +1841,14 @@ def div_p_sqsq(x: StaticQuantity, y: StaticQuantity, /) -> StaticQuantity:
     u = unit(x.unit / y.unit)
     xv, yv = ustrip(x), ustrip(y)
     xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
-    # Use lax.div for integer division, Python / for float division
+    # Integer division must *truncate toward zero* to match ``lax.div_p`` (and so
+    # the plain-``Quantity`` rule); plain floor division rounds toward -inf, which
+    # disagrees for negative operands. ``xv - np.fmod(xv, yv)`` is exactly
+    # divisible by ``yv``, so ``np.floor_divide`` there (floor == truncate on an
+    # exact quotient) gives the truncated result without a float round-trip.
+    # Float dtypes use true division.
     result = (
-        np.floor_divide(xv, yv)
+        np.floor_divide(xv - np.fmod(xv, yv), yv)
         if jnp.issubdtype(xv.dtype, jnp.integer)
         else np.divide(xv, yv)
     )
