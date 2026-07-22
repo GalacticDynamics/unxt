@@ -115,7 +115,7 @@ def grad[*Args, R: AbstractQuantity](
     difference from those functions is how units are handled. ``quaxify``
     will directly propagate the units through the automatic differentiation
     functions. But sometimes that doesn't work and we need to strip the units
-    and re-apply them. This function does that, using the "units" kwarg.
+    and re-apply them. This function does that, using the ``units`` kwarg.
 
     See Also
     --------
