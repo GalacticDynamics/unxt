@@ -394,7 +394,15 @@ def test_natural_unitsystem_constants_are_unity(flag, constants):
 
 
 def test_atomic_unitsystem_is_natural():
-    """Atomic units set m_e = hbar = e = 4*pi*eps0 = 1 (charge can't `decompose`)."""
+    """Atomic units set m_e = hbar = e = 4*pi*eps0 = 1.
+
+    Verification strategy: m_e, e, and the Bohr radius are checked directly
+    against their base-unit SI values; hbar is checked with ``decompose`` in the
+    (length, mass, time) sub-basis; and 4*pi*eps0 by forming the electrostatic
+    combination explicitly. ``decompose`` is not used for the charge itself:
+    astropy cannot decompose a charge (``A s`` here, with ``A`` its irreducible
+    electromagnetic base) into a basis that also contains ``s``.
+    """
     usys = unitsystems.atomic
     length, mass, time = usys["length"], usys["mass"], usys["time"]
     charge = usys["electrical charge"]
