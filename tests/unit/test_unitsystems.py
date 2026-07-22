@@ -14,6 +14,7 @@ from astropy.constants import G as const_G  # noqa: N811
 import unxt as u
 from unxt import dimension, unit, unitsystems
 from unxt._src.unitsystems.base import _UNITSYSTEMS_REGISTRY
+from unxt._src.unitsystems.realizations import NAMED_UNIT_SYSTEMS
 from unxt.unitsystems import (
     AbstractUnitSystem,
     AbstractUSysFlag,
@@ -61,8 +62,11 @@ def test_unitsystem_unknown_name_raises_clear_error() -> None:
 
     msg = str(exc_info.value)
     # The message lists every registered system so the user can self-correct.
-    for name in ("cgs", "dimensionless", "galactic", "si", "solarsystem"):
-        assert name in msg
+    # Derive the expected names from the registry so the test tracks add/remove
+    # /rename of systems rather than a hard-coded list that can silently rot.
+    assert NAMED_UNIT_SYSTEMS  # guard: an empty registry would vacuously pass
+    for name in NAMED_UNIT_SYSTEMS:
+        assert name in msg, f"{name!r} missing from the error message"
     # ... and points at the unit path for the likely intent.
     assert "unit" in msg
 
