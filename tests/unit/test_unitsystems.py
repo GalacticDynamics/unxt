@@ -48,6 +48,30 @@ def test_unitsystem_from_() -> None:
     assert np.isclose((8 * apyu.Myr).decompose(usys).value, 8 / 50)
 
 
+def test_unitsystem_unknown_name_raises_clear_error() -> None:
+    """A single string that is not a registered system name errors clearly.
+
+    ``unitsystem("m")`` looks up a *named* system (like ``"galactic"``); "m" is a
+    unit, not a system name, so it must raise a helpful ``ValueError`` -- not a
+    bare ``KeyError: 'm'`` -- that names the registered systems and points to the
+    unit path (``unitsystem(unit(...))``).
+    """
+    with pytest.raises(ValueError, match="not a registered unit system") as exc_info:
+        unitsystem("m")
+
+    msg = str(exc_info.value)
+    # The message lists every registered system so the user can self-correct.
+    for name in ("cgs", "dimensionless", "galactic", "si", "solarsystem"):
+        assert name in msg
+    # ... and points at the unit path for the likely intent.
+    assert "unit" in msg
+
+
+def test_unitsystem_known_name_still_resolves() -> None:
+    """Registered names still resolve (regression guard for the error path)."""
+    assert unitsystem("galactic") == galactic
+
+
 def test_no_arg_unitsystem_is_dimensionless() -> None:
     """``unitsystem()`` with no arguments is the dimensionless system.
 
