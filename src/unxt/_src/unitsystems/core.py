@@ -194,6 +194,17 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
     >>> unitsystem("planck")
     LengthMassTimeTemperatureUnitSystem(length=Unit("...e-35 m"), mass=Unit("...e-08 kg"), time=Unit("...e-44 s"), temperature=Unit("...e+32 K"))
 
+    A single string is looked up as a *system* name, not a unit. A string that
+    is not a registered system -- e.g. a unit like ``"m"`` -- raises a clear
+    error that names the registered systems and points to the unit path:
+
+    >>> try:
+    ...     unitsystem("m")
+    ... except ValueError as e:
+    ...     print(e)
+    'm' is not a registered unit system (available: ...). If you meant a unit,
+    convert it first, e.g. unitsystem(unxt.unit('m')).
+
     """  # noqa: E501
     # Imported lazily to avoid a circular import: `realizations` is built on top
     # of the `unitsystem` factory defined in this module.
@@ -201,7 +212,16 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
         NAMED_UNIT_SYSTEMS,
     )
 
-    return NAMED_UNIT_SYSTEMS[name]
+    try:
+        return NAMED_UNIT_SYSTEMS[name]
+    except KeyError:
+        available = ", ".join(sorted(NAMED_UNIT_SYSTEMS))
+        msg = (
+            f"{name!r} is not a registered unit system (available: {available}). "
+            f"If you meant a unit, convert it first, e.g. "
+            f"unitsystem(unxt.unit({name!r}))."
+        )
+        raise ValueError(msg) from None
 
 
 @dispatch

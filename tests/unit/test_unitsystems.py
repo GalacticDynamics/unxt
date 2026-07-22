@@ -16,6 +16,7 @@ import unxt as u
 from unxt import dimension, unit, unitsystems
 from unxt._src.unitsystems.base import _UNITSYSTEMS_REGISTRY
 from unxt.unitsystems import (
+    NAMED_UNIT_SYSTEMS,
     AbstractUnitSystem,
     AbstractUSysFlag,
     DimensionlessUnitSystem,
@@ -47,6 +48,35 @@ def test_unitsystem_from_() -> None:
     """Test the `unxt.AbstractUnitSystem.from_`."""
     usys = unitsystem(5 * apyu.kpc, 50 * apyu.Myr, 1e5 * apyu.Msun, "rad")
     assert np.isclose((8 * apyu.Myr).decompose(usys).value, 8 / 50)
+
+
+def test_unitsystem_unknown_name_raises_clear_error() -> None:
+    """A single string that is not a registered system name errors clearly.
+
+    ``unitsystem("m")`` looks up a *named* system (like ``"galactic"``); "m" is a
+    unit, not a system name, so it must raise a helpful ``ValueError`` -- not a
+    bare ``KeyError: 'm'`` -- that names the registered systems and points to the
+    unit path (``unitsystem(unit(...))``).
+    """
+    with pytest.raises(ValueError, match="not a registered unit system") as exc_info:
+        unitsystem("m")
+
+    msg = str(exc_info.value)
+    # The message lists every registered system so the user can self-correct.
+    # Derive the expected names from the registry so the test tracks add/remove
+    # /rename of systems rather than a hard-coded list that can silently rot.
+    assert NAMED_UNIT_SYSTEMS  # guard: an empty registry would vacuously pass
+    for name in NAMED_UNIT_SYSTEMS:
+        assert name in msg, f"{name!r} missing from the error message"
+    # ... and points at the unit path for the likely intent. Match the specific
+    # hint, not a bare "unit" (which also occurs in "unit system").
+    assert "If you meant a unit" in msg
+    assert "unxt.unit(" in msg
+
+
+def test_unitsystem_known_name_still_resolves() -> None:
+    """Registered names still resolve (regression guard for the error path)."""
+    assert unitsystem("galactic") == galactic
 
 
 def test_no_arg_unitsystem_is_dimensionless() -> None:
