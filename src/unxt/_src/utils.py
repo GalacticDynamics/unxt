@@ -46,7 +46,7 @@ def promote_dtypes[HasDTypeT: HasDType](*arrays: HasDTypeT) -> tuple[HasDTypeT, 
     """
     common_dtype = dtypes.result_type(*arrays)
     # TODO: check if this copies.
-    return tuple([qlax.convert_element_type(arr, common_dtype) for arr in arrays])  # type: ignore[arg-type,misc]  # pylint: disable=R1728
+    return tuple(qlax.convert_element_type(arr, common_dtype) for arr in arrays)  # type: ignore[arg-type,misc]
 
 
 def promote_dtypes_if_needed[HasDTypeT: HasDType](
