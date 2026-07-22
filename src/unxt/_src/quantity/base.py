@@ -245,7 +245,12 @@ class AbstractQuantity(
     def aval(self) -> jax.core.ShapedArray:
         value = self.value
         if isinstance(value, StaticValue):
-            value = jnp.asarray(value.array)
+            # Use the raw array: ``jax.typeof`` reads its shape/canonical dtype
+            # directly. ``jnp.asarray`` here would *stage* the array (jax >=0.11
+            # routes it through ``lax.stage``), which requires an active trace --
+            # but ``aval`` is called outside any trace (quax caches it at tracer
+            # construction), so staging raised ``'NoneType' has no stage_value``.
+            value = value.array
         return jax.typeof(value)
 
     def enable_materialise(self, _: bool = True) -> "Self":  # noqa: FBT001, FBT002
