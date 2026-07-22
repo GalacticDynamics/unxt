@@ -266,15 +266,20 @@ def test_natural_unitsystem_constants_are_unity(flag, constants):
 
 
 def test_atomic_unitsystem_is_natural():
-    """Atomic units set m_e = hbar = e = 1 (charge can't use `decompose`)."""
+    """Atomic units set m_e = hbar = e = 4*pi*eps0 = 1 (charge can't `decompose`)."""
     usys = unitsystems.atomic
+    length, mass, time = usys["length"], usys["mass"], usys["time"]
+    charge = usys["electrical charge"]
     # base units carry the defining constants
-    assert np.isclose((1 * usys["length"]).to_value("m"), const.a0.value)
-    assert np.isclose((1 * usys["mass"]).to_value("kg"), const.m_e.value)
-    assert np.isclose((1 * usys["electrical charge"]).to_value("C"), const.e.si.value)
+    assert np.isclose((1 * length).to_value("m"), const.a0.value)
+    assert np.isclose((1 * mass).to_value("kg"), const.m_e.value)
+    assert np.isclose((1 * charge).to_value("C"), const.e.si.value)
     # hbar is unity in the (length, mass, time) sub-basis
-    hbar = const.hbar.decompose([usys["length"], usys["mass"], usys["time"]]).value
+    hbar = const.hbar.decompose([length, mass, time]).value
     assert np.isclose(hbar, 1.0)
+    # 4*pi*eps0 is unity: eps0 has dimension charge**2 time**2 / (mass length**3)
+    coulomb = (4 * np.pi * const.eps0) / (charge**2 * time**2 / mass / length**3)
+    assert np.isclose(coulomb.decompose().value, 1.0)
 
 
 @pytest.mark.parametrize(
