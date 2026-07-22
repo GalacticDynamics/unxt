@@ -87,7 +87,8 @@ You can extend `unxts.api`'s dispatch system with your own types:
 
 ```python
 from plum import dispatch
-import unxts.api as uapi
+
+import unxt as u  # concrete provider for the abstract API (unit(), ...)
 
 
 class MyCustomQuantity:
@@ -96,16 +97,17 @@ class MyCustomQuantity:
         self.unit_str = unit_str
 
 
-# Register implementation for your type
+# Register an implementation of the abstract ``unit_of`` for your type. A bare
+# ``@dispatch`` extends the existing dispatch function of the same name.
 @dispatch
 def unit_of(obj: MyCustomQuantity, /):
     """Get unit from MyCustomQuantity."""
-    return uapi.unit(obj.unit_str)
+    return u.unit(obj.unit_str)
 
 
 # Now it works with the dispatch system
 my_q = MyCustomQuantity(5.0, "m")
-uapi.unit_of(my_q)  # Unit("m")
+u.unit_of(my_q)  # Unit("m")
 ```
 
 <!-- ## Design Philosophy

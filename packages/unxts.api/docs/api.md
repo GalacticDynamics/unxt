@@ -75,7 +75,7 @@ Construct units from various inputs.
 
 ```python
 @plum.dispatch.abstract
-def unit(obj: Any, /) -> u.AbstractUnit:
+def unit(obj: Any, /) -> Any:
     """Construct the units from a units object."""
 ```
 
@@ -102,7 +102,7 @@ Return the units of an object.
 
 ```python
 @plum.dispatch.abstract
-def unit_of(obj: Any, /) -> u.AbstractUnit:
+def unit_of(obj: Any, /) -> Any:
     """Return the units of an object."""
 ```
 
