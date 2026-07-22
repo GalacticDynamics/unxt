@@ -7,12 +7,12 @@ The main features are:
 
 """
 
-__all__ = ("unit", "unit_of", "AbstractUnit")
+__all__ = ("unit", "unit_of", "AbstractUnit", "parse_unit")
 
 from .setup_package import install_import_hook
 
 with install_import_hook("unxt.units"):
-    from ._src.units import AbstractUnit
+    from ._src.units import AbstractUnit, parse_unit
     from unxt_api import unit, unit_of
 
 # Clean up the namespace
