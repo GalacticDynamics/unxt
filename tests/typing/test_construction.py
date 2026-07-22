@@ -21,21 +21,19 @@ def test_string_unit_constructors_typecheck_and_run() -> None:
     """A unit string is accepted by the quantity constructors.
 
     The ``assert_type`` calls are checked statically by pyright (the actual
-    guard); the constructor calls also exercise runtime so this doubles as a
-    smoke test.
+    guard); the runtime assertions make it a real behavioural test too -- the
+    string unit must be parsed to the expected unit.
     """
     # The README's first line -- and the bug this guards.
     assert_type(u.Quantity(1, "m"), u.Quantity)
 
-    u.Quantity(1, "m")
-    u.Q(1.0, "m")
-    u.Angle(1, "rad")
+    # Runtime: the string unit is parsed to the right unit on each constructor.
+    assert u.Quantity(1, "m").unit == apyu.Unit("m")
+    assert u.Q(1.0, "m").unit == apyu.Unit("m")
+    assert u.Angle(1, "rad").unit == apyu.Unit("rad")
 
-    # A real unit object is still accepted. (``u.unit("m")`` itself is typed
-    # ``object`` by pyright -- the public ``unit`` dispatch is opaque -- so its
-    # return value is deliberately not exercised here; improving ``unit()``'s
-    # return type is a separate follow-up.)
-    u.Quantity(1, apyu.Unit("m"))
+    # A real unit object is still accepted and round-trips.
+    assert u.Quantity(1, apyu.Unit("m")).unit == apyu.Unit("m")
 
     # The ``unit`` field reads back as a unit, not ``str``.
     assert_type(u.Quantity(1, "m").unit, u.AbstractUnit)
