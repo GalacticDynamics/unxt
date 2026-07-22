@@ -185,9 +185,6 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
     'm' is not a registered unit system (available: ...). If you meant a unit,
     convert it first, e.g. unitsystem(unxt.unit('m')).
 
-    (Only the registered-system list is elided above; the exact full message is
-    pinned in ``test_unitsystem_unknown_name_raises_clear_error``.)
-
     """
     try:
         return NAMED_UNIT_SYSTEMS[name]
