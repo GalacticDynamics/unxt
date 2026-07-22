@@ -320,6 +320,21 @@ def test_geometrized_length_scale_override():
     assert usys["length"] == unit("km")
 
 
+@pytest.mark.parametrize(
+    "flag",
+    [
+        unitsystems.HEPUSysFlag,
+        unitsystems.GeometrizedUSysFlag,
+        unitsystems.PlanckUSysFlag,
+        unitsystems.AtomicUSysFlag,
+    ],
+)
+def test_natural_unitsystem_rejects_extra_positional_args(flag):
+    """Stray positional arguments fail fast rather than being silently ignored."""
+    with pytest.raises(TypeError, match="does not take positional arguments"):
+        unitsystem(flag, "km")
+
+
 def test_natural_unitsystem_pickle(tmpdir: Path) -> None:
     """Natural unit systems round-trip through pickle."""
     for usys in (

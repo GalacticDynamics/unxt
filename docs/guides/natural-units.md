@@ -44,7 +44,7 @@ In general relativity one sets $c = G = 1$, turning masses and times into length
 >>> from unxt.unitsystems import GeometrizedUSysFlag
 >>> r_g = const.G * const.M_sun / const.c**2   # the Sun's gravitational radius
 >>> apu.Unit(r_g)
-Unit("1476.63 m")
+Unit("1476... m")
 
 >>> geo_sun = unitsystem(GeometrizedUSysFlag, length=apu.Unit(r_g))
 >>> bool(np.isclose((1 * geo_sun["mass"]).to_value("kg"),
