@@ -356,6 +356,7 @@ def _reject_extra_args(flag: type[AbstractUSysFlag], args: tuple[Any, ...]) -> N
 @dispatch
 def unitsystem(
     flag: type[HEPUSysFlag],
+    /,
     *args: Any,
     energy: Any = "GeV",
 ) -> AbstractUnitSystem:
@@ -385,6 +386,7 @@ def unitsystem(
 @dispatch
 def unitsystem(
     flag: type[GeometrizedUSysFlag],
+    /,
     *args: Any,
     length: Any = "m",
 ) -> AbstractUnitSystem:
@@ -411,7 +413,7 @@ def unitsystem(
 
 
 @dispatch
-def unitsystem(flag: type[PlanckUSysFlag], *args: Any) -> AbstractUnitSystem:
+def unitsystem(flag: type[PlanckUSysFlag], /, *args: Any) -> AbstractUnitSystem:
     """Make a Planck unit system: ``hbar = c = G = k_B = 1``.
 
     Fully determined -- there are no free scales. The base units are the Planck
@@ -439,7 +441,7 @@ def unitsystem(flag: type[PlanckUSysFlag], *args: Any) -> AbstractUnitSystem:
 
 
 @dispatch
-def unitsystem(flag: type[AtomicUSysFlag], *args: Any) -> AbstractUnitSystem:
+def unitsystem(flag: type[AtomicUSysFlag], /, *args: Any) -> AbstractUnitSystem:
     """Make an atomic (Hartree) unit system: ``m_e = hbar = e = 4*pi*eps0 = 1``.
 
     Fully determined -- there are no free scales. The base units are the Bohr
