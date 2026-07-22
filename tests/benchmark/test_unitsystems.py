@@ -42,6 +42,13 @@ args = [
     (u.unitsystem("galactic"), "candela"),
     (u.unitsystems.StandardUSysFlag, "galactic"),
     (u.unitsystems.DynamicalSimUSysFlag, "m", "kg"),
+    # natural unit systems
+    ("planck",),
+    ("atomic",),
+    (u.unitsystems.HEPUSysFlag,),
+    (u.unitsystems.GeometrizedUSysFlag,),
+    (u.unitsystems.PlanckUSysFlag,),
+    (u.unitsystems.AtomicUSysFlag,),
 ]
 
 

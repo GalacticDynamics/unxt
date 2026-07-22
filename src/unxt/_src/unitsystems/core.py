@@ -10,15 +10,32 @@ from typing import Annotated, Any
 import equinox as eqx
 import jax.tree_util as jtu
 import numpy as np
-from astropy.constants import G as const_G  # noqa: N811, pylint: disable=E0611
-from astropy.units import UnitBase as AstropyUnitBase
+from astropy.constants import (  # pylint: disable=E0611
+    G as const_G,  # noqa: N811
+    Ryd as const_Ryd,
+    a0 as const_a0,
+    c as const_c,
+    e as const_e,
+    h as const_h,
+    hbar as const_hbar,
+    k_B as const_kB,
+    m_e as const_me,
+)
+from astropy.units import Unit as AstropyUnit, UnitBase as AstropyUnitBase
 from plum import dispatch
 
 from . import builtin_dimensions as ud
 from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
 from .builtin import DimensionlessUnitSystem
-from .flags import AbstractUSysFlag, DynamicalSimUSysFlag, StandardUSysFlag
-from .realizations import NAMED_UNIT_SYSTEMS, dimensionless
+from .flags import (
+    AbstractUSysFlag,
+    AtomicUSysFlag,
+    DynamicalSimUSysFlag,
+    GeometrizedUSysFlag,
+    HEPUSysFlag,
+    PlanckUSysFlag,
+    StandardUSysFlag,
+)
 from .utils import parse_dimlike_name
 from unxt.dims import dimension_of
 from unxt.units import unit
@@ -63,7 +80,7 @@ def unitsystem(seq: Sequence[Any], /) -> AbstractUnitSystem:
     unitsystem(kpc, Myr, solMass, rad)
 
     """
-    return unitsystem(*seq) if len(seq) > 0 else dimensionless
+    return unitsystem(*seq) if len(seq) > 0 else DimensionlessUnitSystem()
 
 
 @dispatch
@@ -77,7 +94,7 @@ def unitsystem(_: None, /) -> DimensionlessUnitSystem:
     DimensionlessUnitSystem()
 
     """
-    return dimensionless
+    return DimensionlessUnitSystem()
 
 
 @dispatch
@@ -161,7 +178,14 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
     >>> unitsystem("dimensionless")
     DimensionlessUnitSystem()
 
-    """
+    >>> unitsystem("planck")
+    LengthMassTimeTemperatureUnitSystem(length=Unit("...e-35 m"), mass=Unit("...e-08 kg"), time=Unit("...e-44 s"), temperature=Unit("...e+32 K"))
+
+    """  # noqa: E501
+    # Imported lazily to avoid a circular import: `realizations` is built on top
+    # of the `unitsystem` factory defined in this module.
+    from .realizations import NAMED_UNIT_SYSTEMS  # noqa: PLC0415
+
     return NAMED_UNIT_SYSTEMS[name]
 
 
@@ -267,6 +291,142 @@ def unitsystem(
 
 
 # ----
+# Natural unit systems.
+#
+# Each of these generalizes the `DynamicalSimUSysFlag` construction: a set of
+# fundamental constants is fixed to the dimensionless value 1 by choosing the
+# base units accordingly, then the resulting units are handed to the standard
+# `unitsystem(*units)` constructor. Constants come from `astropy.constants`;
+# `.decompose()` reduces each computed quantity to (scaled) SI base units so the
+# unit systems have clean, predictable reprs.
+
+
+def _scaled_unit(q: Any) -> AstropyUnitBase:
+    """Convert an astropy `Quantity` into the equivalent scaled unit.
+
+    The natural-unit constructors below run at import time (when building the
+    named realizations), which is *before* the `unit` dispatch has learned about
+    astropy `Quantity`. Folding the value into the unit keeps everything in
+    unit-space so only `unit(<Unit>)` is ever needed.
+    """
+    return AstropyUnit(q)
+
+
+@dispatch
+def unitsystem(
+    flag: type[HEPUSysFlag],
+    *_: Any,
+    energy: Any = "GeV",
+) -> AbstractUnitSystem:
+    """Make a high-energy-physics unit system: ``hbar = c = 1``.
+
+    One free scale remains, an ``energy`` (default 1 GeV).
+
+    Examples
+    --------
+    >>> from unxt.unitsystems import unitsystem, HEPUSysFlag
+
+    >>> unitsystem(HEPUSysFlag)
+    LengthMassTimeUnitSystem(length=Unit("...e-16 m"), mass=Unit("...e-27 kg"), time=Unit("...e-25 s"))
+
+    >>> unitsystem(HEPUSysFlag, energy="TeV")["time"]
+    Unit("...e-28 s")
+
+    """  # noqa: E501
+    e_scale = 1.0 * unit(energy)
+    mass = (e_scale / const_c**2).decompose()
+    length = (const_hbar * const_c / e_scale).decompose()
+    time = (const_hbar / e_scale).decompose()
+    return unitsystem(_scaled_unit(length), _scaled_unit(mass), _scaled_unit(time))
+
+
+@dispatch
+def unitsystem(
+    flag: type[GeometrizedUSysFlag],
+    *_: Any,
+    length: Any = "m",
+) -> AbstractUnitSystem:
+    """Make a geometrized (general-relativity) unit system: ``c = G = 1``.
+
+    One free scale remains, a ``length`` (default 1 meter).
+
+    Examples
+    --------
+    >>> from unxt.unitsystems import unitsystem, GeometrizedUSysFlag
+
+    >>> unitsystem(GeometrizedUSysFlag)
+    LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("...e+27 kg"), time=Unit("...e-09 s"))
+
+    >>> unitsystem(GeometrizedUSysFlag, length="km")["length"]
+    Unit("km")
+
+    """  # noqa: E501
+    length_scale = 1.0 * unit(length)
+    time = (length_scale / const_c).decompose()
+    mass = (const_c**2 * length_scale / const_G).decompose()
+    return unitsystem(
+        _scaled_unit(length_scale), _scaled_unit(mass), _scaled_unit(time)
+    )
+
+
+@dispatch
+def unitsystem(flag: type[PlanckUSysFlag], *_: Any) -> AbstractUnitSystem:
+    """Make a Planck unit system: ``hbar = c = G = k_B = 1``.
+
+    Fully determined -- there are no free scales. The base units are the Planck
+    length, mass, time, and temperature.
+
+    Examples
+    --------
+    >>> from unxt.unitsystems import unitsystem, PlanckUSysFlag
+
+    >>> unitsystem(PlanckUSysFlag)
+    LengthMassTimeTemperatureUnitSystem(length=Unit("...e-35 m"), mass=Unit("...e-08 kg"), time=Unit("...e-44 s"), temperature=Unit("...e+32 K"))
+
+    """  # noqa: E501
+    length = np.sqrt(const_hbar * const_G / const_c**3).decompose()
+    mass = np.sqrt(const_hbar * const_c / const_G).decompose()
+    time = np.sqrt(const_hbar * const_G / const_c**5).decompose()
+    temperature = (np.sqrt(const_hbar * const_c**5 / const_G) / const_kB).decompose()
+    return unitsystem(
+        _scaled_unit(length),
+        _scaled_unit(mass),
+        _scaled_unit(time),
+        _scaled_unit(temperature),
+    )
+
+
+@dispatch
+def unitsystem(flag: type[AtomicUSysFlag], *_: Any) -> AbstractUnitSystem:
+    """Make an atomic (Hartree) unit system: ``m_e = hbar = e = 4*pi*eps0 = 1``.
+
+    Fully determined -- there are no free scales. The base units are the Bohr
+    radius (length), electron mass, the atomic unit of time (``hbar / E_h`` with
+    ``E_h`` the Hartree energy), and the elementary charge.
+
+    Examples
+    --------
+    >>> from unxt.unitsystems import unitsystem, AtomicUSysFlag
+
+    >>> unitsystem(AtomicUSysFlag)
+    LengthMassTimeElectricalChargeUnitSystem(length=Unit("...e-11 m"), mass=Unit("...e-31 kg"), time=Unit("...e-17 s"), electrical_charge=Unit("...e-19 A s"))
+
+    """  # noqa: E501
+    # Hartree energy E_h = 2 * Rydberg energy (NOT one Rydberg).
+    e_hartree = 2 * const_Ryd * const_h * const_c
+    length = const_a0.decompose()
+    mass = const_me.decompose()
+    time = (const_hbar / e_hartree).decompose()
+    charge = const_e.si.decompose()
+    return unitsystem(
+        _scaled_unit(length),
+        _scaled_unit(mass),
+        _scaled_unit(time),
+        _scaled_unit(charge),
+    )
+
+
+# ----
 
 
 def _call_unitsystem(*args: Any) -> AbstractUnitSystem:
@@ -289,7 +449,7 @@ def unitsystem_of(obj: Any, /) -> DimensionlessUnitSystem:
     DimensionlessUnitSystem()
 
     """
-    return dimensionless
+    return DimensionlessUnitSystem()
 
 
 @dispatch
