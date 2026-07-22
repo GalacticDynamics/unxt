@@ -182,9 +182,10 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
     ...     unitsystem("m")
     ... except ValueError as e:
     ...     print(e)
-    'm' is not a registered unit system (available: ...).
+    'm' is not a registered unit system (available: ...). If you meant a unit,
+    convert it first, e.g. unitsystem(unxt.unit('m')).
 
-    (The exact message -- the full system list and the unit-path hint -- is
+    (Only the registered-system list is elided above; the exact full message is
     pinned in ``test_unitsystem_unknown_name_raises_clear_error``.)
 
     """
