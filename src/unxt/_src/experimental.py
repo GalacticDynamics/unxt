@@ -197,9 +197,9 @@ def jacfwd[*Args, R: AbstractQuantity](
 ) -> Callable[[*Args], R]:
     """Jacobian of ``fun`` evaluated column-by-column using forward-mode AD.
 
-    In general, if you can use `quax.quaxify(jax.jacfwd(func))` (or the
-    syntactic sugar `quax.jacfwd(func)`), that's the better option! The
-    difference from those functions is how units are handled. `quaxify`
+    In general, if you can use ``quax.quaxify(jax.jacfwd(func))`` (or the
+    syntactic sugar ``quax.jacfwd(func)``), that's the better option! The
+    difference from those functions is how units are handled. ``quaxify``
     will directly propagate the units through the automatic differentiation
     functions. But sometimes that doesn't work and we need to strip the units
     and re-apply them. This function does that, using the ``units`` kwarg.
@@ -266,9 +266,9 @@ def hessian[*Args, R: AbstractQuantity](
 ) -> Callable[[*Args], R]:
     """Hessian.
 
-    In general, if you can use `quax.quaxify(jax.hessian(func))` (or the
-    syntactic sugar `quax.hessian(func)`), that's the better option! The
-    difference from those functions is how units are handled. `quaxify`
+    In general, if you can use ``quax.quaxify(jax.hessian(func))`` (or the
+    syntactic sugar ``quax.hessian(func)``), that's the better option! The
+    difference from those functions is how units are handled. ``quaxify``
     will directly propagate the units through the automatic differentiation
     functions. But sometimes that doesn't work and we need to strip the units
     and re-apply them. This function does that, using the ``units`` kwarg.
