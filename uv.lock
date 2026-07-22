@@ -3006,7 +3006,7 @@ wheels = [
 
 [[package]]
 name = "quax"
-version = "0.3.6"
+version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "equinox" },
@@ -3015,9 +3015,9 @@ dependencies = [
     { name = "packaging" },
     { name = "plum-dispatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bb/09/7d59f59e558f2fb573abef5a15d107f845d59f2b42cf9c40d7d92f7b13cf/quax-0.3.6.tar.gz", hash = "sha256:f879f9c9945393281cf219b76d4e531ef3b50e88b864041ab159c95305eef451", size = 175831, upload-time = "2026-06-29T20:22:28.982Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0c/06/445590bc5ec4f1ac493ac40456490a36136d43ed8d490a292144dbd938ad/quax-0.4.0.tar.gz", hash = "sha256:d1d8588a3b14b44954d23c957c90ac6ba5e6dc12b15f0b14b1f562ab983a7af2", size = 202233, upload-time = "2026-07-22T18:02:24.176Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1d/8d/c3fd4c78ba0a128b79053a279bc5de4db6b81bcf8476726d45c64ff46b8b/quax-0.3.6-py3-none-any.whl", hash = "sha256:dbe08ddca8d6df4383feffa5943f7bceaa4d273fd588901d2a5819e36ffce815", size = 40887, upload-time = "2026-06-29T20:22:27.473Z" },
+    { url = "https://files.pythonhosted.org/packages/09/e9/391ffa7a3c58998f47aa21414d74d817d611e4ee54300d2f70977402ccac/quax-0.4.0-py3-none-any.whl", hash = "sha256:1fa3d9ae506f2404bb1de09ecbcbf12205ec8cfd918dfcb1f65f3a8ce1a396e8", size = 58510, upload-time = "2026-07-22T18:02:22.807Z" },
 ]
 
 [[package]]
@@ -3956,7 +3956,7 @@ requires-dist = [
     { name = "packaging", specifier = ">=20.0" },
     { name = "plum-dispatch", specifier = ">=2.7.0" },
     { name = "plum-dispatch", marker = "python_full_version >= '3.14'", specifier = ">=2.9.0" },
-    { name = "quax", specifier = ">=0.3.6" },
+    { name = "quax", specifier = ">=0.4.0" },
     { name = "quax-blocks", specifier = ">=0.4.1" },
     { name = "quaxed", specifier = ">=0.10.5" },
     { name = "traitlets", specifier = ">=5.0.0" },
@@ -4012,7 +4012,7 @@ dev = [
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
     { name = "pytest-mpl", specifier = ">=0.17.0" },
     { name = "pytz", specifier = ">=2024.2" },
-    { name = "quax", specifier = ">=0.3.1" },
+    { name = "quax", specifier = ">=0.4.0" },
     { name = "sphinx", specifier = ">=7.0" },
     { name = "sphinx-autobuild", specifier = ">=2024.9.3" },
     { name = "sphinx-autodoc-typehints", specifier = ">=3.0.0" },
@@ -4044,7 +4044,7 @@ docs = [
     { name = "myst-nb", specifier = ">=1.1.2" },
     { name = "myst-parser", specifier = ">=0.13" },
     { name = "pytz", specifier = ">=2024.2" },
-    { name = "quax", specifier = ">=0.3.1" },
+    { name = "quax", specifier = ">=0.4.0" },
     { name = "sphinx", specifier = ">=7.0" },
     { name = "sphinx-autobuild", specifier = ">=2024.9.3" },
     { name = "sphinx-autodoc-typehints", specifier = ">=3.0.0" },
