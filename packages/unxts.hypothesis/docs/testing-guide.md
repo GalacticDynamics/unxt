@@ -872,6 +872,6 @@ For more on debugging strategies, see the Hypothesis documentation on [Reproduci
 
 ## See Also
 
-- [Full API Reference](./api.md)
+- [Full API Reference](api)
 - [Hypothesis Documentation](https://hypothesis.readthedocs.io/)
 - [Property-Based Testing Introduction](https://hypothesis.works/articles/what-is-property-based-testing/)

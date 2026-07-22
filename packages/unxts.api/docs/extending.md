@@ -562,6 +562,6 @@ Users can use your package with or without unxt!
 
 ## See Also
 
-- [unxts.api API Reference](index.md)
+- [unxts.api API Reference](api)
 - [plum Documentation](https://beartype.github.io/plum/)
 - [unxt Documentation](https://unxt.readthedocs.io/)
