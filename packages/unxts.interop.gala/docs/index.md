@@ -3,11 +3,18 @@
 ```{toctree}
 :maxdepth: 1
 :hidden:
+
+guide
+api
 ```
 
-The [`gala`][gala-link] package provides tools for Galactic dynamics. It is built on top of the [`astropy`][astropy-link] package and adds an additional units tool, the [`gala.units.UnitSystem`][gala-UnitSystem] class that can be used to convert between different unit systems.
+The [`gala`][gala-link] package provides tools for Galactic dynamics. It is built on top of [`astropy`][astropy-link] and adds a units tool, the [`gala.units.UnitSystem`][gala-UnitSystem] class, for working with different unit systems.
 
-`unxts.interop.gala` is the canonical location for `gala` integration, providing conversions between `gala.units.UnitSystem` and [`unxt.unitsystems.AbstractUnitSystem`][unxt-AbstractUnitSystem] objects. This conversion is automatically enabled if `unxts.interop.gala` is installed. It is compatible with most versions of `gala`, but to ensure that compatible versions of `gala` and `unxt` are installed, the following installation [extra](https://peps.python.org/pep-0508/#extras) is provided:
+`unxts.interop.gala` is the canonical location for `gala` integration. It provides conversions between `gala.units.UnitSystem` and [`unxt.unitsystems.AbstractUnitSystem`][unxt-AbstractUnitSystem] objects. Importing the package — directly, or transitively via `unxt`, which imports it when installed — registers the conversions as a side effect.
+
+## Installation
+
+The recommended install pins compatible `gala` and `unxt` versions via the `interop-gala` [extra](https://peps.python.org/pep-0508/#extras):
 
 ::::{tab-set}
 
@@ -25,47 +32,48 @@ uv add "unxt[interop-gala]"
 pip install "unxt[interop-gala]"
 ```
 
+:::
+
 ::::
 
-The following example demonstrates how to convert a `gala` unit system to a `unxt` unit system:
+Or install the package directly:
+
+::::{tab-set}
+
+:::{tab-item} uv
+
+```bash
+uv add unxts.interop.gala
+```
+
+:::
+
+:::{tab-item} pip
+
+```bash
+pip install unxts.interop.gala
+```
+
+:::
+
+::::
+
+## Quick example
 
 ```{code-block} python
 
 >>> import unxt
 >>> import gala.units as gu
 
->>> gu.galactic  # gala unit system
+>>> gu.galactic  # a gala unit system
 <UnitSystem (kpc, Myr, solMass, rad)>
 
->>> unxt.unitsystem(gu.galactic)  # unxt unit system
+>>> unxt.unitsystem(gu.galactic)  # as a unxt unit system
 unitsystem(kpc, Myr, solMass, rad)
 
 ```
 
-Alternatively, the multiple-dispatch library on which `unxt` is built enables 2-way conversion.
-
-```{code-block} python
->>> from plum import convert
-
->>> usys = convert(gu.galactic, unxt.AbstractUnitSystem)
->>> usys
-unitsystem(kpc, Myr, solMass, rad)
-
->>> convert(usys, gu.UnitSystem)
-<UnitSystem (kpc, Myr, solMass, rad)>
-
-```
-
-## Public API
-
-`unxts.interop.gala` exposes two conversion functions:
-
-- `convert_gala_unitsystem_to_unxt_unitsystem`
-- `convert_unxt_unitsystem_to_gala_unitsystem`
-
-These are `plum.conversion_method`s, registered with `plum`'s dispatch table as a side effect of importing `unxts.interop.gala`. Prefer `plum.convert(usys, ...)` (as shown above) over calling either function directly.
-
-Install: `pip install unxts.interop.gala`
+See the [guide](guide) for two-way conversion, and the [API reference](api) for the exposed functions.
 
 [gala-link]: https://gala.adrian.pw/en/stable/
 [astropy-link]: https://www.astropy.org/
