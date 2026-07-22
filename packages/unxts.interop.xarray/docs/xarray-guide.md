@@ -157,9 +157,13 @@ print(quantified.coords["time"].data)
 
 **Important**: Use non-dimension coordinates (coordinates not marked with `*` in `xarray` output) to preserve Quantity objects. Dimension coordinates are automatically converted to plain arrays by `xarray`.
 
-:::{warning} **Dimension coordinates cannot hold Quantities.** xarray automatically coerces dimension coordinates (those named after their dimension, shown with `*` in the repr) to plain NumPy arrays via `pandas.Index`. This silently drops the Quantity wrapper and its unit — there is no error or warning.
+:::{warning}
 
-The workaround is to use _non-dimension_ coordinates: give the coordinate a name different from its dimension (e.g., `"time"` attached to dimension `"i"`). See [Limitations: Dimension Coordinates Cannot Hold Quantities](#dimension-coordinates-cannot-hold-quantities) for the full explanation and workaround. :::
+**Dimension coordinates cannot hold Quantities.** xarray automatically coerces dimension coordinates (those named after their dimension, shown with `*` in the repr) to plain NumPy arrays via `pandas.Index`. This silently drops the Quantity wrapper and its unit — there is no error or warning.
+
+The workaround is to use _non-dimension_ coordinates: give the coordinate a name different from its dimension (e.g., `"time"` attached to dimension `"i"`). See [Limitations: Dimension Coordinates Cannot Hold Quantities](#dimension-coordinates-cannot-hold-quantities) for the full explanation and workaround.
+
+:::
 
 ## Working with Datasets
 
@@ -281,16 +285,16 @@ import unxts.interop.xarray
 
 
 @jax.jit
-def process_data(da):
-    """JIT-compiled function operating on DataArray."""
-    return da * 2.0
+def process_data(data):
+    """JIT-compiled function operating on the underlying Quantity."""
+    return data * 2.0
 
 
 # Create quantified DataArray
 q = u.Quantity([1.0, 2.0, 3.0], "m")
 da = xr.DataArray(q, dims=["x"])
 
-# JIT works with the underlying data
+# JIT works with the underlying data (a Quantity)
 result = process_data(da.data)
 print(result)
 # Quantity(Array([2., 4., 6.], dtype=float32), unit='m')

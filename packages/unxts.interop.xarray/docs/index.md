@@ -84,14 +84,15 @@ q = da.unxt.quantify()
 da = xr.DataArray([1.0, 2.0, 3.0], dims=["x"])
 q = da.unxt.quantify("km")
 
-# With coordinate units
+# With coordinate units. Use a *non-dimension* coordinate ("time" on dim "i"):
+# a dimension coordinate is coerced to a plain array by xarray, dropping its unit.
 da = xr.DataArray(
     [1.0, 2.0],
-    dims=["x"],
-    coords={"x": [0.0, 1.0]},
+    dims=["i"],
+    coords={"time": ("i", [0.0, 1.0])},
     attrs={"units": "m"},
 )
-q = da.unxt.quantify(x="s")  # Specify coord units
+q = da.unxt.quantify(time="s")  # Specify units for the "time" coord
 ```
 
 #### `dequantify()`
