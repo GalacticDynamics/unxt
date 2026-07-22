@@ -28,7 +28,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSIONS: '["3.11", "3.12", "3.13", "3.14"]'
+  PYTHON_VERSIONS: '["3.12", "3.13", "3.14"]'
   # Many color libraries just need this to be set to any value, but at least
   # one distinguishes color depth, where "3" -> "256-bit color".
   FORCE_COLOR: 3
@@ -541,7 +541,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Wrap the scalar `oldest-python` (e.g. "3.11") in a single-element list:
+        # Wrap the scalar `oldest-python` (e.g. "3.12") in a single-element list:
         # a matrix axis must be a sequence, otherwise it never expands and the
         # job silently never runs (making the required `CI Pass` gate fail).
         # Quotes keep it a string so e.g. "3.10" isn't parsed as the float 3.1.

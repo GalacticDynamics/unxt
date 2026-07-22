@@ -2,7 +2,7 @@
 
 __all__ = ("quantities", "wrap_to", "angles")
 
-from typing import Any, TypeAlias, TypeVar
+from typing import Any, TypeAlias
 
 import jax.numpy as jnp
 import numpy as np
@@ -12,13 +12,11 @@ from hypothesis.extra.array_api import make_strategies_namespace
 import unxt as u
 from .units import units
 
-T = TypeVar("T")
-
 # Create array API strategies namespace for JAX
 xps = make_strategies_namespace(jnp)
 
 
-def draw_if_strategy(draw: st.DrawFn, v: T | st.SearchStrategy[T], /) -> T:
+def draw_if_strategy[T](draw: st.DrawFn, v: T | st.SearchStrategy[T], /) -> T:
     """Draw a value if a strategy is given, else return the value."""
     return draw(v) if isinstance(v, st.SearchStrategy) else v
 

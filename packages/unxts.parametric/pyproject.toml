@@ -10,7 +10,6 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
@@ -29,7 +28,7 @@ dynamic = ["version"]
 license = "BSD-3-Clause"
 name = "unxts.parametric"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"

@@ -4,8 +4,7 @@ __all__ = ("StaticValue", "convert_to_quantity_value")
 
 import operator
 import warnings
-from typing import Any, final
-from typing_extensions import override
+from typing import Any, final, override
 
 import jax
 import numpy as np

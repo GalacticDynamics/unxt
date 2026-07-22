@@ -1013,7 +1013,7 @@ build-backend = "hatchling.build"
 name = "my-physics-project"
 version = "0.1.0"
 description = "A physics analysis package using unxt"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "unxt",
     "jax",

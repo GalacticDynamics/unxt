@@ -3,8 +3,7 @@
 __all__ = ("DimensionlessUnitSystem", "LTMAUnitSystem")
 
 from dataclasses import dataclass
-from typing import Annotated, TypeAlias, final
-from typing_extensions import override
+from typing import Annotated, TypeAlias, final, override
 
 import jax.tree_util as jtu
 from astropy.units import UnitBase as AstropyUnitBase, dimensionless_unscaled

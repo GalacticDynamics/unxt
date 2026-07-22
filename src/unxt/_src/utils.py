@@ -5,7 +5,7 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 
 __all__: tuple[str, ...] = ()
 
-from typing import Protocol, TypeVar, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from jax import dtypes
 from jax.numpy import dtype as DType  # noqa: N812
@@ -22,10 +22,7 @@ class HasDType(Protocol):
         """The dtype of the object."""
 
 
-HasDTypeT = TypeVar("HasDTypeT", bound=HasDType)
-
-
-def promote_dtypes(*arrays: HasDTypeT) -> tuple[HasDTypeT, ...]:
+def promote_dtypes[HasDTypeT: HasDType](*arrays: HasDTypeT) -> tuple[HasDTypeT, ...]:
     """Promotes all input arrays to a common dtype.
 
     Examples
@@ -49,10 +46,10 @@ def promote_dtypes(*arrays: HasDTypeT) -> tuple[HasDTypeT, ...]:
     """
     common_dtype = dtypes.result_type(*arrays)
     # TODO: check if this copies.
-    return tuple([qlax.convert_element_type(arr, common_dtype) for arr in arrays])  # type: ignore[arg-type,misc]  # pylint: disable=R1728
+    return tuple(qlax.convert_element_type(arr, common_dtype) for arr in arrays)  # type: ignore[arg-type,misc]
 
 
-def promote_dtypes_if_needed(
+def promote_dtypes_if_needed[HasDTypeT: HasDType](
     original_dtypes: tuple[DType, ...], /, *args: HasDTypeT
 ) -> tuple[HasDTypeT, ...]:
     """Promotes dtypes of args if they differ from original_dtypes.

@@ -6,7 +6,7 @@ __all__: tuple[str, ...] = ()
 from collections.abc import Sequence
 from dataclasses import replace
 from math import prod
-from typing import Any, Literal, TypeAlias, TypeVar, overload
+from typing import Any, Literal, TypeAlias, overload
 
 import equinox as eqx
 import jax.tree as jt
@@ -33,8 +33,6 @@ from .static_quantity import StaticQuantity
 from .value import StaticValue
 from unxt._src.utils import promote_dtypes, promote_dtypes_if_needed
 from unxt_api import is_unit_convertible, uconvert, unit, unit_of, ustrip
-
-T = TypeVar("T")
 
 Axes: TypeAlias = tuple[int, ...]
 

@@ -25,8 +25,7 @@ __all__ = ("grad", "hessian", "jacfwd", "where")
 import functools as ft
 from collections.abc import Callable
 from dataclasses import replace
-from typing import Any, TypeVar, TypeVarTuple
-from typing_extensions import Unpack
+from typing import Any
 
 import equinox as eqx
 import jax
@@ -37,15 +36,12 @@ from .quantity import AbstractQuantity, Quantity
 from .units import AbstractUnit
 from unxt_api import unit, unit_of, ustrip
 
-Args = TypeVarTuple("Args")
-R = TypeVar("R", bound=AbstractQuantity)
-
 
 def unit_or_none(obj: Any) -> AbstractUnit | None:
     return obj if obj is None else unit(obj)
 
 
-def where(condition: ArrayLike, x: R, y: AbstractQuantity, /) -> R:
+def where[R: AbstractQuantity](condition: ArrayLike, x: R, y: AbstractQuantity, /) -> R:
     """Unit-checked ``where``: both branches must be quantities (experimental).
 
     A strict alternative to :func:`jax.numpy.where`. Both ``x`` and ``y`` must be
@@ -106,20 +102,20 @@ def where(condition: ArrayLike, x: R, y: AbstractQuantity, /) -> R:
     return replace(x, value=jax.numpy.where(condition, xv, yv))
 
 
-def grad(
-    fun: Callable[[Unpack[Args]], R],
+def grad[*Args, R: AbstractQuantity](
+    fun: Callable[[*Args], R],
     argnums: int = 0,
     *,
     units: tuple[AbstractUnit | str | None, ...],
-) -> Callable[[Unpack[Args]], R]:
+) -> Callable[[*Args], R]:
     """Gradient of a function with units.
 
     In general, if you can use ``quax.quaxify(jax.grad(func))`` (or the
     syntactic sugar ``quaxed.grad(func)``), that's the better option! The
-    difference from those functions is how this units are supported. ``quaxify``
+    difference from those functions is how units are handled. ``quaxify``
     will directly propagate the units through the automatic differentiation
     functions. But sometimes that doesn't work and we need to strip the units
-    and re-apply them. This function does that, using the "units" kwarg.
+    and re-apply them. This function does that, using the ``units`` kwarg.
 
     See Also
     --------
@@ -193,17 +189,17 @@ def grad(
     return gradfun
 
 
-def jacfwd(
-    fun: Callable[[Unpack[Args]], R],
+def jacfwd[*Args, R: AbstractQuantity](
+    fun: Callable[[*Args], R],
     argnums: int = 0,
     *,
     units: tuple[AbstractUnit | str | None, ...],
-) -> Callable[[Unpack[Args]], R]:
+) -> Callable[[*Args], R]:
     """Jacobian of ``fun`` evaluated column-by-column using forward-mode AD.
 
-    In general, if you can use `quax.quaxify(jax.jacfwd(func))` (or the
-    syntactic sugar `quax.jacfwd(func)`), that's the better option! The
-    difference from those functions is how this units are supported. `quaxify`
+    In general, if you can use ``quax.quaxify(jax.jacfwd(func))`` (or the
+    syntactic sugar ``quax.jacfwd(func)``), that's the better option! The
+    difference from those functions is how units are handled. ``quaxify``
     will directly propagate the units through the automatic differentiation
     functions. But sometimes that doesn't work and we need to strip the units
     and re-apply them. This function does that, using the ``units`` kwarg.
@@ -262,17 +258,17 @@ def jacfwd(
     return jacfun
 
 
-def hessian(
-    fun: Callable[[Unpack[Args]], R],
+def hessian[*Args, R: AbstractQuantity](
+    fun: Callable[[*Args], R],
     argnums: int = 0,
     *,
     units: tuple[AbstractUnit | str | None, ...],
-) -> Callable[[Unpack[Args]], R]:
+) -> Callable[[*Args], R]:
     """Hessian.
 
-    In general, if you can use `quax.quaxify(jax.hessian(func))` (or the
-    syntactic sugar `quax.hessian(func)`), that's the better option! The
-    difference from those functions is how this units are supported. `quaxify`
+    In general, if you can use ``quax.quaxify(jax.hessian(func))`` (or the
+    syntactic sugar ``quax.hessian(func)``), that's the better option! The
+    difference from those functions is how units are handled. ``quaxify``
     will directly propagate the units through the automatic differentiation
     functions. But sometimes that doesn't work and we need to strip the units
     and re-apply them. This function does that, using the ``units`` kwarg.
