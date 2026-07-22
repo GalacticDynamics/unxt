@@ -1,6 +1,6 @@
 """Built-in unit systems."""
 
-__all__ = ("DimensionlessUnitSystem", "LTMAUnitSystem")
+__all__ = ("DimensionlessUnitSystem", "LTMAUnitSystem", "dimensionless")
 
 from dataclasses import dataclass
 from typing import Annotated, TypeAlias, final, override
@@ -42,6 +42,13 @@ class DimensionlessUnitSystem(AbstractUnitSystem):
     @override
     def __str__(self) -> str:
         return self.__repr__()
+
+
+#: The dimensionless unit system. This realization takes no configuration, so a
+#: single shared instance is defined here alongside its class; the rest of the
+#: realizations live in ``realizations.py``. Defining it here lets ``core.py``
+#: reference it without importing ``realizations`` (which imports ``core``).
+dimensionless = DimensionlessUnitSystem()
 
 
 @jtu.register_static

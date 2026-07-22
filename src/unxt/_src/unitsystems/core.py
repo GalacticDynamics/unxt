@@ -26,7 +26,7 @@ from plum import dispatch
 
 from . import builtin_dimensions as ud
 from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
-from .builtin import DimensionlessUnitSystem
+from .builtin import DimensionlessUnitSystem, dimensionless
 from .flags import (
     AbstractUSysFlag,
     AtomicUSysFlag,
@@ -39,23 +39,6 @@ from .flags import (
 from .utils import parse_dimlike_name
 from unxt.dims import dimension_of
 from unxt.units import unit
-
-
-def _dimensionless() -> DimensionlessUnitSystem:
-    """Return the canonical ``dimensionless`` realization.
-
-    Imported lazily to avoid a circular import: `realizations` is built on top of
-    the `unitsystem` factory defined here. Returning the shared singleton (rather
-    than a fresh ``DimensionlessUnitSystem()``) keeps ``unitsystem() is
-    dimensionless`` and the ``unitsystem()``/``unitsystem(None)``/``unitsystem([])``
-    identities intact.
-    """
-    from .realizations import (  # noqa: PLC0415  # pylint: disable=import-outside-toplevel
-        dimensionless,
-    )
-
-    return dimensionless
-
 
 # ===================================================================
 # `unitsystem` function
@@ -97,7 +80,7 @@ def unitsystem(seq: Sequence[Any], /) -> AbstractUnitSystem:
     unitsystem(kpc, Myr, solMass, rad)
 
     """
-    return unitsystem(*seq) if len(seq) > 0 else _dimensionless()
+    return unitsystem(*seq) if len(seq) > 0 else dimensionless
 
 
 @dispatch
@@ -111,7 +94,7 @@ def unitsystem(_: None, /) -> DimensionlessUnitSystem:
     DimensionlessUnitSystem()
 
     """
-    return _dimensionless()
+    return dimensionless
 
 
 @dispatch
@@ -137,7 +120,7 @@ def unitsystem(*args: Any) -> AbstractUnitSystem:
     # every derived-dimension lookup with a silent SI default. Mirror the empty
     # ``Sequence`` dispatch, which already returns the dimensionless singleton.
     if not args:
-        return _dimensionless()
+        return dimensionless
 
     # Convert everything to a unit
     args = tuple(map(unit, args))
@@ -501,7 +484,7 @@ def unitsystem_of(obj: Any, /) -> DimensionlessUnitSystem:
     DimensionlessUnitSystem()
 
     """
-    return _dimensionless()
+    return dimensionless
 
 
 @dispatch

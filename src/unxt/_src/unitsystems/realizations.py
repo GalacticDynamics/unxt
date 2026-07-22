@@ -20,9 +20,9 @@ __all__ = (
 from .base import AbstractUnitSystem
 from .builtin import (
     CGSUnitSystem,
-    DimensionlessUnitSystem,
     LTMAUnitSystem,
     SIUnitSystem,
+    dimensionless,
 )
 from .core import unitsystem
 from .flags import (
@@ -33,8 +33,8 @@ from .flags import (
 )
 from unxt.units import unit
 
-# Dimensionless. This is a singleton.
-dimensionless = DimensionlessUnitSystem()
+# ``dimensionless`` is re-exported from ``builtin`` (it is defined alongside its
+# class so ``core`` can use it without a circular import).
 
 # Galactic unit system
 galactic = LTMAUnitSystem(
