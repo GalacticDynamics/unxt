@@ -14,8 +14,8 @@ from astropy.constants import G as const_G  # noqa: N811
 import unxt as u
 from unxt import dimension, unit, unitsystems
 from unxt._src.unitsystems.base import _UNITSYSTEMS_REGISTRY
-from unxt._src.unitsystems.realizations import NAMED_UNIT_SYSTEMS
 from unxt.unitsystems import (
+    NAMED_UNIT_SYSTEMS,
     AbstractUnitSystem,
     AbstractUSysFlag,
     DimensionlessUnitSystem,
