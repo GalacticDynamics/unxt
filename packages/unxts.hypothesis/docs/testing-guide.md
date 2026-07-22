@@ -109,7 +109,7 @@ def test_kinetic_energy_units(mass, velocity):
     """Kinetic energy has correct units."""
     ke = 0.5 * mass * velocity**2
     # Energy has dimension of mass * length^2 / time^2
-    assert u.dimension_of(ke) == "energy"
+    assert u.dimension_of(ke) == u.dimension("energy")
 ```
 
 ### Testing Unit Conversions
@@ -143,7 +143,7 @@ def test_sum_reduces_dimension(q):
 
 @given(q=ust.quantities(shape=(5, 5)))
 def test_transpose_shape(q):
-    """Transposing a matrix quantity swaps dimensions."""
+    """Transposing a square matrix quantity preserves its shape and unit."""
     qt = jnp.transpose(q)
     assert qt.shape == (5, 5)
     assert qt.unit == q.unit
@@ -279,13 +279,13 @@ def test_phase_space_vectors(pos, vel):
 def test_all_lengths_convertible(length_unit, q):
     """All length Quantity can convert to any length unit."""
     converted = q.uconvert(length_unit)
-    assert u.dimension_of(converted) == "length"
+    assert u.dimension_of(converted) == u.dimension("length")
 
 
 @given(velocity_unit=ust.units("velocity", max_complexity=1))
 def test_simple_velocity_units(velocity_unit):
     """Simple velocity units have expected dimension."""
-    assert u.dimension_of(velocity_unit) == "velocity"
+    assert u.dimension_of(velocity_unit) == u.dimension("velocity")
     # Can decompose into length/time
     decomposed = u.unit(velocity_unit).decompose()
     assert "m" in str(decomposed) or "km" in str(decomposed)
@@ -366,11 +366,11 @@ Distances are always non-negative:
 )
 def test_galactic_positions(q):
     """Test 3D positions with reasonable galactic distances."""
-    assert jnp.all(q.value >= 0)
-    assert jnp.all(q.value <= 100)
+    assert bool(jnp.all(q.value >= 0))
+    assert bool(jnp.all(q.value <= 100))
     # Use position vector for some calculation
     distance = jnp.linalg.norm(q.value)
-    assert distance >= 0
+    assert bool(distance >= 0)
 ```
 
 #### Longitude Angles (0 to 360°)
@@ -387,10 +387,10 @@ Longitude angles are typically constrained to [0, 360] degrees:
 )
 def test_longitude_wrapping(lon):
     """Test longitude angle operations."""
-    assert 0 <= lon.value <= 360
+    assert bool(jnp.all(lon.value >= 0)) and bool(jnp.all(lon.value <= 360))
     # Test that wrapping works correctly
     wrapped = lon.value % 360
-    assert 0 <= wrapped < 360
+    assert bool(jnp.all(wrapped >= 0)) and bool(jnp.all(wrapped < 360))
 ```
 
 #### Latitude Angles (-90 to 90°)
@@ -407,10 +407,10 @@ Latitude angles are constrained to [-90, 90] degrees:
 )
 def test_latitude_constraints(lat):
     """Test latitude angle array."""
-    assert jnp.all(lat.value >= -90)
-    assert jnp.all(lat.value <= 90)
+    assert bool(jnp.all(lat.value >= -90))
+    assert bool(jnp.all(lat.value <= 90))
     # cos(lat) should always be positive
-    assert jnp.all(jnp.cos(jnp.deg2rad(lat.value)) >= 0)
+    assert bool(jnp.all(jnp.cos(jnp.deg2rad(lat.value)) >= 0))
 ```
 
 #### Physical Scales
@@ -427,10 +427,10 @@ Constrain values to physically meaningful ranges:
 )
 def test_realistic_radius(radius):
     """Test with radii from millimeters to kilometers."""
-    assert 1e-3 <= radius.value <= 1e3
+    assert bool(jnp.all(radius.value >= 1e-3)) and bool(jnp.all(radius.value <= 1e3))
     # Physical calculations
     area = 4 * 3.14159 * radius.value**2
-    assert area > 0
+    assert bool(jnp.all(area > 0))
 ```
 
 ### Using Dtype Strategies
@@ -511,7 +511,7 @@ def test_quantity_in_system_units(sys, q):
     # The quantity should be expressible in the system's length unit
     length_unit = list(sys)[0]
     converted = q.uconvert(length_unit)
-    assert u.dimension_of(converted) == "length"
+    assert u.dimension_of(converted) == u.dimension("length")
 ```
 
 ## Advanced Patterns
@@ -549,7 +549,7 @@ Use the `wrap_to()` strategy to wrap generated quantities to a specific [min, ma
 def test_longitude_range(lon):
     """Longitude angles wrapped to [0, 360) degrees."""
     assert isinstance(lon, u.Angle)
-    assert 0 <= lon.value < 360
+    assert bool(jnp.all(lon.value >= 0)) and bool(jnp.all(lon.value < 360))
 
 
 @given(
@@ -562,7 +562,7 @@ def test_longitude_range(lon):
 def test_latitude_range(lat):
     """Latitude angles wrapped to [-90, 90) degrees."""
     assert isinstance(lat, u.Angle)
-    assert -90 <= lat.value < 90
+    assert bool(jnp.all(lat.value >= -90)) and bool(jnp.all(lat.value < 90))
 ```
 
 The `wrap_to()` strategy can wrap any quantity, not just angles:
@@ -575,8 +575,8 @@ The `wrap_to()` strategy can wrap any quantity, not just angles:
 )
 def test_distance_range(distance):
     """Distances wrapped to [0, 100) kpc."""
-    assert jnp.all(distance.value >= 0)
-    assert jnp.all(distance.value < 100)
+    assert bool(jnp.all(distance.value >= 0))
+    assert bool(jnp.all(distance.value < 100))
 ```
 
 #### Using the quantity_cls Parameter
@@ -614,7 +614,7 @@ def test_angle_with_constraints(angle):
     """Combine quantity_cls with dtype and element constraints."""
     assert isinstance(angle, u.Angle)
     assert angle.dtype == jnp.float64
-    assert 0 <= angle.value <= 360
+    assert bool(jnp.all(angle.value >= 0)) and bool(jnp.all(angle.value <= 360))
 ```
 
 ### Testing Coordinate Transformations
@@ -628,8 +628,8 @@ def test_angle_with_constraints(angle):
 def test_cartesian_to_spherical_radius(x, y, z):
     """Spherical radius is always non-negative."""
     r = jnp.sqrt(x**2 + y**2 + z**2)
-    assert jnp.all(r.value >= 0)
-    assert u.dimension_of(r) == "length"
+    assert bool(jnp.all(r.value >= 0))
+    assert u.dimension_of(r) == u.dimension("length")
 
 
 @given(
@@ -647,7 +647,7 @@ def test_cartesian_to_spherical_radius(x, y, z):
 )
 def test_spherical_to_cartesian_reversible(r, theta, phi):
     """Converting spherical to cartesian and back is reversible."""
-    assume(r.value > 1e-10)  # Avoid numerical issues at origin
+    assume(bool(r.value > 1e-10))  # Avoid numerical issues at origin
 
     # Convert to cartesian
     x = r * jnp.sin(theta.value) * jnp.cos(phi.value)
@@ -706,20 +706,20 @@ Use `hypothesis.assume()` to skip test cases that don't make sense:
 def test_division_units(numerator, denominator):
     """Division produces correct units."""
     # Skip cases where denominator is too close to zero
-    assume(jnp.abs(denominator.value) > 1e-10)
+    assume(bool(jnp.abs(denominator.value) > 1e-10))
 
     result = numerator / denominator
-    assert u.dimension_of(result) == "velocity"
+    assert u.dimension_of(result) == u.dimension("velocity")
 
 
 @given(q=ust.quantities("m"))
 def test_positive_values_only(q):
     """Test function that only works with positive values."""
-    assume(jnp.all(q.value > 0))
+    assume(bool(jnp.all(q.value > 0)))
 
     # Now safe to take logarithm
     log_q = jnp.log(q.value)
-    assert jnp.all(jnp.isfinite(log_q))
+    assert bool(jnp.all(jnp.isfinite(log_q)))
 ```
 
 ## Best Practices
@@ -744,7 +744,7 @@ Don't overuse `assume()` as it can slow down tests. Instead, generate appropriat
 # Instead of this:
 @given(q=ust.quantities("m"))
 def test_bad(q):
-    assume(q.value > 0)  # Will reject many cases
+    assume(bool(jnp.all(q.value > 0)))  # Will reject many cases
     # ...
 
 
