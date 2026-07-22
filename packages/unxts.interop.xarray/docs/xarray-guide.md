@@ -382,7 +382,7 @@ This registers the accessor on `xarray`'s DataArray and Dataset classes.
 When working with coordinates that need to preserve Quantities:
 
 ```python
-from xarray import Variable
+import unxt as u
 
 # ✓ Good: non-dimension coordinate
 coords = {"i": [0, 1], "x": ("i", u.Quantity([1.0, 2.0], "m"))}
