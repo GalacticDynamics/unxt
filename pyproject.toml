@@ -375,10 +375,16 @@ ignore = [
   "RUF022",  # `__all__` is not sorted
   "TD002",   # Missing author in TODO
   "TD003",   # Missing issue link on the line following this TODO
-  # PEP 695 `type X = ...` aliases become runtime `TypeAliasType` objects, which
-  # plum dispatch and beartype.door cannot resolve (they raise
-  # BeartypeDoorNonpepException). unxt's type aliases are used as dispatch keys
-  # and runtime-checked annotations, so they must stay `X: TypeAlias = ...`. (The
+  # PEP 695 `type X = ...` aliases become runtime `TypeAliasType` objects.
+  # `beartype.door.TypeHint` has no `TypeAliasType` case (still true on the
+  # unreleased beartype 0.23) and raises `BeartypeDoorNonpepException`; plum's
+  # `Signature.__eq__` calls it unguarded, so converting a *dispatch-key* alias
+  # hard-crashes the beartype-enabled import. A *recursive/parametric* alias is
+  # worse: used as a beartype-checked annotation it raises
+  # `BeartypeDecorHintForwardRefException` on its own forward reference. unxt's
+  # aliases are dispatch keys and runtime-checked annotations, so they must stay
+  # `X: TypeAlias = ...` until the upstream gap is closed (beartype.door or plum
+  # unwrapping `TypeAliasType.__value__`, which already resolves correctly). (The
   # `>=3.12` floor is what makes ruff start suggesting the incompatible form.)
   "UP040", # Type alias uses `TypeAlias` instead of the `type` keyword
 ]
