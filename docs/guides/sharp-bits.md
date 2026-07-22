@@ -3,7 +3,7 @@
 This guide covers common pitfalls and surprising behaviors when working with `unxt` quantities in JAX. Like JAX itself, `unxt` has some "sharp bits" — behaviors that might surprise you if you're coming from NumPy or non-JAX Python scientific computing.
 
 ```{tip}
-If you're new to `unxt`, start with the [Quantity guide](quantity.md) first.
+If you're new to `unxt`, start with the [Quantity guide](./quantity) first.
 This guide assumes you're familiar with basic `unxt` usage.
 ```
 
@@ -182,6 +182,77 @@ def my_function(x):
 result = my_function(positions)  # Works with quantities
 ```
 
+### ⚠️ Angle conversions: `deg2rad`, `rad2deg`, and friends
+
+`jnp.deg2rad`, `jnp.rad2deg`, `jnp.radians`, and `jnp.degrees` lower to a plain multiplication by a constant conversion factor (`x * pi/180` for `deg2rad`/`radians`, `x * 180/pi` for `rad2deg`/`degrees`). Under `quaxed`/`quax` that scales the _value_ but leaves the _unit label_ unchanged, so the quantity is silently mislabeled:
+
+```python
+import quaxed.numpy as jnp
+import unxt as u
+
+# ❌ scales the value but keeps 'deg' -> Quantity(3.14159, unit='deg')
+_ = jnp.deg2rad(u.Q(180.0, "deg"))
+```
+
+Convert angles with `uconvert` (or the `.uconvert` method), which tracks units correctly:
+
+```python
+# ✅ converts degrees -> radians (value rescaled, unit label becomes 'rad')
+_ = u.Q(180.0, "deg").uconvert("rad")
+
+# ✅ converts radians -> degrees (value rescaled, unit label becomes 'deg')
+_ = u.uconvert("deg", u.Q(3.14159, "rad"))
+```
+
+The NumPy entry points (`np.deg2rad(q)`, `np.rad2deg(q)`, ...) are handled correctly: they convert the angle and raise on a non-angle quantity.
+
+### ⚠️ `jnp.where` adopts the quantity's unit for a raw-array branch
+
+Selecting between a quantity and a **raw array** with `jnp.where` silently treats the raw array as being _in the quantity's unit_ — it does **not** reject the mix the way `jnp.concat` does:
+
+```{code-block} python
+>>> import quaxed.numpy as jnp
+>>> import jax.numpy as jnp_raw
+>>> import unxt as u
+
+>>> cond = jnp_raw.asarray([True, False])
+>>> q = u.Q([1.0, 2.0], "m")
+>>> raw = jnp_raw.asarray([10.0, 20.0])
+```
+
+The raw `20.0` comes back as `20.0 m` — no error, no conversion:
+
+```{code-block} python
+>>> jnp.where(cond, q, raw)
+Quantity(Array([ 1., 20.], dtype=float32), unit='m')
+```
+
+Contrast `jnp.concat`, which treats the raw array as dimensionless and rejects the incompatible mix:
+
+```{code-block} python
+>>> try:
+...     jnp.concat([q, raw])
+... except Exception as e:
+...     print(type(e).__name__)
+UnitConversionError
+```
+
+This inconsistency is **inherent**, not an oversight. JAX lowers both a user `where` _and_ its own masking operations (`triu`, `tril`, `trace`, and `where(mask, q, 0.0)`) to the same `select_n` primitive with a raw-array operand — and masking _relies_ on that raw zero-fill adopting the quantity's unit (filling with `0` should keep `m`, since zero is unit-agnostic). At the primitive level a genuine raw-data operand is indistinguishable from a masking zero-fill, so unxt cannot reject one without breaking the other.
+
+Filling with a plain `0` is therefore fine and does the right thing:
+
+```{code-block} python
+>>> jnp.where(cond, q, 0.0)
+Quantity(Array([1., 0.], dtype=float32), unit='m')
+```
+
+**Rule:** never rely on `jnp.where` to unit-check a raw-array branch. Convert the raw array to a `Quantity` with the unit you mean _before_ the `where`, so the units are checked explicitly:
+
+```{code-block} python
+>>> jnp.where(cond, q, u.Q(raw, "m"))
+Quantity(Array([ 1., 20.], dtype=float32), unit='m')
+```
+
 ### ✅ Dimension Checking Works in JIT
 
 Good news! Dimensions are checked inside JIT:
@@ -249,7 +320,7 @@ result = add_lengths_m(u.Q(5.0, "m"), length_m_input)
 
 ### ℹ️ Note: `ParametricQuantity` multiplies pytree _types_ (not jit compilations)
 
-Feeding `ParametricQuantity` (from the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package) of different dimensions into a jitted function does **not** add a recompilation per dimension — recompilation is driven by the **unit**, a static field for both classes. What the parametric class adds is a new Python class and pytree type per dimension. See [Parametric types multiply pytree types](../packages/unxts.parametric/sharp-bits.md) in the parametric guide for the full explanation.
+Feeding `ParametricQuantity` (from the separate [`unxts.parametric`](../packages/unxts.parametric/index) package) of different dimensions into a jitted function does **not** add a recompilation per dimension — recompilation is driven by the **unit**, a static field for both classes. What the parametric class adds is a new Python class and pytree type per dimension. See [Parametric types multiply pytree types](../packages/unxts.parametric/sharp-bits) in the parametric guide for the full explanation.
 
 ## Mixing Quantity Types
 
@@ -285,7 +356,7 @@ time = u.Q(2.0, "s")
 speed = length / time  # ✅ Fast; unit arithmetic without per-dimension classes
 ```
 
-**`ParametricQuantity`** — Opt in when you want the physical dimension carried in the type (for dimension-specific `plum` dispatch and runtime dimension checking). It lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package (`up.PQ`); see its [guide](../packages/unxts.parametric/quantity.md).
+**`ParametricQuantity`** — Opt in when you want the physical dimension carried in the type (for dimension-specific `plum` dispatch and runtime dimension checking). It lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index) package (`up.PQ`); see its [guide](../packages/unxts.parametric/quantity).
 
 **`StaticQuantity`** — For compile-time constants:
 
@@ -308,7 +379,68 @@ def function(x, *, constant=u.StaticQuantity(3.26, "lyr")):
 | `ParametricQuantity` | Dimension-parametrized dispatch / runtime checking | ✅ Yes | Good (a distinct type per dimension) |
 | `StaticQuantity` | Constants | ❌ None | Best (no tracer) |
 
-`ParametricQuantity` lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package; see its [guide](../packages/unxts.parametric/quantity.md) for construction, dimension checking, and dispatch.
+`ParametricQuantity` lives in the separate [`unxts.parametric`](../packages/unxts.parametric/index) package; see its [guide](../packages/unxts.parametric/quantity) for construction, dimension checking, and dispatch.
+
+## Mixing Astropy and `unxt` Quantities Under `jit`
+
+### ❌ Problem: The Astropy Unit Disappears Inside `jit`
+
+Arithmetic between an `astropy.units.Quantity` and a `unxt` quantity works **eagerly**, because astropy's `__array_ufunc__` handles the operation. Inside `jax.jit` it does not, and the failure is quiet:
+
+Eagerly, astropy handles it and both units survive:
+
+```{code-block} python
+>>> import astropy.units as apyu
+>>> import jax
+>>> import unxt as u
+
+>>> apy = apyu.Quantity(2.0, "km")
+>>> q = u.Q(3.0, "m")
+
+>>> apy * q
+<Quantity 6. km m>
+```
+
+Under `jit`, `km` is silently dropped and the result claims `m`:
+
+```{code-block} python
+>>> jax.jit(lambda a, b: a * b)(apy, q)
+Quantity(Array(6., dtype=float32), unit='m')
+```
+
+The magnitude survives but the unit does not, so `*` and `/` return a plausible-looking result that is wrong by the conversion factor — here a factor of 1000. `+` and `-` at least fail loudly:
+
+```{code-block} python
+>>> try:
+...     jax.jit(lambda a, b: a + b)(apy, q)
+... except apyu.UnitConversionError as e:
+...     print(type(e).__name__)
+UnitConversionError
+```
+
+This is not something `unxt` can intercept: `jax` converts the astropy `ndarray` subclass to a unitless tracer before any `unxt` code runs, so the unit is already gone by then. (Capturing the astropy quantity as a closure constant rather than passing it as an argument loses it too, by a different route.)
+
+### ✅ Solution: Convert at the Boundary
+
+Turn foreign quantities into `unxt` quantities _before_ they cross into a jitted function, with `u.Q.from_`:
+
+```{code-block} python
+>>> qa = u.Q.from_(apy)  # 2.0 km, now a unxt Quantity
+>>> qa
+Quantity(Array(2., dtype=float32), unit='km')
+```
+
+Both operators now behave, and agree with the eager result:
+
+```{code-block} python
+>>> jax.jit(lambda a, b: a * b)(qa, q)
+Quantity(Array(6., dtype=float32), unit='km m')
+
+>>> jax.jit(lambda a, b: a + b)(qa, q)
+Quantity(Array(2.003, dtype=float32), unit='km')
+```
+
+As a rule: keep astropy quantities at the edges of your program and convert once on the way in. Mixed-library arithmetic working eagerly is not evidence that it will work under `jit`.
 
 ## Dimension Checking Overhead
 
@@ -344,7 +476,7 @@ os.environ["UNXT_ENABLE_RUNTIME_TYPECHECKING"] = "beartype.beartype"
 
 ## Quantity as a PyTree: JAX flattening overhead
 
-See the [Performance Guide](perf.md)
+See the [Performance Guide](perf)
 
 ### ❌ Problem: Quantity is slower than Array
 
@@ -385,11 +517,11 @@ This only applies to the outer-most function. Nesting jitted and quaxified funct
 
 ## `ParametricQuantity` Equality: Arrays vs. `StaticValue`
 
-A normal `ParametricQuantity` backed by a JAX array returns an element-wise boolean array from `==`, so it can't be a `jax.jit` `static_argnames` argument. Wrapping its value in a `StaticValue` makes `==` return a scalar `bool`, making the quantity hashable and usable as a static argument. This is a `ParametricQuantity` behavior (from the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package); see [Equality with `StaticValue`](../packages/unxts.parametric/sharp-bits.md#equality-with-staticvalue) in the parametric guide.
+A normal `ParametricQuantity` backed by a JAX array returns an element-wise boolean array from `==`, so it can't be a `jax.jit` `static_argnames` argument. Wrapping its value in a `StaticValue` makes `==` return a scalar `bool`, making the quantity hashable and usable as a static argument. This is a `ParametricQuantity` behavior (from the separate [`unxts.parametric`](../packages/unxts.parametric/index) package); see [Equality with `StaticValue`](../packages/unxts.parametric/sharp-bits) in the parametric guide.
 
 ## See Also
 
 - [JAX Common Gotchas](https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html)
-- [Quantity Guide](quantity.md)
-- [Type Checking Guide](type-checking.md)
-- [Testing Guide](../packages/unxt-hypothesis/testing-guide.md)
+- [Quantity Guide](./quantity)
+- [Type Checking Guide](./type-checking)
+- [Hypothesis strategies](../packages/unxts.hypothesis/index)

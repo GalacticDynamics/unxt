@@ -3,8 +3,7 @@
 
 __all__ = ("PQ", "ParametricQuantity")
 
-from typing import ClassVar, final
-from typing_extensions import override
+from typing import ClassVar, final, override
 
 import equinox as eqx
 from jaxtyping import Array, Shaped

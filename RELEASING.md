@@ -1,10 +1,21 @@
 # Release Process for unxt Workspace
 
-This workspace contains three packages that can be released:
+This workspace contains the following releasable packages. A `vX.Y.0` coordinator tag releases them all together; each can also be bug-fix-released on its own (see [Release Types](#release-types)):
 
 - `unxt` - the main package
-- `unxt-api` - abstract dispatch API
-- `unxt-hypothesis` - hypothesis testing strategies
+- `unxt-api` - abstract dispatch API (backward-compat shim; canonical: `unxts.api`)
+- `unxt-hypothesis` - hypothesis strategies (backward-compat shim; canonical: `unxts.hypothesis`)
+- `unxts.api` - abstract dispatch API
+- `unxts.hypothesis` - hypothesis strategies
+- `unxts.parametric` - dimension-parametrized quantities
+- `unxts.linalg` - quantity-aware linear algebra
+- `unxts.interop.gala` - gala interoperability
+- `unxts.interop.matplotlib` - matplotlib interoperability
+- `unxts.interop.xarray` - xarray interoperability
+
+The authoritative list of which packages are released is the `PACKAGES` array in `.github/workflows/create-package-tags.yml` — its entries are each package's **release tag prefix** (e.g. `unxts-api`), not the dotted package/PyPI name (e.g. `unxts.api`).
+
+> **Tag prefixes are hyphenated.** Release tags and CD workflows use the hyphenated form of each package name — dots become hyphens. For example the `unxts.api` package is tagged `unxts-api-vX.Y.Z` and `unxts.interop.gala` is tagged `unxts-interop-gala-vX.Y.Z`. A dotted tag such as `unxts.api-vX.Y.Z` will **not** match the CD workflow triggers.
 
 All releases are automated via GitHub Actions - **just push tags!**
 
@@ -24,7 +35,7 @@ git tag v1.8.0 -m "Release all packages to 1.8.0"
 git push origin v1.8.0
 
 # CD automatically:
-# 1. Creates unxt-v1.8.0, unxt-api-v1.8.0, unxt-hypothesis-v1.8.0
+# 1. Creates a <package>-v1.8.0 tag for every workspace package
 # 2. Builds all packages
 # 3. Publishes to TestPyPI and PyPI
 ```
@@ -54,7 +65,7 @@ git push origin unxt-api-v1.8.1
 
 ✅ **Coordinator tags** (synchronized releases):
 
-- `v1.8.0` → CD creates `unxt-v1.8.0`, `unxt-api-v1.8.0`, `unxt-hypothesis-v1.8.0`
+- `v1.8.0` → CD creates a `<package>-v1.8.0` tag for every workspace package
 - Must be `.0` releases (major/minor only)
 
 ✅ **Package tags** (independent bug-fixes):
@@ -95,11 +106,8 @@ All packages use **hatch-vcs** for automatic version detection from git tags, wi
 **Coordinator Tags (for synchronized releases):**
 
 - Push a shared tag: `vX.Y.0` (e.g., `v1.8.0`)
-- CI automatically creates package-specific tags:
-  - `unxt-vX.Y.0`
-  - `unxt-api-vX.Y.0`
-  - `unxt-hypothesis-vX.Y.0`
-- All three packages get version X.Y.0
+- CI automatically creates a `<package>-vX.Y.0` tag for every workspace package (`unxt-vX.Y.0`, `unxt-api-vX.Y.0`, `unxts-api-vX.Y.0`, `unxts-parametric-vX.Y.0`, …)
+- All packages get version X.Y.0
 - **Must be `.0` releases** (major/minor only)
 
 **Package-Specific Tags (for bug-fix releases):**
@@ -124,7 +132,7 @@ When you push a tag:
 
 1. **If you push `vX.Y.0`** (coordinator tag):
    - CI validates it's a `.0` release
-   - CI creates `unxt-vX.Y.0`, `unxt-api-vX.Y.0`, `unxt-hypothesis-vX.Y.0`
+   - CI creates a `<package>-vX.Y.0` tag for every workspace package
    - All package CD workflows trigger and build version X.Y.0
 
 2. **If you push `package-vX.Y.Z`** (package-specific tag):
@@ -164,7 +172,7 @@ git tag vX.Y.0 -m "Release all packages to X.Y.0"
 git push origin vX.Y.0
 
 # CI automatically:
-# 1. Creates unxt-vX.Y.0, unxt-api-vX.Y.0, unxt-hypothesis-vX.Y.0
+# 1. Creates a <package>-vX.Y.0 tag for every workspace package
 # 2. Triggers builds for all packages
 # 3. Publishes to TestPyPI and PyPI
 
@@ -174,7 +182,7 @@ git push origin vX.Y.0
 **Monitor the workflows:**
 
 - Check: <https://github.com/GalacticDynamics/unxt/actions>
-- Expect 4 workflows: create-package-tags + 3 CD workflows (one per package)
+- Expect create-package-tags, then **two** workflows per package: a build (`CD - <package>`, triggered by the tag) followed by its privileged publish (`CD Publish - <package>`, triggered via `workflow_run` when the build completes)
 
 ### Scenario 2: Bug-fix Release (Individual Package)
 
@@ -196,7 +204,7 @@ git push origin unxt-api-vX.Y.Z
 **Monitor the workflow:**
 
 - Check: <https://github.com/GalacticDynamics/unxt/actions>
-- Expect 1 CD workflow for that specific package
+- Expect two workflows for that package: its build (`CD - <package>`) followed by its publish (`CD Publish - <package>`)
 
 ### Creating a GitHub Release (Optional)
 
@@ -252,15 +260,17 @@ The release process is fully automated via GitHub Actions:
    - Triggers on `v*` tags
    - Validates it's a `.0` release
    - Creates package-specific tags automatically
-   - Pushes all three package tags
+   - Pushes a tag for every workspace package
 
-2. **Package Builds** (`.github/workflows/cd-*.yml`):
-   - Each package has its own CD workflow
-   - Triggers on package-specific tags only (`unxt-v*`, `unxt-api-v*`, `unxt-hypothesis-v*`)
-   - Validates tags with `scripts/validate_tag.py`
-   - Builds and publishes to TestPyPI, then PyPI
+2. **Package build** (`.github/workflows/cd-<package>.yml`, "CD - \<package>"):
+   - Triggers on that package's release tags (`unxt-v*`, `unxts-parametric-v*`, …), on pushes to `main` that touch the package (path-filtered), and on manual `workflow_dispatch` — so you'll also see a build run when a normal PR merges to `main`
+   - Validates the tag with `scripts/validate_tag.py`, builds the package, and uploads it as a build artifact (runs unprivileged)
 
-3. **Version Detection**:
+3. **Package publish** (`.github/workflows/cd-publish-<package>.yml`, "CD Publish - \<package>"):
+   - Triggers via `workflow_run` when that package's build workflow completes
+   - Runs in a privileged context (so no repository code runs with publish permissions) and routes by what triggered the build: a verified release tag publishes to **both** TestPyPI and PyPI, while a trusted push to `main` (no tag) publishes to **TestPyPI only**
+
+4. **Version Detection**:
    - hatch-vcs uses standard `git describe` with package-specific `--match` patterns
    - Each package only sees its own tags
    - No custom scripts needed!
@@ -319,11 +329,7 @@ describe_command = [
 ]
 ```
 
-Where `PACKAGE` is:
-
-- `unxt` for the main package
-- `unxt-api` for unxt-api
-- `unxt-hypothesis` for unxt-hypothesis
+Where `PACKAGE` is the package's tag prefix (`unxt`, `unxt-api`, `unxt-hypothesis`, `unxts-api`, `unxts-hypothesis`, `unxts-parametric`, `unxts-linalg`, `unxts-interop-gala`, `unxts-interop-matplotlib`, `unxts-interop-xarray`).
 
 This ensures each package only considers its own tags when determining the version.
 
@@ -367,29 +373,23 @@ For `.0` releases, you must create the `vX.Y.0` coordinator tag first:
 git tag v1.8.0 -m "Release 1.8.0"
 git push origin v1.8.0
 
-# CI will automatically create unxt-v1.8.0, unxt-api-v1.8.0, unxt-hypothesis-v1.8.0
+# CI will automatically create a <package>-v1.8.0 tag for every workspace package
 ```
 
 ### Wrong version being detected
 
-Check which tags are present:
+Check which tags are present (substitute the package's tag prefix — see the intro for the full list):
 
 ```bash
-git tag -l "unxt-v*"
-git tag -l "unxt-api-v*"
-git tag -l "unxt-hypothesis-v*"
+git tag -l "<package>-v*"   # e.g. unxt-v*, unxts-api-v*, unxts-parametric-v*
 
-# See what git describe returns
-git describe --tags --match "unxt-v*"
+# See what git describe returns for that package
+git describe --tags --match "<package>-v*"
 ```
 
 ### Package not building after tag push
 
-Verify the tag matches the expected pattern:
-
-- Main package: `unxt-vX.Y.Z`
-- API package: `unxt-api-vX.Y.Z`
-- Hypothesis package: `unxt-hypothesis-vX.Y.Z`
+Verify the tag matches the package's expected pattern `<package>-vX.Y.Z` (e.g. `unxt-vX.Y.Z`, `unxts-api-vX.Y.Z`, `unxts-parametric-vX.Y.Z`); see the intro for the full list of tag prefixes.
 
 Check GitHub Actions for error messages.
 

@@ -10,13 +10,25 @@ on:
   push:
     branches:
       - main
+  schedule:
+    # Weekly, Mondays at midnight UTC. This is the ecosystem check: the
+    # per-package jobs below are gated off on ordinary PRs, so this run is what
+    # exercises every sibling package against current upstream releases and
+    # catches breakage that lands without any change to this repo.
+    - cron: "0 0 * * 1"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Keyed on the event as well as the ref. A `schedule` run reports the default
+  # branch as `github.ref`, which is the same value a `push` to main reports --
+  # so without `event_name` the weekly ecosystem run and a Monday-morning push
+  # to main would share a group and, with `cancel-in-progress`, cancel each
+  # other. Including it keeps them independent while still collapsing repeated
+  # pushes to the same branch or PR.
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSIONS: '["3.11", "3.12", "3.13", "3.14"]'
+  PYTHON_VERSIONS: '["3.12", "3.13", "3.14"]'
   # Many color libraries just need this to be set to any value, but at least
   # one distinguishes color depth, where "3" -> "256-bit color".
   FORCE_COLOR: 3
@@ -53,6 +65,58 @@ jobs:
 
       - name: Lint
         run: uv run --frozen nox -s lint
+
+  # Documentation build
+  #
+  # Nothing previously gated Sphinx output: there was no docs job here, and the
+  # `docs` nox session builds with `--keep-going` and no `-W`, so it exits 0
+  # whatever it reports. (`.readthedocs.yaml` does set `sphinx.fail_on_warning`,
+  # but that key is ignored when `build.commands` is present -- and it is.) 43
+  # broken cross-references had accumulated on main, invisible to readers: a
+  # dropped MyST link still renders as styled text, just not clickable.
+  #
+  # This gates the category that means "navigation is broken" --
+  # `myst.xref_missing` -- rather than `-W`, which would also fail on ~120
+  # nitpicky `ref.*` warnings for unresolvable third-party type annotations.
+  # Those are curated in `nitpick_ignore` in docs/conf.py; ratcheting them to
+  # zero is worth doing, but blocking every PR on that first is not.
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    needs: [setup]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          # Pin to the version Read the Docs publishes on
+          # (.readthedocs.yaml build.tools.python), so this job builds the docs
+          # in the same environment they actually ship in -- rather than
+          # whatever ubuntu-latest happens to provide.
+          python-version: "3.12"
+
+      - name: Install
+        run: uv sync --no-default-groups --group nox --group docs --locked
+
+      - name: Build docs
+        run: |
+          set -o pipefail
+          uv run --frozen nox -s docs -- --output-dir=_build 2>&1 | tee docs-build.log
+
+      - name: Fail on broken cross-references
+        run: |
+          if grep -qF 'myst.xref_missing' docs-build.log; then
+            echo "::error::Broken cross-references in the docs:"
+            grep -F 'myst.xref_missing' docs-build.log
+            echo
+            echo "A relative link written with a '.md' suffix resolves through the"
+            echo "filesystem, which follows the docs/packages/* symlinks out of the"
+            echo "Sphinx srcdir and silently drops the link. Write the target"
+            echo "without the extension, e.g. '(../packages/x/index)'."
+            exit 1
+          fi
+          echo "No broken cross-references."
 
   # Main package tests
   tests-unxt:
@@ -93,6 +157,7 @@ jobs:
     needs: [setup, format]
     if: |
       github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, '🧩 unxt-api') ||
       startsWith(github.head_ref, 'unxt-api/')
@@ -132,6 +197,7 @@ jobs:
     needs: [setup, format]
     if: |
       github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, '🧩 unxt-hypothesis') ||
       startsWith(github.head_ref, 'unxt-hypothesis/')
@@ -169,6 +235,7 @@ jobs:
     needs: [setup, format]
     if: |
       github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, '🧩 unxts-api') ||
       startsWith(github.head_ref, 'unxts-api/')
@@ -192,6 +259,7 @@ jobs:
 
       - name: Test package
         run: |
+          uv run --frozen --package unxts-api pytest packages/unxts.api/src
           uv run --frozen --package unxts-api pytest packages/unxts.api/tests --cov=packages/unxts.api/src --cov-report=xml --cov-report=term
 
       - name: Upload coverage report
@@ -208,6 +276,7 @@ jobs:
     needs: [setup, format]
     if: |
       github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, '🧩 unxts-hypothesis') ||
       startsWith(github.head_ref, 'unxts-hypothesis/')
@@ -231,6 +300,11 @@ jobs:
 
       - name: Test package
         run: |
+          # src doctests: leaf dir `unxts/hypothesis` shadows the installed
+          # `hypothesis`, so sybil mis-imports it. Run these via pytest's
+          # namespace-aware --doctest-modules (doctest plugin re-enabled by
+          # overriding addopts, which otherwise sets `-p no:doctest`).
+          uv run --frozen --package unxts-hypothesis pytest packages/unxts.hypothesis/src --doctest-modules -o addopts="--import-mode=importlib" -o consider_namespace_packages=true -o doctest_optionflags="ELLIPSIS NORMALIZE_WHITESPACE"
           uv run --frozen --package unxts-hypothesis pytest packages/unxts.hypothesis/tests --cov=packages/unxts.hypothesis/src --cov-report=xml --cov-report=term
 
       - name: Upload coverage report
@@ -247,6 +321,7 @@ jobs:
     needs: [setup, format]
     if: |
       github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, '🧩 unxts-interop-gala') ||
       startsWith(github.head_ref, 'unxts-interop-gala/')
@@ -270,6 +345,9 @@ jobs:
 
       - name: Test package
         run: |
+          # src doctests: leaf dir `unxts/interop/gala` shadows the installed
+          # `gala`, so sybil mis-imports it; use namespace-aware --doctest-modules.
+          uv run --frozen --package unxts-interop-gala pytest packages/unxts.interop.gala/src --doctest-modules -o addopts="--import-mode=importlib" -o consider_namespace_packages=true -o doctest_optionflags="ELLIPSIS NORMALIZE_WHITESPACE"
           uv run --frozen --package unxts-interop-gala pytest packages/unxts.interop.gala/tests --cov=packages/unxts.interop.gala/src --cov-report=xml --cov-report=term
 
       - name: Upload coverage report
@@ -286,6 +364,7 @@ jobs:
     needs: [setup, format]
     if: |
       github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, '🧩 unxts-interop-matplotlib') ||
       startsWith(github.head_ref, 'unxts-interop-matplotlib/')
@@ -325,6 +404,7 @@ jobs:
     needs: [setup, format]
     if: |
       github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, '🧩 unxts-interop-xarray') ||
       startsWith(github.head_ref, 'unxts-interop-xarray/')
@@ -348,7 +428,106 @@ jobs:
 
       - name: Test package
         run: |
+          # src doctests: leaf dir `unxts/interop/xarray` shadows the installed
+          # `xarray`, so sybil mis-imports it; use namespace-aware --doctest-modules.
+          uv run --frozen --package unxts-interop-xarray pytest packages/unxts.interop.xarray/src --doctest-modules -o addopts="--import-mode=importlib" -o consider_namespace_packages=true -o doctest_optionflags="ELLIPSIS NORMALIZE_WHITESPACE"
           uv run --frozen --package unxts-interop-xarray pytest packages/unxts.interop.xarray/tests --cov=packages/unxts.interop.xarray/src --cov-report=xml --cov-report=term
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # unxts-parametric package tests
+  #
+  # NB: the label clause below is weaker than it looks. The `🧩 unxts-parametric`
+  # label is applied by the `Auto-label PRs` workflow, which runs on
+  # `workflow_run` *after* `Collect PR labels` completes, while CI evaluates
+  # `github.event.pull_request.labels` from the original `pull_request` payload.
+  # The label therefore lands too late to gate the run it would need to gate,
+  # and CI does not trigger on `types: [labeled]` -- so in practice it only
+  # takes effect on the *next* push to the PR. Coverage for core changes that
+  # break this package comes from the push-to-main and weekly `schedule` runs.
+  tests-unxts-parametric:
+    name:
+      unxts-parametric Python ${{ matrix.python-version }} on ${{ matrix.runs-on
+      }}
+    runs-on: ${{ matrix.runs-on }}
+    needs: [setup, format]
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, '🧩 unxts-parametric') ||
+      startsWith(github.head_ref, 'unxts-parametric/')
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
+        runs-on: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          uv sync --no-default-groups --group test --locked --package unxts-parametric
+
+      - name: Test package
+        run: |
+          # src doctests and tests are collected in separate invocations: the
+          # namespace package's leaf dir is imported under one name for src and
+          # another for tests, so co-collecting them double-imports the module.
+          uv run --frozen --package unxts-parametric pytest packages/unxts.parametric/src
+          uv run --frozen --package unxts-parametric pytest packages/unxts.parametric/tests --cov=packages/unxts.parametric/src --cov-report=xml --cov-report=term
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # unxts-linalg package tests
+  tests-unxts-linalg:
+    name:
+      unxts-linalg Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
+    runs-on: ${{ matrix.runs-on }}
+    needs: [setup, format]
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, '🧩 unxts-linalg') ||
+      startsWith(github.head_ref, 'unxts-linalg/')
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
+        runs-on: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          uv sync --no-default-groups --group test --locked --package unxts-linalg
+
+      - name: Test package
+        run: |
+          # src doctests and tests are collected in separate invocations: the
+          # namespace package's leaf dir is imported under one name for src and
+          # another for tests, so co-collecting them double-imports the module.
+          uv run --frozen --package unxts-linalg pytest packages/unxts.linalg/src
+          uv run --frozen --package unxts-linalg pytest packages/unxts.linalg/tests --cov=packages/unxts.linalg/src --cov-report=xml --cov-report=term
 
       - name: Upload coverage report
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -362,7 +541,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Wrap the scalar `oldest-python` (e.g. "3.11") in a single-element list:
+        # Wrap the scalar `oldest-python` (e.g. "3.12") in a single-element list:
         # a matrix axis must be a sequence, otherwise it never expands and the
         # job silently never runs (making the required `CI Pass` gate fail).
         # Quotes keep it a string so e.g. "3.10" isn't parsed as the float 3.1.
@@ -460,6 +639,7 @@ jobs:
       [
         setup,
         format,
+        docs,
         tests-unxt,
         tests-unxt-api,
         tests-unxt-hypothesis,
@@ -468,6 +648,8 @@ jobs:
         tests-unxts-interop-gala,
         tests-unxts-interop-matplotlib,
         tests-unxts-interop-xarray,
+        tests-unxts-parametric,
+        tests-unxts-linalg,
         test-oldest,
         test-newest,
         test-interoperability,
@@ -478,11 +660,13 @@ jobs:
         uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # v1.2.2
         with:
           jobs: ${{ toJSON(needs) }}
-          # These per-package jobs only run on push / workflow_dispatch / a
-          # package label / `unxt-api|unxt-hypothesis/*` branches (see their
+          # These per-package jobs only run on push / schedule /
+          # workflow_dispatch / a package label / `<pkg>/*` branches (see their
           # `if:`), so on a normal PR they are intentionally skipped. Allow the
-          # skip instead of treating it as a failure.
+          # skip instead of treating it as a failure. On the weekly `schedule`
+          # run they all execute, so nothing here is permanently unchecked.
           allowed-skips:
             tests-unxt-api, tests-unxt-hypothesis, tests-unxts-api,
             tests-unxts-hypothesis, tests-unxts-interop-gala,
-            tests-unxts-interop-matplotlib, tests-unxts-interop-xarray
+            tests-unxts-interop-matplotlib, tests-unxts-interop-xarray,
+            tests-unxts-linalg, tests-unxts-parametric

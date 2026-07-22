@@ -4,9 +4,10 @@ __all__: tuple[str, ...] = ()
 
 from plum import conversion_method
 
+from unxts.api import unit_of, ustrip
+
 from .parametric import ParametricQuantity
 from unxt.quantity import AbstractQuantity
-from unxt_api import unit_of, ustrip
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=ParametricQuantity)  # type: ignore[arg-type]

@@ -7,11 +7,9 @@ classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: BSD License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
@@ -22,10 +20,10 @@ classifiers = [
 dependencies = ["plum-dispatch>=2.5.7"]
 description = "Abstract dispatch API definitions for unxt (canonical: unxts.api)"
 dynamic = ["version"]
-license.text = "BSD-3-Clause"
+license = "BSD-3-Clause"
 name = "unxts.api"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"
@@ -36,6 +34,11 @@ build-backend = "hatchling.build"
 requires      = ["hatch-vcs", "hatchling"]
 
 [dependency-groups]
+# ``unxt`` is a test-only dependency: it is the reference implementation of this
+# abstract API and is imported by the ``src`` doctests. It cannot be a runtime
+# dependency because ``unxt`` itself depends on ``unxts.api`` (that would be a
+# cycle); as a dev/test-group dependency the cycle is dev-only and uv resolves
+# it within the workspace.
 test = [
   "optional-dependencies>=0.3.2",
   "pytest>=8.4.2",
@@ -44,6 +47,7 @@ test = [
   "pytest-env>=1.1.5",
   "pytest-github-actions-annotate-failures>=0.3.0",
   "sybil[pytest]>=9.2.0",
+  "unxt",
 ]
 
 [tool.hatch.version]
@@ -79,3 +83,6 @@ version_tuple = {version_tuple!r}
 # and includes unxts/api/ in the wheel. Without src/unxts/__init__.py,
 # Python treats unxts as a namespace package. Matches coordinax pattern.
 packages = ["src/unxts"]
+
+[tool.uv.sources]
+unxt = { workspace = true }

@@ -1,5 +1,7 @@
 """Tests for StaticQuantity."""
 
+import copy
+import pickle
 from functools import partial
 
 import equinox as eqx
@@ -12,7 +14,73 @@ from hypothesis import given, strategies as st
 from hypothesis.extra.numpy import arrays as np_arrays
 from plum import promote
 
+import quaxed.lax as qlax
+import quaxed.numpy as qnp
+
 import unxt as u
+from unxt.quantity import StaticValue
+
+
+def test_static_value_pickle_roundtrip() -> None:
+    """A `StaticValue` survives a pickle round-trip unchanged.
+
+    Regression: `StaticValue.__getattr__` forwarded ``__setstate__`` to the
+    wrapped array, and dereferenced ``_array`` before it was restored, so
+    unpickling recursed infinitely (`RecursionError`).
+    """
+    sv = StaticValue(np.array([1.0, 2.0], dtype=np.float64))
+    got = pickle.loads(pickle.dumps(sv))  # noqa: S301
+    assert isinstance(got, StaticValue)
+    assert np.array_equal(np.asarray(got), np.asarray(sv))
+    assert np.asarray(got).dtype == np.float64
+
+
+def test_static_value_deepcopy_preserves_type_and_dtype() -> None:
+    """`copy.deepcopy` returns an equal `StaticValue`, not the bare array.
+
+    Regression: numpy arrays define ``__deepcopy__``, so ``__getattr__``
+    forwarded the lookup and deepcopy returned the wrapped array (a
+    ``TypedNdArray``, silently downcast to float32) instead of a `StaticValue`.
+    """
+    sv = StaticValue(np.array([1.0, 2.0], dtype=np.float64))
+    got = copy.deepcopy(sv)
+    assert isinstance(got, StaticValue)
+    assert np.array_equal(np.asarray(got), np.asarray(sv))
+    assert np.asarray(got).dtype == np.float64
+    # deepcopy is independent: the copy is its own read-only buffer.
+    assert not np.shares_memory(np.asarray(got), np.asarray(sv))
+
+    shallow = copy.copy(sv)
+    assert isinstance(shallow, StaticValue)
+    assert np.array_equal(np.asarray(shallow), np.asarray(sv))
+
+
+def test_static_value_getattr_preserves_dtype() -> None:
+    """Attributes/methods forwarded through ``__getattr__`` keep the real dtype.
+
+    Regression: ``__getattr__`` forwarded to ``jnp.asarray(self._array)``, which
+    applies JAX's x64-disabled dtype rules, so ``sv.dtype`` / ``sv.min()`` on a
+    faithfully-stored int64 / float64 array reported (and returned) the
+    downcast int32 / float32 instead.
+    """
+    sv = StaticValue(np.array([3, 1, 2], dtype=np.int64))
+    assert sv.dtype == np.int64
+    assert np.asarray(sv.min()).dtype == np.int64
+    assert int(sv.min()) == 1
+
+    svf = StaticValue(np.array([3.0, 1.0, 2.0], dtype=np.float64))
+    assert svf.dtype == np.float64
+    assert np.asarray(svf.sum()).dtype == np.float64
+
+
+def test_static_quantity_pickle_roundtrip() -> None:
+    """A `StaticQuantity` survives a pickle round-trip unchanged."""
+    sq = u.StaticQuantity(np.array([1.0, 2.0], dtype=np.float64), "m")
+    got = pickle.loads(pickle.dumps(sq))  # noqa: S301
+    assert isinstance(got, u.StaticQuantity)
+    assert got.unit == u.unit("m")
+    assert np.array_equal(np.asarray(got.value), np.asarray(sq.value))
+    assert hash(got) == hash(sq)
 
 
 def test_static_quantity_accepts_numpy() -> None:
@@ -25,16 +93,118 @@ def test_static_quantity_accepts_numpy() -> None:
     assert np.array_equal(np.asarray(vec.value), arr)
 
 
-def test_static_quantity_rejects_jax_array() -> None:
-    """StaticQuantity rejects JAX arrays."""
-    with pytest.raises(TypeError, match="StaticQuantity does not accept JAX arrays"):
-        u.StaticQuantity(jnp.array([1.0, 2.0]), "m")
+def test_static_quantity_materialises_concrete_jax_array() -> None:
+    """A concrete (eager) JAX array is materialised to NumPy, not rejected.
+
+    A concrete array is just data, so it can back a static value; only a
+    *tracer* (under jit/vmap/grad) genuinely cannot.
+    """
+    sq = u.StaticQuantity(jnp.array([1.0, 2.0]), "m")
+    assert isinstance(sq.value, StaticValue)
+    assert isinstance(sq.value.array, np.ndarray)
+    assert np.array_equal(np.asarray(sq.value), np.array([1.0, 2.0]))
+
+
+def test_static_quantity_rejects_traced_value() -> None:
+    """A traced JAX value cannot be static and is rejected under jit."""
+
+    @jax.jit
+    def make(x):
+        return u.StaticQuantity(x, "m")
+
+    with pytest.raises(TypeError, match="cannot hold a traced JAX value"):
+        make(jnp.array([1.0, 2.0]))
+
+
+def test_static_quantity_ops_preserve_staticness() -> None:
+    """Ops on a StaticQuantity stay static (return a StaticQuantity).
+
+    Regression: unary/reduction/scalar-arithmetic rules rebuild via
+    ``replace(x, value=<jax array>)``; the converter rejected that concrete
+    JAX array, so ``-sq``, ``abs(sq)``, ``sq * 2`` etc. crashed.
+    """
+    sq = u.StaticQuantity(np.array([3.0, 1.0, 2.0]), "m")
+
+    for got in (-sq, abs(sq), sq * 2, 2 * sq, sq / 2):
+        assert isinstance(got, u.StaticQuantity)
+        assert isinstance(got.value, StaticValue)
+
+    assert isinstance(qnp.sum(sq), u.StaticQuantity)
+    assert float(np.asarray(qnp.sum(sq).value)) == 6.0
+    assert isinstance(qnp.sqrt(sq), u.StaticQuantity)
+    assert float(np.asarray((sq * 2).value.sum())) == 12.0
 
 
 def test_static_quantity_accepts_array_like() -> None:
     """StaticQuantity accepts array-like inputs."""
     q = u.StaticQuantity([1.0, 2.0], "m")
     assert np.array_equal(np.asarray(q.value), np.array([1.0, 2.0]))
+
+
+def test_static_quantity_from_preserves_dtype() -> None:
+    """``StaticQuantity.from_`` keeps NumPy dtypes, agreeing with ``__init__``.
+
+    Regression: the generic ``from_`` routed the value through ``jnp.asarray``,
+    which applies JAX's x64-disabled dtype rules and silently downcast
+    int64 / float64 to int32 / float32 -- so ``.from_`` disagreed with the
+    constructor, which stores the value verbatim.
+    """
+    a64 = np.array([1, 2, 3], dtype=np.int64)
+    got = u.StaticQuantity.from_(a64, "m")
+    assert got.value.array.dtype == np.int64
+    assert np.array_equal(np.asarray(got.value), a64)
+
+    f64 = np.array([1.5, 2.5], dtype=np.float64)
+    assert u.StaticQuantity.from_(f64, "m").value.array.dtype == np.float64
+    # ``.from_`` and ``__init__`` agree.
+    assert (
+        u.StaticQuantity.from_(f64, "m").value.array.dtype
+        == u.StaticQuantity(f64, "m").value.array.dtype
+    )
+    # The keyword-unit form delegates to the same path.
+    assert u.StaticQuantity.from_(a64, unit="m").value.array.dtype == np.int64
+
+
+def test_static_quantity_from_matches_constructor_on_jax_input() -> None:
+    """``.from_`` applies the same JAX-input policy as ``__init__``.
+
+    ``.from_`` must not bypass the ``StaticValue.from_`` converter: whatever the
+    constructor does with a JAX array, ``.from_`` must do too.
+    """
+    arr = jnp.array([1.0, 2.0])
+
+    ctor_err = None
+    try:
+        u.StaticQuantity(arr, "m")
+    except TypeError as e:  # pragma: no cover - depends on converter policy
+        ctor_err = type(e)
+
+    from_err = None
+    try:
+        u.StaticQuantity.from_(arr, "m")
+    except TypeError as e:  # pragma: no cover - depends on converter policy
+        from_err = type(e)
+
+    assert ctor_err is from_err
+
+    # The ``dtype=`` path must not bypass that policy either: it re-casts the
+    # value but still hands it to ``__init__``.
+    dtype_err = None
+    try:
+        u.StaticQuantity.from_(arr, "m", dtype=np.float64)
+    except TypeError as e:  # pragma: no cover - depends on converter policy
+        dtype_err = type(e)
+
+    assert dtype_err is ctor_err
+
+
+def test_static_quantity_from_honours_explicit_dtype() -> None:
+    """An explicit ``dtype=`` re-casts the value (and stays on NumPy)."""
+    got = u.StaticQuantity.from_(
+        np.array([1, 2, 3], dtype=np.int64), "m", dtype=np.float64
+    )
+    assert got.value.array.dtype == np.float64
+    assert np.array_equal(np.asarray(got.value), np.array([1.0, 2.0, 3.0]))
 
 
 def test_static_quantity_hashable_python() -> None:
@@ -235,6 +405,38 @@ def test_static_quantity_division_integer_inputs() -> None:
     assert result.unit == u.unit("m / s")
 
 
+def test_static_quantity_lax_div_truncates_like_lax() -> None:
+    """``qlax.div`` on integer StaticQuantities truncates toward zero.
+
+    Regression: the rule used ``np.floor_divide`` (rounds toward -inf), which
+    disagrees with ``lax.div_p`` -- and hence with both raw ``lax.div`` and the
+    plain-``Quantity`` rule -- for negative operands. Floor and truncate agree
+    for positives, which is why the existing doctest (6 / 2) did not catch it.
+    """
+    unit = u.unit("m / s")
+    for a, b in [(-7, 2), (7, 2), (-7, -2), (7, -2)]:
+        expected = int(jax.lax.div(jnp.asarray(a), jnp.asarray(b)))  # truncated
+
+        sa = u.StaticQuantity(np.asarray(a), "m")
+        sb = u.StaticQuantity(np.asarray(b), "s")
+        got = qlax.div(sa, sb)
+        assert isinstance(got, u.StaticQuantity)
+        assert int(np.asarray(got.value)) == expected, (a, b)
+        # Integer division stays integer and keeps the divided unit -- not
+        # promoted to float or relabelled.
+        assert got.unit == unit
+        assert np.issubdtype(np.asarray(got.value).dtype, np.integer)
+
+        # ... and it agrees with the plain Quantity rule on the same inputs,
+        # likewise integer-typed with the divided unit.
+        qa = u.Q(jnp.asarray(a), "m")
+        qb = u.Q(jnp.asarray(b), "s")
+        qgot = qlax.div(qa, qb)
+        assert int(np.asarray(qgot.value)) == expected, (a, b)
+        assert qgot.unit == unit
+        assert np.issubdtype(np.asarray(qgot.value).dtype, np.integer)
+
+
 def test_static_quantity_modulo_with_quantity() -> None:
     """StaticQuantity modulo with Quantity promotes to Quantity."""
     sq = u.StaticQuantity(7.0, "m")
@@ -377,6 +579,131 @@ def test_static_value_eq_hash() -> None:
     assert hash(sv1) == hash(sv2)
 
 
+def test_static_backed_equality_is_unit_blind() -> None:
+    """StaticValue-backed equality requires the same unit label.
+
+    Unit-aware equality (``1000 m == 1 km``) is incompatible with using a
+    static quantity as a ``jax.jit`` static arg, where different units must
+    stay distinct cache keys. Equality is therefore unit-blind for
+    StaticValue-backed quantities, and the base class agrees with
+    ``StaticQuantity``.
+    """
+    sv_m = u.quantity.StaticValue(np.array([1000.0, 2000.0]))
+    sv_km = u.quantity.StaticValue(np.array([1.0, 2.0]))
+
+    # Physically equal but different unit labels -> not equal (unit-blind).
+    assert bool(u.Q(sv_m, "m") == u.Q(sv_km, "km")) is False
+    sq_m = u.StaticQuantity(np.array([1000.0]), "m")
+    sq_km = u.StaticQuantity(np.array([1.0]), "km")
+    assert bool(sq_m == sq_km) is False
+
+    # Same unit + equal values -> equal.
+    assert bool(u.Q(sv_m, "m") == u.Q(sv_m, "m")) is True
+
+    # ``!=`` mirrors ``==`` as a scalar bool for the base ``Q(StaticValue)``
+    # path too (not just ``StaticQuantity``).
+    ne_diff_unit = u.Q(sv_m, "m") != u.Q(sv_km, "km")
+    ne_same = u.Q(sv_m, "m") != u.Q(sv_m, "m")
+    assert ne_diff_unit is True
+    assert ne_same is False
+
+    # Base Quantity(StaticValue) and StaticQuantity agree.
+    base_eq = bool(u.Q(sv_m, "m") == u.Q(sv_km, "km"))
+    static_eq = bool(
+        u.StaticQuantity(np.array([1000.0, 2000.0]), "m")
+        == u.StaticQuantity(np.array([1.0, 2.0]), "km")
+    )
+    assert base_eq == static_eq
+
+
+def test_static_backed_eq_hash_contract() -> None:
+    """Equal StaticValue-backed quantities hash equal (eq/hash contract)."""
+    a = u.StaticQuantity(np.array([1000.0]), "m")
+    b = u.StaticQuantity(np.array([1000.0]), "m")
+    assert a == b
+    assert hash(a) == hash(b)
+
+    # A physically-equal but differently-labelled quantity is neither equal
+    # nor forced to share a hash -- so it stays a distinct jit static arg.
+    c = u.StaticQuantity(np.array([1.0]), "km")
+    assert a != c
+    # __ne__ mirrors __eq__ for static-backed quantities (scalar bool).
+    assert (a != b) is False
+    assert (a != c) is True
+
+
+@pytest.mark.parametrize(
+    ("lhs", "rhs"),
+    [
+        ("J", "m2 kg / s2"),  # energy
+        ("N", "kg m / s2"),  # force
+        ("W", "J / s"),  # power
+    ],
+)
+def test_static_backed_eq_is_label_based_not_physical(lhs, rhs) -> None:
+    """Physically-equal but differently-spelled units compare unequal.
+
+    Regression: the static path compared units with ``self.unit == other.unit``,
+    which is astropy's *physical* equality (``Unit('J') == Unit('m2 kg / s2')``
+    is True), while ``__hash__`` hashes the unit *label* (those two hash
+    differently). So ``a == b`` was True while ``hash(a) != hash(b)`` -- the
+    eq/hash contract broken, and ``{a, b}`` held two elements.
+
+    The existing contract test above cannot catch this: it uses ``1000 m`` vs
+    ``1 km``, whose *values* also differ, so it passes under either semantics.
+    Here the values are identical and only the unit spelling differs.
+    """
+    value = np.array([1.0])
+    a = u.StaticQuantity(value, lhs)
+    b = u.StaticQuantity(value, rhs)
+
+    # The units really are physically equal -- this is the trap.
+    assert u.unit(lhs) == u.unit(rhs)
+
+    assert a != b
+    # Collision-safe: a set falls back to ``__eq__`` when hashes collide, so
+    # two unequal objects always occupy two slots regardless of hashing.
+    assert len({a, b}) == 2
+
+    # They are unequal *because the labels differ* -- that is the semantics
+    # under test. (Asserting ``hash(a) != hash(b)`` would be asserting more
+    # than Python guarantees: unequal objects are permitted to collide.)
+    assert str(a.unit) != str(b.unit)
+
+    # The eq/hash contract, in the direction Python actually requires:
+    # equal objects must hash equal. This is what the bug violated.
+    same = u.StaticQuantity(value, lhs)
+    assert a == same
+    assert hash(a) == hash(same)
+
+    # ... and the same holds for a StaticValue-backed plain Quantity, which
+    # goes through the `AbstractQuantity.__eq__` static path rather than
+    # `StaticQuantity.__eq__`. The bug was present on both, so assert the
+    # contract on both -- including the hash direction.
+    qa = u.Q(StaticValue(value), lhs)
+    qb = u.Q(StaticValue(value), rhs)
+    assert qa != qb
+    assert str(qa.unit) != str(qb.unit)
+    assert len({qa, qb}) == 2
+
+    qsame = u.Q(StaticValue(value), lhs)
+    assert qa == qsame
+    assert hash(qa) == hash(qsame)
+
+
+def test_static_quantity_jit_distinguishes_units() -> None:
+    """Different-unit static args must not collapse to one jit compilation."""
+
+    @partial(jax.jit, static_argnames=("q",))
+    def f(x, q):
+        return u.Q(x, q.unit)
+
+    out_km = f(5.0, u.StaticQuantity(np.array(1.0), "km"))
+    out_m = f(5.0, u.StaticQuantity(np.array(1000.0), "m"))
+    assert out_km.unit == u.unit("km")
+    assert out_m.unit == u.unit("m")
+
+
 def test_static_value_rich_comparisons() -> None:
     """StaticValue supports all rich comparison operators."""
     sv1 = u.quantity.StaticValue(np.array([1.0, 2.0, 3.0]))
@@ -455,8 +782,11 @@ def test_static_value_from_dispatch() -> None:
     sv2 = u.quantity.StaticValue.from_(sv)
     assert sv2 is sv
 
-    with pytest.raises(TypeError, match="StaticQuantity does not accept JAX arrays"):
-        u.quantity.StaticValue.from_(jnp.array([1.0, 2.0]))
+    # A concrete (eager) JAX array is materialised to NumPy, not rejected.
+    sv3 = u.quantity.StaticValue.from_(jnp.array([1.0, 2.0]))
+    assert isinstance(sv3, u.quantity.StaticValue)
+    assert isinstance(sv3.array, np.ndarray)
+    assert np.array_equal(np.asarray(sv3), np.array([1.0, 2.0]))
 
 
 def test_static_value_unary_ops() -> None:

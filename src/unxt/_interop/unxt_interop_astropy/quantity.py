@@ -165,17 +165,28 @@ def convert_unxt_quantity_to_astropy_angle(q: AbstractQuantity, /) -> AstropyAng
 # Quantity
 
 
-@plum.conversion_method(type_from=AstropyQuantity, type_to=Quantity)  # type: ignore[arg-type]
-def convert_astropy_quantity_to_unxt_barequantity(q: AstropyQuantity, /) -> Quantity:
+@plum.conversion_method(type_from=AstropyQuantity, type_to=AbstractQuantity)  # type: ignore[arg-type]
+def convert_astropy_quantity_to_unxt_quantity(q: AstropyQuantity, /) -> Quantity:
     """Convert a `astropy.units.Quantity` to a `unxt.Quantity`.
+
+    Registered against the abstract base: `plum` matches a conversion whose
+    ``type_to`` is a supertype of the requested target, so this single method
+    serves both ``convert(q, AbstractQuantity)`` and ``convert(q, Quantity)``
+    (``Quantity`` is a subclass of `~unxt.quantity.AbstractQuantity`). Targeting
+    the base also lets callers that only have `AbstractQuantity` in scope (e.g.
+    arithmetic coercion in ``AbstractQuantity``) request the conversion without
+    importing the concrete class.
 
     Examples
     --------
     >>> from astropy.units import Quantity as AstropyQuantity
     >>> from plum import convert
-    >>> from unxt.quantity import Quantity
+    >>> from unxt.quantity import AbstractQuantity, Quantity
 
     >>> convert(AstropyQuantity(1.0, "cm"), Quantity)
+    Quantity(Array(1., dtype=float32), unit='cm')
+
+    >>> convert(AstropyQuantity(1.0, "cm"), AbstractQuantity)
     Quantity(Array(1., dtype=float32), unit='cm')
 
     """
@@ -208,6 +219,46 @@ def uconvert_value(uto: APYUnits, ufrom: APYUnits, x: ArrayLike, /) -> ArrayLike
 
 
 @plum.dispatch
+def uconvert_value(
+    uto: APYUnits, ufrom: APYUnits, x: AstropyQuantity, /
+) -> AstropyQuantity:
+    """Convert an astropy quantity to the specified units.
+
+    This is a convenience dispatch mirroring the `AbstractQuantity` one: users
+    may pass a quantity to the lower-level value function and it keeps working.
+    Like that dispatch, it checks that the quantity's own unit is convertible
+    to the caller-supplied ``ufrom`` -- `~unxt.is_unit_convertible` takes the
+    *target* first, so ``is_unit_convertible(ufrom, x.unit)`` reads
+    "``x.unit`` -> ``ufrom``" -- then defers to the quantity's own unit for the
+    arithmetic, returning a *relabelled quantity* rather than a bare value.
+
+    This dispatch is required: an astropy `~astropy.units.Quantity` subclasses
+    `numpy.ndarray`, so it satisfies the ``x: ArrayLike`` annotation of the
+    bare-value dispatch above and is not rejected even under `beartype`. That
+    body's ``ufrom.to(uto, x)`` converts the magnitude but returns a quantity
+    still carrying ``ufrom``'s unit, mislabelling the result (e.g.
+    ``uconvert_value("m", "km", 1 km)`` gave ``1000.0 km``).
+
+    Examples
+    --------
+    >>> import astropy.units as apyu
+    >>> import unxt as u
+
+    >>> u.uconvert_value(apyu.Unit("m"), apyu.Unit("km"), apyu.Quantity(1.0, "km"))
+    <Quantity 1000. m>
+
+    >>> u.uconvert_value(apyu.Unit("m"), apyu.Unit("m"), apyu.Quantity(5.0, "m"))
+    <Quantity 5. m>
+
+    """
+    if not uapi.is_unit_convertible(ufrom, x.unit):
+        msg = f"Cannot convert from {x.unit} to {ufrom}"
+        raise ValueError(msg)
+
+    return x.to(uto)
+
+
+@plum.dispatch
 def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
     """Convert the quantity to the specified units.
 
@@ -233,8 +284,20 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
     Quantity(Array([1., 2., 3.], dtype=float32, ...), unit='')
 
     """
-    # Hot-path: if no unit conversion is necessary
-    if x.unit == u:
+    # Hot-path: skip the conversion only when the unit is genuinely unchanged.
+    # NB: astropy treats physically-equal units as ``==`` (e.g. ``J == m2 kg /
+    # s2``), so ``x.unit == u`` alone would silently return ``x`` without
+    # relabeling to the requested (equal but differently-named) unit. Require
+    # the string forms to match too so the relabel still happens.
+    #
+    # Check identity first: astropy interns named units, so the common
+    # "convert to the unit it already has" case hits ``is`` and skips two
+    # ``to_string()`` calls (~116x the cost of the identity test). Identity
+    # implies identical string forms, so this cannot skip a needed relabel --
+    # the ``J`` vs ``m2 kg / s2`` case is ``==`` but *not* ``is``.
+    if x.unit is u:
+        return x
+    if x.unit == u and x.unit.to_string() == u.to_string():
         return x
 
     value = x.unit.to(u, uapi.ustrip(x))
@@ -247,7 +310,7 @@ def uconvert(u: APYUnits, x: AbstractQuantity, /) -> AbstractQuantity:
     # the dimensions can be part of the type. This won't work if the quantity
     # type itself needs to be changed, e.g. `unxt.Angle` -> `unxt.Quantity`.
     # These cases are handled separately, in other dispatches.
-    fs = dict(dc.field_items(x))  # pylint: disable=unreachable
+    fs = dict(dc.field_items(x))
     fs["value"] = value
     fs["unit"] = u
 
@@ -280,10 +343,36 @@ def ustrip(flag: type[AllowValue], u: Any, x: AstropyQuantity, /) -> Any:
 
     Examples
     --------
+    >>> import astropy.units as apyu
     >>> import unxt as u
-    >>> q = u.Q(1000, "m")
-    >>> u.ustrip(AllowValue, "km", q)
-    Array(1., dtype=float32, ...)
+    >>> from unxt.quantity import AllowValue
+    >>> q = apyu.Quantity(1000, "m")
+    >>> float(u.ustrip(AllowValue, "km", q))
+    1.0
 
     """
     return uapi.ustrip(u, x)
+
+
+@plum.dispatch
+def ustrip(flag: type[AllowValue], x: AstropyQuantity, /) -> Any:
+    """Strip the units from an astropy quantity, allowing bare values through.
+
+    The two-argument :class:`~unxt.quantity.AllowValue` form takes no target
+    unit, so it returns the value in the quantity's own unit. This dispatch
+    disambiguates ``ustrip(AllowValue, <astropy Quantity>)``, which otherwise
+    matched both ``ustrip(type[AllowValue], Any)`` and
+    ``ustrip(Any, AstropyQuantity)`` with neither dominating. It mirrors the
+    ``(type[AllowValue], AbstractQuantity)`` form for unxt quantities.
+
+    Examples
+    --------
+    >>> import astropy.units as apyu
+    >>> import unxt as u
+    >>> from unxt.quantity import AllowValue
+    >>> q = apyu.Quantity(1000, "m")
+    >>> float(u.ustrip(AllowValue, q))
+    1000.0
+
+    """
+    return x.value

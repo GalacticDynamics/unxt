@@ -2,12 +2,17 @@
 
 # pylint: disable=import-error, no-member, unsubscriptable-object
 #    b/c it doesn't understand dataclass fields
+# pylint: disable=import-outside-toplevel
+#    `_astropy_quantity_types` lazily imports `unxt._interop.OptDeps` and
+#    `astropy.units.Quantity`; importing `_interop` at module scope would cycle
+#    back through the interop registration into this package.
+#    `is_equivalent` imports `equivalent` from `register_compare` lazily to avoid
+#    an import cycle (register_compare imports this module)
 
 __all__ = ("AbstractQuantity", "is_any_quantity")
 
 import contextlib
 import functools as ft
-import warnings
 from collections.abc import Mapping
 from types import ModuleType
 from typing import (
@@ -19,8 +24,8 @@ from typing import (
     TypeAlias,
     TypeGuard,
     cast,
+    override,
 )
-from typing_extensions import override
 
 import equinox as eqx
 import jax
@@ -30,7 +35,7 @@ import quax_blocks
 import wadler_lindig as wl
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Bool, ScalarLike, Shaped
-from plum import add_promotion_rule, dispatch, type_nonparametric
+from plum import add_promotion_rule, convert, dispatch, type_nonparametric
 from quax import ArrayValue
 
 import quaxed.numpy as jnp
@@ -47,6 +52,56 @@ if TYPE_CHECKING:
 
 
 ArrayLikeSequence: TypeAlias = list[ScalarLike] | tuple[ScalarLike, ...]
+
+
+@ft.cache
+def _astropy_quantity_types() -> tuple[type, ...]:
+    """Return the astropy ``Quantity`` types to coerce, else ``()``.
+
+    Astropy is an optional backend, gated through the ``OptDeps`` mechanism.
+    The lookup is done lazily and cached (``functools.cache``): importing
+    ``unxt._interop`` (where ``OptDeps`` lives) at module scope would cycle back
+    through the interop registration into this package.
+    """
+    from unxt._interop import OptDeps  # noqa: PLC0415  # avoids an import cycle
+
+    if OptDeps.ASTROPY.installed:
+        from astropy.units import Quantity  # noqa: PLC0415
+
+        return (Quantity,)
+    return ()
+
+
+def _coerce_foreign_quantity(other: Any) -> Any:
+    """Convert an `astropy.units.Quantity` operand to an `unxt` quantity.
+
+    Any other operand is returned unchanged. Used by the arithmetic dunders so
+    that a foreign astropy quantity combines by its unit instead of being
+    stripped to a bare array by `quax`.
+    """
+    if isinstance(other, _astropy_quantity_types()):
+        # A conversion to the abstract base is registered in the astropy interop
+        # (loaded whenever astropy is present), returning a concrete Quantity --
+        # so we needn't import the concrete class here.
+        return convert(other, AbstractQuantity)
+    return other
+
+
+def same_unit_label(a: AbstractUnit, b: AbstractUnit, /) -> bool:
+    """Return whether two units carry the same *label*.
+
+    The static-value equality path must not use ``a == b``: astropy's unit
+    equality is *physical*, so ``Unit("J") == Unit("m2 kg / s2")`` is `True`,
+    whereas astropy hashes the label, so those two hash *differently*. Using
+    ``==`` there therefore broke the ``__eq__``/``__hash__`` contract -- equal
+    objects that hash apart, so ``{a, b}`` held two elements.
+
+    Comparing ``str`` keeps equality consistent with ``__hash__`` (which hashes
+    the unit itself), and preserves the property a `StaticQuantity` exists for:
+    distinct unit labels stay distinct ``jax.jit`` compilation cache keys. Use
+    `unxt.equivalent` for the unit-aware comparison.
+    """
+    return str(a) == str(b)
 
 
 class AbstractQuantity(
@@ -302,9 +357,6 @@ class AbstractQuantity(
         """
         return replace(self, value=self.value.T)
 
-    # required to override mixin methods
-    __eq__ = quax_blocks.NumpyEqMixin.__eq__  # type: ignore[assignment,unused-ignore]
-
     # ---------------------------------------------------------------
     # methods
 
@@ -454,7 +506,18 @@ class AbstractQuantity(
          Quantity(Array(3, dtype=int32), unit='m')]
 
         """
-        yield from (self[i] for i in range(len(self.value)))
+        # NB: this is deliberately *not* a generator function. A generator
+        # would make ``iter(q)`` succeed even for a 0-d quantity (the body only
+        # runs on the first ``next()``), so ``np.iterable(0-d q)`` returned True
+        # -- unlike numpy/jax/astropy -- breaking scalar plotting in matplotlib.
+        # Validate eagerly and return the iterator.
+        # ``np.ndim`` rather than ``self.value.ndim``: during a ``jax.tree`` map
+        # the value can transiently be a plain list (which has no ``.ndim``),
+        # and it also handles tracers, NumPy/JAX arrays and ``StaticValue``.
+        if np.ndim(self.value) == 0:
+            msg = "iteration over a 0-d array"
+            raise TypeError(msg)
+        return (self[i] for i in range(len(self.value)))
 
     def argmax(self, *args: Any, **kwargs: Any) -> Array:
         """Return the indices of the maximum value.
@@ -658,9 +721,10 @@ class AbstractQuantity(
 
         When both operands carry a `StaticValue`, structural (scalar bool)
         equality is returned so that the quantity can be used safely as a
-        ``static_argnames`` argument in `jax.jit`. Units are accounted for by
-        converting `other` to `self`'s units before comparing. In all other
-        cases the element-wise `NumpyEqMixin` behaviour is preserved.
+        ``static_argnames`` argument in `jax.jit`; this comparison is
+        **unit-blind** -- the operands are equal only when their unit labels
+        match, with no unit conversion (see below). In all other cases the
+        element-wise `NumpyEqMixin` behaviour is preserved.
 
         Examples
         --------
@@ -686,31 +750,69 @@ class AbstractQuantity(
         >>> u.Q(sv1, "m") == u.Q(sv3, "m")
         False
 
-        Unit conversion is applied before comparing, so equivalent quantities in
-        different units compare equal:
+        For `StaticValue`-backed quantities this comparison is **unit-blind**:
+        they are equal only when their unit labels match (unlike the
+        array-backed path above, which returns an element-wise mask after unit
+        conversion). Unit-aware equality (``1000 m == 1 km``) is incompatible
+        with using a static quantity as a ``jax.jit`` ``static_argnames``
+        argument, where distinct units must remain distinct compilation cache
+        keys; it would also break the ``__eq__``/``__hash__`` contract, since the
+        hash is unit-label sensitive. Convert first if you want to compare
+        across units (e.g. ``a == b.uconvert(a.unit)``).
 
         >>> sv_km = u.quantity.StaticValue(np.array([0.001, 0.002]))
         >>> u.Q(sv1, "m") == u.Q(sv_km, "km")
-        True
-
-        Quantities with incompatible dimensions are never equal:
+        False
 
         >>> sv_s = u.quantity.StaticValue(np.array([1.0, 2.0]))
         >>> u.Q(sv1, "m") == u.Q(sv_s, "s")
         False
 
         """
-        if (
+        if self._is_static_backed(other):
+            return bool(
+                same_unit_label(self.unit, other.unit)
+                and np.array_equal(self.value.array, other.value.array)
+            )
+
+        return quax_blocks.NumpyEqMixin.__eq__(self, other)
+
+    def __ne__(self, other: object, /) -> Any:
+        """Return inequality, mirroring :meth:`__eq__`.
+
+        For two `StaticValue`-backed quantities this returns the scalar-`bool`
+        negation of the unit-blind equality, so ``==`` and ``!=`` stay
+        consistent (and usable as ``jax.jit`` static args). Otherwise it defers
+        to the element-wise NumPy comparison.
+        """
+        if self._is_static_backed(other):
+            return not self.__eq__(other)
+        return quax_blocks.NumpyNeMixin.__ne__(self, other)
+
+    def _is_static_backed(self, other: object, /) -> bool:
+        """Whether ``self`` and ``other`` are both `StaticValue`-backed."""
+        return (
             isinstance(self.value, StaticValue)
             and isinstance(other, AbstractQuantity)
             and isinstance(other.value, StaticValue)
-        ):
-            if not uapi.is_unit_convertible(other.unit, self.unit):
-                return False
-            converted = uapi.uconvert_value(self.unit, other.unit, other.value.array)
-            return bool(np.array_equal(self.value.array, converted))
+        )
 
-        return quax_blocks.NumpyEqMixin.__eq__(self, other)
+    def is_equivalent(self, other: "AbstractQuantity", /) -> Any:
+        """Whether ``self`` and ``other`` are physically equal (unit-aware).
+
+        The method form of `unxt.equivalent`; unlike ``==`` (which is unit-blind
+        for `StaticValue`-backed quantities) this accounts for unit conversion.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> u.Q(1000.0, "m").is_equivalent(u.Q(1.0, "km"))
+        Quantity(Array(True, dtype=bool...), unit='')
+
+        """
+        from .register_compare import equivalent  # noqa: PLC0415
+
+        return equivalent(self, other)
 
     def __hash__(self) -> int:
         """Return the hash of the quantity.
@@ -732,6 +834,45 @@ class AbstractQuantity(
 
         """
         return hash((self.value, self.unit))
+
+    # ---------------------------------------------------------------
+    # Arithmetic with foreign (astropy) quantities
+    #
+    # When an ``astropy.units.Quantity`` is the right operand, ``quax`` would
+    # materialise it via ``__array__`` -- stripping it to a bare array in its
+    # own unit -- so ``*``/``/`` silently dropped its unit and ``+``/``-`` saw
+    # it as dimensionless. Convert such an operand to an ``unxt`` quantity first
+    # so units combine correctly.
+    #
+    # No reflected counterparts: they cannot help. Astropy's own
+    # ``__array_ufunc__`` handles ``astropy_q <op> unxt_q`` eagerly, and under
+    # ``jax.jit`` the unit is already destroyed before any code here runs.
+    # See the "Mixing Astropy and unxt Quantities Under jit" sharp bit, and the
+    # strict-xfail ``TestReflectedMixedArithmeticUnderJit``.
+
+    def __mul__(self, other: Any) -> Any:
+        return super().__mul__(_coerce_foreign_quantity(other))
+
+    def __truediv__(self, other: Any) -> Any:
+        return super().__truediv__(_coerce_foreign_quantity(other))
+
+    def __add__(self, other: Any) -> Any:
+        return super().__add__(_coerce_foreign_quantity(other))
+
+    def __sub__(self, other: Any) -> Any:
+        return super().__sub__(_coerce_foreign_quantity(other))
+
+    def __floordiv__(self, other: Any) -> Any:
+        return super().__floordiv__(_coerce_foreign_quantity(other))
+
+    def __mod__(self, other: Any) -> Any:
+        return super().__mod__(_coerce_foreign_quantity(other))
+
+    def __pow__(self, other: Any) -> Any:
+        return super().__pow__(_coerce_foreign_quantity(other))
+
+    def __matmul__(self, other: Any) -> Any:
+        return super().__matmul__(_coerce_foreign_quantity(other))
 
     def __pdoc__(
         self,
@@ -822,17 +963,7 @@ class AbstractQuantity(
         del fs["value"]
         del fs["unit"]
 
-        # Customize value representation
-        # (backward compatibility for `compact_arrays` argument)
-        # TODO: remove in v2.0
-        if "compact_arrays" in kwargs:
-            short_arrays = kwargs.pop("compact_arrays")
-            warnings.warn(
-                "`compact_arrays` argument is deprecated; use "
-                "`short_arrays='compact'` instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
+        # Customize value representation.
         # If the value is a tracer, then we ALWAYS use the short array
         # representation since we only have the dtype and shape at trace-time
         # and trying to print out the values will error.
@@ -895,6 +1026,31 @@ class AbstractQuantity(
             named_unit=config.quantity_str.named_unit,
             indent=config.quantity_str.indent,
         )
+
+    def __format__(self, format_spec: str, /) -> str:
+        """Format the quantity, applying ``format_spec`` to the value.
+
+        An empty spec preserves the default :meth:`__str__` representation. A
+        non-empty spec is applied to the value and the unit is appended (as in
+        `astropy.units.Quantity`); a dimensionless quantity has no unit suffix.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> q = u.Q(3.14159, "m")
+        >>> f"{q:.2f}"
+        '3.14 m'
+        >>> format(q, ".3e")
+        '3.142e+00 m'
+        >>> format(u.Q(3.14159, ""), ".2f")
+        '3.14'
+
+        """
+        if not format_spec:
+            return str(self)
+        value_str = format(self.value, format_spec)
+        unit_str = str(self.unit)
+        return f"{value_str} {unit_str}" if unit_str else value_str
 
 
 def _is_different_from_default(value: Any, default: Any) -> bool:

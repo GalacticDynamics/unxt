@@ -78,3 +78,19 @@
           - ".github/workflows/cd-unxts-interop-xarray.yml"
           - ".github/workflows/cd-publish-unxts-interop-xarray.yml"
           - ".github/workflows/cd-pr-unxts-interop-xarray.yml"
+
+"🧩 unxts-linalg":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/unxts.linalg/**"
+          - ".github/workflows/cd-unxts-linalg.yml"
+          - ".github/workflows/cd-publish-unxts-linalg.yml"
+          - ".github/workflows/cd-pr-unxts-linalg.yml"
+
+"🧩 unxts-parametric":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/unxts.parametric/**"
+          - ".github/workflows/cd-unxts-parametric.yml"
+          - ".github/workflows/cd-publish-unxts-parametric.yml"
+          - ".github/workflows/cd-pr-unxts-parametric.yml"

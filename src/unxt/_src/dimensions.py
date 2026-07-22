@@ -131,11 +131,18 @@ def _eval_dimension_node(  # noqa: C901
         raise ValueError(msg)
 
     if isinstance(node, ast.UnaryOp):
-        operand = _eval_dimension_node(node.operand, dim_mapping=dim_mapping)
-        if isinstance(node.op, ast.USub):
-            return operand**-1
+        # A negative exponent (``length**-1``) is handled in the ``Pow`` branch
+        # above, so any ``UnaryOp`` reaching here is a standalone sign applied to
+        # a dimension. Dimensions are invariant under negation, so reject it
+        # rather than silently treating ``-(length)`` as ``1/length``.
+        if isinstance(node.op, (ast.USub, ast.UAdd)):
+            msg = (
+                "Unary '+'/'-' are not supported on dimensions; they are "
+                "invariant under negation."
+            )
+            raise ValueError(msg)  # noqa: TRY004  # a parse error, not a type error
         msg = f"Unsupported unary operator: {node.op.__class__.__name__}"
-        raise ValueError(msg)
+        raise ValueError(msg)  # noqa: TRY004  # a parse error, not a type error
 
     if isinstance(node, ast.Name):
         # Check if this is a temporary identifier that maps to a dimension name
@@ -297,6 +304,10 @@ def dimension(obj: str, /) -> AbstractDimension:
     unxt.units : Unit specifications can also use dimension expressions
 
     """
+    # Strip surrounding whitespace so both the operator path (which strips) and
+    # the simple-name path treat e.g. " length " the same as "length".
+    obj = obj.strip()
+
     # Check if the string contains PEMD operators using regex
     # We only consider (), *, /, ** as operators - not space, +, or -
     if _PEMD_PATTERN.search(obj):

@@ -9,15 +9,16 @@ sd_hide_title: true
 :hidden:
 :caption: 📦 Packages
 
-unxt-api <packages/unxt-api/index>
 unxt <self>
-unxt-hypothesis <packages/unxt-hypothesis/index>
 unxts.api <packages/unxts.api/index>
 unxts.hypothesis <packages/unxts.hypothesis/index>
 unxts.parametric <packages/unxts.parametric/index>
+unxts.linalg <packages/unxts.linalg/index>
 unxts.interop.gala <packages/unxts.interop.gala/index>
 unxts.interop.matplotlib <packages/unxts.interop.matplotlib/index>
 unxts.interop.xarray <packages/unxts.interop.xarray/index>
+unxt-api <packages/unxt-api/index>
+unxt-hypothesis <packages/unxt-hypothesis/index>
 ```
 
 ```{toctree}
@@ -104,7 +105,7 @@ uv add unxt
 :::{tab-item} source, via pip
 
 ```bash
-pip install git+https://https://github.com/GalacticDynamics/unxt.git
+pip install git+https://github.com/GalacticDynamics/unxt.git
 ```
 
 :::
@@ -113,7 +114,7 @@ pip install git+https://https://github.com/GalacticDynamics/unxt.git
 
 ```bash
 cd /path/to/parent
-git clone https://https://github.com/GalacticDynamics/unxt.git
+git clone https://github.com/GalacticDynamics/unxt.git
 cd unxt
 pip install -e .  # editable mode
 ```
@@ -660,11 +661,11 @@ If you found this library to be useful and want to support the development and m
 - [Quax][quax]: JAX + multiple dispatch + custom array-ish objects.
 - [Quaxed][quaxed]: pre-`quaxify`ed Jax.
 - [plum][plum]: multiple dispatch in python
-- [unxt-api][unxt-api]: the API for `unxt`.
+- [unxts.api][unxts-api]: the abstract dispatch API for `unxt`.
 
 ### `unxt`'s Dependents
 
-- [unxt-hypothesis][unxt-hypothesis]: `unxt` integration with `hypothesis` property-based testing.
+- [unxts.hypothesis][unxts-hypothesis]: `unxt` integration with `hypothesis` property-based testing.
 
 - [coordinax][coordinax]: Coordinates in JAX.
 - [galax][galax]: Galactic dynamics in JAX.
@@ -681,8 +682,8 @@ If you found this library to be useful and want to support the development and m
 [plum]: https://pypi.org/project/plum-dispatch/
 [quax]: https://github.com/patrick-kidger/quax
 [quaxed]: https://quaxed.readthedocs.io/en/latest/
-[unxt-api]: https://pypi.org/project/unxt-api/
-[unxt-hypothesis]: https://pypi.org/project/unxt-hypothesis/
+[unxts-api]: https://pypi.org/project/unxts.api/
+[unxts-hypothesis]: https://pypi.org/project/unxts.hypothesis/
 [pypi-link]: https://pypi.org/project/unxt/
 [pypi-platforms]: https://img.shields.io/pypi/pyversions/unxt
 [pypi-version]: https://img.shields.io/pypi/v/unxt

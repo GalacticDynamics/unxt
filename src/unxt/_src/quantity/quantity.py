@@ -19,13 +19,13 @@ class Quantity(AbstractQuantity):
     This class is not parametrized by its dimensionality, making it a single
     class (and a single JAX pytree type) regardless of dimension. For runtime
     dimension checking and dimension-specific dispatch, see
-    `unxt.ParametricQuantity`.
+    `unxts.parametric.ParametricQuantity`.
 
     Examples
     --------
     >>> import unxt as u
     >>> u.Quantity(1, "m")
-    Quantity(Array(1, dtype=int32), unit='m')
+    Quantity(Array(1, dtype=int32...), unit='m')
 
     """
 
@@ -43,7 +43,7 @@ class Quantity(AbstractQuantity):
         """No-op support for ``Quantity[...]`` syntax.
 
         The dimension parameter is accepted for interchangeability with
-        `unxt.ParametricQuantity` but is NOT checked.
+        `unxts.parametric.ParametricQuantity` but is NOT checked.
 
         >>> from unxt.quantity import Quantity
         >>> Quantity["length"]

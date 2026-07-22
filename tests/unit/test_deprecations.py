@@ -29,8 +29,31 @@ def test_barequantity_not_in_public_all():
     assert "BareQuantity" not in uq.__all__
 
 
+def test_barequantity_top_level_is_deprecated_alias():
+    """`from unxt import BareQuantity` warns and resolves to `Quantity`.
+
+    The top-level shim must match `unxt.quantity`'s (which was already handled).
+    """
+    with pytest.warns(DeprecationWarning, match="renamed to `Quantity`"):
+        from unxt import BareQuantity  # noqa: PLC0415
+
+    assert BareQuantity is u.Quantity
+
+
+def test_barequantity_top_level_attribute_access_warns():
+    """Attribute access on the top-level module also warns."""
+    with pytest.warns(DeprecationWarning, match="renamed to `Quantity`"):
+        cls = u.BareQuantity
+    assert cls is u.Quantity
+
+
 def test_unknown_attribute_raises():
     import unxt.quantity as uq  # noqa: PLC0415
 
     with pytest.raises(AttributeError, match="NotAThing"):
         _ = uq.NotAThing
+
+
+def test_unknown_top_level_attribute_raises():
+    with pytest.raises(AttributeError, match="NotAThing"):
+        _ = u.NotAThing

@@ -1,8 +1,10 @@
 """Doctest configuration."""
 
+import importlib.util
 import os
 from collections.abc import Callable, Iterable, Sequence
 from doctest import ELLIPSIS, NORMALIZE_WHITESPACE
+from pathlib import Path
 from typing import Any
 
 from sybil import Document, Region, Sybil
@@ -15,6 +17,25 @@ from sybil.parsers.abstract.doctest import DocTestStringParser
 from optional_dependencies import OptionalDependencyEnum, auto
 
 optionflags = ELLIPSIS | NORMALIZE_WHITESPACE
+
+# Hypothesis' 200ms per-example deadline is meaningless for tests that call into
+# jax: an example that trips a fresh trace/compile, or just lands on a busy CPU
+# during a full-suite run, blows past it. The deadline failure then does not
+# reproduce on replay, so it surfaces as an unactionable `FlakyFailure`
+# ("unreliable results: Falsified on the first call but did not on a subsequent
+# one"). Turn it off globally; per-test `@settings` still override this.
+#
+# Imported defensively: `hypothesis` is declared only by the two `*hypothesis`
+# packages and the root dev env, while each per-package CI job installs a
+# minimal env (`uv sync --package <pkg>`) without it. An unconditional import
+# here makes *loading this conftest* fail, which pytest reports as a usage
+# error (exit code 4) before any test runs -- so it takes down every sibling
+# package job, not just the hypothesis-using ones.
+if importlib.util.find_spec("hypothesis") is not None:
+    import hypothesis
+
+    hypothesis.settings.register_profile("unxt", deadline=None)
+    hypothesis.settings.load_profile("unxt")
 
 
 class PlainDocTestParser:
@@ -62,17 +83,59 @@ python = Sybil(
 )
 
 
-pytest_collect_file = (docs + python).pytest()
+_sybil_collect_file = (docs + python).pytest()
+
+# Sybil imports a doctest module by walking up through ``__init__.py`` dirs, so
+# at a PEP 420 namespace boundary it computes a leaf-based module name. For the
+# ``unxts.*`` packages whose leaf shadows an installed library
+# (gala/xarray/hypothesis) that name collides with the real library and the
+# import fails. Their ``src`` doctests are instead run with pytest's
+# ``--doctest-modules --import-mode=importlib`` (namespace-aware) in each
+# package's CI job, so skip them here to avoid the failing sybil import.
+# (unxts.interop.matplotlib also collides but has no ``src`` doctests, so sybil
+# never imports it; it stays on the normal path.)
+_DOCTEST_MODULE_SRC = (
+    "packages/unxts.interop.gala/src/",
+    "packages/unxts.interop.xarray/src/",
+    "packages/unxts.hypothesis/src/",
+)
+
+
+def pytest_collect_file(file_path: Path, parent: object) -> object:
+    """Collect doctests with Sybil, except the namespace ``src`` handled above."""
+    if any(marker in file_path.as_posix() for marker in _DOCTEST_MODULE_SRC):
+        return None
+    return _sybil_collect_file(file_path, parent)
 
 
 class OptDeps(OptionalDependencyEnum):
-    """Optional dependencies for ``unxt``."""
+    """External backends for ``unxt``.
+
+    Only genuine third-party backends belong here. ``OptionalDependencyEnum``
+    keys each member on its installed version, so any two members that share a
+    version silently collapse into a single enum alias. unxt's own ``unxts.*``
+    sub-packages are released together and so usually share a version (bug-fix
+    releases can make them diverge), so their presence is checked with
+    ``_is_installed`` (an import-spec lookup via ``find_spec``) instead (see
+    ``unxt._interop.optional_deps`` for the same reasoning).
+    """
 
     ASTROPY = auto()
     GALA = auto()
-    UNXTS_INTEROP_GALA = auto()
-    UNXTS_INTEROP_MATPLOTLIB = auto()
-    UNXTS_PARAMETRIC = auto()
+
+
+def _is_installed(module: str) -> bool:
+    """Return whether ``module`` has a discoverable import spec.
+
+    Uses :func:`importlib.util.find_spec` (reports installed / findable, not that
+    importing would succeed). Defined locally (rather than importing the
+    equivalent helper from ``unxt``) so that ``conftest`` never imports ``unxt``
+    before ``pytest_generate_tests`` sets ``UNXT_ENABLE_RUNTIME_TYPECHECKING``.
+    """
+    try:
+        return importlib.util.find_spec(module) is not None
+    except (ImportError, ValueError):
+        return False
 
 
 collect_ignore_glob = []
@@ -80,15 +143,19 @@ if not OptDeps.ASTROPY.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_astropy/*")
 # The package docs are collected through the docs/packages/<name> symlinks, so
 # ignore that (symlink) path, not the real package path.
-# gala is skipped where it cannot build (Windows), even though the
-# unxts.interop.gala package itself is installed; gate on gala being importable.
-if not (OptDeps.UNXTS_INTEROP_GALA.installed and OptDeps.GALA.installed):
+# `unxts.interop.gala` is an optional extra, so it may be absent; and even when
+# it is present its `gala` dependency may be unimportable (gala is skipped where
+# it cannot build, e.g. Windows). Ignore its docs unless both are available.
+if not (_is_installed("unxts.interop.gala") and OptDeps.GALA.installed):
     collect_ignore_glob.append("docs/packages/unxts.interop.gala/*")
     collect_ignore_glob.append("packages/unxts.interop.gala/docs/*")
-if not OptDeps.UNXTS_INTEROP_MATPLOTLIB.installed:
+if not _is_installed("unxts.interop.matplotlib"):
     collect_ignore_glob.append("docs/packages/unxts.interop.matplotlib/*")
     collect_ignore_glob.append("packages/unxts.interop.matplotlib/docs/*")
-if not OptDeps.UNXTS_PARAMETRIC.installed:
+if not _is_installed("unxts.linalg"):
+    collect_ignore_glob.append("docs/packages/unxts.linalg/*")
+    collect_ignore_glob.append("packages/unxts.linalg/docs/*")
+if not _is_installed("unxts.parametric"):
     collect_ignore_glob.append("docs/packages/unxts.parametric/*")
     collect_ignore_glob.append("packages/unxts.parametric/docs/*")
 

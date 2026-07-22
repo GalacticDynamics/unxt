@@ -7,11 +7,9 @@ classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: BSD License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
@@ -22,10 +20,10 @@ classifiers = [
 dependencies = ["unxts.hypothesis>=2.0.0"]
 description = "Hypothesis strategies for unxt"
 dynamic = ["version"]
-license.text = "BSD-3-Clause"
+license = "BSD-3-Clause"
 name = "unxt-hypothesis"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"
@@ -64,14 +62,6 @@ describe_command = [
   "--match",
   "unxt-hypothesis-v*",
 ]
-
-[tool.hatch.build.hooks.vcs]
-version-file = "src/unxt_hypothesis/_version.py"
-version-file-template = """\
-version: str = {version!r}
-version_tuple: tuple[int, int, int] | tuple[int, int, int, str, str]
-version_tuple = {version_tuple!r}
-"""
 
 
 [tool.uv.sources]

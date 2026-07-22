@@ -1647,6 +1647,53 @@ def test_min():
     assert jnp.array_equal(got.value, exp.value)
 
 
+def test_clip_scaled_dimensionless():
+    """Bare bounds on a scaled-dimensionless quantity keep true units.
+
+    ``jnp.clip`` lowers to ``maximum``/``minimum``, so bare bounds must be
+    compared against ``q`` in true-dimensionless units and the result must not
+    inherit ``q``'s scaled ('%') unit.
+    """
+    q = u.Q(100.0, "percent")  # == 1.0 dimensionless
+
+    got = jnp.clip(q, 0.0, 0.5)
+
+    assert got.unit == u.unit("")
+    assert u.ustrip("", got) == 0.5
+
+
+def test_maximum_scaled_dimensionless():
+    """``maximum`` with a bare bound on a scaled-dimensionless quantity."""
+    q = u.Q(100.0, "percent")  # == 1.0 dimensionless
+
+    for got in (jnp.maximum(0.0, q), jnp.maximum(q, 0.0)):
+        assert got.unit == u.unit("")
+        assert u.ustrip("", got) == 1.0
+
+
+def test_minimum_scaled_dimensionless():
+    """``minimum`` with a bare bound on a scaled-dimensionless quantity."""
+    q = u.Q(100.0, "percent")  # == 1.0 dimensionless
+
+    for got in (jnp.minimum(0.5, q), jnp.minimum(q, 0.5)):
+        assert got.unit == u.unit("")
+        assert u.ustrip("", got) == 0.5
+
+
+def test_clamp_scaled_dimensionless():
+    """``lax.clamp`` with a bare bound on a scaled-dimensionless quantity.
+
+    The mixed array/quantity ``clamp`` rules share the min/max defect: a bound
+    given as a bare array must clamp ``q`` in true-dimensionless units, and the
+    result must not inherit ``q``'s scaled ('%') unit.
+    """
+    q = u.Q(100.0, "percent")  # == 1.0 dimensionless
+
+    for got in (qlax.clamp(0.0, q, u.Q(0.5, "")), qlax.clamp(u.Q(0.0, ""), q, 0.5)):
+        assert got.unit == u.unit("")
+        assert u.ustrip("", got) == 0.5
+
+
 @pytest.mark.filterwarnings("ignore:Explicitly requested dtype")  # TODO: Why?
 def test_prod():
     """Test `prod`."""
@@ -1963,7 +2010,6 @@ def test_linalg_eigvalsh():
     assert jnp.allclose(got.value, exp.value)
 
 
-@pytest.mark.xfail(reason="TODO: fix")
 def test_linalg_inv():
     """Test `linalg.inv`."""
     # Inverse of matrix with unit m has unit 1/m
@@ -1973,6 +2019,7 @@ def test_linalg_inv():
 
     assert isinstance(got, u.Q)
     assert got.unit == exp.unit
+    assert got.value.shape == exp.value.shape
     assert jnp.allclose(got.value, exp.value)
 
 
@@ -2088,7 +2135,7 @@ def test_linalg_slogdet():
 
 
 def test_linalg_solve():
-    """Test `linalg.solve`."""
+    """Test `linalg.solve` with a 1-D right-hand side."""
     # Solve Ax = b where A has unit m and b has unit m*s, x has unit s
     a = u.Q(jnp.asarray([[1.0, 2.0], [3.0, 5.0]]), "m")
     b = u.Q(jnp.asarray([1.0, 2.0]), "m*s")
@@ -2097,6 +2144,21 @@ def test_linalg_solve():
 
     assert isinstance(got, u.Q)
     assert got.unit == exp.unit
+    # The solution has the same shape as the RHS (regression: was ``(1, n)``).
+    assert got.value.shape == exp.value.shape == (2,)
+    assert jnp.allclose(got.value, exp.value)
+
+
+def test_linalg_solve_2d_rhs():
+    """Test `linalg.solve` with a 2-D right-hand side (regression: crashed)."""
+    a = u.Q(jnp.asarray([[1.0, 2.0], [3.0, 5.0]]), "m")
+    b = u.Q(jnp.asarray([[1.0, 2.0], [3.0, 4.0]]), "m*s")
+    got = jnp.linalg.solve(a, b)
+    exp = u.Q(jnp.linalg.solve(a.value, b.value), "s")
+
+    assert isinstance(got, u.Q)
+    assert got.unit == exp.unit
+    assert got.value.shape == exp.value.shape == (2, 2)
     assert jnp.allclose(got.value, exp.value)
 
 

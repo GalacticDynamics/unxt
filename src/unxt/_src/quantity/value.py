@@ -4,8 +4,7 @@ __all__ = ("StaticValue", "convert_to_quantity_value")
 
 import operator
 import warnings
-from typing import Any, final
-from typing_extensions import override
+from typing import Any, final, override
 
 import jax
 import numpy as np
@@ -133,10 +132,35 @@ class StaticValue:
         return self._array[key]
 
     def __getattr__(self, name: str) -> Any:
-        return getattr(jnp.asarray(self._array), name)
+        # Only forward *public* attributes to the wrapped array. Dunder and
+        # private names must raise ``AttributeError`` so that (a) the copy /
+        # pickle protocol (``__deepcopy__``, ``__setstate__``, ...) falls back
+        # to the correct slot-based default instead of being answered by the
+        # wrapped array, and (b) a lookup during reconstruction -- when the
+        # ``_array`` slot is not yet set -- cannot recurse through this method.
+        if name.startswith("_"):
+            msg = f"{type(self).__name__!r} object has no attribute {name!r}"
+            raise AttributeError(msg)
+        # Forward to the wrapped *NumPy* array, not ``jnp.asarray(self._array)``:
+        # the latter applies JAX's x64-disabled dtype rules and silently
+        # downcasts a faithfully-stored int64/float64 value (the whole point of
+        # StaticValue is to keep such values verbatim). NumPy implements
+        # ``dtype``/``min``/``max``/``mean``/``round``/``astype``/``flatten`` with
+        # the correct dtype semantics; the ``_jnparray`` property remains the
+        # JAX-conversion path for the arithmetic primitives.
+        return getattr(self._array, name)
 
     def __repr__(self) -> str:
         return wl.pformat(self, short_arrays=False, max_width=80)
+
+    def __format__(self, format_spec: str, /) -> str:
+        """Format the wrapped value, delegating to the NumPy array.
+
+        This makes ``format(sv, spec)`` (and hence formatting a
+        ``StaticQuantity``) behave like formatting the underlying scalar; a
+        non-scalar value raises ``TypeError`` as NumPy does.
+        """
+        return format(self._array, format_spec)
 
     @override
     def __eq__(self, other: object, /) -> bool | np.ndarray:  # type: ignore[override]
@@ -264,9 +288,23 @@ def from_(cls: type[StaticValue], value: StaticValue, /) -> StaticValue:
 
 @StaticValue.from_.dispatch
 def from_(cls: type[StaticValue], value: jax.Array | jax.core.Tracer, /) -> StaticValue:
-    """Reject JAX arrays for `StaticQuantity`."""
-    msg = "StaticQuantity does not accept JAX arrays. Use Quantity for traced values."
-    raise TypeError(msg)
+    """Materialise a concrete JAX array to NumPy, or reject a traced value.
+
+    A concrete (eager) ``jax.Array`` is just data, so it can back a static
+    value -- materialise it. This also lets ops on a ``StaticQuantity`` stay
+    static: the primitive rules rebuild via ``replace(x, value=<jax array>)``,
+    and that concrete array round-trips back to NumPy here instead of raising.
+
+    A *tracer* (under ``jit``/``vmap``/``grad``) is a placeholder for a value
+    that does not exist yet, so it genuinely cannot be static and is rejected.
+    """
+    if isinstance(value, jax.core.Tracer):
+        msg = (
+            "StaticQuantity cannot hold a traced JAX value; "
+            "use Quantity under jit/vmap/grad."
+        )
+        raise TypeError(msg)
+    return cls(np.asarray(value))
 
 
 # ==================================================================
@@ -337,9 +375,11 @@ def convert_to_quantity_value(obj: ArrayLike | list[Any] | tuple[Any, ...], /) -
 
     # JAX 0.7.2+ introduces TypedInt, TypedFloat, TypedComplex for
     # type-preserving operations. These are not jax.Array instances but carry
-    # dtype information. We need to explicitly convert them to proper arrays
-    # while preserving dtype.
+    # dtype information. Materialise them via ``jax.numpy.asarray`` (not the
+    # quaxed one), which converts a weak Python scalar into a *weak* ``jax.Array``
+    # -- passing an explicit ``dtype`` would force ``weak_type=False`` and make
+    # ``Quantity(1.0, ...)`` over-promote relative to native JAX.
     if not isinstance(out, jax.Array):
-        out = jnp.asarray(out, dtype=out.dtype)
+        out = jax.numpy.asarray(out)
 
     return out

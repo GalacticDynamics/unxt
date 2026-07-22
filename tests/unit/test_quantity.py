@@ -2,6 +2,8 @@
 
 """Test the Array API."""
 
+import math
+
 import astropy.units as apyu
 import jax
 import jax.numpy as jax_xp
@@ -16,6 +18,7 @@ from jax.dtypes import canonicalize_dtype
 from jaxtyping import TypeCheckError
 from plum import convert
 
+import quaxed.lax as qlax
 import quaxed.numpy as jnp
 
 import unxt as u
@@ -211,6 +214,61 @@ def test_uconvert_value_with_array_quantities():
     assert isinstance(result, u.Q)
     assert np.allclose(result.value, [1000.0, 2000.0, 3000.0])
     assert result.unit == u.unit("m")
+
+
+def test_scalar_weak_type_preserved():
+    """A `Quantity` from a Python scalar keeps JAX's ``weak_type``.
+
+    Regression: the value converter re-materialised the weak scalar with an
+    explicit dtype, forcing ``weak_type=False`` so ``Quantity(1.0, ...)``
+    over-promoted (e.g. against a float16 array) relative to native JAX.
+    """
+    q = u.Q(1.0, "m")
+    assert q.value.weak_type
+    # Weak scalar does not up-promote a float16 array (matches native JAX).
+    h = u.Q(jnp.asarray([1.0, 2.0], dtype=jnp.float16), "m")
+    assert (q + h).dtype == jnp.float16
+
+    # An int Python scalar is likewise weak.
+    assert u.Q(1, "m").value.weak_type
+
+    # A real (non-scalar) array stays strongly typed.
+    arr = u.Q([1, 2, 3], "m")
+    assert not arr.value.weak_type
+
+
+def test_uconvert_identity_fastpath_still_relabels() -> None:
+    """The identity fast path must not skip an equal-but-differently-named unit.
+
+    ``uconvert`` short-circuits on ``x.unit is u`` (astropy interns named units,
+    so "convert to the unit it already has" is the common case). Identity implies
+    identical string forms, so the relabel for units that are ``==`` but not
+    ``is`` -- e.g. ``J`` vs ``m2 kg / s2`` -- must still happen.
+    """
+    # == but NOT is: must relabel, not short-circuit.
+    j, comp = u.unit("J"), u.unit("m2 kg / s2")
+    assert j == comp
+    assert j is not comp
+
+    # NB: assert on the *label*, not ``==``. astropy considers ``J == m2 kg/s2``,
+    # so an ``== comp`` assertion would pass even if uconvert wrongly
+    # short-circuited and handed back the original ``J``-labelled quantity --
+    # i.e. it could not fail for the bug it guards. ``to_string()`` distinguishes
+    # them ("J" vs "m2 kg / s2").
+    got = u.uconvert(comp, u.Q(1.0, "J"))
+    assert got.unit.to_string() == comp.to_string()
+    assert got.unit.to_string() != j.to_string()
+
+    back = u.uconvert(j, u.Q(1.0, "m2 kg / s2"))
+    assert back.unit.to_string() == j.to_string()
+    assert back.unit.to_string() != comp.to_string()
+
+    # is: returns the same object untouched.
+    q = u.Q(2.0, "m")
+    assert u.uconvert(u.unit("m"), q) is q
+
+    # a genuine conversion is unaffected.
+    assert jnp.isclose(u.uconvert(u.unit("km"), u.Q(1000.0, "m")).value, 1.0)
 
 
 def test_uconvert_value_preserves_dtype():
@@ -744,6 +802,30 @@ def test_ne():
     # Test special case w/out units
     assert u.Q(1, "m") != 0
     assert np.array_equal(u.Q([-1, 0, 1], "m") != 0, [True, False, True])
+
+
+def test_int_dtype_comparison_across_units():
+    """Compare integer-dtype quantities whose units differ but are convertible.
+
+    Converting the RHS into the LHS unit turns its integer value into a float
+    (``1000 m`` -> ``1.0 km``), so the two operands reach ``lax.eq``/``le``/``ge``
+    with mismatched dtypes. Every comparison operator must promote first and
+    return the physically correct answer instead of crashing or silently
+    falling back to Python identity comparison.
+    """
+    lo, hi = u.Q(1, "km"), u.Q(1000, "m")  # equal amounts, int dtype
+    # Precondition: both operands really are integer dtype -- the bug only
+    # triggers when the dtypes match here and then diverge after the unit
+    # conversion floats one of them.
+    assert jnp.issubdtype(lo.dtype, jnp.integer)
+    assert jnp.issubdtype(hi.dtype, jnp.integer)
+
+    assert bool((lo == hi).value) is True
+    assert bool((lo != hi).value) is False
+    assert bool((lo <= hi).value) is True
+    assert bool((lo >= hi).value) is True
+    assert bool((u.Q(2, "km") > hi).value) is True
+    assert bool((u.Q(0, "km") < hi).value) is True
 
 
 def test_neg():
@@ -1349,3 +1431,135 @@ def test_remainder_bare_quantity_dimensionful_raises():
     q = u.Quantity(jnp.asarray([5.0, 7.0]), "m")
     with pytest.raises(UnitConversionError):
         _ = jnp.remainder(q, jnp.asarray(3.0))
+
+
+@pytest.mark.parametrize(("xv", "yv"), [(-10, 3), (-10, -3), (10, 3), (10, -3)])
+def test_rem_p_matches_lax_rem_truncated_semantics(xv, yv):
+    """`lax.rem_p` on a Quantity is truncated remainder, like raw `lax.rem`.
+
+    Regression: the rule used the ``%`` operator (numpy floor-mod, result takes
+    the divisor's sign), but ``lax.rem_p`` is C-style truncated remainder
+    (result takes the dividend's sign). The two disagree whenever the operands
+    have opposite signs.
+    """
+    got = float(u.ustrip("m", qlax.rem(u.Q(float(xv), "m"), u.Q(float(yv), "m"))))
+    expected = float(jax.lax.rem(jnp.asarray(float(xv)), jnp.asarray(float(yv))))
+    assert got == expected
+
+
+def test_rem_p_preserves_staticness_and_truncated_semantics():
+    """`rem` on a StaticQuantity stays static and uses truncated semantics."""
+    got = qlax.rem(
+        u.StaticQuantity(np.array(-10.0), "m"), u.StaticQuantity(np.array(3.0), "m")
+    )
+    assert isinstance(got, u.StaticQuantity)
+    assert float(np.asarray(got.value)) == -1.0  # truncated, not 2.0 (floor-mod)
+
+
+def test_angle_products_degrade_to_quantity():
+    """Angle * Angle, 1 / Angle and prod(Angle) degrade to a plain Quantity.
+
+    An ``Angle``'s unit must be angular, so a product/quotient/reduction that
+    yields a non-angular unit (``rad**2``, ``1 / rad``) must return a plain
+    ``Quantity`` rather than raising -- consistent with ``Angle / Angle``,
+    ``Angle**2`` and ``sqrt(Angle)``, which already degrade.
+    """
+    a = u.Angle(2.0, "rad")
+    b = u.Angle(3.0, "rad")
+
+    ab = a * b
+    assert type(ab) is u.Quantity
+    assert ab.unit == u.unit("rad") ** 2
+    assert math.isclose(float(ab.value), 6.0, rel_tol=1e-6)
+
+    inv = 1.0 / a
+    assert type(inv) is u.Quantity
+    assert inv.unit == 1 / u.unit("rad")
+    assert math.isclose(float(inv.value), 0.5, rel_tol=1e-6)
+
+    prod = jnp.prod(jnp.stack([a, b]))
+    assert type(prod) is u.Quantity
+    assert prod.unit == u.unit("rad") ** 2
+    assert math.isclose(float(prod.value), 6.0, rel_tol=1e-6)
+
+
+def test_zero_d_quantity_is_not_iterable():
+    """A 0-d Quantity is not iterable, matching numpy / jax / astropy.
+
+    Regression: ``__iter__`` was a generator, so ``iter(q)`` succeeded even for
+    a 0-d quantity and the ``TypeError`` only surfaced on the first ``next()``.
+    ``np.iterable`` therefore reported a scalar quantity as iterable, which
+    broke e.g. ``matplotlib``'s ``ax.scatter`` / ``ax.axhline`` on scalars.
+    """
+    scalar = u.Q(3.0, "m")
+    assert np.iterable(scalar) is False
+    with pytest.raises(TypeError):
+        iter(scalar)  # must fail eagerly, not on first next()
+
+    vec = u.Q([1.0, 2.0, 3.0], "m")
+    assert np.iterable(vec) is True
+    assert [float(x.value) for x in vec] == [1.0, 2.0, 3.0]
+
+
+# ==============================================================================
+# Dimensionless-input math must not keep a scaled unit label
+# ==============================================================================
+
+
+@pytest.mark.parametrize(
+    ("fn", "expected"),
+    [
+        (jnp.exp, math.e),  # exp(1) = e
+        (jnp.log, 0.0),  # log(1) = 0
+        (jnp.exp2, 2.0),  # 2**1 = 2
+        (jnp.expm1, math.e - 1.0),  # exp(1) - 1
+        (jnp.log1p, math.log(2.0)),  # log(1 + 1) = ln 2
+    ],
+)
+def test_transcendental_of_scaled_dimensionless_is_unscaled(fn, expected):
+    """A transcendental of a scaled-dimensionless quantity is unscaled.
+
+    Regression: the rule stripped the value to true-dimensionless
+    (``ustrip(one, x)``) but returned it via ``replace(x, ...)``, which kept the
+    input's scaled unit label. ``exp(100 %)`` then read back as ``e / 100``
+    instead of ``e`` because the ``%`` scale was re-applied on the way out.
+    """
+    q = u.Q(100.0, "percent")  # == 1.0 dimensionless
+    result = fn(q)
+    # The label is the bug: assert the result is *unscaled* dimensionless, not
+    # merely that the number reads back correctly.
+    assert result.unit == u.unit("")
+    got = float(u.ustrip("", result))
+    assert math.isclose(got, expected, rel_tol=1e-5, abs_tol=1e-7)
+
+
+def test_cumprod_of_scaled_dimensionless_is_unscaled():
+    """``cumprod`` of a scaled-dimensionless quantity is unscaled.
+
+    Same class of bug as the transcendental rules: the value is stripped to
+    true-dimensionless via ``ustrip(one, operand)`` but was rebuilt with
+    ``replace(operand, ...)``, which kept the ``%`` label and re-applied its
+    scale on read-back.
+    """
+    q = u.Q([100.0, 100.0], "percent")  # each == 1.0 dimensionless
+    res = jnp.cumprod(q)
+    # The scaled label is the bug, so assert the unit as well as the numbers.
+    assert res.unit == u.unit("")
+    assert np.allclose(np.asarray(u.ustrip("", res)), [1.0, 1.0])
+
+
+def test_minmax_against_bare_array_of_scaled_dimensionless_is_unscaled():
+    """``minimum``/``maximum`` vs a bare array do not re-apply the scaled unit.
+
+    The result of comparing a scaled-dimensionless quantity (e.g. ``%``) with a
+    plain array must be unscaled dimensionless, not relabelled with the input's
+    scaled unit.
+    """
+    q = u.Q(100.0, "percent")  # == 1.0 dimensionless
+    res_max = jnp.maximum(q, 0.3)
+    res_min = jnp.minimum(q, 0.3)
+    # The scaled label is the bug, so assert the unit as well as the number.
+    assert res_max.unit == u.unit("")
+    assert res_min.unit == u.unit("")
+    assert math.isclose(float(u.ustrip("", res_max)), 1.0, rel_tol=1e-5, abs_tol=1e-7)
+    assert math.isclose(float(u.ustrip("", res_min)), 0.3, rel_tol=1e-5, abs_tol=1e-7)

@@ -7,13 +7,12 @@ classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: BSD License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python",
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
@@ -21,13 +20,17 @@ classifiers = [
 # gala has no Windows wheels and its sdist needs GSL/a C compiler, so it can
 # only be required off-Windows. unxt guards the gala interop import on gala
 # actually being importable, so this package is simply inert on Windows.
-dependencies    = ["astropy>=6.0", "gala>=1.8; sys_platform != 'win32'", "unxt"]
-description     = "gala integration for unxt (canonical: unxts.interop.gala)"
-dynamic         = ["version"]
-license.text    = "BSD-3-Clause"
-name            = "unxts.interop.gala"
-readme          = "README.md"
-requires-python = ">=3.11"
+dependencies = [
+  "astropy>=6.0",
+  "gala>=1.8; sys_platform != 'win32'",
+  "unxt>=2.0.0",
+]
+description = "gala integration for unxt (canonical: unxts.interop.gala)"
+dynamic = ["version"]
+license = "BSD-3-Clause"
+name = "unxts.interop.gala"
+readme = "README.md"
+requires-python = ">=3.12"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/GalacticDynamics/unxt/issues"

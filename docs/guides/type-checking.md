@@ -9,7 +9,7 @@
 
 ## TL;DR
 
-You can annotate the **dtype** and **shape** of a `Quantity` — checked statically, and at runtime. To _also_ constrain the physical **dimension** of an argument, use the dimension-parametrized `ParametricQuantity` from the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package; see [Dimension annotations for type checking](../packages/unxts.parametric/type-checking.md).
+You can annotate the **dtype** and **shape** of a `Quantity` — checked statically, and at runtime. To _also_ constrain the physical **dimension** of an argument, use the dimension-parametrized `ParametricQuantity` from the separate [`unxts.parametric`](../packages/unxts.parametric/index) package; see [Dimension annotations for type checking](../packages/unxts.parametric/type-checking).
 
 In the following example we define a function over two 1-D, equally-shaped float arrays and return their elementwise ratio:
 
@@ -98,4 +98,4 @@ Quantity(Array([2.], dtype=float32), unit='m / s')
 
 ## Dimension annotations
 
-The default {class}`unxt.quantity.Quantity` carries **dtype and shape** in its type, but no dimension — so `Quantity[<dimension>]` **does nothing** (it is informational only). To additionally check the physical **dimension** of an argument (e.g. `up.PQ["length"]`), use `ParametricQuantity` from the separate [`unxts.parametric`](../packages/unxts.parametric/index.md) package, which encodes the dimension in its _type_. For construction, dimension inference/checking, and the parametric-class theory, see [Dimension annotations for type checking](../packages/unxts.parametric/type-checking.md).
+The default {class}`unxt.quantity.Quantity` carries **dtype and shape** in its type, but no dimension — so `Quantity[<dimension>]` **does nothing** (it is informational only). To additionally check the physical **dimension** of an argument (e.g. `up.PQ["length"]`), use `ParametricQuantity` from the separate [`unxts.parametric`](../packages/unxts.parametric/index) package, which encodes the dimension in its _type_. For construction, dimension inference/checking, and the parametric-class theory, see [Dimension annotations for type checking](../packages/unxts.parametric/type-checking).

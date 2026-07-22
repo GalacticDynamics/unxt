@@ -6,7 +6,7 @@ __all__: tuple[str, ...] = ()
 from collections.abc import Sequence
 from dataclasses import replace
 from math import prod
-from typing import Any, Literal, TypeAlias, TypeVar, overload
+from typing import Any, Literal, TypeAlias, overload
 
 import equinox as eqx
 import jax.tree as jt
@@ -34,8 +34,6 @@ from .value import StaticValue
 from unxt._src.utils import promote_dtypes, promote_dtypes_if_needed
 from unxt_api import is_unit_convertible, uconvert, unit, unit_of, ustrip
 
-T = TypeVar("T")
-
 Axes: TypeAlias = tuple[int, ...]
 
 mul_qbind = quax.quaxify(lax.mul_p.bind)
@@ -46,14 +44,33 @@ def _to_val_rad_or_one(q: ABCQ) -> ArrayLike:
 
 
 def _as_dimensionless_like(q: ABCQ, value: ArrayLike) -> ABCQ:
-    """Wrap a comparison result as a dimensionless quantity like ``q``.
+    """Wrap a dimensionless-valued result as a dimensionless quantity like ``q``.
 
-    Comparison primitives return a dimensionless quantity sharing the namespace
-    of the quantity operand (per the Array API). Some quantity subtypes (e.g.
-    ``Angle``, ``StaticQuantity``) constrain their units and cannot be
-    dimensionless; for those — which only arise from internal, value-level
-    comparisons inside composite functions (``mod``, ``floor_divide``, ...) — we
-    fall back to a plain dimensionless :class:`Quantity`.
+    Used by primitives whose result is genuinely dimensionless, for either of
+    two reasons:
+
+    - **comparisons**, whose boolean result is dimensionless however the
+      operands were stripped (e.g. ``eq_p_qq`` strips to ``x``'s own unit via
+      ``ustrip(x)`` / ``ustrip(x.unit, y)``, not to ``one``); or
+    - **transcendental / bitwise** functions, whose operand *is* first stripped
+      to true-dimensionless via ``ustrip(one, x)``.
+
+    Either way the result must carry ``unit=one``. Returning it via
+    ``replace(q, ...)`` would instead keep ``q``'s (possibly *scaled*, e.g.
+    ``%`` or ``km / m``) unit label and silently re-apply that scale on
+    read-back.
+
+    The result shares the namespace of the quantity operand (per the Array API).
+    Some subtypes cannot represent the result, though, and for those we fall
+    back to a plain dimensionless :class:`Quantity` -- which is why the
+    construction below catches both exception types:
+
+    - :class:`Angle` constrains its *unit* (it must be angular), so building one
+      with ``unit=one`` raises :exc:`ValueError`.
+    - :class:`StaticQuantity` constrains its *value* (a static NumPy array, not
+      a tracer) -- it is perfectly happy being dimensionless. It only reaches
+      the fallback under ``jit``/``vmap``, where the traced value raises
+      :exc:`TypeError`.
     """
     try:
         return type_np(q)(value, unit=one)
@@ -428,8 +445,12 @@ def and_p_vq(x1: ArrayLike, x2: ABCQ, /) -> ABCQ:
 
 
 @quax.register(lax.approx_top_k_p)
-def approx_top_k_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
+def approx_top_k_p(x: ABCQ, /, **kwargs: Any) -> list[ABCQ | Array]:
     """Approximate top-k of a quantity.
+
+    ``approx_top_k_p`` has ``multiple_results=True``: it returns
+    ``[values, indices]``. Only the values carry the operand's unit; the indices
+    are a raw ``int`` array (dimensionless), like plain JAX.
 
     Examples
     --------
@@ -439,10 +460,11 @@ def approx_top_k_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
     >>> x = u.quantity.Quantity([1.0, 2, 3], "m")
     >>> qlax.approx_max_k(x, k=2)
     [Quantity(Array([3., 2.], dtype=float32), unit='m'),
-     Quantity(Array([2., 1.], dtype=float32), unit='m')]
+     Array([2, 1], dtype=int32)]
 
     """
-    return replace(x, value=lax.approx_top_k_p.bind(ustrip(x), **kwargs))  # type: ignore[no-untyped-call]
+    vals, idx = lax.approx_top_k_p.bind(ustrip(x), **kwargs)  # type: ignore[no-untyped-call]
+    return [replace(x, value=vals), idx]
 
 
 # ==============================================================================
@@ -714,7 +736,7 @@ def bessel_i0e_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
     Quantity(Array(0.46575963, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.bessel_i0e_p.bind(ustrip(one, x), **kwargs))
+    return _as_dimensionless_like(x, lax.bessel_i0e_p.bind(ustrip(one, x), **kwargs))
 
 
 @quax.register(lax.bessel_i1e_p)
@@ -734,7 +756,7 @@ def bessel_i1e_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
     Quantity(Array(0.20791042, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.bessel_i1e_p.bind(ustrip(one, x), **kwargs))
+    return _as_dimensionless_like(x, lax.bessel_i1e_p.bind(ustrip(one, x), **kwargs))
 
 
 # ==============================================================================
@@ -898,8 +920,13 @@ def clamp_p_vaqaq(min: ArrayLike, x: ABCQ, max: ABCQ) -> ABCQ:
     >>> lax.clamp(min, q, max)
     Quantity(Array([0, 1, 2], dtype=int32), unit='')
 
+    A scaled-dimensionless quantity is clamped in true units, not its own:
+
+    >>> lax.clamp(jnp.asarray(0.0), u.Q(100.0, "percent"), u.Q(0.5, ""))
+    Quantity(Array(0.5, dtype=float32...), unit='')
+
     """
-    return replace(x, value=lax.clamp(min, ustrip(one, x), ustrip(one, max)))
+    return _as_dimensionless_like(x, lax.clamp(min, ustrip(one, x), ustrip(one, max)))
 
 
 # ---------------------------
@@ -941,8 +968,13 @@ def clamp_p_aqaqv(min: ABCQ, x: ABCQ, max: ArrayLike) -> ABCQ:
     >>> lax.clamp(min, q, max)
     Quantity(Array([0, 1, 2], dtype=int32), unit='')
 
+    A scaled-dimensionless quantity is clamped in true units, not its own:
+
+    >>> lax.clamp(u.Q(0.0, ""), u.Q(100.0, "percent"), jnp.asarray(0.5))
+    Quantity(Array(0.5, dtype=float32...), unit='')
+
     """
-    return replace(x, value=lax.clamp(ustrip(one, min), ustrip(one, x), max))
+    return _as_dimensionless_like(x, lax.clamp(ustrip(one, min), ustrip(one, x), max))
 
 
 # ==============================================================================
@@ -1439,8 +1471,8 @@ def cumprod_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
     Quantity(Array([1, 2, 6], dtype=int32), unit='')
 
     """
-    return replace(
-        operand, value=lax.cumprod(ustrip(one, operand), axis=axis, reverse=reverse)
+    return _as_dimensionless_like(
+        operand, lax.cumprod(ustrip(one, operand), axis=axis, reverse=reverse)
     )
 
 
@@ -1504,6 +1536,14 @@ def custom_linear_solve_q(
         **kw,
     )
 
+    # ``linear_solve_p`` has ``multiple_results=True`` and returns a
+    # single-element list ``[solution]``. Passing that list straight to the
+    # quantity constructor made ``jnp.asarray([arr])`` add a spurious leading
+    # axis (e.g. ``(1, n)`` for a 1-D ``b``); unwrap it so the solution keeps
+    # the RHS shape.
+    if isinstance(result_value, (list, tuple)):
+        (result_value,) = result_value
+
     # Cannot use replace() because physical type may change (e.g., m*s -> s when
     # dividing by m) Use type_np to get the unparametrized quantity constructor
     # Return as list to match JAX primitive conventions
@@ -1534,6 +1574,11 @@ def custom_linear_solve_q_array_arg6(
     result_value = lax.linear_solve_p.bind(  # type: ignore[no-untyped-call]
         ustrip(u0, x0), ustrip(u0, x1), ustrip(u0, x2), x3, ustrip(u0, x4), x5, x6, **kw
     )
+
+    # ``linear_solve_p`` returns a single-element list ``[solution]``; unwrap it
+    # so wrapping into a quantity does not add a spurious leading axis.
+    if isinstance(result_value, (list, tuple)):
+        (result_value,) = result_value
 
     # Cannot use replace() because physical type changes (m -> 1/m)
     # Use type_np to get the unparametrized quantity constructor
@@ -1756,7 +1801,7 @@ def digamma_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(-0.5772154, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.digamma(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.digamma(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -1772,12 +1817,16 @@ def div_p_sqsq(x: StaticQuantity, y: StaticQuantity, /) -> StaticQuantity:
     >>> import unxt as u
     >>> import quaxed.lax as qlax
 
-    Integer division for integer dtypes:
+    Integer division for integer dtypes, truncating toward zero (like
+    ``lax.div``, so a negative operand does not floor):
 
     >>> q1 = u.StaticQuantity(6, "m")
     >>> q2 = u.StaticQuantity(2, "s")
     >>> qlax.div(q1, q2)
     StaticQuantity(array(3), unit='m / s')
+
+    >>> qlax.div(u.StaticQuantity(-7, "m"), u.StaticQuantity(2, "s"))
+    StaticQuantity(array(-3), unit='m / s')
 
     True division for float dtypes:
 
@@ -1790,9 +1839,14 @@ def div_p_sqsq(x: StaticQuantity, y: StaticQuantity, /) -> StaticQuantity:
     u = unit(x.unit / y.unit)
     xv, yv = ustrip(x), ustrip(y)
     xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
-    # Use lax.div for integer division, Python / for float division
+    # Integer division must *truncate toward zero* to match ``lax.div_p`` (and so
+    # the plain-``Quantity`` rule); plain floor division rounds toward -inf, which
+    # disagrees for negative operands. ``xv - np.fmod(xv, yv)`` is exactly
+    # divisible by ``yv``, so ``np.floor_divide`` there (floor == truncate on an
+    # exact quotient) gives the truncated result without a float round-trip.
+    # Float dtypes use true division.
     result = (
-        np.floor_divide(xv, yv)
+        np.floor_divide(xv - np.fmod(xv, yv), yv)
         if jnp.issubdtype(xv.dtype, jnp.integer)
         else np.divide(xv, yv)
     )
@@ -1903,6 +1957,24 @@ def div_p_a(x: AbstractAngle, y: AbstractAngle, /) -> ABCQ:
     """
     x, y = promote(x, y)
     return div_p_qq(convert(x, Quantity), convert(y, Quantity))
+
+
+@quax.register(lax.div_p)
+def div_p_va(x: ArrayLike, y: AbstractAngle, /) -> ABCQ:
+    """Division of an array by an Angle.
+
+    The quotient is not angular (``1 / rad``), so it degrades to a plain
+    `Quantity`, mirroring ``Angle / Angle``.
+
+    Examples
+    --------
+    >>> import unxt as u
+
+    >>> 1.0 / u.Angle(2.0, "rad")
+    Quantity(Array(0.5, dtype=float32...), unit='1 / rad')
+
+    """
+    return div_p_vq(x, convert(y, Quantity))
 
 
 # ==============================================================================
@@ -2134,16 +2206,16 @@ def eq_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
     >>> q1 = u.quantity.Quantity(1, "m")
     >>> q2 = u.quantity.Quantity(1, "m")
     >>> jnp.equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 == q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(1, "m")
     >>> jnp.equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 == q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     """
     xv = ustrip(x)
@@ -2152,7 +2224,9 @@ def eq_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) == Q(y, {y.unit}).",
     )
-    return _as_dimensionless_like(x, lax.eq(xv, ustrip(x.unit, y)))  # re-dispatch
+    yv = ustrip(x.unit, y)
+    xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
+    return _as_dimensionless_like(x, lax.eq(xv, yv))  # re-dispatch
 
 
 @quax.register(lax.eq_p)
@@ -2273,7 +2347,7 @@ def erf_inv_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return replace(x, value=lax.erf_inv(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.erf_inv(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2298,7 +2372,7 @@ def erf_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return replace(x, value=lax.erf(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.erf(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2323,7 +2397,7 @@ def erfc_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return replace(x, value=lax.erfc(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.erfc(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2347,7 +2421,7 @@ def exp2_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(8., dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.exp2_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.exp2_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -2379,7 +2453,7 @@ def exp_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     """
     # TODO: more meaningful error message.
-    return replace(x, value=lax.exp_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.exp_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -2403,7 +2477,7 @@ def expm1_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(0., dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.expm1_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.expm1_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -2485,16 +2559,16 @@ def ge_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
     >>> q1 = u.quantity.Quantity(1_001.0, "m")
     >>> q2 = u.quantity.Quantity(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 >= q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
     >>> jnp.greater_equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 >= q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     """
     xv = ustrip(x)
@@ -2503,7 +2577,9 @@ def ge_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) >= Q(y, {y.unit}).",
     )
-    return _as_dimensionless_like(x, lax.ge(xv, ustrip(x.unit, y)))  # re-dispatch
+    yv = ustrip(x.unit, y)
+    xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
+    return _as_dimensionless_like(x, lax.ge(xv, yv))  # re-dispatch
 
 
 @quax.register(lax.ge_p)
@@ -2519,11 +2595,11 @@ def ge_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     >>> q2 = u.quantity.Quantity(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1.0, "")
     >>> jnp.greater_equal(x, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
@@ -2555,11 +2631,11 @@ def ge_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q1 = u.quantity.Quantity(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1.0, "")
     >>> jnp.greater_equal(q1, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
@@ -2591,13 +2667,13 @@ def gt_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
     >>> import unxt as u
     >>> q1 = u.quantity.Quantity(1_001.0, "m")
     >>> q2 = u.quantity.Quantity(1.0, "km")
-    >>> jnp.greater_equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    >>> jnp.greater(q1, q2)
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
-    >>> jnp.greater_equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    >>> jnp.greater(q1, q2)
+    Quantity(Array(True, dtype=bool...), unit='')
 
     """
     xv = ustrip(x)
@@ -2623,16 +2699,16 @@ def gt_p_vq(x: ArrayLike, y: ABCQ) -> ABCQ:
     >>> x = jnp.asarray(1_001.0)
 
     >>> q2 = u.quantity.Quantity(1.0, "")
-    >>> jnp.greater_equal(x, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    >>> jnp.greater(x, q2)
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1.0, "")
-    >>> jnp.greater_equal(x, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    >>> jnp.greater(x, q2)
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
-    ...     jnp.greater_equal(x, q2)
+    ...     jnp.greater(x, q2)
     ... except Exception as e:
     ...     print("can't compare")
     can't compare
@@ -2659,16 +2735,16 @@ def gt_p_qv(x: ABCQ, y: ArrayLike) -> ABCQ:
     >>> y = jnp.asarray(0.9)
 
     >>> q1 = u.quantity.Quantity(1.0, "")
-    >>> jnp.greater_equal(q1, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    >>> jnp.greater(q1, y)
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1.0, "")
-    >>> jnp.greater_equal(q1, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    >>> jnp.greater(q1, y)
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
-    ...     jnp.greater_equal(q1, y)
+    ...     jnp.greater(q1, y)
     ... except Exception as e:
     ...     print("can't compare")
     can't compare
@@ -2710,7 +2786,9 @@ def igamma_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
     Quantity(Array(0.6321202, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.igamma(ustrip(AllowValue, one, a), ustrip(one, x)))
+    return _as_dimensionless_like(
+        x, lax.igamma(ustrip(AllowValue, one, a), ustrip(one, x))
+    )
 
 
 # ==============================================================================
@@ -2739,7 +2817,9 @@ def igammac_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
     Quantity(Array(0.36787927, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.igammac(ustrip(AllowValue, one, a), ustrip(one, x)))
+    return _as_dimensionless_like(
+        x, lax.igammac(ustrip(AllowValue, one, a), ustrip(one, x))
+    )
 
 
 # ==============================================================================
@@ -2813,7 +2893,7 @@ def is_finite_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.quantity.Quantity(1.0, "m")
     >>> jnp.isfinite(q)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> bool(jnp.isfinite(q))
     True
 
@@ -2823,7 +2903,7 @@ def is_finite_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.Q(1.0, "m")
     >>> jnp.isfinite(q)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> bool(jnp.isfinite(q))
     True
 
@@ -2849,12 +2929,12 @@ def le_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.quantity.Quantity(1_001.0, "m")
     >>> q2 = u.quantity.Quantity(1.0, "km")
     >>> jnp.less_equal(q1, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1_001.0, "m")
     >>> q2 = u.Q(1.0, "km")
     >>> jnp.less_equal(q1, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     """
     xv = ustrip(x)
@@ -2863,7 +2943,9 @@ def le_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) <= Q(y, {y.unit}).",
     )
-    return _as_dimensionless_like(x, lax.le(xv, ustrip(x.unit, y)))  # re-dispatch
+    yv = ustrip(x.unit, y)
+    xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
+    return _as_dimensionless_like(x, lax.le(xv, yv))  # re-dispatch
 
 
 @quax.register(lax.le_p)
@@ -2879,11 +2961,11 @@ def le_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     >>> q2 = u.quantity.Quantity(1.0, "")
     >>> jnp.less_equal(x1, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1.0, "")
     >>> jnp.less_equal(x1, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1.0, "m")
     >>> try:
@@ -2915,11 +2997,11 @@ def le_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q1 = u.quantity.Quantity(1.0, "")
     >>> jnp.less_equal(q1, y1)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1.0, "")
     >>> jnp.less_equal(q1, y1)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1.0, "m")
     >>> try:
@@ -2959,7 +3041,7 @@ def lgamma_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: are there any units that this can support?
-    return replace(x, value=lax.lgamma(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.lgamma(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -2983,7 +3065,7 @@ def log1p_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(-inf, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.log1p_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.log1p_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -3007,7 +3089,7 @@ def log_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(0., dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.log_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.log_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -3015,7 +3097,7 @@ def log_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
 @quax.register(lax.logistic_p)
 def logistic_p(x: ABCQ, /, **kw: Any) -> ABCQ:
-    """Logarithm of a quantity.
+    """Logistic (sigmoid) of a quantity.
 
     Examples
     --------
@@ -3031,7 +3113,7 @@ def logistic_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(0.7310586, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.logistic_p.bind(ustrip(one, x), **kw))
+    return _as_dimensionless_like(x, lax.logistic_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -3051,10 +3133,10 @@ def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> x = u.quantity.Quantity(1.0, "km")
     >>> y = u.quantity.Quantity(2000.0, "m")
     >>> x < y
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> jnp.less(x, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> x = u.quantity.Quantity([1.0, 2, 3], "km")
     >>> x < y
@@ -3068,10 +3150,10 @@ def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> x = u.Q(1.0, "km")
     >>> y = u.Q(2000.0, "m")
     >>> x < y
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> jnp.less(x, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> x = u.Q([1.0, 2, 3], "km")
     >>> x < y
@@ -3165,10 +3247,10 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> x = u.quantity.Quantity(1, "")
     >>> y = 2
     >>> x < y
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> jnp.less(x, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> x = u.quantity.Quantity([1, 2, 3], "")
     >>> x < y
@@ -3182,10 +3264,10 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> x = u.Q(1, "")
     >>> y = 2
     >>> x < y
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> jnp.less(x, y)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> x = u.Q([1, 2, 3], "")
     >>> x < y
@@ -3280,9 +3362,14 @@ def max_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     >>> jnp.maximum(x, q2)
     Quantity(Array([2.], dtype=float32), unit='')
 
+    A scaled-dimensionless quantity is compared in true units, not its own:
+
+    >>> jnp.maximum(x, u.Q(100.0, "percent"))
+    Quantity(Array([1.], dtype=float32), unit='')
+
     """
     yv = ustrip(one, y)
-    return replace(y, value=lax.max(x, yv))
+    return _as_dimensionless_like(y, lax.max(x, yv))
 
 
 @quax.register(lax.max_p)
@@ -3302,9 +3389,14 @@ def max_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> jnp.maximum(q1, y)
     Quantity(Array([2.], dtype=float32), unit='')
 
+    A scaled-dimensionless quantity is compared in true units, not its own:
+
+    >>> jnp.maximum(u.Q(100.0, "percent"), y)
+    Quantity(Array([1.], dtype=float32), unit='')
+
     """
     xv = ustrip(one, x)
-    return replace(x, value=lax.max(xv, y))
+    return _as_dimensionless_like(x, lax.max(xv, y))
 
 
 @quax.register(lax.max_p)
@@ -3375,8 +3467,13 @@ def min_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     >>> jnp.minimum(x, q)
     Quantity(Array([1, 2, 2], dtype=int32), unit='')
 
+    A scaled-dimensionless quantity is compared in true units, not its own:
+
+    >>> jnp.minimum(jnp.array([0.5]), u.Q(100.0, "percent"))
+    Quantity(Array([0.5], dtype=float32), unit='')
+
     """
-    return replace(y, value=lax.min(x, ustrip(one, y)))
+    return _as_dimensionless_like(y, lax.min(x, ustrip(one, y)))
 
 
 @quax.register(lax.min_p)
@@ -3397,8 +3494,13 @@ def min_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> jnp.minimum(q, x)
     Quantity(Array([1, 2, 2], dtype=int32), unit='')
 
+    A scaled-dimensionless quantity is compared in true units, not its own:
+
+    >>> jnp.minimum(u.Q(100.0, "percent"), jnp.array([0.5]))
+    Quantity(Array([0.5], dtype=float32), unit='')
+
     """
-    return replace(x, value=lax.min(ustrip(one, x), y))
+    return _as_dimensionless_like(x, lax.min(ustrip(one, x), y))
 
 
 # ==============================================================================
@@ -3436,6 +3538,25 @@ def mul_p_qq(x: ABCQ, y: ABCQ, /, **kw: Any) -> ABCQ:
     u = unit(x.unit * y.unit)
     # Multiply the values (use * to preserve numpy arrays for StaticQuantity)
     return type_np(x)(mul_qbind(ustrip(x), ustrip(y), **kw), unit=u)
+
+
+@quax.register(lax.mul_p)
+def mul_p_aa(x: AbstractAngle, y: AbstractAngle, /, **kw: Any) -> ABCQ:
+    """Multiplication of an Angle by an Angle.
+
+    The product of two angles is not itself angular (``rad**2``), so it degrades
+    to a plain `Quantity`, mirroring ``Angle / Angle``.
+
+    Examples
+    --------
+    >>> import unxt as u
+
+    >>> u.Angle(2.0, "rad") * u.Angle(3.0, "rad")
+    Quantity(Array(6., dtype=float32...), unit='rad2')
+
+    """
+    x, y = promote(x, y)
+    return mul_p_qq(convert(x, Quantity), convert(y, Quantity), **kw)
 
 
 @quax.register(lax.mul_p)
@@ -3508,8 +3629,8 @@ def mul_p_qv(x: ABCQ, y: ArrayLike, /, **kw: Any) -> ABCQ:
 
 
 @quax.register(lax.mul_p)
-def mul_p_qq(x: StaticQuantity, y: StaticQuantity, /, **kw: Any) -> ABCQ:
-    """Multiplication of two quantities.
+def mul_p_sqsq(x: StaticQuantity, y: StaticQuantity, /, **kw: Any) -> ABCQ:
+    """Multiplication of two static quantities.
 
     Examples
     --------
@@ -3543,28 +3664,28 @@ def ne_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 = u.quantity.Quantity(1, "m")
     >>> q2 = u.quantity.Quantity(2, "m")
     >>> jnp.not_equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 != q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.quantity.Quantity(1, "m")
     >>> jnp.not_equal(q1, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
     >>> q1 != q2
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1, "m")
     >>> q2 = u.Q(2, "m")
     >>> jnp.not_equal(q1, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 != q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1, "m")
     >>> jnp.not_equal(q1, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
     >>> q1 != q2
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     """
     if not is_unit_convertible(x.unit, y.unit):
@@ -3587,28 +3708,28 @@ def ne_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     >>> x = 1
     >>> q2 = u.quantity.Quantity(2, "")
     >>> jnp.not_equal(x, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> x != q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.quantity.Quantity(1, "")
     >>> jnp.not_equal(x, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
     >>> x != q2
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> x = u.Q(1, "")
     >>> q2 = u.Q(2, "")
     >>> jnp.not_equal(x, q2)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> x != q2
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q2 = u.Q(1, "")
     >>> jnp.not_equal(x, q2)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
     >>> x != q2
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     """
     yv = ustrip(y)
@@ -3632,28 +3753,28 @@ def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> x = 1
     >>> q1 = u.quantity.Quantity(2, "")
     >>> jnp.not_equal(q1, x)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 != x
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.quantity.Quantity(1, "")
     >>> jnp.not_equal(q1, x)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
     >>> q1 != x
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     >>> x = u.Q(1, "")
     >>> q1 = u.Q(2, "")
     >>> jnp.not_equal(q1, x)
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
     >>> q1 != x
-    Quantity(Array(True, dtype=bool), unit='')
+    Quantity(Array(True, dtype=bool...), unit='')
 
     >>> q1 = u.Q(1, "")
     >>> jnp.not_equal(q1, x)
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
     >>> q1 != x
-    Quantity(Array(False, dtype=bool), unit='')
+    Quantity(Array(False, dtype=bool...), unit='')
 
     """
     xv = ustrip(x)
@@ -3724,7 +3845,7 @@ def nextafter_p(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
 
 @quax.register(lax.not_p)
 def not_p(x: ABCQ, /) -> ABCQ:
-    """Logical negation of a quantity.
+    """Bitwise NOT of a quantity.
 
     Examples
     --------
@@ -3739,7 +3860,7 @@ def not_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(-2, dtype=int32...), unit='')
 
     """
-    return replace(x, value=lax.bitwise_not(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.bitwise_not(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -3747,7 +3868,7 @@ def not_p(x: ABCQ, /) -> ABCQ:
 
 @quax.register(lax.or_p)
 def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
-    """Logical or of two quantities.
+    """Bitwise OR of two quantities.
 
     Examples
     --------
@@ -3764,12 +3885,12 @@ def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     Quantity(Array(3, dtype=int32...), unit='')
 
     """
-    return replace(x, value=lax.bitwise_or(ustrip(one, x), ustrip(one, y)))
+    return _as_dimensionless_like(x, lax.bitwise_or(ustrip(one, x), ustrip(one, y)))
 
 
 @quax.register(lax.or_p)
 def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
-    """Logical OR of a dimensionless quantity and an array.
+    """Bitwise OR of a dimensionless quantity and an array.
 
     A quantity operand keeps the result in the same quantity namespace:
     the result is a dimensionless quantity (per the Array API),
@@ -3791,7 +3912,7 @@ def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
 @quax.register(lax.or_p)
 def or_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
-    """Logical OR of an array and a dimensionless quantity.
+    """Bitwise OR of an array and a dimensionless quantity.
 
     See :func:`or_p_qv`: a quantity operand keeps the result dimensionless.
 
@@ -3916,7 +4037,7 @@ def polygamma_p(m: ArrayLike, x: ABCQ, /) -> ABCQ:
     Quantity(Array(0.39493403, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.polygamma(m, ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.polygamma(m, ustrip(one, x)))
 
 
 # ==============================================================================
@@ -3939,7 +4060,7 @@ def population_count_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(2, dtype=int32...), unit='')
 
     """
-    return replace(x, value=lax.population_count(ustrip(one, x)))
+    return _as_dimensionless_like(x, lax.population_count(ustrip(one, x)))
 
 
 # ==============================================================================
@@ -4123,6 +4244,16 @@ def reduce_prod_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
     return type_np(operand)(value, unit=u)
 
 
+@quax.register(lax.reduce_prod_p)
+def reduce_prod_p_a(operand: AbstractAngle, /, *, axes: Axes) -> ABCQ:
+    """Product-reduction of an Angle array.
+
+    The product of N angles is not angular (``rad**N``), so it degrades to a
+    plain `Quantity`, mirroring ``Angle * Angle``.
+    """
+    return reduce_prod_p(convert(operand, Quantity), axes=axes)
+
+
 # ==============================================================================
 
 
@@ -4213,8 +4344,9 @@ def rem_p_aa(x: AbstractAngle, y: ABCQ, /) -> AbstractAngle:
     Angle(Array([1, 2, 3], dtype=int32), unit='deg')
 
     """
-    # Don't promote - preserve the Angle type
-    return replace(x, value=ustrip(x) % ustrip(x.unit, y))
+    # Don't promote - preserve the Angle type. Use lax.rem (truncated
+    # remainder) to match lax.rem_p, unlike ``%`` which is floor-mod.
+    return replace(x, value=lax.rem(ustrip(x), ustrip(x.unit, y)))
 
 
 @quax.register(lax.rem_p)
@@ -4237,8 +4369,18 @@ def rem_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 
     """
     x, y = promote(x, y)
-    # Use % to preserve numpy arrays for StaticQuantity
-    return replace(x, value=ustrip(x) % ustrip(x.unit, y))
+    xv = ustrip(x)
+    yv = ustrip(x.unit, y)
+    # ``lax.rem_p`` is C-style *truncated* remainder (result takes the
+    # dividend's sign); ``%`` is floor-mod (divisor's sign), which disagrees
+    # whenever the operands' signs differ. Use ``lax.rem`` to match the
+    # primitive, and ``np.fmod`` (also truncated) for a StaticQuantity so it
+    # stays static instead of materialising to a JAX array.
+    if isinstance(x.value, StaticValue):
+        value = np.fmod(np.asarray(xv), np.asarray(yv))
+    else:
+        value = lax.rem(xv, yv)
+    return replace(x, value=value)
 
 
 @quax.register(lax.rem_p)
@@ -4254,7 +4396,7 @@ def rem_p_qv(x: Quantity, y: ArrayLike, /) -> Quantity:
     >>> import quaxed.numpy as jnp
     >>> q = u.Quantity(10, "")
     >>> jnp.remainder(q, 3)
-    Quantity(Array(1, dtype=int32), unit='')
+    Quantity(Array(1, dtype=int32...), unit='')
 
     """
     # Construct fresh (not replace): forces the dimensionless unit and rejects
@@ -4629,8 +4771,8 @@ def shift_right_arithmetic_p(x: ABCQ, y: ABCQ | float | int, /) -> ABCQ:
     Quantity(Array(0, dtype=int32...), unit='')
 
     """
-    return replace(
-        x, value=lax.shift_right_arithmetic(ustrip(one, x), ustrip(AllowValue, one, y))
+    return _as_dimensionless_like(
+        x, lax.shift_right_arithmetic(ustrip(one, x), ustrip(AllowValue, one, y))
     )
 
 
@@ -5140,26 +5282,31 @@ def tanh_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
 
 @quax.register(lax.top_k_p)
-def top_k_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
+def top_k_p(operand: ABCQ, /, **kw: Any) -> list[ABCQ | Array]:
     """Top k elements of a quantity.
+
+    ``top_k_p`` has ``multiple_results=True``: it returns ``[values, indices]``.
+    Only the values carry the operand's unit; the indices are a raw ``int``
+    array (dimensionless), like plain JAX.
 
     Examples
     --------
     >>> import quaxed.lax as qlax
     >>> import unxt as u
 
-    >>> q = u.quantity.Quantity([1, 2, 3], "m")
+    >>> q = u.quantity.Quantity([1.0, 2, 3], "m")
     >>> qlax.top_k(q, k=2)
-    [Quantity(Array([3, 2], dtype=int32), unit='m'),
-     Quantity(Array([2, 1], dtype=int32), unit='m')]
+    [Quantity(Array([3., 2.], dtype=float32), unit='m'),
+     Array([2, 1], dtype=int32)]
 
-    >>> q = u.Q([1, 2, 3], "m")
+    >>> q = u.Q([1.0, 2, 3], "m")
     >>> qlax.top_k(q, k=2)
-    [Quantity(Array([3, 2], dtype=int32), unit='m'),
-     Quantity(Array([2, 1], dtype=int32), unit='m')]
+    [Quantity(Array([3., 2.], dtype=float32), unit='m'),
+     Array([2, 1], dtype=int32)]
 
     """
-    return replace(operand, value=lax.top_k_p.bind(ustrip(operand), **kw))  # type: ignore[no-untyped-call]
+    vals, idx = lax.top_k_p.bind(ustrip(operand), **kw)  # type: ignore[no-untyped-call]
+    return [replace(operand, value=vals), idx]
 
 
 # ==============================================================================
@@ -5195,7 +5342,7 @@ def transpose_p(operand: ABCQ, /, *, permutation: Any) -> ABCQ:
 
 @quax.register(lax.xor_p)
 def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
-    """Logical or of two quantities.
+    """Bitwise XOR of two quantities.
 
     Examples
     --------
@@ -5213,12 +5360,12 @@ def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     Quantity(Array(3, dtype=int32...), unit='')
 
     """
-    return replace(x, value=lax.bitwise_xor(ustrip(one, x), ustrip(one, y)))
+    return _as_dimensionless_like(x, lax.bitwise_xor(ustrip(one, x), ustrip(one, y)))
 
 
 @quax.register(lax.xor_p)
 def xor_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
-    """Logical XOR of a dimensionless quantity and an array.
+    """Bitwise XOR of a dimensionless quantity and an array.
 
     A quantity operand keeps the result in the same quantity namespace:
     the result is a dimensionless quantity (per the Array API),
@@ -5240,7 +5387,7 @@ def xor_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
 @quax.register(lax.xor_p)
 def xor_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
-    """Logical XOR of an array and a dimensionless quantity.
+    """Bitwise XOR of an array and a dimensionless quantity.
 
     See :func:`xor_p_qv`: a quantity operand keeps the result dimensionless.
 
@@ -5274,11 +5421,11 @@ def zeta_p(x: ABCQ, q: ArrayLike, /) -> ABCQ:
 
     >>> x = u.quantity.Quantity(2.0, "")
     >>> qlax.zeta(x, 1.0).round(4)
-    Quantity(Array(1.6449, dtype=float32), unit='')
+    Quantity(Array(1.6449, dtype=float32...), unit='')
 
     >>> x = u.Q(2.0, "")
     >>> qlax.zeta(x, 1.0).round(4)
-    Quantity(Array(1.6449, dtype=float32), unit='')
+    Quantity(Array(1.6449, dtype=float32...), unit='')
 
     """
     return replace(x, value=lax.zeta_p.bind(ustrip(x), q))

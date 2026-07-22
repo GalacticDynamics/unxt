@@ -2,7 +2,7 @@
 
 __all__ = ("quantities", "wrap_to", "angles")
 
-from typing import Any, T, TypeAlias, TypeVar
+from typing import Any, TypeAlias
 
 import jax.numpy as jnp
 import numpy as np
@@ -12,13 +12,11 @@ from hypothesis.extra.array_api import make_strategies_namespace
 import unxt as u
 from .units import units
 
-T = TypeVar("T")
-
 # Create array API strategies namespace for JAX
 xps = make_strategies_namespace(jnp)
 
 
-def draw_if_strategy(draw: st.DrawFn, v: T | st.SearchStrategy[T], /) -> T:
+def draw_if_strategy[T](draw: st.DrawFn, v: T | st.SearchStrategy[T], /) -> T:
     """Draw a value if a strategy is given, else return the value."""
     return draw(v) if isinstance(v, st.SearchStrategy) else v
 
@@ -58,7 +56,7 @@ def quantities(
         - str: Fixed unit (e.g., "kpc", "km/s")
         - `unxt.AbstractUnit`: Fixed unit object
         - `unxt.AbstractDimension`: Dimension to derive unit from (uses
-          `unxt_hypothesis.units` strategy)
+          `unxts.hypothesis.units` strategy)
         - SearchStrategy: Strategy that generates units (e.g., from `units()`)
           or dimensions. The default strategy samples from SI base units.
     quantity_cls : type[`unxt.AbstractQuantity`], optional
@@ -98,7 +96,7 @@ def quantities(
     >>> from hypothesis import given, strategies as st
     >>> import jax.numpy as jnp
     >>> import unxt as u
-    >>> import unxt_hypothesis as ust
+    >>> import unxts.hypothesis as ust
 
     >>> @given(q=ust.quantities("kpc", shape=3))
     ... def test_position(q):
@@ -246,7 +244,7 @@ def wrap_to(
     >>> from hypothesis import given
     >>> import hypothesis.strategies as st
     >>> import unxt as u
-    >>> import unxt_hypothesis as ust
+    >>> import unxts.hypothesis as ust
 
     >>> @given(
     ...     angle=ust.wrap_to(
@@ -304,7 +302,7 @@ def angles(
         Strategy for generating (min, max) bounds for angle wrapping.
         If `None`, the angle will have no wrapping specified.
     **kwargs
-        Additional keyword arguments passed to `unxt_hypothesis.quantities`.
+        Additional keyword arguments passed to `unxts.hypothesis.quantities`.
         Common options include 'dtype', 'shape', 'elements', 'unique'.  The
         arguments 'unit' and 'quantity_cls' are set automatically and should not
         be provided.
@@ -317,7 +315,7 @@ def angles(
     Examples
     --------
     >>> from hypothesis import given
-    >>> from unxt_hypothesis import angles
+    >>> from unxts.hypothesis import angles
     >>> import unxt as u
 
     >>> @given(angle=angles())
@@ -338,7 +336,7 @@ def angles(
 
     # Extract unit if provided (to avoid conflicts with dimension) Default to
     # angle dimension, but user can override with specific unit. If user
-    # provides a bad unit, unxt_hypothesis.quantities will raise an error given
+    # provides a bad unit, unxts.hypothesis.quantities will raise an error given
     # the `u.Angle` quantity_cls.
     unit = kwargs.pop("unit", u.dimension("angle"))
 

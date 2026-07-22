@@ -1,12 +1,22 @@
-"""Tests for astropy interop uconvert_value function."""
+"""Tests for astropy quantity interop.
+
+Covers `uconvert_value` and `uconvert` against astropy units and quantities,
+mixed unxt/astropy arithmetic (eager and under ``jax.jit``), and the
+``ustrip(AllowValue, ...)`` dispatches.
+"""
+
+import operator
+from typing import Any
 
 import astropy.units as apyu
 import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
+from plum import convert
 
 import unxt as u
+from unxt.quantity import AbstractQuantity, AllowValue
 
 
 class TestUconvertValueWithAstropyUnits:
@@ -217,6 +227,30 @@ class TestUconvertValueAstropyDistanceAngle:
         assert jnp.isclose(result, jnp.pi)
 
 
+class TestUconvertRelabelsEquivalentNamedUnit:
+    """`uconvert` to an equal-but-differently-named unit must relabel."""
+
+    def test_uconvert_to_named_energy_unit_relabels(self) -> None:
+        """`m2 kg / s2` converted to the equal named unit `J` becomes `J`.
+
+        Astropy treats ``m2 kg / s2 == J``, so a naive ``if x.unit == u``
+        hot-path would silently return the quantity unchanged (keeping the
+        composite label) instead of relabeling to the requested named unit.
+        """
+        energy = u.Q(2.0, "kg") * (u.Q(3.0, "m") / u.Q(1.0, "s")) ** 2
+        assert str(energy.unit) == "m2 kg / s2"
+
+        result = u.uconvert("J", energy)
+
+        assert str(result.unit) == "J"
+        assert jnp.isclose(result.value, 18.0)
+
+    def test_uconvert_to_identical_unit_is_noop_identity(self) -> None:
+        """Converting to the identical unit still returns the same object."""
+        q = u.Q(5.0, "J")
+        assert u.uconvert(apyu.Unit("J"), q) is q
+
+
 class TestUconvertValueAstropyErrorHandling:
     """Test error handling in uconvert_value with Astropy units."""
 
@@ -231,3 +265,274 @@ class TestUconvertValueAstropyErrorHandling:
         # Try to convert to incompatible unit (time)
         with pytest.raises(apyu.UnitConversionError, match="not convertible"):
             u.uconvert_value("s", "m", apy_q)
+
+
+class TestMixedUnxtAstropyArithmetic:
+    """Arithmetic with an ``unxt.Quantity`` on the left and an astropy one on the right.
+
+    Regression: quax materialised the astropy operand via ``__array__`` (in its
+    own unit, stripped), so ``*``/``/`` silently dropped its unit and ``+``/``-``
+    raised as if it were dimensionless.
+    """
+
+    def test_mul_combines_units(self) -> None:
+        """``unxt_q * astropy_q`` keeps both units."""
+        got = u.Q(1.0, "m") * apyu.Quantity(2.0, "km")
+        assert isinstance(got, u.Q)
+        assert np.isclose(np.asarray(got.value), 2.0)
+        assert got.unit == u.unit("m km")
+
+    def test_truediv_combines_units(self) -> None:
+        """``unxt_q / astropy_q`` keeps both units."""
+        got = u.Q(1.0, "m") / apyu.Quantity(2.0, "km")
+        assert isinstance(got, u.Q)
+        assert np.isclose(np.asarray(got.value), 0.5)
+        assert got.unit == u.unit("m / km")
+
+    def test_add_converts_and_combines(self) -> None:
+        """``unxt_q + astropy_q`` converts the astropy operand first."""
+        got = u.Q(1.0, "m") + apyu.Quantity(2.0, "km")
+        assert isinstance(got, u.Q)
+        assert got.unit == u.unit("m")
+        assert np.isclose(np.asarray(got.value), 2001.0)
+
+    def test_sub_converts_and_combines(self) -> None:
+        """``unxt_q - astropy_q`` converts the astropy operand first."""
+        got = u.Q(1.0, "m") - apyu.Quantity(2.0, "km")
+        assert isinstance(got, u.Q)
+        assert got.unit == u.unit("m")
+        assert np.isclose(np.asarray(got.value), -1999.0)
+
+    def test_add_incompatible_units_raises(self) -> None:
+        """Adding an incompatible astropy quantity still raises."""
+        with pytest.raises(apyu.UnitConversionError, match="not convertible"):
+            _ = u.Q(1.0, "m") + apyu.Quantity(2.0, "s")
+
+    @pytest.mark.parametrize(
+        ("name", "op", "lhs", "rhs"),
+        [
+            (
+                "floordiv",
+                operator.floordiv,
+                u.Q(6.0, ""),
+                apyu.Quantity(2.0, "percent"),
+            ),
+            ("mod", operator.mod, u.Q(6.0, ""), apyu.Quantity(2.0, "percent")),
+            ("pow", operator.pow, u.Q(3.0, "m"), apyu.Quantity(2.0, "percent")),
+            (
+                "matmul",
+                operator.matmul,
+                u.Q([1.0, 2.0], "m"),
+                apyu.Quantity([3.0, 4.0], "km"),
+            ),
+        ],
+    )
+    def test_operator_matches_explicitly_converted_operand(
+        self, name: str, op: Any, lhs: Any, rhs: Any
+    ) -> None:
+        """Every binary operator treats an astropy operand as a converted quantity.
+
+        Asserted as an invariant rather than a hand-computed "right answer":
+        whatever ``q <op> convert(apy_q, Quantity)`` gives, ``q <op> apy_q``
+        must give too. That is precisely what ``_coerce_foreign_quantity``
+        already guarantees for ``*``, ``/``, ``+`` and ``-``.
+
+        Regression: only those four dunders were overridden to coerce. ``//``,
+        ``%``, ``**`` and ``@`` were inherited unchanged, so quax materialised
+        the astropy operand via ``__array__`` -- stripping it to a bare array in
+        its own unit and silently dropping the unit. ``**`` was wrong in every
+        case (``Q(3, "m") ** apy(2, "percent")`` gave ``9 m2`` rather than
+        ``1.0222 m(1/50)``); ``@`` dropped the ``km``.
+        """
+        expected = op(lhs, convert(rhs, u.quantity.Quantity))
+        got = op(lhs, rhs)
+
+        assert got.unit == expected.unit, f"{name}: unit"
+        msg = f"{name}: value"
+        assert np.allclose(np.asarray(got.value), np.asarray(expected.value)), msg
+
+    def test_plum_convert_astropy_to_unxt(self) -> None:
+        """`plum.convert` from an astropy Quantity yields an ``unxt`` Quantity.
+
+        The astropy->unxt conversion is registered against the abstract base
+        (``type_to=AbstractQuantity``); `plum` resolves a conversion whose
+        ``type_to`` is a supertype of the requested target, so both the concrete
+        ``Quantity`` and the base ``AbstractQuantity`` targets must resolve.
+        """
+        aq = apyu.Quantity(2.0, "km")
+        for target in (u.quantity.Quantity, AbstractQuantity):
+            got = convert(aq, target)
+            assert isinstance(got, u.quantity.Quantity)
+            assert got.unit == u.unit("km")
+            assert np.isclose(np.asarray(got.value), 2.0)
+
+
+_JIT_REFLECTED_XFAIL = pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "Known sharp edge: under `jax.jit` an astropy Quantity operand loses its "
+        "unit before any unxt code runs -- `*`/`/` drop it silently, `+`/`-` raise. "
+        "See the 'Mixing Astropy and unxt Quantities Under jit' sharp bit."
+    ),
+)
+
+
+_REFLECTED_MODES = ["eager", "jit-arg", "jit-closure"]
+
+
+def _apply_reflected(mode: str, op: Any, apy: Any, q: Any) -> Any:
+    """Apply ``op(apy, q)`` with the astropy operand entering three ways.
+
+    The two jit modes lose the unit by *different* mechanisms, so both need
+    covering; ``jit-closure`` never becomes a tracer at all.
+    """
+    if mode == "eager":
+        return op(apy, q)
+    if mode == "jit-arg":
+        return jax.jit(op)(apy, q)
+    if mode == "jit-closure":
+        return jax.jit(lambda b: op(apy, b))(q)
+    msg = f"unknown mode {mode!r}"
+    raise AssertionError(msg)
+
+
+class TestReflectedMixedArithmeticUnderJit:
+    """Astropy quantity on the LEFT, ``unxt`` on the right, under ``jax.jit``.
+
+    Eagerly these all work, because astropy's own ``__array_ufunc__`` handles
+    ``astropy_q <op> unxt_q``. Under ``jit`` they do not -- these tests encode the
+    *desired* behaviour and are strict-xfail, so if the underlying jax/astropy
+    behaviour ever changes they fail loudly and prompt removing the marker.
+
+    Both jit entry paths are covered (argument and closure constant) so that a
+    future change cannot make correctness depend on which side of the jit
+    boundary the astropy value came from -- a half-fix that worked for only one
+    would be worse than the uniform breakage documented here.
+    """
+
+    @pytest.mark.parametrize("mode", _REFLECTED_MODES)
+    def test_mul_keeps_both_units(self, mode: str, request: Any) -> None:
+        """``astropy_q * unxt_q`` keeps both units."""
+        if mode != "eager":
+            request.applymarker(_JIT_REFLECTED_XFAIL)
+        got = _apply_reflected(
+            mode, lambda a, b: a * b, apyu.Quantity(2.0, "km"), u.Q(3.0, "m")
+        )
+        assert np.isclose(np.asarray(u.ustrip(AllowValue, "km m", got)), 6.0)
+
+    @pytest.mark.parametrize("mode", _REFLECTED_MODES)
+    def test_truediv_keeps_both_units(self, mode: str, request: Any) -> None:
+        """``astropy_q / unxt_q`` keeps both units."""
+        if mode != "eager":
+            request.applymarker(_JIT_REFLECTED_XFAIL)
+        got = _apply_reflected(
+            mode, lambda a, b: a / b, apyu.Quantity(2.0, "km"), u.Q(3.0, "m")
+        )
+        assert np.isclose(np.asarray(u.ustrip(AllowValue, "km / m", got)), 2.0 / 3.0)
+
+    @pytest.mark.parametrize("mode", _REFLECTED_MODES)
+    def test_add_converts_and_combines(self, mode: str, request: Any) -> None:
+        """``astropy_q + unxt_q`` converts the unxt operand first."""
+        if mode != "eager":
+            request.applymarker(_JIT_REFLECTED_XFAIL)
+        got = _apply_reflected(
+            mode, lambda a, b: a + b, apyu.Quantity(2.0, "km"), u.Q(3.0, "m")
+        )
+        assert np.isclose(np.asarray(u.ustrip(AllowValue, "km", got)), 2.003)
+
+    @pytest.mark.parametrize("mode", _REFLECTED_MODES)
+    def test_sub_converts_and_combines(self, mode: str, request: Any) -> None:
+        """``astropy_q - unxt_q`` converts the unxt operand first."""
+        if mode != "eager":
+            request.applymarker(_JIT_REFLECTED_XFAIL)
+        got = _apply_reflected(
+            mode, lambda a, b: a - b, apyu.Quantity(2.0, "km"), u.Q(3.0, "m")
+        )
+        assert np.isclose(np.asarray(u.ustrip(AllowValue, "km", got)), 1.997)
+
+
+class TestUstripAllowValueAstropy:
+    """``ustrip(AllowValue, <astropy Quantity>)`` -- the 2-arg AllowValue form."""
+
+    def test_two_arg_allowvalue_strips_astropy_quantity(self) -> None:
+        """Two-arg ``ustrip(AllowValue, aq)`` returns the value, not an error.
+
+        Regression: no 2-arg ``(type[AllowValue], AstropyQuantity)`` dispatch
+        existed, so the call was ambiguous between the generic
+        ``ustrip(type[AllowValue], Any)`` and ``ustrip(Any, AstropyQuantity)``.
+        """
+        aq = apyu.Quantity(2.0, "km")
+        got = u.ustrip(AllowValue, aq)
+        assert not isinstance(got, apyu.Quantity)
+        assert np.isclose(np.asarray(got), 2.0)
+
+    def test_two_arg_allowvalue_passes_through_bare_value(self) -> None:
+        """A bare (non-quantity) value still passes through unchanged."""
+        assert u.ustrip(AllowValue, 5.0) == 5.0
+
+
+class TestUconvertValueAstropyQuantityRelabelling:
+    """``uconvert_value(uto, ufrom, <astropy Quantity>)`` relabels the unit.
+
+    Regression: an astropy ``Quantity`` subclasses ``ndarray``, so it satisfied
+    the ``x: ArrayLike`` annotation of the bare-value dispatch and was not
+    rejected. That body called ``ufrom.to(uto, x)``, which converts the
+    magnitude but returns a ``Quantity`` still labelled with ``ufrom`` -- so
+    ``uconvert_value("m", "km", 1 km)`` produced ``1000.0 km``.
+    """
+
+    def test_different_units_relabels(self) -> None:
+        """The magnitude is converted *and* the unit label follows it."""
+        got = u.uconvert_value("m", "km", apyu.Quantity(1.0, "km"))
+        assert isinstance(got, apyu.Quantity)
+        assert got.unit == apyu.Unit("m")
+        assert np.isclose(got.value, 1000.0)
+
+    def test_different_units_relabels_downscale(self) -> None:
+        """The reverse direction (m -> km) relabels too."""
+        got = u.uconvert_value("km", "m", apyu.Quantity(1000.0, "m"))
+        assert isinstance(got, apyu.Quantity)
+        assert got.unit == apyu.Unit("km")
+        assert np.isclose(got.value, 1.0)
+
+    def test_same_unit_is_unchanged(self) -> None:
+        """The same-unit case keeps both value and unit."""
+        got = u.uconvert_value("m", "m", apyu.Quantity(5.0, "m"))
+        assert isinstance(got, apyu.Quantity)
+        assert got.unit == apyu.Unit("m")
+        assert np.isclose(got.value, 5.0)
+
+    def test_array_quantity_relabels(self) -> None:
+        """Array-valued astropy quantities convert elementwise and relabel."""
+        got = u.uconvert_value("m", "km", apyu.Quantity([1.0, 2.0], "km"))
+        assert got.unit == apyu.Unit("m")
+        assert np.allclose(got.value, [1000.0, 2000.0])
+
+    def test_bare_value_control_returns_plain_value(self) -> None:
+        """Control: a bare value is still returned bare, not as a Quantity."""
+        got = u.uconvert_value("m", "km", 1.0)
+        assert not isinstance(got, apyu.Quantity)
+        assert np.isclose(got, 1000.0)
+
+    def test_astropy_units_objects_relabel(self) -> None:
+        """The same holds when passing astropy ``Unit`` objects, not strings."""
+        got = u.uconvert_value(
+            apyu.Unit("m"), apyu.Unit("km"), apyu.Quantity(1.0, "km")
+        )
+        assert got.unit == apyu.Unit("m")
+        assert np.isclose(got.value, 1000.0)
+
+    def test_incompatible_ufrom_raises(self) -> None:
+        """A ``ufrom`` of a different dimension to the quantity is rejected.
+
+        Mirrors the guard in the `AbstractQuantity` convenience dispatch: the
+        quantity carries its own unit, so a ``ufrom`` that cannot convert to it
+        signals a caller mistake rather than something to silently ignore.
+        """
+        with pytest.raises(ValueError, match="Cannot convert"):
+            u.uconvert_value("m", "s", apyu.Quantity(1.0, "km"))
+
+    def test_incompatible_uto_raises(self) -> None:
+        """A ``uto`` of a different dimension is rejected by astropy itself."""
+        with pytest.raises(apyu.UnitConversionError):
+            u.uconvert_value("s", "km", apyu.Quantity(1.0, "km"))

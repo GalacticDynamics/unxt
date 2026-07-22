@@ -8,12 +8,13 @@ correctness.
 
 - **`Quantity`**: The default quantity class, no dimension parametrization,
   aliased as `Q`.
-- **`ParametricQuantity`**: Dimension-parametrized with runtime checking,
-  aliased as `PQ`.
-- **`StaticQuantity`**: Parametric quantity with static NumPy values for JAX
-  static arguments.
+- **`StaticQuantity`**: Quantity holding a static NumPy value, for use as a JAX
+  static argument.
 - **`Angle`**: Specialized quantity type for angular measurements with wrapping
   support.
+
+Dimension-parametrized quantities with runtime checking (`ParametricQuantity`,
+aliased `PQ`) now live in the separate `unxts.parametric` package.
 
 ## Key Functions
 
@@ -99,7 +100,7 @@ Quantity(Array(100., dtype=float32...), unit='m2 kg / s2')
 Convert to standard energy units
 
 >>> u.uconvert("J", energy)
-Quantity(Array(100., dtype=float32...), unit='m2 kg / s2')
+Quantity(Array(100., dtype=float32...), unit='J')
 
 JIT compilation works seamlessly
 
@@ -136,6 +137,8 @@ __all__ = (
     "is_any_quantity",
     "convert_to_quantity_value",
     "AllowValue",
+    # Comparison
+    "equivalent",
     # NumPy ufunc registry
     "register_ufunc",
 )
@@ -154,6 +157,7 @@ with install_import_hook("unxt.quantity"):
         StaticQuantity,
         StaticValue,
         convert_to_quantity_value,
+        equivalent,
         is_any_quantity,
         register_ufunc,
     )

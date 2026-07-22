@@ -54,8 +54,57 @@ def _array_attach_units(
     >>> _array_attach_units(data, None) is data
     True
 
+    Data that is already a Quantity cannot be re-quantified: attaching a unit
+    to it raises `ValueError` naming the unit the data already carries, rather
+    than the opaque "Cannot convert 'Quantity' to a value" `TypeError` that
+    `unxt.Quantity` would otherwise raise.
+
     """
-    return data if unit is None else u.Q(data, u.unit(unit))
+    if unit is None:
+        return data
+
+    if (existing := u.unit_of(data)) is not None:
+        msg = (
+            f"cannot attach unit '{unit}': the data is already a Quantity with "
+            f"unit '{existing}'. Convert it with `unxt.uconvert` instead of "
+            "re-quantifying."
+        )
+        raise ValueError(msg)
+
+    return u.Q(data, u.unit(unit))
+
+
+def _consume_unit_attrs(obj: DataArray | Dataset, /) -> None:
+    """Drop the unit attribute wherever the data itself now carries the unit.
+
+    Once a unit lives on the data as a `Quantity`, the ``units`` attribute is
+    a stale duplicate: a later conversion would leave it contradicting the data
+    (so plot labels and CF serialization report the pre-conversion unit), and it
+    would make a second ``quantify()`` try to re-quantify a `Quantity`.
+
+    The attribute is dropped only where the unit demonstrably survived onto the
+    data. xarray coerces *dimension* coordinates back to plain index arrays,
+    discarding the Quantity; there the attribute remains the only record of the
+    unit and must be kept. Mutates ``obj`` in place -- callers pass an object
+    they have just constructed.
+    """
+
+    def drop_if_carried(node: Any, /) -> None:
+        """Drop the attr from one variable/coordinate if its data carries a unit."""
+        if u.unit_of(node.data) is not None:
+            node.attrs.pop(UNIT_ATTR, None)
+
+    # A Dataset holds many data variables; a DataArray *is* the single one.
+    # Branching explicitly (rather than unifying into one list) keeps the two
+    # element types apart, so this needs no ``type: ignore``.
+    if isinstance(obj, Dataset):
+        for var in obj.data_vars.values():
+            drop_if_carried(var)
+    else:
+        drop_if_carried(obj)
+
+    for coord in obj.coords.values():
+        drop_if_carried(coord)
 
 
 @dispatch
@@ -159,7 +208,7 @@ def extract_units(obj: DataArray, /) -> dict[Hashable, u.AbstractUnit | None]:
     >>> import unxt as u
     >>> from unxts.interop.xarray._src.conversion import extract_units
 
-    >>> q = u.ParametricQuantity([1.0, 2.0], "m")
+    >>> q = u.Q([1.0, 2.0], "m")
     >>> da = xr.DataArray(q, dims=["x"])
     >>> units = extract_units(da)
     >>> units[None]
@@ -240,6 +289,12 @@ def attach_units(
     >>> quantified.data
     Quantity(Array([1., 2.], dtype=float32), unit='m')
 
+    The consumed ``units`` attribute does not survive onto the result:
+
+    >>> da = xr.DataArray([1.0, 2.0], dims=["x"], attrs={"units": "m"})
+    >>> attach_units(da, {None: "m"}).attrs
+    {}
+
     """
     # Handle the data array itself (None key = the DataArray's own data)
     data_unit = units.get(None)
@@ -249,21 +304,27 @@ def attach_units(
     new_coords = {}
     for name, coord in obj.coords.items():
         unit = units.get(name)
-        new_coords[name] = (
-            coord
-            if unit is None
-            else Variable(
-                coord.dims, _array_attach_units(coord.data, unit), dict(coord.attrs)
-            )
+        # Always build a fresh Variable with a copied attrs dict, even when no
+        # unit is attached. ``_consume_unit_attrs`` mutates the result's attrs
+        # in place, so reusing ``coord`` would be safe only for as long as the
+        # DataArray/Dataset constructor keeps copying coordinate attrs -- an
+        # xarray implementation detail, not a guarantee. Copying here makes
+        # non-mutation of the caller's object structural instead.
+        new_coords[name] = Variable(
+            coord.dims,
+            coord.data if unit is None else _array_attach_units(coord.data, unit),
+            dict(coord.attrs),
         )
 
-    return DataArray(
+    result = DataArray(
         data=new_data,
         coords=new_coords,
         dims=obj.dims,
         name=obj.name,
         attrs=dict(obj.attrs),
     )
+    _consume_unit_attrs(result)
+    return result
 
 
 @dispatch
@@ -295,15 +356,21 @@ def attach_units(
     new_coords = {}
     for name, coord in obj.coords.items():
         unit = units.get(name)
-        new_coords[name] = (
-            coord
-            if unit is None
-            else Variable(
-                coord.dims, _array_attach_units(coord.data, unit), dict(coord.attrs)
-            )
+        # Always build a fresh Variable with a copied attrs dict, even when no
+        # unit is attached. ``_consume_unit_attrs`` mutates the result's attrs
+        # in place, so reusing ``coord`` would be safe only for as long as the
+        # DataArray/Dataset constructor keeps copying coordinate attrs -- an
+        # xarray implementation detail, not a guarantee. Copying here makes
+        # non-mutation of the caller's object structural instead.
+        new_coords[name] = Variable(
+            coord.dims,
+            coord.data if unit is None else _array_attach_units(coord.data, unit),
+            dict(coord.attrs),
         )
 
-    return Dataset(data_vars=new_vars, coords=new_coords, attrs=dict(obj.attrs))
+    result = Dataset(data_vars=new_vars, coords=new_coords, attrs=dict(obj.attrs))
+    _consume_unit_attrs(result)
+    return result
 
 
 @dispatch
@@ -332,7 +399,7 @@ def strip_units(obj: DataArray) -> DataArray:
     >>> import unxt as u
     >>> from unxts.interop.xarray._src.conversion import strip_units
 
-    >>> q = u.ParametricQuantity([1.0, 2.0], "m")
+    >>> q = u.Q([1.0, 2.0], "m")
     >>> da = xr.DataArray(q, dims=["x"])
     >>> stripped = strip_units(da)
     >>> stripped.data

@@ -15,6 +15,7 @@ __all__ = (
 import contextlib
 import threading
 import tomllib
+import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import TracebackType
@@ -248,11 +249,21 @@ class QuantityReprConfig(LocalConfigurable):
             # resolved trait values. This ensures LazyConfigValue objects are
             # properly resolved to their actual values.
             temp_instance = self.__class__(config=cfg)
-            overrides = {}
-            for trait_name in self.trait_names():
-                overrides[trait_name] = object.__getattribute__(
-                    temp_instance, trait_name
-                )
+            # Only override the traits the Config actually specifies. Iterating
+            # every trait would read the class default for traits absent from
+            # ``cfg`` and clobber any globally-configured value on entry.
+            specified: set[str] = set()
+            for klass in type(self).__mro__:
+                section = cfg.get(klass.__name__, None)
+                if section:
+                    specified |= set(section)
+            # Intersect with the *override allowlist*, not all traits:
+            # ``__getattribute__`` only consults these keys, so an entry outside
+            # it could never be observed -- it would just be a dead push.
+            overrides = {
+                name: object.__getattribute__(temp_instance, name)
+                for name in specified & QUANTITY_REPR_CONFIG_KEYS
+            }
             kwargs = overrides
 
         return _NestedConfigContext(self, kwargs)
@@ -417,11 +428,21 @@ class QuantityStrConfig(LocalConfigurable):
             # resolved trait values. This ensures LazyConfigValue objects are
             # properly resolved to their actual values.
             temp_instance = self.__class__(config=cfg)
-            overrides = {}
-            for trait_name in self.trait_names():
-                overrides[trait_name] = object.__getattribute__(
-                    temp_instance, trait_name
-                )
+            # Only override the traits the Config actually specifies. Iterating
+            # every trait would read the class default for traits absent from
+            # ``cfg`` and clobber any globally-configured value on entry.
+            specified: set[str] = set()
+            for klass in type(self).__mro__:
+                section = cfg.get(klass.__name__, None)
+                if section:
+                    specified |= set(section)
+            # Intersect with the *override allowlist*, not all traits:
+            # ``__getattribute__`` only consults these keys, so an entry outside
+            # it could never be observed -- it would just be a dead push.
+            overrides = {
+                name: object.__getattribute__(temp_instance, name)
+                for name in specified & QUANTITY_STR_CONFIG_KEYS
+            }
             kwargs = overrides
 
         return _NestedConfigContext(self, kwargs)
@@ -556,6 +577,33 @@ class UnxtConfig(AbstractUnxtConfig, SingletonConfigurable):
         # Initialize child configs with parent config for inheritance
         self.quantity_repr = QuantityReprConfig(config=self.config, parent=self)
         self.quantity_str = QuantityStrConfig(config=self.config, parent=self)
+
+    def reload(self) -> bool:
+        """Re-read configuration from the nearest project ``pyproject.toml``.
+
+        The ``[tool.unxts.unxt]`` section is auto-loaded once at import, using
+        the current working directory at that moment. If ``unxt`` was imported
+        before the process changed into the project directory (common in
+        notebooks and test runners), that section is missed; call this to pick
+        it up. Only keys present in the file are applied (overwriting the
+        current value); any other settings keep their current value.
+
+        Returns
+        -------
+        bool
+            Whether any configuration was found and applied. This is ``False``
+            if no ``pyproject.toml`` was found from the current directory, it
+            could not be read/parsed, or it had no ``[tool.unxts.unxt]``
+            settings -- letting callers detect a no-op reload. (A missing or
+            malformed file is never raised, matching the import-time behavior.)
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> loaded = u.config.reload()  # re-read pyproject.toml from the cwd
+
+        """
+        return _auto_load_project_toml_config(self, stacklevel=3)
 
 
 @dataclass(slots=True)
@@ -709,11 +757,29 @@ def _load_toml_config_from_pyproject(
         Traitlets Config object with nested configuration
 
     """
-    if path_to_class is None:
-        path_to_class = _TOML_PATH_TO_CONFIG_CLASS
-
     with path.open("rb") as f:
         data = tomllib.load(f)
+    return _config_from_toml_data(
+        data, tool_path=tool_path, path_to_class=path_to_class
+    )
+
+
+def _config_from_toml_data(
+    data: dict[str, Any],
+    /,
+    *,
+    tool_path: tuple[str, ...] = ("unxts", "unxt"),
+    path_to_class: dict[tuple[str, ...], str] | None = None,
+) -> Config:
+    """Build a :class:`Config` from already-parsed ``pyproject.toml`` data.
+
+    Split from :func:`_load_toml_config_from_pyproject` so a caller that has
+    already parsed the file (e.g. :func:`_auto_load_project_toml_config`, which
+    also needs the raw data for the legacy-section check) can reuse it without
+    re-reading and re-parsing the file.
+    """
+    if path_to_class is None:
+        path_to_class = _TOML_PATH_TO_CONFIG_CLASS
 
     # Navigate to the tool.<tool_path> section
     section: Any = data.get("tool")
@@ -754,7 +820,30 @@ def _initialize_config_mapping(cfg: UnxtConfig) -> None:
     )
 
 
-def _auto_load_project_toml_config(cfg: UnxtConfig, /) -> None:
+def _warn_if_legacy_unxt_config(
+    data: dict[str, Any], /, *, stacklevel: int = 2
+) -> None:
+    """Warn if the deprecated ``[tool.unxt]`` pyproject section is present.
+
+    Takes the already-parsed ``pyproject.toml`` data. Before the namespace
+    rename (unxt#685), configuration lived under ``[tool.unxt]``; it is now read
+    from ``[tool.unxts.unxt]``. A leftover ``[tool.unxt]`` section is silently
+    ignored, so warn the user to migrate. ``stacklevel`` is forwarded to
+    :func:`warnings.warn` so callers can attribute the warning to the user's
+    call site (e.g. their ``import`` or ``config.reload()``).
+    """
+    tool = data.get("tool")
+    if isinstance(tool, dict) and isinstance(tool.get("unxt"), dict):
+        warnings.warn(
+            "The '[tool.unxt]' pyproject.toml section is deprecated and ignored; "
+            "unxt now reads its configuration from '[tool.unxts.unxt]'. Move your "
+            "settings there.",
+            DeprecationWarning,
+            stacklevel=stacklevel,
+        )
+
+
+def _auto_load_project_toml_config(cfg: UnxtConfig, /, *, stacklevel: int = 2) -> bool:
     """Auto-load nearest project TOML config without raising import-time errors.
 
     This function:
@@ -763,21 +852,33 @@ def _auto_load_project_toml_config(cfg: UnxtConfig, /) -> None:
     3. Applies valid settings to config instances
     4. Silently ignores invalid values or missing files
 
+    ``stacklevel`` is the caller's distance from this function, forwarded (offset
+    by this frame) to the legacy-config `DeprecationWarning` so it points at the
+    user's site. Returns whether any configuration was found and applied.
     """
     pyproject = _find_pyproject(Path.cwd())
     if pyproject is None:
-        return
+        return False
 
+    # Read and parse the file once, then reuse the data for both the legacy
+    # deprecation check and the config load.
     try:
-        loaded = _load_toml_config_from_pyproject(pyproject)
-    except (OSError, tomllib.TOMLDecodeError, TypeError, KeyError):
+        with pyproject.open("rb") as f:
+            data = tomllib.load(f)
+    except (OSError, tomllib.TOMLDecodeError):
         # Never fail import because project config is missing or malformed.
-        return
+        return False
+
+    _warn_if_legacy_unxt_config(data, stacklevel=stacklevel + 1)
+    loaded = _config_from_toml_data(data)
 
     if not loaded:
-        return
+        return False
 
-    # Apply config values using the mapping
+    # Apply config values using the mapping, tracking whether any value was
+    # actually applied (a non-empty section whose keys are all unknown or whose
+    # every ``setattr`` fails must not report success).
+    applied = False
     for class_name, class_config in loaded.items():
         if class_name not in _CONFIG_CLASS_TO_INSTANCE:
             continue
@@ -791,6 +892,9 @@ def _auto_load_project_toml_config(cfg: UnxtConfig, /) -> None:
                 setattr(config_instance, key, value)
             except (TraitError, AttributeError):
                 continue
+            applied = True
+
+    return applied
 
 
 # Create the global singleton instance

@@ -8,11 +8,9 @@ classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: BSD License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
@@ -36,17 +34,18 @@ dependencies = [
   "quax-blocks>=0.4.1",
   "quaxed>=0.10.5",
   "traitlets>=5.0.0",
-  "unxt-api>=1.10.0",                             # change to "unxts.api>=2.0.0" after release
+  "unxt-api>=2.0.0",
   "wadler-lindig>=0.1.5",
   "xmmutablemap>=0.1",
   "zeroth>=1.0.0",
 ]
 description = "Quantities in JAX"
 dynamic = ["version"]
-license.file = "LICENSE"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 name = "unxt"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 
 [project.optional-dependencies]
 # jax extras
@@ -61,10 +60,12 @@ backend-astropy = ["astropy>=6.0"]
 interop-gala = ["unxts.interop.gala"]
 interop-mpl = ["unxts.interop.matplotlib"]
 interop-xarray = ["unxts.interop.xarray"]
+linalg = ["unxts.linalg"]
 workspace = [
   "unxt[interop-gala,interop-mpl,interop-xarray]",
   "unxts.api",
   "unxts.hypothesis",
+  "unxts.linalg",
   "unxts.parametric",
 ]
 
@@ -140,6 +141,7 @@ workspace = [
   "unxts.interop.gala",
   "unxts.interop.matplotlib",
   "unxts.interop.xarray",
+  "unxts.linalg",
   "unxts.parametric",
 ]
 
@@ -197,7 +199,7 @@ disallow_untyped_defs    = false
 enable_error_code        = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 files                    = ["src", "tests"]
 namespace_packages       = true
-python_version           = "3.11"
+python_version           = "3.12"
 strict                   = true
 warn_return_any          = false
 warn_unreachable         = true
@@ -253,7 +255,7 @@ messages_control.disable = [
   "wrong-import-position",
   "W0221",                      # Arguments in function call differ from overridden method
 ]
-py-version = "3.11"
+py-version = "3.12"
 reports.output-format = "colorized"
 similarities.ignore-imports = "yes"
 
@@ -322,6 +324,11 @@ xfail_strict = true
 
 [tool.pytest_env]
 UNXT_ENABLE_RUNTIME_TYPECHECKING = "beartype.beartype"
+# Force matplotlib's non-interactive backend so the interop tests never load a
+# GUI toolkit (e.g. Tk). The Windows hosted-runner Pythons (3.13/3.14) ship a
+# broken Tcl, so an auto-selected TkAgg backend raised `_tkinter.TclError` at
+# figure creation; Agg is also what `pytest-mpl` renders with.
+MPLBACKEND = "Agg"
 
 
 [tool.repo-review]
@@ -338,6 +345,8 @@ namespace-packages = [
   "packages/unxts.interop.matplotlib/src/unxts/interop",
   "packages/unxts.interop.xarray/src/unxts",
   "packages/unxts.interop.xarray/src/unxts/interop",
+  "packages/unxts.linalg/src/unxts",
+  "packages/unxts.parametric/src/unxts",
 ]
 
 [tool.ruff.lint]
@@ -366,6 +375,19 @@ ignore = [
   "RUF022",  # `__all__` is not sorted
   "TD002",   # Missing author in TODO
   "TD003",   # Missing issue link on the line following this TODO
+  # PEP 695 `type X = ...` aliases become runtime `TypeAliasType` objects.
+  # `beartype.door.TypeHint` has no `TypeAliasType` case (verified against the
+  # beartype pinned in uv.lock and its current dev branch) and raises
+  # `BeartypeDoorNonpepException`; plum's `Signature.__eq__` calls it unguarded,
+  # so converting a *dispatch-key* alias hard-crashes the beartype-enabled
+  # import. A *recursive/parametric* alias is
+  # worse: used as a beartype-checked annotation it raises
+  # `BeartypeDecorHintForwardRefException` on its own forward reference. unxt's
+  # aliases are dispatch keys and runtime-checked annotations, so they must stay
+  # `X: TypeAlias = ...` until the upstream gap is closed (beartype.door or plum
+  # unwrapping `TypeAliasType.__value__`, which already resolves correctly). (The
+  # `>=3.12` floor is what makes ruff start suggesting the incompatible form.)
+  "UP040", # Type alias uses `TypeAlias` instead of the `type` keyword
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -378,6 +400,25 @@ ignore = [
   "N803",
   "N806",
   "PLC0415",
+]
+# `unxts.linalg` ports dense, doctest-heavy internal linear-algebra code. These
+# relaxations match how the module was written (private unit-array access, JAX
+# primitive registrations named `*_p_QuantityMatrix`, the `.T` transpose
+# property, and long doctest-output/error-message lines).
+"**packages/unxts.linalg/src/**" = [
+  "E501",   # Line too long (doctest output / error messages)
+  "EM101",  # Exception must not use a string literal
+  "EM102",  # Exception must not use an f-string literal
+  "N802",   # Function name should be lowercase (`.T`, `*_p_QuantityMatrix`)
+  "SLF001", # Private member access (`UnitsMatrix._units`, by design)
+  "TRY003", # Avoid specifying long messages outside the exception class
+  "TRY004", # Prefer `TypeError` (intentional `ValueError` for ragged/units)
+]
+"**packages/unxts.linalg/tests/**" = [
+  "D102",   # Missing docstring in public method
+  "N802",   # Test names embed `QuantityMatrix`/`1D`/`2D`
+  "RUF002", # Docstring contains ambiguous `×` (math notation)
+  "RUF003", # Comment contains ambiguous character
 ]
 "__init__.py" = ["F403"]
 "noxfile.py" = ["T20"]
@@ -429,6 +470,7 @@ unxt-hypothesis            = { workspace = true }
 "unxts.interop.gala"       = { workspace = true }
 "unxts.interop.matplotlib" = { workspace = true }
 "unxts.interop.xarray"     = { workspace = true }
+"unxts.linalg"             = { workspace = true }
 "unxts.parametric"         = { workspace = true }
 
 [tool.uv.workspace]

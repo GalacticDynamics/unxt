@@ -3,15 +3,13 @@
 __all__ = ("DimensionlessUnitSystem", "LTMAUnitSystem")
 
 from dataclasses import dataclass
-from typing import Annotated, TypeAlias, final
-from typing_extensions import override
+from typing import Annotated, TypeAlias, final, override
 
 import jax.tree_util as jtu
 from astropy.units import UnitBase as AstropyUnitBase, dimensionless_unscaled
 
 from . import builtin_dimensions as ud
 from .base import AbstractUnitSystem
-from unxt._src.utils import SingletonMixin
 
 Unit: TypeAlias = AstropyUnitBase
 
@@ -19,17 +17,18 @@ Unit: TypeAlias = AstropyUnitBase
 @jtu.register_static
 @final
 @dataclass(frozen=True, slots=True)
-class DimensionlessUnitSystem(SingletonMixin, AbstractUnitSystem):
+class DimensionlessUnitSystem(AbstractUnitSystem):
     """A unit system with only dimensionless units.
 
-    This is a singleton class.
+    Prefer the ``dimensionless`` realization from `unxt.unitsystems`. Distinct
+    instances compare equal by value:
 
     Examples
     --------
     >>> from unxt.unitsystems import DimensionlessUnitSystem
     >>> dims1 = DimensionlessUnitSystem()
     >>> dims2 = DimensionlessUnitSystem()
-    >>> dims1 is dims2
+    >>> dims1 == dims2
     True
 
     """
@@ -71,7 +70,7 @@ class LTMAUnitSystem(AbstractUnitSystem):
 @jtu.register_static
 @final
 @dataclass(frozen=True, slots=True)
-class SIUnitSystem(SingletonMixin, AbstractUnitSystem):
+class SIUnitSystem(AbstractUnitSystem):
     """SI unit system + angles.
 
     Note: this is not part of the public API! Use the `si` instance (realization) from
@@ -130,7 +129,7 @@ class SIUnitSystem(SingletonMixin, AbstractUnitSystem):
 @jtu.register_static
 @final
 @dataclass(frozen=True, slots=True)
-class CGSUnitSystem(SingletonMixin, AbstractUnitSystem):
+class CGSUnitSystem(AbstractUnitSystem):
     """CGS unit system + angles.
 
     Note: this is not part of the public API! Use the `cgs` instance (realization) from
