@@ -21,7 +21,7 @@ from astropy.constants import (  # pylint: disable=E0611
     k_B as const_kB,
     m_e as const_me,
 )
-from astropy.units import Unit as AstropyUnit, UnitBase as AstropyUnitBase
+from astropy.units import UnitBase as AstropyUnitBase
 from plum import dispatch
 
 from . import builtin_dimensions as ud
@@ -312,19 +312,9 @@ def unitsystem(
 # fundamental constants is fixed to the dimensionless value 1 by choosing the
 # base units accordingly, then the resulting units are handed to the standard
 # `unitsystem(*units)` constructor. Constants come from `astropy.constants`;
-# `.decompose()` reduces each computed quantity to (scaled) SI base units so the
-# unit systems have clean, predictable reprs.
-
-
-def _scaled_unit(q: Any) -> AstropyUnitBase:
-    """Convert an astropy `Quantity` into the equivalent scaled unit.
-
-    The natural-unit constructors below run at import time (when building the
-    named realizations), which is *before* the `unit` dispatch has learned about
-    astropy `Quantity`. Folding the value into the unit keeps everything in
-    unit-space so only `unit(<Unit>)` is ever needed.
-    """
-    return AstropyUnit(q)
+# `.decompose()` reduces each computed quantity to (scaled) SI base units, and
+# `unit(<Quantity>)` folds each into a scaled unit so the systems have clean,
+# predictable reprs.
 
 
 def _reject_extra_args(flag: type[AbstractUSysFlag], args: tuple[Any, ...]) -> None:
@@ -369,7 +359,7 @@ def unitsystem(
     mass = (e_scale / const_c**2).decompose()
     length = (const_hbar * const_c / e_scale).decompose()
     time = (const_hbar / e_scale).decompose()
-    return unitsystem(_scaled_unit(length), _scaled_unit(mass), _scaled_unit(time))
+    return unitsystem(length, mass, time)
 
 
 @dispatch
@@ -397,9 +387,7 @@ def unitsystem(
     length_scale = 1.0 * unit(length)
     time = (length_scale / const_c).decompose()
     mass = (const_c**2 * length_scale / const_G).decompose()
-    return unitsystem(
-        _scaled_unit(length_scale), _scaled_unit(mass), _scaled_unit(time)
-    )
+    return unitsystem(length_scale, mass, time)
 
 
 @dispatch
@@ -423,10 +411,10 @@ def unitsystem(flag: type[PlanckUSysFlag], *args: Any) -> AbstractUnitSystem:
     time = np.sqrt(const_hbar * const_G / const_c**5).decompose()
     temperature = (np.sqrt(const_hbar * const_c**5 / const_G) / const_kB).decompose()
     return unitsystem(
-        _scaled_unit(length),
-        _scaled_unit(mass),
-        _scaled_unit(time),
-        _scaled_unit(temperature),
+        length,
+        mass,
+        time,
+        temperature,
     )
 
 
@@ -454,10 +442,10 @@ def unitsystem(flag: type[AtomicUSysFlag], *args: Any) -> AbstractUnitSystem:
     time = (const_hbar / e_hartree).decompose()
     charge = const_e.si.decompose()
     return unitsystem(
-        _scaled_unit(length),
-        _scaled_unit(mass),
-        _scaled_unit(time),
-        _scaled_unit(charge),
+        length,
+        mass,
+        time,
+        charge,
     )
 
 

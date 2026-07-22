@@ -62,6 +62,21 @@ def unit(obj: str, /) -> AbstractUnit:
     return apyu.Unit(obj)
 
 
+@dispatch
+def unit(obj: apyu.Quantity, /) -> AbstractUnit:
+    """Construct units from an Astropy quantity, folding the value into the unit.
+
+    Examples
+    --------
+    >>> import astropy.units as apyu
+    >>> import unxt as u
+    >>> u.unit(apyu.Quantity(2, "km"))
+    Unit("2 km")
+
+    """
+    return apyu.Unit(obj)
+
+
 # ===================================================================
 # Get units
 

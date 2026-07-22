@@ -29,19 +29,9 @@ def unit(obj: apyu.UnitBase | apyu.Unit, /) -> APYUnits:
     return apyu.Unit(obj)
 
 
-@plum.dispatch
-def unit(obj: apyu.Quantity, /) -> APYUnits:
-    """Construct the units from an Astropy quantity.
-
-    Examples
-    --------
-    >>> import astropy.units as apyu
-    >>> import unxt as u
-    >>> u.unit(apyu.Quantity(2, "km"))
-    Unit("2 km")
-
-    """
-    return apyu.Unit(obj)
+# Note: ``unit(apyu.Quantity)`` lives in ``unxt._src.units`` (core), not here, so
+# it is registered before the built-in unit systems are constructed at import
+# time (astropy is unxt's unit backend, not an optional interop).
 
 
 # -------------------------------------------------------------------
