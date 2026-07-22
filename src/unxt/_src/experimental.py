@@ -112,7 +112,7 @@ def grad[*Args, R: AbstractQuantity](
 
     In general, if you can use ``quax.quaxify(jax.grad(func))`` (or the
     syntactic sugar ``quaxed.grad(func)``), that's the better option! The
-    difference from those functions is how this units are supported. ``quaxify``
+    difference from those functions is how units are handled. ``quaxify``
     will directly propagate the units through the automatic differentiation
     functions. But sometimes that doesn't work and we need to strip the units
     and re-apply them. This function does that, using the "units" kwarg.
@@ -199,7 +199,7 @@ def jacfwd[*Args, R: AbstractQuantity](
 
     In general, if you can use `quax.quaxify(jax.jacfwd(func))` (or the
     syntactic sugar `quax.jacfwd(func)`), that's the better option! The
-    difference from those functions is how this units are supported. `quaxify`
+    difference from those functions is how units are handled. `quaxify`
     will directly propagate the units through the automatic differentiation
     functions. But sometimes that doesn't work and we need to strip the units
     and re-apply them. This function does that, using the ``units`` kwarg.
@@ -268,7 +268,7 @@ def hessian[*Args, R: AbstractQuantity](
 
     In general, if you can use `quax.quaxify(jax.hessian(func))` (or the
     syntactic sugar `quax.hessian(func)`), that's the better option! The
-    difference from those functions is how this units are supported. `quaxify`
+    difference from those functions is how units are handled. `quaxify`
     will directly propagate the units through the automatic differentiation
     functions. But sometimes that doesn't work and we need to strip the units
     and re-apply them. This function does that, using the ``units`` kwarg.

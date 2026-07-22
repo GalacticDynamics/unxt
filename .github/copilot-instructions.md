@@ -8,7 +8,7 @@ This is a UV workspace repository containing multiple packages:
 
 ## Main Package: unxt
 
-- **Language**: Python 3.11+
+- **Language**: Python 3.12+
 - **Main API**: `Quantity`, `Angle`, unit conversion and manipulation
   - `Quantity`: Main parametric class with dimension checking
   - `Angle`: Specialized type with wrapping support
