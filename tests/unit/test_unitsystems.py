@@ -335,7 +335,7 @@ def test_natural_unitsystem_rejects_extra_positional_args(flag):
         unitsystem(flag, "km")
 
 
-def test_natural_unitsystem_pickle(tmpdir: Path) -> None:
+def test_natural_unitsystem_pickle(tmp_path: Path) -> None:
     """Natural unit systems round-trip through pickle."""
     for usys in (
         unitsystems.hep,
@@ -343,7 +343,7 @@ def test_natural_unitsystem_pickle(tmpdir: Path) -> None:
         unitsystems.planck,
         unitsystems.atomic,
     ):
-        path = tmpdir / "usys.pkl"
+        path = tmp_path / "usys.pkl"
         with path.open(mode="wb") as f:
             pickle.dump(usys, f)
         with path.open(mode="rb") as f:
