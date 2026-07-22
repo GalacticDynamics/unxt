@@ -62,7 +62,7 @@ da = xr.DataArray(
 # Convert to Quantities
 quantified = da.unxt.quantify()
 print(quantified.data)
-# Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+# Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
 # Convert back
 dequantified = quantified.unxt.dequantify()
@@ -93,7 +93,7 @@ temp = xr.DataArray(
 # Convert to Quantities - units become part of the data
 q_temp = temp.unxt.quantify()
 print(q_temp.data)
-# Quantity['temperature'](Array([20., 25., 30.], dtype=float32), unit='K')
+# Quantity(Array([20., 25., 30.], dtype=float32), unit='K')
 
 # Other attributes are preserved
 print(q_temp.attrs["description"])
@@ -109,7 +109,7 @@ You can override or set units explicitly:
 da = xr.DataArray([100.0, 200.0], dims=["x"], attrs={"units": "cm"})
 quantified = da.unxt.quantify("m")
 print(quantified.data)
-# Quantity['length'](Array([100., 200.], dtype=float32), unit='m')
+# Quantity(Array([100., 200.], dtype=float32), unit='m')
 ```
 
 Pass a string or `AbstractUnit` directly to apply it to the DataArray's data.
@@ -150,9 +150,9 @@ da = xr.DataArray(
 # Quantify both data and the non-dimension coordinate
 quantified = da.unxt.quantify()
 print(quantified.data)
-# Quantity['length'](Array([10., 20., 30.], dtype=float32), unit='m')
+# Quantity(Array([10., 20., 30.], dtype=float32), unit='m')
 print(quantified.coords["time"].data)
-# Quantity['time'](Array([0., 1., 2.], dtype=float32), unit='s')
+# Quantity(Array([0., 1., 2.], dtype=float32), unit='s')
 ```
 
 **Important**: Use non-dimension coordinates (coordinates not marked with `*` in `xarray` output) to preserve Quantity objects. Dimension coordinates are automatically converted to plain arrays by `xarray`.
@@ -182,9 +182,9 @@ ds = xr.Dataset(
 # Quantify all variables at once
 q_ds = ds.unxt.quantify()
 print(q_ds["temperature"].data)
-# Quantity['temperature'](Array([273., 293., 313.], dtype=float32), unit='K')
+# Quantity(Array([273., 293., 313.], dtype=float32), unit='K')
 print(q_ds["pressure"].data)
-# Quantity['pressure'](Array([101325., 102000., 103000.], dtype=float32), unit='Pa')
+# Quantity(Array([101325., 102000., 103000.], dtype=float32), unit='Pa')
 ```
 
 ### Per-Variable Units
@@ -221,18 +221,18 @@ da = xr.DataArray(u.Quantity(jnp.array([1.0, 2.0, 3.0]), "m"), dims=["x"])
 
 # Arithmetic combines units dimensionally
 print((da * da).data)
-# Quantity['area'](Array([1., 4., 9.], dtype=float32), unit='m2')
+# Quantity(Array([1., 4., 9.], dtype=float32), unit='m2')
 
 # Reductions keep the unit
 print(da.sum().data)
-# Quantity['length'](Array(6., dtype=float32), unit='m')
+# Quantity(Array(6., dtype=float32), unit='m')
 print(da.prod().data)
-# Quantity['volume'](Array(6., dtype=float32), unit='m3')
+# Quantity(Array(6., dtype=float32), unit='m3')
 
 # Masking is unit-aware
 masked = da.where(da > u.Quantity(1.0, "m"))
 print(masked.fillna(u.Quantity(0.0, "m")).data)
-# Quantity['length'](Array([0., 2., 3.], dtype=float32), unit='m')
+# Quantity(Array([0., 2., 3.], dtype=float32), unit='m')
 ```
 
 `mean`, `std`, `min`, `max`, `median`, `quantile`, `dot`, `clip`, `cumsum`, `diff`, `integrate`, `concat`, `groupby`, and `weighted` likewise preserve units. This works through `unxt`'s Array-API-conformant `quaxed.numpy` namespace — `unxts.interop.xarray` does **not** monkeypatch `xarray` or its array namespace machinery.
@@ -293,7 +293,7 @@ da = xr.DataArray(q, dims=["x"])
 # JIT works with the underlying data
 result = process_data(da.data)
 print(result)
-# Quantity['length'](Array([2., 4., 6.], dtype=float32), unit='m')
+# Quantity(Array([2., 4., 6.], dtype=float32), unit='m')
 ```
 
 ### Vectorization
@@ -315,7 +315,7 @@ da = xr.DataArray(q, dims=["x", "y"])
 # vmap over the data
 squared = square(da.data)
 print(squared)
-# Quantity['area'](Array([[ 1.,  4.],
+# Quantity(Array([[ 1.,  4.],
 #        [ 9., 16.]], dtype=float32), unit='m2')
 ```
 
@@ -493,7 +493,7 @@ da = xr.DataArray(q, dims=["x"])
 # Convert to centimetres
 da_cm = xr.DataArray(u.uconvert(u.unit("cm"), da.data), dims=da.dims, coords=da.coords)
 print(da_cm.data)
-# Quantity['length'](Array([100., 200., 300.], dtype=float32), unit='cm')
+# Quantity(Array([100., 200., 300.], dtype=float32), unit='cm')
 ```
 
 For DataArrays that start with unit attrs, quantify first, convert, then dequantify:
@@ -545,7 +545,7 @@ from unxts.interop.xarray import attach_units
 da = xr.DataArray([1.0, 2.0, 3.0], dims=["x"])
 quantified = attach_units(da, {None: "m"})
 print(quantified.data)
-# Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+# Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 ```
 
 Use `attach_units` directly when you already have a units mapping (e.g., from a file header or a prior `extract_unit_attributes` call) and want to skip the attribute-reading step.
@@ -615,7 +615,7 @@ print(type(da.coords["x"].data).__name__)
 # Non-dimension coordinate: the Quantity (and its unit) is preserved
 da = xr.DataArray(data, dims=["i"], coords={"i": [0, 1, 2], "x": ("i", quantities)})
 print(da.coords["x"].data)
-# Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+# Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 ```
 
 ### Operations That Drop Units

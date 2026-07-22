@@ -54,7 +54,7 @@ da = xr.DataArray(
 # Convert to unxt Quantities
 quantified = da.unxt.quantify()
 print(quantified.data)
-# Quantity['length'](Array([1., 2., 3.], dtype=float32), unit='m')
+# Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
 # Convert back to plain arrays with unit attributes
 dequantified = quantified.unxt.dequantify()
