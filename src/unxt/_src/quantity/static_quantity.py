@@ -16,7 +16,8 @@ from plum import add_promotion_rule
 from .base import AbstractQuantity, ArrayLikeSequence, same_unit_label
 from .quantity import Quantity
 from .value import StaticValue
-from unxt.units import AbstractUnit, unit as parse_unit
+from unxt._src.units import parse_unit
+from unxt.units import AbstractUnit
 
 
 @final

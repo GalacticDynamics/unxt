@@ -66,6 +66,26 @@ jobs:
       - name: Lint
         run: uv run --frozen nox -s lint
 
+  # Static type-checking, scoped to the tests/typing fixture (see
+  # [tool.pyright]). Guards the `Quantity(1, "m")` constructor typing, which
+  # pyright — the only checker that reads equinox's converter field-specifier —
+  # would otherwise silently regress. Pyright-scoped by design; not mypy/ty.
+  pyright:
+    name: Pyright
+    runs-on: ubuntu-latest
+    needs: [setup]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+
+      - name: Install
+        run: uv sync --no-default-groups --group nox --locked
+
+      - name: Type-check
+        run: uv run --frozen nox -s pyright
+
   # Documentation build
   #
   # Nothing previously gated Sphinx output: there was no docs job here, and the
@@ -640,6 +660,7 @@ jobs:
         setup,
         format,
         docs,
+        pyright,
         tests-unxt,
         tests-unxt-api,
         tests-unxt-hypothesis,

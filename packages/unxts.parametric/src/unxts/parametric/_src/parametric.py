@@ -15,7 +15,7 @@ from unxt.quantity import (
     StaticValue,
     convert_to_quantity_value,
 )
-from unxt.units import AbstractUnit, unit as parse_unit
+from unxt.units import AbstractUnit, parse_unit
 
 
 @final

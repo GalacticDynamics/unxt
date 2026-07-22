@@ -10,7 +10,8 @@ from jaxtyping import Array, Shaped
 
 from .base import AbstractQuantity
 from .value import StaticValue, convert_to_quantity_value
-from unxt.units import AbstractUnit, unit as parse_unit
+from unxt._src.units import parse_unit
+from unxt.units import AbstractUnit
 
 
 class Quantity(AbstractQuantity):
