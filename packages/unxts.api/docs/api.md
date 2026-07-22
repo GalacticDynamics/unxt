@@ -42,6 +42,10 @@ Return the dimension of an object.
 **Abstract Signature:**
 
 ```python
+from typing import Any
+import plum
+
+
 @plum.dispatch.abstract
 def dimension_of(obj: Any, /) -> Any:
     """Return the dimension of the given units."""
@@ -74,6 +78,10 @@ Construct units from various inputs.
 **Abstract Signature:**
 
 ```python
+from typing import Any
+import plum
+
+
 @plum.dispatch.abstract
 def unit(obj: Any, /) -> Any:
     """Construct the units from a units object."""
@@ -101,6 +109,10 @@ Return the units of an object.
 **Abstract Signature:**
 
 ```python
+from typing import Any
+import plum
+
+
 @plum.dispatch.abstract
 def unit_of(obj: Any, /) -> Any:
     """Return the units of an object."""
@@ -136,6 +148,10 @@ This is a low-level unit conversion function that operates on raw numerical valu
 **Abstract Signature:**
 
 ```python
+from typing import Any
+import plum
+
+
 @plum.dispatch.abstract
 def uconvert_value(uto: Any, ufrom: Any, x: Any, /) -> Any:
     """Convert the value from specified units to specified units.
@@ -221,6 +237,10 @@ Convert a quantity to the specified units.
 **Abstract Signature:**
 
 ```python
+from typing import Any
+import plum
+
+
 @plum.dispatch.abstract
 def uconvert(u: Any, x: Any, /) -> Any:
     """Convert the quantity to the specified units."""
@@ -247,6 +267,10 @@ Strip units from a quantity, optionally converting first.
 **Abstract Signature:**
 
 ```python
+from typing import Any
+import plum
+
+
 @plum.dispatch.abstract
 def ustrip(*args: Any) -> Any:
     """Strip the units from the quantity, first converting if necessary."""
@@ -277,6 +301,10 @@ Check if units are convertible.
 **Abstract Signature:**
 
 ```python
+from typing import Any
+import plum
+
+
 @plum.dispatch.abstract
 def is_unit_convertible(to_unit: Any, from_: Any, /) -> bool:
     """Check if the units are convertible."""
@@ -309,6 +337,10 @@ Wrap a value to the range [min, max).
 **Abstract Signature:**
 
 ```python
+from typing import Any
+import plum
+
+
 @plum.dispatch.abstract
 def wrap_to(x: Any, min: Any, max: Any, /) -> Any:
     """Wrap to the range [min, max)."""
@@ -316,17 +348,19 @@ def wrap_to(x: Any, min: Any, max: Any, /) -> Any:
 
 **Example Implementations** (in `unxt`):
 
-- `wrap_to(angle: Quantity, min: Quantity, max: Quantity)` - Wrap angles to range
+- `wrap_to(x: AbstractQuantity, min: AbstractQuantity, max: AbstractQuantity)` - Wrap values to a range. The dispatch is on `AbstractQuantity` and preserves the concrete input type (an `Angle` in, an `Angle` out).
 
 **Examples:**
 
 ```python
 import unxt as u
 
-# Wrap angle to [0, 360) degrees
-angle = u.Q(370, "deg")
-min_angle = u.Q(0, "deg")
-max_angle = u.Q(360, "deg")
+# Wrap an angle to [0, 360) degrees. Use ``Angle`` so the result is an ``Angle``
+# (``wrap_to`` preserves the input type; a plain ``Quantity`` in gives a
+# ``Quantity`` out).
+angle = u.Angle(370, "deg")
+min_angle = u.Angle(0, "deg")
+max_angle = u.Angle(360, "deg")
 
 u.quantity.wrap_to(angle, min_angle, max_angle)  # Angle(Array(10, ...), unit='deg')
 
@@ -343,6 +377,10 @@ Return the unit system of an object.
 **Abstract Signature:**
 
 ```python
+from typing import Any
+import plum
+
+
 @plum.dispatch.abstract
 def unitsystem_of(obj: Any, /) -> Any:
     """Return the unit system of an object."""

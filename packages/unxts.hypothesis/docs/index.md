@@ -145,8 +145,9 @@ def test_length_derived(unit):
     assert u.dimension_of(unit) == u.dimension("length")
 
 
-# Generate units from a strategy
-@given(unit=ust.derived_units(st.sampled_from(["velocity", "acceleration"])))
+# derived_units takes a base *unit* (or a strategy of units), not a dimension
+# name -- so pass unit strings like "m/s" (velocity) and "m/s2" (acceleration)
+@given(unit=ust.derived_units(st.sampled_from(["m/s", "m/s2"])))
 def test_velocity_derived(unit):
     assert u.dimension_of(unit) in (
         u.dimension("velocity"),
@@ -160,15 +161,14 @@ def test_simple_mass_units(unit):
     assert u.dimension_of(unit) == u.dimension("mass")
 ```
 
-### `units(dimension=None, *, max_complexity=2, allow_non_integer_powers=False)`
+### `units(dimension=named_dimensions(), /, **kwargs)`
 
 Generate random `Unit` objects from astropy.
 
 **Parameters:**
 
-- `dimension` (str | Dimension | SearchStrategy | None): The physical dimension of the unit. If None, generates units from various dimensions. Examples: `"length"`, `"velocity"`, `"energy"`.
-- `max_complexity` (int): Maximum complexity of compound units (default: 2). Higher values generate more complex compound units like `m^2/s`.
-- `allow_non_integer_powers` (bool): Whether to allow non-integer powers in units (default: False). When True, can generate units like `m^0.5`.
+- `dimension` (str | Dimension | SearchStrategy, positional-only): The physical dimension of the unit. Defaults to the `named_dimensions()` strategy (units drawn across many dimensions). Examples: `"length"`, `"velocity"`, `"energy"`.
+- `**kwargs`: forwarded to `derived_units` — notably `integer_powers` (bool, default `True`) and `max_complexity` (int, default `3`; higher values give more complex compound units like `m^2/s`).
 
 **Returns:** `unxt.AbstractUnit`
 
@@ -199,23 +199,20 @@ def test_complex_unit(u):
     assert u is not None
 ```
 
-### `quantities(*, shape=None, dtype=None, unit=None)`
+### `quantities(unit=units(...), *, shape=(), dtype=jnp.float32, ...)`
 
 Generate random `Quantity` objects.
 
 **Parameters:**
 
-- `shape` (int | tuple[int, ...] | st.SearchStrategy | None): Shape of the array. Can be:
-  - `None` (default): Generates small arrays with various shapes
-  - `int`: Scalar shape specification (e.g., `3` for shape `(3,)`)
-  - `tuple`: Explicit shape (e.g., `(3, 3)` for a 3×3 matrix)
-  - Strategy: A Hypothesis strategy that generates shapes
-- `dtype` (np.dtype | st.SearchStrategy | None): Data type of the array. Defaults to `float32`.
-- `unit` (str | Unit | st.SearchStrategy | None): Unit for the quantity. Can be:
-  - `None` (default): Generates quantities with various common units
-  - `str`: Specific unit string (e.g., `"m"`, `"km/s"`)
-  - `Unit`: Specific unit object
-  - Strategy: A Hypothesis strategy that generates units (e.g., from `units()`)
+- `unit` (str | Unit | Dimension | st.SearchStrategy): Unit for the quantity. Defaults to the `units()` strategy (units drawn across many dimensions). Accepts:
+  - `str`: a unit string (e.g., `"m"`, `"km/s"`)
+  - `Unit`: a unit object
+  - `Dimension`: a physical dimension (units of that dimension are generated)
+  - Strategy: a Hypothesis strategy generating units (e.g., from `units()`)
+- `shape` (int | tuple[int, ...] | st.SearchStrategy): Shape of the array. Defaults to `()` (scalar). Accepts an int (e.g., `3` → shape `(3,)`), a tuple (e.g., `(3, 3)`), or a strategy that generates shapes.
+- `dtype` (np.dtype | st.SearchStrategy): Data type of the array. Defaults to `jnp.float32`.
+- `elements`, `unique`, `static_value`, `quantity_cls`: forwarded to the underlying array strategy / quantity construction.
 
 **Returns:** `unxt.Quantity`
 

@@ -20,7 +20,7 @@ Abstract dispatch API for [unxt](https://github.com/GalacticDynamics/unxt).
 
 The {mod}`unxts.api` package serves several important purposes:
 
-1. **Minimal Dependencies**: Depends only on {mod}`plum-dispatch`, not on {mod}`jax`, {mod}`numpy`, or {mod}`astropy`
+1. **Minimal Dependencies**: Depends only on {mod}`plum`, not on {mod}`jax`, {mod}`numpy`, or {mod}`astropy`
 2. **Extensibility**: Allows third-party packages to register their own implementations
 3. **Type Safety**: Provides a clear contract for what functions exist and what they should do
 4. **Separation of Concerns**: API definitions are separate from implementation details
@@ -156,7 +156,7 @@ If you're writing a package that works with physical quantities:
 
 ### Minimal Dependency Approach
 
-Depend on {mod}`unxts.api` to use the dispatch system without pulling in {mod}`JAX`:
+Depend on {mod}`unxts.api` to use the dispatch system without pulling in {mod}`jax`:
 
 ```toml
 # pyproject.toml

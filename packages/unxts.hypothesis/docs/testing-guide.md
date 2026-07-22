@@ -76,7 +76,7 @@ def test_quantity_has_value_and_unit(q):
 
 @given(q=ust.quantities("m"))
 def test_quantity_has_meter_units(q):
-    """Scalar Quantity have ndim of 0."""
+    """Quantities generated with unit "m" carry that unit."""
     assert q.unit == u.unit("m")
 
 
@@ -682,7 +682,9 @@ def test_grad_units(q):
     """Gradient of x^2 has correct units."""
 
     def f(x):
-        return (x**2).ustrip("m^2")
+        # ``grad`` passes a raw array, so wrap it back into a Quantity before
+        # calling Quantity methods like ``ustrip``.
+        return (u.Quantity(x, "m") ** 2).ustrip("m^2")
 
     # Gradient w.r.t. a length should give length
     grad_f = jax.grad(f)
