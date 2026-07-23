@@ -34,6 +34,8 @@ pip install unxts.parametric   # or: uv add unxts.parametric
 
 Accessing the moved names on `unxt` now raises `AttributeError` with a message pointing to the new package — this covers `unxt.ParametricQuantity`, `unxt.PQ`, `unxt.AbstractParametricQuantity`, and their `unxt.quantity.*` equivalents.
 
+The two support packages were likewise renamed into the shared `unxts.*` namespace: `unxt-api` → `unxts.api` and `unxt-hypothesis` → `unxts.hypothesis` (imported as `unxts.api` / `unxts.hypothesis`). The old distributions and their `import unxt_api` / `import unxt_hypothesis` names still work as compatibility shims, but prefer the `unxts.*` names.
+
 ### Update your imports
 
 | v1 (`unxt`) | v2 (`unxts.parametric`) |
@@ -124,6 +126,10 @@ Defaults are unchanged (`repr` hides the parameter, `str` shows it). The other d
 | `[tool.unxt.quantity.str]`  | `[tool.unxts.unxt.quantity.str]`  |
 
 In-code configuration via `u.config` is unchanged.
+
+If you do **not** rename, the leftover `[tool.unxt.*]` section is **silently ignored** and those settings revert to their defaults. `unxt` emits a `DeprecationWarning` at import so the drift is greppable:
+
+> The '[tool.unxt]' pyproject.toml section is deprecated and ignored; unxt now reads its configuration from '[tool.unxts.unxt]'. Move your settings there.
 
 ---
 
@@ -269,6 +275,31 @@ Use `ParametricQuantity` for dimension-specific dispatch instead:
 
 >>> f(up.PQ(1.0, "s"))
 'time!'
+```
+
+### (c) Equality on `StaticValue`-backed quantities is now unit-blind
+
+A `Quantity` whose value is wrapped in `StaticValue` (so it can be a `jax.jit` `static_argnames` key) now compares with `==` **structurally** — same unit _label_ and array — rather than converting units first. Like the `isinstance` change, this is **silent**: no warning, `==` just returns a different answer.
+
+```{code-block} python
+>>> import unxt as u
+>>> from unxt.quantity import StaticValue
+
+>>> a = u.Q(StaticValue(1000.0), "m")
+>>> b = u.Q(StaticValue(1.0), "km")
+
+>>> a == b   # v1: True (unit-aware); v2: unit-blind
+False
+```
+
+**Migration:** for a unit-aware "same physical quantity" check, use `u.equivalent` (or the `.is_equivalent` method) as the drop-in replacement for v1 `==`:
+
+```{code-block} python
+>>> u.equivalent(a, b)
+True
+
+>>> a.is_equivalent(b)
+True
 ```
 
 ---
