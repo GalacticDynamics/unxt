@@ -316,8 +316,17 @@ class AbstractQuantity(
         Quantity(Array([[0, 1],
                                   [1, 2]], dtype=int32), unit='m')
 
+        It also works for a ``StaticQuantity``:
+
+        >>> u.StaticQuantity([[0, 1], [1, 2]], "m").mT.value.tolist()
+        [[0, 1], [1, 2]]
+
         """
-        return replace(self, value=jnp.matrix_transpose(self.value))
+        # Use ``self.value.mT`` (like ``.T``) rather than
+        # ``jnp.matrix_transpose(self.value)``: the latter rejects a
+        # ``StaticValue`` (StaticQuantity's value), while ``.mT`` delegates to
+        # the wrapped NumPy/JAX array for both quantity kinds.
+        return replace(self, value=self.value.mT)
 
     @property
     def ndim(self) -> int:
@@ -1301,14 +1310,13 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
         self, *, fill_value: AbstractQuantity | None = None, **kw: Any
     ) -> AbstractQuantity:
         # TODO: by quaxified super
-        value = self.array.value.at[self.index].get(
-            fill_value=(
-                fill_value
-                if fill_value is None
-                else uapi.ustrip(self.array.unit, fill_value)
-            ),
-            **kw,
-        )
+        if fill_value is not None:
+            fv = uapi.ustrip(self.array.unit, fill_value)
+            # JAX treats ``fill_value`` as a *static* scalar and hashes it; a
+            # concrete ``jax.Array`` is unhashable there, so coerce to a Python
+            # scalar. (A traced fill value cannot be static and is unsupported.)
+            fill_value = fv.item() if hasattr(fv, "item") else fv
+        value = self.array.value.at[self.index].get(fill_value=fill_value, **kw)
         return replace(self.array, value=value)
 
     @override
@@ -1321,7 +1329,13 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
 
     @override
     def apply(self, func: Any, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
-        raise NotImplementedError  # TODO: by quaxified super
+        msg = (
+            "Quantity.at[...].apply is not implemented: the applied function "
+            "would have to be unit-aware. Strip the units, apply the function "
+            "to the raw array, and re-wrap: "
+            "`u.Quantity(q.ustrip(unit).at[idx].apply(func), unit)`."
+        )
+        raise NotImplementedError(msg)
 
     @override
     def add(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
@@ -1359,7 +1373,13 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
 
     @override
     def power(self, values: ArrayLike, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
-        raise NotImplementedError
+        msg = (
+            "Quantity.at[...].power is not supported: raising only some elements "
+            "to a power would give them different units from the rest of the "
+            "array, which a Quantity (one unit for all elements) cannot "
+            "represent."
+        )
+        raise NotImplementedError(msg)
 
     @override
     def min(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
