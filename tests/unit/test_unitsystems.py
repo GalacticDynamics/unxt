@@ -490,3 +490,16 @@ def test_natural_unitsystem_pickle(tmp_path: Path) -> None:
         with path.open(mode="rb") as f:
             usys2 = pickle.load(f)  # noqa: S301
         assert usys == usys2
+
+
+def test_equivalent_checks_dimensions_and_unit_convertibility() -> None:
+    """`equivalent(usys, usys)` = same base dimensions + convertible units.
+
+    Same dimensions in interconvertible units are equivalent even when the
+    specific units differ (galactic uses kpc/Myr, solarsystem AU/yr); different
+    base dimensions are not.
+    """
+    assert equivalent(galactic, solarsystem)
+    assert equivalent(galactic, galactic)
+    assert not equivalent(galactic, si)
+    assert not equivalent(si, cgs)
