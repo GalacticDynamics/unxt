@@ -49,9 +49,7 @@ Unit("m")
 
 :::
 
-<br><br><br>
-
-# Unit Systems
+## Unit Systems
 
 A unit system is a standardized collection of units used together, such as the International System of Units (SI), the Imperial system, and natural units like Planck or atomic units. Each system defines base units (e.g., meters, kilograms) and derived units (e.g., joules, newtons) for consistent expression of quantities.
 
@@ -63,7 +61,7 @@ A unit system is a standardized collection of units used together, such as the I
 
 :::
 
-## `AbstractUnitSystem` class
+### `AbstractUnitSystem` class
 
 :::{seealso}
 
@@ -84,7 +82,7 @@ This rarely needs to be used. See `unxt.unitsystem`.
 
 ```
 
-## Built-in Unit Systems
+### Built-in Unit Systems
 
 `unxt` provides several built-in unit systems.
 
@@ -112,7 +110,7 @@ unitsystem(kpc, Myr, solMass, rad)
 unitsystem(AU, yr, solMass, rad)
 ```
 
-### Natural unit systems
+#### Natural unit systems
 
 [Natural unit systems](https://en.wikipedia.org/wiki/Natural_units) fix a chosen set of fundamental physical constants to the dimensionless value 1. `unxt` realizes this _numerically_: the base units are chosen so that the named constants evaluate to `1.0`, while the full dimensional structure is preserved. Four systems are built in, available both as named realizations and by string:
 
@@ -132,34 +130,11 @@ LengthMassTimeTemperatureUnitSystem(length=Unit("...e-35 m"), mass=Unit("...e-08
 LengthMassTimeElectricalChargeUnitSystem(length=Unit("...e-11 m"), mass=Unit("...e-31 kg"), time=Unit("...e-17 s"), electrical_charge=Unit("...e-19 A s"))
 ```
 
-The defining constants come out to 1 by construction. For example, decomposing the speed of light and Newton's constant into the geometrized system:
+By construction the defining constants evaluate to 1 in each system, and the two systems with a remaining free scale (`HEPUSysFlag`, `GeometrizedUSysFlag`) accept it as a keyword. For worked examples on each system — setting those scales, recovering familiar values, and the semantics of natural-unit quantities — see the {doc}`natural-units` guide.
 
-```{code-block} python
->>> import numpy as np
->>> from astropy.constants import c, G
+### Functions for Unit Systems
 
->>> bool(np.isclose(c.decompose(geometrized).value, 1.0))
-True
-
->>> bool(np.isclose(G.decompose(geometrized).value, 1.0))
-True
-```
-
-The two systems with a remaining free scale accept it as a keyword — `energy` for `HEPUSysFlag` (default `"GeV"`) and `length` for `GeometrizedUSysFlag` (default `"m"`):
-
-```{code-block} python
->>> from unxt.unitsystems import unitsystem, HEPUSysFlag, GeometrizedUSysFlag
-
->>> unitsystem(HEPUSysFlag, energy="TeV")["time"] == hep["time"] / 1000
-True
-
->>> unitsystem(GeometrizedUSysFlag, length="km")["length"]
-Unit("km")
-```
-
-## Functions for Unit Systems
-
-`unxt` has two primary functions for working with units: `unitsystem` and `unitsystem_of`.
+`unxt` has two primary functions for working with unit systems: `unitsystem` and `unitsystem_of`.
 
 ```{code-block} python
 >>> from unxt.unitsystems import unitsystem, unitsystem_of
