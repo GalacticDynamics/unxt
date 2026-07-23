@@ -173,7 +173,7 @@ myst_enable_extensions = [
     "smartquotes",  # convert straight quotes to curly quotes
     "substitution",  # substitution definitions
 ]
-myst_heading_anchors = 3
+myst_heading_anchors = 4
 
 myst_substitutions = {
     "ArrayLike": ":obj:`jaxtyping.ArrayLike`",
