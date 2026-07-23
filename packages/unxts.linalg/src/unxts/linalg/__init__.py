@@ -9,7 +9,10 @@ reduce-sum) plus the ``matmul``/``matvec``/``vecmat``/``vecdot`` products and
 algebra.
 """
 
+from ._version import version as __version__
+
 __all__ = (
+    "__version__",
     "QM",
     "QuantityMatrix",
     "UnitsMatrix",

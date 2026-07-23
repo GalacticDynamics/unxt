@@ -17,3 +17,10 @@ def test_same_objects():
         assert getattr(unxt_api, name) is getattr(unxts.api, name), (
             f"unxt_api.{name} is not unxts.api.{name}"
         )
+
+
+def test_version_reports_own_distribution():
+    """`unxt_api.__version__` is the `unxt-api` dist version, not `unxts.api`'s."""
+    from importlib.metadata import version
+
+    assert unxt_api.__version__ == version("unxt-api")
