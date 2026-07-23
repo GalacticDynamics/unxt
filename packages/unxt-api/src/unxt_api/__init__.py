@@ -5,8 +5,9 @@ This package re-exports the complete public API and will be maintained long-term
 No changes are required in code that imports ``unxt_api``.
 """
 
+from importlib.metadata import version as _dist_version
+
 from unxts.api import (
-    __version__,
     dimension,
     dimension_of,
     is_unit_convertible,
@@ -18,6 +19,9 @@ from unxts.api import (
     ustrip,
     wrap_to,
 )
+
+#: Version of the ``unxt-api`` distribution (not ``unxts.api``).
+__version__ = _dist_version("unxt-api")
 
 __all__ = (
     "__version__",

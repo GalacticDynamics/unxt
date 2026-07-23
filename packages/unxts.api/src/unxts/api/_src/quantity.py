@@ -76,7 +76,7 @@ def ustrip(*args: Any) -> Any:
     >>> import unxt as u  # implements `unxts.api.ustrip`
 
     >>> q = u.Q(1, "km")
-    >>> ustrip(u.unit("m"), q)
+    >>> u.ustrip(u.unit("m"), q)
     Array(1000., dtype=float32, ...)
 
     >>> u.ustrip("m", q)
