@@ -361,9 +361,12 @@ def test_len():
     q = u.Q([1, 2, 3], "m")
     assert len(q) == 3
 
-    # Scalar
+    # A 0-d (scalar) quantity has no length: like NumPy/JAX, ``len`` raises
+    # rather than returning 0 (which made a scalar look empty to ``len(q) == 0``
+    # guards). This mirrors ``iter(0-d q)`` also raising.
     q = u.Q(1, "m")
-    assert len(q) == 0
+    with pytest.raises(TypeError, match="len"):
+        len(q)
 
 
 def test_add():
