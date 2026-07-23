@@ -4625,7 +4625,7 @@ def select_n_p_jjq(which: ArrayLike, case0: ArrayLike, case1: ABCQ, /) -> ABCQ:
 
     The raw ``case0`` operand is **intentionally** taken to be in ``case1``'s
     unit -- so ``jnp.where`` attaches the quantity's unit to bare numbers rather
-    than rejecting the mix (unlike ``concatenate``). Masking ops
+    than rejecting the mix (unlike ``jnp.concat``). Masking ops
     (``triu``/``tril``/``trace``, ``where(mask, q, 0)``) rely on this to
     zero-fill without losing the unit, and a genuine raw-data operand is
     indistinguishable from a masking zero-fill here. For a strict, unit-checked
