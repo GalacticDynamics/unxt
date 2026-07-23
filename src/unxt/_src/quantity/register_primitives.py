@@ -43,6 +43,23 @@ def _to_val_rad_or_one(q: ABCQ) -> ArrayLike:
     return ustrip(radian if is_unit_convertible(q.unit, radian) else one, q)
 
 
+def _require_dimensionless_bitwise(op_name: str, x: ABCQ, y: ABCQ, /) -> None:
+    """Raise a clear error if a bitwise/logical op gets dimensionful operands.
+
+    These ops require dimensionless operands. Without this check ``ustrip(one, x)``
+    leaks astropy's confusing "<unit> and '' are not convertible" message -- which,
+    for ``Q(bool, "m") + Q(bool, "m")`` (JAX lowers a bool ``+`` to ``or_p``),
+    wrongly implies a dimensionless operand the user never wrote.
+    """
+    ux, uy = unit_of(x), unit_of(y)
+    if not (ux.is_equivalent(one) and uy.is_equivalent(one)):
+        msg = (
+            f"{op_name} requires dimensionless quantities, got units "
+            f"{str(ux)!r} and {str(uy)!r}"
+        )
+        raise ValueError(msg)
+
+
 def _as_dimensionless_like(q: ABCQ, value: ArrayLike) -> ABCQ:
     """Wrap a dimensionless-valued result as a dimensionless quantity like ``q``.
 
@@ -397,6 +414,7 @@ def and_p_aq(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
     Quantity(Array(0, dtype=int32...), unit='')
 
     """
+    _require_dimensionless_bitwise("bitwise/logical and", x1, x2)
     return _as_dimensionless_like(x1, lax.and_p.bind(ustrip(one, x1), ustrip(one, x2)))
 
 
@@ -3885,6 +3903,7 @@ def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     Quantity(Array(3, dtype=int32...), unit='')
 
     """
+    _require_dimensionless_bitwise("bitwise/logical or", x, y)
     return _as_dimensionless_like(x, lax.bitwise_or(ustrip(one, x), ustrip(one, y)))
 
 
@@ -5360,6 +5379,7 @@ def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     Quantity(Array(3, dtype=int32...), unit='')
 
     """
+    _require_dimensionless_bitwise("bitwise/logical xor", x, y)
     return _as_dimensionless_like(x, lax.bitwise_xor(ustrip(one, x), ustrip(one, y)))
 
 
