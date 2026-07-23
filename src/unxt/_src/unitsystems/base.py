@@ -89,7 +89,7 @@ class AbstractUnitSystem:
     And iterated over:
 
     >>> [x for x in usys]
-    [Unit("kpc"), Unit("Myr"), Unit("solMass"), Unit("rad"), Unit("km / s")]
+    [Unit("rad"), Unit("kpc"), Unit("solMass"), Unit("km / s"), Unit("Myr")]
 
     With length equal to the number of base units
 

@@ -183,7 +183,7 @@ If the set of units does not correspond to any pre-defined unit system class, `u
 
 >>> usys = unitsystem("kpc", "Myr", "solMass", "degree", "candela")
 >>> usys
-LengthTimeMassAngleLuminousIntensityUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"), angle=Unit("deg"), luminous_intensity=Unit("cd"))
+AngleLengthLuminousIntensityMassTimeUnitSystem(angle=Unit("deg"), length=Unit("kpc"), luminous_intensity=Unit("cd"), mass=Unit("solMass"), time=Unit("Myr"))
 
 >>> isinstance(usys, LTMAUnitSystem)
 False
@@ -222,7 +222,7 @@ Also, `unitsystem` can replace a unit in a unit system or extend a unit system.
 True
 
 >>> unitsystem(usys, "deg")
-LengthMassTimeAngleUnitSystem(length=Unit("m"), mass=Unit("kg"), time=Unit("s"), angle=Unit("deg"))
+unitsystem(m, s, kg, deg)
 
 ```
 

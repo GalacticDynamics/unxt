@@ -26,6 +26,7 @@ from unxt.unitsystems import (
     dimensionless,
     equivalent,
     galactic,
+    planck,
     si,
     solarsystem,
     unitsystem,
@@ -105,6 +106,58 @@ def test_no_arg_unitsystem_is_dimensionless() -> None:
     # (see ``TestDimensionlessUnitSystem.test_getitem``).
     with pytest.raises(apyu.UnitConversionError):
         _ = usys["length"]
+
+
+def test_unitsystem_from_list_of_units_builds_system() -> None:
+    """A list/tuple of units builds a system from those units.
+
+    A single-element list must not be mistaken for a named-system lookup
+    (regression: ``unitsystem(["km"])`` used to unpack to ``unitsystem("km")``
+    and raise).
+    """
+    usys = unitsystem(["km"])
+    assert usys["length"] == unit("km")
+    assert usys == unitsystem([unit("km")])
+
+    # a multi-element list agrees with the variadic form
+    assert unitsystem(["kpc", "Myr", "solMass", "rad"]) == unitsystem(
+        "kpc", "Myr", "solMass", "rad"
+    )
+
+
+def test_unitsystem_identity_is_order_independent() -> None:
+    """Set-like identity: the same units in any order give the same system.
+
+    Results are equal and same-type; built-in shapes keep conventional order.
+    """
+    a = unitsystem("m", "s")
+    b = unitsystem("s", "m")
+    assert a == b
+    assert type(a) is type(b)
+
+    # built-in systems are matched by dimension set and keep their conventional
+    # field order regardless of input order
+    g1 = unitsystem("kpc", "Myr", "solMass", "rad")
+    g2 = unitsystem("Myr", "rad", "kpc", "solMass")
+    assert g1 == g2
+    assert type(g1) is type(g2)
+    assert g1 == galactic
+    assert isinstance(g1, unitsystems.LTMAUnitSystem)
+    # conventional field order (length, time, mass, angle) is preserved, not sorted
+    assert g2.base_dimensions == galactic.base_dimensions
+
+
+def test_natural_shape_construction_preserves_conventional_order() -> None:
+    """Natural-system shapes keep conventional order for user construction.
+
+    A shape like (length, mass, time, temperature) uses the pre-registered class
+    in conventional order, not the alphabetical order a novel shape would sort
+    into -- and is order-independent.
+    """
+    usys = unitsystem("m", "kg", "s", "K")
+    assert type(usys) is type(planck)
+    assert usys.base_dimensions == planck.base_dimensions
+    assert unitsystem("K", "s", "m", "kg") == usys
 
 
 def test_compare() -> None:

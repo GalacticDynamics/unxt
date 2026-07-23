@@ -79,8 +79,18 @@ def unitsystem(seq: Sequence[Any], /) -> AbstractUnitSystem:
     >>> u.unitsystem(["kpc", "Myr", "Msun", "radian"])
     unitsystem(kpc, Myr, solMass, rad)
 
+    A sequence's elements are always units, so even a single-element list builds
+    a system (a bare string, by contrast, is looked up as a *named* system):
+
+    >>> u.unitsystem(["km"])
+    LengthUnitSystem(length=Unit("km"))
+
     """
-    return unitsystem(*seq) if len(seq) > 0 else dimensionless
+    # Elements of an explicit sequence are units. Convert them up front so a
+    # single-element list dispatches to the unit-building path below rather than
+    # to the ``str`` named-system lookup (``unitsystem(["km"])`` must not become
+    # ``unitsystem("km")``).
+    return unitsystem(*map(unit, seq)) if len(seq) > 0 else dimensionless
 
 
 @dispatch
@@ -133,11 +143,22 @@ def unitsystem(*args: Any) -> AbstractUnitSystem:
         "some dimensions are repeated",
     )
 
-    # Return if the unit system is already registered
-    if dims in UNITSYSTEMS_REGISTRY:
-        return UNITSYSTEMS_REGISTRY[dims](*args)
+    # A unit system is identified by its *set* of dimensions, not the argument
+    # order. Find a registered class (a built-in like ``LTMAUnitSystem`` or a
+    # previously-created dynamic one) whose dimensions are the same set, and
+    # build it in that class's own field order. This keeps the built-ins in
+    # their conventional order (galactic stays length, time, mass, angle) while
+    # making construction order-independent.
+    unit_by_dim = dict(zip(dims, args, strict=True))
+    dim_set = frozenset(dims)
+    for reg_dims, reg_cls in UNITSYSTEMS_REGISTRY.items():
+        if frozenset(reg_dims) == dim_set:
+            return reg_cls(*(unit_by_dim[d] for d in reg_dims))
 
-    # Otherwise, create a new unit system
+    # Otherwise, create a new unit system. Sort the units by dimension name so
+    # the field order -- and hence the class identity -- is deterministic and
+    # independent of the argument order.
+    args = tuple(sorted(args, key=parse_dimlike_name))
     # dimension names of all the units
     du = {parse_dimlike_name(x).replace(" ", "_"): dimension_of(x) for x in args}
     # name: physical types
@@ -235,13 +256,15 @@ def unitsystem(usys: AbstractUnitSystem, *args: Any) -> AbstractUnitSystem:
     >>> from unxt.unitsystems import unitsystem
     >>> usys = unitsystem("galactic")
     >>> unitsystem(usys, "km/s")
-    LengthTimeMassAngleSpeedUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"), angle=Unit("rad"), speed=Unit("km / s"))
+    AngleLengthMassSpeedTimeUnitSystem(angle=Unit("rad"), length=Unit("kpc"), mass=Unit("solMass"), speed=Unit("km / s"), time=Unit("Myr"))
 
-    We can also override the base unit of an existing unit system:
+    We can also override the base unit of an existing unit system. Replacing the
+    length still leaves a length/time/mass/angle system, so it is recognized as
+    the built-in ``LTMAUnitSystem`` shape:
 
     >>> new_usys = unitsystem(usys, "pc")
     >>> new_usys
-    TimeMassAngleLengthUnitSystem(time=Unit("Myr"), mass=Unit("solMass"), angle=Unit("rad"), length=Unit("pc"))
+    unitsystem(pc, Myr, solMass, rad)
 
     """  # noqa: E501
     # TODO: not need this hack for single-string inputs
@@ -272,7 +295,7 @@ def unitsystem(flag: type[StandardUSysFlag], *args: Any) -> AbstractUnitSystem:
     --------
     >>> from unxt import unitsystem, unitsystems
     >>> unitsystem(unitsystems.StandardUSysFlag, "kpc", "Myr", "Msun")
-    LengthTimeMassUnitSystem(length=Unit("kpc"), time=Unit("Myr"), mass=Unit("solMass"))
+    LengthMassTimeUnitSystem(length=Unit("kpc"), mass=Unit("solMass"), time=Unit("Myr"))
 
     """
     return unitsystem(*args)

@@ -77,6 +77,54 @@ class LTMAUnitSystem(AbstractUnitSystem):
 @jtu.register_static
 @final
 @dataclass(frozen=True, slots=True)
+class LengthMassTimeTemperatureUnitSystem(AbstractUnitSystem):
+    """Length, mass, time, temperature unit system (e.g. Planck units).
+
+    Registered so that this shape keeps its conventional field order instead of
+    the alphabetical order a novel unit system would sort into. Prefer the
+    ``planck`` realization from `unxt.unitsystems`.
+    """
+
+    #: Units for the length dimension.
+    length: Annotated[Unit, ud.length]
+
+    #: Units for the mass dimension.
+    mass: Annotated[Unit, ud.mass]
+
+    #: Units for the time dimension.
+    time: Annotated[Unit, ud.time]
+
+    #: Units for the temperature dimension.
+    temperature: Annotated[Unit, ud.temperature]
+
+
+@jtu.register_static
+@final
+@dataclass(frozen=True, slots=True)
+class LengthMassTimeElectricalChargeUnitSystem(AbstractUnitSystem):
+    """Length, mass, time, electrical-charge unit system (e.g. atomic units).
+
+    Registered so that this shape keeps its conventional field order instead of
+    the alphabetical order a novel unit system would sort into. Prefer the
+    ``atomic`` realization from `unxt.unitsystems`.
+    """
+
+    #: Units for the length dimension.
+    length: Annotated[Unit, ud.length]
+
+    #: Units for the mass dimension.
+    mass: Annotated[Unit, ud.mass]
+
+    #: Units for the time dimension.
+    time: Annotated[Unit, ud.time]
+
+    #: Units for the electrical-charge dimension.
+    electrical_charge: Annotated[Unit, ud.charge]
+
+
+@jtu.register_static
+@final
+@dataclass(frozen=True, slots=True)
 class SIUnitSystem(AbstractUnitSystem):
     """SI unit system + angles.
 
