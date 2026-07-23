@@ -4621,7 +4621,7 @@ def select_n_p_q(which: ABCQ, /, *cases: ABCQ | ArrayLike) -> ABCQ | ArrayLike:
 
 @quax.register(lax.select_n_p)
 def select_n_p_jjq(which: ArrayLike, case0: ArrayLike, case1: ABCQ, /) -> ABCQ:
-    """Select from a raw array and a quantity using a quantity selector.
+    """Select from a raw array and a quantity using a non-quantity selector.
 
     The raw ``case0`` operand is **intentionally** taken to be in ``case1``'s
     unit -- so ``jnp.where`` attaches the quantity's unit to bare numbers rather
