@@ -60,7 +60,7 @@ def derived_units(
 
     Generate units from a strategy:
 
-    >>> @given(unit=ust.derived_units(st.sampled_from(["km", "m/s^2"])))
+    >>> @given(unit=ust.derived_units(st.sampled_from(["km/s", "m/s^2"])))
     ... def test_velocity_derived(unit):
     ...     assert u.dimension_of(unit) in (
     ...         u.dimension("velocity"),
@@ -161,7 +161,7 @@ def units(
     dimension : str | apyu.PhysicalType
         Physical dimension (e.g., "velocity", "length") or a `hypothesis`
         strategy that generates such dimensions. Default is a strategy sampling
-        from SI base dimensions.
+        from the Astropy physical types (see ``named_dimensions``).
     **kwargs : Any
         Additional keyword arguments passed to `derived_units()`.
         For example:
