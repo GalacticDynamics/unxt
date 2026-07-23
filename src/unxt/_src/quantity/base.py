@@ -311,15 +311,15 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Q([[0, 1], [1, 2]], "m")
+        >>> q = u.Q([[0, 1], [2, 3]], "m")
         >>> q.mT
-        Quantity(Array([[0, 1],
-                                  [1, 2]], dtype=int32), unit='m')
+        Quantity(Array([[0, 2],
+                                  [1, 3]], dtype=int32), unit='m')
 
         It also works for a ``StaticQuantity``:
 
-        >>> u.StaticQuantity([[0, 1], [1, 2]], "m").mT.value.tolist()
-        [[0, 1], [1, 2]]
+        >>> u.StaticQuantity([[0, 1], [2, 3]], "m").mT.value.tolist()
+        [[0, 2], [1, 3]]
 
         """
         # Use ``self.value.mT`` (like ``.T``) rather than
@@ -1312,10 +1312,18 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
         # TODO: by quaxified super
         if fill_value is not None:
             fv = uapi.ustrip(self.array.unit, fill_value)
-            # JAX treats ``fill_value`` as a *static* scalar and hashes it; a
-            # concrete ``jax.Array`` is unhashable there, so coerce the stripped
-            # value (always a 0-d array) to a Python scalar. (A traced fill value
-            # cannot be static and is unsupported.)
+            # JAX treats ``fill_value`` as a *static* scalar and hashes it, so it
+            # must be a concrete Python scalar. A traced value cannot be static;
+            # detect it and raise a clear error rather than letting ``.item()``
+            # fail with a cryptic concretization error.
+            if isinstance(fv, jax.core.Tracer):
+                msg = (
+                    "Quantity.at[...].get(fill_value=...) requires a concrete "
+                    "scalar fill value; a traced Quantity cannot be used "
+                    "because JAX treats fill_value as a static scalar."
+                )
+                raise TypeError(msg)
+            # ``fv`` is always a 0-d array; coerce it to a Python scalar.
             fill_value = fv.item()
         value = self.array.value.at[self.index].get(fill_value=fill_value, **kw)
         return replace(self.array, value=value)
@@ -1334,7 +1342,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
             "Quantity.at[...].apply is not implemented: the applied function "
             "would have to be unit-aware. Strip the units, apply the function "
             "to the raw array, and re-wrap: "
-            "`u.Quantity(q.ustrip(unit).at[idx].apply(func), unit)`."
+            "`u.Q(q.ustrip(q.unit).at[...].apply(func), q.unit)`."
         )
         raise NotImplementedError(msg)
 

@@ -1,5 +1,6 @@
 """Tests for Quantity.mT, and the .at[...] get/apply/power methods."""
 
+import jax
 import pytest
 
 import unxt as u
@@ -23,6 +24,18 @@ def test_at_get_fill_value_accepts_a_quantity():
     # unit conversion of the fill value is honoured
     got_km = q.at[10].get(mode="fill", fill_value=u.Q(-0.001, "km"))
     assert float(got_km.value) == -1.0
+
+
+def test_at_get_traced_fill_value_raises_clear_error():
+    """A traced fill_value raises a clear TypeError, not a concretization error."""
+
+    @jax.jit
+    def f(fill):
+        q = u.Q([1.0, 2.0, 3.0], "m")
+        return q.at[10].get(mode="fill", fill_value=u.Q(fill, "m"))
+
+    with pytest.raises(TypeError, match="requires a concrete scalar fill value"):
+        f(-1.0)
 
 
 def test_at_apply_and_power_raise_explanatory_errors():
