@@ -17,7 +17,7 @@ It is useful for objects whose entries have mixed physical dimensions — Jacobi
 
 ## Install
 
-The recommended install pins compatible `unxt` and `unxts.linalg` versions via the `linalg` [extra](https://peps.python.org/pep-0508/#extras):
+The recommended install adds `unxts.linalg` alongside `unxt` via the `linalg` [extra](https://peps.python.org/pep-0508/#extras), so the two are resolved together as a compatible set:
 
 ::::{tab-set}
 

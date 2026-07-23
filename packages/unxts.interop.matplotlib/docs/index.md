@@ -12,7 +12,7 @@ api
 
 ## Installation
 
-The recommended install pins a compatible `matplotlib` version via the `interop-mpl` [extra](https://peps.python.org/pep-0508/#extras):
+The recommended install adds `unxts.interop.matplotlib` alongside `unxt` via the `interop-mpl` [extra](https://peps.python.org/pep-0508/#extras), so it, `unxt`, and `matplotlib` are resolved together as a compatible set:
 
 ::::{tab-set}
 
