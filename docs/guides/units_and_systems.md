@@ -69,16 +69,30 @@ This rarely needs to be used. See `unxt.unitsystem`.
 
 :::
 
+A subclass declares one `Annotated` field per base dimension. Like the built-in systems, it must be a frozen dataclass and registered as a static JAX pytree node:
+
 ```{code-block} python
+>>> from dataclasses import dataclass
 >>> from typing import Annotated
+>>> import jax.tree_util as jtu
 >>> from astropy.units import UnitBase, get_physical_type
 >>> from unxt.unitsystems import AbstractUnitSystem
 
-
->>> class MyUSys(AbstractUnitSystem):
+>>> @jtu.register_static
+... @dataclass(frozen=True, slots=True)
+... class MyUSys(AbstractUnitSystem):
 ...     energy: Annotated[UnitBase, get_physical_type("energy")]
 ...     frequency: Annotated[UnitBase, get_physical_type("frequency")]
-...     luminance: Annotated[UnitBase, get_physical_type("luminance")]
+
+```
+
+Construct it with unit objects (a hand-built subclass stores its fields as given; the `unitsystem` factory is what parses strings for you):
+
+```{code-block} python
+>>> import unxt as u
+>>> usys = MyUSys(u.unit("erg"), u.unit("Hz"))
+>>> usys["energy"]
+Unit("erg")
 
 ```
 
