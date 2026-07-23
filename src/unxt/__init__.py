@@ -57,6 +57,8 @@ __all__ = (
     "ustrip",  # strip units
     "is_unit_convertible",  # check if units can be converted
     "equivalent",  # physical equivalence (unit-aware), incl. unit systems
+    # experimental
+    "experimental",  # module: unit-aware autodiff (grad, jacfwd, hessian, where)
 )
 
 from .setup_package import install_import_hook
@@ -85,7 +87,10 @@ with install_import_hook("unxt"):
         unitsystem_of,
     )
 
-from ._src import experimental  # noqa: F401
+# Imported *outside* the ``install_import_hook`` block on purpose: the
+# experimental helpers raise their own domain-specific errors that beartype
+# would otherwise pre-empt (see ``unxt.experimental``).
+from . import experimental
 
 # isort: split
 from . import _interop  # noqa: F401  # register interop
