@@ -59,6 +59,7 @@ exclude_patterns = [
     ".env",
     ".venv",
     "guides/perf.md",  # Excluded: converted to perf.ipynb during build
+    "**/_data/**",  # Sample-data dirs (e.g. the xarray guide's), not doc pages
 ]
 
 # Include package documentation directories
