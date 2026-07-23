@@ -130,30 +130,11 @@ LengthMassTimeTemperatureUnitSystem(length=Unit("...e-35 m"), mass=Unit("...e-08
 LengthMassTimeElectricalChargeUnitSystem(length=Unit("...e-11 m"), mass=Unit("...e-31 kg"), time=Unit("...e-17 s"), electrical_charge=Unit("...e-19 A s"))
 ```
 
-The defining constants come out to 1 by construction. For example, decomposing the speed of light and Newton's constant into the geometrized system:
-
-```{code-block} python
->>> import numpy as np
->>> from astropy.constants import c, G
-
->>> bool(np.isclose(c.decompose(geometrized).value, 1.0))
-True
-
->>> bool(np.isclose(G.decompose(geometrized).value, 1.0))
-True
-```
-
-The two systems with a remaining free scale accept it as a keyword — `energy` for `HEPUSysFlag` (default `"GeV"`) and `length` for `GeometrizedUSysFlag` (default `"m"`):
-
-```{code-block} python
->>> from unxt.unitsystems import unitsystem, HEPUSysFlag, GeometrizedUSysFlag
-
->>> unitsystem(HEPUSysFlag, energy="TeV")["time"] == hep["time"] / 1000
-True
-
->>> unitsystem(GeometrizedUSysFlag, length="km")["length"]
-Unit("km")
-```
+By construction the defining constants evaluate to 1 in each system, and the
+two systems with a remaining free scale (`HEPUSysFlag`, `GeometrizedUSysFlag`)
+accept it as a keyword. For worked examples on each system — setting those
+scales, recovering familiar values, and the semantics of natural-unit
+quantities — see the {doc}`natural-units` guide.
 
 ### Functions for Unit Systems
 
