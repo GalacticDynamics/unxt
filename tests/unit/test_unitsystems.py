@@ -15,10 +15,6 @@ from astropy.constants import G as const_G  # noqa: N811
 import unxt as u
 from unxt import dimension, unit, unitsystems
 from unxt._src.unitsystems import base as us_base
-from unxt._src.unitsystems.base import (
-    _UNITSYSTEMS_BY_DIMSET,
-    _UNITSYSTEMS_REGISTRY,
-)
 from unxt.unitsystems import (
     NAMED_UNIT_SYSTEMS,
     AbstractUnitSystem,
@@ -311,9 +307,11 @@ def test_unitsystem_already_registered():
             absement: Annotated[apyu.Unit, dimension("absement")]
             time: Annotated[apyu.Unit, dimension("time")]
 
-    # Clean up custom unit system from the registry and its by-set index:
-    del _UNITSYSTEMS_REGISTRY[MyUnitSystem._base_dimensions]
-    del _UNITSYSTEMS_BY_DIMSET[frozenset(MyUnitSystem._base_dimensions)]
+    # Clean up custom unit system from the registry and its by-set index.
+    # Access through ``us_base`` (not import-time bindings) so this stays
+    # consistent with the fixture-aware access used elsewhere.
+    del us_base._UNITSYSTEMS_REGISTRY[MyUnitSystem._base_dimensions]
+    del us_base._UNITSYSTEMS_BY_DIMSET[frozenset(MyUnitSystem._base_dimensions)]
 
 
 @pytest.mark.usefixtures("clean_unitsystems_registry")
