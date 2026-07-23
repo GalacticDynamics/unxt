@@ -353,4 +353,11 @@ def wrap_to(
     """
     minv, maxv = min.ustrip(angle.unit), max.ustrip(angle.unit)
     value = ((angle.value - minv) % (maxv - minv)) + minv
+    # The modulo is mathematically in ``[minv, maxv)``, but float rounding can
+    # push a value that is just below ``maxv`` up to exactly ``maxv`` (e.g.
+    # wrapping ``-1e-8 deg`` into ``[0, 360)`` yields ``360.0``). Fold any such
+    # value back to ``minv`` so the documented half-open contract holds. Plain
+    # arithmetic (rather than ``where``) keeps this valid for both traced and
+    # static (NumPy) values.
+    value = value - (value >= maxv) * (maxv - minv)
     return replace(angle, value=value)
