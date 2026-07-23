@@ -4,7 +4,7 @@ This guide shows how to plot `unxt.Quantity` objects with [matplotlib](https://m
 
 ## Setup
 
-Importing `unxts.interop.matplotlib` registers a `matplotlib.units.ConversionInterface` for `unxt.Quantity`. `unxt` imports the package automatically when it is installed, so plotting usually just works once the package is present:
+Importing `unxts.interop.matplotlib` registers a `matplotlib.units.ConversionInterface` for `unxt.quantity.AbstractQuantity` (so `Quantity` and the other quantity types work). `unxt` imports the package automatically when it is installed, so plotting usually just works once the package is present:
 
 ```{code-block} python
 

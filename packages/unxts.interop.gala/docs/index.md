@@ -10,7 +10,7 @@ api
 
 The [`gala`][gala-link] package provides tools for Galactic dynamics. It is built on top of [`astropy`][astropy-link] and adds a units tool, the [`gala.units.UnitSystem`][gala-UnitSystem] class, for working with different unit systems.
 
-`unxts.interop.gala` is the canonical location for `gala` integration. It provides conversions between `gala.units.UnitSystem` and [`unxt.unitsystems.AbstractUnitSystem`][unxt-AbstractUnitSystem] objects. Importing the package — directly, or transitively via `unxt`, which imports it when installed — registers the conversions as a side effect.
+`unxts.interop.gala` is the canonical location for `gala` integration. It provides conversions between `gala.units.UnitSystem` and [`unxt.unitsystems.AbstractUnitSystem`][unxt-AbstractUnitSystem] objects. Importing the package — directly, or transitively via `unxt`, which imports it when both the package and `gala` are importable — registers the conversions as a side effect. (`unxt` guards on `gala` too, so on platforms where `gala` is absent the conversions are not registered.)
 
 ## Installation
 

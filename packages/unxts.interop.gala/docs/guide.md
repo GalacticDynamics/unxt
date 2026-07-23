@@ -4,7 +4,7 @@ This guide shows how to convert between [`gala`][gala-link]'s `gala.units.UnitSy
 
 ## Setup
 
-Importing `unxts.interop.gala` registers the conversions with [`plum`](https://beartype.github.io/plum/) as a side effect. `unxt` imports the package automatically when it is installed, so in practice you usually only need to import `unxt` and `gala`:
+Importing `unxts.interop.gala` registers the conversions with [`plum`](https://beartype.github.io/plum/) as a side effect. `unxt` imports the package automatically when both it and `gala` are importable (`gala` can be absent on some platforms, e.g. Windows, in which case the conversions are not registered), so in practice you usually only need to import `unxt` and `gala`:
 
 ```{code-block} python
 

@@ -8,7 +8,7 @@ guide
 api
 ```
 
-`unxts.interop.matplotlib` is the canonical location for [matplotlib](https://matplotlib.org/) integration. Importing the package — or `unxt` itself, which imports it automatically when installed — registers a `matplotlib.units.ConversionInterface` so that `unxt.Quantity` objects can be plotted directly.
+`unxts.interop.matplotlib` is the canonical location for [matplotlib](https://matplotlib.org/) integration. Importing the package — or `unxt` itself, which imports it automatically when installed — registers a `matplotlib.units.ConversionInterface` for `AbstractQuantity`, so `unxt.Quantity` objects (and the other quantity types) can be plotted directly.
 
 ## Installation
 
