@@ -14,7 +14,10 @@ from astropy.constants import G as const_G  # noqa: N811
 
 import unxt as u
 from unxt import dimension, unit, unitsystems
-from unxt._src.unitsystems.base import _UNITSYSTEMS_REGISTRY
+from unxt._src.unitsystems.base import (
+    _UNITSYSTEMS_BY_DIMSET,
+    _UNITSYSTEMS_REGISTRY,
+)
 from unxt.unitsystems import (
     NAMED_UNIT_SYSTEMS,
     AbstractUnitSystem,
@@ -39,6 +42,9 @@ def clean_unitsystems_registry(monkeypatch):
     monkeypatch.setattr(
         "unxt._src.unitsystems.base._UNITSYSTEMS_REGISTRY", clean_registry
     )
+    # The by-dimension-set index is populated alongside the registry, so isolate
+    # it too or classes defined in this test would leak into the real index.
+    monkeypatch.setattr("unxt._src.unitsystems.base._UNITSYSTEMS_BY_DIMSET", {})
     return clean_registry
 
 
@@ -304,8 +310,9 @@ def test_unitsystem_already_registered():
             absement: Annotated[apyu.Unit, dimension("absement")]
             time: Annotated[apyu.Unit, dimension("time")]
 
-    # Clean up custom unit system from registry:
+    # Clean up custom unit system from the registry and its by-set index:
     del _UNITSYSTEMS_REGISTRY[MyUnitSystem._base_dimensions]
+    del _UNITSYSTEMS_BY_DIMSET[frozenset(MyUnitSystem._base_dimensions)]
 
 
 class TestDimensionlessUnitSystem:

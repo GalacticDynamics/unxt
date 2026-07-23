@@ -25,7 +25,7 @@ from astropy.units import UnitBase as AstropyUnitBase
 from plum import dispatch
 
 from . import builtin_dimensions as ud
-from .base import UNITSYSTEMS_REGISTRY, AbstractUnitSystem
+from .base import _UNITSYSTEMS_BY_DIMSET, AbstractUnitSystem
 from .builtin import DimensionlessUnitSystem, dimensionless
 from .flags import (
     AbstractUSysFlag,
@@ -64,7 +64,7 @@ def unitsystem(usys: AbstractUnitSystem, /) -> AbstractUnitSystem:
 
 @dispatch
 def unitsystem(seq: Sequence[Any], /) -> AbstractUnitSystem:
-    """Convert a UnitSystem or tuple of arguments to a UnitSystem.
+    """Build a unit system from a sequence of units.
 
     Examples
     --------
@@ -144,16 +144,15 @@ def unitsystem(*args: Any) -> AbstractUnitSystem:
     )
 
     # A unit system is identified by its *set* of dimensions, not the argument
-    # order. Find a registered class (a built-in like ``LTMAUnitSystem`` or a
-    # previously-created dynamic one) whose dimensions are the same set, and
-    # build it in that class's own field order. This keeps the built-ins in
-    # their conventional order (galactic stays length, time, mass, angle) while
-    # making construction order-independent.
+    # order. Look up a registered class (a built-in like ``LTMAUnitSystem`` or a
+    # previously-created dynamic one) by that set -- an O(1) hit on the by-set
+    # index -- and build it in that class's own field order. This keeps the
+    # built-ins in their conventional order (galactic stays length, time, mass,
+    # angle) while making construction order-independent.
     unit_by_dim = dict(zip(dims, args, strict=True))
-    dim_set = frozenset(dims)
-    for reg_dims, reg_cls in UNITSYSTEMS_REGISTRY.items():
-        if frozenset(reg_dims) == dim_set:
-            return reg_cls(*(unit_by_dim[d] for d in reg_dims))
+    reg_cls = _UNITSYSTEMS_BY_DIMSET.get(frozenset(dims))
+    if reg_cls is not None:
+        return reg_cls(*(unit_by_dim[d] for d in reg_cls._base_dimensions))  # noqa: SLF001
 
     # Otherwise, create a new unit system. Sort the units by dimension name so
     # the field order -- and hence the class identity -- is deterministic and

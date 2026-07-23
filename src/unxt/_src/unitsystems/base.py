@@ -41,6 +41,14 @@ _UNITSYSTEMS_REGISTRY: dict[
 ] = {}
 UNITSYSTEMS_REGISTRY = MappingProxyType(_UNITSYSTEMS_REGISTRY)
 
+#: Index of the registry keyed by the *set* of base dimensions (order-independent),
+#: so ``unitsystem(...)`` construction can match a registered class in O(1) rather
+#: than scanning ``_UNITSYSTEMS_REGISTRY`` and picking the first set-equal entry.
+#: Populated alongside ``_UNITSYSTEMS_REGISTRY`` in ``__init_subclass__``.
+_UNITSYSTEMS_BY_DIMSET: dict[
+    frozenset[AbstractDimension], type["AbstractUnitSystem"]
+] = {}
+
 
 # Register AbstractUnitSystem as a static PyTree node
 # This ensures unit systems are treated as constants in JAX transformations
@@ -155,6 +163,7 @@ class AbstractUnitSystem:
         )
 
         _UNITSYSTEMS_REGISTRY[dims] = cls
+        _UNITSYSTEMS_BY_DIMSET[frozenset(dims)] = cls
 
     # ===============================================================
     # USys API
