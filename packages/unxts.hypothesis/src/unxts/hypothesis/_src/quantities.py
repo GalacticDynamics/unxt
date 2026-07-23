@@ -58,7 +58,8 @@ def quantities(
         - `unxt.AbstractDimension`: Dimension to derive unit from (uses
           `unxts.hypothesis.units` strategy)
         - SearchStrategy: Strategy that generates units (e.g., from `units()`)
-          or dimensions. The default strategy samples from SI base units.
+          or dimensions. The default strategy samples from the Astropy
+          physical types (see ``named_dimensions``).
     quantity_cls : type[`unxt.AbstractQuantity`], optional
         The target quantity class to convert to. Default is `unxt.Quantity`.
         Can be any `unxt.AbstractQuantity` subclass like
@@ -80,8 +81,7 @@ def quantities(
         Whether to wrap the generated array in `unxt.quantity.StaticValue`.
         Default is `False`.
     **kwargs : Any
-        Additional keyword arguments (currently unused, reserved for future
-        use).
+        Additional keyword arguments forwarded to ``quantity_cls``.
 
     Returns
     -------
@@ -136,11 +136,11 @@ def quantities(
 
     Using dtype as a strategy:
 
-    >>> dtype_strat = st.sampled_from([jnp.float32, jnp.float64])
+    >>> dtype_strat = st.sampled_from([jnp.float32, jnp.int32])
     >>> @given(q=ust.quantities("m", dtype=dtype_strat))
     ... def test_varying_dtype(q):
-    ...     # dtype will vary between float32 and float64
-    ...     assert q.dtype in (jnp.float32, jnp.float64)
+    ...     # dtype will vary between float32 and int32
+    ...     assert q.dtype in (jnp.float32, jnp.int32)
 
     Using elements to constrain value ranges for distances (positive values):
 

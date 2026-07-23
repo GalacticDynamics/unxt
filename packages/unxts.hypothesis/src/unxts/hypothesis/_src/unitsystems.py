@@ -35,7 +35,7 @@ def unitsystems(
 
     Examples
     --------
-    >>> from hypothesis import given
+    >>> from hypothesis import given, strategies as st
     >>> import unxt as u
     >>> import unxts.hypothesis as ust
 
@@ -57,7 +57,7 @@ def unitsystems(
 
     Use predefined unit systems by name:
 
-    >>> @given(usys="galactic")  # Predefined
+    >>> @given(usys=st.just(u.unitsystem("galactic")))  # a fixed system
     ... def test_galactic_system(usys):
     ...     assert isinstance(usys, u.AbstractUnitSystem)
     ...     assert len(usys) == 4
