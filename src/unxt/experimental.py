@@ -7,7 +7,7 @@
 Unit-aware wrappers for JAX's automatic-differentiation functions (`grad`,
 `jacfwd`, `hessian`) and a unit-checked `where`. On some occasions JAX's autodiff
 does not propagate units correctly; these wrappers strip and re-apply the units
-around the transformed function. See :mod:`unxt._src.experimental` for details.
+around the transformed function.
 
 >>> from unxt import experimental
 
