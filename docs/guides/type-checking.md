@@ -96,6 +96,28 @@ Quantity(Array([2.], dtype=float32), unit='m / s')
 
 ```
 
+The check earns its keep when an argument violates its annotation. Both
+parameters above share the axis name `"N"`, so arrays whose shapes disagree are
+rejected before the body runs:
+
+```{code-block} python
+>>> x2 = u.Q([2.0, 3.0], "m")  # shape (2,)
+>>> t2 = u.Q([1.0], "s")       # shape (1,)
+
+>>> try:
+...     velocity(x2, t2)
+... except Exception as e:
+...     print(type(e).__name__)
+TypeCheckError
+
+```
+
+The enforcement here comes from the explicit `@jaxtyped(typechecker=...)`
+decorator. Setting `UNXT_ENABLE_RUNTIME_TYPECHECKING` applies the same checking
+across `unxt` — and to your own annotated functions via the import hook —
+without decorating each one by hand. With no typechecker active the annotations
+are inert: the call would simply broadcast `(2,)` against `(1,)`.
+
 ## Dimension annotations
 
 The default {class}`unxt.quantity.Quantity` carries **dtype and shape** in its type, but no dimension — so `Quantity[<dimension>]` **does nothing** (it is informational only). To additionally check the physical **dimension** of an argument (e.g. `up.PQ["length"]`), use `ParametricQuantity` from the separate [`unxts.parametric`](../packages/unxts.parametric/index) package, which encodes the dimension in its _type_. For construction, dimension inference/checking, and the parametric-class theory, see [Dimension annotations for type checking](../packages/unxts.parametric/type-checking).
