@@ -14,7 +14,7 @@ The [`gala`][gala-link] package provides tools for Galactic dynamics. It is buil
 
 ## Installation
 
-The recommended install pins compatible `gala` and `unxt` versions via the `interop-gala` [extra](https://peps.python.org/pep-0508/#extras):
+The recommended install adds `unxts.interop.gala` alongside `unxt` via the `interop-gala` [extra](https://peps.python.org/pep-0508/#extras), so it, `unxt`, and `gala` are resolved together as a compatible set:
 
 ::::{tab-set}
 

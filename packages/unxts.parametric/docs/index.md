@@ -44,6 +44,22 @@ Throughout these guides we import `unxt` as `u` and `unxts.parametric` as `up` (
 >>> import unxts.parametric as up
 ```
 
+## Quick start
+
+`ParametricQuantity` (`up.PQ`) is used just like `Quantity`, but it encodes the physical dimension in its _type_ — and can check it at construction:
+
+```{code-block} python
+
+>>> up.PQ(1.0, "m")  # dimension inferred from the unit
+ParametricQuantity(Array(1., dtype=float32, ...), unit='m')
+
+>>> up.PQ["length"](1.0, "m")  # dimension checked against the unit
+ParametricQuantity(Array(1., dtype=float32, ...), unit='m')
+
+```
+
+The sections below explain when this parametric behaviour is worth its cost.
+
 ## Why the default `Quantity` is non-parametric
 
 `Quantity` (`u.Q`) is the lightweight, non-parametric default: a single class — and a single JAX pytree type — for all physical dimensions. `ParametricQuantity` (`up.PQ`) instead encodes the dimension in its _type_ — `ParametricQuantity["length"]` and `ParametricQuantity["time"]` are distinct Python classes, created on demand, and each is registered as its own JAX pytree node type.
@@ -84,5 +100,3 @@ Everything else — arithmetic, unit conversion, JAX transforms, interop — wor
 - `config` — the `unxts.parametric.config` singleton (see [Configuration](configuration)).
 
 Importing `unxts.parametric` also registers, as import side effects, the promotion rules, `plum` conversions, and JAX primitive rules that let `ParametricQuantity` interoperate with the rest of `unxt`.
-
-Install: `pip install unxts.parametric`
