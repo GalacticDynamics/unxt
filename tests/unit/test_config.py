@@ -15,6 +15,7 @@ from traitlets.config import Config
 
 import unxt as u
 from unxt._src.config import (
+    QuantityReprConfig,
     _find_pyproject,
     _load_toml_config_from_pyproject,
     _walk_toml_config,
@@ -1114,3 +1115,29 @@ def test_new_namespace_does_not_warn() -> None:
         # and isn't made fragile by unrelated warnings.
         warnings.simplefilter("error", DeprecationWarning)
         _warn_if_legacy_unxt_config(data)  # must not raise
+
+
+def test_override_does_not_leak_between_instances() -> None:
+    """`override()` is per-instance: a throwaway config must not touch the global.
+
+    Regression: ``_local`` was a class attribute, so an ``override()`` on any
+    instance pushed onto a stack shared with the global ``unxt.config``
+    singleton, leaking the temporary setting into unrelated reads.
+    """
+    fresh = QuantityReprConfig()
+    baseline = u.config.quantity_repr.short_arrays
+    # Pick an override value guaranteed to differ from the baseline so the test
+    # reliably detects leaks and validates restoration even if the baseline was
+    # changed to "compact" via TOML/environment config.
+    override = "compact" if baseline != "compact" else False
+
+    with fresh.override(short_arrays=override):
+        # the global singleton is unaffected by the throwaway instance ...
+        assert u.config.quantity_repr.short_arrays == baseline
+        # ... while the instance sees its own override
+        assert fresh.short_arrays == override
+
+    # and the global override path still works and restores itself
+    with u.config.quantity_repr.override(short_arrays=override):
+        assert u.config.quantity_repr.short_arrays == override
+    assert u.config.quantity_repr.short_arrays == baseline

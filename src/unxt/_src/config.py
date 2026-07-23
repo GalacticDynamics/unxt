@@ -37,6 +37,14 @@ class LocalConfigurable(Configurable):
     # Thread-local storage for context manager overrides
     _local: threading.local
 
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        # Per-instance override stack. This MUST NOT be a class attribute:
+        # sharing one ``threading.local`` across instances lets ``override()``
+        # on any instance (e.g. a throwaway ``QuantityReprConfig()``) leak into
+        # every other instance, including the global ``unxt.config`` singleton.
+        object.__setattr__(self, "_local", threading.local())
+
 
 @dataclass(frozen=True, slots=True)
 class _NestedConfigContext:
@@ -114,9 +122,6 @@ class QuantityReprConfig(LocalConfigurable):
     Q([1, 2, 3], unit='m')
 
     """
-
-    # Thread-local storage for context manager overrides
-    _local: threading.local = threading.local()
 
     short_arrays: ClassVar[object] = Union(
         [Bool(), Enum(("compact",))],
@@ -321,9 +326,6 @@ class QuantityStrConfig(LocalConfigurable):
     Quantity([1, 2, 3], unit='m')
 
     """
-
-    # Thread-local storage for context manager overrides
-    _local: threading.local = threading.local()
 
     short_arrays: ClassVar[object] = Union(
         [Bool(), Enum(("compact",))],
