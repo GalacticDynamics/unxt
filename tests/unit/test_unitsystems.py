@@ -15,6 +15,7 @@ from astropy.constants import G as const_G  # noqa: N811
 import unxt as u
 from unxt import dimension, unit, unitsystems
 from unxt._src.unitsystems import base as us_base
+from unxt._src.unitsystems.utils import parse_dimlike_name
 from unxt.unitsystems import (
     NAMED_UNIT_SYSTEMS,
     AbstractUnitSystem,
@@ -365,6 +366,50 @@ def test_construction_consults_isolated_by_dimset_index():
     assert type(built) is IsolatedLengthTime
     assert built["length"] == unit("m")
     assert built["time"] == unit("s")
+
+
+@pytest.mark.usefixtures("clean_unitsystems_registry")
+def test_distinct_slotted_class_cannot_overwrite_registration():
+    """A distinct ``__slots__`` class must not clobber a same-dimensions entry.
+
+    Regression: the duplicate-registration guard once exempted *any* class with
+    ``__slots__`` in its ``__dict__`` -- a stand-in for "the dataclass slots
+    rebuild" -- so an unrelated class that merely declared ``__slots__`` in its
+    body silently overwrote the incumbent (and its by-set index entry). The
+    guard now admits only the genuine rebuild (shared annotation identity).
+    """
+
+    class LengthTime(AbstractUnitSystem):
+        length: Annotated[apyu.Unit, dimension("length")]
+        time: Annotated[apyu.Unit, dimension("time")]
+
+    with pytest.raises(ValueError, match="already exists"):
+
+        class Impostor(AbstractUnitSystem):
+            __slots__ = ("length", "time")
+            length: Annotated[apyu.Unit, dimension("length")]
+            time: Annotated[apyu.Unit, dimension("time")]
+
+    # The incumbent is untouched; the impostor left no entry in either registry.
+    dims = LengthTime._base_dimensions
+    assert us_base._UNITSYSTEMS_REGISTRY[dims] is LengthTime
+    assert us_base._UNITSYSTEMS_BY_DIMSET[frozenset(dims)] is LengthTime
+
+
+def test_parse_dimlike_name_is_deterministic_for_multialias_dimensions():
+    """A dimension with several physical-type aliases resolves to a stable name.
+
+    ``speed`` carries both ``"speed"`` and ``"velocity"`` in an unordered
+    ``_physical_type``; picking the alphabetically-first alias keeps the name --
+    and hence any dynamically generated unit-system's field order and class
+    identity -- independent of set iteration order / ``PYTHONHASHSEED``.
+    """
+    speed = dimension("speed")
+    assert parse_dimlike_name(speed) == "speed"
+    assert parse_dimlike_name(speed) == min(speed._physical_type)
+
+    # The generated class identity is order-independent for a speed-bearing set.
+    assert type(unitsystem("km", "km/s")) is type(unitsystem("km/s", "km"))
 
 
 class TestDimensionlessUnitSystem:

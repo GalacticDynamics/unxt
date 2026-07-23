@@ -52,6 +52,34 @@ _UNITSYSTEMS_BY_DIMSET: dict[
 ] = {}
 
 
+def _is_dataclass_slots_rebuild(
+    existing: type["AbstractUnitSystem"], cls: type["AbstractUnitSystem"]
+) -> bool:
+    """Report whether ``cls`` is the ``slots=True`` rebuild of ``existing``.
+
+    ``@dataclass(slots=True)`` / ``make_dataclass(slots=True)`` cannot add
+    ``__slots__`` in place, so they build a *new* class that copies the original
+    class namespace and re-runs ``__init_subclass__``. That second pass tries to
+    re-register dimensions the first pass already claimed, and must be allowed to
+    overwrite its own slotless first entry -- but a genuinely *distinct* class
+    competing for the same dimensions must not.
+
+    The namespace copy shares the original's annotation object *by identity*
+    (verified: ``make_dataclass``/``dataclass`` copy ``cls.__dict__`` wholesale),
+    which no independently-defined class -- even one with a byte-identical body --
+    ever does. That identity, plus the slotless -> slotted transition, marks the
+    rebuild unambiguously and version-independently (``__annotations__`` on
+    Python <= 3.13, ``__annotate_func__`` on 3.14+ per PEP 749).
+    """
+    if "__slots__" not in cls.__dict__ or "__slots__" in existing.__dict__:
+        return False
+    for key in ("__annotations__", "__annotate_func__"):
+        carrier = cls.__dict__.get(key)
+        if carrier is not None and carrier is existing.__dict__.get(key):
+            return True
+    return False
+
+
 # Register AbstractUnitSystem as a static PyTree node
 # This ensures unit systems are treated as constants in JAX transformations
 @jtu.register_static
@@ -155,9 +183,16 @@ class AbstractUnitSystem:
         # rejected registration leaves no partial entry behind.
         #
         # Exact-signature duplicate: the same ordered dimensions are already
-        # registered. `make_dataclass(slots=True)` rebuilds the class a second
-        # time to add `__slots__`; that pass is allowed through to overwrite.
-        if dims in _UNITSYSTEMS_REGISTRY and "__slots__" not in cls.__dict__:
+        # registered. `@dataclass(slots=True)` / `make_dataclass(slots=True)`
+        # rebuild the class a second time to add `__slots__`, re-running this
+        # hook; that pass re-registers the *same* class and is allowed to
+        # overwrite its own slotless first pass. Keying that exception off
+        # ``"__slots__" not in cls.__dict__`` alone would also wave through a
+        # *distinct* class that merely declares ``__slots__`` in its body,
+        # silently clobbering the incumbent -- so admit only the genuine rebuild
+        # (see ``_is_dataclass_slots_rebuild``).
+        existing = _UNITSYSTEMS_REGISTRY.get(dims)
+        if existing is not None and not _is_dataclass_slots_rebuild(existing, cls):
             msg = f"Unit system with dimensions {dims} already exists."
             raise ValueError(msg)
 

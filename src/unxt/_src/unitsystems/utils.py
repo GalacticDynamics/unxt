@@ -7,9 +7,6 @@ from typing import Any
 
 from plum import dispatch
 
-from zeroth import zeroth
-
-from . import builtin_dimensions as bdims
 from unxt.dims import AbstractDimension, dimension_of
 from unxt.units import AbstractUnit
 
@@ -69,14 +66,13 @@ def parse_dimlike_name(pt: AbstractDimension, /) -> str:
     'speed'
 
     """
-    # Note: this is not deterministic b/c ``_physical_type`` is a set
-    #       that's why the `if` statement is needed.
-    match pt:
-        case bdims.speed:
-            out = "speed"
-        case _:
-            out = parse_dimlike_name(zeroth(pt._physical_type))  # noqa: SLF001
-    return out
+    # A dimension can carry several equivalent physical-type aliases (e.g.
+    # ``speed`` / ``velocity``), held in an unordered ``_physical_type``. Pick
+    # the alphabetically-first alias so the name -- and hence the field order
+    # and class identity of any dynamically generated unit system -- is
+    # deterministic across runs and ``PYTHONHASHSEED`` (``min`` also happens to
+    # yield ``"speed"`` over ``"velocity"``).
+    return parse_dimlike_name(min(pt._physical_type))  # noqa: SLF001
 
 
 @dispatch
