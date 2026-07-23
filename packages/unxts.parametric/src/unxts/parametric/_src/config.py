@@ -17,7 +17,6 @@ __all__ = (
 )
 
 import contextlib
-import threading
 import tomllib
 from pathlib import Path
 from typing import Any, ClassVar, Final
@@ -136,7 +135,6 @@ class _ParametricLocalConfig(LocalConfigurable):
 class ParametricQuantityReprConfig(_ParametricLocalConfig):
     """``include_params`` for ``ParametricQuantity.__repr__`` (default ``False``)."""
 
-    _local: threading.local = threading.local()
     _config_keys: ClassVar[frozenset[str]] = PARAMETRIC_REPR_CONFIG_KEYS
 
     include_params: ClassVar[object] = Bool(
@@ -148,7 +146,6 @@ class ParametricQuantityReprConfig(_ParametricLocalConfig):
 class ParametricQuantityStrConfig(_ParametricLocalConfig):
     """``include_params`` for ``ParametricQuantity.__str__`` (default ``True``)."""
 
-    _local: threading.local = threading.local()
     _config_keys: ClassVar[frozenset[str]] = PARAMETRIC_STR_CONFIG_KEYS
 
     include_params: ClassVar[object] = Bool(
