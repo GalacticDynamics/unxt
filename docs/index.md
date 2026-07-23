@@ -17,8 +17,6 @@ unxts.linalg <packages/unxts.linalg/index>
 unxts.interop.gala <packages/unxts.interop.gala/index>
 unxts.interop.matplotlib <packages/unxts.interop.matplotlib/index>
 unxts.interop.xarray <packages/unxts.interop.xarray/index>
-unxt-api <packages/unxt-api/index>
-unxt-hypothesis <packages/unxt-hypothesis/index>
 ```
 
 ```{toctree}
@@ -27,13 +25,13 @@ unxt-hypothesis <packages/unxt-hypothesis/index>
 :caption: 📚 Guides
 
 guides/quantity
-guides/configuration
 guides/dimensions
 guides/units_and_systems
 guides/natural-units
 guides/type-checking
 guides/sharp-bits
 Performance Optimization <guides/perf.ipynb>
+guides/configuration
 ```
 
 ```{toctree}

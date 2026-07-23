@@ -421,13 +421,13 @@ Q([1, 2, 3], unit='m')
 
 See the [`wadler_lindig` documentation](https://docs.kidger.site/wadler_lindig) for more details on the pretty printing options.
 
-# Specialized Quantity Objects
+## Specialized Quantity Objects
 
-## Working with `Angle` Objects
+### Working with `Angle` Objects
 
 The {class}`~unxt.quantity.Angle` class is a specialized quantity for representing angular measurements, similar to {class}`~unxt.quantity.Quantity` but with additional features and constraints tailored for angles.
 
-### Creating Angles
+#### Creating Angles
 
 You can create an {class}`~unxt.quantity.Angle` just like a {class}`~unxt.quantity.Quantity`, by specifying a value and a unit with angular dimensions:
 
@@ -451,7 +451,7 @@ Angle(Array([10, 15, 20], dtype=int32), unit='deg')
 
 ```
 
-### Mathematical Operations
+#### Mathematical Operations
 
 {class}`~unxt.quantity.Angle` objects support arithmetic operations, broadcasting, and most mathematical functions, just like {class}`~unxt.quantity.Quantity`:
 
@@ -467,7 +467,7 @@ Angle(Array(0.7853982, dtype=float32, weak_type=True), unit='rad')
 
 For more information on mathematical operations, see the unxt documentation.
 
-### Enforced Dimensionality
+#### Enforced Dimensionality
 
 Unlike a generic {class}`~unxt.quantity.Quantity`, the {class}`~unxt.quantity.Angle` class enforces that the unit must be angular (e.g., degrees, radians). Attempting to use a non-angular unit will raise an error:
 
@@ -477,7 +477,7 @@ Unlike a generic {class}`~unxt.quantity.Quantity`, the {class}`~unxt.quantity.An
 Angle must have units with angular dimensions.
 ```
 
-### Wrapping Angles
+#### Wrapping Angles
 
 A key feature of {class}`~unxt.quantity.Angle` is the ability to wrap values to a specified range, which is useful for keeping angles within a branch cut:
 
@@ -494,7 +494,7 @@ The {meth}`~unxt.quantity.Angle.wrap_to` method has a function counterpart
 Angle(Array(10, dtype=int32...), unit='deg')
 ```
 
-## Working with `StaticQuantity` Objects
+### Working with `StaticQuantity` Objects
 
 The {class}`~unxt.quantity.StaticQuantity` class is a non-parametric quantity with a static value stored as a NumPy array. It accepts Python scalars and NumPy arrays only, rejecting JAX arrays. This makes it convenient for static arguments in `jax.jit` or `jax.vmap`.
 
@@ -516,7 +516,7 @@ The {class}`~unxt.quantity.StaticQuantity` class is a non-parametric quantity wi
 Quantity(Array([2., 3.], dtype=float32), unit='m')
 ```
 
-## Working with `StaticValue` in a `Quantity`
+### Working with `StaticValue` in a `Quantity`
 
 If you want a {class}`~unxt.Quantity` but need its value to be static (for hashing or static JAX arguments), wrap the value with {class}`~unxt.quantity.StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`:
 
@@ -533,7 +533,7 @@ If you want a {class}`~unxt.Quantity` but need its value to be static (for hashi
 Quantity(Array([4., 6.], dtype=float32), unit='m')
 ```
 
-### Equality returns a scalar `bool`
+#### Equality returns a scalar `bool`
 
 The equality operator on a `Quantity` backed by a `StaticValue` returns a **scalar `bool`**, not an element-wise array. This is the key property that makes it usable as a `static_argnames` argument in {func}`jax.jit`. (This behaviour lives on {class}`~unxt.quantity.AbstractQuantity`, so it applies to every quantity class.)
 
@@ -565,7 +565,7 @@ This contrasts with a regular `Quantity` (JAX array value), where `==` follows N
 Quantity(Array([ True, False], dtype=bool), unit='')
 ```
 
-### Equality vs. equivalence
+#### Equality vs. equivalence
 
 Because `==` on a `StaticValue`-backed quantity is **unit-blind**, reach for {func}`unxt.equivalent` (or the {meth}`~unxt.quantity.AbstractQuantity.is_equivalent` method) when you want a **unit-aware** "same physical quantity" check:
 
@@ -589,7 +589,7 @@ False
 
 **Rule of thumb:** use `==` for structural identity (and as a `jax.jit` `static_argnames` key); use `equivalent` to ask whether two quantities represent the same physical amount regardless of unit. The same `equivalent` function also compares unit systems (see {doc}`units_and_systems`).
 
-### Using `Quantity(StaticValue)` as a `jax.jit` static argument
+#### Using `Quantity(StaticValue)` as a `jax.jit` static argument
 
 Because equality returns `bool` and `StaticValue` is hashable, the whole `Quantity` is hashable, which lets JAX use it as a compile-time constant:
 

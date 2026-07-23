@@ -49,9 +49,7 @@ Unit("m")
 
 :::
 
-<br><br><br>
-
-# Unit Systems
+## Unit Systems
 
 A unit system is a standardized collection of units used together, such as the International System of Units (SI), the Imperial system, and natural units like Planck or atomic units. Each system defines base units (e.g., meters, kilograms) and derived units (e.g., joules, newtons) for consistent expression of quantities.
 
@@ -63,7 +61,7 @@ A unit system is a standardized collection of units used together, such as the I
 
 :::
 
-## `AbstractUnitSystem` class
+### `AbstractUnitSystem` class
 
 :::{seealso}
 
@@ -84,7 +82,7 @@ This rarely needs to be used. See `unxt.unitsystem`.
 
 ```
 
-## Built-in Unit Systems
+### Built-in Unit Systems
 
 `unxt` provides several built-in unit systems.
 
@@ -112,7 +110,7 @@ unitsystem(kpc, Myr, solMass, rad)
 unitsystem(AU, yr, solMass, rad)
 ```
 
-### Natural unit systems
+#### Natural unit systems
 
 [Natural unit systems](https://en.wikipedia.org/wiki/Natural_units) fix a chosen set of fundamental physical constants to the dimensionless value 1. `unxt` realizes this _numerically_: the base units are chosen so that the named constants evaluate to `1.0`, while the full dimensional structure is preserved. Four systems are built in, available both as named realizations and by string:
 
@@ -157,7 +155,7 @@ True
 Unit("km")
 ```
 
-## Functions for Unit Systems
+### Functions for Unit Systems
 
 `unxt` has two primary functions for working with units: `unitsystem` and `unitsystem_of`.
 
