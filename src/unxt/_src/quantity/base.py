@@ -1313,9 +1313,10 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
         if fill_value is not None:
             fv = uapi.ustrip(self.array.unit, fill_value)
             # JAX treats ``fill_value`` as a *static* scalar and hashes it; a
-            # concrete ``jax.Array`` is unhashable there, so coerce to a Python
-            # scalar. (A traced fill value cannot be static and is unsupported.)
-            fill_value = fv.item() if hasattr(fv, "item") else fv
+            # concrete ``jax.Array`` is unhashable there, so coerce the stripped
+            # value (always a 0-d array) to a Python scalar. (A traced fill value
+            # cannot be static and is unsupported.)
+            fill_value = fv.item()
         value = self.array.value.at[self.index].get(fill_value=fill_value, **kw)
         return replace(self.array, value=value)
 
