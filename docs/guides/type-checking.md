@@ -96,9 +96,7 @@ Quantity(Array([2.], dtype=float32), unit='m / s')
 
 ```
 
-The check earns its keep when an argument violates its annotation. Both
-parameters above share the axis name `"N"`, so arrays whose shapes disagree are
-rejected before the body runs:
+The check earns its keep when an argument violates its annotation. Both parameters above share the axis name `"N"`, so arrays whose shapes disagree are rejected before the body runs:
 
 ```{code-block} python
 >>> x2 = u.Q([2.0, 3.0], "m")  # shape (2,)
@@ -112,11 +110,7 @@ TypeCheckError
 
 ```
 
-The enforcement here comes from the explicit `@jaxtyped(typechecker=...)`
-decorator. Setting `UNXT_ENABLE_RUNTIME_TYPECHECKING` applies the same checking
-across `unxt` — and to your own annotated functions via the import hook —
-without decorating each one by hand. With no typechecker active the annotations
-are inert: the call would simply broadcast `(2,)` against `(1,)`.
+The enforcement here comes from the explicit `@jaxtyped(typechecker=...)` decorator. Setting `UNXT_ENABLE_RUNTIME_TYPECHECKING` applies the same checking across `unxt` — and to your own annotated functions via the import hook — without decorating each one by hand. With no typechecker active the annotations are inert: the call would simply broadcast `(2,)` against `(1,)`.
 
 ## Dimension annotations
 

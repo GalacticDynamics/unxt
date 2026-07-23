@@ -130,15 +130,11 @@ LengthMassTimeTemperatureUnitSystem(length=Unit("...e-35 m"), mass=Unit("...e-08
 LengthMassTimeElectricalChargeUnitSystem(length=Unit("...e-11 m"), mass=Unit("...e-31 kg"), time=Unit("...e-17 s"), electrical_charge=Unit("...e-19 A s"))
 ```
 
-By construction the defining constants evaluate to 1 in each system, and the
-two systems with a remaining free scale (`HEPUSysFlag`, `GeometrizedUSysFlag`)
-accept it as a keyword. For worked examples on each system — setting those
-scales, recovering familiar values, and the semantics of natural-unit
-quantities — see the {doc}`natural-units` guide.
+By construction the defining constants evaluate to 1 in each system, and the two systems with a remaining free scale (`HEPUSysFlag`, `GeometrizedUSysFlag`) accept it as a keyword. For worked examples on each system — setting those scales, recovering familiar values, and the semantics of natural-unit quantities — see the {doc}`natural-units` guide.
 
 ### Functions for Unit Systems
 
-`unxt` has two primary functions for working with units: `unitsystem` and `unitsystem_of`.
+`unxt` has two primary functions for working with unit systems: `unitsystem` and `unitsystem_of`.
 
 ```{code-block} python
 >>> from unxt.unitsystems import unitsystem, unitsystem_of

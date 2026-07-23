@@ -129,18 +129,10 @@ def outer_func(x, y):
 %timeit jax.block_until_ready(outer_func(x, y))
 ```
 
-The same pattern scales to more realistic code. Two generalizations come up
-often:
+The same pattern scales to more realistic code. Two generalizations come up often:
 
-- **The inner function is itself built from several unitful operations.**
-  `func2` below calls the quaxified function twice and combines the results.
-  The outer wrapper still hoists every pytree conversion inside a single JIT
-  boundary, so the extra sub-calls cost nothing at the interface.
-- **The units are chosen by a unit system.** Passing a
-  {class}`~unxt.unitsystems.AbstractUnitSystem` as a `static_argnames`
-  argument lets one wrapper serve many unit choices: build the inputs with
-  {meth}`u.Q.from_ <unxt.quantity.Quantity.from_>` and `usys["length"]`, and
-  strip the result with `out.ustrip(usys)`.
+- **The inner function is itself built from several unitful operations.** `func2` below calls the quaxified function twice and combines the results. The outer wrapper still hoists every pytree conversion inside a single JIT boundary, so the extra sub-calls cost nothing at the interface.
+- **The units are chosen by a unit system.** Passing a {class}`~unxt.unitsystems.AbstractUnitSystem` as a `static_argnames` argument lets one wrapper serve many unit choices: build the inputs with {meth}`u.Q.from_ <unxt.quantity.Quantity.from_>` and `usys["length"]`, and strip the result with `out.ustrip(usys)`.
 
 ```{code-cell} ipython3
 def func2(x, y):
@@ -161,8 +153,7 @@ def outer_func3(x, y, *, usys):
     return out.ustrip(usys)
 ```
 
-Timing it shows the same near-baseline performance, now with the working
-units selected at call time:
+Timing it shows the same near-baseline performance, now with the working units selected at call time:
 
 ```{code-cell} ipython3
 usys = u.unitsystems.si
