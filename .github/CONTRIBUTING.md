@@ -10,7 +10,7 @@ To use, run `nox`. This will lint and test using every installed version of Pyth
 
 ```console
 $ nox -s lint  # Lint only
-$ nox -s tests  # Python tests
+$ nox -s test  # Python tests
 $ nox -s docs -- --serve  # Build and serve the docs
 $ nox -s build  # Make an SDist and wheel
 ```
