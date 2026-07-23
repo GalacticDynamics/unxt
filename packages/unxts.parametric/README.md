@@ -19,5 +19,10 @@ import unxts.parametric as up
 
 up.PQ([1, 2, 3], "m")  # dimension inferred from the unit
 up.PQ["length"](1, "m")  # dimension checked against the unit
-up.PQ["length"](1, "s")  # raises: 's' is not a length
+
+# A unit that doesn't match the declared dimension raises:
+try:
+    up.PQ["length"](1, "s")
+except ValueError as e:
+    print(e)  # Physical type mismatch.
 ```

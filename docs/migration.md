@@ -129,7 +129,7 @@ In-code configuration via `u.config` is unchanged.
 
 If you do **not** rename, the leftover `[tool.unxt.*]` section is **silently ignored** and those settings revert to their defaults. `unxt` emits a `DeprecationWarning` at import so the drift is greppable:
 
-> The '[tool.unxt]' pyproject.toml section is deprecated and ignored; unxt now reads its configuration from '[tool.unxts.unxt]'.
+> The '[tool.unxt]' pyproject.toml section is deprecated and ignored; unxt now reads its configuration from '[tool.unxts.unxt]'. Move your settings there.
 
 ---
 
