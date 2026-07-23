@@ -12,6 +12,12 @@ pip install unxts.parametric
 
 ## Usage
 
+`ParametricQuantity` (alias `PQ`) encodes its physical dimension in its _type_, so — unlike the default `unxt.Quantity` — it checks the dimension at construction:
+
 ```python
-import unxts.parametric as upq
+import unxts.parametric as up
+
+up.PQ([1, 2, 3], "m")            # dimension inferred from the unit
+up.PQ["length"](1, "m")          # dimension checked against the unit
+up.PQ["length"](1, "s")          # raises: 's' is not a length
 ```

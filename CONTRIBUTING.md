@@ -49,7 +49,7 @@ Before being merged, a pull request for a new feature will be reviewed to see if
 - Are there tests for any exceptions raised?
 - Are there tests for the expected performance?
 - Are the sources for the tests documented?
-- Does `uv run --group test nox -s tests` run without failures?
+- Does `uv run --group test nox -s test` run without failures?
 
 **Documentation:**
 

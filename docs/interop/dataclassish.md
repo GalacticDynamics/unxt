@@ -22,7 +22,7 @@ All of these work seamlessly across:
 - Dimensions
 - Units
 - Unit Systems
-- Quantity types (Quantity, ParametricQuantity, Angle, Distance, etc.)
+- Quantity types (Quantity, ParametricQuantity, Angle, etc.)
 
 This makes it easy to build generic code that works with unxt types without needing to know their internal structure.
 
