@@ -21,6 +21,7 @@ dependencies = ["plum-dispatch>=2.5.7"]
 description = "Abstract dispatch API definitions for unxt (canonical: unxts.api)"
 dynamic = ["version"]
 license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 name = "unxts.api"
 readme = "README.md"
 requires-python = ">=3.12"
