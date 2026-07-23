@@ -24,8 +24,8 @@ from astropy.constants import (  # pylint: disable=E0611
 from astropy.units import UnitBase as AstropyUnitBase
 from plum import dispatch
 
-from . import builtin_dimensions as ud
-from .base import _UNITSYSTEMS_BY_DIMSET, AbstractUnitSystem
+from . import base, builtin_dimensions as ud
+from .base import AbstractUnitSystem
 from .builtin import DimensionlessUnitSystem, dimensionless
 from .flags import (
     AbstractUSysFlag,
@@ -149,8 +149,13 @@ def unitsystem(*args: Any) -> AbstractUnitSystem:
     # index -- and build it in that class's own field order. This keeps the
     # built-ins in their conventional order (galactic stays length, time, mass,
     # angle) while making construction order-independent.
+    #
+    # Read the index through the ``base`` module (not a ``from base import``
+    # binding) so that registration -- which mutates ``base._UNITSYSTEMS_BY_DIMSET``
+    # -- and this lookup always agree on the same object, including when a test
+    # swaps the module attribute for an isolated one.
     unit_by_dim = dict(zip(dims, args, strict=True))
-    reg_cls = _UNITSYSTEMS_BY_DIMSET.get(frozenset(dims))
+    reg_cls = base._UNITSYSTEMS_BY_DIMSET.get(frozenset(dims))  # noqa: SLF001
     if reg_cls is not None:
         return reg_cls(*(unit_by_dim[d] for d in reg_cls._base_dimensions))  # noqa: SLF001
 

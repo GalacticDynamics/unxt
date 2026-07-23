@@ -347,6 +347,28 @@ def test_unitsystem_same_dimension_set_different_order_rejected():
     assert us_base._UNITSYSTEMS_BY_DIMSET[dim_set] is LengthTime
 
 
+@pytest.mark.usefixtures("clean_unitsystems_registry")
+def test_construction_consults_isolated_by_dimset_index():
+    """``unitsystem(...)`` reads the fixture-isolated by-set index, not the real one.
+
+    Regression: ``core`` bound ``_UNITSYSTEMS_BY_DIMSET`` at import, so a fixture
+    that rebound only the ``base`` module's name left construction consulting the
+    original index while registration wrote to the isolated one. Register a class
+    under the fixture, then build its dimension set: ``unitsystem`` can only
+    return *that* class if lookup and registration share the isolated dict.
+    """
+
+    @dataclass(frozen=True, slots=True)
+    class IsolatedLengthTime(AbstractUnitSystem):
+        length: Annotated[apyu.Unit, dimension("length")]
+        time: Annotated[apyu.Unit, dimension("time")]
+
+    built = unitsystem("m", "s")
+    assert type(built) is IsolatedLengthTime
+    assert built["length"] == unit("m")
+    assert built["time"] == unit("s")
+
+
 class TestDimensionlessUnitSystem:
     """Test `unxt.unitsystems.DimensionlessUnitSystem`."""
 
