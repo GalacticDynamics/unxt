@@ -44,6 +44,7 @@ ds = xr.Dataset(
     },
 )
 
-# Save to NetCDF file
-output_path = Path(__file__).parent / "sample_data.nc"
-ds.to_netcdf(output_path)
+# Save to NetCDF file (only when run as a script, not on import)
+if __name__ == "__main__":
+    output_path = Path(__file__).parent / "sample_data.nc"
+    ds.to_netcdf(output_path)
