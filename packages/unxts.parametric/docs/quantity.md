@@ -51,3 +51,26 @@ Filling a `ParametricQuantity`'s parameter and constructing an instance may be s
 ```
 
 The base class `AbstractParametricQuantity` and the concrete `unxt.Quantity` are _not_ parametric — `Quantity[<dimension>]` does nothing and is informational only. Explore [`plum`](https://beartype.github.io/plum/parametric.html) for more on parametric classes.
+
+## Interoperating with the default `Quantity`
+
+Importing `unxts.parametric` registers promotion rules, so `ParametricQuantity` and the default `Quantity` mix freely in arithmetic. Combining the two yields a `ParametricQuantity`, re-parametrized by the **result's** dimension:
+
+```{code-block} python
+>>> length = up.PQ["length"](2.0, "m")
+>>> plain = u.Q(3.0, "m")
+
+>>> length + plain
+ParametricQuantity(Array(5., dtype=float32, ...), unit='m')
+```
+
+Because the dimension is tracked in the type, operations that change dimension re-parametrize the result — multiplying two lengths promotes the parameter to area:
+
+```{code-block} python
+>>> area = length * up.PQ["length"](5.0, "m")
+>>> area
+ParametricQuantity(Array(10., dtype=float32, ...), unit='m2')
+
+>>> u.dimension_of(area)
+PhysicalType('area')
+```

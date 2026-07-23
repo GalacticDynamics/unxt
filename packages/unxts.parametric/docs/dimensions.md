@@ -15,6 +15,9 @@ Because a `ParametricQuantity` encodes its dimension in the _class itself_, `unx
 >>> u.dimension_of(up.PQ["length"])  # a parameterized class carries a dimension
 PhysicalType('length')
 
+>>> u.dimension_of(up.PQ["length"](5.0, "m"))  # as does an instance of it
+PhysicalType('length')
+
 >>> try: u.dimension_of(up.PQ)  # ... the unparameterized class does not
 ... except Exception as e: print(e)
 can only get dimensions from parametrized ParametricQuantity -- ParametricQuantity[dim].
