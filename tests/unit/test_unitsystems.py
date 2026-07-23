@@ -14,7 +14,8 @@ from astropy.constants import G as const_G  # noqa: N811
 
 import unxt as u
 from unxt import dimension, unit, unitsystems
-from unxt._src.unitsystems.base import _UNITSYSTEMS_REGISTRY
+from unxt._src.unitsystems import base as us_base
+from unxt._src.unitsystems.utils import parse_dimlike_name
 from unxt.unitsystems import (
     NAMED_UNIT_SYSTEMS,
     AbstractUnitSystem,
@@ -26,6 +27,7 @@ from unxt.unitsystems import (
     dimensionless,
     equivalent,
     galactic,
+    planck,
     si,
     solarsystem,
     unitsystem,
@@ -38,6 +40,9 @@ def clean_unitsystems_registry(monkeypatch):
     monkeypatch.setattr(
         "unxt._src.unitsystems.base._UNITSYSTEMS_REGISTRY", clean_registry
     )
+    # The by-dimension-set index is populated alongside the registry, so isolate
+    # it too or classes defined in this test would leak into the real index.
+    monkeypatch.setattr("unxt._src.unitsystems.base._UNITSYSTEMS_BY_DIMSET", {})
     return clean_registry
 
 
@@ -105,6 +110,58 @@ def test_no_arg_unitsystem_is_dimensionless() -> None:
     # (see ``TestDimensionlessUnitSystem.test_getitem``).
     with pytest.raises(apyu.UnitConversionError):
         _ = usys["length"]
+
+
+def test_unitsystem_from_list_of_units_builds_system() -> None:
+    """A list/tuple of units builds a system from those units.
+
+    A single-element list must not be mistaken for a named-system lookup
+    (regression: ``unitsystem(["km"])`` used to unpack to ``unitsystem("km")``
+    and raise).
+    """
+    usys = unitsystem(["km"])
+    assert usys["length"] == unit("km")
+    assert usys == unitsystem([unit("km")])
+
+    # a multi-element list agrees with the variadic form
+    assert unitsystem(["kpc", "Myr", "solMass", "rad"]) == unitsystem(
+        "kpc", "Myr", "solMass", "rad"
+    )
+
+
+def test_unitsystem_identity_is_order_independent() -> None:
+    """Set-like identity: the same units in any order give the same system.
+
+    Results are equal and same-type; built-in shapes keep conventional order.
+    """
+    a = unitsystem("m", "s")
+    b = unitsystem("s", "m")
+    assert a == b
+    assert type(a) is type(b)
+
+    # built-in systems are matched by dimension set and keep their conventional
+    # field order regardless of input order
+    g1 = unitsystem("kpc", "Myr", "solMass", "rad")
+    g2 = unitsystem("Myr", "rad", "kpc", "solMass")
+    assert g1 == g2
+    assert type(g1) is type(g2)
+    assert g1 == galactic
+    assert isinstance(g1, unitsystems.LTMAUnitSystem)
+    # conventional field order (length, time, mass, angle) is preserved, not sorted
+    assert g2.base_dimensions == galactic.base_dimensions
+
+
+def test_natural_shape_construction_preserves_conventional_order() -> None:
+    """Natural-system shapes keep conventional order for user construction.
+
+    A shape like (length, mass, time, temperature) uses the pre-registered class
+    in conventional order, not the alphabetical order a novel shape would sort
+    into -- and is order-independent.
+    """
+    usys = unitsystem("m", "kg", "s", "K")
+    assert type(usys) is type(planck)
+    assert usys.base_dimensions == planck.base_dimensions
+    assert unitsystem("K", "s", "m", "kg") == usys
 
 
 def test_compare() -> None:
@@ -251,8 +308,108 @@ def test_unitsystem_already_registered():
             absement: Annotated[apyu.Unit, dimension("absement")]
             time: Annotated[apyu.Unit, dimension("time")]
 
-    # Clean up custom unit system from registry:
-    del _UNITSYSTEMS_REGISTRY[MyUnitSystem._base_dimensions]
+    # Clean up custom unit system from the registry and its by-set index.
+    # Access through ``us_base`` (not import-time bindings) so this stays
+    # consistent with the fixture-aware access used elsewhere.
+    del us_base._UNITSYSTEMS_REGISTRY[MyUnitSystem._base_dimensions]
+    del us_base._UNITSYSTEMS_BY_DIMSET[frozenset(MyUnitSystem._base_dimensions)]
+
+
+@pytest.mark.usefixtures("clean_unitsystems_registry")
+def test_unitsystem_same_dimension_set_different_order_rejected():
+    """A dimension *set* maps to a single class, regardless of field order.
+
+    Two classes spanning the same dimensions but declaring them in a different
+    order would leave the by-set index (and thus ``unitsystem(*units)``) to
+    resolve by registration order; registration rejects the second one instead.
+    """
+
+    @dataclass(frozen=True, slots=True)
+    class LengthTime(AbstractUnitSystem):
+        length: Annotated[apyu.Unit, dimension("length")]
+        time: Annotated[apyu.Unit, dimension("time")]
+
+    with pytest.raises(ValueError, match="maps to a single unit-system class"):
+
+        @dataclass(frozen=True, slots=True)
+        class TimeLength(AbstractUnitSystem):
+            time: Annotated[apyu.Unit, dimension("time")]
+            length: Annotated[apyu.Unit, dimension("length")]
+
+    # The rejected class left no partial entry in either registry; the by-set
+    # index still points at the first (only) class for that set. Reference the
+    # live dicts via the module so the fixture's monkeypatched copies are seen
+    # (a top-level ``from ... import`` name would be bound to the original dict).
+    dim_set = frozenset(LengthTime._base_dimensions)
+    assert (dimension("time"), dimension("length")) not in us_base._UNITSYSTEMS_REGISTRY
+    assert LengthTime._base_dimensions in us_base._UNITSYSTEMS_REGISTRY
+    assert us_base._UNITSYSTEMS_BY_DIMSET[dim_set] is LengthTime
+
+
+@pytest.mark.usefixtures("clean_unitsystems_registry")
+def test_construction_consults_isolated_by_dimset_index():
+    """``unitsystem(...)`` reads the fixture-isolated by-set index, not the real one.
+
+    Regression: ``core`` bound ``_UNITSYSTEMS_BY_DIMSET`` at import, so a fixture
+    that rebound only the ``base`` module's name left construction consulting the
+    original index while registration wrote to the isolated one. Register a class
+    under the fixture, then build its dimension set: ``unitsystem`` can only
+    return *that* class if lookup and registration share the isolated dict.
+    """
+
+    @dataclass(frozen=True, slots=True)
+    class IsolatedLengthTime(AbstractUnitSystem):
+        length: Annotated[apyu.Unit, dimension("length")]
+        time: Annotated[apyu.Unit, dimension("time")]
+
+    built = unitsystem("m", "s")
+    assert type(built) is IsolatedLengthTime
+    assert built["length"] == unit("m")
+    assert built["time"] == unit("s")
+
+
+@pytest.mark.usefixtures("clean_unitsystems_registry")
+def test_distinct_slotted_class_cannot_overwrite_registration():
+    """A distinct ``__slots__`` class must not clobber a same-dimensions entry.
+
+    Regression: the duplicate-registration guard once exempted *any* class with
+    ``__slots__`` in its ``__dict__`` -- a stand-in for "the dataclass slots
+    rebuild" -- so an unrelated class that merely declared ``__slots__`` in its
+    body silently overwrote the incumbent (and its by-set index entry). The
+    guard now admits only the genuine rebuild (shared annotation identity).
+    """
+
+    class LengthTime(AbstractUnitSystem):
+        length: Annotated[apyu.Unit, dimension("length")]
+        time: Annotated[apyu.Unit, dimension("time")]
+
+    with pytest.raises(ValueError, match="already exists"):
+
+        class Impostor(AbstractUnitSystem):
+            __slots__ = ("length", "time")
+            length: Annotated[apyu.Unit, dimension("length")]
+            time: Annotated[apyu.Unit, dimension("time")]
+
+    # The incumbent is untouched; the impostor left no entry in either registry.
+    dims = LengthTime._base_dimensions
+    assert us_base._UNITSYSTEMS_REGISTRY[dims] is LengthTime
+    assert us_base._UNITSYSTEMS_BY_DIMSET[frozenset(dims)] is LengthTime
+
+
+def test_parse_dimlike_name_is_deterministic_for_multialias_dimensions():
+    """A dimension with several physical-type aliases resolves to a stable name.
+
+    ``speed`` carries both ``"speed"`` and ``"velocity"`` in an unordered
+    ``_physical_type``; picking the alphabetically-first alias keeps the name --
+    and hence any dynamically generated unit-system's field order and class
+    identity -- independent of set iteration order / ``PYTHONHASHSEED``.
+    """
+    speed = dimension("speed")
+    assert parse_dimlike_name(speed) == "speed"
+    assert parse_dimlike_name(speed) == min(speed._physical_type)
+
+    # The generated class identity is order-independent for a speed-bearing set.
+    assert type(unitsystem("km", "km/s")) is type(unitsystem("km/s", "km"))
 
 
 class TestDimensionlessUnitSystem:

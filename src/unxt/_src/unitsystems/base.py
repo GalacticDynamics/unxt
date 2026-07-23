@@ -41,6 +41,44 @@ _UNITSYSTEMS_REGISTRY: dict[
 ] = {}
 UNITSYSTEMS_REGISTRY = MappingProxyType(_UNITSYSTEMS_REGISTRY)
 
+#: Index of the registry keyed by the *set* of base dimensions (order-independent),
+#: so ``unitsystem(...)`` construction can match a registered class in O(1) rather
+#: than scanning ``_UNITSYSTEMS_REGISTRY`` and picking the first set-equal entry.
+#: Populated alongside ``_UNITSYSTEMS_REGISTRY`` in ``__init_subclass__``, which
+#: also enforces the one-class-per-dimension-set invariant so this mapping is
+#: unambiguous (never a silent last-write-wins between colliding classes).
+_UNITSYSTEMS_BY_DIMSET: dict[
+    frozenset[AbstractDimension], type["AbstractUnitSystem"]
+] = {}
+
+
+def _is_dataclass_slots_rebuild(
+    existing: type["AbstractUnitSystem"], cls: type["AbstractUnitSystem"]
+) -> bool:
+    """Report whether ``cls`` is the ``slots=True`` rebuild of ``existing``.
+
+    ``@dataclass(slots=True)`` / ``make_dataclass(slots=True)`` cannot add
+    ``__slots__`` in place, so they build a *new* class that copies the original
+    class namespace and re-runs ``__init_subclass__``. That second pass tries to
+    re-register dimensions the first pass already claimed, and must be allowed to
+    overwrite its own slotless first entry -- but a genuinely *distinct* class
+    competing for the same dimensions must not.
+
+    The namespace copy shares the original's annotation object *by identity*
+    (verified: ``make_dataclass``/``dataclass`` copy ``cls.__dict__`` wholesale),
+    which no independently-defined class -- even one with a byte-identical body --
+    ever does. That identity, plus the slotless -> slotted transition, marks the
+    rebuild unambiguously and version-independently (``__annotations__`` on
+    Python <= 3.13, ``__annotate_func__`` on 3.14+ per PEP 749).
+    """
+    if "__slots__" not in cls.__dict__ or "__slots__" in existing.__dict__:
+        return False
+    for key in ("__annotations__", "__annotate_func__"):
+        carrier = cls.__dict__.get(key)
+        if carrier is not None and carrier is existing.__dict__.get(key):
+            return True
+    return False
+
 
 # Register AbstractUnitSystem as a static PyTree node
 # This ensures unit systems are treated as constants in JAX transformations
@@ -89,7 +127,7 @@ class AbstractUnitSystem:
     And iterated over:
 
     >>> [x for x in usys]
-    [Unit("kpc"), Unit("Myr"), Unit("solMass"), Unit("rad"), Unit("km / s")]
+    [Unit("rad"), Unit("kpc"), Unit("solMass"), Unit("km / s"), Unit("Myr")]
 
     With length equal to the number of base units
 
@@ -141,20 +179,49 @@ class AbstractUnitSystem:
         # since those are made after the original class is defined.
         field_names, dims = parse_field_names_and_dimensions(cls)
 
-        # Check the unitsystem is not already registered
-        # If `make_dataclass(slots=True)` then the class is made twice, the
-        # second time adding the `__slots__` attribute
-        if dims in _UNITSYSTEMS_REGISTRY and "__slots__" not in cls.__dict__:
+        # Validate against both registries *before* mutating either, so a
+        # rejected registration leaves no partial entry behind.
+        #
+        # Exact-signature duplicate: the same ordered dimensions are already
+        # registered. `@dataclass(slots=True)` / `make_dataclass(slots=True)`
+        # rebuild the class a second time to add `__slots__`, re-running this
+        # hook; that pass re-registers the *same* class and is allowed to
+        # overwrite its own slotless first pass. Keying that exception off
+        # ``"__slots__" not in cls.__dict__`` alone would also wave through a
+        # *distinct* class that merely declares ``__slots__`` in its body,
+        # silently clobbering the incumbent -- so admit only the genuine rebuild
+        # (see ``_is_dataclass_slots_rebuild``).
+        existing = _UNITSYSTEMS_REGISTRY.get(dims)
+        if existing is not None and not _is_dataclass_slots_rebuild(existing, cls):
             msg = f"Unit system with dimensions {dims} already exists."
             raise ValueError(msg)
 
-        # Store the single dimension -> field-name mapping; the
-        # ``_base_dimensions`` / ``_base_field_names`` tuples derive from it.
+        # Same dimension *set*, different field order: a unit system is
+        # identified by which dimensions it spans, not their order, so two
+        # classes must not compete for one set. The by-set index is keyed by
+        # frozenset and would otherwise silently let the last registration win,
+        # leaving ``unitsystem(*units)`` dependent on registration order.
+        # ``owner._base_dimensions == dims`` is the ``slots=True`` rebuild
+        # re-registering the same class (same ordered dims); only a *different*
+        # ordering is a conflict.
+        dim_set = frozenset(dims)
+        owner = _UNITSYSTEMS_BY_DIMSET.get(dim_set)
+        if owner is not None and owner._base_dimensions != dims:  # noqa: SLF001
+            msg = (
+                f"Unit system for dimension set {set(dims)!r} is already "
+                f"registered as {owner.__name__!r}; a dimension set maps to a "
+                f"single unit-system class."
+            )
+            raise ValueError(msg)
+
+        # All checks passed: store the single dimension -> field-name mapping
+        # (the ``_base_dimensions`` / ``_base_field_names`` tuples derive from
+        # it) and commit to both registries.
         cls._dimension_to_field = MappingProxyType(
             dict(zip(dims, field_names, strict=True))
         )
-
         _UNITSYSTEMS_REGISTRY[dims] = cls
+        _UNITSYSTEMS_BY_DIMSET[dim_set] = cls
 
     # ===============================================================
     # USys API
