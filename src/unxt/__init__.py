@@ -56,6 +56,7 @@ __all__ = (
     "uconvert",  # convert units
     "ustrip",  # strip units
     "is_unit_convertible",  # check if units can be converted
+    "wrap_to",  # wrap an angle into the half-open range [min, max)
     "equivalent",  # physical equivalence (unit-aware), incl. unit systems
 )
 
@@ -76,6 +77,7 @@ with install_import_hook("unxt"):
         uconvert,
         uconvert_value,
         ustrip,
+        wrap_to,
     )
     from .units import AbstractUnit, unit, unit_of
     from .unitsystems import (
