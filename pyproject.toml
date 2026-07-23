@@ -159,9 +159,19 @@ version.source = "vcs"
 # Without an explicit sdist target, hatchling bundles everything tracked by git
 # -- including all nine separately-published sibling packages under ``packages/``,
 # ``paper/``, ``.github/`` and ``.claude/``. Keep the ``unxt`` sdist to this
-# project's own files by excluding the monorepo scaffolding.
+# project's own files by excluding the monorepo scaffolding. ``scripts/`` holds
+# release tooling; its only test (``test_validate_tag.py``) is excluded alongside
+# it so the shipped test suite stays runnable from the sdist.
 [tool.hatch.build.targets.sdist]
-exclude = ["packages", "paper", ".github", ".claude", "scripts", "uv.lock"]
+exclude = [
+  "packages",
+  "paper",
+  ".github",
+  ".claude",
+  "scripts",
+  "tests/unit/test_validate_tag.py",
+  "uv.lock",
+]
 
 [tool.hatch.version.raw-options]
 local_scheme = "no-local-version"
