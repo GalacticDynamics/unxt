@@ -123,6 +123,109 @@ pip install -e .  # editable mode
 
 ## Quickstart
 
+### Creating and Working with Quantity objects
+
+The primary API of {mod}`unxt` is the {class}`~unxt.Quantity` class (the lightweight, non-parametric default). It combines a JAX array with unit information. We currently use [astropy.units][apyunits] for unit handling.
+
+Create a `Quantity` by passing a JAX array-compatible object and a unit:
+
+```{code-block} python
+
+>>> import unxt as u
+
+>>> x = u.Q([1.0, 2.0, 3.0], unit="m")  # same as u.Quantity(...)
+>>> x
+Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
+```
+
+As a shorthand, we also support `u.Q` and specifying units as strings (parsed by `unxt.unit`, using Astropy as the backend):
+
+```{code-block} python
+
+>>> y = u.Q([4.0, 5.0, 6.0], "m")
+>>> y
+Quantity(Array([4., 5., 6.], dtype=float32), unit='m')
+```
+
+The constituent value and unit are accessible as attributes:
+
+```{code-block} python
+>>> x.value
+Array([1., 2., 3.], dtype=float32)
+
+>>> x.unit
+Unit("m")
+
+```
+
+`Quantity` objects obey the rules of unitful arithmetic. For example, adding, multiplying, or dividing two quantities produces a new `Quantity` with the correct units:
+
+```{code-block} python
+
+>>> x + y
+Quantity(Array([5., 7., 9.], dtype=float32), unit='m')
+
+>>> x * y
+Quantity(Array([ 4., 10., 18.], dtype=float32), unit='m2')
+
+>>> x / y
+Quantity(Array([0.25, 0.4 , 0.5 ], dtype=float32), unit='')
+
+```
+
+Arithmetic will raise an error if the units are incompatible:
+
+```{code-block} python
+
+>>> z = u.Q(5.0, "second")
+>>> try: x + z
+... except Exception as e: print(e)
+'s' (time) and 'm' (length) are not convertible
+```
+
+### Converting Units
+
+Quantities can be converted to different units:
+
+::::{tab-set}
+
+:::{tab-item} method
+
+using the explicit syntax
+
+```{code-block} python
+
+>>> x.uconvert("cm")
+Quantity(Array([100., 200., 300.], dtype=float32), unit='cm')
+
+```
+
+or Astropy's API
+
+```{code-block} python
+
+>>> x.to("cm")
+Quantity(Array([100., 200., 300.], dtype=float32), unit='cm')
+
+```
+
+:::
+
+:::{tab-item} function
+
+or a function-oriented approach
+
+```{code-block} python
+
+>>> u.uconvert("cm", x)
+Quantity(Array([100., 200., 300.], dtype=float32), unit='cm')
+
+```
+
+:::
+
+::::
+
 ### Dimensions
 
 Dimensions represent the physical nature of quantities (length, time, velocity, etc.). They're independent of the units used to measure them.
@@ -277,109 +380,6 @@ unitsystem(kpc, Myr, ...)
 ```
 
 For more details, see the [Unit Systems Guide](guides/units_and_systems.md).
-
-### Creating and Working with Quantity objects
-
-The primary API of {mod}`unxt` is the {class}`~unxt.Quantity` class (the lightweight, non-parametric default). It combines a JAX array with unit information. We currently use [astropy.units][apyunits] for unit handling.
-
-Create a `Quantity` by passing a JAX array-compatible object and a unit:
-
-```{code-block} python
-
->>> import unxt as u
-
->>> x = u.Q([1.0, 2.0, 3.0], unit="m")  # same as u.Quantity(...)
->>> x
-Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
-```
-
-As a shorthand, we also support `u.Q` and specifying units as strings (parsed by `unxt.unit`, using Astropy as the backend):
-
-```{code-block} python
-
->>> y = u.Q([4.0, 5.0, 6.0], "m")
->>> y
-Quantity(Array([4., 5., 6.], dtype=float32), unit='m')
-```
-
-The constituent value and unit are accessible as attributes:
-
-```{code-block} python
->>> x.value
-Array([1., 2., 3.], dtype=float32)
-
->>> x.unit
-Unit("m")
-
-```
-
-`Quantity` objects obey the rules of unitful arithmetic. For example, adding, multiplying, or dividing two quantities produces a new `Quantity` with the correct units:
-
-```{code-block} python
-
->>> x + y
-Quantity(Array([5., 7., 9.], dtype=float32), unit='m')
-
->>> x * y
-Quantity(Array([ 4., 10., 18.], dtype=float32), unit='m2')
-
->>> x / y
-Quantity(Array([0.25, 0.4 , 0.5 ], dtype=float32), unit='')
-
-```
-
-Arithmetic will raise an error if the units are incompatible:
-
-```{code-block} python
-
->>> z = u.Q(5.0, "second")
->>> try: x + z
-... except Exception as e: print(e)
-'s' (time) and 'm' (length) are not convertible
-```
-
-### Converting Units
-
-Quantities can be converted to different units:
-
-::::{tab-set}
-
-:::{tab-item} method
-
-using the explicit syntax
-
-```{code-block} python
-
->>> x.uconvert("cm")
-Quantity(Array([100., 200., 300.], dtype=float32), unit='cm')
-
-```
-
-or Astropy's API
-
-```{code-block} python
-
->>> x.to("cm")
-Quantity(Array([100., 200., 300.], dtype=float32), unit='cm')
-
-```
-
-:::
-
-:::{tab-item} function
-
-or a function-oriented approach
-
-```{code-block} python
-
->>> u.uconvert("cm", x)
-Quantity(Array([100., 200., 300.], dtype=float32), unit='cm')
-
-```
-
-:::
-
-::::
 
 ### JAX functions
 
