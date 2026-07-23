@@ -4621,7 +4621,17 @@ def select_n_p_q(which: ABCQ, /, *cases: ABCQ | ArrayLike) -> ABCQ | ArrayLike:
 
 @quax.register(lax.select_n_p)
 def select_n_p_jjq(which: ArrayLike, case0: ArrayLike, case1: ABCQ, /) -> ABCQ:
-    """Select from an array and quantity using a quantity selector."""
+    """Select from a raw array and a quantity using a quantity selector.
+
+    The raw ``case0`` operand is **intentionally** taken to be in ``case1``'s
+    unit -- so ``jnp.where`` attaches the quantity's unit to bare numbers rather
+    than rejecting the mix (unlike ``concatenate``). Masking ops
+    (``triu``/``tril``/``trace``, ``where(mask, q, 0)``) rely on this to
+    zero-fill without losing the unit, and a genuine raw-data operand is
+    indistinguishable from a masking zero-fill here. For a strict, unit-checked
+    select use ``unxt.experimental.where``; see the "``jnp.where`` adopts
+    the quantity's unit for a raw-array branch" sharp bit.
+    """
     # Used by a `jnp.linalg.trace`
     return replace(case1, value=lax.select_n(which, case0, ustrip(case1)))
 
@@ -4644,6 +4654,12 @@ def select_n_p_jqj(which: ArrayLike, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
     >>> jnp.triu(u.Q([[1, 2], [3, 4]], "km"))
     Quantity(Array([[1, 2],
                               [0, 4]], dtype=int32), unit='km')
+
+    The raw ``case1`` operand is **intentionally** taken to be in ``case0``'s
+    unit (as the ``triu`` zero-fill above shows), so ``jnp.where`` attaches the
+    quantity's unit to bare numbers rather than rejecting the mix. For a strict,
+    unit-checked select use ``unxt.experimental.where``; see the
+    "``jnp.where`` adopts the quantity's unit for a raw-array branch" sharp bit.
 
     """
     return replace(case0, value=lax.select_n(which, ustrip(case0), case1))
