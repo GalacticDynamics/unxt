@@ -30,7 +30,7 @@ guides/units_and_systems
 guides/natural-units
 guides/type-checking
 guides/sharp-bits
-Performance Optimization <guides/perf.ipynb>
+Performance Optimization <guides/perf>
 guides/configuration
 ```
 
