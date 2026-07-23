@@ -311,13 +311,22 @@ class AbstractQuantity(
         Examples
         --------
         >>> import unxt as u
-        >>> q = u.Q([[0, 1], [1, 2]], "m")
+        >>> q = u.Q([[0, 1], [2, 3]], "m")
         >>> q.mT
-        Quantity(Array([[0, 1],
-                                  [1, 2]], dtype=int32), unit='m')
+        Quantity(Array([[0, 2],
+                                  [1, 3]], dtype=int32), unit='m')
+
+        It also works for a ``StaticQuantity``:
+
+        >>> u.StaticQuantity([[0, 1], [2, 3]], "m").mT.value.tolist()
+        [[0, 2], [1, 3]]
 
         """
-        return replace(self, value=jnp.matrix_transpose(self.value))
+        # Use ``self.value.mT`` (like ``.T``) rather than
+        # ``jnp.matrix_transpose(self.value)``: the latter rejects a
+        # ``StaticValue`` (StaticQuantity's value), while ``.mT`` delegates to
+        # the wrapped NumPy/JAX array for both quantity kinds.
+        return replace(self, value=self.value.mT)
 
     @property
     def ndim(self) -> int:
@@ -1329,14 +1338,22 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
         self, *, fill_value: AbstractQuantity | None = None, **kw: Any
     ) -> AbstractQuantity:
         # TODO: by quaxified super
-        value = self.array.value.at[self.index].get(
-            fill_value=(
-                fill_value
-                if fill_value is None
-                else uapi.ustrip(self.array.unit, fill_value)
-            ),
-            **kw,
-        )
+        if fill_value is not None:
+            fv = uapi.ustrip(self.array.unit, fill_value)
+            # JAX treats ``fill_value`` as a *static* scalar and hashes it, so it
+            # must be a concrete Python scalar. A traced value cannot be static;
+            # detect it and raise a clear error rather than letting ``.item()``
+            # fail with a cryptic concretization error.
+            if isinstance(fv, jax.core.Tracer):
+                msg = (
+                    "Quantity.at[...].get(fill_value=...) requires a concrete "
+                    "scalar fill value; a traced Quantity cannot be used "
+                    "because JAX treats fill_value as a static scalar."
+                )
+                raise TypeError(msg)
+            # ``fv`` is always a 0-d array; coerce it to a Python scalar.
+            fill_value = fv.item()
+        value = self.array.value.at[self.index].get(fill_value=fill_value, **kw)
         return replace(self.array, value=value)
 
     @override
@@ -1349,7 +1366,13 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
 
     @override
     def apply(self, func: Any, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
-        raise NotImplementedError  # TODO: by quaxified super
+        msg = (
+            "Quantity.at[...].apply is not implemented: the applied function "
+            "would have to be unit-aware. Strip the units, apply the function "
+            "to the raw array, and re-wrap: "
+            "`u.Q(q.ustrip(q.unit).at[...].apply(func), q.unit)`."
+        )
+        raise NotImplementedError(msg)
 
     @override
     def add(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
@@ -1387,7 +1410,13 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
 
     @override
     def power(self, values: ArrayLike, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
-        raise NotImplementedError
+        msg = (
+            "Quantity.at[...].power is not supported: raising only some elements "
+            "to a power would give them different units from the rest of the "
+            "array, which a Quantity (one unit for all elements) cannot "
+            "represent."
+        )
+        raise NotImplementedError(msg)
 
     @override
     def min(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
