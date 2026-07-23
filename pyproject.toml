@@ -56,7 +56,7 @@ cuda12_local = ["jax[cuda12_local]>=0.5.3"]
 k8s          = ["jax[k8s]>=0.5.3"]
 # extra extras
 all = ["unxt[backend-astropy,workspace]"]
-backend-astropy = ["astropy>=6.0"]
+backend-astropy = ["astropy>=7.0.0"]
 interop-gala = ["unxts.interop.gala"]
 interop-mpl = ["unxts.interop.matplotlib"]
 interop-xarray = ["unxts.interop.xarray"]
@@ -155,6 +155,23 @@ version_tuple: tuple[int, int, int] | tuple[int, int, int, str, str]
 version_tuple = {version_tuple!r}
 """
 version.source = "vcs"
+
+# Without an explicit sdist target, hatchling bundles everything tracked by git
+# -- including all nine separately-published sibling packages under ``packages/``,
+# ``paper/``, ``.github/`` and ``.claude/``. Keep the ``unxt`` sdist to this
+# project's own files by excluding the monorepo scaffolding. ``scripts/`` holds
+# release tooling; its only test (``test_validate_tag.py``) is excluded alongside
+# it so the shipped test suite stays runnable from the sdist.
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "packages",
+  "paper",
+  ".github",
+  ".claude",
+  "scripts",
+  "tests/unit/test_validate_tag.py",
+  "uv.lock",
+]
 
 [tool.hatch.version.raw-options]
 local_scheme = "no-local-version"
@@ -458,7 +475,6 @@ conflicts = [
     { extra = "cuda" },
     { extra = "cuda12" },
     { extra = "cuda12_local" },
-    { extra = "rocm" },
     { extra = "k8s" },
   ],
 ]

@@ -21,6 +21,7 @@ dependencies = ["unxt>=2.0.0", "xarray>=2024.1.0"]
 description = "xarray integration for unxt (canonical: unxts.interop.xarray)"
 dynamic = ["version"]
 license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 name = "unxts.interop.xarray"
 readme = "README.md"
 requires-python = ">=3.12"

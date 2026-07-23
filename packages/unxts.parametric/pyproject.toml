@@ -26,6 +26,7 @@ dependencies = [
 description = "Dimension-parametrized quantities for unxt (canonical: unxts.parametric)"
 dynamic = ["version"]
 license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 name = "unxts.parametric"
 readme = "README.md"
 requires-python = ">=3.12"
