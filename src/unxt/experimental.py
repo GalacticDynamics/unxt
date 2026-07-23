@@ -15,7 +15,7 @@ around the transformed function. See :mod:`unxt._src.experimental` for details.
 # NB: this module is intentionally *not* wrapped in ``install_import_hook``
 # (unlike ``unxt.dims`` etc.). Its functions raise their own domain-specific
 # errors -- e.g. ``where`` tells you to wrap a raw array as a Quantity -- which
-# beartype would pre-empt with a generic type-violation. Keep it unwrapped so
+# beartype would preempt with a generic type-violation. Keep it unwrapped so
 # those messages survive.
 
 __all__ = ("grad", "hessian", "jacfwd", "where")

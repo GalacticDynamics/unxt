@@ -89,7 +89,7 @@ with install_import_hook("unxt"):
 
 # Imported *outside* the ``install_import_hook`` block on purpose: the
 # experimental helpers raise their own domain-specific errors that beartype
-# would otherwise pre-empt (see ``unxt.experimental``).
+# would otherwise preempt (see ``unxt.experimental``).
 from . import experimental
 
 # isort: split
