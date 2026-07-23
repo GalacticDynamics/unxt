@@ -424,8 +424,9 @@ import xarray as xr
 import unxts.interop.xarray
 from pathlib import Path
 
-# Load dataset with unit metadata
-# Get the path to the sample data file relative to this document
+# Load dataset with unit metadata. The path to the bundled sample data is
+# relative to the repository root (the directory the docs are built and run
+# from); adjust it to wherever your own NetCDF file lives.
 docs_dir = Path("packages/unxts.interop.xarray/docs")
 data_path = docs_dir / "_data" / "sample_data.nc"
 
