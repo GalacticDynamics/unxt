@@ -51,10 +51,10 @@ Throughout these guides we import `unxt` as `u` and `unxts.parametric` as `up` (
 ```{code-block} python
 
 >>> up.PQ(1.0, "m")  # dimension inferred from the unit
-ParametricQuantity(Array(1., dtype=float32, weak_type=True), unit='m')
+ParametricQuantity(Array(1., dtype=float32, ...), unit='m')
 
 >>> up.PQ["length"](1.0, "m")  # dimension checked against the unit
-ParametricQuantity(Array(1., dtype=float32, weak_type=True), unit='m')
+ParametricQuantity(Array(1., dtype=float32, ...), unit='m')
 
 ```
 
