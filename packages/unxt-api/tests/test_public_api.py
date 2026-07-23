@@ -1,5 +1,7 @@
 """Test that unxt_api re-exports the full public API from unxts.api."""
 
+from importlib.metadata import version
+
 import unxts.api
 
 import unxt_api  # noqa: ICN001
@@ -21,6 +23,4 @@ def test_same_objects():
 
 def test_version_reports_own_distribution():
     """`unxt_api.__version__` is the `unxt-api` dist version, not `unxts.api`'s."""
-    from importlib.metadata import version
-
     assert unxt_api.__version__ == version("unxt-api")
