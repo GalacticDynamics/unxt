@@ -58,6 +58,20 @@ You may select and reorder a subset of keys:
 '(kg, m)'
 ```
 
+`cdict_units` is the companion that reads the per-key units out of a component dict without building a matrix. It takes the dict and an explicit key order:
+
+```{code-block} python
+>>> ul.cdict_units(v, ("x", "y", "z"))
+(Unit("m"), Unit("s"), Unit("kg"))
+```
+
+Unlike `from_cdict`, it tolerates non-quantity entries, returning `None` for each — useful for inspecting a heterogeneous dict before deciding what to pack:
+
+```{code-block} python
+>>> ul.cdict_units({"x": u.Q(1.0, "m"), "n": 2.0}, ("x", "n"))
+(Unit("m"), None)
+```
+
 ## Indexing
 
 Indexing a 1-D `QuantityMatrix` returns an ordinary `unxt.Quantity` — the element and its scalar unit:
