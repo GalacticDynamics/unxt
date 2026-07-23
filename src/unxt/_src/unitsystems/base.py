@@ -44,7 +44,9 @@ UNITSYSTEMS_REGISTRY = MappingProxyType(_UNITSYSTEMS_REGISTRY)
 #: Index of the registry keyed by the *set* of base dimensions (order-independent),
 #: so ``unitsystem(...)`` construction can match a registered class in O(1) rather
 #: than scanning ``_UNITSYSTEMS_REGISTRY`` and picking the first set-equal entry.
-#: Populated alongside ``_UNITSYSTEMS_REGISTRY`` in ``__init_subclass__``.
+#: Populated alongside ``_UNITSYSTEMS_REGISTRY`` in ``__init_subclass__``, which
+#: also enforces the one-class-per-dimension-set invariant so this mapping is
+#: unambiguous (never a silent last-write-wins between colliding classes).
 _UNITSYSTEMS_BY_DIMSET: dict[
     frozenset[AbstractDimension], type["AbstractUnitSystem"]
 ] = {}
@@ -149,21 +151,42 @@ class AbstractUnitSystem:
         # since those are made after the original class is defined.
         field_names, dims = parse_field_names_and_dimensions(cls)
 
-        # Check the unitsystem is not already registered
-        # If `make_dataclass(slots=True)` then the class is made twice, the
-        # second time adding the `__slots__` attribute
+        # Validate against both registries *before* mutating either, so a
+        # rejected registration leaves no partial entry behind.
+        #
+        # Exact-signature duplicate: the same ordered dimensions are already
+        # registered. `make_dataclass(slots=True)` rebuilds the class a second
+        # time to add `__slots__`; that pass is allowed through to overwrite.
         if dims in _UNITSYSTEMS_REGISTRY and "__slots__" not in cls.__dict__:
             msg = f"Unit system with dimensions {dims} already exists."
             raise ValueError(msg)
 
-        # Store the single dimension -> field-name mapping; the
-        # ``_base_dimensions`` / ``_base_field_names`` tuples derive from it.
+        # Same dimension *set*, different field order: a unit system is
+        # identified by which dimensions it spans, not their order, so two
+        # classes must not compete for one set. The by-set index is keyed by
+        # frozenset and would otherwise silently let the last registration win,
+        # leaving ``unitsystem(*units)`` dependent on registration order.
+        # ``owner._base_dimensions == dims`` is the ``slots=True`` rebuild
+        # re-registering the same class (same ordered dims); only a *different*
+        # ordering is a conflict.
+        dim_set = frozenset(dims)
+        owner = _UNITSYSTEMS_BY_DIMSET.get(dim_set)
+        if owner is not None and owner._base_dimensions != dims:  # noqa: SLF001
+            msg = (
+                f"Unit system for dimension set {set(dims)!r} is already "
+                f"registered as {owner.__name__!r}; a dimension set maps to a "
+                f"single unit-system class."
+            )
+            raise ValueError(msg)
+
+        # All checks passed: store the single dimension -> field-name mapping
+        # (the ``_base_dimensions`` / ``_base_field_names`` tuples derive from
+        # it) and commit to both registries.
         cls._dimension_to_field = MappingProxyType(
             dict(zip(dims, field_names, strict=True))
         )
-
         _UNITSYSTEMS_REGISTRY[dims] = cls
-        _UNITSYSTEMS_BY_DIMSET[frozenset(dims)] = cls
+        _UNITSYSTEMS_BY_DIMSET[dim_set] = cls
 
     # ===============================================================
     # USys API

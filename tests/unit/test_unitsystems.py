@@ -14,6 +14,7 @@ from astropy.constants import G as const_G  # noqa: N811
 
 import unxt as u
 from unxt import dimension, unit, unitsystems
+from unxt._src.unitsystems import base as us_base
 from unxt._src.unitsystems.base import (
     _UNITSYSTEMS_BY_DIMSET,
     _UNITSYSTEMS_REGISTRY,
@@ -313,6 +314,37 @@ def test_unitsystem_already_registered():
     # Clean up custom unit system from the registry and its by-set index:
     del _UNITSYSTEMS_REGISTRY[MyUnitSystem._base_dimensions]
     del _UNITSYSTEMS_BY_DIMSET[frozenset(MyUnitSystem._base_dimensions)]
+
+
+@pytest.mark.usefixtures("clean_unitsystems_registry")
+def test_unitsystem_same_dimension_set_different_order_rejected():
+    """A dimension *set* maps to a single class, regardless of field order.
+
+    Two classes spanning the same dimensions but declaring them in a different
+    order would leave the by-set index (and thus ``unitsystem(*units)``) to
+    resolve by registration order; registration rejects the second one instead.
+    """
+
+    @dataclass(frozen=True, slots=True)
+    class LengthTime(AbstractUnitSystem):
+        length: Annotated[apyu.Unit, dimension("length")]
+        time: Annotated[apyu.Unit, dimension("time")]
+
+    with pytest.raises(ValueError, match="maps to a single unit-system class"):
+
+        @dataclass(frozen=True, slots=True)
+        class TimeLength(AbstractUnitSystem):
+            time: Annotated[apyu.Unit, dimension("time")]
+            length: Annotated[apyu.Unit, dimension("length")]
+
+    # The rejected class left no partial entry in either registry; the by-set
+    # index still points at the first (only) class for that set. Reference the
+    # live dicts via the module so the fixture's monkeypatched copies are seen
+    # (a top-level ``from ... import`` name would be bound to the original dict).
+    dim_set = frozenset(LengthTime._base_dimensions)
+    assert (dimension("time"), dimension("length")) not in us_base._UNITSYSTEMS_REGISTRY
+    assert LengthTime._base_dimensions in us_base._UNITSYSTEMS_REGISTRY
+    assert us_base._UNITSYSTEMS_BY_DIMSET[dim_set] is LengthTime
 
 
 class TestDimensionlessUnitSystem:
