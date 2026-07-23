@@ -3,11 +3,16 @@
 ```{toctree}
 :maxdepth: 1
 :hidden:
+
+guide
+api
 ```
 
-`unxts.interop.matplotlib` is the canonical location for [matplotlib](https://matplotlib.org/) integration. If installed, `unxt` will automatically detect this and register a converter with `matplotlib` to enable plotting `Quantity` objects.
+`unxts.interop.matplotlib` is the canonical location for [matplotlib](https://matplotlib.org/) integration. Importing the package — or `unxt` itself, which imports it automatically when installed — registers a `matplotlib.units.ConversionInterface` for `AbstractQuantity`, so `unxt.Quantity` objects (and the other quantity types) can be plotted directly.
 
-To ensure that a compatible version of `matplotlib` is installed, you can install `unxt` with the `interop-mpl` extra:
+## Installation
+
+The recommended install pins a compatible `matplotlib` version via the `interop-mpl` [extra](https://peps.python.org/pep-0508/#extras):
 
 ::::{tab-set}
 
@@ -22,18 +27,38 @@ uv add "unxt[interop-mpl]"
 :::{tab-item} pip
 
 ```bash
-pip install unxt[interop-mpl]
+pip install "unxt[interop-mpl]"
 ```
 
 :::
 
 ::::
 
-Once installed, you can plot `Quantity` objects directly with `matplotlib`:
+Or install the package directly:
 
 ::::{tab-set}
 
-:::{tab-item} jax.numpy
+:::{tab-item} uv
+
+```bash
+uv add unxts.interop.matplotlib
+```
+
+:::
+
+:::{tab-item} pip
+
+```bash
+pip install unxts.interop.matplotlib
+```
+
+:::
+
+::::
+
+## Quick example
+
+Once installed, plot `Quantity` objects directly with `matplotlib`:
 
 ```{code-block} python
 
@@ -47,22 +72,4 @@ y = u.Q(jnp.sin(x.ustrip("rad")), "")
 plt.plot(x, y)
 ```
 
-:::
-
-:::{tab-item} quaxed.numpy
-
-```{code-block} python
-
-import quaxed.numpy as jnp
-
-x = u.Q(jnp.linspace(0, 360, 100), "deg")
-y = jnp.sin(x)
-
-plt.plot(x, y)
-```
-
-:::
-
-::::
-
-Install: `pip install unxts.interop.matplotlib`
+See the [guide](guide) for more plotting patterns, and the [API reference](api) for toggling the converter.
