@@ -17,20 +17,44 @@ xarray-guide
 
 ## Installation
 
+The recommended install pins compatible `xarray` and `unxt` versions via the `interop-xarray` [extra](https://peps.python.org/pep-0508/#extras):
+
 ::::{tab-set}
+
+:::{tab-item} uv
+
+```bash
+uv add "unxt[interop-xarray]"
+```
+
+:::
 
 :::{tab-item} pip
 
 ```bash
-pip install unxts.interop.xarray
+pip install "unxt[interop-xarray]"
 ```
 
 :::
+
+::::
+
+Or install the package directly:
+
+::::{tab-set}
 
 :::{tab-item} uv
 
 ```bash
 uv add unxts.interop.xarray
+```
+
+:::
+
+:::{tab-item} pip
+
+```bash
+pip install unxts.interop.xarray
 ```
 
 :::
