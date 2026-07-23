@@ -498,6 +498,34 @@ class AbstractQuantity(
     # ===============================================================
     # JAX API
 
+    def __len__(self) -> int:
+        """Length of the leading axis; a 0-d quantity has no length.
+
+        Mirrors NumPy/JAX (and ``__iter__`` below): ``len`` of a scalar raises
+        ``TypeError`` rather than returning ``0`` (the ``quax_blocks.LaxLenMixin``
+        default), which made a scalar look empty to ``len(q) == 0`` guards.
+
+        Examples
+        --------
+        >>> import unxt as u
+        >>> len(u.Q([1, 2, 3], "m"))
+        3
+
+        >>> try:
+        ...     len(u.Q(1.0, "m"))
+        ... except TypeError as e:
+        ...     print(e)
+        len() of unsized object
+
+        """
+        # ``np.ndim`` (not ``self.value.ndim``): during a ``jax.tree`` map the
+        # value can transiently be a plain list, and it handles tracers,
+        # NumPy/JAX arrays and ``StaticValue`` alike -- matching ``__iter__``.
+        if np.ndim(self.value) == 0:
+            msg = "len() of unsized object"
+            raise TypeError(msg)
+        return int(np.shape(self.value)[0])
+
     def __iter__(self) -> Any:
         """Iterate over the quantity's value.
 
