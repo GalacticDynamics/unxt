@@ -61,6 +61,7 @@ interop-gala = ["unxts.interop.gala"]
 interop-mpl = ["unxts.interop.matplotlib"]
 interop-xarray = ["unxts.interop.xarray"]
 linalg = ["unxts.linalg"]
+parametric = ["unxts.parametric"]
 workspace = [
   "unxt[interop-gala,interop-mpl,interop-xarray]",
   "unxts.api",
