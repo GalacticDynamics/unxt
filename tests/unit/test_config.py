@@ -1141,3 +1141,23 @@ def test_override_does_not_leak_between_instances() -> None:
     with u.config.quantity_repr.override(short_arrays=override):
         assert u.config.quantity_repr.short_arrays == override
     assert u.config.quantity_repr.short_arrays == baseline
+
+
+def test_update_config_forwards_to_nested_sections():
+    """`update_config` on the root config reaches the nested sections.
+
+    Regression: `UnxtConfig.update_config(cfg)` was a silent no-op because the
+    nested `quantity_repr`/`quantity_str` configs are built eagerly in
+    `__init__`; a later `update_config` on the parent never reached them.
+    """
+    baseline = u.config.quantity_repr.short_arrays
+    try:
+        cfg = Config()
+        cfg.QuantityReprConfig.short_arrays = "compact"
+        u.config.update_config(cfg)
+        assert u.config.quantity_repr.short_arrays == "compact"
+    finally:
+        reset = Config()
+        reset.QuantityReprConfig.short_arrays = baseline
+        u.config.update_config(reset)
+    assert u.config.quantity_repr.short_arrays == baseline

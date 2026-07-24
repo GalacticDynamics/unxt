@@ -521,6 +521,20 @@ class AbstractUnxtConfig:
 
         return _ConfigContext(self, parsed_overrides)
 
+    def update_config(self, config: Config) -> None:
+        """Apply a traitlets ``Config`` to this config and its nested sections.
+
+        ``traitlets``'s own ``update_config`` only touches *this* object's
+        traits, but the display settings actually live on the eagerly-built
+        nested configs (``quantity_repr`` / ``quantity_str``). Forward to them
+        so ``config.update_config(cfg)`` with e.g.
+        ``cfg.QuantityReprConfig.short_arrays = "compact"`` takes effect instead
+        of silently doing nothing.
+        """
+        super().update_config(config)  # type: ignore[misc]  # provided by Configurable
+        for name in self._override_config_keys:
+            getattr(self, name).update_config(config)
+
 
 class UnxtConfig(AbstractUnxtConfig, SingletonConfigurable):
     """Configuration for unxt display and printing options.
