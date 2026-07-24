@@ -43,6 +43,27 @@ def _to_val_rad_or_one(q: ABCQ) -> ArrayLike:
     return ustrip(radian if is_unit_convertible(q.unit, radian) else one, q)
 
 
+def _require_dimensionless_bitwise(op_name: str, /, *operands: Any) -> None:
+    """Raise a clear error if a bitwise/logical op gets dimensionful operands.
+
+    These ops require dimensionless operands. Without this check ``ustrip(one, x)``
+    leaks astropy's confusing "<unit> and '' are not convertible" message -- which,
+    for ``Q(bool, "m") + Q(bool, "m")`` (JAX lowers a bool ``+`` to ``or_p``),
+    wrongly implies a dimensionless operand the user never wrote.
+
+    Guards every bitwise/logical entry point -- the two-quantity, quantity/array,
+    and unary overloads -- so the error is consistently clear regardless of which
+    operand carries the unit. A plain array operand (``unit_of`` returns ``None``)
+    is inherently dimensionless.
+    """
+    units = [unit_of(o) for o in operands]
+    if all(u is None or u.is_equivalent(one) for u in units):
+        return
+    got = " and ".join(repr("" if u is None else str(u)) for u in units)
+    msg = f"{op_name} requires dimensionless quantities, got units {got}"
+    raise ValueError(msg)
+
+
 def _as_dimensionless_like(q: ABCQ, value: ArrayLike) -> ABCQ:
     """Wrap a dimensionless-valued result as a dimensionless quantity like ``q``.
 
@@ -397,6 +418,7 @@ def and_p_aq(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
     Quantity(Array(0, dtype=int32...), unit='')
 
     """
+    _require_dimensionless_bitwise("bitwise/logical and", x1, x2)
     return _as_dimensionless_like(x1, lax.and_p.bind(ustrip(one, x1), ustrip(one, x2)))
 
 
@@ -418,6 +440,7 @@ def and_p_qv(x1: ABCQ, x2: ArrayLike, /) -> ABCQ:
     Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     """
+    _require_dimensionless_bitwise("bitwise/logical and", x1, x2)
     return _as_dimensionless_like(x1, lax.and_p.bind(ustrip(one, x1), x2))
 
 
@@ -438,6 +461,7 @@ def and_p_vq(x1: ArrayLike, x2: ABCQ, /) -> ABCQ:
     Quantity(Array([ True, False, False], dtype=bool), unit='')
 
     """
+    _require_dimensionless_bitwise("bitwise/logical and", x1, x2)
     return _as_dimensionless_like(x2, lax.and_p.bind(x1, ustrip(one, x2)))
 
 
@@ -3860,6 +3884,7 @@ def not_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(-2, dtype=int32...), unit='')
 
     """
+    _require_dimensionless_bitwise("bitwise/logical not", x)
     return _as_dimensionless_like(x, lax.bitwise_not(ustrip(one, x)))
 
 
@@ -3885,6 +3910,7 @@ def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     Quantity(Array(3, dtype=int32...), unit='')
 
     """
+    _require_dimensionless_bitwise("bitwise/logical or", x, y)
     return _as_dimensionless_like(x, lax.bitwise_or(ustrip(one, x), ustrip(one, y)))
 
 
@@ -3907,6 +3933,7 @@ def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     Quantity(Array([ True, False,  True], dtype=bool), unit='')
 
     """
+    _require_dimensionless_bitwise("bitwise/logical or", x, y)
     return _as_dimensionless_like(x, lax.or_p.bind(ustrip(one, x), y))
 
 
@@ -3927,6 +3954,7 @@ def or_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     Quantity(Array([ True, False,  True], dtype=bool), unit='')
 
     """
+    _require_dimensionless_bitwise("bitwise/logical or", x, y)
     return _as_dimensionless_like(y, lax.or_p.bind(x, ustrip(one, y)))
 
 
@@ -5360,6 +5388,7 @@ def xor_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     Quantity(Array(3, dtype=int32...), unit='')
 
     """
+    _require_dimensionless_bitwise("bitwise/logical xor", x, y)
     return _as_dimensionless_like(x, lax.bitwise_xor(ustrip(one, x), ustrip(one, y)))
 
 
@@ -5382,6 +5411,7 @@ def xor_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     Quantity(Array([False,  True,  True], dtype=bool), unit='')
 
     """
+    _require_dimensionless_bitwise("bitwise/logical xor", x, y)
     return _as_dimensionless_like(x, lax.xor_p.bind(ustrip(one, x), y))
 
 
@@ -5402,6 +5432,7 @@ def xor_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     Quantity(Array([False,  True,  True], dtype=bool), unit='')
 
     """
+    _require_dimensionless_bitwise("bitwise/logical xor", x, y)
     return _as_dimensionless_like(y, lax.xor_p.bind(x, ustrip(one, y)))
 
 
