@@ -1143,7 +1143,7 @@ def test_override_does_not_leak_between_instances() -> None:
     assert u.config.quantity_repr.short_arrays == baseline
 
 
-def test_update_config_forwards_to_nested_sections():
+def test_update_config_forwards_to_nested_sections() -> None:
     """`update_config` on the root config reaches the nested sections.
 
     Regression: `UnxtConfig.update_config(cfg)` was a silent no-op because the
@@ -1151,11 +1151,15 @@ def test_update_config_forwards_to_nested_sections():
     `__init__`; a later `update_config` on the parent never reached them.
     """
     baseline = u.config.quantity_repr.short_arrays
+    # Pick an override value guaranteed to differ from the baseline so the test
+    # detects the no-op regression even if the baseline was changed to "compact"
+    # via TOML/environment config.
+    override = "compact" if baseline != "compact" else False
     try:
         cfg = Config()
-        cfg.QuantityReprConfig.short_arrays = "compact"
+        cfg.QuantityReprConfig.short_arrays = override
         u.config.update_config(cfg)
-        assert u.config.quantity_repr.short_arrays == "compact"
+        assert u.config.quantity_repr.short_arrays == override
     finally:
         reset = Config()
         reset.QuantityReprConfig.short_arrays = baseline
