@@ -4625,12 +4625,16 @@ def select_n_p_jjq(which: ArrayLike, case0: ArrayLike, case1: ABCQ, /) -> ABCQ:
 
     The raw ``case0`` operand is **intentionally** taken to be in ``case1``'s
     unit -- so ``jnp.where`` attaches the quantity's unit to bare numbers rather
-    than rejecting the mix (unlike ``jnp.concat``). Masking ops
-    (``triu``/``tril``/``trace``, ``where(mask, q, 0)``) rely on this to
-    zero-fill without losing the unit, and a genuine raw-data operand is
+    than rejecting the mix (unlike ``jnp.concat``). This ``(raw, quantity)``
+    ordering is what ``where(mask, q, 0)`` lowers to: ``jnp.where`` reverses its
+    branches into ``select_n(mask, 0, q)``, putting the raw zero-fill in
+    ``case0``. Masking ops that likewise zero-fill in ``case0`` -- ``tril`` and
+    ``trace`` -- route here too and rely on the raw zero adopting the unit.
+    (``triu`` and ``where(mask, 0, q)`` use the opposite ``(quantity, raw)``
+    ordering and dispatch to ``select_n_p_jqj``.) A genuine raw-data operand is
     indistinguishable from a masking zero-fill here. For a strict, unit-checked
-    select use ``unxt.experimental.where``; see the "``jnp.where`` adopts
-    the quantity's unit for a raw-array branch" sharp bit.
+    select use ``unxt.experimental.where``; see the "``jnp.where`` adopts the
+    quantity's unit for a raw-array branch" sharp bit.
     """
     # Used by a `jnp.linalg.trace`
     return replace(case1, value=lax.select_n(which, case0, ustrip(case1)))
@@ -4657,9 +4661,13 @@ def select_n_p_jqj(which: ArrayLike, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
 
     The raw ``case1`` operand is **intentionally** taken to be in ``case0``'s
     unit (as the ``triu`` zero-fill above shows), so ``jnp.where`` attaches the
-    quantity's unit to bare numbers rather than rejecting the mix. For a strict,
-    unit-checked select use ``unxt.experimental.where``; see the
-    "``jnp.where`` adopts the quantity's unit for a raw-array branch" sharp bit.
+    quantity's unit to bare numbers rather than rejecting the mix. This
+    ``(quantity, raw)`` ordering is what ``triu`` and ``where(mask, 0, q)`` --
+    lowered to ``select_n(mask, q, 0)`` -- route through. (The mirror case,
+    ``tril``/``trace`` and ``where(mask, q, 0)``, puts the raw operand in
+    ``case0`` and dispatches to ``select_n_p_jjq``.) For a strict, unit-checked
+    select use ``unxt.experimental.where``; see the "``jnp.where`` adopts the
+    quantity's unit for a raw-array branch" sharp bit.
 
     """
     return replace(case0, value=lax.select_n(which, ustrip(case0), case1))
