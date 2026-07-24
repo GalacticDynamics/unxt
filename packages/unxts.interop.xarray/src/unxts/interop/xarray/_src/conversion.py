@@ -260,6 +260,31 @@ def extract_units(obj: object, /) -> dict:
     raise TypeError(msg)
 
 
+def _reject_unknown_unit_names(
+    units: "Mapping[Hashable, Any]", valid_names: "set[Any]", obj_kind: str
+) -> None:
+    """Raise if units names something that is not a variable/coordinate.
+
+    Without this, a typo in a **unit_kwargs name (e.g.
+    quantify(temperatrue="K")) is silently dropped by units.get(name),
+    leaving the data unquantified with no error or warning.
+    """
+    # Sort so the message is deterministic: `units` insertion order follows the
+    # accessor's ``set(...)`` iteration, which is not stable across processes.
+    unknown = sorted(repr(k) for k in units if k not in valid_names)
+    if not unknown:
+        return
+    # ``None`` is the DataArray's own-data key; render it explicitly so the
+    # message stays helpful (and non-empty) when there are no other names.
+    names = ("None (the data)" if n is None else repr(n) for n in valid_names)
+    valid = ", ".join(sorted(names)) or "(none)"
+    msg = (
+        f"got unit(s) for name(s) not in the {obj_kind}: {', '.join(unknown)}. "
+        f"Valid names: {valid}."
+    )
+    raise ValueError(msg)
+
+
 @dispatch
 def attach_units(
     obj: DataArray, units: Mapping[Hashable, u.AbstractUnit | str | None]
@@ -296,6 +321,8 @@ def attach_units(
     {}
 
     """
+    _reject_unknown_unit_names(units, {None} | set(obj.coords), "DataArray")
+
     # Handle the data array itself (None key = the DataArray's own data)
     data_unit = units.get(None)
     new_data = _array_attach_units(obj.data, data_unit)
@@ -346,6 +373,8 @@ def attach_units(
         New Dataset with units attached as Quantities.
 
     """
+    _reject_unknown_unit_names(units, set(obj.data_vars) | set(obj.coords), "Dataset")
+
     # Handle all variables in dataset
     new_vars = {}
     for name, var in obj.data_vars.items():
