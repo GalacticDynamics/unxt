@@ -269,7 +269,9 @@ def _reject_unknown_unit_names(
     quantify(temperatrue="K")) is silently dropped by units.get(name),
     leaving the data unquantified with no error or warning.
     """
-    unknown = [repr(k) for k in units if k not in valid_names]
+    # Sort so the message is deterministic: `units` insertion order follows the
+    # accessor's ``set(...)`` iteration, which is not stable across processes.
+    unknown = sorted(repr(k) for k in units if k not in valid_names)
     if not unknown:
         return
     # ``None`` is the DataArray's own-data key; render it explicitly so the

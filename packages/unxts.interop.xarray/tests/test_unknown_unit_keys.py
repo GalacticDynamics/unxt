@@ -21,9 +21,14 @@ def test_dataset_typo_key_raises():
 
 
 def test_dataarray_typo_coord_key_raises():
-    da = xr.DataArray([1.0, 2.0], dims=["x"], coords={"x": ("x", [0.0, 1.0])})
-    with pytest.raises(ValueError, match=r"not in the DataArray.*'xx'"):
-        da.unxt.quantify(xx="s")
-    # valid data + coord names still work
-    q = da.unxt.quantify("m", x="s")
+    # ``y`` is a *non-dimension* coordinate on dim ``x``. A dimension coordinate
+    # would be wrapped in a pandas index by xarray, which drops the unit (a
+    # separate, known limitation), so a non-dimension coord is used here to
+    # verify that a valid coord name actually quantifies.
+    da = xr.DataArray([1.0, 2.0], dims=["x"], coords={"y": ("x", [10.0, 20.0])})
+    with pytest.raises(ValueError, match=r"not in the DataArray.*'yy'"):
+        da.unxt.quantify(yy="s")
+    # valid data + coord names still quantify
+    q = da.unxt.quantify("m", y="s")
     assert u.unit_of(q.data) == u.unit("m")
+    assert u.unit_of(q.coords["y"].data) == u.unit("s")
