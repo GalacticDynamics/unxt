@@ -1150,18 +1150,27 @@ def test_update_config_forwards_to_nested_sections() -> None:
     nested `quantity_repr`/`quantity_str` configs are built eagerly in
     `__init__`; a later `update_config` on the parent never reached them.
     """
-    baseline = u.config.quantity_repr.short_arrays
-    # Pick an override value guaranteed to differ from the baseline so the test
-    # detects the no-op regression even if the baseline was changed to "compact"
+    # Assert forwarding into *every* nested section, not just quantity_repr, so
+    # a partial-forwarding regression (e.g. `_override_config_keys` omitting a
+    # section) is caught.
+    repr_baseline = u.config.quantity_repr.short_arrays
+    str_baseline = u.config.quantity_str.short_arrays
+    # Pick override values guaranteed to differ from each baseline so the test
+    # detects the no-op regression even if a baseline was changed to "compact"
     # via TOML/environment config.
-    override = "compact" if baseline != "compact" else False
+    repr_override = "compact" if repr_baseline != "compact" else False
+    str_override = "compact" if str_baseline != "compact" else False
     try:
         cfg = Config()
-        cfg.QuantityReprConfig.short_arrays = override
+        cfg.QuantityReprConfig.short_arrays = repr_override
+        cfg.QuantityStrConfig.short_arrays = str_override
         u.config.update_config(cfg)
-        assert u.config.quantity_repr.short_arrays == override
+        assert u.config.quantity_repr.short_arrays == repr_override
+        assert u.config.quantity_str.short_arrays == str_override
     finally:
         reset = Config()
-        reset.QuantityReprConfig.short_arrays = baseline
+        reset.QuantityReprConfig.short_arrays = repr_baseline
+        reset.QuantityStrConfig.short_arrays = str_baseline
         u.config.update_config(reset)
-    assert u.config.quantity_repr.short_arrays == baseline
+    assert u.config.quantity_repr.short_arrays == repr_baseline
+    assert u.config.quantity_str.short_arrays == str_baseline
