@@ -23,7 +23,6 @@ from typing import (
     NoReturn,
     TypeAlias,
     TypeGuard,
-    cast,
     override,
 )
 
@@ -1464,9 +1463,15 @@ def custom_pdoc_no_kind(obj: Any) -> wl.AbstractDoc | None:
 
 
 def custom_pdoc_noarray(obj: Any) -> wl.AbstractDoc | None:
-    """Return custom pdoc for ``AbstractQuantity`` objects."""
-    if isinstance(obj, jax.Array):
-        return wl.TextDoc(np.array2string(cast("np.ndarray", obj), separator=", "))
+    """Return the compact (values-only) pdoc for an array-like value.
+
+    Handles both a JAX ``Array`` and a NumPy ``ndarray`` -- the latter is what a
+    ``StaticQuantity``'s ``StaticValue`` wraps -- so ``str(StaticQuantity)``
+    shows its values like ``str(Quantity)`` rather than an ``f64[2](numpy)``
+    type summary.
+    """
+    if isinstance(obj, (jax.Array, np.ndarray)):
+        return wl.TextDoc(np.array2string(np.asarray(obj), separator=", "))
     return None
 
 

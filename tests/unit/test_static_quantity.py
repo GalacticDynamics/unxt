@@ -882,3 +882,19 @@ def test_quantity_ops_with_static_value() -> None:
     out_mul = q_static * q
     assert np.allclose(np.asarray(out_mul.value), np.array([3.0, 8.0]))
     assert out_mul.unit == u.unit("m2")
+
+
+def test_str_shows_values_like_quantity() -> None:
+    """`str(StaticQuantity)` shows its values, mirroring `str(Quantity)`.
+
+    Regression: it used to render a `f64[2](numpy)` type summary because the
+    compact pdoc handler only special-cased `jax.Array`, not the NumPy array a
+    `StaticValue` wraps.
+    """
+    sq = u.StaticQuantity([1.0, 2.0], "m")
+    assert str(sq) == "StaticQuantity([1., 2.], unit='m')"
+    assert "numpy" not in str(sq)
+    # scalar too
+    assert str(u.StaticQuantity(3.0, "m")) == "StaticQuantity(3., unit='m')"
+    # repr is unchanged (shows the NumPy array wrapper)
+    assert repr(sq) == "StaticQuantity(array([1., 2.]), unit='m')"
