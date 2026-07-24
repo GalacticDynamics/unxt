@@ -1,6 +1,6 @@
 """QuantityMatrix class and unit-conversion helpers."""
 
-from typing import Any, NoReturn
+from typing import Any, ClassVar, NoReturn
 
 import equinox as eqx
 import jax
@@ -94,6 +94,8 @@ class QuantityMatrix(u.AbstractQuantity):
 
     value: Shaped[Array, "..."] = eqx.field()
     unit: UnitsMatrix = eqx.field(static=True, converter=u.unit)  # ty: ignore[invalid-assignment]
+
+    short_name: ClassVar[str] = "QM"
 
     def __check_init__(self) -> None:
         """Check the value's trailing shape matches the unit structure.
