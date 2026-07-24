@@ -521,7 +521,7 @@ class AbstractUnxtConfig:
 
         return _ConfigContext(self, parsed_overrides)
 
-    def update_config(self, config: Config) -> None:
+    def update_config(self, cfg: Config) -> None:
         """Apply a traitlets ``Config`` to this config and its nested sections.
 
         ``traitlets``'s own ``update_config`` only touches *this* object's
@@ -531,9 +531,11 @@ class AbstractUnxtConfig:
         ``cfg.QuantityReprConfig.short_arrays = "compact"`` takes effect instead
         of silently doing nothing.
         """
-        super().update_config(config)  # type: ignore[misc]  # provided by Configurable
+        # ``super()`` resolves through the concrete class's MRO to
+        # ``Configurable.update_config`` (this mixin is combined with it).
+        super().update_config(cfg)  # type: ignore[misc]  # pylint: disable=no-member
         for name in self._override_config_keys:
-            getattr(self, name).update_config(config)
+            getattr(self, name).update_config(cfg)
 
 
 class UnxtConfig(AbstractUnxtConfig, SingletonConfigurable):
