@@ -1168,9 +1168,9 @@ def test_update_config_forwards_to_nested_sections() -> None:
         assert u.config.quantity_repr.short_arrays == repr_override
         assert u.config.quantity_str.short_arrays == str_override
     finally:
-        reset = Config()
-        reset.QuantityReprConfig.short_arrays = repr_baseline
-        reset.QuantityStrConfig.short_arrays = str_baseline
-        u.config.update_config(reset)
+        # Restore via direct trait assignment -- independent of the
+        # ``update_config`` behavior this test is exercising.
+        u.config.quantity_repr.short_arrays = repr_baseline
+        u.config.quantity_str.short_arrays = str_baseline
     assert u.config.quantity_repr.short_arrays == repr_baseline
     assert u.config.quantity_str.short_arrays == str_baseline

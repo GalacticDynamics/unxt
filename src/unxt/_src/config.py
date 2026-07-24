@@ -526,10 +526,11 @@ class AbstractUnxtConfig:
 
         ``traitlets``'s own ``update_config`` only touches *this* object's
         traits, but the display settings actually live on the eagerly-built
-        nested configs (``quantity_repr`` / ``quantity_str``). Forward to them
-        so ``config.update_config(cfg)`` with e.g.
-        ``cfg.QuantityReprConfig.short_arrays = "compact"`` takes effect instead
-        of silently doing nothing.
+        nested configs. Forward the config to every nested section this config
+        declares in ``_override_config_keys`` (e.g. ``quantity_repr`` /
+        ``quantity_str`` for ``UnxtConfig``) so ``config.update_config(cfg)``
+        with e.g. ``cfg.QuantityReprConfig.short_arrays = "compact"`` takes
+        effect instead of silently doing nothing.
         """
         # ``super()`` resolves through the concrete class's MRO to
         # ``Configurable.update_config`` (this mixin is combined with it).
