@@ -253,6 +253,8 @@ Quantity(Array([1., 0.], dtype=float32), unit='m')
 Quantity(Array([ 1., 20.], dtype=float32), unit='m')
 ```
 
+Or reach for `unxt.experimental.where`, a strict alternative that **rejects** a raw-array branch outright (both branches must be quantities), so a bare array can never silently acquire a unit.
+
 ### ✅ Dimension Checking Works in JIT
 
 Good news! Dimensions are checked inside JIT:
