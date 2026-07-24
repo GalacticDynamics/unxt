@@ -269,22 +269,18 @@ def _reject_unknown_unit_names(
     quantify(temperatrue="K")) is silently dropped by units.get(name),
     leaving the data unquantified with no error or warning.
     """
-    unknown = [k for k in units if k not in valid_names]
-    if unknown:
-        # ``None`` is the DataArray's own-data key; surface it explicitly so the
-        # message stays helpful (and non-empty) when there are no other names.
-        valid = (
-            ", ".join(
-                sorted("None (the data)" if n is None else repr(n) for n in valid_names)
-            )
-            or "(none)"
-        )
-        bad = ", ".join(repr(k) for k in unknown)
-        msg = (
-            f"got unit(s) for name(s) not in the {obj_kind}: {bad}. "
-            f"Valid names: {valid}."
-        )
-        raise ValueError(msg)
+    unknown = [repr(k) for k in units if k not in valid_names]
+    if not unknown:
+        return
+    # ``None`` is the DataArray's own-data key; render it explicitly so the
+    # message stays helpful (and non-empty) when there are no other names.
+    names = ("None (the data)" if n is None else repr(n) for n in valid_names)
+    valid = ", ".join(sorted(names)) or "(none)"
+    msg = (
+        f"got unit(s) for name(s) not in the {obj_kind}: {', '.join(unknown)}. "
+        f"Valid names: {valid}."
+    )
+    raise ValueError(msg)
 
 
 @dispatch
