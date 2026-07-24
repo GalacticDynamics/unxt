@@ -11,8 +11,8 @@ name: Create Package Tags
 #      its own `CD - <package>` workflow, so this job no longer has to dispatch
 #      them by hand (and therefore no longer needs `actions: write`).
 #
-# Requires two repository secrets for a GitHub App installed on this repo with
-# `contents: write`:
+# Requires a GitHub App installed on this repo with the "Contents: Read and
+# write" repository permission, exposed through two repository secrets:
 #   - RELEASE_APP_ID
 #   - RELEASE_APP_PRIVATE_KEY
 

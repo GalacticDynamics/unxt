@@ -38,6 +38,15 @@ One-time setup:
 
 Without these secrets the coordinator job fails at its "Mint a GitHub App token" step.
 
+### Access control
+
+Pushing a `v*` (or `<package>-v*`) tag **is** a release trigger: it runs the coordinator, which mints the App token, and the package CD workflows then publish to PyPI. Anyone who can create those tags can therefore start a release, so restrict tag creation to the release maintainers:
+
+- Add a **tag ruleset** (Settings → Rules → Rulesets) covering `v*` and `*-v*` that restricts who may create/update those tags (and blocks deletion / non-fast-forward as desired).
+- The `pypi` and `testpypi` deployment environments can additionally require a reviewer before their publish job runs, gating the actual upload.
+
+The App token is short-lived (minted per run) and scoped to **Contents: Read and write** on this repository only. The App private key lives in the `RELEASE_APP_PRIVATE_KEY` secret and is never exposed to workflow logs.
+
 ---
 
 ## Quick Reference
