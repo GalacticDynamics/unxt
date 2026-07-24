@@ -124,7 +124,19 @@ jobs:
           done
 
           if [ ${#TAGS_TO_PUSH[@]} -eq 0 ]; then
-            echo "✅ All package tags already exist for version ${VERSION} (nothing to push)."
+            # Every package tag already exists, so nothing is pushed -- and a
+            # push is what starts each CD workflow. A re-run therefore does not
+            # re-trigger any build. Spell out the manual recovery path so a
+            # re-run does not look like it silently did nothing.
+            echo "::notice::All ${VERSION} package tags already exist; nothing to push, so no CD workflow was (re)triggered. See the log for how to restart a package's release."
+            echo "✅ All package tags already exist for version ${VERSION}; nothing to push."
+            echo ""
+            echo "This run pushed no tag, so it did not (re)trigger any CD workflow."
+            echo "If a package's release did not build/publish (e.g. it was cancelled),"
+            echo "restart it manually -- the tag already exists, so dispatch its CD"
+            echo "workflow on that tag:"
+            echo "  gh workflow run cd-<package>.yml --ref <package>-v${VERSION}"
+            echo "  # e.g. gh workflow run cd-unxts-linalg.yml --ref unxts-linalg-v${VERSION}"
             exit 0
           fi
 
