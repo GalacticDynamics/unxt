@@ -884,7 +884,7 @@ def test_quantity_ops_with_static_value() -> None:
     assert out_mul.unit == u.unit("m2")
 
 
-def test_str_shows_values_like_quantity():
+def test_str_shows_values_like_quantity() -> None:
     """`str(StaticQuantity)` shows its values, mirroring `str(Quantity)`.
 
     Regression: it used to render a `f64[2](numpy)` type summary because the
