@@ -271,7 +271,14 @@ def _reject_unknown_unit_names(
     """
     unknown = [k for k in units if k not in valid_names]
     if unknown:
-        valid = ", ".join(sorted(repr(n) for n in valid_names if n is not None))
+        # ``None`` is the DataArray's own-data key; surface it explicitly so the
+        # message stays helpful (and non-empty) when there are no other names.
+        valid = (
+            ", ".join(
+                sorted("None (the data)" if n is None else repr(n) for n in valid_names)
+            )
+            or "(none)"
+        )
         bad = ", ".join(repr(k) for k in unknown)
         msg = (
             f"got unit(s) for name(s) not in the {obj_kind}: {bad}. "
