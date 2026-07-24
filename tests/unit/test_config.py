@@ -1141,3 +1141,36 @@ def test_override_does_not_leak_between_instances() -> None:
     with u.config.quantity_repr.override(short_arrays=override):
         assert u.config.quantity_repr.short_arrays == override
     assert u.config.quantity_repr.short_arrays == baseline
+
+
+def test_update_config_forwards_to_nested_sections() -> None:
+    """`update_config` on the root config reaches the nested sections.
+
+    Regression: `UnxtConfig.update_config(cfg)` was a silent no-op because the
+    nested `quantity_repr`/`quantity_str` configs are built eagerly in
+    `__init__`; a later `update_config` on the parent never reached them.
+    """
+    # Assert forwarding into *every* nested section, not just quantity_repr, so
+    # a partial-forwarding regression (e.g. `_override_config_keys` omitting a
+    # section) is caught.
+    repr_baseline = u.config.quantity_repr.short_arrays
+    str_baseline = u.config.quantity_str.short_arrays
+    # Pick override values guaranteed to differ from each baseline so the test
+    # detects the no-op regression even if a baseline was changed to "compact"
+    # via TOML/environment config.
+    repr_override = "compact" if repr_baseline != "compact" else False
+    str_override = "compact" if str_baseline != "compact" else False
+    try:
+        cfg = Config()
+        cfg.QuantityReprConfig.short_arrays = repr_override
+        cfg.QuantityStrConfig.short_arrays = str_override
+        u.config.update_config(cfg)
+        assert u.config.quantity_repr.short_arrays == repr_override
+        assert u.config.quantity_str.short_arrays == str_override
+    finally:
+        # Restore via direct trait assignment -- independent of the
+        # ``update_config`` behavior this test is exercising.
+        u.config.quantity_repr.short_arrays = repr_baseline
+        u.config.quantity_str.short_arrays = str_baseline
+    assert u.config.quantity_repr.short_arrays == repr_baseline
+    assert u.config.quantity_str.short_arrays == str_baseline

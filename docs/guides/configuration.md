@@ -246,6 +246,16 @@ use_short_name = true
 
 The loaded configuration is applied globally for the active Python process.
 
+### Reloading file-based configuration
+
+The `[tool.unxts.unxt]` section is read **once, at import**, using the working directory at that moment. If you import `unxt` _before_ changing into your project directory — common in notebooks and test runners — that section is missed. Re-read it with `reload()`:
+
+```{code-block} python
+>>> loaded = u.config.reload()  # re-read pyproject.toml from the current cwd
+```
+
+`reload()` returns a `bool`: `False` when no `pyproject.toml` was found (or it could not be read, or had no `[tool.unxts.unxt]` settings), so you can detect a no-op reload. Only keys present in the file are applied; every other setting keeps its current value.
+
 ## Temporary Configuration with Context Manager
 
 Use context managers for temporary changes that are automatically restored. There are two approaches:
@@ -391,20 +401,28 @@ Apply to the nested config instances:
 Q([1., 2., 3.], unit='m')
 ```
 
-Or update the root config:
-
-<!-- skip: start -->
+Or update the **root** config, which forwards to the nested sections. Capture the current value first so we can restore it afterward:
 
 ```{code-block} python
-from traitlets.config import Config
+>>> baseline_short_arrays = u.config.quantity_repr.short_arrays
 
-cfg = Config()
-cfg.QuantityReprConfig.short_arrays = "compact"
+>>> root_cfg = Config()
+>>> root_cfg.QuantityReprConfig.short_arrays = "compact"
 
-u.config.update_config(cfg)
+>>> u.config.update_config(root_cfg)
+>>> u.config.quantity_repr.short_arrays
+'compact'
 ```
 
-<!-- skip: end -->
+Restore the previous value so the rest of this guide is unaffected:
+
+```{code-block} python
+>>> reset_cfg = Config()
+>>> reset_cfg.QuantityReprConfig.short_arrays = baseline_short_arrays
+>>> u.config.update_config(reset_cfg)
+>>> u.config.quantity_repr.short_arrays == baseline_short_arrays
+True
+```
 
 ## See Also
 
