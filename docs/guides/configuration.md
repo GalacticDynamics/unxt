@@ -401,9 +401,11 @@ Apply to the nested config instances:
 Q([1., 2., 3.], unit='m')
 ```
 
-Or update the **root** config, which forwards to the nested sections:
+Or update the **root** config, which forwards to the nested sections. Capture the current value first so we can restore it afterward:
 
 ```{code-block} python
+>>> baseline_short_arrays = u.config.quantity_repr.short_arrays
+
 >>> root_cfg = Config()
 >>> root_cfg.QuantityReprConfig.short_arrays = "compact"
 
@@ -412,14 +414,14 @@ Or update the **root** config, which forwards to the nested sections:
 'compact'
 ```
 
-Restore the default so the rest of this guide is unaffected:
+Restore the previous value so the rest of this guide is unaffected:
 
 ```{code-block} python
 >>> reset_cfg = Config()
->>> reset_cfg.QuantityReprConfig.short_arrays = False
+>>> reset_cfg.QuantityReprConfig.short_arrays = baseline_short_arrays
 >>> u.config.update_config(reset_cfg)
->>> u.config.quantity_repr.short_arrays
-False
+>>> u.config.quantity_repr.short_arrays == baseline_short_arrays
+True
 ```
 
 ## See Also
