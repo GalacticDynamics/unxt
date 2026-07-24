@@ -3,13 +3,8 @@ name: CD - unxts-interop-gala
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
     tags:
       - "unxts-interop-gala-v*" # Package-specific tags (unxts-interop-gala-vX.Y.Z)
-    paths:
-      - "packages/unxts.interop.gala/**"
-      - ".github/workflows/cd-unxts-interop-gala.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,11 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    # Build runs for manual dispatch, main pushes, and direct package tag pushes
+    # Build for a manual dispatch or a package tag push (release).
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
+      startsWith(github.ref, 'refs/tags/')
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -43,9 +37,7 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Validate git tag (for tagged releases)
-        if: |
-          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
-          (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/'))
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_REF_VAR: ${{ github.ref }}
         run: |

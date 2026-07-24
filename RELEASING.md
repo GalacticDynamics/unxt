@@ -21,6 +21,34 @@ All releases are automated via GitHub Actions - **just push tags!**
 
 ---
 
+## Prerequisites: GitHub App
+
+The coordinator workflow (`create-package-tags.yml`) pushes the package-specific tags with a **GitHub App token** rather than the default `GITHUB_TOKEN`. This is required because:
+
+- `GITHUB_TOKEN` is read-only in this repository and cannot push tags; and
+- tags pushed with `GITHUB_TOKEN` do **not** trigger further workflows, whereas tags pushed with an App token do — which is how each package's `CD - <package>` build starts.
+
+One-time setup:
+
+1. Create a GitHub App with **Repository permissions → Contents: Read and write**.
+2. Install it on `GalacticDynamics/unxt`.
+3. Add two repository secrets:
+   - `RELEASE_APP_ID` — the App's ID
+   - `RELEASE_APP_PRIVATE_KEY` — a generated private key (PEM)
+
+Without these secrets the coordinator job fails at its "Mint a GitHub App token" step.
+
+### Access control
+
+Pushing a `v*` (or `<package>-v*`) tag **is** a release trigger: it runs the coordinator, which mints the App token, and the package CD workflows then publish to PyPI. Anyone who can create those tags can therefore start a release, so restrict tag creation to the release maintainers:
+
+- Add a **tag ruleset** (Settings → Rules → Rulesets) covering `v*` and `*-v*` that restricts who may create/update those tags (and blocks deletion / non-fast-forward as desired).
+- The `pypi` and `testpypi` deployment environments can additionally require a reviewer before their publish job runs, gating the actual upload.
+
+The App token is short-lived (minted per run) and scoped to **Contents: Read and write** on this repository only. The App private key lives in the `RELEASE_APP_PRIVATE_KEY` secret and is never exposed to workflow logs.
+
+---
+
 ## Quick Reference
 
 ### Release Types
@@ -259,16 +287,15 @@ The release process is fully automated via GitHub Actions:
 1. **Tag Creation** (`.github/workflows/create-package-tags.yml`):
    - Triggers on `v*` tags
    - Validates it's a `.0` release
-   - Creates package-specific tags automatically
-   - Pushes a tag for every workspace package
+   - Creates package-specific tags and pushes them with a **GitHub App token** (see [Prerequisites](#prerequisites-github-app)), so each package tag triggers its own build
 
 2. **Package build** (`.github/workflows/cd-<package>.yml`, "CD - \<package>"):
-   - Triggers on that package's release tags (`unxt-v*`, `unxts-parametric-v*`, …), on pushes to `main` that touch the package (path-filtered), and on manual `workflow_dispatch` — so you'll also see a build run when a normal PR merges to `main`
+   - Triggers on that package's release tags (`unxt-v*`, `unxts-parametric-v*`, …) and on manual `workflow_dispatch`
    - Validates the tag with `scripts/validate_tag.py`, builds the package, and uploads it as a build artifact (runs unprivileged)
 
 3. **Package publish** (`.github/workflows/cd-publish-<package>.yml`, "CD Publish - \<package>"):
    - Triggers via `workflow_run` when that package's build workflow completes
-   - Runs in a privileged context (so no repository code runs with publish permissions) and routes by what triggered the build: a verified release tag publishes to **both** TestPyPI and PyPI, while a trusted push to `main` (no tag) publishes to **TestPyPI only**
+   - Runs in a privileged context (so no repository code runs with publish permissions): a verified release tag publishes to **both** TestPyPI and PyPI. A tagless `workflow_dispatch` build publishes nowhere — it only verifies the package builds.
 
 4. **Version Detection**:
    - hatch-vcs uses standard `git describe` with package-specific `--match` patterns
