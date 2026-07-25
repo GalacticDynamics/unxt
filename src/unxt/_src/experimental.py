@@ -102,6 +102,71 @@ def where[R: AbstractQuantity](condition: ArrayLike, x: R, y: AbstractQuantity, 
     return replace(x, value=jax.numpy.where(condition, xv, yv))
 
 
+# ===================================================================
+# Shared unit strip/re-apply plumbing for the AD wrappers below.
+# The autodiff functions all strip units off the inputs, run a JAX transform on
+# the magnitudes, then re-apply units. A ``None`` unit marks a plain (unitless)
+# argument that is passed through untouched.
+
+
+def _wrap_args(
+    args: tuple[Any, ...], theunits: tuple[AbstractUnit | None, ...], /
+) -> tuple[Any, ...]:
+    """Re-attach units, turning each magnitude into ``Quantity(arg, unit)``."""
+    return tuple(
+        a if un is None else Quantity(a, un)
+        for a, un in zip(args, theunits, strict=True)
+    )
+
+
+def _strip_args(
+    args: tuple[Any, ...], theunits: tuple[AbstractUnit | None, ...], /
+) -> tuple[Any, ...]:
+    """Strip each argument to its magnitude in the corresponding unit."""
+    return tuple(
+        a if un is None else ustrip(un, a) for a, un in zip(args, theunits, strict=True)
+    )
+
+
+def _derivative_unit(value: Any, du: AbstractUnit | None, power: int, /) -> Any:
+    """Output unit divided by the differentiation unit**power (``None`` -> as-is).
+
+    ``du`` is the unit of the argument being differentiated; ``power`` is the
+    order of differentiation (1 for grad/jacfwd, 2 for hessian).
+    """
+    # TODO: get Quantity[unit] / unit2 -> Quantity[unit/unit2] working
+    return unit_of(value) if du is None else unit_of(value) / du**power
+
+
+def _unit_aware_jacobian[*Args, R: AbstractQuantity](
+    transform: Callable[..., Any],
+    fun: Callable[[*Args], R],
+    argnums: int,
+    theunits: tuple[AbstractUnit | None, ...],
+    *,
+    power: int,
+) -> Callable[[*Args], R]:
+    """Build a unit-aware ``jacfwd``/``hessian`` wrapper around ``transform``.
+
+    ``transform`` is a JAX transform (``jax.jacfwd`` or ``jax.hessian``) whose
+    output keeps the function's output units, so the result unit is read back
+    from the transformed value and corrected by ``du**power``.
+    """
+
+    @ft.partial(transform, argnums=argnums)
+    def jacfun_mag(*args: Any) -> R:
+        return fun(*_wrap_args(args, theunits))  # type: ignore[arg-type]
+
+    def jacfun(*args: *Args) -> R:
+        # Strip to magnitudes; they are re-wrapped into Quantities inside
+        # ``jacfun_mag`` before ``fun`` sees them.
+        value = jacfun_mag(*_strip_args(args, theunits))
+        new_unit = _derivative_unit(value, theunits[argnums], power)
+        return type_unparametrized(value)(ustrip(value), new_unit)
+
+    return jacfun
+
+
 def grad[*Args, R: AbstractQuantity](
     fun: Callable[[*Args], R],
     argnums: int = 0,
@@ -155,35 +220,18 @@ def grad[*Args, R: AbstractQuantity](
     # Gradient of function, stripping and adding units
     @ft.partial(jax.grad, argnums=argnums)
     def gradfun_mag(*args: Any) -> ArrayLike:
-        args_ = (
-            (a if unit is None else Quantity(a, unit))
-            for a, unit in zip(args, theunits, strict=True)
-        )
-        return ustrip(fun(*args_))  # type: ignore[arg-type]
+        return ustrip(fun(*_wrap_args(args, theunits)))  # type: ignore[arg-type]
 
     def gradfun(*args: *Args) -> R:
-        # Get the value of the args. They are turned back into Quantity
-        # inside the function we are taking the grad of.
-        args_ = tuple(  # type: ignore[var-annotated]
-            (a if unit is None else ustrip(unit, a))
-            for a, unit in zip(args, theunits, strict=True)  # type: ignore[arg-type]
-        )
+        args_ = _strip_args(args, theunits)
         # Evaluate the value on the same args normalized to ``units`` that the
         # gradient is computed from, so its unit is consistent — an input given
         # in a convertible unit (e.g. cm for ``units=("m",)``) yields the same
-        # result as the normalized unit.
-        qargs = tuple(  # type: ignore[var-annotated]
-            (a if unit is None else Quantity(ustrip(unit, a), unit))
-            for a, unit in zip(args, theunits, strict=True)  # type: ignore[arg-type]
-        )
-        value = fun(*qargs)
+        # result as the normalized unit. ``grad`` needs its own value pass
+        # because ``gradfun_mag`` strips the output for ``jax.grad``.
+        value = fun(*_wrap_args(args_, theunits))  # type: ignore[arg-type]
         grad_value = gradfun_mag(*args_)
-        # Adjust the Quantity by the units of the derivative. A dimensionless
-        # differentiation argument (unit ``None``) contributes no unit.
-        # TODO: get Quantity[unit] / unit2 ->
-        # Quantity[unit/unit2] working
-        du = theunits[argnums]
-        new_unit = unit_of(value) if du is None else unit_of(value) / du
+        new_unit = _derivative_unit(value, theunits[argnums], 1)
         return type_unparametrized(value)(grad_value, new_unit)
 
     return gradfun
@@ -226,36 +274,8 @@ def jacfwd[*Args, R: AbstractQuantity](
         not isinstance(argnums, int),
         "only int argnums are currently supported",
     )
-
     theunits: tuple[AbstractUnit | None, ...] = tuple(map(unit_or_none, units))
-
-    @ft.partial(jax.jacfwd, argnums=argnums)
-    def jacfun_mag(*args: Any) -> R:
-        args_ = tuple(
-            (a if unit is None else Quantity(a, unit))
-            for a, unit in zip(args, theunits, strict=True)
-        )
-        return fun(*args_)  # type: ignore[arg-type]
-
-    def jacfun(*args: *Args) -> R:
-        # Get the value of the args. They are turned back into Quantity
-        # inside the function we are taking the Jacobian of.
-        args_ = tuple(  # type: ignore[var-annotated]
-            (a if unit is None else ustrip(unit, a))
-            for a, unit in zip(args, theunits, strict=True)  # type: ignore[arg-type]
-        )
-        # Call the Jacobian, returning a Quantity
-        value = jacfun_mag(*args_)
-        # Adjust the Quantity by the units of the derivative. A dimensionless
-        # differentiation argument (unit ``None``) contributes no unit.
-        # TODO: check the unit correction
-        # TODO: get Quantity[unit] / unit2 ->
-        # Quantity[unit/unit2] working
-        du = theunits[argnums]
-        new_unit = unit_of(value) if du is None else unit_of(value) / du
-        return type_unparametrized(value)(ustrip(value), new_unit)
-
-    return jacfun
+    return _unit_aware_jacobian(jax.jacfwd, fun, argnums, theunits, power=1)
 
 
 def hessian[*Args, R: AbstractQuantity](
@@ -301,31 +321,4 @@ def hessian[*Args, R: AbstractQuantity](
 
     """
     theunits: tuple[AbstractUnit | None, ...] = tuple(map(unit_or_none, units))
-
-    @ft.partial(jax.hessian, argnums=argnums)
-    def hessfun_mag(*args: Any) -> R:
-        args_ = tuple(
-            (a if unit is None else Quantity(a, unit))
-            for a, unit in zip(args, theunits, strict=True)
-        )
-        return fun(*args_)  # type: ignore[arg-type]
-
-    def hessfun(*args: *Args) -> R:
-        # Get the value of the args. They are turned back into Quantity
-        # inside the function we are taking the hessian of.
-        args_ = tuple(  # type: ignore[var-annotated]
-            (a if unit is None else ustrip(unit, a))
-            for a, unit in zip(args, theunits, strict=True)  # type: ignore[arg-type]
-        )
-        # Call the hessian, returning a Quantity
-        value = hessfun_mag(*args_)
-        # Adjust the Quantity by the units of the derivative. A dimensionless
-        # differentiation argument (unit ``None``) contributes no unit.
-        # TODO: check the unit correction
-        # TODO: get Quantity[unit] / unit2 ->
-        # Quantity[unit/unit2] working
-        du = theunits[argnums]
-        new_unit = unit_of(value) if du is None else unit_of(value) / du**2
-        return type_unparametrized(value)(ustrip(value), new_unit)
-
-    return hessfun
+    return _unit_aware_jacobian(jax.hessian, fun, argnums, theunits, power=2)
