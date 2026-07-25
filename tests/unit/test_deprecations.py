@@ -47,6 +47,17 @@ def test_barequantity_top_level_attribute_access_warns():
     assert cls is u.Quantity
 
 
+@pytest.mark.parametrize(
+    "name", ["ParametricQuantity", "PQ", "AbstractParametricQuantity"]
+)
+def test_parametric_names_moved_raise(name):
+    """Names that moved to `unxts.parametric` raise a helpful AttributeError."""
+    import unxt.quantity as uq  # noqa: PLC0415
+
+    with pytest.raises(AttributeError, match=r"unxts\.parametric"):
+        getattr(uq, name)
+
+
 def test_unknown_attribute_raises():
     import unxt.quantity as uq  # noqa: PLC0415
 
