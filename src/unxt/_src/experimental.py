@@ -128,6 +128,15 @@ def _strip_args(
     )
 
 
+def _check_int_argnums(argnums: int) -> int:
+    """Reject non-int ``argnums`` (only single-argument selection is supported)."""
+    return eqx.error_if(
+        argnums,
+        not isinstance(argnums, int),
+        "only int argnums are currently supported",
+    )
+
+
 def _derivative_unit(value: Any, du: AbstractUnit | None, power: int, /) -> Any:
     """Output unit divided by the differentiation unit**power (``None`` -> as-is).
 
@@ -152,6 +161,7 @@ def _unit_aware_jacobian[*Args, R: AbstractQuantity](
     output keeps the function's output units, so the result unit is read back
     from the transformed value and corrected by ``du**power``.
     """
+    argnums = _check_int_argnums(argnums)
 
     @ft.partial(transform, argnums=argnums)
     def jacfun_mag(*args: Any) -> R:
@@ -215,6 +225,7 @@ def grad[*Args, R: AbstractQuantity](
     Quantity(Array(12., dtype=float32...), unit='m')
 
     """
+    argnums = _check_int_argnums(argnums)
     theunits: tuple[AbstractUnit | None, ...] = tuple(map(unit_or_none, units))
 
     # Gradient of function, stripping and adding units
@@ -269,11 +280,6 @@ def jacfwd[*Args, R: AbstractQuantity](
     Quantity(Array(12., dtype=float32...), unit='m2')
 
     """
-    argnums = eqx.error_if(
-        argnums,
-        not isinstance(argnums, int),
-        "only int argnums are currently supported",
-    )
     theunits: tuple[AbstractUnit | None, ...] = tuple(map(unit_or_none, units))
     return _unit_aware_jacobian(jax.jacfwd, fun, argnums, theunits, power=1)
 
