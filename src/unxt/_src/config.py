@@ -31,11 +31,15 @@ class LocalConfigurable(Configurable):
 
     This class provides a mechanism for temporary, thread-local configuration
     changes that can be used in nested contexts (e.g., within a quantity's
-    ``__repr__()``).
+    ``__repr__()``). Concrete subclasses only declare their traits and set
+    ``_config_keys`` (the trait names eligible for override); the override
+    lookup and the ``override()`` context manager live here.
     """
 
     # Thread-local storage for context manager overrides
     _local: threading.local
+    # Names of the config traits eligible for thread-local override
+    _config_keys: ClassVar[frozenset[str]] = frozenset()
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -44,6 +48,132 @@ class LocalConfigurable(Configurable):
         # on any instance (e.g. a throwaway ``QuantityReprConfig()``) leak into
         # every other instance, including the global ``unxt.config`` singleton.
         object.__setattr__(self, "_local", threading.local())
+
+    def __getattribute__(self, name: str) -> Any:
+        """Get attribute, checking thread-local overrides first."""
+        if name in object.__getattribute__(self, "_config_keys"):
+            with contextlib.suppress(AttributeError):
+                local = object.__getattribute__(self, "_local")
+                # Return the most recent override for this attribute
+                if hasattr(local, "stack") and local.stack:
+                    for overrides in reversed(local.stack):
+                        if name in overrides:
+                            return overrides[name]
+
+        return object.__getattribute__(self, name)
+
+    def override(
+        self, cfg: Config | None = None, /, **kwargs: Any
+    ) -> "_NestedConfigContext":
+        """Create a context manager for temporary config changes.
+
+        Parameters
+        ----------
+        cfg : traitlets.config.Config, optional
+            A traitlets Config object with settings for this config class.
+            Cannot be used together with keyword arguments.
+        **kwargs
+            Configuration options to set temporarily (e.g.,
+            short_arrays="compact").  Cannot be used together with cfg
+            parameter.
+
+        Returns
+        -------
+        _NestedConfigContext
+            A context manager that applies the config changes on entry
+            and restores previous values on exit.
+
+        Raises
+        ------
+        ValueError
+            If both cfg and keyword arguments are provided.
+
+        Examples
+        --------
+        Using keyword arguments:
+
+        >>> import unxt as u
+        >>> with u.config.quantity_repr.override(
+        ...     short_arrays="compact", use_short_name=True
+        ... ):
+        ...     q = u.Q([1, 2, 3], "m")
+        ...     print(repr(q))
+        Q([1, 2, 3], unit='m')
+
+        Using a Config object:
+
+        >>> from traitlets.config import Config
+        >>> cfg = Config()
+        >>> cfg.QuantityReprConfig.short_arrays = "compact"
+        >>> cfg.QuantityReprConfig.use_short_name = True
+        >>> with u.config.quantity_repr.override(cfg):
+        ...     q = u.Q([1, 2, 3], "m")
+        ...     print(repr(q))
+        Q([1, 2, 3], unit='m')
+
+        >>> print(str(q))
+        Quantity([1, 2, 3], unit='m')
+
+        """
+        keys = self._config_keys
+        cls_name = type(self).__name__
+
+        if cfg is not None and kwargs:
+            msg = "Cannot specify both cfg and keyword arguments to override()"
+            raise ValueError(msg)
+
+        if kwargs:
+            unknown_keys = set(kwargs) - keys
+            if unknown_keys:
+                valid_keys = ", ".join(sorted(keys))
+                unknown = ", ".join(sorted(unknown_keys))
+                msg = (
+                    f"Unknown {cls_name} override option(s): {unknown}. "
+                    f"Valid options are: {valid_keys}"
+                )
+                raise ValueError(msg)
+
+            # Validate and resolve values through traitlets immediately so
+            # override() fails fast with clear errors.
+            temp_instance = self.__class__()
+            validated_kwargs: dict[str, Any] = {}
+            for key, value in kwargs.items():
+                try:
+                    setattr(temp_instance, key, value)
+                except TraitError as e:
+                    msg = (
+                        f"Invalid value for {cls_name} override option "
+                        f"'{key}': {value!r}"
+                    )
+                    raise ValueError(msg) from e
+                # Bypass thread-local override lookup when reading back the
+                # resolved trait value from the temporary instance.
+                validated_kwargs[key] = object.__getattribute__(temp_instance, key)
+            kwargs = validated_kwargs
+
+        if cfg is not None:
+            # Create a temporary instance, apply the config to it, and read the
+            # resolved trait values. This ensures LazyConfigValue objects are
+            # properly resolved to their actual values.
+            temp_instance = self.__class__(config=cfg)
+            # Only override the traits the Config actually specifies. Iterating
+            # every trait would read the class default for traits absent from
+            # ``cfg`` and clobber any globally-configured value on entry.
+            specified: set[str] = set()
+            for klass in type(self).__mro__:
+                section = cfg.get(klass.__name__, None)
+                if section:
+                    specified |= set(section)
+            # Intersect with the *override allowlist*, not all traits:
+            # ``__getattribute__`` only consults these keys, so an entry outside
+            # it could never be observed -- it would just be a dead push.
+            overrides = {
+                name: object.__getattribute__(temp_instance, name)
+                for name in specified & keys
+            }
+            kwargs = overrides
+
+        return _NestedConfigContext(self, kwargs)
 
 
 @dataclass(frozen=True, slots=True)
@@ -123,6 +253,8 @@ class QuantityReprConfig(LocalConfigurable):
 
     """
 
+    _config_keys: ClassVar[frozenset[str]] = QUANTITY_REPR_CONFIG_KEYS
+
     short_arrays: ClassVar[object] = Union(
         [Bool(), Enum(("compact",))],
         default_value=False,
@@ -149,129 +281,6 @@ class QuantityReprConfig(LocalConfigurable):
     indent: ClassVar[object] = Int(
         default_value=4, help="Indentation level for nested structures in repr"
     ).tag(config=True)
-
-    def __getattribute__(self, name: str) -> Any:
-        """Get attribute, checking thread-local overrides first."""
-        if name in QUANTITY_REPR_CONFIG_KEYS:
-            with contextlib.suppress(AttributeError):
-                local = object.__getattribute__(self, "_local")
-                # Return the most recent override for this attribute
-                if hasattr(local, "stack") and local.stack:
-                    for overrides in reversed(local.stack):
-                        if name in overrides:
-                            return overrides[name]
-
-        return object.__getattribute__(self, name)
-
-    def override(
-        self, cfg: Config | None = None, /, **kwargs: Any
-    ) -> "_NestedConfigContext":
-        """Create a context manager for temporary config changes.
-
-        Parameters
-        ----------
-        cfg : traitlets.config.Config, optional
-            A traitlets Config object with settings for this config class.
-            Cannot be used together with keyword arguments.
-        **kwargs
-            Configuration options to set temporarily (e.g.,
-            short_arrays="compact").  Cannot be used together with cfg
-            parameter.
-
-        Returns
-        -------
-        _NestedConfigContext
-            A context manager that applies the config changes on entry
-            and restores previous values on exit.
-
-        Raises
-        ------
-        ValueError
-            If both cfg and keyword arguments are provided.
-
-        Examples
-        --------
-        Using keyword arguments:
-
-        >>> import unxt as u
-        >>> with u.config.quantity_repr.override(
-        ...     short_arrays="compact", use_short_name=True
-        ... ):
-        ...     q = u.Q([1, 2, 3], "m")
-        ...     print(repr(q))
-        Q([1, 2, 3], unit='m')
-
-        Using a Config object:
-
-        >>> from traitlets.config import Config
-        >>> cfg = Config()
-        >>> cfg.QuantityReprConfig.short_arrays = "compact"
-        >>> cfg.QuantityReprConfig.use_short_name = True
-        >>> with u.config.quantity_repr.override(cfg):
-        ...     q = u.Q([1, 2, 3], "m")
-        ...     print(repr(q))
-        Q([1, 2, 3], unit='m')
-
-        >>> print(str(q))
-        Quantity([1, 2, 3], unit='m')
-
-        """
-        if cfg is not None and kwargs:
-            msg = "Cannot specify both cfg and keyword arguments to override()"
-            raise ValueError(msg)
-
-        if kwargs:
-            unknown_keys = set(kwargs) - QUANTITY_REPR_CONFIG_KEYS
-            if unknown_keys:
-                valid_keys = ", ".join(sorted(QUANTITY_REPR_CONFIG_KEYS))
-                unknown = ", ".join(sorted(unknown_keys))
-                msg = (
-                    f"Unknown QuantityReprConfig override option(s): {unknown}. "
-                    f"Valid options are: {valid_keys}"
-                )
-                raise ValueError(msg)
-
-            # Validate and resolve values through traitlets immediately so
-            # override() fails fast with clear errors.
-            temp_instance = self.__class__()
-            validated_kwargs: dict[str, Any] = {}
-            for key, value in kwargs.items():
-                try:
-                    setattr(temp_instance, key, value)
-                except TraitError as e:
-                    msg = (
-                        "Invalid value for QuantityReprConfig override option "
-                        f"'{key}': {value!r}"
-                    )
-                    raise ValueError(msg) from e
-                # Bypass thread-local override lookup when reading back the
-                # resolved trait value from the temporary instance.
-                validated_kwargs[key] = object.__getattribute__(temp_instance, key)
-            kwargs = validated_kwargs
-
-        if cfg is not None:
-            # Create a temporary instance, apply the config to it, and read the
-            # resolved trait values. This ensures LazyConfigValue objects are
-            # properly resolved to their actual values.
-            temp_instance = self.__class__(config=cfg)
-            # Only override the traits the Config actually specifies. Iterating
-            # every trait would read the class default for traits absent from
-            # ``cfg`` and clobber any globally-configured value on entry.
-            specified: set[str] = set()
-            for klass in type(self).__mro__:
-                section = cfg.get(klass.__name__, None)
-                if section:
-                    specified |= set(section)
-            # Intersect with the *override allowlist*, not all traits:
-            # ``__getattribute__`` only consults these keys, so an entry outside
-            # it could never be observed -- it would just be a dead push.
-            overrides = {
-                name: object.__getattribute__(temp_instance, name)
-                for name in specified & QUANTITY_REPR_CONFIG_KEYS
-            }
-            kwargs = overrides
-
-        return _NestedConfigContext(self, kwargs)
 
 
 # ============================================================================
@@ -327,6 +336,8 @@ class QuantityStrConfig(LocalConfigurable):
 
     """
 
+    _config_keys: ClassVar[frozenset[str]] = QUANTITY_STR_CONFIG_KEYS
+
     short_arrays: ClassVar[object] = Union(
         [Bool(), Enum(("compact",))],
         default_value="compact",
@@ -353,101 +364,6 @@ class QuantityStrConfig(LocalConfigurable):
     indent: ClassVar[object] = Int(
         default_value=4, help="Indentation level for nested structures in str"
     ).tag(config=True)
-
-    def __getattribute__(self, name: str) -> Any:
-        """Get attribute, checking thread-local overrides first."""
-        if name in QUANTITY_STR_CONFIG_KEYS:
-            with contextlib.suppress(AttributeError):
-                local = object.__getattribute__(self, "_local")
-                if hasattr(local, "stack") and local.stack:
-                    for overrides in reversed(local.stack):
-                        if name in overrides:
-                            return overrides[name]
-
-        return object.__getattribute__(self, name)
-
-    def override(
-        self, cfg: Config | None = None, /, **kwargs: Any
-    ) -> "_NestedConfigContext":
-        """Create a context manager for temporary config changes.
-
-        Parameters
-        ----------
-        cfg : traitlets.config.Config, optional
-            A traitlets Config object with settings for this config class.
-            Cannot be used together with keyword arguments.
-        **kwargs
-            Configuration options to set temporarily.
-            Cannot be used together with cfg parameter.
-
-        Returns
-        -------
-        _NestedConfigContext
-            A context manager that applies the config changes on entry
-            and restores previous values on exit.
-
-        Raises
-        ------
-        ValueError
-            If both cfg and keyword arguments are provided.
-
-        """
-        if cfg is not None and kwargs:
-            msg = "Cannot specify both cfg and keyword arguments to override()"
-            raise ValueError(msg)
-
-        if kwargs:
-            unknown_keys = set(kwargs) - QUANTITY_STR_CONFIG_KEYS
-            if unknown_keys:
-                valid_keys = ", ".join(sorted(QUANTITY_STR_CONFIG_KEYS))
-                unknown = ", ".join(sorted(unknown_keys))
-                msg = (
-                    f"Unknown QuantityStrConfig override option(s): {unknown}. "
-                    f"Valid options are: {valid_keys}"
-                )
-                raise ValueError(msg)
-
-            # Validate and resolve values through traitlets immediately so
-            # override() fails fast with clear errors.
-            temp_instance = self.__class__()
-            validated_kwargs: dict[str, Any] = {}
-            for key, value in kwargs.items():
-                try:
-                    setattr(temp_instance, key, value)
-                except TraitError as e:
-                    msg = (
-                        "Invalid value for QuantityStrConfig override option "
-                        f"'{key}': {value!r}"
-                    )
-                    raise ValueError(msg) from e
-                # Bypass thread-local override lookup when reading back the
-                # resolved trait value from the temporary instance.
-                validated_kwargs[key] = object.__getattribute__(temp_instance, key)
-            kwargs = validated_kwargs
-
-        if cfg is not None:
-            # Create a temporary instance, apply the config to it, and read the
-            # resolved trait values. This ensures LazyConfigValue objects are
-            # properly resolved to their actual values.
-            temp_instance = self.__class__(config=cfg)
-            # Only override the traits the Config actually specifies. Iterating
-            # every trait would read the class default for traits absent from
-            # ``cfg`` and clobber any globally-configured value on entry.
-            specified: set[str] = set()
-            for klass in type(self).__mro__:
-                section = cfg.get(klass.__name__, None)
-                if section:
-                    specified |= set(section)
-            # Intersect with the *override allowlist*, not all traits:
-            # ``__getattribute__`` only consults these keys, so an entry outside
-            # it could never be observed -- it would just be a dead push.
-            overrides = {
-                name: object.__getattribute__(temp_instance, name)
-                for name in specified & QUANTITY_STR_CONFIG_KEYS
-            }
-            kwargs = overrides
-
-        return _NestedConfigContext(self, kwargs)
 
 
 # ============================================================================
