@@ -69,7 +69,7 @@ with install_import_hook("unxt"):
         Q,
         Quantity,
         StaticQuantity,
-        deprecated_getattr,
+        _deprecated_getattr,
         is_unit_convertible,
         uconvert,
         uconvert_value,
@@ -97,4 +97,4 @@ del install_import_hook
 
 
 def __getattr__(name: str) -> object:
-    return deprecated_getattr(name, __name__, Quantity)
+    return _deprecated_getattr(name, __name__, Quantity)
