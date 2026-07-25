@@ -9,6 +9,8 @@ the moved-name set and the deprecation message in one place.
 
 __all__: tuple[str, ...] = ()
 
+import warnings
+
 _MOVED_TO_PARAMETRIC = frozenset(
     {"ParametricQuantity", "PQ", "AbstractParametricQuantity"}
 )
@@ -38,8 +40,6 @@ def deprecated_getattr(name: str, module: str, quantity: type, /) -> object:
         )
         raise AttributeError(msg)
     if name == "BareQuantity":
-        import warnings  # noqa: PLC0415
-
         warnings.warn(
             "`BareQuantity` has been renamed to `Quantity` and is now the "
             "default quantity class (unxt v2). The parametric class formerly "

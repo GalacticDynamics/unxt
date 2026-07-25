@@ -19,6 +19,10 @@ documentation.
 -----
 
 """
+# This module and ``unxt.quantity`` re-export the same convenience names
+# (``uconvert``, ``ustrip``, ...), so their ``__all__`` overlap trips
+# duplicate-code; that shared surface is intentional.
+# pylint: disable=duplicate-code
 
 __all__ = (
     "__version__",
