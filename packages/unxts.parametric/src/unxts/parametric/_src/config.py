@@ -16,20 +16,18 @@ __all__ = (
     "config",
 )
 
-import contextlib
 import tomllib
 from pathlib import Path
 from typing import Any, ClassVar, Final
 
 from traitlets import Bool, TraitError
-from traitlets.config import Config, SingletonConfigurable
+from traitlets.config import SingletonConfigurable
 
 from unxt._src.config import (
     AbstractUnxtConfig,
     LocalConfigurable,
     _find_pyproject,
     _load_toml_config_from_pyproject,
-    _NestedConfigContext,
 )
 
 PARAMETRIC_REPR_CONFIG_KEYS: Final = frozenset({"include_params"})
@@ -41,99 +39,14 @@ PARAMETRIC_OVERRIDE_CONFIG_KEYS: Final = {
 }
 
 
-class _ParametricLocalConfig(LocalConfigurable):
-    """Base for the parametric repr/str configs with thread-local overrides.
+class ParametricQuantityReprConfig(LocalConfigurable):
+    """``include_params`` for ``ParametricQuantity.__repr__`` (default ``False``).
 
-    Subclasses set ``_config_keys`` (their overridable trait names) and their
-    own ``_local`` thread-local storage; this base provides the generic
-    ``__getattribute__`` override lookup and ``override()`` context manager.
+    ``__getattribute__`` (thread-local override lookup) and ``override()`` (the
+    context manager) are inherited from
+    :class:`~unxt._src.config.LocalConfigurable`; this class only declares its
+    overridable trait and its ``_config_keys`` allowlist.
     """
-
-    _config_keys: ClassVar[frozenset[str]] = frozenset()
-
-    def __getattribute__(self, name: str) -> Any:
-        """Get attribute, checking thread-local overrides first."""
-        keys = object.__getattribute__(self, "_config_keys")
-        if name in keys:
-            with contextlib.suppress(AttributeError):
-                local = object.__getattribute__(self, "_local")
-                if hasattr(local, "stack") and local.stack:
-                    for overrides in reversed(local.stack):
-                        if name in overrides:
-                            return overrides[name]
-
-        return object.__getattribute__(self, name)
-
-    def override(
-        self, cfg: Config | None = None, /, **kwargs: Any
-    ) -> _NestedConfigContext:
-        """Create a context manager for temporary config changes.
-
-        Examples
-        --------
-        >>> import unxts.parametric as up
-        >>> with up.config.quantity_repr.override(include_params=True):
-        ...     print(up.config.quantity_repr.include_params)
-        True
-
-        """
-        keys = self._config_keys
-        cls_name = type(self).__name__
-
-        if cfg is not None and kwargs:
-            msg = "Cannot specify both cfg and keyword arguments to override()"
-            raise ValueError(msg)
-
-        if kwargs:
-            unknown_keys = set(kwargs) - keys
-            if unknown_keys:
-                valid_keys = ", ".join(sorted(keys))
-                unknown = ", ".join(sorted(unknown_keys))
-                msg = (
-                    f"Unknown {cls_name} override option(s): {unknown}. "
-                    f"Valid options are: {valid_keys}"
-                )
-                raise ValueError(msg)
-
-            # Validate/resolve through traitlets immediately for fast, clear errors.
-            temp_instance = self.__class__()
-            validated_kwargs: dict[str, Any] = {}
-            for key, value in kwargs.items():
-                try:
-                    setattr(temp_instance, key, value)
-                except TraitError as e:
-                    msg = (
-                        f"Invalid value for {cls_name} override option "
-                        f"'{key}': {value!r}"
-                    )
-                    raise ValueError(msg) from e
-                validated_kwargs[key] = object.__getattribute__(temp_instance, key)
-            kwargs = validated_kwargs
-
-        if cfg is not None:
-            temp_instance = self.__class__(config=cfg)
-            # Only override the traits the Config actually specifies. Iterating
-            # every trait would read the class default for traits absent from
-            # ``cfg`` and clobber any globally-configured value on entry.
-            specified: set[str] = set()
-            for klass in type(self).__mro__:
-                section = cfg.get(klass.__name__, None)
-                if section:
-                    specified |= set(section)
-            # Intersect with the *override allowlist*, not all traits:
-            # ``__getattribute__`` only consults these keys, so an entry outside
-            # it could never be observed -- it would just be a dead push.
-            overrides = {
-                name: object.__getattribute__(temp_instance, name)
-                for name in specified & set(self._config_keys)
-            }
-            kwargs = overrides
-
-        return _NestedConfigContext(self, kwargs)
-
-
-class ParametricQuantityReprConfig(_ParametricLocalConfig):
-    """``include_params`` for ``ParametricQuantity.__repr__`` (default ``False``)."""
 
     _config_keys: ClassVar[frozenset[str]] = PARAMETRIC_REPR_CONFIG_KEYS
 
@@ -143,8 +56,12 @@ class ParametricQuantityReprConfig(_ParametricLocalConfig):
     ).tag(config=True)
 
 
-class ParametricQuantityStrConfig(_ParametricLocalConfig):
-    """``include_params`` for ``ParametricQuantity.__str__`` (default ``True``)."""
+class ParametricQuantityStrConfig(LocalConfigurable):
+    """``include_params`` for ``ParametricQuantity.__str__`` (default ``True``).
+
+    See :class:`ParametricQuantityReprConfig` — the override machinery is
+    inherited from :class:`~unxt._src.config.LocalConfigurable`.
+    """
 
     _config_keys: ClassVar[frozenset[str]] = PARAMETRIC_STR_CONFIG_KEYS
 
