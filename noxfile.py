@@ -86,6 +86,18 @@ def pyright(s: nox.Session, /) -> None:
     s.run("pyright", *s.posargs)
 
 
+@session(uv_groups=["typecheck"], uv_extras=["all"], reuse_venv=True)
+def ty(s: nox.Session, /) -> None:
+    """Type-check the typing smoke fixture with ty.
+
+    Scoped by the ``tests/typing`` invocation argument (ty reports diagnostics
+    only in the given paths) -- the same ``Quantity(1, "m")`` constructor guard
+    as the ``pyright`` session. Not the whole tree, which ty is not yet clean on.
+    ty (0.0.x) is pinned; expect deliberate periodic bumps.
+    """
+    s.run("ty", "check", "tests/typing", *s.posargs)
+
+
 def _parse_pylint_paths(package: PackageEnum, /) -> list[str]:
     # Lint each package in isolation so the ``duplicate-code`` checker does not
     # flag the intentional similarity between a shim and its canonical package.
