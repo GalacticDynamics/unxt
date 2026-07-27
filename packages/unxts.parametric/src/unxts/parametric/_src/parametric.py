@@ -9,13 +9,15 @@ import equinox as eqx
 from jaxtyping import Array, Shaped
 from plum import add_promotion_rule, parametric
 
+import unxts.api as uapi
+
 from .base_parametric import AbstractParametricQuantity
 from unxt.quantity import (
     Quantity,
     StaticValue,
     convert_to_quantity_value,
 )
-from unxt.units import AbstractUnit, unit as parse_unit
+from unxt.units import AbstractUnit
 
 
 @final
@@ -123,7 +125,7 @@ class ParametricQuantity(AbstractParametricQuantity):
     )
     """The value of the `AbstractQuantity`."""
 
-    unit: AbstractUnit = eqx.field(static=True, converter=parse_unit)
+    unit: AbstractUnit = eqx.field(static=True, converter=uapi.unit)
     """The unit associated with this value."""
 
     @override

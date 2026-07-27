@@ -85,6 +85,20 @@ repos:
       - id: taplo-format
       # - id: taplo-lint
 
+  # Pyright, scoped to the `tests/typing` fixture (see [tool.pyright]). Runs via
+  # `uv run` so it gets an env where `unxt` and its deps resolve -- a bare
+  # pyright could not import the package. Guards the `Quantity(1, "m")`
+  # constructor typing; runs when any Python / lock / config changes.
+  - repo: local
+    hooks:
+      - id: pyright
+        name: pyright (typing guard)
+        entry: uv run --frozen --group typecheck --extra all pyright
+        language: system
+        pass_filenames: false
+        files: (\.py$|^pyproject\.toml$|^uv\.lock$)
+        require_serial: true
+
   # - repo: https://github.com/abravalheri/validate-pyproject
   #   rev: v0.23
   #   hooks:
