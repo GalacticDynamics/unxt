@@ -5,9 +5,9 @@ __all__ = ("Angle",)
 from typing import final
 
 import equinox as eqx
+import unxts.api as uapi
 from jaxtyping import Array, Real
 
-import unxt_api as uapi
 from .base_angle import AbstractAngle
 from .value import StaticValue, convert_to_quantity_value
 from unxt.units import AbstractUnit

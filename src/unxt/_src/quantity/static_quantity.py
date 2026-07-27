@@ -9,6 +9,7 @@ from typing import Any, final
 
 import equinox as eqx
 import numpy as np
+import unxts.api as uapi
 import wadler_lindig as wl
 from jaxtyping import ArrayLike
 from plum import add_promotion_rule
@@ -16,7 +17,7 @@ from plum import add_promotion_rule
 from .base import AbstractQuantity, ArrayLikeSequence, same_unit_label
 from .quantity import Quantity
 from .value import StaticValue
-from unxt.units import AbstractUnit, unit as parse_unit
+from unxt.units import AbstractUnit
 
 
 @final
@@ -66,7 +67,7 @@ class StaticQuantity(AbstractQuantity):
     )
     """The static value of the `AbstractQuantity`."""
 
-    unit: AbstractUnit = eqx.field(static=True, converter=parse_unit)
+    unit: AbstractUnit = eqx.field(static=True, converter=uapi.unit)
     """The unit associated with this value."""
 
     def __hash__(self) -> int:

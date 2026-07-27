@@ -30,11 +30,12 @@ dependencies = [
   "packaging>=20.0",
   "plum-dispatch>=2.7.0",
   "plum-dispatch>=2.9.0; python_version>='3.14'",
-  "quax>=0.4.0",
+  "quax>=0.4.2",
   "quax-blocks>=0.4.1",
   "quaxed>=0.10.5",
   "traitlets>=5.0.0",
   "unxt-api>=2.0.0",
+  "unxts.api>=2.0.0",
   "wadler-lindig>=0.1.5",
   "xmmutablemap>=0.1",
   "zeroth>=1.0.0",
@@ -116,7 +117,7 @@ docs = [
   # Runtime dependencies for notebook execution
   "jax[cpu]>=0.5.3",
   "jaxlib>=0.5.3",
-  "quax>=0.4.0",
+  "quax>=0.4.2",
 ]
 lint = ["prek>=0.3.9", "pylint>=3.3.8"]
 nox = ["nox>=2024.10.9", "nox-uv>=0.6.3"]
@@ -134,6 +135,9 @@ test = [
 ]
 test-all = [{ include-group = "test" }, { include-group = "test-mpl" }]
 test-mpl = ["pytest-mpl>=0.17.0", "matplotlib>=3.8"]
+# Pinned so the `pyright` guard cannot drift as new pyright releases change
+# diagnostics. Scoped to the `tests/typing` fixture; see [tool.pyright].
+typecheck = ["pyright==1.1.411"]
 workspace = [
   "unxt-api",
   "unxt-hypothesis",
@@ -243,6 +247,16 @@ module = [
   "quaxed.*",
   "unxt.*",
 ]
+
+
+# Pyright is scoped to the typing smoke fixture only -- it guards the
+# `Quantity(1, "m")` constructor typing (see tests/typing/) without asking the
+# whole, not-yet-pyright-clean source tree to pass. Widen `include` when more of
+# the tree is type-checked.
+[tool.pyright]
+include          = ["tests/typing"]
+pythonVersion    = "3.12"           # match `requires-python = ">=3.12"`
+typeCheckingMode = "basic"
 
 
 [tool.pylint]
