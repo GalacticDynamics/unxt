@@ -259,6 +259,14 @@ pythonVersion    = "3.12"           # match `requires-python = ">=3.12"`
 typeCheckingMode = "basic"
 
 
+# ty is scoped to the same typing smoke fixture as pyright (the `Quantity(1,
+# "m")` constructor guard). Scoping via config -- rather than a CLI path -- keeps
+# the nox/pre-commit invocation a plain `ty check`. Python version is read from
+# `project.requires-python`. Widen `include` when more of the tree is ty-clean.
+[tool.ty.src]
+include = ["tests/typing"]
+
+
 [tool.pylint]
 ignore-paths = [".*/_compat.py", ".*/_version.py"]
 messages_control.disable = [

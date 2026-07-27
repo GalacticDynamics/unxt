@@ -90,12 +90,12 @@ def pyright(s: nox.Session, /) -> None:
 def ty(s: nox.Session, /) -> None:
     """Type-check the typing smoke fixture with ty.
 
-    Scoped by the ``tests/typing`` invocation argument (ty reports diagnostics
-    only in the given paths) -- the same ``Quantity(1, "m")`` constructor guard
-    as the ``pyright`` session. Not the whole tree, which ty is not yet clean on.
-    ty (0.0.x) is pinned; expect deliberate periodic bumps.
+    Scoped (via ``[tool.ty.src]`` ``include``) to ``tests/typing`` -- the same
+    ``Quantity(1, "m")`` constructor guard as the ``pyright`` session. Not the
+    whole tree, which ty is not yet clean on. ty (0.0.x) is pinned; expect
+    deliberate periodic bumps.
     """
-    s.run("ty", "check", "tests/typing", *s.posargs)
+    s.run("ty", "check", *s.posargs)
 
 
 def _parse_pylint_paths(package: PackageEnum, /) -> list[str]:

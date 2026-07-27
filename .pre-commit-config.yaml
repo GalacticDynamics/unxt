@@ -106,8 +106,7 @@ repos:
     hooks:
       - id: ty
         name: ty (typing guard)
-        entry:
-          uv run --frozen --group typecheck --extra all ty check tests/typing
+        entry: uv run --frozen --group typecheck --extra all ty check
         language: system
         pass_filenames: false
         files: (\.py$|^pyproject\.toml$|^uv\.lock$)
