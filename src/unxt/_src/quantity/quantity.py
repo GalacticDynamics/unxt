@@ -6,11 +6,12 @@ __all__ = ("Q", "Quantity")
 from typing import Any, ClassVar
 
 import equinox as eqx
+import unxts.api as uapi
 from jaxtyping import Array, Shaped
 
 from .base import AbstractQuantity
 from .value import StaticValue, convert_to_quantity_value
-from unxt.units import AbstractUnit, unit as parse_unit
+from unxt.units import AbstractUnit
 
 
 class Quantity(AbstractQuantity):
@@ -34,7 +35,7 @@ class Quantity(AbstractQuantity):
     )
     """The value of the `Quantity`."""
 
-    unit: AbstractUnit = eqx.field(static=True, converter=parse_unit)
+    unit: AbstractUnit = eqx.field(static=True, converter=uapi.unit)
     """The unit associated with this value."""
 
     short_name: ClassVar[str] = "Q"
