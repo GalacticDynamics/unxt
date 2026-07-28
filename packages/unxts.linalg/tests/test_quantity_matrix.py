@@ -1946,6 +1946,16 @@ class TestUnitsMatrixInverse:
         um = UnitsMatrix(((_m, _s), (_kg, _rad)))
         assert um == um.inverse().inverse()
 
+    def test_empty_matrix_no_indexerror(self):
+        """An empty matrix powers to an empty result (no ``flat[0]`` IndexError).
+
+        Covers ``inverse``/``sqrt`` too, which delegate to ``__pow__``.
+        """
+        empty = UnitsMatrix(np.empty((0, 0), dtype=object))
+        assert (empty**2).shape == (0, 0)
+        assert empty.inverse().shape == (0, 0)
+        assert empty.sqrt().shape == (0, 0)
+
 
 # ---------------------------------------------------------------------------
 # UnitsMatrix.T
