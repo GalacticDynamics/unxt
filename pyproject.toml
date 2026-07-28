@@ -136,7 +136,8 @@ test = [
 test-all = [{ include-group = "test" }, { include-group = "test-mpl" }]
 test-mpl = ["pytest-mpl>=0.17.0", "matplotlib>=3.8"]
 # Pinned so the typing guards cannot drift as new checker releases change
-# diagnostics. Scoped to the `tests/typing` fixture; see [tool.pyright].
+# diagnostics. Both scoped to the `tests/typing` fixture; see [tool.pyright]
+# and [tool.ty.src].
 typecheck = ["pyright==1.1.411", "ty==0.0.64"]
 workspace = [
   "unxt-api",
