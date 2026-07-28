@@ -1,14 +1,15 @@
 """Static-typing smoke test: quantity constructors accept a unit string.
 
 Runs as a normal pytest (the constructors must not raise) AND under the
-`pyright` nox session (the string-unit argument must type-check). Regression
-guard for the `unit`-field converter: the quantity classes use the ``unit`` API
-function (liberal ``Any`` input, Postel's law) as their ``eqx.field`` converter,
-so ``Quantity(1, "m")`` type-checks while ``.unit`` still reads as a unit.
+`pyright` and `ty` nox sessions (the string-unit argument must type-check).
+Regression guard for the `unit`-field converter: the quantity classes use the
+``unit`` API function (liberal ``Any`` input, Postel's law) as their
+``eqx.field`` converter, so ``Quantity(1, "m")`` type-checks while ``.unit``
+still reads as a unit.
 
-Pyright-scoped: mypy / ty do not implement the `converter` field-specifier
-extension, so they will not validate this. A mypy/ty regression is the trigger
-to revisit a `.pyi` stub.
+pyright and ty both read equinox's `converter` field-specifier, so both
+validate this. mypy does not apply the converter, so it is not run against this
+fixture. A regression here is the trigger to revisit a `.pyi` stub.
 """
 
 from typing import assert_type
