@@ -99,6 +99,19 @@ repos:
         files: (\.py$|^pyproject\.toml$|^uv\.lock$)
         require_serial: true
 
+  # ty, scoped to the `tests/typing` fixture -- the same `Quantity(1, "m")`
+  # constructor guard as pyright, under a second checker. Runs via `uv run` so
+  # `unxt` and its deps resolve; runs when any Python / lock / config changes.
+  - repo: local
+    hooks:
+      - id: ty
+        name: ty (typing guard)
+        entry: uv run --frozen --group typecheck --extra all ty check
+        language: system
+        pass_filenames: false
+        files: (\.py$|^pyproject\.toml$|^uv\.lock$)
+        require_serial: true
+
   # - repo: https://github.com/abravalheri/validate-pyproject
   #   rev: v0.23
   #   hooks:
