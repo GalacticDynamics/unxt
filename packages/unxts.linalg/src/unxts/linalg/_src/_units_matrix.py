@@ -234,14 +234,56 @@ class UnitsMatrix:
         """
         return UnitsMatrix(self._units.T)
 
+    def __pow__(self, exponent: int | float, /) -> "UnitsMatrix":
+        r"""Element-wise unit power — each unit raised to ``exponent``.
+
+        For a 1-D (diagonal) ``UnitsMatrix`` the power is applied entry-by-entry
+        in *O(n)*.  For a 2-D ``UnitsMatrix`` with a uniform unit (all entries
+        equal) it is computed once and broadcast in *O(1)*; mixed-unit 2-D
+        structures fall back to an element-wise *O(nm)* loop.
+
+        Examples
+        --------
+        >>> from unxts.linalg import UnitsMatrix
+
+        1-D (diagonal) case:
+
+        >>> UnitsMatrix(("m2", "s2")) ** 0.5
+        UnitsMatrix("(m, s)")
+
+        2-D uniform-unit case (computed once, broadcast):
+
+        >>> UnitsMatrix((("m2", "m2"), ("m2", "m2"))) ** 0.5
+        UnitsMatrix("((m, m), (m, m))")
+
+        2-D mixed-unit case:
+
+        >>> UnitsMatrix((("m2", "s2"), ("s2", "rad2"))) ** 0.5
+        UnitsMatrix("((m, s), (s, rad))")
+
+        """
+        out = np.empty(self._units.shape, dtype=object)
+        if self._units.ndim == 1:
+            for i in range(self._units.shape[0]):
+                out[i] = self._units[i] ** exponent
+        else:
+            # 2-D: fast path when all entries share the same unit.
+            flat = self._units.ravel()
+            first = flat[0]
+            if all(x == first for x in flat[1:]):
+                out[:] = first**exponent
+            else:
+                n, m = self._units.shape
+                for i in range(n):
+                    for j in range(m):
+                        out[i, j] = self._units[i, j] ** exponent
+        return UnitsMatrix(out)
+
     def inverse(self) -> "UnitsMatrix":
         r"""Inverse unit structure — each unit raised to the power -1.
 
-        For a 1-D (diagonal) ``UnitsMatrix`` the inversion is done
-        entry-by-entry in *O(n)*, providing a speedup over the general 2-D
-        case.  For a 2-D ``UnitsMatrix`` with a uniform unit (all entries
-        equal) the reciprocal is computed once and broadcast in *O(1)*;
-        mixed-unit 2-D structures fall back to an element-wise *O(nm)* loop.
+        Equivalent to ``self ** -1``; see `__pow__` for the shape-aware fast
+        paths (1-D *O(n)*, 2-D uniform-unit *O(1)*, 2-D mixed *O(nm)*).
 
         Examples
         --------
@@ -263,24 +305,23 @@ class UnitsMatrix:
         UnitsMatrix("((1 / m2, 1 / s2), (1 / s2, 1 / rad2))")
 
         """
-        inv_data = np.empty(self._units.shape, dtype=object)
-        if self._units.ndim == 1:
-            # Diagonal speedup: 1-D represents a diagonal metric's units.
-            for i in range(self._units.shape[0]):
-                inv_data[i] = self._units[i] ** (-1)
-        else:
-            # 2-D: fast path when all entries share the same unit.
-            flat = self._units.ravel()
-            first = flat[0]
-            if all(u == first for u in flat[1:]):
-                inv_unit = first ** (-1)
-                inv_data[:] = inv_unit
-            else:
-                n, m = self._units.shape
-                for i in range(n):
-                    for j in range(m):
-                        inv_data[i, j] = self._units[i, j] ** (-1)
-        return UnitsMatrix(inv_data)
+        return self ** (-1)
+
+    def sqrt(self) -> "UnitsMatrix":
+        r"""Element-wise unit square root — equivalent to ``self ** 0.5``.
+
+        Examples
+        --------
+        >>> from unxts.linalg import UnitsMatrix
+
+        >>> UnitsMatrix(("m2", "s2")).sqrt()
+        UnitsMatrix("(m, s)")
+
+        >>> UnitsMatrix((("m2", "s2"), ("s2", "rad2"))).sqrt()
+        UnitsMatrix("((m, s), (s, rad))")
+
+        """
+        return self**0.5
 
     # ── Element-wise arithmetic ───────────────────────────────────────
 
