@@ -200,6 +200,21 @@ class UnitsMatrix:
         self._units = data
 
     @classmethod
+    def _wrap(cls, data: np.ndarray, /) -> "UnitsMatrix":
+        """Adopt an already-normalized ``object`` array of units directly.
+
+        Internal fast path for methods that already hold a valid unit array
+        (`full`, `diagonal`); skips the redundant per-element normalization and
+        extra allocation that ``__init__`` -> ``_build_object_array`` would do.
+        """
+        if data.ndim not in (1, 2):
+            msg = f"UnitsMatrix only supports 1D or 2D, but got ndim={data.ndim}"
+            raise ValueError(msg)
+        obj = object.__new__(cls)
+        obj._units = data
+        return obj
+
+    @classmethod
     def full(cls, shape: int | tuple[int, ...], unit: Any, /) -> "UnitsMatrix":
         """Return a 1-D or 2-D `UnitsMatrix` with every entry set to ``unit``.
 
@@ -224,7 +239,7 @@ class UnitsMatrix:
         """
         data = np.empty(shape, dtype=object)
         data[...] = _normalize_unit(unit)
-        return cls(data)
+        return cls._wrap(data)
 
     # ── Shape / structure ─────────────────────────────────────────────
 
@@ -275,7 +290,7 @@ class UnitsMatrix:
         if self._units.ndim != 2:
             msg = f"diagonal() requires a 2-D UnitsMatrix, got ndim={self._units.ndim}"
             raise ValueError(msg)
-        return UnitsMatrix(np.diagonal(self._units).copy())
+        return UnitsMatrix._wrap(np.diagonal(self._units).copy())
 
     def __pow__(self, exponent: int | float, /) -> "UnitsMatrix":
         r"""Element-wise unit power — each unit raised to ``exponent``.
