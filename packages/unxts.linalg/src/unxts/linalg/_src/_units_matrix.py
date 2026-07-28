@@ -199,6 +199,33 @@ class UnitsMatrix:
             raise ValueError(msg)
         self._units = data
 
+    @classmethod
+    def full(cls, shape: int | tuple[int, ...], unit: Any, /) -> "UnitsMatrix":
+        """Return a 1-D or 2-D `UnitsMatrix` with every entry set to ``unit``.
+
+        Parameters
+        ----------
+        shape
+            Target shape — an ``int`` for 1-D or a ``(rows, cols)`` tuple for 2-D.
+        unit
+            The unit broadcast into every entry (an ``AbstractUnit`` or a unit
+            string).
+
+        Examples
+        --------
+        >>> from unxts.linalg import UnitsMatrix
+
+        >>> UnitsMatrix.full(3, "m")
+        UnitsMatrix("(m, m, m)")
+
+        >>> UnitsMatrix.full((2, 3), "s")
+        UnitsMatrix("((s, s, s), (s, s, s))")
+
+        """
+        data = np.empty(shape, dtype=object)
+        data[...] = _normalize_unit(unit)
+        return cls(data)
+
     # ── Shape / structure ─────────────────────────────────────────────
 
     @property
@@ -233,6 +260,22 @@ class UnitsMatrix:
 
         """
         return UnitsMatrix(self._units.T)
+
+    def diagonal(self) -> "UnitsMatrix":
+        """Return the main diagonal of a 2-D `UnitsMatrix` as a 1-D `UnitsMatrix`.
+
+        Examples
+        --------
+        >>> from unxts.linalg import UnitsMatrix
+
+        >>> UnitsMatrix((("m2", "s"), ("kg", "rad2"))).diagonal()
+        UnitsMatrix("(m2, rad2)")
+
+        """
+        if self._units.ndim != 2:
+            msg = f"diagonal() requires a 2-D UnitsMatrix, got ndim={self._units.ndim}"
+            raise ValueError(msg)
+        return UnitsMatrix(np.diagonal(self._units).copy())
 
     def __pow__(self, exponent: int | float, /) -> "UnitsMatrix":
         r"""Element-wise unit power — each unit raised to ``exponent``.
