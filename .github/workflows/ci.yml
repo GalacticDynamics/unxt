@@ -66,10 +66,10 @@ jobs:
       - name: Lint
         run: uv run --frozen nox -s lint
 
-  # Static type-checking (pyright, scoped to the tests/typing fixture -- the
-  # `Quantity(1, "m")` constructor guard) is NOT a dedicated job: the `Format`
-  # job runs `nox -s lint` -> `prek run --all-files`, which already runs the
-  # `pyright (typing guard)` pre-commit hook. A separate job would double-run it.
+  # Static type-checking (pyright, scoped to tests/typing -- the `Quantity(1,
+  # "m")` constructor guard) is enforced by the `pyright (typing guard)`
+  # pre-commit hook, which the `format` job runs in CI. It is deliberately not a
+  # dedicated job -- that would just double-run the hook.
 
   # Documentation build
   #
