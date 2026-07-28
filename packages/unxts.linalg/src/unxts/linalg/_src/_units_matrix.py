@@ -263,6 +263,10 @@ class UnitsMatrix:
 
         """
         out = np.empty(self._units.shape, dtype=object)
+        if self._units.size == 0:
+            # Empty matrix -> empty result; the 2-D fast path below indexes
+            # flat[0], which would raise on a zero-size array.
+            return UnitsMatrix(out)
         if self._units.ndim == 1:
             for i in range(self._units.shape[0]):
                 out[i] = self._units[i] ** exponent
@@ -282,7 +286,7 @@ class UnitsMatrix:
     def inverse(self) -> "UnitsMatrix":
         r"""Inverse unit structure — each unit raised to the power -1.
 
-        Equivalent to ``self ** -1``; see `__pow__` for the shape-aware fast
+        Equivalent to ``self ** -1``; see ``__pow__`` for the shape-aware fast
         paths (1-D *O(n)*, 2-D uniform-unit *O(1)*, 2-D mixed *O(nm)*).
 
         Examples
