@@ -112,6 +112,21 @@ repos:
         files: (\.py$|^pyproject\.toml$|^uv\.lock$)
         require_serial: true
 
+  # mypy, scoped (via [tool.mypy] files) to the `tests/typing` fixture -- the
+  # same `Quantity(1, "m")` constructor guard as pyright, under a second checker.
+  # mypy sees the `unit` param as `Any`, so it gates the constructors' return
+  # types + strict cleanliness, not the unit argument. Runs via `uv run` so
+  # `unxt` and its deps resolve.
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy (typing guard)
+        entry: uv run --frozen --group typecheck --extra all mypy
+        language: system
+        pass_filenames: false
+        files: (\.py$|^pyproject\.toml$|^uv\.lock$)
+        require_serial: true
+
   # - repo: https://github.com/abravalheri/validate-pyproject
   #   rev: v0.23
   #   hooks:
