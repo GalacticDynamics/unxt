@@ -294,6 +294,20 @@ class TestUnitsMatrix:
         units = UnitsMatrix(((_m, _s), (_kg, _rad)))
         assert repr(units) == 'UnitsMatrix("((m, s), (kg, rad))")'
 
+    def test_full(self):
+        """full() builds a uniform 1-D or 2-D grid; invalid ndim is rejected."""
+        assert UnitsMatrix.full(3, "m") == UnitsMatrix((_m, _m, _m))
+        assert UnitsMatrix.full((2, 2), _s) == UnitsMatrix(((_s, _s), (_s, _s)))
+        with pytest.raises(ValueError, match="1D or 2D"):
+            UnitsMatrix.full((2, 2, 2), "m")
+
+    def test_diagonal(self):
+        """diagonal() returns the 2-D main diagonal; 1-D input is rejected."""
+        um = UnitsMatrix(((_m, _s), (_kg, _rad)))
+        assert um.diagonal() == UnitsMatrix((_m, _rad))
+        with pytest.raises(ValueError, match="2-D"):
+            UnitsMatrix((_m, _s)).diagonal()
+
     def test_unit_from_object_array_1d(self):
         """u.unit() accepts a 1-D numpy object array of AbstractUnit."""
         arr = np.array([_m, _s, _kg], dtype=object)
