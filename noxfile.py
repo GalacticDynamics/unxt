@@ -98,6 +98,20 @@ def ty(s: nox.Session, /) -> None:
     s.run("ty", "check", *s.posargs)
 
 
+@session(uv_groups=["typecheck"], uv_extras=["all"], reuse_venv=True)
+def mypy(s: nox.Session, /) -> None:
+    """Type-check the typing smoke fixture with mypy.
+
+    Scoped (via ``[tool.mypy]`` ``files``) to ``tests/typing`` -- the same
+    ``Quantity(1, "m")`` constructor guard as the ``pyright`` session, not the
+    whole tree (which mypy is not yet clean on). mypy types the ``unit`` param
+    as ``Any``, so it does not discriminate the unit argument; what it gates is
+    that the fixture stays strict-mypy-clean and the constructors return the
+    right type. The raw-``value`` converter gap is suppressed per call site.
+    """
+    s.run("mypy", *s.posargs)
+
+
 def _parse_pylint_paths(package: PackageEnum, /) -> list[str]:
     # Lint each package in isolation so the ``duplicate-code`` checker does not
     # flag the intentional similarity between a shim and its canonical package.
