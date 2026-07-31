@@ -14,43 +14,11 @@ from .custom_types import APYUnits
 # Register dispatches
 
 
-@plum.dispatch
-def unit(obj: apyu.UnitBase | apyu.Unit, /) -> APYUnits:
-    """Construct the units from an Astropy unit.
-
-    Examples
-    --------
-    >>> import astropy.units as apyu
-    >>> import unxt as u
-    >>> u.unit(apyu.km)
-    Unit("km")
-
-    """
-    return apyu.Unit(obj)
-
-
-# Note: ``unit(apyu.Quantity)`` lives in ``unxt._src.units`` (core), not here, so
-# it is registered before the built-in unit systems are constructed at import
-# time (astropy is unxt's unit backend, not an optional interop).
-
-
-# -------------------------------------------------------------------
-
-
-@plum.dispatch
-def unit_of(obj: apyu.UnitBase | apyu.Unit, /) -> APYUnits:
-    """Return the units of an object.
-
-    Examples
-    --------
-    >>> import astropy.units as apyu
-    >>> import unxt as u
-
-    >>> u.unit_of(apyu.km)
-    Unit("km")
-
-    """
-    return obj
+# Note: ``unit``/``unit_of`` for Astropy units live in ``unxt._src.units``
+# (core), not here: astropy is unxt's unit backend, not an optional interop, so
+# ``AbstractUnit`` already covers ``apyu.UnitBase``. The same goes for
+# ``unit(apyu.Quantity)``, which must be registered before the built-in unit
+# systems are constructed at import time.
 
 
 @plum.dispatch
