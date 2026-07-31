@@ -35,6 +35,12 @@ def unit(obj: AbstractUnit, /) -> AbstractUnit:
     >>> u.unit(m) is m
     True
 
+    Astropy units are passed through unchanged:
+
+    >>> import astropy.units as apyu
+    >>> u.unit(apyu.km)
+    Unit("km")
+
     """
     return obj
 
@@ -106,6 +112,10 @@ def unit_of(obj: AbstractUnit, /) -> AbstractUnit:
 
     >>> u.unit_of(m)
     Unit("m")
+
+    >>> import astropy.units as apyu
+    >>> u.unit_of(apyu.km)
+    Unit("km")
 
     """
     return obj
