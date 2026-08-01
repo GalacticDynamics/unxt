@@ -19,7 +19,7 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
-  "astropy>=7.0.0",
+  "astropy>=7.1",
   "dataclassish>=0.8.0",
   "equinox>=0.13.7",
   "is-annotated>=1.0",
@@ -27,7 +27,6 @@ dependencies = [
   "jaxlib>=0.7.2",
   "jaxtyping>=0.3.9",
   "optional-dependencies>=0.3.2",
-  "packaging>=20.0",
   "plum-dispatch>=2.7.0",
   "plum-dispatch>=2.9.0; python_version>='3.14'",
   "quax>=0.4.2",
@@ -57,7 +56,7 @@ cuda12_local = ["jax[cuda12_local]>=0.7.2"]
 k8s          = ["jax[k8s]>=0.7.2"]
 # extra extras
 all = ["unxt[backend-astropy,workspace]"]
-backend-astropy = ["astropy>=7.0.0"]
+backend-astropy = ["astropy>=7.1"]
 interop-gala = ["unxts.interop.gala"]
 interop-mpl = ["unxts.interop.matplotlib"]
 interop-xarray = ["unxts.interop.xarray"]

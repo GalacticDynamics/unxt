@@ -7,12 +7,12 @@ This is the private implementation of the dimensions module.
 __all__ = ("AbstractDimension", "dimension", "dimension_of")
 
 import ast
-import importlib.metadata
+import functools as ft
+import operator
 import re
-from typing import Any, NoReturn, TypeAlias
+from typing import Any, Final, NoReturn, TypeAlias
 
 import astropy.units as apyu
-from packaging.version import Version, parse as parse_version
 from plum import dispatch
 
 import unxt_api as uapi
@@ -25,6 +25,12 @@ _PEMD_PATTERN = re.compile(r"[()*/]|\*\*")
 
 # Regex pattern to match parenthesized dimension names that may contain spaces
 _PAREN_DIM_PATTERN = re.compile(r"\(([^()]+)\)")
+
+#: The binary operators dimensions support. ``**`` is handled separately: its
+#: right operand is a plain number, not a dimension. ``+``/``-`` are absent by
+#: design -- dimensions are invariant under addition, so those symbols belong to
+#: dimension *names* ("electric-dipole moment"), not to the grammar.
+_BINARY_OPS: Final = {ast.Mult: operator.mul, ast.Div: operator.truediv}
 
 
 # ===================================================================
@@ -50,29 +56,44 @@ def _preprocess_dimension_string(expr: str, /) -> tuple[str, dict[str, str]]:
 
     """
     dim_mapping: dict[str, str] = {}
-    counter = 0
 
     def replace_paren_dim(match: re.Match[str], /) -> str:
-        nonlocal counter
         # Strip whitespace from the captured dimension name to handle cases like
-        # "( amount of substance )" where users might include extra spaces
-        dim_name = match.group(1).strip()
-        temp_id = f"_dim{counter}"
-        dim_mapping[temp_id] = dim_name
-        counter += 1
+        # "( amount of substance )" where users might include extra spaces.
+        temp_id = f"_dim{len(dim_mapping)}"
+        dim_mapping[temp_id] = match.group(1).strip()
         return temp_id
 
-    preprocessed = _PAREN_DIM_PATTERN.sub(replace_paren_dim, expr)
-    return preprocessed, dim_mapping
+    return _PAREN_DIM_PATTERN.sub(replace_paren_dim, expr), dim_mapping
 
 
-def _eval_dimension_node(  # noqa: C901
-    node: ast.AST,
-    /,
-    *,
-    dim_mapping: dict[str, str] | None = None,
+def _eval_exponent(node: ast.AST, /) -> int | float:
+    """Evaluate a ``**`` exponent, which must be a plain (possibly negative) number.
+
+    Unlike the left operand, the exponent is *not* a dimension -- ``length**2``
+    means "length times itself", so ``2`` must reduce to a number here rather
+    than route back through `_eval_dimension_node`.
+    """
+    match node:
+        case ast.Constant(value=int() | float() as value):
+            return value
+        # A negative exponent (``length**-1``) parses as USub over a Constant.
+        case ast.UnaryOp(
+            op=ast.USub(), operand=ast.Constant(value=int() | float() as value)
+        ):
+            return -value
+        case ast.Constant(value=value):
+            msg = f"Power exponent must be a number, got: {type(value).__name__}"
+            raise TypeError(msg)
+        case _:
+            msg = "Power exponent must be a number"
+            raise TypeError(msg)
+
+
+def _eval_dimension_node(
+    node: ast.AST, /, *, dim_mapping: dict[str, str] | None = None
 ) -> AbstractDimension:
-    """Recursively evaluate AST nodes into dimensions or numeric values.
+    """Recursively evaluate AST nodes into dimensions.
 
     Parameters
     ----------
@@ -87,75 +108,50 @@ def _eval_dimension_node(  # noqa: C901
         Evaluated dimension.
 
     """
-    if dim_mapping is None:
-        dim_mapping = {}
+    mapping = {} if dim_mapping is None else dim_mapping
+    recur = ft.partial(_eval_dimension_node, dim_mapping=mapping)
 
-    if isinstance(node, ast.Expression):
-        return _eval_dimension_node(node.body, dim_mapping=dim_mapping)
+    match node:
+        case ast.Expression(body=body):
+            return recur(body)
 
-    if isinstance(node, ast.BinOp):
-        left = _eval_dimension_node(node.left, dim_mapping=dim_mapping)
+        case ast.BinOp(op=ast.Pow(), left=left, right=right):
+            return recur(left) ** _eval_exponent(right)
 
-        if isinstance(node.op, ast.Pow):
-            # For powers, evaluate the exponent
-            # It can be a Constant or a UnaryOp (for negative exponents like **-1)
-            if isinstance(node.right, ast.Constant):
-                right = node.right.value
-            elif isinstance(node.right, ast.UnaryOp) and isinstance(
-                node.right.op, ast.USub
-            ):
-                # Handle negative exponents like **-1
-                if isinstance(node.right.operand, ast.Constant):
-                    right = -node.right.operand.value
-                else:
-                    msg = "Power exponent must be a number"
-                    raise TypeError(msg)
-            else:
-                msg = "Power exponent must be a number"
-                raise TypeError(msg)
+        case ast.BinOp(op=op, left=left, right=right) if type(op) in _BINARY_OPS:
+            return _BINARY_OPS[type(op)](recur(left), recur(right))
 
-            if not isinstance(right, int | float):
-                msg = f"Power exponent must be a number, got: {type(right).__name__}"
-                raise TypeError(msg)
-            return left**right
+        case ast.BinOp(op=op):
+            msg = f"Unsupported operator: {type(op).__name__}"
+            raise ValueError(msg)
 
-        # For other operators, evaluate right side normally
-        right = _eval_dimension_node(node.right, dim_mapping=dim_mapping)
-
-        if isinstance(node.op, ast.Mult):
-            return left * right
-        if isinstance(node.op, ast.Div):
-            return left / right
-
-        msg = f"Unsupported operator: {node.op.__class__.__name__}"
-        raise ValueError(msg)
-
-    if isinstance(node, ast.UnaryOp):
-        # A negative exponent (``length**-1``) is handled in the ``Pow`` branch
+        # A negative exponent (``length**-1``) is consumed by the ``Pow`` branch
         # above, so any ``UnaryOp`` reaching here is a standalone sign applied to
         # a dimension. Dimensions are invariant under negation, so reject it
         # rather than silently treating ``-(length)`` as ``1/length``.
-        if isinstance(node.op, (ast.USub, ast.UAdd)):
+        case ast.UnaryOp(op=ast.USub() | ast.UAdd()):
             msg = (
                 "Unary '+'/'-' are not supported on dimensions; they are "
                 "invariant under negation."
             )
-            raise ValueError(msg)  # noqa: TRY004  # a parse error, not a type error
-        msg = f"Unsupported unary operator: {node.op.__class__.__name__}"
-        raise ValueError(msg)  # noqa: TRY004  # a parse error, not a type error
+            raise ValueError(msg)
 
-    if isinstance(node, ast.Name):
-        # Check if this is a temporary identifier that maps to a dimension name
-        dim_name = dim_mapping.get(node.id, node.id)
-        # This is a dimension name - recursively call dimension()
-        return uapi.dimension(dim_name)
+        case ast.UnaryOp(op=op):
+            msg = f"Unsupported unary operator: {type(op).__name__}"
+            raise ValueError(msg)
 
-    if isinstance(node, ast.Constant):
-        # Handle numeric constants (for exponents)
-        return node.value
+        case ast.Name(id=name):
+            # A temporary identifier maps back to its multi-word dimension name.
+            return uapi.dimension(mapping.get(name, name))
 
-    msg = f"Unsupported AST node: {node.__class__.__name__}"
-    raise ValueError(msg)
+        # A bare numeric factor, e.g. ``"2 * length"``. Returned as-is so the
+        # surrounding operator applies it to the dimension.
+        case ast.Constant(value=value):
+            return value
+
+        case _:
+            msg = f"Unsupported AST node: {type(node).__name__}"
+            raise ValueError(msg)
 
 
 def _parse_dimension_string(expr: str, /) -> AbstractDimension:
@@ -374,9 +370,6 @@ def dimension_of(obj: type, /) -> NoReturn:
 
 
 # ===================================================================
-# COMPAT
-
-ASTROPY_LT_71 = parse_version(importlib.metadata.version("astropy")) < Version("7.1")
 
 
 @dispatch
@@ -399,13 +392,8 @@ def name_of(dim: AbstractDimension, /) -> str:
     """
     if dim == "unknown":
         ptid = dim._unit._physical_type_id  # noqa: SLF001
-        name = " ".join(
+        return " ".join(
             f"{unit}{power}" if power != 1 else unit for unit, power in ptid
         )
 
-    elif ASTROPY_LT_71:
-        name = dim._name_string_as_ordered_set().split("'")[1]  # noqa: SLF001
-    else:
-        name = dim._physical_type[0]  # noqa: SLF001
-
-    return name
+    return dim._physical_type[0]  # noqa: SLF001
