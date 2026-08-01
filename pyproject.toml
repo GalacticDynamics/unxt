@@ -23,15 +23,15 @@ dependencies = [
   "dataclassish>=0.8.0",
   "equinox>=0.13.7",
   "is-annotated>=1.0",
-  "jax>=0.5.3",
-  "jaxlib>=0.5.3",
-  "jaxtyping>=0.3.3",
+  "jax>=0.7.2",
+  "jaxlib>=0.7.2",
+  "jaxtyping>=0.3.9",
   "optional-dependencies>=0.3.2",
   "packaging>=20.0",
   "plum-dispatch>=2.7.0",
   "plum-dispatch>=2.9.0; python_version>='3.14'",
   "quax>=0.4.2",
-  "quax-blocks>=0.4.1",
+  "quax-blocks>=0.5.0",
   "quaxed>=0.10.5",
   "traitlets>=5.0.0",
   "unxt-api>=2.0.0",
@@ -50,11 +50,11 @@ requires-python = ">=3.12"
 
 [project.optional-dependencies]
 # jax extras
-cpu          = ["jax[cpu]>=0.5.3"]
-cuda         = ["jax[cuda]>=0.5.3"]
-cuda12       = ["jax[cuda12]>=0.5.3"]
-cuda12_local = ["jax[cuda12_local]>=0.5.3"]
-k8s          = ["jax[k8s]>=0.5.3"]
+cpu          = ["jax[cpu]>=0.7.2"]
+cuda         = ["jax[cuda]>=0.7.2"]
+cuda12       = ["jax[cuda12]>=0.7.2"]
+cuda12_local = ["jax[cuda12_local]>=0.7.2"]
+k8s          = ["jax[k8s]>=0.7.2"]
 # extra extras
 all = ["unxt[backend-astropy,workspace]"]
 backend-astropy = ["astropy>=7.0.0"]
@@ -115,8 +115,8 @@ docs = [
   "sphinxext-opengraph>=0.9.1",
   "sphinxext-rediraffe>=0.2.7",
   # Runtime dependencies for notebook execution
-  "jax[cpu]>=0.5.3",
-  "jaxlib>=0.5.3",
+  "jax[cpu]>=0.7.2",
+  "jaxlib>=0.7.2",
   "quax>=0.4.2",
 ]
 lint = ["prek>=0.3.9", "pylint>=3.3.8"]

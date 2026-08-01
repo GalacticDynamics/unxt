@@ -9,7 +9,6 @@ specialisations without displacing any core behaviour.
 
 __all__: tuple[str, ...] = ()
 
-from dataclasses import replace
 
 import quax
 from astropy.units import (
@@ -23,6 +22,7 @@ from unxts.api import ustrip
 
 from .base_parametric import AbstractParametricQuantity as ABCPQ  # noqa: N814
 from .parametric import ParametricQuantity
+from unxt._src.quantity.base import revalue
 from unxt.quantity import AbstractQuantity as ABCQ  # noqa: N814
 
 # ==============================================================================
@@ -70,7 +70,7 @@ def clamp_p_qqv(
     ParametricQuantity(Array([0, 1, 2], dtype=int32), unit='')
 
     """
-    return replace(x, value=lax.clamp(ustrip(one, min), ustrip(one, x), max))
+    return revalue(x, lax.clamp(ustrip(one, min), ustrip(one, x), max))
 
 
 # ==============================================================================
@@ -130,7 +130,7 @@ def pow_p_vq(x: ArrayLike, y: ABCPQ["dimensionless"], /) -> ABCQ:
     ParametricQuantity(Array([8.], dtype=float32), unit='')
 
     """
-    return replace(y, value=lax.pow(x, ustrip(y)))
+    return revalue(y, lax.pow(x, ustrip(y)))
 
 
 # ==============================================================================
@@ -154,4 +154,4 @@ def rem_p_uqv(
     ParametricQuantity(Array(1, dtype=int32...), unit='')
 
     """
-    return replace(x, value=ustrip(x) % y)
+    return revalue(x, ustrip(x) % y)
