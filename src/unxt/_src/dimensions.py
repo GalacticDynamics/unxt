@@ -7,7 +7,6 @@ This is the private implementation of the dimensions module.
 __all__ = ("AbstractDimension", "dimension", "dimension_of")
 
 import ast
-import functools as ft
 import importlib.metadata
 import operator
 import re
@@ -114,17 +113,21 @@ def _eval_dimension_node(
 
     """
     mapping = {} if dim_mapping is None else dim_mapping
-    recur = ft.partial(_eval_dimension_node, dim_mapping=mapping)
 
     match node:
         case ast.Expression(body=body):
-            return recur(body)
+            return _eval_dimension_node(body, dim_mapping=mapping)
 
         case ast.BinOp(op=ast.Pow(), left=left, right=right):
-            return recur(left) ** _eval_exponent(right)
+            return _eval_dimension_node(left, dim_mapping=mapping) ** _eval_exponent(
+                right
+            )
 
         case ast.BinOp(op=op, left=left, right=right) if type(op) in _BINARY_OPS:
-            return _BINARY_OPS[type(op)](recur(left), recur(right))
+            return _BINARY_OPS[type(op)](
+                _eval_dimension_node(left, dim_mapping=mapping),
+                _eval_dimension_node(right, dim_mapping=mapping),
+            )
 
         case ast.BinOp(op=op):
             msg = f"Unsupported operator: {type(op).__name__}"
