@@ -10,8 +10,9 @@ Registers handlers for the following JAX primitives:
 - ``lax.gather_p`` — element-selection gather (e.g. jnp.diag)
 - ``lax.reduce_sum_p`` — summation reduction
 
-Every rule returns via the unchecked `QuantityMatrix._mk`: values are always
-`lax` outputs (single-output primitives only), units always existing or derived
+Rules that return a `QuantityMatrix` build it with the unchecked `_mk` (the
+scalar-output paths return a plain `u.Q` instead): values are always `lax`
+outputs (single-output primitives only), units always existing or derived
 `UnitsMatrix`, and the shape invariant is built from the same axes it pairs
 (contraction axes checked up front by `_check_contract`). ``dot_general`` 2-D x
 2-D is the one exception and wraps its units explicitly.
