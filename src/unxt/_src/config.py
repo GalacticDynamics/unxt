@@ -726,14 +726,58 @@ def _config_from_toml_data(
 _CONFIG_CLASS_TO_INSTANCE: Final[dict[str, Any]] = {}
 
 
+def config_class_mapping(cfg: Any, /) -> dict[str, Any]:
+    """Map each nested section's config-class *name* to its instance on ``cfg``.
+
+    Shared with the satellite packages that mirror this config structure (e.g.
+    ``unxts.parametric``), which key their TOML sections by class name too.
+    """
+    return {
+        type(instance).__name__: instance
+        for instance in (
+            getattr(cfg, name)
+            for name in cfg._override_sections  # noqa: SLF001
+        )
+    }
+
+
+def apply_config_sections(loaded: Any, class_to_instance: dict[str, Any], /) -> bool:
+    """Apply loaded TOML sections to their config instances.
+
+    Returns whether any value was actually applied -- a non-empty section whose
+    keys are all unknown, or whose every ``setattr`` is rejected, must not
+    report success.
+
+    Unknown sections, unknown keys, and values traitlets rejects are all
+    skipped rather than raised: project configuration must never break an
+    import. Shared with the satellite packages that mirror this structure, so
+    the skip policy is defined once.
+    """
+    applied = False
+    for class_name, class_config in loaded.items():
+        instance = class_to_instance.get(class_name)
+        if instance is None:
+            continue
+
+        valid_keys = _override_keys(type(instance))
+        for key, value in class_config.items():
+            if key not in valid_keys:
+                continue
+            try:
+                setattr(instance, key, value)
+            except (TraitError, AttributeError):
+                continue
+            applied = True
+
+    return applied
+
+
 def _initialize_config_mapping(cfg: UnxtConfig) -> None:
     """Initialize the mapping from config class names to instances.
 
     This must be called after creating the UnxtConfig instance.
     """
-    for name in cfg._override_sections:  # noqa: SLF001
-        instance = getattr(cfg, name)
-        _CONFIG_CLASS_TO_INSTANCE[type(instance).__name__] = instance
+    _CONFIG_CLASS_TO_INSTANCE.update(config_class_mapping(cfg))
 
 
 def _warn_if_legacy_unxt_config(
@@ -791,27 +835,7 @@ def _auto_load_project_toml_config(cfg: UnxtConfig, /, *, stacklevel: int = 2) -
     if not loaded:
         return False
 
-    # Apply config values using the mapping, tracking whether any value was
-    # actually applied (a non-empty section whose keys are all unknown or whose
-    # every ``setattr`` fails must not report success).
-    applied = False
-    for class_name, class_config in loaded.items():
-        if class_name not in _CONFIG_CLASS_TO_INSTANCE:
-            continue
-
-        config_instance = _CONFIG_CLASS_TO_INSTANCE[class_name]
-        valid_keys = _override_keys(type(config_instance))
-
-        for key, value in class_config.items():
-            if key not in valid_keys:
-                continue
-            try:
-                setattr(config_instance, key, value)
-            except (TraitError, AttributeError):
-                continue
-            applied = True
-
-    return applied
+    return apply_config_sections(loaded, _CONFIG_CLASS_TO_INSTANCE)
 
 
 # Create the global singleton instance
