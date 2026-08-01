@@ -27,16 +27,15 @@ from unxt.units import AbstractUnit, unit as parse_unit
 def _dimension_of_unit(unit: AbstractUnit) -> AbstractDimension:
     """Return the dimension of a unit, memoized for the construction hot path.
 
-    `dimension_of` is a `plum`-dispatched function whose resolver is non-faithful
-    (it carries `type[...]` class overloads, e.g.
-    ``dimension_of(ParametricQuantity["length"])``),
-    so `plum` cannot cache its method resolution and re-resolves on every call
-    (~60us). `__check_init__` runs on every `AbstractParametricQuantity`
-    construction -- including every arithmetic result -- and
-    `__infer_type_parameter__` on every *unparametrized* one, so we memoize the
-    unit -> dimension lookup here. Units are hashable
-    and the mapping is immutable, so the cache is sound; this mirrors the
-    `dimension_of(AbstractUnit)` implementation
+    `dimension_of` is a `plum`-dispatched function whose resolver is
+    non-faithful (it carries `type[...]` class overloads, e.g.
+    ``dimension_of(ParametricQuantity["length"])``), so `plum` cannot cache its
+    method resolution and re-resolves on every call (~60us). `__check_init__`
+    runs on every `AbstractParametricQuantity` construction -- including every
+    arithmetic result -- and `__infer_type_parameter__` on every
+    *unparametrized* one, so we memoize the unit -> dimension lookup here. Units
+    are hashable and the mapping is immutable, so the cache is sound; this
+    mirrors the `dimension_of(AbstractUnit)` implementation
     (``dimension(unit.physical_type)``) while bypassing dispatch.
 
     .. note::
@@ -112,6 +111,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         cls, value: Any, unit: Any, **kwargs: Any
     ) -> tuple[AbstractDimension]:
         """Infer the type parameter from the arguments."""
+        # Note: replace with `dimension_of` when caching is fixed (beartype/plum#290)
         return (_dimension_of_unit(parse_unit(unit)),)
 
     @classmethod

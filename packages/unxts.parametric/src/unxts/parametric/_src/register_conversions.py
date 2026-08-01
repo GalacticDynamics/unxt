@@ -16,14 +16,20 @@ from plum import conversion_method
 
 from unxts.api import unit_of, ustrip
 
+from .base_parametric import _dimension_of_unit
 from .parametric import ParametricQuantity
-from unxt.quantity import AbstractQuantity
+from unxt.quantity import AbstractQuantity, convert_to_quantity_value
 
 
 def _to_parametric(q: Any, /) -> ParametricQuantity:
     """Rebuild ``q`` as a `ParametricQuantity` in its own unit."""
     u = unit_of(q)
-    return ParametricQuantity(ustrip(u, q), u)
+    # Subscripting with the dimension and using the unchecked `_mk` skips
+    # `plum`'s parametric inference, which would recompute that same dimension
+    # from the same unit via a non-faithful (uncacheable) dispatch.
+    return ParametricQuantity[_dimension_of_unit(u)]._mk(  # noqa: SLF001
+        value=convert_to_quantity_value(ustrip(u, q)), unit=u
+    )
 
 
 @conversion_method(type_from=AbstractQuantity, type_to=ParametricQuantity)  # type: ignore[arg-type]
