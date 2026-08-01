@@ -20,7 +20,7 @@ import tomllib
 from pathlib import Path
 from typing import Any, ClassVar, Final
 
-from traitlets import Bool, TraitError
+from traitlets import Bool, default
 from traitlets.config import SingletonConfigurable
 
 from unxt._src.config import (
@@ -28,36 +28,42 @@ from unxt._src.config import (
     LocalConfigurable,
     _find_pyproject,
     _load_toml_config_from_pyproject,
-    _override_keys,
+    apply_config_sections,
+    config_class_mapping,
 )
 
 
-class ParametricQuantityReprConfig(LocalConfigurable):
-    """``include_params`` for ``ParametricQuantity.__repr__`` (default ``False``).
+class AbstractParametricDisplayConfig(LocalConfigurable):
+    """The ``include_params`` display option shared by ``repr()`` and ``str()``.
+
+    Concrete subclasses set the default -- ``False`` for ``repr()`` (which
+    stays close to the constructor call) and ``True`` for ``str()`` (which
+    shows the dimension) -- and are distinct classes so a
+    `traitlets.config.Config` can address them separately by name. Mirrors
+    :class:`~unxt._src.config.AbstractQuantityDisplayConfig`.
 
     ``__getattribute__`` (thread-local override lookup) and ``override()`` (the
     context manager) are inherited from
-    :class:`~unxt._src.config.LocalConfigurable`; this class only declares its
-    overridable trait.
+    :class:`~unxt._src.config.LocalConfigurable`.
     """
 
     include_params: ClassVar[object] = Bool(
         default_value=False,
-        help="Include type parameters in repr for parametric quantities",
+        help="Include type parameters in the display of parametric quantities",
     ).tag(config=True)
 
 
-class ParametricQuantityStrConfig(LocalConfigurable):
-    """``include_params`` for ``ParametricQuantity.__str__`` (default ``True``).
+class ParametricQuantityReprConfig(AbstractParametricDisplayConfig):
+    """``include_params`` for ``ParametricQuantity.__repr__`` (default ``False``)."""
 
-    See :class:`ParametricQuantityReprConfig` — the override machinery is
-    inherited from :class:`~unxt._src.config.LocalConfigurable`.
-    """
 
-    include_params: ClassVar[object] = Bool(
-        default_value=True,
-        help="Include type parameters in str for parametric quantities",
-    ).tag(config=True)
+class ParametricQuantityStrConfig(AbstractParametricDisplayConfig):
+    """``include_params`` for ``ParametricQuantity.__str__`` (default ``True``)."""
+
+    @default("include_params")
+    def _include_params_default(self) -> bool:
+        """``str()`` shows the dimension parameter; ``repr()`` does not."""
+        return True
 
 
 class ParametricConfig(AbstractUnxtConfig, SingletonConfigurable):
@@ -109,16 +115,6 @@ _TOML_PATH_TO_CONFIG_CLASS: Final = {
     ("quantity", "str"): "ParametricQuantityStrConfig",
 }
 
-# Mapping from Config class name to config instance
-_CONFIG_CLASS_TO_INSTANCE: Final[dict[str, Any]] = {}
-
-
-def _initialize_config_mapping(cfg: ParametricConfig) -> None:
-    """Populate the class-name -> instance mapping (call after singleton init)."""
-    for name in cfg._override_sections:  # noqa: SLF001
-        instance = getattr(cfg, name)
-        _CONFIG_CLASS_TO_INSTANCE[type(instance).__name__] = instance
-
 
 def _auto_load_project_toml_config(cfg: ParametricConfig, /) -> None:
     """Auto-load ``[tool.unxts.parametric]`` config without import-time errors."""
@@ -135,24 +131,10 @@ def _auto_load_project_toml_config(cfg: ParametricConfig, /) -> None:
     except (OSError, tomllib.TOMLDecodeError, TypeError, KeyError):
         return
 
-    if not loaded:
-        return
-
-    for class_name, class_config in loaded.items():
-        if class_name not in _CONFIG_CLASS_TO_INSTANCE:
-            continue
-        config_instance = _CONFIG_CLASS_TO_INSTANCE[class_name]
-        valid_keys = _override_keys(type(config_instance))
-        for key, value in class_config.items():
-            if key not in valid_keys:
-                continue
-            try:
-                setattr(config_instance, key, value)
-            except (TraitError, AttributeError):
-                continue
+    if loaded:
+        apply_config_sections(loaded, config_class_mapping(cfg))
 
 
 # Create the global singleton instance
 config = ParametricConfig.instance()
-_initialize_config_mapping(config)
 _auto_load_project_toml_config(config)
