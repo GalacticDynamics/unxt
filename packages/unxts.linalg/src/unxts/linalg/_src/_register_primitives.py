@@ -10,26 +10,11 @@ Registers handlers for the following JAX primitives:
 - ``lax.gather_p`` — element-selection gather (e.g. jnp.diag)
 - ``lax.reduce_sum_p`` — summation reduction
 
-Every rule here returns via `QuantityMatrix._mk`, the unchecked constructor,
-rather than the ordinary one. `AbstractQuantity._mk` asks that the theorem
-justifying it be stated at the call site; it is the same theorem for all of
-them, so it is stated once here:
-
-1. The *value* is always the output of a `jax.lax` primitive or of arithmetic
-   between two such outputs, hence already a `jax.Array` or tracer — exactly
-   what ``convert_to_quantity_value`` would return. None of these primitives is
-   multi-output, so none hands back the `list` that the converter exists to fold.
-2. The *unit* is always an existing `UnitsMatrix` or the result of `UnitsMatrix`
-   arithmetic, so `unxts.api.unit`'s converter is the identity on it. The one
-   exception is ``dot_general`` 2-D x 2-D, which keeps its output units as a bare
-   object array for a broadcast and so wraps them explicitly.
-3. ``__check_init__``'s invariant -- ``value.shape[-unit.ndim:] == unit.shape``
-   -- is arithmetic here rather than an assumption: the unit structure is built
-   from the very axes of the value it is paired with, and the contraction axes
-   are checked up front by `_check_contract`.
-
-`QuantityMatrix` is not an `AbstractParametricQuantity`, so a rule whose *unit
-changes* is fine too -- there is no type parameter to re-infer from the new unit.
+Every rule returns via the unchecked `QuantityMatrix._mk`: values are always
+`lax` outputs (single-output primitives only), units always existing or derived
+`UnitsMatrix`, and the shape invariant is built from the same axes it pairs
+(contraction axes checked up front by `_check_contract`). ``dot_general`` 2-D x
+2-D is the one exception and wraps its units explicitly.
 """
 
 from functools import lru_cache
@@ -352,7 +337,7 @@ def _dot_general_2d_1d(
     _check_contract(lhs.shape[-1], rhs.shape[-1])
 
     # 1) Output units: ref[i] = lhs.unit[i][0] * rhs.unit[0]
-    out_unit = UnitsMatrix._wrap(np.multiply(lhs.unit._units[:, 0], rhs.unit._units[0]))
+    out_unit = UnitsMatrix(np.multiply(lhs.unit._units[:, 0], rhs.unit._units[0]))
 
     # 2) Precompute scale factors: scale[i, j] converts
     #    lhs.unit[i][j]*rhs.unit[j] → ref[i]
@@ -413,7 +398,7 @@ def _dot_general_1d_2d(
     _check_contract(lhs.shape[-1], rhs.shape[-2])
 
     # 1) Output units: ref[k] = lhs.unit[0] * rhs.unit[0][k]
-    out_unit = UnitsMatrix._wrap(np.multiply(lhs.unit._units[0], rhs.unit._units[0, :]))
+    out_unit = UnitsMatrix(np.multiply(lhs.unit._units[0], rhs.unit._units[0, :]))
 
     # 2) Precompute scale factors: scale[j, k] converts
     #    lhs.unit[j]*rhs.unit[j][k] → ref[k]
@@ -490,8 +475,7 @@ def _dot_general_2d_2d(
     #    C[..., i, k] = Σ_j  scale[i, j, k] * A[..., i, j] * B[..., j, k]
     accum = jnp.einsum("ijk,...ij,...jk->...ik", scale_3d, lhs.value, rhs.value)
 
-    # `out_unit` is a bare object array here (it is kept in that form for the
-    # broadcast above), so it needs the wrap that `_mk` skips.
+    # `out_unit` is a bare object array (kept so for the broadcast above).
     return QuantityMatrix._mk(value=accum, unit=UnitsMatrix._wrap(out_unit))
 
 
@@ -916,7 +900,7 @@ def _jit_fallback_uniform_unit(
             "Call eagerly (outside jit) for heterogeneous-unit QuantityMatrix."
         )
         raise ValueError(msg)
-    return UnitsMatrix._wrap(np.full(out_shape, first, dtype=object))
+    return UnitsMatrix(np.full(out_shape, first, dtype=object))
 
 
 @quax.register(lax.gather_p)
@@ -1037,9 +1021,9 @@ def gather_qm(
         # Eager path: indices are concrete — look up units directly.
         idx_np = np.asarray(start_indices)
         if x.unit.ndim == 1:
-            out_unit = UnitsMatrix._wrap(x.unit._units[idx_np[..., 0]])
+            out_unit = UnitsMatrix(x.unit._units[idx_np[..., 0]])
         else:  # x.unit.ndim == 2
-            out_unit = UnitsMatrix._wrap(x.unit._units[idx_np[..., 0], idx_np[..., 1]])
+            out_unit = UnitsMatrix(x.unit._units[idx_np[..., 0], idx_np[..., 1]])
 
     return QuantityMatrix._mk(value=result_value, unit=out_unit)
 
@@ -1106,12 +1090,12 @@ def reduce_sum_p_qm(
     if operand.unit.ndim == 2 and logical_axes == {0}:
         # Row reduction → unit = first row's units. Convert every row to that
         # reference row before summing so compatible-but-different units add up.
-        out_unit = UnitsMatrix._wrap(units[0])
+        out_unit = UnitsMatrix(units[0])
         target = tuple(tuple(units[0]) for _ in range(units.shape[0]))
         value = _convert_value_matrix(operand.value, units, target)
     elif operand.unit.ndim == 2 and logical_axes == {1}:
         # Column reduction → unit = first column's units; convert each column.
-        out_unit = UnitsMatrix._wrap(units[:, 0])
+        out_unit = UnitsMatrix(units[:, 0])
         target = tuple(
             tuple(units[i, 0] for _ in range(units.shape[1]))
             for i in range(units.shape[0])
