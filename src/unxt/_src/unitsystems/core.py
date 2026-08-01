@@ -145,17 +145,16 @@ def unitsystem(*args: Any) -> AbstractUnitSystem:
 
     # A unit system is identified by its *set* of dimensions, not the argument
     # order. Look up a registered class (a built-in like ``LTMAUnitSystem`` or a
-    # previously-created dynamic one) by that set -- an O(1) hit on the by-set
-    # index -- and build it in that class's own field order. This keeps the
-    # built-ins in their conventional order (galactic stays length, time, mass,
-    # angle) while making construction order-independent.
+    # previously-created dynamic one) by that set and build it in that class's
+    # own field order. This keeps the built-ins in their conventional order
+    # (galactic stays length, time, mass, angle) while making construction
+    # order-independent.
     #
-    # Read the index through the ``base`` module (not a ``from base import``
-    # binding) so that registration -- which mutates ``base._UNITSYSTEMS_BY_DIMSET``
-    # -- and this lookup always agree on the same object, including when a test
-    # swaps the module attribute for an isolated one.
+    # Call through the ``base`` module (not a ``from base import`` binding) so
+    # that registration and this lookup always agree on the same registry,
+    # including when a test swaps the module attribute for an isolated one.
     unit_by_dim = dict(zip(dims, args, strict=True))
-    reg_cls = base._UNITSYSTEMS_BY_DIMSET.get(frozenset(dims))  # noqa: SLF001
+    reg_cls = base.registered_unitsystem(dims)
     if reg_cls is not None:
         return reg_cls(*(unit_by_dim[d] for d in reg_cls._base_dimensions))  # noqa: SLF001
 
