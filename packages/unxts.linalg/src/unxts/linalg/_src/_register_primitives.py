@@ -36,23 +36,11 @@ from unxt.quantity import AllowValue
 def _factor(to_unit: Any, from_unit: Any, /) -> float:
     """Conversion factor ``from_unit -> to_unit``.
 
-    A contraction needs one factor per index -- N*K*M of them for a 2-D @ 2-D
-    product -- but a matrix carries only a handful of *distinct* unit pairs, and
-    ``uconvert_value`` costs ~19us a call. Hence the memoization.
-
-    CORRECTNESS NOTE -- why a multiplicative scale factor is exact:
-    Affine units (degC, degF) are the only units where a bare multiplicative
-    scale would be wrong (they have an additive offset). But astropy rejects
-    product conversions involving affine units -- e.g. ``(deg_C * s).to(deg_F *
-    s)`` raises ``UnitConversionError``. Every product unit that astropy *does*
-    accept (including logarithmic units like dex, mag) is a plain
-    ``CompositeUnit`` whose conversion is purely multiplicative. So
-    ``uconvert_value(to, from, 1.0)`` yields an exact scale factor for all valid
-    product units.
-
-    The tests in ``TestAffineProductUnitsRejected`` assert that astropy keeps
-    rejecting affine product conversions. If that ever changes, those tests will
-    fail, alerting us that this assumption needs revisiting.
+    Memoized: a contraction needs N*K*M factors but only a handful of distinct
+    unit pairs, at ~19us a call. A bare multiplicative factor is exact here --
+    affine units (degC, degF) would need the additive offset, but astropy
+    rejects affine product conversions outright, guarded by
+    ``TestAffineProductUnitsRejected``.
     """
     return u.uconvert_value(to_unit, from_unit, 1.0)
 
