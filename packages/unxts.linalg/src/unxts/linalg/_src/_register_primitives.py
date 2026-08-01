@@ -11,6 +11,7 @@ Registers handlers for the following JAX primitives:
 - ``lax.reduce_sum_p`` — summation reduction
 """
 
+from functools import lru_cache
 from typing import Any, cast
 
 import jax
@@ -31,14 +32,13 @@ from ._utils import _DMLS
 from unxt.quantity import AllowValue
 
 
-def _scale_factors(to_units: np.ndarray, from_units: np.ndarray, /) -> np.ndarray:
-    """Per-element conversion factors ``from_units -> to_units``.
+@lru_cache(maxsize=4096)
+def _factor(to_unit: Any, from_unit: Any, /) -> float:
+    """Conversion factor ``from_unit -> to_unit``.
 
-    A contraction needs one factor per output/contraction index -- N*K*M of them
-    for a 2-D @ 2-D product -- but a matrix carries only a handful of *distinct*
-    unit pairs, and ``uconvert_value`` costs ~19us a call. So compute each
-    distinct pair once and reuse it (measured 51x on a 10x10x10 scale array;
-    values identical to the previous per-element ``np.vectorize`` call).
+    A contraction needs one factor per index -- N*K*M of them for a 2-D @ 2-D
+    product -- but a matrix carries only a handful of *distinct* unit pairs, and
+    ``uconvert_value`` costs ~19us a call. Hence the memoization.
 
     CORRECTNESS NOTE -- why a multiplicative scale factor is exact:
     Affine units (degC, degF) are the only units where a bare multiplicative
@@ -54,16 +54,11 @@ def _scale_factors(to_units: np.ndarray, from_units: np.ndarray, /) -> np.ndarra
     rejecting affine product conversions. If that ever changes, those tests will
     fail, alerting us that this assumption needs revisiting.
     """
-    to_b, from_b = np.broadcast_arrays(to_units, from_units)
-    cache: dict[Any, Any] = {}
+    return u.uconvert_value(to_unit, from_unit, 1.0)
 
-    def factor(pair: Any, /) -> Any:
-        if (v := cache.get(pair)) is None:
-            v = cache[pair] = u.uconvert_value(pair[0], pair[1], 1.0)
-        return v
 
-    flat = [factor(p) for p in zip(to_b.reshape(-1), from_b.reshape(-1), strict=True)]
-    return np.asarray(flat).reshape(to_b.shape)
+#: Broadcast per-element conversion factors ``from_units -> to_units``.
+_scale_factors = np.vectorize(_factor)
 
 
 # ── add / sub ────────────────────────────────────────────────────────────
@@ -281,8 +276,6 @@ def _dot_general_1d_1d(
 
     # Reference unit: lhs.unit[0] * rhs.unit[0]
     ref_unit = lhs.unit[0] * rhs.unit[0]
-    ref_units = np.empty(n, dtype=object)
-    ref_units[:] = ref_unit
 
     # Compute scale factors. ``uconvert_value`` returns Python floats, so a bare
     # ``jnp.array`` is float64 and would silently upcast a float32 contraction
@@ -290,7 +283,7 @@ def _dot_general_1d_1d(
     # float keeps the scale *at least* floating (so integer operands still get a
     # correct fractional conversion) without widening float32 → float64.
     scales = jnp.asarray(
-        _scale_factors(ref_units, np.multiply(lhs.unit._units, rhs.unit._units)),
+        _scale_factors(ref_unit, np.multiply(lhs.unit._units, rhs.unit._units)),
         dtype=jnp.result_type(lhs.value, rhs.value, 1.0),
     )
 
@@ -475,7 +468,7 @@ def _dot_general_2d_2d(
 
     # 2) Precompute all scale factors as a (N, K, M) constant array.
     #    scale[i, j, k] converts lhs.unit[i][j]*rhs.unit[j][k] → out_unit[i][k].
-    #    See ``_scale_factors`` for why a multiplicative factor is exact here.
+    #    See ``_factor`` for why a multiplicative factor is exact here.
     scale_3d = jnp.asarray(
         _scale_factors(
             out_unit[:, None, :],  # (N, 1, M)
