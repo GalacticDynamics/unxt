@@ -208,4 +208,4 @@ def _inv_p_QuantityMatrix(x: QuantityMatrix, /) -> QuantityMatrix:
         raise ValueError(msg)
 
     inv_val = inv_p.bind(x.value)
-    return QuantityMatrix(inv_val, unit=x.unit.inverse())
+    return QuantityMatrix._mk(value=inv_val, unit=x.unit.inverse())

@@ -252,7 +252,7 @@ class QuantityMatrix(u.AbstractQuantity):
             raise NotImplementedError(msg)
         unit_item = self.unit[idx[n_batch:]]  # () -> whole unit (batch-only index)
         if isinstance(unit_item, UnitsMatrix):
-            return QuantityMatrix(value=value_item, unit=unit_item)
+            return QuantityMatrix._mk(value=value_item, unit=unit_item)
         return u.Q(value_item, unit_item)
 
     def __matmul__(self, other: Any) -> Any:
@@ -359,7 +359,7 @@ class QuantityMatrix(u.AbstractQuantity):
         # single primitive (result diagonal is the trailing axis), avoiding an
         # n-op Python loop; units come from the static `UnitsMatrix`.
         diag_value = jnp.diagonal(self.value, axis1=-2, axis2=-1)
-        return QuantityMatrix(value=diag_value, unit=self.unit.diagonal())
+        return QuantityMatrix._mk(value=diag_value, unit=self.unit.diagonal())
 
     @property
     def T(self) -> "QuantityMatrix":
@@ -397,7 +397,9 @@ class QuantityMatrix(u.AbstractQuantity):
         if self.ndim != 2:
             msg = f"QuantityMatrix.T requires a 2-D matrix, got ndim={self.ndim}"
             raise ValueError(msg)
-        return QuantityMatrix(value=jnp.swapaxes(self.value, -2, -1), unit=self.unit.T)
+        return QuantityMatrix._mk(
+            value=jnp.swapaxes(self.value, -2, -1), unit=self.unit.T
+        )
 
 
 QM = QuantityMatrix
@@ -546,4 +548,4 @@ def uconvert(to_units: UnitsMatrix, x: QuantityMatrix, /) -> QuantityMatrix:
     if x.unit == to_units:
         return x
     value = _convert_value(x.value, x.unit, to_units)
-    return QuantityMatrix(value=value, unit=to_units)
+    return QuantityMatrix._mk(value=value, unit=to_units)
