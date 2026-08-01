@@ -6,7 +6,6 @@ import equinox as eqx
 import jax
 import jax.core
 import jax.numpy as jnp
-import jax.tree_util as jtu
 import plum
 import quax
 from jaxtyping import Array, Shaped
@@ -494,20 +493,19 @@ def QuantityMatrix_to_quantity(x: QuantityMatrix, /) -> u.Q:
     identical.
 
     """
-    units = jtu.tree_leaves(x.unit.to_tuple())
+    units = x.unit._units.ravel()
 
-    if not units:
+    if units.size == 0:
         msg = "Cannot convert QuantityMatrix with no unit entries."
         raise ValueError(msg)
 
-    first = units[0]
-    if any(unit != first for unit in units[1:]):
+    if not x.unit.is_uniform:
         msg = (
             "Cannot convert QuantityMatrix to Quantity unless all units are identical."
         )
         raise ValueError(msg)
 
-    return u.Q(x.value, first)
+    return u.Q(x.value, units[0])
 
 
 def _convert_value(

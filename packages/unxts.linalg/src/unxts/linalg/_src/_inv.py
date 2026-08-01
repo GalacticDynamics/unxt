@@ -199,8 +199,7 @@ def _inv_p_QuantityMatrix(x: QuantityMatrix, /) -> QuantityMatrix:
     # The reciprocal-unit result is only correct when the units are uniform;
     # a matrix inverse mixes entries, so heterogeneous units are not simply
     # reciprocated element-by-element.
-    flat = x.unit._units.ravel()
-    if any(unit_i != flat[0] for unit_i in flat[1:]):
+    if not x.unit.is_uniform:
         msg = (
             "inv on a QuantityMatrix requires uniform units (all entries equal); "
             "the inverse of a heterogeneous-unit matrix is not an element-wise "

@@ -1,5 +1,6 @@
 """Immutable, hashable unit structure for QuantityMatrix."""
 
+import functools
 import operator
 from typing import Any, TypeAlias, TypeVar, final
 
@@ -254,6 +255,23 @@ class UnitsMatrix:
         return int(self._units.ndim)
 
     @property
+    def is_uniform(self) -> bool:
+        """Whether every entry carries the same unit; empty is vacuously uniform.
+
+        Examples
+        --------
+        >>> from unxts.linalg import UnitsMatrix
+
+        >>> UnitsMatrix((("m", "m"), ("m", "m"))).is_uniform
+        True
+        >>> UnitsMatrix(("m", "s")).is_uniform
+        False
+
+        """
+        flat = self._units.ravel()
+        return flat.size == 0 or all(x == flat[0] for x in flat[1:])
+
+    @property
     def T(self) -> "UnitsMatrix":
         """Compute the all-axis units array transpose.
 
@@ -274,7 +292,7 @@ class UnitsMatrix:
         UnitsMatrix("((m, Hz), (s, cd), (kg, km))")
 
         """
-        return UnitsMatrix(self._units.T)
+        return UnitsMatrix._wrap(self._units.T)
 
     def diagonal(self) -> "UnitsMatrix":
         """Return the main diagonal of a 2-D `UnitsMatrix` as a 1-D `UnitsMatrix`.
@@ -295,10 +313,9 @@ class UnitsMatrix:
     def __pow__(self, exponent: int | float, /) -> "UnitsMatrix":
         r"""Element-wise unit power — each unit raised to ``exponent``.
 
-        For a 1-D (diagonal) ``UnitsMatrix`` the power is applied entry-by-entry
-        in *O(n)*.  For a 2-D ``UnitsMatrix`` with a uniform unit (all entries
-        equal) it is computed once and broadcast in *O(1)*; mixed-unit 2-D
-        structures fall back to an element-wise *O(nm)* loop.
+        Each *distinct* unit's power is computed once and reused, so a uniform
+        structure costs one ``Unit.__pow__`` regardless of size, and a mixed one
+        costs a power per distinct unit rather than per entry.
 
         Examples
         --------
@@ -309,7 +326,7 @@ class UnitsMatrix:
         >>> UnitsMatrix(("m2", "s2")) ** 0.5
         UnitsMatrix("(m, s)")
 
-        2-D uniform-unit case (computed once, broadcast):
+        2-D uniform-unit case (computed once, reused):
 
         >>> UnitsMatrix((("m2", "m2"), ("m2", "m2"))) ** 0.5
         UnitsMatrix("((m, m), (m, m))")
@@ -319,33 +336,28 @@ class UnitsMatrix:
         >>> UnitsMatrix((("m2", "s2"), ("s2", "rad2"))) ** 0.5
         UnitsMatrix("((m, s), (s, rad))")
 
+        An empty structure gives an empty result:
+
+        >>> import numpy as np
+        >>> UnitsMatrix(np.empty(0, dtype=object)) ** 2
+        UnitsMatrix("()")
+
         """
-        out = np.empty(self._units.shape, dtype=object)
-        if self._units.size == 0:
-            # Empty matrix -> empty result; the 2-D fast path below indexes
-            # flat[0], which would raise on a zero-size array.
-            return UnitsMatrix(out)
-        if self._units.ndim == 1:
-            for i in range(self._units.shape[0]):
-                out[i] = self._units[i] ** exponent
-        else:
-            # 2-D: fast path when all entries share the same unit.
-            flat = self._units.ravel()
-            first = flat[0]
-            if all(x == first for x in flat[1:]):
-                out[:] = first**exponent
-            else:
-                n, m = self._units.shape
-                for i in range(n):
-                    for j in range(m):
-                        out[i, j] = self._units[i, j] ** exponent
-        return UnitsMatrix(out)
+
+        @functools.cache
+        def powered(un: Any, /) -> Any:
+            return un**exponent
+
+        out = np.fromiter(
+            map(powered, self._units.flat), dtype=object, count=self._units.size
+        )
+        return UnitsMatrix._wrap(out.reshape(self._units.shape))
 
     def inverse(self) -> "UnitsMatrix":
         r"""Inverse unit structure — each unit raised to the power -1.
 
-        Equivalent to ``self ** -1``; see ``__pow__`` for the shape-aware fast
-        paths (1-D *O(n)*, 2-D uniform-unit *O(1)*, 2-D mixed *O(nm)*).
+        Equivalent to ``self ** -1``; see ``__pow__`` — a single flat pass over
+        the entries, with each *distinct* unit's reciprocal computed once.
 
         Examples
         --------
@@ -401,7 +413,7 @@ class UnitsMatrix:
             other_units[...] = other
         else:
             return NotImplemented  # ty: ignore[invalid-return-type]
-        return UnitsMatrix(op(self._units, other_units))
+        return UnitsMatrix._wrap(op(self._units, other_units))
 
     def __mul__(self, other: Any, /) -> "UnitsMatrix":
         """Element-wise unit product (against a unit or another UnitsMatrix).
@@ -511,7 +523,7 @@ class UnitsMatrix:
             yield from self._units
             return
         for row in self._units:
-            yield UnitsMatrix(row)
+            yield UnitsMatrix._wrap(row)
 
     def __getitem__(self, index: Any, /) -> Any:
         """Index into the UnitsMatrix to retrieve a unit or sub-structure.
@@ -534,12 +546,17 @@ class UnitsMatrix:
         if isinstance(result, np.ndarray):
             if result.ndim == 0:  # 0-d array -> extract the contained unit.
                 return result.item()
-            return UnitsMatrix(result)
+            return UnitsMatrix._wrap(result)
         return result
 
 
+# NB: annotate the bare ``tuple``, not ``tuple[Any, ...]``. A *parametric*
+# generic is not "faithful" in plum, and one unfaithful signature disables
+# method caching for the whole ``unit`` function -- library-wide, for every
+# unxt user who merely has this package installed. The two annotations match
+# exactly the same values; only the caching differs (measured 2.0x).
 @plum.dispatch
-def unit(tuple_of_units: tuple[Any, ...], /) -> UnitsMatrix:
+def unit(tuple_of_units: tuple, /) -> UnitsMatrix:
     """Convert a nested tuple of units into a ``UnitsMatrix``.
 
     This allows users to specify units in a convenient nested tuple format when
