@@ -7,6 +7,7 @@ This is the private implementation of the dimensions module.
 __all__ = ("AbstractDimension", "dimension", "dimension_of")
 
 import ast
+import functools as ft
 import importlib.metadata
 import operator
 import re
@@ -222,6 +223,12 @@ def dimension(obj: AbstractDimension, /) -> AbstractDimension:
 
 
 @dispatch
+# Parsing a dimension string is pure, and astropy hands back a registry
+# singleton -- ``dimension("length/time") is dimension("length/time")`` was
+# already True before this cache, so memoizing changes no observable
+# behaviour, it only skips redoing the parse. Bounded because the keys come
+# from user input; the working vocabulary of dimension strings is tiny.
+@ft.lru_cache(maxsize=256)
 def dimension(obj: str, /) -> AbstractDimension:
     """Construct dimension from a string.
 
