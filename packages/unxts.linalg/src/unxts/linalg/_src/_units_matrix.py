@@ -338,6 +338,7 @@ class UnitsMatrix:
 
         An empty structure gives an empty result:
 
+        >>> import numpy as np
         >>> UnitsMatrix(np.empty(0, dtype=object)) ** 2
         UnitsMatrix("()")
 
