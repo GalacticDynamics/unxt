@@ -9,6 +9,10 @@ Registers handlers for the following JAX primitives:
 - ``lax.transpose_p`` — matrix transpose
 - ``lax.gather_p`` — element-selection gather (e.g. jnp.diag)
 - ``lax.reduce_sum_p`` — summation reduction
+
+Rules returning a `QuantityMatrix` build it with the unchecked `_mk`: the value
+is always a `lax` output and the unit an already-normalised `UnitsMatrix` built
+from that value's own axes, so both converters and `__check_init__` are no-ops.
 """
 
 from functools import lru_cache
@@ -93,7 +97,7 @@ def add_qm_qm(x: QuantityMatrix, y: QuantityMatrix, /) -> QuantityMatrix:
 
     """
     y_converted = _convert_value(y.value, y.unit, x.unit)
-    return QuantityMatrix(value=lax.add(x.value, y_converted), unit=x.unit)
+    return QuantityMatrix._mk(value=lax.add(x.value, y_converted), unit=x.unit)
 
 
 @quax.register(lax.sub_p)
@@ -140,7 +144,7 @@ def sub_qm_qm(x: QuantityMatrix, y: QuantityMatrix, /) -> QuantityMatrix:
 
     """
     y_converted = _convert_value(y.value, y.unit, x.unit)
-    return QuantityMatrix(value=lax.sub(x.value, y_converted), unit=x.unit)
+    return QuantityMatrix._mk(value=lax.sub(x.value, y_converted), unit=x.unit)
 
 
 # ── mul / div (element-wise) ──────────────────────────────────────────────
@@ -156,7 +160,7 @@ def sub_qm_qm(x: QuantityMatrix, y: QuantityMatrix, /) -> QuantityMatrix:
 @quax.register(lax.mul_p)
 def mul_qm_qm(x: QuantityMatrix, y: QuantityMatrix, /, **kw: Any) -> QuantityMatrix:
     """Element-wise product of two `QuantityMatrix` objects (units multiply)."""
-    return QuantityMatrix(x.value * y.value, unit=x.unit * y.unit)
+    return QuantityMatrix._mk(value=x.value * y.value, unit=x.unit * y.unit)
 
 
 @quax.register(lax.mul_p)
@@ -166,7 +170,7 @@ def mul_qm_qty(
     """`QuantityMatrix` x uniform-unit Quantity: scale values, multiply units."""
     y_unit = u.unit_of(y)
     y_val = u.ustrip(AllowValue, y_unit, y)
-    return QuantityMatrix(x.value * y_val, unit=x.unit * y_unit)
+    return QuantityMatrix._mk(value=x.value * y_val, unit=x.unit * y_unit)
 
 
 @quax.register(lax.mul_p)
@@ -180,19 +184,19 @@ def mul_qty_qm(
 @quax.register(lax.mul_p)
 def mul_qm_arr(x: QuantityMatrix, y: jax.Array, /, **kw: Any) -> QuantityMatrix:
     """`QuantityMatrix` x dimensionless array: scale values, units unchanged."""
-    return QuantityMatrix(x.value * y, unit=x.unit)
+    return QuantityMatrix._mk(value=x.value * y, unit=x.unit)
 
 
 @quax.register(lax.mul_p)
 def mul_arr_qm(x: jax.Array, y: QuantityMatrix, /, **kw: Any) -> QuantityMatrix:
     """Dimensionless array x `QuantityMatrix`."""
-    return QuantityMatrix(x * y.value, unit=y.unit)
+    return QuantityMatrix._mk(value=x * y.value, unit=y.unit)
 
 
 @quax.register(lax.div_p)
 def div_qm_qm(x: QuantityMatrix, y: QuantityMatrix, /, **kw: Any) -> QuantityMatrix:
     """Element-wise quotient of two `QuantityMatrix` objects (units divide)."""
-    return QuantityMatrix(x.value / y.value, unit=x.unit / y.unit)
+    return QuantityMatrix._mk(value=x.value / y.value, unit=x.unit / y.unit)
 
 
 @quax.register(lax.div_p)
@@ -202,7 +206,7 @@ def div_qm_qty(
     """`QuantityMatrix` / uniform-unit Quantity."""
     y_unit = u.unit_of(y)
     y_val = u.ustrip(AllowValue, y_unit, y)
-    return QuantityMatrix(x.value / y_val, unit=x.unit / y_unit)
+    return QuantityMatrix._mk(value=x.value / y_val, unit=x.unit / y_unit)
 
 
 @quax.register(lax.div_p)
@@ -212,19 +216,19 @@ def div_qty_qm(
     """Uniform-unit Quantity / `QuantityMatrix` (not commutative)."""
     x_unit = u.unit_of(x)
     x_val = u.ustrip(AllowValue, x_unit, x)
-    return QuantityMatrix(x_val / y.value, unit=x_unit / y.unit)
+    return QuantityMatrix._mk(value=x_val / y.value, unit=x_unit / y.unit)
 
 
 @quax.register(lax.div_p)
 def div_qm_arr(x: QuantityMatrix, y: jax.Array, /, **kw: Any) -> QuantityMatrix:
     """`QuantityMatrix` / dimensionless array: scale values, units unchanged."""
-    return QuantityMatrix(x.value / y, unit=x.unit)
+    return QuantityMatrix._mk(value=x.value / y, unit=x.unit)
 
 
 @quax.register(lax.div_p)
 def div_arr_qm(x: jax.Array, y: QuantityMatrix, /, **kw: Any) -> QuantityMatrix:
     """Dimensionless array / `QuantityMatrix` (units invert)."""
-    return QuantityMatrix(x / y.value, unit=_DMLS / y.unit)
+    return QuantityMatrix._mk(value=x / y.value, unit=_DMLS / y.unit)
 
 
 # ── dot_general helpers ───────────────────────────────────────────────────
@@ -347,7 +351,7 @@ def _dot_general_2d_1d(
     #    w[..., i] = Σ_j  scale[i, j] * A[..., i, j] * v[..., j]
     accum = jnp.einsum("ij,...ij,...j->...i", scale_2d, lhs.value, rhs.value)
 
-    return QuantityMatrix(value=accum, unit=out_unit)
+    return QuantityMatrix._mk(value=accum, unit=out_unit)
 
 
 def _dot_general_1d_2d(
@@ -408,7 +412,7 @@ def _dot_general_1d_2d(
     #    w[..., k] = Σ_j  scale[j, k] * v[..., j] * A[..., j, k]
     accum = jnp.einsum("jk,...j,...jk->...k", scale_2d, lhs.value, rhs.value)
 
-    return QuantityMatrix(value=accum, unit=out_unit)
+    return QuantityMatrix._mk(value=accum, unit=out_unit)
 
 
 def _dot_general_2d_2d(
@@ -469,7 +473,8 @@ def _dot_general_2d_2d(
     #    C[..., i, k] = Σ_j  scale[i, j, k] * A[..., i, j] * B[..., j, k]
     accum = jnp.einsum("ijk,...ij,...jk->...ik", scale_3d, lhs.value, rhs.value)
 
-    return QuantityMatrix(value=accum, unit=out_unit)
+    # `out_unit` is a bare object array (kept so for the broadcast above).
+    return QuantityMatrix._mk(value=accum, unit=UnitsMatrix._wrap(out_unit))
 
 
 # ── dot_general dispatch ──────────────────────────────────────────────────
@@ -610,7 +615,7 @@ def _wrap_operand(
         )
         raise NotImplementedError(msg)
     unit = UnitsMatrix.full(value.shape[-logical_ndim:], element_unit)
-    return QuantityMatrix(value, unit=unit)
+    return QuantityMatrix._mk(value=value, unit=unit)
 
 
 @quax.register(lax.dot_general_p)
@@ -870,7 +875,7 @@ def transpose_qm(
         )
         raise NotImplementedError(msg)
     transposed_value = lax.transpose(x.value, permutation)
-    return QuantityMatrix(value=transposed_value, unit=x.unit.T)
+    return QuantityMatrix._mk(value=transposed_value, unit=x.unit.T)
 
 
 # ── gather ───────────────────────────────────────────────────────────────
@@ -1018,7 +1023,7 @@ def gather_qm(
         else:  # x.unit.ndim == 2
             out_unit = UnitsMatrix(x.unit._units[idx_np[..., 0], idx_np[..., 1]])
 
-    return QuantityMatrix(value=result_value, unit=out_unit)
+    return QuantityMatrix._mk(value=result_value, unit=out_unit)
 
 
 # ── reduce_sum ───────────────────────────────────────────────────────────
@@ -1077,7 +1082,7 @@ def reduce_sum_p_qm(
     # Reducing only batch axes leaves the per-element unit structure unchanged.
     if not logical_axes:
         result_value = lax.reduce_sum_p.bind(operand.value, axes=axes, **kwargs)
-        return QuantityMatrix(value=result_value, unit=operand.unit)
+        return QuantityMatrix._mk(value=result_value, unit=operand.unit)
 
     units = operand.unit._units
     if operand.unit.ndim == 2 and logical_axes == {0}:
@@ -1103,4 +1108,4 @@ def reduce_sum_p_qm(
         raise NotImplementedError(msg)
 
     result_value = lax.reduce_sum_p.bind(value, axes=axes, **kwargs)
-    return QuantityMatrix(value=result_value, unit=out_unit)
+    return QuantityMatrix._mk(value=result_value, unit=out_unit)
