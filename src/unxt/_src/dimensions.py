@@ -74,14 +74,16 @@ def _eval_exponent(node: ast.AST, /) -> int | float:
     means "length times itself", so ``2`` must reduce to a number here rather
     than route back through `_eval_dimension_node`.
     """
+    # A negative exponent (``length**-1``) parses as USub over the constant.
+    # Peel the sign off first so the checks below see the bare operand and can
+    # report the same ``got: <type>`` detail either way.
+    sign = 1
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
+        node, sign = node.operand, -1
+
     match node:
         case ast.Constant(value=int() | float() as value):
-            return value
-        # A negative exponent (``length**-1``) parses as USub over a Constant.
-        case ast.UnaryOp(
-            op=ast.USub(), operand=ast.Constant(value=int() | float() as value)
-        ):
-            return -value
+            return sign * value
         case ast.Constant(value=value):
             msg = f"Power exponent must be a number, got: {type(value).__name__}"
             raise TypeError(msg)
@@ -93,7 +95,7 @@ def _eval_exponent(node: ast.AST, /) -> int | float:
 def _eval_dimension_node(
     node: ast.AST, /, *, dim_mapping: dict[str, str] | None = None
 ) -> AbstractDimension:
-    """Recursively evaluate AST nodes into dimensions.
+    """Recursively evaluate AST nodes into dimensions or numeric values.
 
     Parameters
     ----------
@@ -105,7 +107,8 @@ def _eval_dimension_node(
     Returns
     -------
     AbstractDimension
-        Evaluated dimension.
+        Evaluated dimension, or a bare numeric constant when the node is a
+        numeric factor (e.g. the ``2`` in ``"2 * length"``).
 
     """
     mapping = {} if dim_mapping is None else dim_mapping
