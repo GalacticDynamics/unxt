@@ -16,11 +16,6 @@ _DMLS = u.unit("")
 PackedUnitOutput: TypeAlias = tuple["u.AbstractUnit | UnitsMatrix | None", ...]
 
 
-def strict_zip(*args: Any) -> zip:
-    """Zip iterables while enforcing equal lengths."""
-    return zip(*args, strict=True)
-
-
 def cdict_units(p: CDict, keys: tuple[str, ...], /) -> PackedUnitOutput:
     """Extract per-key units from a component dictionary.
 

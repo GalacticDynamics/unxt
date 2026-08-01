@@ -13,7 +13,7 @@ from jaxtyping import Array, Shaped
 
 import unxt as u
 from ._units_matrix import UnitsMatrix
-from ._utils import _DMLS, CDict, strict_zip
+from ._utils import _DMLS, CDict
 from unxt.quantity import AllowValue
 
 
@@ -181,7 +181,7 @@ class QuantityMatrix(u.AbstractQuantity):
         # confusing downstream dispatch error.
         bad = [
             k
-            for k, x in strict_zip(keys, vs)
+            for k, x in zip(keys, vs, strict=True)
             if isinstance(x, (QuantityMatrix, UnitsMatrix))
         ]
         if bad:
@@ -192,7 +192,9 @@ class QuantityMatrix(u.AbstractQuantity):
             )
             raise TypeError(msg)
         us = [u.unit_of(x) or _DMLS for x in vs]
-        svs = jnp.stack([u.ustrip(AllowValue, unt, x) for x, unt in strict_zip(vs, us)])
+        svs = jnp.stack(
+            [u.ustrip(AllowValue, unt, x) for x, unt in zip(vs, us, strict=True)]
+        )
         return cls(svs, unit=UnitsMatrix(us))
 
     def __getitem__(self, index: Any, /) -> "u.Q | QuantityMatrix":  # ty: ignore[invalid-method-override]

@@ -21,7 +21,6 @@ import operator
 
 import jax
 import jax.core
-import jax.dtypes
 import jax.numpy as jnp
 import quax
 from jax import lax
