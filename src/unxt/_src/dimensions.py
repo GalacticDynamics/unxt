@@ -383,7 +383,7 @@ def dimension_of(obj: type, /) -> NoReturn:
 
 
 # ===================================================================
-# COMPAT
+# Dimension name
 
 
 @dispatch
