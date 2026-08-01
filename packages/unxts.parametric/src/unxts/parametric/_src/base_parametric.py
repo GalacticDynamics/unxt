@@ -18,7 +18,7 @@ from dataclassish import field_items, fields
 from .config import config as parametric_config
 from unxt._src.dimensions import name_of
 from unxt.config import config
-from unxt.dims import AbstractDimension, dimension, dimension_of
+from unxt.dims import AbstractDimension, dimension
 from unxt.quantity import AbstractQuantity, StaticValue
 from unxt.units import AbstractUnit, unit as parse_unit
 
@@ -31,11 +31,20 @@ def _dimension_of_unit(unit: AbstractUnit) -> AbstractDimension:
     (it carries `type[...]` class overloads, e.g.
     ``dimension_of(ParametricQuantity["length"])``),
     so `plum` cannot cache its method resolution and re-resolves on every call
-    (~60us). `__check_init__` runs on every `AbstractParametricQuantity`
-    construction -- including every arithmetic result -- so we memoize the
-    unit -> dimension lookup here. Units are hashable and the mapping is
-    immutable, so the cache is sound; this mirrors the `dimension_of(AbstractUnit)`
-    implementation (``dimension(unit.physical_type)``) while bypassing dispatch.
+    (~60us). `__check_init__` and `__infer_type_parameter__` both run on every
+    `AbstractParametricQuantity` construction -- including every arithmetic
+    result -- so we memoize the unit -> dimension lookup here. Units are hashable
+    and the mapping is immutable, so the cache is sound; this mirrors the
+    `dimension_of(AbstractUnit)` implementation
+    (``dimension(unit.physical_type)``) while bypassing dispatch.
+
+    .. note::
+
+        This memo is a workaround, not a permanent fixture. Once plum makes
+        ``type[...]`` overloads cacheable (beartype/plum#290) `dimension_of`
+        resolves from cache like any other faithful function, and every caller
+        here can drop the memo and call `dimension_of` directly.
+
     """
     return dimension(unit.physical_type)
 
@@ -85,14 +94,14 @@ class AbstractParametricQuantity(AbstractQuantity):
         try:
             dims_ = dimension(dims)
         except ValueError:
-            dims_ = dimension_of(parse_unit(dims))
+            dims_ = _dimension_of_unit(parse_unit(dims))
         return (dims_,)
 
     @classmethod
     @dispatch
     def __init_type_parameter__(cls, unit: AbstractUnit, /) -> tuple[AbstractDimension]:
         """Infer the type parameter from the arguments."""
-        dims = dimension_of(unit)
+        dims = _dimension_of_unit(unit)
         if dims != "unknown":  # pylint: disable=unreachable
             return (dims,)
         return (PhysicalType(unit, unit.to_string(fraction=False)),)
@@ -102,7 +111,7 @@ class AbstractParametricQuantity(AbstractQuantity):
         cls, value: Any, unit: Any, **kwargs: Any
     ) -> tuple[AbstractDimension]:
         """Infer the type parameter from the arguments."""
-        return (dimension_of(parse_unit(unit)),)
+        return (_dimension_of_unit(parse_unit(unit)),)
 
     @classmethod
     @dispatch
