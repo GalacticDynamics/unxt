@@ -27,6 +27,15 @@ from ._quantity_matrix import QuantityMatrix
 
 __all__ = ("matmul", "matvec", "vecdot", "vecmat")
 
+# ``quax.quaxify`` rebuilds a wrapper on every call (~18us), so wrap once here.
+# Import-time wrapping does not race the ``@quax.register`` decorators in
+# ``_register_primitives``: ``quaxify(f)`` only stores ``f`` on an ``eqx.Module``
+# and resolves the registry inside the trace at *call* time.
+_matmul = quax.quaxify(jnp.matmul)
+_matvec = quax.quaxify(jnp.matvec)
+_vecmat = quax.quaxify(jnp.vecmat)
+_vecdot = quax.quaxify(jnp.vecdot)
+
 
 def _reject_batched_vector(a: Any, b: Any, /) -> None:
     """Raise if a `QuantityMatrix` operand is a *batched* (logically 1-D) vector.
@@ -78,7 +87,7 @@ def matmul(a: Any, b: Any, /) -> Any:
 
     """
     _reject_batched_vector(a, b)
-    return quax.quaxify(jnp.matmul)(a, b)
+    return _matmul(a, b)
 
 
 def matvec(a: Any, b: Any, /) -> Any:
@@ -108,7 +117,7 @@ def matvec(a: Any, b: Any, /) -> Any:
            [3., 7.]], dtype=float32)
 
     """
-    return quax.quaxify(jnp.matvec)(a, b)
+    return _matvec(a, b)
 
 
 def vecmat(a: Any, b: Any, /) -> Any:
@@ -128,7 +137,7 @@ def vecmat(a: Any, b: Any, /) -> Any:
     Array([4., 6.], dtype=float32)
 
     """
-    return quax.quaxify(jnp.vecmat)(a, b)
+    return _vecmat(a, b)
 
 
 def vecdot(a: Any, b: Any, /) -> Any:
@@ -145,4 +154,4 @@ def vecdot(a: Any, b: Any, /) -> Any:
     Array(8003., dtype=float32)
 
     """
-    return quax.quaxify(jnp.vecdot)(a, b)
+    return _vecdot(a, b)
