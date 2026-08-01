@@ -86,6 +86,7 @@ class StaticQuantity(AbstractQuantity):
         Examples
         --------
         >>> import jax, jax.numpy as jnp
+        >>> import numpy as np
         >>> import unxt as u
         >>> from unxt._src.quantity.base import revalue
 

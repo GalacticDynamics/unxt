@@ -1113,6 +1113,12 @@ class AbstractQuantity(
         return f"{value_str} {unit_str}" if unit_str else value_str
 
 
+#: The unchecked ``_mk``. `revalue`'s debug assertion compares against this to
+#: tell a class that took the fast path from one that opted back out of it (see
+#: `unxt.quantity.StaticQuantity`), whose converter makes the check moot.
+_UNCHECKED_MK = quax_blocks.SupportsUncheckedMake.__dict__["__make__"].__func__
+
+
 def revalue(q: AbstractQuantity, value: Any, /) -> AbstractQuantity:
     """Rebuild ``q`` around a new ``value``, keeping its class and unit.
 
@@ -1161,7 +1167,18 @@ def revalue(q: AbstractQuantity, value: Any, /) -> AbstractQuantity:
     Quantity(Array([3., 4.], dtype=float32), unit='m')
 
     """
-    return type(q)._mk(value=value, unit=object.__getattribute__(q, "unit"))  # noqa: SLF001
+    mk = type(q)._mk  # noqa: SLF001
+    # Debug-only: condition 1 above, enforced rather than merely documented. A
+    # `jax.Array` covers tracers too, so this is one `isinstance` on the happy
+    # path, and `python -O` drops it entirely. It is what catches a new rule
+    # that hands over a `list` from a multi-output primitive, or a NumPy scalar
+    # -- both of which the converter would have folded into an array, and both
+    # of which would otherwise be stored raw and fail much later.
+    assert isinstance(value, jax.Array) or mk.__func__ is not _UNCHECKED_MK, (  # noqa: S101
+        f"revalue() requires an already-converted value, got {type(value).__name__}; "
+        f"use the checked constructor when that does not hold"
+    )
+    return mk(value=value, unit=object.__getattribute__(q, "unit"))
 
 
 def _is_different_from_default(value: Any, default: Any) -> bool:
