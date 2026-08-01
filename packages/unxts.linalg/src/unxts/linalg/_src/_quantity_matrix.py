@@ -405,6 +405,10 @@ QM = QuantityMatrix
 
 #: ``@`` implementation per pair of logical (``unit``) ranks. ``quaxify`` wraps
 #: at ~18us a call, so the wrappers are built once here rather than per ``@``.
+#: Wrapping at import time is safe even though ``_register_primitives`` has not
+#: run yet: ``quax.quaxify(f)`` only stores ``f`` on an ``eqx.Module`` and does
+#: every registry lookup inside ``_QuaxTrace.process_primitive`` at *call* time,
+#: so no wrap-time snapshot of the registrations exists to go stale.
 _PRODUCT_BY_RANK = {
     (2, 2): quax.quaxify(jnp.matmul),
     (2, 1): quax.quaxify(jnp.matvec),

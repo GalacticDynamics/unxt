@@ -28,6 +28,9 @@ from ._quantity_matrix import QuantityMatrix
 __all__ = ("matmul", "matvec", "vecdot", "vecmat")
 
 # ``quax.quaxify`` rebuilds a wrapper on every call (~18us), so wrap once here.
+# Import-time wrapping does not race the ``@quax.register`` decorators in
+# ``_register_primitives``: ``quaxify(f)`` only stores ``f`` on an ``eqx.Module``
+# and resolves the registry inside the trace at *call* time.
 _matmul = quax.quaxify(jnp.matmul)
 _matvec = quax.quaxify(jnp.matvec)
 _vecmat = quax.quaxify(jnp.vecmat)
