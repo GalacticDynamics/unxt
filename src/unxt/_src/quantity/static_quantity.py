@@ -8,6 +8,8 @@ __all__ = ("StaticQuantity",)
 from typing import Any, final
 
 import equinox as eqx
+import jax
+import jax.core
 import numpy as np
 import unxts.api as uapi
 import wadler_lindig as wl
@@ -16,7 +18,7 @@ from plum import add_promotion_rule
 
 from .base import AbstractQuantity, ArrayLikeSequence, same_unit_label
 from .quantity import Quantity
-from .value import StaticValue
+from .value import TRACED_VALUE_MSG, StaticValue
 from unxt.units import AbstractUnit
 
 
@@ -71,17 +73,28 @@ class StaticQuantity(AbstractQuantity):
     """The unit associated with this value."""
 
     @classmethod
-    def _mk(cls, **fields: Any) -> "StaticQuantity":
-        """Construct a `StaticQuantity`, running the field converters.
+    def _mk(cls, *, value: Any, unit: AbstractUnit) -> "StaticQuantity":
+        """Build a `StaticQuantity`, converting the value but not the unit.
 
-        This deliberately gives up the fast path that `AbstractQuantity._mk`
-        opens. That path is only sound where the converters are redundant, and
-        here they are not: `StaticValue.from_` is what wraps the value, what
-        materialises a concrete JAX array back to NumPy, and what rejects a
-        traced one. Primitive rules hand this class the output of a `jax.lax`
-        operation like any other quantity, so all three have to survive the
-        shortcut -- otherwise `revalue` would quietly store a JAX array in a
-        field the whole class is built on being static.
+        `AbstractQuantity._mk` writes the fields verbatim. That is unsound here
+        for the *value*: primitive rules hand this class the output of a
+        `jax.lax` operation like any other quantity, and that field is the one
+        thing the whole class is built on being static, so a raw array must not
+        reach it. The unit needs no such care -- ``_mk``'s contract is that
+        callers pass an already-normalised unit, and both callers (`revalue`
+        and ``enable_materialise``) take one straight off another quantity.
+
+        Rather than route back through the checked constructor, which costs two
+        `plum`-dispatched converters plus `equinox`'s ``__init__`` machinery
+        (~29us on a NumPy value, ~114us on a JAX one), inline the type switch
+        from `StaticValue.from_`. `StaticQuantity` is `~typing.final` and has
+        exactly two fields, so the signature can name them rather than take
+        ``**fields``, and the switch has only three arms. ~1-2us.
+
+        Inlining is the one liberty taken here, so `StaticValue.from_` shares
+        `TRACED_VALUE_MSG` with this method, and
+        ``test_mk_matches_static_value_from_`` pins the two together over every
+        arm.
 
         Examples
         --------
@@ -101,11 +114,17 @@ class StaticQuantity(AbstractQuantity):
         >>> try:
         ...     jax.jit(lambda v: revalue(q, v))(jnp.asarray([3.0, 4.0]))
         ... except TypeError as e:
-        ...     print(type(e).__name__)
-        TypeError
+        ...     print(e)
+        StaticQuantity cannot hold a traced JAX value; use Quantity under jit/vmap/grad.
 
         """
-        return cls(**fields)
+        if not isinstance(value, StaticValue):
+            if isinstance(value, jax.core.Tracer):
+                raise TypeError(TRACED_VALUE_MSG)
+            # `StaticValue.__init__` does the `np.asarray`, so this one arm
+            # covers NumPy, array-likes, scalars and concrete `jax.Array`.
+            value = StaticValue(value)
+        return cls.__make__(value=value, unit=unit)
 
     def __hash__(self) -> int:
         """Return the hash of the quantity."""
