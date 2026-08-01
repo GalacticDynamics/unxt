@@ -31,9 +31,10 @@ def _dimension_of_unit(unit: AbstractUnit) -> AbstractDimension:
     (it carries `type[...]` class overloads, e.g.
     ``dimension_of(ParametricQuantity["length"])``),
     so `plum` cannot cache its method resolution and re-resolves on every call
-    (~60us). `__check_init__` and `__infer_type_parameter__` both run on every
-    `AbstractParametricQuantity` construction -- including every arithmetic
-    result -- so we memoize the unit -> dimension lookup here. Units are hashable
+    (~60us). `__check_init__` runs on every `AbstractParametricQuantity`
+    construction -- including every arithmetic result -- and
+    `__infer_type_parameter__` on every *unparametrized* one, so we memoize the
+    unit -> dimension lookup here. Units are hashable
     and the mapping is immutable, so the cache is sound; this mirrors the
     `dimension_of(AbstractUnit)` implementation
     (``dimension(unit.physical_type)``) while bypassing dispatch.
