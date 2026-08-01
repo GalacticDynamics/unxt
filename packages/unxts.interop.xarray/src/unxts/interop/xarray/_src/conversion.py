@@ -17,7 +17,7 @@ from plum import dispatch
 from xarray import DataArray, Dataset, Variable
 
 import unxt as u
-from unxt.quantity import AllowValue
+from unxt.quantity import AllowValue, convert_to_quantity_value
 
 # Name of the attribute used to store units
 UNIT_ATTR: Final = "units"
@@ -71,7 +71,15 @@ def _array_attach_units(
         )
         raise ValueError(msg)
 
-    return u.Q(data, u.unit(unit))
+    # `_mk` is the unchecked constructor: it writes the fields, so neither field
+    # converter runs. The theorem it asks for is that both are redundant *here*,
+    # which holds because this line runs them itself. `convert_to_quantity_value`
+    # is the value field's own converter -- xarray hands over NumPy, so it is
+    # load-bearing and cannot be dropped, only hoisted -- and `u.unit` is the
+    # unit field's, so the converter would re-dispatch it on its own output for
+    # nothing. `Quantity` defines no `__check_init__` and is not an
+    # `AbstractParametricQuantity`, so nothing else is skipped: 55us -> 39us.
+    return u.Q._mk(value=convert_to_quantity_value(data), unit=u.unit(unit))  # noqa: SLF001
 
 
 def _consume_unit_attrs(obj: DataArray | Dataset, /) -> None:
