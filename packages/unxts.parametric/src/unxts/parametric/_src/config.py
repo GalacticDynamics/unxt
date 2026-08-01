@@ -28,15 +28,8 @@ from unxt._src.config import (
     LocalConfigurable,
     _find_pyproject,
     _load_toml_config_from_pyproject,
+    _override_keys,
 )
-
-PARAMETRIC_REPR_CONFIG_KEYS: Final = frozenset({"include_params"})
-PARAMETRIC_STR_CONFIG_KEYS: Final = frozenset({"include_params"})
-
-PARAMETRIC_OVERRIDE_CONFIG_KEYS: Final = {
-    "quantity_repr": PARAMETRIC_REPR_CONFIG_KEYS,
-    "quantity_str": PARAMETRIC_STR_CONFIG_KEYS,
-}
 
 
 class ParametricQuantityReprConfig(LocalConfigurable):
@@ -45,10 +38,8 @@ class ParametricQuantityReprConfig(LocalConfigurable):
     ``__getattribute__`` (thread-local override lookup) and ``override()`` (the
     context manager) are inherited from
     :class:`~unxt._src.config.LocalConfigurable`; this class only declares its
-    overridable trait and its ``_config_keys`` allowlist.
+    overridable trait.
     """
-
-    _config_keys: ClassVar[frozenset[str]] = PARAMETRIC_REPR_CONFIG_KEYS
 
     include_params: ClassVar[object] = Bool(
         default_value=False,
@@ -62,8 +53,6 @@ class ParametricQuantityStrConfig(LocalConfigurable):
     See :class:`ParametricQuantityReprConfig` — the override machinery is
     inherited from :class:`~unxt._src.config.LocalConfigurable`.
     """
-
-    _config_keys: ClassVar[frozenset[str]] = PARAMETRIC_STR_CONFIG_KEYS
 
     include_params: ClassVar[object] = Bool(
         default_value=True,
@@ -100,9 +89,7 @@ class ParametricConfig(AbstractUnxtConfig, SingletonConfigurable):
         ParametricQuantityReprConfig,
         ParametricQuantityStrConfig,
     ]
-    _override_config_keys: ClassVar[dict[str, frozenset[str]]] = (
-        PARAMETRIC_OVERRIDE_CONFIG_KEYS
-    )
+    _override_sections: ClassVar[tuple[str, ...]] = ("quantity_repr", "quantity_str")
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize ParametricConfig with nested config instances."""
@@ -122,20 +109,15 @@ _TOML_PATH_TO_CONFIG_CLASS: Final = {
     ("quantity", "str"): "ParametricQuantityStrConfig",
 }
 
-# Mapping from Config class name to (config instance, valid keys)
-_CONFIG_CLASS_TO_INSTANCE: Final[dict[str, tuple[Any, frozenset[str]]]] = {}
+# Mapping from Config class name to config instance
+_CONFIG_CLASS_TO_INSTANCE: Final[dict[str, Any]] = {}
 
 
 def _initialize_config_mapping(cfg: ParametricConfig) -> None:
     """Populate the class-name -> instance mapping (call after singleton init)."""
-    _CONFIG_CLASS_TO_INSTANCE["ParametricQuantityReprConfig"] = (
-        cfg.quantity_repr,
-        PARAMETRIC_REPR_CONFIG_KEYS,
-    )
-    _CONFIG_CLASS_TO_INSTANCE["ParametricQuantityStrConfig"] = (
-        cfg.quantity_str,
-        PARAMETRIC_STR_CONFIG_KEYS,
-    )
+    for name in cfg._override_sections:  # noqa: SLF001
+        instance = getattr(cfg, name)
+        _CONFIG_CLASS_TO_INSTANCE[type(instance).__name__] = instance
 
 
 def _auto_load_project_toml_config(cfg: ParametricConfig, /) -> None:
@@ -159,7 +141,8 @@ def _auto_load_project_toml_config(cfg: ParametricConfig, /) -> None:
     for class_name, class_config in loaded.items():
         if class_name not in _CONFIG_CLASS_TO_INSTANCE:
             continue
-        config_instance, valid_keys = _CONFIG_CLASS_TO_INSTANCE[class_name]
+        config_instance = _CONFIG_CLASS_TO_INSTANCE[class_name]
+        valid_keys = _override_keys(type(config_instance))
         for key, value in class_config.items():
             if key not in valid_keys:
                 continue

@@ -5,7 +5,6 @@ time.
 """
 
 __all__ = (
-    "AbstractQuantityDisplayConfig",
     "AbstractUnxtConfig",
     "QuantityReprConfig",
     "QuantityStrConfig",
@@ -63,12 +62,8 @@ class LocalConfigurable(Configurable):
     def __getattribute__(self, name: str) -> Any:
         """Get attribute, checking thread-local overrides first.
 
-        This intercepts *every* attribute access on a config object, so the
-        no-override case -- which is every access outside a ``with
-        override(...)`` block -- must stay close to a plain attribute load.
-        Reading the thread-local stack first makes that path a single dict
-        lookup; only once an override is actually active do we pay for the
-        (cached) trait-name set and the stack walk.
+        This runs on *every* attribute access, so the stack is read first:
+        with no override active that is a single dict lookup.
         """
         obj_getattr = object.__getattribute__
         try:
@@ -238,12 +233,6 @@ class _NestedConfigContext:
 # ============================================================================
 # Quantity display
 
-#: The display traits, named once. ``QuantityReprConfig`` / ``QuantityStrConfig``
-#: are the same four options differing only in the ``short_arrays`` default, so
-#: they share this base and each states just its own default and docstring.
-#: The valid-option sets are derived from these traits (see ``_override_keys``),
-#: not hand-listed alongside them.
-
 
 class AbstractQuantityDisplayConfig(LocalConfigurable):
     """Display options shared by the quantity ``repr()`` / ``str()`` configs.
@@ -376,8 +365,8 @@ class AbstractUnxtConfig:
 
     A concrete config inherits this alongside
     :class:`~traitlets.config.SingletonConfigurable`, declares the sections it
-    accepts via ``_override_config_keys`` (``{section name: valid option
-    names}``), and creates its nested config objects in ``__init__``. This mixin
+    accepts via ``_override_sections``, and creates its nested config objects
+    in ``__init__``. This mixin
     provides the shared top-level ``override()`` context manager, so packages
     that mirror this config (e.g. ``unxts.parametric``) can reuse the same
     machinery -- their singletons are accepted by :class:`_ConfigContext`
@@ -387,8 +376,9 @@ class AbstractUnxtConfig:
     concrete config keeps its own independent singleton instance.
     """
 
-    # {section_name: frozenset of valid option names}; set by subclasses.
-    _override_config_keys: ClassVar[dict[str, frozenset[str]]] = {}
+    # Names of the nested config sections; set by subclasses. The valid option
+    # names come from each section's own traits (see ``_override_keys``).
+    _override_sections: ClassVar[tuple[str, ...]] = ()
 
     def override(self, **kwargs: Any) -> "_ConfigContext":
         """Create a context manager for temporary config changes.
@@ -407,8 +397,8 @@ class AbstractUnxtConfig:
         for key, value in kwargs.items():
             if "__" in key:
                 config_name, attr_name = key.split("__", 1)
-                if config_name not in self._override_config_keys:
-                    valid_configs = ", ".join(sorted(self._override_config_keys))
+                if config_name not in self._override_sections:
+                    valid_configs = ", ".join(sorted(self._override_sections))
                     msg = (
                         "Unknown config section "
                         f"'{config_name}' in override key '{key}'. "
@@ -416,7 +406,7 @@ class AbstractUnxtConfig:
                     )
                     raise ValueError(msg)
 
-                valid_attrs = self._override_config_keys[config_name]
+                valid_attrs = _override_keys(type(getattr(self, config_name)))
                 if attr_name not in valid_attrs:
                     valid_options = ", ".join(sorted(valid_attrs))
                     msg = (
@@ -444,7 +434,7 @@ class AbstractUnxtConfig:
         ``traitlets``'s own ``update_config`` only touches *this* object's
         traits, but the display settings actually live on the eagerly-built
         nested configs. Forward the config to every nested section this config
-        declares in ``_override_config_keys`` (e.g. ``quantity_repr`` /
+        declares in ``_override_sections`` (e.g. ``quantity_repr`` /
         ``quantity_str`` for ``UnxtConfig``) so ``config.update_config(cfg)``
         with e.g. ``cfg.QuantityReprConfig.short_arrays = "compact"`` takes
         effect instead of silently doing nothing.
@@ -452,7 +442,7 @@ class AbstractUnxtConfig:
         # ``super()`` resolves through the concrete class's MRO to
         # ``Configurable.update_config`` (this mixin is combined with it).
         super().update_config(cfg)  # type: ignore[misc]  # pylint: disable=no-member
-        for name in self._override_config_keys:
+        for name in self._override_sections:
             getattr(self, name).update_config(cfg)
 
 
@@ -503,10 +493,7 @@ class UnxtConfig(AbstractUnxtConfig, SingletonConfigurable):
 
     # Configurable classes that are part of this config hierarchy
     classes: ClassVar[list[type]] = [QuantityReprConfig, QuantityStrConfig]
-    _override_config_keys: ClassVar[dict[str, frozenset[str]]] = {
-        "quantity_repr": _override_keys(QuantityReprConfig),
-        "quantity_str": _override_keys(QuantityStrConfig),
-    }
+    _override_sections: ClassVar[tuple[str, ...]] = ("quantity_repr", "quantity_str")
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize UnxtConfig with nested config instances."""
@@ -738,8 +725,8 @@ def _config_from_toml_data(
     return config
 
 
-# Mapping from Config class name to (config object, valid keys)
-_CONFIG_CLASS_TO_INSTANCE: Final[dict[str, tuple[Any, frozenset[str]]]] = {}
+# Mapping from Config class name to config object
+_CONFIG_CLASS_TO_INSTANCE: Final[dict[str, Any]] = {}
 
 
 def _initialize_config_mapping(cfg: UnxtConfig) -> None:
@@ -747,12 +734,9 @@ def _initialize_config_mapping(cfg: UnxtConfig) -> None:
 
     This must be called after creating the UnxtConfig instance.
     """
-    for name in ("quantity_repr", "quantity_str"):
+    for name in cfg._override_sections:  # noqa: SLF001
         instance = getattr(cfg, name)
-        _CONFIG_CLASS_TO_INSTANCE[type(instance).__name__] = (
-            instance,
-            _override_keys(type(instance)),
-        )
+        _CONFIG_CLASS_TO_INSTANCE[type(instance).__name__] = instance
 
 
 def _warn_if_legacy_unxt_config(
@@ -818,7 +802,8 @@ def _auto_load_project_toml_config(cfg: UnxtConfig, /, *, stacklevel: int = 2) -
         if class_name not in _CONFIG_CLASS_TO_INSTANCE:
             continue
 
-        config_instance, valid_keys = _CONFIG_CLASS_TO_INSTANCE[class_name]
+        config_instance = _CONFIG_CLASS_TO_INSTANCE[class_name]
+        valid_keys = _override_keys(type(config_instance))
 
         for key, value in class_config.items():
             if key not in valid_keys:

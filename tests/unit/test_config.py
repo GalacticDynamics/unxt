@@ -1151,7 +1151,7 @@ def test_update_config_forwards_to_nested_sections() -> None:
     `__init__`; a later `update_config` on the parent never reached them.
     """
     # Assert forwarding into *every* nested section, not just quantity_repr, so
-    # a partial-forwarding regression (e.g. `_override_config_keys` omitting a
+    # a partial-forwarding regression (e.g. `_override_sections` omitting a
     # section) is caught.
     repr_baseline = u.config.quantity_repr.short_arrays
     str_baseline = u.config.quantity_str.short_arrays
