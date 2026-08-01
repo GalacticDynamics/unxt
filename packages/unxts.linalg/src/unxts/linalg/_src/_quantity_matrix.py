@@ -290,15 +290,9 @@ class QuantityMatrix(u.AbstractQuantity):
 
         """
         if isinstance(other, QuantityMatrix):
-            ranks = (self.unit.ndim, other.unit.ndim)
-            if ranks == (2, 2):
-                return quax.quaxify(jnp.matmul)(self, other)
-            if ranks == (2, 1):
-                return quax.quaxify(jnp.matvec)(self, other)
-            if ranks == (1, 2):
-                return quax.quaxify(jnp.vecmat)(self, other)
-            if ranks == (1, 1):
-                return quax.quaxify(jnp.vecdot)(self, other)
+            product = _PRODUCT_BY_RANK.get((self.unit.ndim, other.unit.ndim))
+            if product is not None:
+                return product(self, other)
         return super().__matmul__(other)
 
     # ── Quax API ─────────────────────────────────────────────────────
@@ -364,8 +358,7 @@ class QuantityMatrix(u.AbstractQuantity):
         # single primitive (result diagonal is the trailing axis), avoiding an
         # n-op Python loop; units come from the static `UnitsMatrix`.
         diag_value = jnp.diagonal(self.value, axis1=-2, axis2=-1)
-        diag_unit = UnitsMatrix(self.unit._units.diagonal())
-        return QuantityMatrix(value=diag_value, unit=diag_unit)
+        return QuantityMatrix(value=diag_value, unit=self.unit.diagonal())
 
     @property
     def T(self) -> "QuantityMatrix":
@@ -410,6 +403,16 @@ QM = QuantityMatrix
 """Short alias for `QuantityMatrix` (cf. ``Q`` for ``Quantity``)."""
 
 
+#: ``@`` implementation per pair of logical (``unit``) ranks. ``quaxify`` wraps
+#: at ~18us a call, so the wrappers are built once here rather than per ``@``.
+_PRODUCT_BY_RANK = {
+    (2, 2): quax.quaxify(jnp.matmul),
+    (2, 1): quax.quaxify(jnp.matvec),
+    (1, 2): quax.quaxify(jnp.vecmat),
+    (1, 1): quax.quaxify(jnp.vecdot),
+}
+
+
 ##############################################################################
 # Unit-conversion helpers
 
@@ -443,19 +446,14 @@ def _convert_value_matrix(
     `u.uconvert_value` so that **all** conversion types are handled
     correctly — including nonlinear ones like dB, mag, and dex (which
     are logarithmic, not affine).
+
+    A matrix conversion is a stack of row conversions, so this defers to
+    :func:`_convert_value_vector` per row rather than repeating its loop.
     """
-    n = len(to_units)
-    m = len(to_units[0])
     return jnp.stack(
         [
-            jnp.stack(
-                [
-                    u.uconvert_value(to_units[i][j], from_units[i][j], value[..., i, j])
-                    for j in range(m)
-                ],
-                axis=-1,
-            )
-            for i in range(n)
+            _convert_value_vector(value[..., i, :], from_units[i], to_units[i])
+            for i in range(len(to_units))
         ],
         axis=-2,
     )
