@@ -40,9 +40,6 @@ def clean_unitsystems_registry(monkeypatch):
     monkeypatch.setattr(
         "unxt._src.unitsystems.base._UNITSYSTEMS_REGISTRY", clean_registry
     )
-    # The by-dimension-set index is populated alongside the registry, so isolate
-    # it too or classes defined in this test would leak into the real index.
-    monkeypatch.setattr("unxt._src.unitsystems.base._UNITSYSTEMS_BY_DIMSET", {})
     return clean_registry
 
 
@@ -308,11 +305,10 @@ def test_unitsystem_already_registered():
             absement: Annotated[apyu.Unit, dimension("absement")]
             time: Annotated[apyu.Unit, dimension("time")]
 
-    # Clean up custom unit system from the registry and its by-set index.
-    # Access through ``us_base`` (not import-time bindings) so this stays
-    # consistent with the fixture-aware access used elsewhere.
+    # Clean up custom unit system from the registry. Access through ``us_base``
+    # (not import-time bindings) so this stays consistent with the
+    # fixture-aware access used elsewhere.
     del us_base._UNITSYSTEMS_REGISTRY[MyUnitSystem._base_dimensions]
-    del us_base._UNITSYSTEMS_BY_DIMSET[frozenset(MyUnitSystem._base_dimensions)]
 
 
 @pytest.mark.usefixtures("clean_unitsystems_registry")
@@ -336,25 +332,25 @@ def test_unitsystem_same_dimension_set_different_order_rejected():
             time: Annotated[apyu.Unit, dimension("time")]
             length: Annotated[apyu.Unit, dimension("length")]
 
-    # The rejected class left no partial entry in either registry; the by-set
-    # index still points at the first (only) class for that set. Reference the
-    # live dicts via the module so the fixture's monkeypatched copies are seen
-    # (a top-level ``from ... import`` name would be bound to the original dict).
-    dim_set = frozenset(LengthTime._base_dimensions)
+    # The rejected class left no partial entry; the dimension set still resolves
+    # to the first (only) class registered for it. Reference the live registry
+    # via the module so the fixture's monkeypatched copy is seen (a top-level
+    # ``from ... import`` name would be bound to the original dict).
     assert (dimension("time"), dimension("length")) not in us_base._UNITSYSTEMS_REGISTRY
     assert LengthTime._base_dimensions in us_base._UNITSYSTEMS_REGISTRY
-    assert us_base._UNITSYSTEMS_BY_DIMSET[dim_set] is LengthTime
+    assert us_base.registered_unitsystem(LengthTime._base_dimensions) is LengthTime
 
 
 @pytest.mark.usefixtures("clean_unitsystems_registry")
-def test_construction_consults_isolated_by_dimset_index():
-    """``unitsystem(...)`` reads the fixture-isolated by-set index, not the real one.
+def test_construction_consults_isolated_registry():
+    """``unitsystem(...)`` reads the fixture-isolated registry, not the real one.
 
-    Regression: ``core`` bound ``_UNITSYSTEMS_BY_DIMSET`` at import, so a fixture
-    that rebound only the ``base`` module's name left construction consulting the
-    original index while registration wrote to the isolated one. Register a class
-    under the fixture, then build its dimension set: ``unitsystem`` can only
-    return *that* class if lookup and registration share the isolated dict.
+    Regression: ``core`` bound the by-dimension-set lookup at import, so a
+    fixture that rebound only the ``base`` module's name left construction
+    consulting the original registry while registration wrote to the isolated
+    one. Register a class under the fixture, then build its dimension set:
+    ``unitsystem`` can only return *that* class if lookup and registration share
+    the isolated dict.
     """
 
     @dataclass(frozen=True, slots=True)
@@ -375,8 +371,8 @@ def test_distinct_slotted_class_cannot_overwrite_registration():
     Regression: the duplicate-registration guard once exempted *any* class with
     ``__slots__`` in its ``__dict__`` -- a stand-in for "the dataclass slots
     rebuild" -- so an unrelated class that merely declared ``__slots__`` in its
-    body silently overwrote the incumbent (and its by-set index entry). The
-    guard now admits only the genuine rebuild (shared annotation identity).
+    body silently overwrote the incumbent. The guard now admits only the
+    genuine rebuild (shared annotation identity).
     """
 
     class LengthTime(AbstractUnitSystem):
@@ -390,10 +386,10 @@ def test_distinct_slotted_class_cannot_overwrite_registration():
             length: Annotated[apyu.Unit, dimension("length")]
             time: Annotated[apyu.Unit, dimension("time")]
 
-    # The incumbent is untouched; the impostor left no entry in either registry.
+    # The incumbent is untouched; the impostor left no entry in the registry.
     dims = LengthTime._base_dimensions
     assert us_base._UNITSYSTEMS_REGISTRY[dims] is LengthTime
-    assert us_base._UNITSYSTEMS_BY_DIMSET[frozenset(dims)] is LengthTime
+    assert us_base.registered_unitsystem(dims) is LengthTime
 
 
 def test_parse_dimlike_name_is_deterministic_for_multialias_dimensions():

@@ -5,7 +5,7 @@ __all__ = ("UNITSYSTEMS_REGISTRY", "AbstractUnitSystem")
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, ClassVar, get_args, get_type_hints
+from typing import ClassVar, get_args, get_type_hints
 
 import jax.tree_util as jtu
 from astropy.units import PhysicalType, UnitBase as AstropyUnitBase
@@ -20,36 +20,32 @@ from unxt.units import AbstractUnit, unit
 Unit = AstropyUnitBase
 
 
-class _classproperty:  # noqa: N801
-    """Read-only property that also works on the *class*.
-
-    ``AbstractUnitSystem`` subclasses expose ``_base_dimensions`` /
-    ``_base_field_names`` on the class (e.g. the unit-system registry keys off
-    ``cls._base_dimensions``), which a plain ``property`` cannot serve.
-    """
-
-    def __init__(self, fget: Any) -> None:
-        self.fget = fget
-        self.__doc__ = fget.__doc__
-
-    def __get__(self, obj: Any, owner: type | None = None) -> Any:
-        return self.fget(owner if owner is not None else type(obj))
-
-
 _UNITSYSTEMS_REGISTRY: dict[
     tuple[AbstractDimension, ...], type["AbstractUnitSystem"]
 ] = {}
 UNITSYSTEMS_REGISTRY = MappingProxyType(_UNITSYSTEMS_REGISTRY)
 
-#: Index of the registry keyed by the *set* of base dimensions (order-independent),
-#: so ``unitsystem(...)`` construction can match a registered class in O(1) rather
-#: than scanning ``_UNITSYSTEMS_REGISTRY`` and picking the first set-equal entry.
-#: Populated alongside ``_UNITSYSTEMS_REGISTRY`` in ``__init_subclass__``, which
-#: also enforces the one-class-per-dimension-set invariant so this mapping is
-#: unambiguous (never a silent last-write-wins between colliding classes).
-_UNITSYSTEMS_BY_DIMSET: dict[
-    frozenset[AbstractDimension], type["AbstractUnitSystem"]
-] = {}
+
+def registered_unitsystem(
+    dims: tuple[AbstractDimension, ...], /
+) -> "type[AbstractUnitSystem] | None":
+    """Return the registered class spanning exactly ``dims``, else `None`.
+
+    A unit system is identified by *which* dimensions it spans, not the order
+    they are declared in, so the match is by set. ``__init_subclass__`` enforces
+    one class per dimension set, so at most one entry can match.
+
+    The registry holds one entry per distinct dimension set -- a handful in
+    practice -- so this scans rather than maintaining a second frozenset-keyed
+    index in lockstep with ``_UNITSYSTEMS_REGISTRY``. At 7 registered classes
+    the scan is a fraction of a percent of a ``unitsystem(...)`` call, and one
+    registry cannot fall out of sync with itself.
+    """
+    want = frozenset(dims)
+    return next(
+        (cls for d, cls in _UNITSYSTEMS_REGISTRY.items() if frozenset(d) == want),
+        None,
+    )
 
 
 def _is_dataclass_slots_rebuild(
@@ -145,19 +141,11 @@ class AbstractUnitSystem:
     #: ``_base_dimensions`` / ``_base_field_names`` are its keys / values.
     _dimension_to_field: ClassVar[Mapping[AbstractDimension, str]]
 
-    @_classproperty
-    def _base_dimensions(  # pylint: disable=no-self-argument
-        cls,  # noqa: N805
-    ) -> tuple["AbstractDimension", ...]:
-        """Return the base dimensions, in declaration order."""
-        return tuple(cls._dimension_to_field)
+    #: The base dimensions, in declaration order (``_dimension_to_field``'s keys).
+    _base_dimensions: ClassVar[tuple[AbstractDimension, ...]]
 
-    @_classproperty
-    def _base_field_names(  # pylint: disable=no-self-argument
-        cls,  # noqa: N805
-    ) -> tuple[str, ...]:
-        """Return the declared field names, in declaration order."""
-        return tuple(cls._dimension_to_field.values())
+    #: The declared field names, in declaration order (its values).
+    _base_field_names: ClassVar[tuple[str, ...]]
 
     def __init_subclass__(cls) -> None:
         # In Python 3.14+, annotations are stored via __annotate_func__ (PEP
@@ -179,8 +167,8 @@ class AbstractUnitSystem:
         # since those are made after the original class is defined.
         field_names, dims = parse_field_names_and_dimensions(cls)
 
-        # Validate against both registries *before* mutating either, so a
-        # rejected registration leaves no partial entry behind.
+        # Validate *before* mutating the registry, so a rejected registration
+        # leaves no partial entry behind.
         #
         # Exact-signature duplicate: the same ordered dimensions are already
         # registered. `@dataclass(slots=True)` / `make_dataclass(slots=True)`
@@ -198,14 +186,12 @@ class AbstractUnitSystem:
 
         # Same dimension *set*, different field order: a unit system is
         # identified by which dimensions it spans, not their order, so two
-        # classes must not compete for one set. The by-set index is keyed by
-        # frozenset and would otherwise silently let the last registration win,
-        # leaving ``unitsystem(*units)`` dependent on registration order.
+        # classes must not compete for one set. Without this, registration order
+        # would silently decide which class ``unitsystem(*units)`` returns.
         # ``owner._base_dimensions == dims`` is the ``slots=True`` rebuild
         # re-registering the same class (same ordered dims); only a *different*
         # ordering is a conflict.
-        dim_set = frozenset(dims)
-        owner = _UNITSYSTEMS_BY_DIMSET.get(dim_set)
+        owner = registered_unitsystem(dims)
         if owner is not None and owner._base_dimensions != dims:  # noqa: SLF001
             msg = (
                 f"Unit system for dimension set {set(dims)!r} is already "
@@ -214,14 +200,14 @@ class AbstractUnitSystem:
             )
             raise ValueError(msg)
 
-        # All checks passed: store the single dimension -> field-name mapping
-        # (the ``_base_dimensions`` / ``_base_field_names`` tuples derive from
-        # it) and commit to both registries.
+        # All checks passed: store the dimension -> field-name mapping and the
+        # two ordered views onto it, then commit to the registry.
         cls._dimension_to_field = MappingProxyType(
             dict(zip(dims, field_names, strict=True))
         )
+        cls._base_dimensions = dims
+        cls._base_field_names = field_names
         _UNITSYSTEMS_REGISTRY[dims] = cls
-        _UNITSYSTEMS_BY_DIMSET[dim_set] = cls
 
     # ===============================================================
     # USys API
