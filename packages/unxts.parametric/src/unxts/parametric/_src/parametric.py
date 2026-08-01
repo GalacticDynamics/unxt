@@ -13,7 +13,9 @@ import unxts.api as uapi
 
 from .base_parametric import AbstractParametricQuantity
 from unxt.quantity import (
+    AbstractAngle,
     Quantity,
+    StaticQuantity,
     StaticValue,
     convert_to_quantity_value,
 )
@@ -165,4 +167,8 @@ class ParametricQuantity(AbstractParametricQuantity):
 PQ = ParametricQuantity
 """Convenience alias for `ParametricQuantity`."""
 
+# Anything that meets a ParametricQuantity promotes to one, so that the
+# dimension parameter is carried through mixed-type arithmetic.
 add_promotion_rule(Quantity, ParametricQuantity, ParametricQuantity)
+add_promotion_rule(AbstractAngle, ParametricQuantity, ParametricQuantity)
+add_promotion_rule(StaticQuantity, ParametricQuantity, ParametricQuantity)
