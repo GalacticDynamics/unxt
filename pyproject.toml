@@ -37,8 +37,6 @@ dependencies = [
   "unxt-api>=2.0.0",
   "unxts.api>=2.0.0",
   "wadler-lindig>=0.1.5",
-  "xmmutablemap>=0.1",
-  "zeroth>=1.0.0",
 ]
 description = "Quantities in JAX"
 dynamic = ["version"]
@@ -482,8 +480,7 @@ known-first-party = [
   "is_annotated",
   "optional_dependencies",
   "quaxed",
-  "xmmutablemap",
-  "zeroth",
+  "zeroth",                # used by the unxts.interop.matplotlib subpackage
 ]
 known-local-folder = ["unxt", "unxt_api", "unxt_hypothesis"]
 
