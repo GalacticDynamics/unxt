@@ -1,5 +1,6 @@
 """Immutable, hashable unit structure for QuantityMatrix."""
 
+import functools
 import operator
 from typing import Any, TypeAlias, TypeVar, final
 
@@ -255,12 +256,7 @@ class UnitsMatrix:
 
     @property
     def is_uniform(self) -> bool:
-        """Whether every entry carries the same unit.
-
-        Several callers need this: ``inv`` rejects a heterogeneous matrix (the
-        inverse mixes entries, so a per-element reciprocal would be wrong), and
-        conversion to a plain `~unxt.Quantity` is only unambiguous when the
-        units agree. An empty structure is vacuously uniform.
+        """Whether every entry carries the same unit; empty is vacuously uniform.
 
         Examples
         --------
@@ -319,9 +315,7 @@ class UnitsMatrix:
 
         Each *distinct* unit's power is computed once and reused, so a uniform
         structure costs one ``Unit.__pow__`` regardless of size, and a mixed one
-        costs a power per distinct unit rather than per entry. (``Unit.__pow__``
-        is ~18x the cost of a dict hit, so the memo pays for itself well before
-        any entry repeats.)
+        costs a power per distinct unit rather than per entry.
 
         Examples
         --------
@@ -348,12 +342,10 @@ class UnitsMatrix:
         UnitsMatrix("()")
 
         """
-        cache: dict[Any, Any] = {}
 
+        @functools.cache
         def powered(un: Any, /) -> Any:
-            if (v := cache.get(un)) is None:
-                v = cache[un] = un**exponent
-            return v
+            return un**exponent
 
         out = np.fromiter(
             map(powered, self._units.flat), dtype=object, count=self._units.size
