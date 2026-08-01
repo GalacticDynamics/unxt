@@ -5,6 +5,7 @@ time.
 """
 
 __all__ = (
+    "AbstractQuantityDisplayConfig",
     "AbstractUnxtConfig",
     "QuantityReprConfig",
     "QuantityStrConfig",
@@ -13,6 +14,7 @@ __all__ = (
 )
 
 import contextlib
+import functools as ft
 import threading
 import tomllib
 import warnings
@@ -21,9 +23,21 @@ from pathlib import Path
 from types import TracebackType
 from typing import Any, ClassVar, Final
 
-from traitlets import Bool, Enum, TraitError, Union
+from traitlets import Bool, Enum, TraitError, Union, default
 from traitlets.config import Config, Configurable, SingletonConfigurable
 from traitlets.traitlets import Int
+
+
+@ft.cache
+def _override_keys(cls: type, /) -> frozenset[str]:
+    """Trait names on ``cls`` eligible for thread-local override.
+
+    Derived from the traits themselves rather than hand-listed, so the two
+    cannot drift apart when a trait is added or renamed. Cached per class:
+    ``class_traits`` walks the MRO, and this is consulted on every attribute
+    read that happens while an override is active.
+    """
+    return frozenset(cls.class_traits(config=True))  # type: ignore[attr-defined]
 
 
 class LocalConfigurable(Configurable):
@@ -31,15 +45,12 @@ class LocalConfigurable(Configurable):
 
     This class provides a mechanism for temporary, thread-local configuration
     changes that can be used in nested contexts (e.g., within a quantity's
-    ``__repr__()``). Concrete subclasses only declare their traits and set
-    ``_config_keys`` (the trait names eligible for override); the override
-    lookup and the ``override()`` context manager live here.
+    ``__repr__()``). Concrete subclasses only declare their traits; the
+    override lookup and the ``override()`` context manager live here.
     """
 
     # Thread-local storage for context manager overrides
     _local: threading.local
-    # Names of the config traits eligible for thread-local override
-    _config_keys: ClassVar[frozenset[str]] = frozenset()
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -50,17 +61,32 @@ class LocalConfigurable(Configurable):
         object.__setattr__(self, "_local", threading.local())
 
     def __getattribute__(self, name: str) -> Any:
-        """Get attribute, checking thread-local overrides first."""
-        if name in object.__getattribute__(self, "_config_keys"):
-            with contextlib.suppress(AttributeError):
-                local = object.__getattribute__(self, "_local")
-                # Return the most recent override for this attribute
-                if hasattr(local, "stack") and local.stack:
-                    for overrides in reversed(local.stack):
-                        if name in overrides:
-                            return overrides[name]
+        """Get attribute, checking thread-local overrides first.
 
-        return object.__getattribute__(self, name)
+        This intercepts *every* attribute access on a config object, so the
+        no-override case -- which is every access outside a ``with
+        override(...)`` block -- must stay close to a plain attribute load.
+        Reading the thread-local stack first makes that path a single dict
+        lookup; only once an override is actually active do we pay for the
+        (cached) trait-name set and the stack walk.
+        """
+        obj_getattr = object.__getattribute__
+        try:
+            # ``vars()`` on the thread-local, not ``getattr``, to avoid paying
+            # for a second descriptor lookup on the empty-stack fast path.
+            stack = vars(obj_getattr(self, "_local")).get("stack")
+        except AttributeError:
+            # ``_local`` is not set until ``__init__`` runs; traitlets touches
+            # attributes before that, so fall through to normal lookup.
+            return obj_getattr(self, name)
+
+        if stack and name in _override_keys(type(self)):
+            # Return the most recent override for this attribute
+            for overrides in reversed(stack):
+                if name in overrides:
+                    return overrides[name]
+
+        return obj_getattr(self, name)
 
     def override(
         self, cfg: Config | None = None, /, **kwargs: Any
@@ -115,7 +141,7 @@ class LocalConfigurable(Configurable):
         Quantity([1, 2, 3], unit='m')
 
         """
-        keys = self._config_keys
+        keys = _override_keys(type(self))
         cls_name = type(self).__name__
 
         if cfg is not None and kwargs:
@@ -210,14 +236,53 @@ class _NestedConfigContext:
 
 
 # ============================================================================
-# Quantity `__repr__`
+# Quantity display
 
-QUANTITY_REPR_CONFIG_KEYS: Final = frozenset(
-    {"short_arrays", "use_short_name", "named_unit", "indent"}
-)
+#: The display traits, named once. ``QuantityReprConfig`` / ``QuantityStrConfig``
+#: are the same four options differing only in the ``short_arrays`` default, so
+#: they share this base and each states just its own default and docstring.
+#: The valid-option sets are derived from these traits (see ``_override_keys``),
+#: not hand-listed alongside them.
 
 
-class QuantityReprConfig(LocalConfigurable):
+class AbstractQuantityDisplayConfig(LocalConfigurable):
+    """Display options shared by the quantity ``repr()`` / ``str()`` configs.
+
+    Concrete subclasses set the ``short_arrays`` default -- ``False`` for
+    ``repr()`` (faithful, round-trippable) and ``"compact"`` for ``str()``
+    (readable) -- and are distinct classes so a `traitlets.config.Config` can
+    address them separately by name.
+    """
+
+    short_arrays: ClassVar[object] = Union(
+        [Bool(), Enum(("compact",))],
+        default_value=False,
+        help=(
+            "Controls array display. "
+            "Options: 'compact' (values only), "
+            "True (shape/dtype), False (full repr)"
+        ),
+    ).tag(config=True)
+
+    use_short_name: ClassVar[object] = Bool(
+        default_value=False,
+        help=(
+            "Use a class's short name if available (e.g. Quantity -> Q, "
+            "ParametricQuantity -> PQ)"
+        ),
+    ).tag(config=True)
+
+    named_unit: ClassVar[object] = Bool(
+        default_value=True,
+        help="Display unit as named argument (unit='m') vs positional ('m')",
+    ).tag(config=True)
+
+    indent: ClassVar[object] = Int(
+        default_value=4, help="Indentation level for nested structures"
+    ).tag(config=True)
+
+
+class QuantityReprConfig(AbstractQuantityDisplayConfig):
     """Configuration for quantity ``__repr__()`` display options.
 
     This controls how quantity objects are displayed in ``repr()``. It is
@@ -240,6 +305,8 @@ class QuantityReprConfig(LocalConfigurable):
         If `True`, display unit as a named argument `unit='m'`.
         If `False`, display unit as a positional argument `'m'`.
         Default: `True`
+    indent : int
+        Indentation width for nested structures in repr. Default: 4
 
     Examples
     --------
@@ -253,50 +320,8 @@ class QuantityReprConfig(LocalConfigurable):
 
     """
 
-    _config_keys: ClassVar[frozenset[str]] = QUANTITY_REPR_CONFIG_KEYS
 
-    short_arrays: ClassVar[object] = Union(
-        [Bool(), Enum(("compact",))],
-        default_value=False,
-        help=(
-            "Controls array display in repr. "
-            "Options: 'compact' (values only), "
-            "True (shape/dtype), False (full repr)"
-        ),
-    ).tag(config=True)
-
-    use_short_name: ClassVar[object] = Bool(
-        default_value=False,
-        help=(
-            "Use a class's short name if available (e.g. Quantity -> Q, "
-            "ParametricQuantity -> PQ)"
-        ),
-    ).tag(config=True)
-
-    named_unit: ClassVar[object] = Bool(
-        default_value=True,
-        help="Display unit as named argument (unit='m') vs positional ('m')",
-    ).tag(config=True)
-
-    indent: ClassVar[object] = Int(
-        default_value=4, help="Indentation level for nested structures in repr"
-    ).tag(config=True)
-
-
-# ============================================================================
-# Quantity `__str__`
-
-QUANTITY_STR_CONFIG_KEYS: Final = frozenset(
-    {"short_arrays", "use_short_name", "named_unit", "indent"}
-)
-
-UNXT_OVERRIDE_CONFIG_KEYS: Final = {
-    "quantity_repr": QUANTITY_REPR_CONFIG_KEYS,
-    "quantity_str": QUANTITY_STR_CONFIG_KEYS,
-}
-
-
-class QuantityStrConfig(LocalConfigurable):
+class QuantityStrConfig(AbstractQuantityDisplayConfig):
     """Configuration for quantity ``__str__()`` display options.
 
     This controls how quantity objects are displayed in ``str()``. It is
@@ -336,34 +361,10 @@ class QuantityStrConfig(LocalConfigurable):
 
     """
 
-    _config_keys: ClassVar[frozenset[str]] = QUANTITY_STR_CONFIG_KEYS
-
-    short_arrays: ClassVar[object] = Union(
-        [Bool(), Enum(("compact",))],
-        default_value="compact",
-        help=(
-            "Controls array display in str. "
-            "Options: 'compact' (values only), "
-            "True (shape/dtype), False (full str)"
-        ),
-    ).tag(config=True)
-
-    use_short_name: ClassVar[object] = Bool(
-        default_value=False,
-        help=(
-            "Use a class's short name if available (e.g. Quantity -> Q, "
-            "ParametricQuantity -> PQ)"
-        ),
-    ).tag(config=True)
-
-    named_unit: ClassVar[object] = Bool(
-        default_value=True,
-        help="Display unit as named argument (unit='m') vs positional ('m')",
-    ).tag(config=True)
-
-    indent: ClassVar[object] = Int(
-        default_value=4, help="Indentation level for nested structures in str"
-    ).tag(config=True)
+    @default("short_arrays")
+    def _short_arrays_default(self) -> str:
+        """``str()`` favours readability, so arrays print as bare values."""
+        return "compact"
 
 
 # ============================================================================
@@ -502,9 +503,10 @@ class UnxtConfig(AbstractUnxtConfig, SingletonConfigurable):
 
     # Configurable classes that are part of this config hierarchy
     classes: ClassVar[list[type]] = [QuantityReprConfig, QuantityStrConfig]
-    _override_config_keys: ClassVar[dict[str, frozenset[str]]] = (
-        UNXT_OVERRIDE_CONFIG_KEYS
-    )
+    _override_config_keys: ClassVar[dict[str, frozenset[str]]] = {
+        "quantity_repr": _override_keys(QuantityReprConfig),
+        "quantity_str": _override_keys(QuantityStrConfig),
+    }
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize UnxtConfig with nested config instances."""
@@ -745,14 +747,12 @@ def _initialize_config_mapping(cfg: UnxtConfig) -> None:
 
     This must be called after creating the UnxtConfig instance.
     """
-    _CONFIG_CLASS_TO_INSTANCE["QuantityReprConfig"] = (
-        cfg.quantity_repr,
-        QUANTITY_REPR_CONFIG_KEYS,
-    )
-    _CONFIG_CLASS_TO_INSTANCE["QuantityStrConfig"] = (
-        cfg.quantity_str,
-        QUANTITY_STR_CONFIG_KEYS,
-    )
+    for name in ("quantity_repr", "quantity_str"):
+        instance = getattr(cfg, name)
+        _CONFIG_CLASS_TO_INSTANCE[type(instance).__name__] = (
+            instance,
+            _override_keys(type(instance)),
+        )
 
 
 def _warn_if_legacy_unxt_config(
