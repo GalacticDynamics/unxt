@@ -38,7 +38,7 @@ from plum import add_promotion_rule, convert, dispatch, type_nonparametric
 from quax import ArrayValue
 
 import quaxed.numpy as jnp
-from dataclassish import field_items, replace
+from dataclassish import field_items
 
 import unxt_api as uapi
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
@@ -117,6 +117,7 @@ class AbstractQuantity(
     quax_blocks.NumpyCeilMixin["AbstractQuantity"],
     quax_blocks.LaxLenMixin,
     quax_blocks.LaxLengthHintMixin,
+    quax_blocks.SupportsUncheckedMake,
 ):
     """Represents a quantity with a value and a unit.
 
@@ -178,6 +179,24 @@ class AbstractQuantity(
 
     # ---------------------------------------------------------------
     # Constructors
+
+    #: `quax_blocks.SupportsUncheckedMake.__make__` under a shorter name, for
+    #: the construction hot path: it writes the fields and returns, so neither
+    #: the field converters (`convert_to_quantity_value`, `unxts.api.unit`) nor
+    #: ``__check_init__`` run. Both converters are `plum`-dispatched, so the
+    #: checked constructor -- and `replace`, which calls it -- costs ~50us
+    #: against ~1us here.
+    #:
+    #: Callers must pass an already-normalised value and unit; the theorem that
+    #: makes that safe belongs at the call site, and `revalue` is the vetted way
+    #: to state it. Do not reach for `_mk` directly without one.
+    #:
+    #: Bound as the classmethod *object* so ``cls`` follows the class it is
+    #: called on -- ``_mk = __make__`` is a `NameError` in a class body, and
+    #: ``_mk = SupportsUncheckedMake.__make__`` would build the mixin.
+    #: `StaticQuantity` overrides this back to the checked constructor, whose
+    #: converter is load-bearing rather than redundant.
+    _mk = quax_blocks.SupportsUncheckedMake.__dict__["__make__"]
 
     @classmethod
     @dispatch.abstract
@@ -253,7 +272,7 @@ class AbstractQuantity(
         return jax.typeof(value)
 
     def enable_materialise(self, _: bool = True) -> "Self":  # noqa: FBT001, FBT002
-        return replace(self, value=self.value, unit=self.unit)
+        return type(self)._mk(value=self.value, unit=self.unit)  # noqa: SLF001
 
     # ===============================================================
     # Plum API
@@ -325,7 +344,7 @@ class AbstractQuantity(
         # ``jnp.matrix_transpose(self.value)``: the latter rejects a
         # ``StaticValue`` (StaticQuantity's value), while ``.mT`` delegates to
         # the wrapped NumPy/JAX array for both quantity kinds.
-        return replace(self, value=self.value.mT)
+        return revalue(self, self.value.mT)
 
     @property
     def ndim(self) -> int:
@@ -368,7 +387,7 @@ class AbstractQuantity(
                                   [1, 2]], dtype=int32), unit='m')
 
         """
-        return replace(self, value=self.value.T)
+        return revalue(self, self.value.T)
 
     # ---------------------------------------------------------------
     # methods
@@ -444,7 +463,7 @@ class AbstractQuantity(
         """
         if isinstance(key, AbstractQuantity):
             key = uapi.ustrip("", key)
-        return replace(self, value=self.value[key])
+        return revalue(self, self.value[key])
 
     def __index__(self) -> int:
         """Convert a zero-dimensional integer array to a Python int object.
@@ -501,7 +520,7 @@ class AbstractQuantity(
         Quantity(Array(1, dtype=int32...), unit='m')
 
         """
-        return replace(self, value=self.value.to_device(device))
+        return revalue(self, self.value.to_device(device))
 
     # ===============================================================
     # JAX API
@@ -600,7 +619,7 @@ class AbstractQuantity(
         Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
         """
-        return replace(self, value=self.value.astype(*args, **kwargs))
+        return revalue(self, self.value.astype(*args, **kwargs))
 
     @ft.partial(property, doc=jax.Array.at.__doc__)
     def at(self) -> "_QuantityIndexUpdateHelper":
@@ -644,7 +663,7 @@ class AbstractQuantity(
         Quantity(Array([1, 2, 3, 4], dtype=int32), unit='m')
 
         """
-        return replace(self, value=self.value.flatten())
+        return revalue(self, self.value.flatten())
 
     def max(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
         """Return the maximum value.
@@ -657,7 +676,7 @@ class AbstractQuantity(
         Quantity(Array(3, dtype=int32), unit='m')
 
         """
-        return replace(self, value=self.value.max(*args, **kwargs))
+        return revalue(self, self.value.max(*args, **kwargs))
 
     def mean(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
         """Return the mean value.
@@ -670,7 +689,7 @@ class AbstractQuantity(
         Quantity(Array(2., dtype=float32), unit='m')
 
         """
-        return replace(self, value=self.value.mean(*args, **kwargs))
+        return revalue(self, self.value.mean(*args, **kwargs))
 
     def min(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
         """Return the minimum value.
@@ -683,7 +702,7 @@ class AbstractQuantity(
         Quantity(Array(1, dtype=int32), unit='m')
 
         """
-        return replace(self, value=self.value.min(*args, **kwargs))
+        return revalue(self, self.value.min(*args, **kwargs))
 
     def ravel(self) -> "AbstractQuantity":
         """Return a flattened version of the array.
@@ -696,7 +715,7 @@ class AbstractQuantity(
         Quantity(Array([1, 2, 3, 4], dtype=int32), unit='m')
 
         """
-        return replace(self, value=self.value.ravel())
+        return revalue(self, self.value.ravel())
 
     def reshape(self, *args: Any, order: str = "C") -> "AbstractQuantity":
         """Return a reshaped version of the array.
@@ -711,7 +730,7 @@ class AbstractQuantity(
 
         """
         __tracebackhide__ = True  # pylint: disable=unused-variable
-        return replace(self, value=self.value.reshape(*args, order=order))
+        return revalue(self, self.value.reshape(*args, order=order))
 
     def round(self, *args: Any, **kwargs: Any) -> "AbstractQuantity":
         """Round the array to the given number of decimals.
@@ -724,7 +743,7 @@ class AbstractQuantity(
         Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
         """
-        return replace(self, value=self.value.round(*args, **kwargs))
+        return revalue(self, self.value.round(*args, **kwargs))
 
     @property
     def sharding(self) -> Any:
@@ -751,7 +770,7 @@ class AbstractQuantity(
         Quantity(Array([1, 2, 3], dtype=int32), unit='m')
 
         """
-        return replace(self, value=self.value.squeeze(*args, **kwargs))
+        return revalue(self, self.value.squeeze(*args, **kwargs))
 
     # ===============================================================
     # Python stuff
@@ -1094,6 +1113,57 @@ class AbstractQuantity(
         return f"{value_str} {unit_str}" if unit_str else value_str
 
 
+def revalue(q: AbstractQuantity, value: Any, /) -> AbstractQuantity:
+    """Rebuild ``q`` around a new ``value``, keeping its class and unit.
+
+    This is `replace` with the checked constructor taken out:
+    `AbstractQuantity._mk` writes the fields directly, so the two
+    `plum`-dispatched field converters and ``__check_init__`` never run. That is
+    ~55x -- 50us to 0.9us -- and it sits on the return path of every `quax`
+    primitive rule and every Array-API method that reshapes a quantity.
+
+    Skipping the converters is sound only where they are redundant, which is why
+    this is not spelled `replace`. Callers must satisfy two conditions:
+
+    1. ``value`` is already what `convert_to_quantity_value` would return -- a
+       `jax.Array` or tracer. The output of any `jax.lax` operation qualifies,
+       but the output of a *multi-output* primitive does not: those hand back a
+       `list` of arrays, and the converter is what folds it into one.
+    2. The unit is ``q``'s own, unchanged. That is what makes skipping
+       ``__check_init__`` safe: the one invariant it guards,
+       `AbstractParametricQuantity`'s dimension, is a function of the unit.
+
+    A rule whose unit *changes* must keep the ordinary
+    ``type_np(q)(value, unit=...)`` constructor, and not only for the
+    converters: on an `AbstractParametricQuantity` that call is what re-infers
+    the type parameter from the new unit, which writing the fields directly
+    would not do.
+
+    `StaticQuantity` opts back out of the shortcut -- its converter materialises
+    concrete JAX arrays to NumPy and rejects traced ones, so it is load-bearing
+    rather than redundant -- which is why this reads ``_mk`` off the instance's
+    own class instead of calling `AbstractQuantity._mk` directly.
+
+    The unit is read with `object.__getattribute__` because `equinox.Module`
+    installs a ``__getattribute__`` that re-wraps bound methods on *every*
+    attribute access; at this call volume that one lookup is ~40% of what is
+    left. For the same reason this is a module-level function rather than a
+    method: ``q._revalue`` would pay the wrapper twice.
+
+    Examples
+    --------
+    >>> import jax.numpy as jnp
+    >>> import unxt as u
+    >>> from unxt._src.quantity.base import revalue
+
+    >>> q = u.Q([1.0, 2.0], "m")
+    >>> revalue(q, jnp.asarray([3.0, 4.0]))
+    Quantity(Array([3., 4.], dtype=float32), unit='m')
+
+    """
+    return type(q)._mk(value=value, unit=object.__getattribute__(q, "unit"))  # noqa: SLF001
+
+
 def _is_different_from_default(value: Any, default: Any) -> bool:
     """Check if value differs from default using equality when safe."""
     with contextlib.suppress(Exception):
@@ -1353,7 +1423,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
             # ``fv`` is always a 0-d array; coerce it to a Python scalar.
             fill_value = fv.item()
         value = self.array.value.at[self.index].get(fill_value=fill_value, **kw)
-        return replace(self.array, value=value)
+        return revalue(self.array, value)
 
     @override
     def set(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
@@ -1361,7 +1431,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
         value = self.array.value.at[self.index].set(
             uapi.ustrip(self.array.unit, values), **kw
         )
-        return replace(self.array, value=value)
+        return revalue(self.array, value)
 
     @override
     def apply(self, func: Any, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
@@ -1379,7 +1449,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
         value = self.array.value.at[self.index].add(
             uapi.ustrip(self.array.unit, values), **kw
         )
-        return replace(self.array, value=value)
+        return revalue(self.array, value)
 
     @override
     def multiply(self, values: ArrayLike, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
@@ -1391,7 +1461,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
 
         # TODO: by quaxified super
         value = self.array.value.at[self.index].multiply(values, **kw)
-        return replace(self.array, value=value)
+        return revalue(self.array, value)
 
     mul = multiply  # type: ignore[assignment]
 
@@ -1405,7 +1475,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
 
         # TODO: by quaxified super
         value = self.array.value.at[self.index].divide(values, **kw)
-        return replace(self.array, value=value)
+        return revalue(self.array, value)
 
     @override
     def power(self, values: ArrayLike, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
@@ -1423,7 +1493,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
         value = self.array.value.at[self.index].min(
             uapi.ustrip(self.array.unit, values), **kw
         )
-        return replace(self.array, value=value)
+        return revalue(self.array, value)
 
     @override
     def max(self, values: AbstractQuantity, **kw: Any) -> AbstractQuantity:  # type: ignore[override]
@@ -1431,7 +1501,7 @@ class _QuantityIndexUpdateRef(_IndexUpdateRef):
         value = self.array.value.at[self.index].max(
             uapi.ustrip(self.array.unit, values), **kw
         )
-        return replace(self.array, value=value)
+        return revalue(self.array, value)
 
 
 # This is public!

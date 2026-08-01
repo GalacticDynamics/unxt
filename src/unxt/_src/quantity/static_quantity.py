@@ -70,6 +70,42 @@ class StaticQuantity(AbstractQuantity):
     unit: AbstractUnit = eqx.field(static=True, converter=uapi.unit)
     """The unit associated with this value."""
 
+    @classmethod
+    def _mk(cls, **fields: Any) -> "StaticQuantity":
+        """Construct a `StaticQuantity`, running the field converters.
+
+        This deliberately gives up the fast path that `AbstractQuantity._mk`
+        opens. That path is only sound where the converters are redundant, and
+        here they are not: `StaticValue.from_` is what wraps the value, what
+        materialises a concrete JAX array back to NumPy, and what rejects a
+        traced one. Primitive rules hand this class the output of a `jax.lax`
+        operation like any other quantity, so all three have to survive the
+        shortcut -- otherwise `revalue` would quietly store a JAX array in a
+        field the whole class is built on being static.
+
+        Examples
+        --------
+        >>> import jax, jax.numpy as jnp
+        >>> import unxt as u
+        >>> from unxt._src.quantity.base import revalue
+
+        A concrete value is materialised, not stored raw:
+
+        >>> q = u.StaticQuantity(np.array([1.0, 2.0]), "m")
+        >>> revalue(q, jnp.asarray([3.0, 4.0])).value
+        StaticValue(array([3., 4.], dtype=float32))
+
+        A traced value is still rejected:
+
+        >>> try:
+        ...     jax.jit(lambda v: revalue(q, v))(jnp.asarray([3.0, 4.0]))
+        ... except TypeError as e:
+        ...     print(type(e).__name__)
+        TypeError
+
+        """
+        return cls(**fields)
+
     def __hash__(self) -> int:
         """Return the hash of the quantity."""
         return hash((self.value, self.unit))

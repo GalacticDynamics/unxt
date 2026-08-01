@@ -4,7 +4,6 @@
 __all__: tuple[str, ...] = ()
 
 from collections.abc import Sequence
-from dataclasses import replace
 from math import prod
 from typing import Any, Literal, TypeAlias, overload
 
@@ -25,7 +24,7 @@ from plum import convert, promote, type_unparametrized as type_np
 
 import quaxed.lax as qlax
 
-from .base import AbstractQuantity as ABCQ  # noqa: N814
+from .base import AbstractQuantity as ABCQ, revalue  # noqa: N814
 from .base_angle import AbstractAngle
 from .flag import AllowValue
 from .quantity import Q, Quantity
@@ -127,7 +126,7 @@ def abs_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(1, dtype=int32...), unit='m')
 
     """
-    return replace(x, value=lax.abs(ustrip(x)))
+    return revalue(x, lax.abs(ustrip(x)))
 
 
 # ==============================================================================
@@ -222,7 +221,7 @@ def add_p_aqaq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     yv = ustrip(x.unit, y)  # this can change the dtype
     xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
 
-    return replace(x, value=xv + yv)
+    return revalue(x, xv + yv)
 
 
 @quax.register(lax.add_p)
@@ -288,7 +287,7 @@ def add_p_vaq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     """
     y = uconvert(one, y)
-    return replace(y, value=lax.add(x, ustrip(y)))
+    return revalue(y, lax.add(x, ustrip(y)))
 
 
 @quax.register(lax.add_p)
@@ -360,7 +359,7 @@ def add_p_aqv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     """
     x = uconvert(one, x)
-    return replace(x, value=lax.add(ustrip(x), y))
+    return revalue(x, lax.add(ustrip(x), y))
 
 
 # ==============================================================================
@@ -389,7 +388,7 @@ def add_jaxvals_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """
     xv, yv = ustrip(x), ustrip(x.unit, y)
     xv, yv = promote_dtypes(xv, yv)
-    return replace(x, value=add_jaxvals_p.bind(xv, yv))  # type: ignore[no-untyped-call]
+    return revalue(x, add_jaxvals_p.bind(xv, yv))  # type: ignore[no-untyped-call]
 
 
 # ==============================================================================
@@ -488,7 +487,7 @@ def approx_top_k_p(x: ABCQ, /, **kwargs: Any) -> list[ABCQ | Array]:
 
     """
     vals, idx = lax.approx_top_k_p.bind(ustrip(x), **kwargs)  # type: ignore[no-untyped-call]
-    return [replace(x, value=vals), idx]
+    return [revalue(x, vals), idx]
 
 
 # ==============================================================================
@@ -803,9 +802,7 @@ def bitcast_convert_type_p(x: ABCQ, /, *, new_dtype: DTypeLike) -> ABCQ:
     Quantity(Array([    0, 16256], dtype=int16), unit='')
 
     """
-    return replace(
-        x, value=lax.bitcast_convert_type_p.bind(ustrip(x), new_dtype=new_dtype)
-    )
+    return revalue(x, lax.bitcast_convert_type_p.bind(ustrip(x), new_dtype=new_dtype))
 
 
 # ==============================================================================
@@ -815,7 +812,7 @@ def bitcast_convert_type_p(x: ABCQ, /, *, new_dtype: DTypeLike) -> ABCQ:
 def broadcast_in_dim_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
     """Broadcast a quantity in a specific dimension."""
     value = lax.broadcast_in_dim_p.bind(ustrip(operand), **kw)  # type: ignore[no-untyped-call,unused-ignore]
-    return replace(operand, value=value)
+    return revalue(operand, value)
 
 
 # ==============================================================================
@@ -879,7 +876,7 @@ def ceil_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(2., dtype=float32...), unit='m')
 
     """
-    return replace(x, value=lax.ceil(ustrip(x)))
+    return revalue(x, lax.ceil(ustrip(x)))
 
 
 # ==============================================================================
@@ -914,9 +911,7 @@ def clamp_p(min: ABCQ, x: ABCQ, max: ABCQ) -> ABCQ:
     Quantity(Array([0., 1., 2.], dtype=float32), unit='m')
 
     """
-    return replace(
-        x, value=lax.clamp(ustrip(x.unit, min), ustrip(x), ustrip(x.unit, max))
-    )
+    return revalue(x, lax.clamp(ustrip(x.unit, min), ustrip(x), ustrip(x.unit, max)))
 
 
 # ---------------------------
@@ -1022,7 +1017,7 @@ def clz_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(31, dtype=int32...), unit='')
 
     """
-    return replace(x, value=lax.clz_p.bind(ustrip(x)))
+    return revalue(x, lax.clz_p.bind(ustrip(x)))
 
 
 # ==============================================================================
@@ -1050,7 +1045,7 @@ def complex_p(x: ABCQ, y: ABCQ) -> ABCQ:
     """
     x, y = promote(x, y)  # e.g. Distance -> Quantity
     y_ = ustrip(x.unit, y)
-    return replace(x, value=lax.complex(ustrip(x), y_))
+    return revalue(x, lax.complex(ustrip(x), y_))
 
 
 # ==============================================================================
@@ -1074,7 +1069,7 @@ def _combine_quantities(operands: tuple[Any, ...], combine: Any) -> ABCQ:
     if all(isinstance(op, ABCQ) for op in operands):
         target = operands[0]
         arrs = [ustrip(target.unit, op) for op in operands]
-        return replace(target, value=combine(arrs))
+        return revalue(target, combine(arrs))
 
     arrs = [ustrip(one, op) if isinstance(op, ABCQ) else op for op in operands]
     out = combine(arrs)
@@ -1275,7 +1270,7 @@ def conj_p(x: ABCQ, *, input_dtype: Any) -> ABCQ:
 
     """
     del input_dtype  # TODO: use this?
-    return replace(x, value=lax.conj(ustrip(x)))
+    return revalue(x, lax.conj(ustrip(x)))
 
 
 # ==============================================================================
@@ -1292,7 +1287,7 @@ def convert_element_type_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
     else:
         value = lax.convert_element_type_p.bind(ustrip(operand), **kw)
 
-    return replace(operand, value=value)
+    return revalue(operand, value)
 
 
 # ==============================================================================
@@ -1316,7 +1311,7 @@ def copy_p(x: ABCQ) -> ABCQ:
     Quantity(Array(1, dtype=int32...), unit='m')
 
     """
-    return replace(x, value=lax.copy_p.bind(ustrip(x)))  # type: ignore[no-untyped-call]
+    return revalue(x, lax.copy_p.bind(ustrip(x)))  # type: ignore[no-untyped-call]
 
 
 # ==============================================================================
@@ -1417,8 +1412,8 @@ def cumlogsumexp_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
 
     """
     # TODO: double check units make sense here.
-    return replace(
-        operand, value=lax.cumlogsumexp(ustrip(operand), axis=axis, reverse=reverse)
+    return revalue(
+        operand, lax.cumlogsumexp(ustrip(operand), axis=axis, reverse=reverse)
     )
 
 
@@ -1443,9 +1438,7 @@ def cummax_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
     Quantity(Array([1, 2, 2], dtype=int32), unit='m')
 
     """
-    return replace(
-        operand, value=lax.cummax(ustrip(operand), axis=axis, reverse=reverse)
-    )
+    return revalue(operand, lax.cummax(ustrip(operand), axis=axis, reverse=reverse))
 
 
 # ==============================================================================
@@ -1469,9 +1462,7 @@ def cummin_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
     Quantity(Array([2, 1, 1], dtype=int32), unit='m')
 
     """
-    return replace(
-        operand, value=lax.cummin(ustrip(operand), axis=axis, reverse=reverse)
-    )
+    return revalue(operand, lax.cummin(ustrip(operand), axis=axis, reverse=reverse))
 
 
 # ==============================================================================
@@ -1521,9 +1512,7 @@ def cumsum_p(operand: ABCQ, *, axis: Any, reverse: Any) -> ABCQ:
     Quantity(Array([1, 3, 6], dtype=int32), unit='m')
 
     """
-    return replace(
-        operand, value=lax.cumsum(ustrip(operand), axis=axis, reverse=reverse)
-    )
+    return revalue(operand, lax.cumsum(ustrip(operand), axis=axis, reverse=reverse))
 
 
 # ==============================================================================
@@ -1960,7 +1949,7 @@ def div_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     Quantity(Array([6., 3., 2.], dtype=float32...), unit='m')
 
     """
-    return replace(x, value=ustrip(x) / y)
+    return revalue(x, ustrip(x) / y)
 
 
 # TODO: can this be done with promotion/conversion/default rule instead?
@@ -2153,9 +2142,7 @@ def dynamic_slice_q(operand: ABCQ, /, *indices: ArrayLike | ABCQ, **kw: Any) -> 
 
     """
     idxs = [ustrip(AllowValue, i) for i in indices]
-    return replace(
-        operand, value=lax.dynamic_slice_p.bind(ustrip(operand), *idxs, **kw)
-    )
+    return revalue(operand, lax.dynamic_slice_p.bind(ustrip(operand), *idxs, **kw))
 
 
 # ==============================================================================
@@ -2182,9 +2169,9 @@ def dynamic_update_slice_p(
     Quantity(Array([1, 6, 7, 4, 5], dtype=int32), unit='m')
 
     """
-    return replace(
+    return revalue(
         operand,
-        value=lax.dynamic_update_slice_p.bind(
+        lax.dynamic_update_slice_p.bind(
             ustrip(operand), ustrip(update), *indices, **kw
         ),
     )
@@ -2212,7 +2199,7 @@ def eigh_p(x: ABCQ, /, **kw: Any) -> tuple[Array, ABCQ]:
 
     """
     v, w = lax.linalg.eigh_p.bind(ustrip(x), **kw)
-    return v, replace(x, value=w)
+    return v, revalue(x, w)
 
 
 # ==============================================================================
@@ -2552,7 +2539,7 @@ def floor_p(x: ABCQ) -> ABCQ:
     Quantity(Array(1., dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.floor(ustrip(x)))
+    return revalue(x, lax.floor(ustrip(x)))
 
 
 # ==============================================================================
@@ -2565,7 +2552,7 @@ def gather_p(operand: ABCQ, start_indices: ArrayLike | ABCQ, /, **kw: Any) -> AB
     # by e.g. jax's nan-aware quantile (``nanmedian``); strip it to its value.
     # TODO: examples
     idx = ustrip(AllowValue, start_indices)
-    return replace(operand, value=lax.gather_p.bind(ustrip(operand), idx, **kw))
+    return revalue(operand, lax.gather_p.bind(ustrip(operand), idx, **kw))
 
 
 # ==============================================================================
@@ -2851,7 +2838,7 @@ def igammac_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
 
 @quax.register(lax.imag_p)
 def imag_p(x: ABCQ) -> ABCQ:
-    return replace(x, value=lax.imag(ustrip(x)))
+    return revalue(x, lax.imag(ustrip(x)))
 
 
 # ==============================================================================
@@ -3366,7 +3353,7 @@ def max_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 
     """
     yv = ustrip(x.unit, y)
-    return replace(x, value=lax.max(ustrip(x), yv))
+    return revalue(x, lax.max(ustrip(x), yv))
 
 
 @quax.register(lax.max_p)
@@ -3438,7 +3425,7 @@ def max_p_ss(x: StaticQuantity, y: StaticQuantity, /) -> StaticQuantity:
 
     """
     yv = ustrip(x.unit, y)
-    return replace(x, value=np.maximum(ustrip(x), yv))
+    return revalue(x, np.maximum(ustrip(x), yv))
 
 
 # ==============================================================================
@@ -3470,7 +3457,7 @@ def min_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     Quantity(Array([1, 1, 3], dtype=int32), unit='m')
 
     """
-    return replace(x, value=lax.min(ustrip(x), ustrip(x.unit, y)))
+    return revalue(x, lax.min(ustrip(x), ustrip(x.unit, y)))
 
 
 @quax.register(lax.min_p)
@@ -3614,7 +3601,7 @@ def mul_p_vq(x: ArrayLike, y: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array([4, 6], dtype=int32), unit='m')
 
     """
-    return replace(y, value=mul_qbind(x, ustrip(y), **kw))
+    return revalue(y, mul_qbind(x, ustrip(y), **kw))
 
 
 @quax.register(lax.mul_p)
@@ -3649,7 +3636,7 @@ def mul_p_qv(x: ABCQ, y: ArrayLike, /, **kw: Any) -> ABCQ:
     Quantity(Array([4, 6], dtype=int32), unit='m')
 
     """
-    return replace(x, value=mul_qbind(ustrip(x), y, **kw))
+    return revalue(x, mul_qbind(ustrip(x), y, **kw))
 
 
 @quax.register(lax.mul_p)
@@ -3835,7 +3822,7 @@ def neg_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(-1, dtype=int32...), unit='m')
 
     """
-    return replace(x, value=lax.neg(ustrip(x)))
+    return revalue(x, lax.neg(ustrip(x)))
 
 
 # =============================================================================
@@ -3861,7 +3848,7 @@ def nextafter_p(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
 
     """
     u = unit_of(x1)
-    return replace(x1, value=lax.nextafter(ustrip(u, x1), ustrip(u, x2)))
+    return revalue(x1, lax.nextafter(ustrip(u, x1), ustrip(u, x2)))
 
 
 # =============================================================================
@@ -3989,9 +3976,9 @@ def pad_p(operand: ABCQ, padding_value: ABCQ, /, *, padding_config: Any) -> ABCQ
         (operand.dtype, padding_value.dtype), operand_stripped, padding_value_stripped
     )
 
-    return replace(
+    return revalue(
         operand,
-        value=lax.pad_p.bind(
+        lax.pad_p.bind(
             operand_stripped, padding_value_stripped, padding_config=padding_config
         ),
     )
@@ -4040,8 +4027,8 @@ def pad_p_array_padding(
         (operand.dtype, pad_val.dtype), op_val, pad_val
     )
 
-    return replace(
-        operand, value=lax.pad_p.bind(op_val, pad_val, padding_config=padding_config)
+    return revalue(
+        operand, lax.pad_p.bind(op_val, pad_val, padding_config=padding_config)
     )
 
 
@@ -4177,7 +4164,7 @@ def pow_p_v_bareq(x: ArrayLike, y: Quantity, /) -> ABCQ:
     Quantity(Array([8.], dtype=float32), unit='')
 
     """
-    return replace(y, value=lax.pow(x, ustrip("", y)))
+    return revalue(y, lax.pow(x, ustrip("", y)))
 
 
 @quax.register(lax.pow_p)
@@ -4223,7 +4210,7 @@ def real_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(1., dtype=float32...), unit='m')
 
     """
-    return replace(x, value=lax.real(ustrip(x)))
+    return revalue(x, lax.real(ustrip(x)))
 
 
 # ==============================================================================
@@ -4243,7 +4230,7 @@ def reduce_and_p(operand: ABCQ, /, *, axes: Sequence[int]) -> ABCQ:
 
 @quax.register(lax.reduce_max_p)
 def reduce_max_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
-    return replace(operand, value=lax.reduce_max_p.bind(ustrip(operand), axes=axes))
+    return revalue(operand, lax.reduce_max_p.bind(ustrip(operand), axes=axes))
 
 
 # ==============================================================================
@@ -4251,7 +4238,7 @@ def reduce_max_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
 
 @quax.register(lax.reduce_min_p)
 def reduce_min_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
-    return replace(operand, value=lax.reduce_min_p.bind(ustrip(operand), axes=axes))
+    return revalue(operand, lax.reduce_min_p.bind(ustrip(operand), axes=axes))
 
 
 # ==============================================================================
@@ -4287,7 +4274,7 @@ def reduce_prod_p_a(operand: AbstractAngle, /, *, axes: Axes) -> ABCQ:
 
 @quax.register(lax.reduce_sum_p)
 def reduce_sum_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
-    return replace(operand, value=lax.reduce_sum_p.bind(ustrip(operand), **kw))
+    return revalue(operand, lax.reduce_sum_p.bind(ustrip(operand), **kw))
 
 
 # ==============================================================================
@@ -4353,7 +4340,7 @@ def regularized_incomplete_beta_q(
     a = ustrip(AllowValue, one, a)
     b = ustrip(AllowValue, one, b)
     xv = ustrip(one, x)
-    return replace(x, value=lax.regularized_incomplete_beta_p.bind(a, b, xv))
+    return revalue(x, lax.regularized_incomplete_beta_p.bind(a, b, xv))
 
 
 # ==============================================================================
@@ -4374,7 +4361,7 @@ def rem_p_aa(x: AbstractAngle, y: ABCQ, /) -> AbstractAngle:
     """
     # Don't promote - preserve the Angle type. Use lax.rem (truncated
     # remainder) to match lax.rem_p, unlike ``%`` which is floor-mod.
-    return replace(x, value=lax.rem(ustrip(x), ustrip(x.unit, y)))
+    return revalue(x, lax.rem(ustrip(x), ustrip(x.unit, y)))
 
 
 @quax.register(lax.rem_p)
@@ -4408,7 +4395,7 @@ def rem_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
         value = np.fmod(np.asarray(xv), np.asarray(yv))
     else:
         value = lax.rem(xv, yv)
-    return replace(x, value=value)
+    return revalue(x, value)
 
 
 @quax.register(lax.rem_p)
@@ -4457,7 +4444,7 @@ def reshape_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
                               [4, 5]], dtype=int32), unit='m')
 
     """
-    return replace(operand, value=lax.reshape_p.bind(ustrip(operand), **kw))
+    return revalue(operand, lax.reshape_p.bind(ustrip(operand), **kw))
 
 
 # ==============================================================================
@@ -4481,7 +4468,7 @@ def rev_p(operand: ABCQ, /, *, dimensions: Any) -> ABCQ:
     Quantity(Array([3, 2, 1, 0], dtype=int32), unit='m')
 
     """
-    return replace(operand, value=lax.rev(ustrip(operand), dimensions))
+    return revalue(operand, lax.rev(ustrip(operand), dimensions))
 
 
 # ==============================================================================
@@ -4505,7 +4492,7 @@ def round_p(x: ABCQ, /, *, rounding_method: Any) -> ABCQ:
     Quantity(Array(1.23, dtype=float32...), unit='m')
 
     """
-    return replace(x, value=lax.round(ustrip(x), rounding_method))
+    return revalue(x, lax.round(ustrip(x), rounding_method))
 
 
 # ==============================================================================
@@ -4580,9 +4567,9 @@ def scatter_add_p_qvq(
     # ... )
 
     """
-    return replace(
+    return revalue(
         operand,
-        value=lax.scatter_add_p.bind(
+        lax.scatter_add_p.bind(
             ustrip(operand), scatter_indices, ustrip(operand.unit, updates), **kw
         ),
     )
@@ -4601,9 +4588,8 @@ def scatter_add_p_vvq(
     the `updates`.
 
     """
-    return replace(
-        updates,
-        value=lax.scatter_add_p.bind(operand, scatter_indices, ustrip(updates), **kw),
+    return revalue(
+        updates, lax.scatter_add_p.bind(operand, scatter_indices, ustrip(updates), **kw)
     )
 
 
@@ -4665,7 +4651,7 @@ def select_n_p_jjq(which: ArrayLike, case0: ArrayLike, case1: ABCQ, /) -> ABCQ:
     quantity's unit for a raw-array branch" sharp bit.
     """
     # Used by a `jnp.linalg.trace`
-    return replace(case1, value=lax.select_n(which, case0, ustrip(case1)))
+    return revalue(case1, lax.select_n(which, case0, ustrip(case1)))
 
 
 @quax.register(lax.select_n_p)
@@ -4698,7 +4684,7 @@ def select_n_p_jqj(which: ArrayLike, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
     quantity's unit for a raw-array branch" sharp bit.
 
     """
-    return replace(case0, value=lax.select_n(which, ustrip(case0), case1))
+    return revalue(case0, lax.select_n(which, ustrip(case0), case1))
 
 
 @quax.register(lax.select_n_p)
@@ -4735,7 +4721,7 @@ def select_n_p_jaq(
     dtypes = tuple(case.dtype for case in all_cases)
     casesv = promote_dtypes_if_needed(dtypes, *(ustrip(u, case) for case in all_cases))
 
-    return replace(case0, value=lax.select_n(which, *casesv))
+    return revalue(case0, lax.select_n(which, *casesv))
 
 
 @quax.register(lax.select_n_p)
@@ -4799,7 +4785,7 @@ def select_n_p_jqq(which: ArrayLike, /, *cases: ABCQ) -> ABCQ:
 
     # If result is a JAX array but promoted type is StaticQuantity, use
     # Quantity
-    return replace(cases[0], value=lax.select_n(which, *casesv))
+    return revalue(cases[0], lax.select_n(which, *casesv))
 
 
 # ==============================================================================
@@ -4953,7 +4939,7 @@ def shift_left_p(x: ABCQ, y: ABCQ | float | int, /, **kw: Any) -> ABCQ:
     Quantity(Array(4, dtype=int32...), unit='')
 
     """
-    return replace(x, value=lax.shift_left(ustrip(x), ustrip(AllowValue, one, y)))
+    return revalue(x, lax.shift_left(ustrip(x), ustrip(AllowValue, one, y)))
 
 
 # ==============================================================================
@@ -4963,9 +4949,9 @@ def shift_left_p(x: ABCQ, y: ABCQ | float | int, /, **kw: Any) -> ABCQ:
 def slice_p(
     operand: ABCQ, /, *, start_indices: Any, limit_indices: Any, strides: Any
 ) -> ABCQ:
-    return replace(
+    return revalue(
         operand,
-        value=lax.slice_p.bind(
+        lax.slice_p.bind(
             ustrip(operand),
             start_indices=start_indices,
             limit_indices=limit_indices,
@@ -5030,7 +5016,7 @@ def sort_p(
         *stripped, dimension=dimension, is_stable=is_stable, num_keys=num_keys
     )
     return tuple(
-        replace(op, value=out) if isinstance(op, ABCQ) else out
+        revalue(op, out) if isinstance(op, ABCQ) else out
         for op, out in zip(all_operands, outs, strict=True)
     )
 
@@ -5150,7 +5136,7 @@ def stop_gradient_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(1., dtype=float32...), unit='m')
 
     """
-    return replace(x, value=lax.stop_gradient(ustrip(x)))
+    return revalue(x, lax.stop_gradient(ustrip(x)))
 
 
 # ==============================================================================
@@ -5188,7 +5174,7 @@ def sub_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     yv = ustrip(x.unit, y)
     xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
     # Return the subtracted values, and the unit of the first operand
-    return replace(x, value=xv - yv)
+    return revalue(x, xv - yv)
 
 
 @quax.register(lax.sub_p)
@@ -5217,7 +5203,7 @@ def sub_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     """
     y = uconvert(one, y)
-    return replace(y, value=x - ustrip(y))
+    return revalue(y, x - ustrip(y))
 
 
 @quax.register(lax.sub_p)
@@ -5246,7 +5232,7 @@ def sub_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     """
     x = uconvert(one, x)
-    return replace(x, value=ustrip(x) - y)
+    return revalue(x, ustrip(x) - y)
 
 
 # ==============================================================================
@@ -5358,7 +5344,7 @@ def top_k_p(operand: ABCQ, /, **kw: Any) -> list[ABCQ | Array]:
 
     """
     vals, idx = lax.top_k_p.bind(ustrip(operand), **kw)  # type: ignore[no-untyped-call]
-    return [replace(operand, value=vals), idx]
+    return [revalue(operand, vals), idx]
 
 
 # ==============================================================================
@@ -5384,8 +5370,8 @@ def transpose_p(operand: ABCQ, /, *, permutation: Any) -> ABCQ:
     Quantity(Array([[0, 3], [1, 4], [2, 5]], dtype=int32), unit='m')
 
     """
-    return replace(
-        operand, value=lax.transpose_p.bind(ustrip(operand), permutation=permutation)
+    return revalue(
+        operand, lax.transpose_p.bind(ustrip(operand), permutation=permutation)
     )
 
 
@@ -5483,4 +5469,4 @@ def zeta_p(x: ABCQ, q: ArrayLike, /) -> ABCQ:
     Quantity(Array(1.6449, dtype=float32...), unit='')
 
     """
-    return replace(x, value=lax.zeta_p.bind(ustrip(x), q))
+    return revalue(x, lax.zeta_p.bind(ustrip(x), q))
