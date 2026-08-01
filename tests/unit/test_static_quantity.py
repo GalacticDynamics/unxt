@@ -3,6 +3,7 @@
 import copy
 import pickle
 from functools import partial
+from typing import Any
 
 import equinox as eqx
 import jax
@@ -898,3 +899,37 @@ def test_str_shows_values_like_quantity() -> None:
     assert str(u.StaticQuantity(3.0, "m")) == "StaticQuantity(3., unit='m')"
     # repr is unchanged (shows the NumPy array wrapper)
     assert repr(sq) == "StaticQuantity(array([1., 2.]), unit='m')"
+
+
+def test_mk_matches_static_value_from_() -> None:
+    """``StaticQuantity._mk`` agrees with the converter it inlines.
+
+    ``_mk`` repeats `StaticValue.from_`'s type switch by hand to keep `plum`
+    off the construction hot path (see its docstring). That is the one place
+    the two can drift, so pin them together over every arm of the switch:
+    pass-through, NumPy, array-like, Python scalar and concrete ``jax.Array``.
+    """
+    unit = u.unit("m")
+    cases = [
+        StaticValue(np.array([1.0, 2.0])),  # pass-through
+        np.array([1, 2, 3], dtype=np.int64),  # NumPy, dtype preserved
+        [1.0, 2.0],  # array-like
+        3.5,  # Python scalar
+        jnp.asarray([1.0, 2.0]),  # concrete jax.Array -> materialised
+    ]
+    for value in cases:
+        mk = u.StaticQuantity._mk(value=value, unit=unit)
+        checked = u.StaticQuantity(value, unit)
+        assert type(mk.value) is type(checked.value)
+        assert mk.value.array.dtype == checked.value.array.dtype
+        assert np.array_equal(mk.value.array, checked.value.array)
+        assert mk.unit == checked.unit
+        assert mk == checked
+
+    # And the rejected arm, with the message the two share.
+    @jax.jit
+    def via_mk(x: Any) -> u.StaticQuantity:
+        return u.StaticQuantity._mk(value=x, unit=unit)
+
+    with pytest.raises(TypeError, match="cannot hold a traced JAX value"):
+        via_mk(jnp.array([1.0, 2.0]))

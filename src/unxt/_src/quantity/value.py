@@ -15,6 +15,13 @@ from jaxtyping import Array, ArrayLike
 
 import quaxed.numpy as jnp
 
+#: Raised when a traced value is offered to a static field. Shared with
+#: `unxt.quantity.StaticQuantity._mk`, which repeats this type switch inline to
+#: keep `plum` off its hot path, so the two must not drift.
+TRACED_VALUE_MSG = (
+    "StaticQuantity cannot hold a traced JAX value; use Quantity under jit/vmap/grad."
+)
+
 
 @final
 class StaticValue:
@@ -299,11 +306,7 @@ def from_(cls: type[StaticValue], value: jax.Array | jax.core.Tracer, /) -> Stat
     that does not exist yet, so it genuinely cannot be static and is rejected.
     """
     if isinstance(value, jax.core.Tracer):
-        msg = (
-            "StaticQuantity cannot hold a traced JAX value; "
-            "use Quantity under jit/vmap/grad."
-        )
-        raise TypeError(msg)
+        raise TypeError(TRACED_VALUE_MSG)
     return cls(np.asarray(value))
 
 
