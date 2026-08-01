@@ -1281,6 +1281,18 @@ wheels = [
 ]
 
 [[package]]
+name = "is-annotated"
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/18/47/71e305ed9716826ad2104cc6354a1b00147910fb5c8252d2a2b7999fd5df/is_annotated-1.0.1.tar.gz", hash = "sha256:7103a36eb58de43854e8f8425b895051e55250beaa70f58a909a052efa6cd882", size = 8905, upload-time = "2024-08-27T18:18:37.078Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/21/c7144383ecc537029c70f0d10a6b2cadcb3737be0712635ff811c8fa18e2/is_annotated-1.0.1-py3-none-any.whl", hash = "sha256:98426507e1d174cf61b32f5e5bdebab2d6f29885d2809df2383d0afdbef40a15", size = 3957, upload-time = "2024-08-27T18:18:36.269Z" },
+]
+
+[[package]]
 name = "isort"
 version = "8.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -3946,6 +3958,7 @@ dependencies = [
     { name = "astropy" },
     { name = "dataclassish" },
     { name = "equinox" },
+    { name = "is-annotated" },
     { name = "jax" },
     { name = "jaxlib" },
     { name = "jaxtyping" },
@@ -4153,6 +4166,7 @@ requires-dist = [
     { name = "astropy", marker = "extra == 'backend-astropy'", specifier = ">=7.0.0" },
     { name = "dataclassish", specifier = ">=0.8.0" },
     { name = "equinox", specifier = ">=0.13.7" },
+    { name = "is-annotated", specifier = ">=1.0" },
     { name = "jax", specifier = ">=0.7.2" },
     { name = "jax", extras = ["cpu"], marker = "extra == 'cpu'", specifier = ">=0.7.2" },
     { name = "jax", extras = ["cuda"], marker = "extra == 'cuda'", specifier = ">=0.7.2" },

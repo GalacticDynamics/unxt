@@ -22,6 +22,7 @@ dependencies = [
   "astropy>=7.0.0",
   "dataclassish>=0.8.0",
   "equinox>=0.13.7",
+  "is-annotated>=1.0",
   "jax>=0.7.2",
   "jaxlib>=0.7.2",
   "jaxtyping>=0.3.9",
@@ -472,10 +473,16 @@ unxt_api                = "uapi"
 unxt_hypothesis         = "ust"
 
 [tool.ruff.lint.isort]
-combine-as-imports     = true
+combine-as-imports = true
 extra-standard-library = ["typing_extensions"]
-known-first-party      = ["dataclassish", "optional_dependencies", "quaxed"]
-known-local-folder     = ["unxt", "unxt_api", "unxt_hypothesis"]
+known-first-party = [
+  "dataclassish",
+  "is_annotated",
+  "optional_dependencies",
+  "quaxed",
+  "zeroth",                # used by the unxts.interop.matplotlib subpackage
+]
+known-local-folder = ["unxt", "unxt_api", "unxt_hypothesis"]
 
 [tool.ruff.format]
 docstring-code-format = true
