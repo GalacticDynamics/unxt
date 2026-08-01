@@ -18,7 +18,7 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
-  "astropy>=7.0.0",
+  "astropy>=7.1",
   "plum-dispatch>=2.5.7",
   "unxt>=2.0.0",
   "unxts.api>=2.0.0",

@@ -4640,7 +4640,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "astropy", specifier = ">=7.0.0" },
+    { name = "astropy", specifier = ">=7.1" },
     { name = "plum-dispatch", specifier = ">=2.5.7" },
     { name = "unxt", editable = "." },
     { name = "unxts-api", editable = "packages/unxts.api" },
