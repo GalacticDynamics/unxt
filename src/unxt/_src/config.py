@@ -66,14 +66,11 @@ class LocalConfigurable(Configurable):
         with no override active that is a single dict lookup.
         """
         obj_getattr = object.__getattribute__
-        try:
-            # ``vars()`` on the thread-local, not ``getattr``, to avoid paying
-            # for a second descriptor lookup on the empty-stack fast path.
-            stack = vars(obj_getattr(self, "_local")).get("stack")
-        except AttributeError:
-            # ``_local`` is not set until ``__init__`` runs; traitlets touches
-            # attributes before that, so fall through to normal lookup.
-            return obj_getattr(self, name)
+        # ``_local`` is only set once ``__init__`` runs, and traitlets touches
+        # attributes ~40 times before that; read it out of the instance dict so
+        # those are a dict miss rather than a raised-and-caught AttributeError.
+        local = obj_getattr(self, "__dict__").get("_local")
+        stack = vars(local).get("stack") if local is not None else None
 
         if stack and name in _override_keys(type(self)):
             # Return the most recent override for this attribute
