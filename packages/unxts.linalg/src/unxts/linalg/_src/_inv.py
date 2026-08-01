@@ -208,4 +208,7 @@ def _inv_p_QuantityMatrix(x: QuantityMatrix, /) -> QuantityMatrix:
         raise ValueError(msg)
 
     inv_val = inv_p.bind(x.value)
-    return QuantityMatrix(inv_val, unit=x.unit.inverse())
+    # `_mk`: `inv_val` is a `lax` output and `inverse()` a `UnitsMatrix`, so both
+    # converters are the identity; inversion preserves shape, so the
+    # value/unit pairing `__check_init__` guards is unchanged.
+    return QuantityMatrix._mk(value=inv_val, unit=x.unit.inverse())
