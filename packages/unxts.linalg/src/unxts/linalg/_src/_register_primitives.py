@@ -27,12 +27,43 @@ from ._quantity_matrix import (
     _convert_value_matrix,
 )
 from ._units_matrix import UnitsMatrix
+from ._utils import _DMLS
 from unxt.quantity import AllowValue
 
-# Vectorised uconvert_value — used by dot-product helpers.
-vec_uconvert_value = np.vectorize(u.uconvert_value)
 
-_DMLS = u.unit("")
+def _scale_factors(to_units: np.ndarray, from_units: np.ndarray, /) -> np.ndarray:
+    """Per-element conversion factors ``from_units -> to_units``.
+
+    A contraction needs one factor per output/contraction index -- N*K*M of them
+    for a 2-D @ 2-D product -- but a matrix carries only a handful of *distinct*
+    unit pairs, and ``uconvert_value`` costs ~19us a call. So compute each
+    distinct pair once and reuse it (measured 51x on a 10x10x10 scale array;
+    values identical to the previous per-element ``np.vectorize`` call).
+
+    CORRECTNESS NOTE -- why a multiplicative scale factor is exact:
+    Affine units (degC, degF) are the only units where a bare multiplicative
+    scale would be wrong (they have an additive offset). But astropy rejects
+    product conversions involving affine units -- e.g. ``(deg_C * s).to(deg_F *
+    s)`` raises ``UnitConversionError``. Every product unit that astropy *does*
+    accept (including logarithmic units like dex, mag) is a plain
+    ``CompositeUnit`` whose conversion is purely multiplicative. So
+    ``uconvert_value(to, from, 1.0)`` yields an exact scale factor for all valid
+    product units.
+
+    The tests in ``TestAffineProductUnitsRejected`` assert that astropy keeps
+    rejecting affine product conversions. If that ever changes, those tests will
+    fail, alerting us that this assumption needs revisiting.
+    """
+    to_b, from_b = np.broadcast_arrays(to_units, from_units)
+    cache: dict[Any, Any] = {}
+
+    def factor(pair: Any, /) -> Any:
+        if (v := cache.get(pair)) is None:
+            v = cache[pair] = u.uconvert_value(pair[0], pair[1], 1.0)
+        return v
+
+    flat = [factor(p) for p in zip(to_b.reshape(-1), from_b.reshape(-1), strict=True)]
+    return np.asarray(flat).reshape(to_b.shape)
 
 
 # ── add / sub ────────────────────────────────────────────────────────────
@@ -250,14 +281,16 @@ def _dot_general_1d_1d(
 
     # Reference unit: lhs.unit[0] * rhs.unit[0]
     ref_unit = lhs.unit[0] * rhs.unit[0]
+    ref_units = np.empty(n, dtype=object)
+    ref_units[:] = ref_unit
 
     # Compute scale factors. ``uconvert_value`` returns Python floats, so a bare
     # ``jnp.array`` is float64 and would silently upcast a float32 contraction
     # under jax_enable_x64=True. Cast to ``result_type(values, 1.0)``: the weak
     # float keeps the scale *at least* floating (so integer operands still get a
     # correct fractional conversion) without widening float32 → float64.
-    scales = jnp.array(
-        [u.uconvert_value(ref_unit, lhs.unit[i] * rhs.unit[i], 1.0) for i in range(n)],
+    scales = jnp.asarray(
+        _scale_factors(ref_units, np.multiply(lhs.unit._units, rhs.unit._units)),
         dtype=jnp.result_type(lhs.value, rhs.value, 1.0),
     )
 
@@ -322,10 +355,9 @@ def _dot_general_2d_1d(
     # 2) Precompute scale factors: scale[i, j] converts
     #    lhs.unit[i][j]*rhs.unit[j] → ref[i]
     scale_2d = jnp.asarray(
-        vec_uconvert_value(
+        _scale_factors(
             out_unit._units[:, None],  # (N, 1) — broadcast over K
             np.multiply(lhs.unit._units, rhs.unit._units[None, :]),  # (N, K)
-            1.0,
         ),
         dtype=jnp.result_type(lhs.value, rhs.value, 1.0),
     )
@@ -384,10 +416,9 @@ def _dot_general_1d_2d(
     # 2) Precompute scale factors: scale[j, k] converts
     #    lhs.unit[j]*rhs.unit[j][k] → ref[k]
     scale_2d = jnp.asarray(
-        vec_uconvert_value(
+        _scale_factors(
             out_unit._units[None, :],  # (1, M) — broadcast over K
             np.multiply(lhs.unit._units[:, None], rhs.unit._units),  # (K, M)
-            1.0,
         ),
         dtype=jnp.result_type(lhs.value, rhs.value, 1.0),
     )
@@ -444,41 +475,31 @@ def _dot_general_2d_2d(
 
     # 2) Precompute all scale factors as a (N, K, M) constant array.
     #    scale[i, j, k] converts lhs.unit[i][j]*rhs.unit[j][k] → out_unit[i][k].
-    #
-    #    CORRECTNESS NOTE — why a multiplicative scale factor is exact:
-    #    Affine units (°C, °F) are the only units where a bare
-    #    multiplicative scale would be wrong (they have an additive
-    #    offset).  But astropy rejects product conversions involving
-    #    affine units — e.g. ``(deg_C * s).to(deg_F * s)`` raises
-    #    ``UnitConversionError``.  Every product unit that astropy
-    #    *does* accept (including logarithmic units like dex, mag) is
-    #    a plain ``CompositeUnit`` whose conversion is purely
-    #    multiplicative.  So ``uconvert_value(to, from, 1.0)`` yields
-    #    an exact scale factor for all valid product units.
-    #
-    #    The tests in ``TestAffineProductUnitsRejected`` assert that
-    #    astropy keeps rejecting affine product conversions.  If that
-    #    ever changes, those tests will fail, alerting us that this
-    #    assumption needs revisiting.
+    #    See ``_scale_factors`` for why a multiplicative factor is exact here.
     scale_3d = jnp.asarray(
-        vec_uconvert_value(
+        _scale_factors(
             out_unit[:, None, :],  # (N, 1, M)
             np.multiply(lhs.unit._units[:, :, None], rhs.unit._units[None, :, :]),
-            1.0,  # ꜛ (N, K, M)
-        ),
+        ),  # ꜛ (N, K, M)
         dtype=jnp.result_type(lhs.value, rhs.value, 1.0),
     )
 
-    # 3) Vectorised contraction — no Python loop, no accumulator.
+    # 3) Vectorised contraction:
     #    C[..., i, k] = Σ_j  scale[i, j, k] * A[..., i, j] * B[..., j, k]
-    accum = jnp.sum(  # (N, K, M) * (..., N, K, 1) * (..., 1, K, M)
-        scale_3d * lhs.value[..., :, :, None] * rhs.value[..., None, :, :], axis=-2
-    )
+    accum = jnp.einsum("ijk,...ij,...jk->...ik", scale_3d, lhs.value, rhs.value)
 
     return QuantityMatrix(value=accum, unit=out_unit)
 
 
 # ── dot_general dispatch ──────────────────────────────────────────────────
+
+#: The contraction implementation for each pair of logical (``unit``) ranks.
+_DOT_GENERAL_BY_RANK = {
+    (1, 1): _dot_general_1d_1d,
+    (1, 2): _dot_general_1d_2d,
+    (2, 1): _dot_general_2d_1d,
+    (2, 2): _dot_general_2d_2d,
+}
 
 
 @quax.register(lax.dot_general_p)
@@ -572,45 +593,19 @@ def dot_general_qm_qm(
         )
         raise NotImplementedError(msg)
 
-    # Delegate based on dimensionality
-    if lhs.ndim == 1 and rhs.ndim == 1:
-        return _dot_general_1d_1d(
-            lhs,
-            rhs,
-            dimension_numbers=dimension_numbers,
-            precision=precision,
-            preferred_element_type=preferred_element_type,
-            **kw,
-        )
-    if lhs.ndim == 2 and rhs.ndim == 2:
-        return _dot_general_2d_2d(
-            lhs,
-            rhs,
-            dimension_numbers=dimension_numbers,
-            precision=precision,
-            preferred_element_type=preferred_element_type,
-            **kw,
-        )
-    if lhs.ndim == 2 and rhs.ndim == 1:
-        return _dot_general_2d_1d(
-            lhs,
-            rhs,
-            dimension_numbers=dimension_numbers,
-            precision=precision,
-            preferred_element_type=preferred_element_type,
-            **kw,
-        )
-    if lhs.ndim == 1 and rhs.ndim == 2:
-        return _dot_general_1d_2d(
-            lhs,
-            rhs,
-            dimension_numbers=dimension_numbers,
-            precision=precision,
-            preferred_element_type=preferred_element_type,
-            **kw,
-        )
-    msg = f"Unsupported dimensionality: lhs.ndim={lhs.ndim}, rhs.ndim={rhs.ndim}"
-    raise NotImplementedError(msg)
+    # Delegate on the pair of logical ranks.
+    impl = _DOT_GENERAL_BY_RANK.get((lhs.ndim, rhs.ndim))
+    if impl is None:
+        msg = f"Unsupported dimensionality: lhs.ndim={lhs.ndim}, rhs.ndim={rhs.ndim}"
+        raise NotImplementedError(msg)
+    return impl(
+        lhs,
+        rhs,
+        dimension_numbers=dimension_numbers,
+        precision=precision,
+        preferred_element_type=preferred_element_type,
+        **kw,
+    )
 
 
 def _wrap_operand(
@@ -624,23 +619,16 @@ def _wrap_operand(
     structure rather than being mistaken for a matrix by its raw ``ndim``.
     """
     logical_ndim = value.ndim - len(batch_axes)
-    if logical_ndim == 1:
-        n = value.shape[-1]
-        unit = UnitsMatrix(tuple(element_unit for _ in range(n)))
-    elif logical_ndim == 2:
-        nr, nc = value.shape[-2], value.shape[-1]
-        unit = UnitsMatrix(
-            tuple(tuple(element_unit for _ in range(nc)) for _ in range(nr))
-        )
-    else:
+    if logical_ndim not in (1, 2):
         # Only vector/matrix operands are supported; fail here with a clear
-        # message rather than an IndexError on value.shape[-2] below.
+        # message rather than an IndexError on the shape slice below.
         msg = (
             "QuantityMatrix dot_general only supports vector (1-D) or matrix "
             f"(2-D) operands; got logical ndim {logical_ndim} for a value of "
             f"shape {value.shape} with {len(batch_axes)} batch axes."
         )
         raise NotImplementedError(msg)
+    unit = UnitsMatrix.full(value.shape[-logical_ndim:], element_unit)
     return QuantityMatrix(value, unit=unit)
 
 
