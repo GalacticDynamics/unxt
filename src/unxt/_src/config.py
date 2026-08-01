@@ -260,7 +260,7 @@ class AbstractQuantityDisplayConfig(LocalConfigurable):
         help=(
             "Controls array display. "
             "Options: 'compact' (values only), "
-            "True (shape/dtype), False (full repr)"
+            "True (shape/dtype), False (full array representation)"
         ),
     ).tag(config=True)
 
