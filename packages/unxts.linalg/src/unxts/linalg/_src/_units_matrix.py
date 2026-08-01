@@ -355,15 +355,16 @@ class UnitsMatrix:
                 v = cache[un] = un**exponent
             return v
 
-        out = np.empty(self._units.shape, dtype=object)
-        out.flat[:] = [powered(un) for un in self._units.flat]
-        return UnitsMatrix._wrap(out)
+        out = np.fromiter(
+            map(powered, self._units.flat), dtype=object, count=self._units.size
+        )
+        return UnitsMatrix._wrap(out.reshape(self._units.shape))
 
     def inverse(self) -> "UnitsMatrix":
         r"""Inverse unit structure — each unit raised to the power -1.
 
-        Equivalent to ``self ** -1``; see ``__pow__`` for the shape-aware fast
-        paths (1-D *O(n)*, 2-D uniform-unit *O(1)*, 2-D mixed *O(nm)*).
+        Equivalent to ``self ** -1``; see ``__pow__`` — a single flat pass over
+        the entries, with each *distinct* unit's reciprocal computed once.
 
         Examples
         --------
