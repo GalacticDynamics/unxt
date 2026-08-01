@@ -11,6 +11,7 @@ Registers handlers for the following JAX primitives:
 - ``lax.reduce_sum_p`` — summation reduction
 """
 
+from functools import lru_cache
 from typing import Any, cast
 
 import jax
@@ -27,12 +28,25 @@ from ._quantity_matrix import (
     _convert_value_matrix,
 )
 from ._units_matrix import UnitsMatrix
+from ._utils import _DMLS
 from unxt.quantity import AllowValue
 
-# Vectorised uconvert_value — used by dot-product helpers.
-vec_uconvert_value = np.vectorize(u.uconvert_value)
 
-_DMLS = u.unit("")
+@lru_cache(maxsize=4096)
+def _factor(to_unit: Any, from_unit: Any, /) -> float:
+    """Conversion factor ``from_unit -> to_unit``.
+
+    Memoized: a contraction needs N*K*M factors but only a handful of distinct
+    unit pairs, at ~19us a call. A bare multiplicative factor is exact here --
+    affine units (degC, degF) would need the additive offset, but astropy
+    rejects affine product conversions outright, guarded by
+    ``TestAffineProductUnitsRejected``.
+    """
+    return u.uconvert_value(to_unit, from_unit, 1.0)
+
+
+#: Broadcast per-element conversion factors ``from_units -> to_units``.
+_scale_factors = np.vectorize(_factor)
 
 
 # ── add / sub ────────────────────────────────────────────────────────────
@@ -256,8 +270,8 @@ def _dot_general_1d_1d(
     # under jax_enable_x64=True. Cast to ``result_type(values, 1.0)``: the weak
     # float keeps the scale *at least* floating (so integer operands still get a
     # correct fractional conversion) without widening float32 → float64.
-    scales = jnp.array(
-        [u.uconvert_value(ref_unit, lhs.unit[i] * rhs.unit[i], 1.0) for i in range(n)],
+    scales = jnp.asarray(
+        _scale_factors(ref_unit, np.multiply(lhs.unit._units, rhs.unit._units)),
         dtype=jnp.result_type(lhs.value, rhs.value, 1.0),
     )
 
@@ -322,10 +336,9 @@ def _dot_general_2d_1d(
     # 2) Precompute scale factors: scale[i, j] converts
     #    lhs.unit[i][j]*rhs.unit[j] → ref[i]
     scale_2d = jnp.asarray(
-        vec_uconvert_value(
+        _scale_factors(
             out_unit._units[:, None],  # (N, 1) — broadcast over K
             np.multiply(lhs.unit._units, rhs.unit._units[None, :]),  # (N, K)
-            1.0,
         ),
         dtype=jnp.result_type(lhs.value, rhs.value, 1.0),
     )
@@ -384,10 +397,9 @@ def _dot_general_1d_2d(
     # 2) Precompute scale factors: scale[j, k] converts
     #    lhs.unit[j]*rhs.unit[j][k] → ref[k]
     scale_2d = jnp.asarray(
-        vec_uconvert_value(
+        _scale_factors(
             out_unit._units[None, :],  # (1, M) — broadcast over K
             np.multiply(lhs.unit._units[:, None], rhs.unit._units),  # (K, M)
-            1.0,
         ),
         dtype=jnp.result_type(lhs.value, rhs.value, 1.0),
     )
@@ -444,41 +456,31 @@ def _dot_general_2d_2d(
 
     # 2) Precompute all scale factors as a (N, K, M) constant array.
     #    scale[i, j, k] converts lhs.unit[i][j]*rhs.unit[j][k] → out_unit[i][k].
-    #
-    #    CORRECTNESS NOTE — why a multiplicative scale factor is exact:
-    #    Affine units (°C, °F) are the only units where a bare
-    #    multiplicative scale would be wrong (they have an additive
-    #    offset).  But astropy rejects product conversions involving
-    #    affine units — e.g. ``(deg_C * s).to(deg_F * s)`` raises
-    #    ``UnitConversionError``.  Every product unit that astropy
-    #    *does* accept (including logarithmic units like dex, mag) is
-    #    a plain ``CompositeUnit`` whose conversion is purely
-    #    multiplicative.  So ``uconvert_value(to, from, 1.0)`` yields
-    #    an exact scale factor for all valid product units.
-    #
-    #    The tests in ``TestAffineProductUnitsRejected`` assert that
-    #    astropy keeps rejecting affine product conversions.  If that
-    #    ever changes, those tests will fail, alerting us that this
-    #    assumption needs revisiting.
+    #    See ``_factor`` for why a multiplicative factor is exact here.
     scale_3d = jnp.asarray(
-        vec_uconvert_value(
+        _scale_factors(
             out_unit[:, None, :],  # (N, 1, M)
             np.multiply(lhs.unit._units[:, :, None], rhs.unit._units[None, :, :]),
-            1.0,  # ꜛ (N, K, M)
-        ),
+        ),  # ꜛ (N, K, M)
         dtype=jnp.result_type(lhs.value, rhs.value, 1.0),
     )
 
-    # 3) Vectorised contraction — no Python loop, no accumulator.
+    # 3) Vectorised contraction:
     #    C[..., i, k] = Σ_j  scale[i, j, k] * A[..., i, j] * B[..., j, k]
-    accum = jnp.sum(  # (N, K, M) * (..., N, K, 1) * (..., 1, K, M)
-        scale_3d * lhs.value[..., :, :, None] * rhs.value[..., None, :, :], axis=-2
-    )
+    accum = jnp.einsum("ijk,...ij,...jk->...ik", scale_3d, lhs.value, rhs.value)
 
     return QuantityMatrix(value=accum, unit=out_unit)
 
 
 # ── dot_general dispatch ──────────────────────────────────────────────────
+
+#: The contraction implementation for each pair of logical (``unit``) ranks.
+_DOT_GENERAL_BY_RANK = {
+    (1, 1): _dot_general_1d_1d,
+    (1, 2): _dot_general_1d_2d,
+    (2, 1): _dot_general_2d_1d,
+    (2, 2): _dot_general_2d_2d,
+}
 
 
 @quax.register(lax.dot_general_p)
@@ -572,45 +574,19 @@ def dot_general_qm_qm(
         )
         raise NotImplementedError(msg)
 
-    # Delegate based on dimensionality
-    if lhs.ndim == 1 and rhs.ndim == 1:
-        return _dot_general_1d_1d(
-            lhs,
-            rhs,
-            dimension_numbers=dimension_numbers,
-            precision=precision,
-            preferred_element_type=preferred_element_type,
-            **kw,
-        )
-    if lhs.ndim == 2 and rhs.ndim == 2:
-        return _dot_general_2d_2d(
-            lhs,
-            rhs,
-            dimension_numbers=dimension_numbers,
-            precision=precision,
-            preferred_element_type=preferred_element_type,
-            **kw,
-        )
-    if lhs.ndim == 2 and rhs.ndim == 1:
-        return _dot_general_2d_1d(
-            lhs,
-            rhs,
-            dimension_numbers=dimension_numbers,
-            precision=precision,
-            preferred_element_type=preferred_element_type,
-            **kw,
-        )
-    if lhs.ndim == 1 and rhs.ndim == 2:
-        return _dot_general_1d_2d(
-            lhs,
-            rhs,
-            dimension_numbers=dimension_numbers,
-            precision=precision,
-            preferred_element_type=preferred_element_type,
-            **kw,
-        )
-    msg = f"Unsupported dimensionality: lhs.ndim={lhs.ndim}, rhs.ndim={rhs.ndim}"
-    raise NotImplementedError(msg)
+    # Delegate on the pair of logical ranks.
+    impl = _DOT_GENERAL_BY_RANK.get((lhs.ndim, rhs.ndim))
+    if impl is None:
+        msg = f"Unsupported dimensionality: lhs.ndim={lhs.ndim}, rhs.ndim={rhs.ndim}"
+        raise NotImplementedError(msg)
+    return impl(
+        lhs,
+        rhs,
+        dimension_numbers=dimension_numbers,
+        precision=precision,
+        preferred_element_type=preferred_element_type,
+        **kw,
+    )
 
 
 def _wrap_operand(
@@ -624,23 +600,16 @@ def _wrap_operand(
     structure rather than being mistaken for a matrix by its raw ``ndim``.
     """
     logical_ndim = value.ndim - len(batch_axes)
-    if logical_ndim == 1:
-        n = value.shape[-1]
-        unit = UnitsMatrix(tuple(element_unit for _ in range(n)))
-    elif logical_ndim == 2:
-        nr, nc = value.shape[-2], value.shape[-1]
-        unit = UnitsMatrix(
-            tuple(tuple(element_unit for _ in range(nc)) for _ in range(nr))
-        )
-    else:
+    if logical_ndim not in (1, 2):
         # Only vector/matrix operands are supported; fail here with a clear
-        # message rather than an IndexError on value.shape[-2] below.
+        # message rather than an IndexError on the shape slice below.
         msg = (
             "QuantityMatrix dot_general only supports vector (1-D) or matrix "
             f"(2-D) operands; got logical ndim {logical_ndim} for a value of "
             f"shape {value.shape} with {len(batch_axes)} batch axes."
         )
         raise NotImplementedError(msg)
+    unit = UnitsMatrix.full(value.shape[-logical_ndim:], element_unit)
     return QuantityMatrix(value, unit=unit)
 
 
