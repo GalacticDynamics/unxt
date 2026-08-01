@@ -22,7 +22,6 @@ dependencies = [
   "astropy>=7.0.0",
   "dataclassish>=0.8.0",
   "equinox>=0.13.7",
-  "is-annotated>=1.0",
   "jax>=0.7.2",
   "jaxlib>=0.7.2",
   "jaxtyping>=0.3.9",
@@ -37,8 +36,6 @@ dependencies = [
   "unxt-api>=2.0.0",
   "unxts.api>=2.0.0",
   "wadler-lindig>=0.1.5",
-  "xmmutablemap>=0.1",
-  "zeroth>=1.0.0",
 ]
 description = "Quantities in JAX"
 dynamic = ["version"]
@@ -475,17 +472,10 @@ unxt_api                = "uapi"
 unxt_hypothesis         = "ust"
 
 [tool.ruff.lint.isort]
-combine-as-imports = true
+combine-as-imports     = true
 extra-standard-library = ["typing_extensions"]
-known-first-party = [
-  "dataclassish",
-  "is_annotated",
-  "optional_dependencies",
-  "quaxed",
-  "xmmutablemap",
-  "zeroth",
-]
-known-local-folder = ["unxt", "unxt_api", "unxt_hypothesis"]
+known-first-party      = ["dataclassish", "optional_dependencies", "quaxed"]
+known-local-folder     = ["unxt", "unxt_api", "unxt_hypothesis"]
 
 [tool.ruff.format]
 docstring-code-format = true

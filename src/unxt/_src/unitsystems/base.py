@@ -11,8 +11,6 @@ import jax.tree_util as jtu
 from astropy.units import PhysicalType, UnitBase as AstropyUnitBase
 from astropy.units.physical import _physical_unit_mapping
 
-from is_annotated import isannotated
-
 from .utils import parse_dimlike_name
 from unxt.dims import AbstractDimension, dimension
 from unxt.units import AbstractUnit, unit
@@ -352,8 +350,9 @@ def parse_field_names_and_dimensions(
     field_names = []
     dims = []
     for name, type_hint in type_hints.items():
-        # Check it's Annotated
-        if not isannotated(type_hint):
+        # Check it's Annotated. ``__metadata__`` is the public attribute the
+        # `typing.Annotated` alias carries, and nothing else does.
+        if not hasattr(type_hint, "__metadata__"):
             continue
 
         # Get the arguments to Annotated
