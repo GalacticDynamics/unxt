@@ -56,6 +56,33 @@ def test_static_value_deepcopy_preserves_type_and_dtype() -> None:
     assert np.array_equal(np.asarray(shallow), np.asarray(sv))
 
 
+def test_static_value_copies_numpy_input() -> None:
+    """A NumPy input is copied, so neither side can mutate the other's data.
+
+    ``StaticValue.__init__`` copies only when ``np.asarray`` handed back a view
+    of the caller's buffer, which it detects with ``isinstance(array,
+    np.ndarray)``. `StaticValue.from_` and ``StaticQuantity._mk`` therefore hand
+    it the caller's object untouched rather than converting first, which would
+    make every input look like a shared buffer and copy needlessly. That is a
+    cost, not a semantic, so it is not what this test can catch -- what it
+    catches is dropping the defensive copy on the way past.
+    """
+    arr = np.array([1.0, 2.0])
+    sv = StaticValue.from_(arr)
+
+    assert not np.shares_memory(sv.array, arr)
+    assert arr.flags.writeable, "must not freeze the caller's array"
+    assert not sv.array.flags.writeable
+
+    arr[0] = 99.0
+    assert np.array_equal(sv.array, np.array([1.0, 2.0]))
+
+    # A non-ndarray has no buffer to share, so it is converted exactly once.
+    from_list = StaticValue.from_([1.0, 2.0])
+    assert np.array_equal(from_list.array, np.array([1.0, 2.0]))
+    assert not from_list.array.flags.writeable
+
+
 def test_static_value_getattr_preserves_dtype() -> None:
     """Attributes/methods forwarded through ``__getattr__`` keep the real dtype.
 
@@ -933,3 +960,44 @@ def test_mk_matches_static_value_from_() -> None:
 
     with pytest.raises(TypeError, match="cannot hold a traced JAX value"):
         via_mk(jnp.array([1.0, 2.0]))
+
+
+def test_static_value_from_resolver_is_faithful() -> None:
+    """``StaticValue.from_`` must stay `plum`-faithful, so resolution is cached.
+
+    A resolver is faithful when method choice depends only on argument *types*;
+    that is `plum`'s condition for caching the resolution instead of redoing it
+    every call. It only takes one unfaithful signature to lose it for the whole
+    function, and the two easy ways back in are annotating ``cls`` as
+    ``type[StaticValue]`` (`plum` treats *any* subscripted hint as unfaithful)
+    and naming `jax.Array` (unfaithful because ``jaxlib``'s ``ArrayMeta``
+    defines a custom ``__instancecheck__``).
+
+    Losing it is silent and costs ~18x on this function, so pin it here.
+    """
+    from_ = StaticValue.__dict__["from_"].__func__
+
+    # Force any pending registrations to resolve; `is_faithful` is only
+    # meaningful afterwards.
+    from_(StaticValue, np.array([1.0]))
+
+    unfaithful = [
+        str(m.signature) for m in from_._resolver.methods if not m.signature.is_faithful
+    ]
+    assert not unfaithful, f"unfaithful signatures: {unfaithful}"
+    assert from_._resolver.is_faithful
+
+
+def test_static_value_from_rejects_quantity() -> None:
+    """A quantity is not a value, and must be refused rather than flattened.
+
+    Regression: the guard annotated ``cls`` as `StaticValue` instead of a class,
+    so it never matched -- ``StaticValue.from_`` passes the *class* -- and a
+    quantity fell through to the ``object`` overload, silently becoming a
+    `StaticValue` of its magnitude with the unit dropped.
+    """
+    with pytest.raises(TypeError, match="Cannot convert 'Quantity' to a value"):
+        StaticValue.from_(u.Quantity(1.0, "m"))
+
+    with pytest.raises(TypeError, match="Cannot convert 'StaticQuantity' to a value"):
+        StaticValue.from_(u.StaticQuantity(np.array(1.0), "m"))

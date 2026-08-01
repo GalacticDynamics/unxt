@@ -1563,8 +1563,15 @@ def custom_pdoc_noarray(obj: Any) -> wl.AbstractDoc | None:
 
 
 @StaticValue.from_.dispatch
-def from_(cls: StaticValue, value: AbstractQuantity, /) -> StaticValue:
-    """Disallow conversion of `AbstractQuantity` to a value."""
+def from_(cls: type, value: AbstractQuantity, /) -> StaticValue:
+    """Disallow conversion of `AbstractQuantity` to a value.
+
+    ``cls`` was annotated `StaticValue` rather than a class, so this overload
+    could never match a call -- ``StaticValue.from_(q)`` passes the *class* --
+    and an `AbstractQuantity` fell through to the `object` overload and was
+    quietly turned into a `StaticValue` of its magnitude. A bare `type` both
+    matches and keeps the resolver faithful.
+    """
     msg = (
         f"Cannot convert '{type(value).__name__}' to a value. "
         "For a Quantity, use the `.from_` constructor instead."

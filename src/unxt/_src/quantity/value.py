@@ -281,33 +281,56 @@ class StaticValue:
         return abs(self._jnparray)
 
 
-@StaticValue.from_.dispatch
-def from_(cls: type[StaticValue], value: object, /) -> StaticValue:
-    """Convert a value for `StaticQuantity`."""
-    return cls(np.asarray(value))
+# Every signature below annotates ``cls`` as a bare `type` rather than
+# ``type[StaticValue]``, and none mentions `jax.Array`. Both are deliberate, and
+# both are about `plum`'s *faithfulness*: a resolver is faithful when method
+# choice depends only on the argument types, which is the condition for caching
+# the resolution. `plum` calls any subscripted hint unfaithful (so
+# ``type[StaticValue]`` is, regardless of `StaticValue` itself, which is
+# faithful), and `jax.Array` is unfaithful because `jaxlib`'s ``ArrayMeta``
+# defines a custom ``__instancecheck__``. One unfaithful signature makes the
+# whole resolver unfaithful, so `plum` re-runs resolution -- including
+# beartype-backed ambiguity comparisons between these overloads -- on *every*
+# call. That was 104us for a `StaticValue` and 15us for an array.
+#
+# `StaticValue` is `~typing.final`, so ``cls`` is only ever `StaticValue` and
+# dispatching on it buys nothing anyway.
 
 
 @StaticValue.from_.dispatch
-def from_(cls: type[StaticValue], value: StaticValue, /) -> StaticValue:
-    """Convert a value for `StaticQuantity`."""
+def from_(cls: type, value: object, /) -> StaticValue:
+    """Convert a value for `StaticQuantity`.
+
+    A concrete (eager) `jax.Array` lands here and is materialised to NumPy: it
+    is just data, so it can back a static value. That is what lets ops on a
+    `unxt.quantity.StaticQuantity` stay static, since the primitive rules
+    rebuild around the output of a `jax.lax` call.
+
+    The `np.asarray` is `StaticValue.__init__`'s to do, not ours: doing it here
+    too would hand ``__init__`` an array it then sees as the caller's and
+    defensively copies, so every list, scalar and `jax.Array` would pay for a
+    copy it does not need. This is the same one arm ``StaticQuantity._mk``
+    inlines, for the same reason.
+    """
+    return cls(value)
+
+
+@StaticValue.from_.dispatch
+def from_(cls: type, value: StaticValue, /) -> StaticValue:
+    """Pass through a value that is already static."""
     return value
 
 
 @StaticValue.from_.dispatch
-def from_(cls: type[StaticValue], value: jax.Array | jax.core.Tracer, /) -> StaticValue:
-    """Materialise a concrete JAX array to NumPy, or reject a traced value.
+def from_(cls: type, value: jax.core.Tracer, /) -> StaticValue:
+    """Reject a traced value.
 
-    A concrete (eager) ``jax.Array`` is just data, so it can back a static
-    value -- materialise it. This also lets ops on a ``StaticQuantity`` stay
-    static: the primitive rules rebuild via ``replace(x, value=<jax array>)``,
-    and that concrete array round-trips back to NumPy here instead of raising.
-
-    A *tracer* (under ``jit``/``vmap``/``grad``) is a placeholder for a value
-    that does not exist yet, so it genuinely cannot be static and is rejected.
+    A tracer (under ``jit``/``vmap``/``grad``) is a placeholder for a value that
+    does not exist yet, so it genuinely cannot be static. Dispatching on
+    `jax.core.Tracer` rather than testing inside the `jax.Array` overload keeps
+    `jax.Array` -- which `plum` considers unfaithful -- out of every signature.
     """
-    if isinstance(value, jax.core.Tracer):
-        raise TypeError(TRACED_VALUE_MSG)
-    return cls(np.asarray(value))
+    raise TypeError(TRACED_VALUE_MSG)
 
 
 # ==================================================================
