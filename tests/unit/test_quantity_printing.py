@@ -245,3 +245,40 @@ def test_format_non_scalar_raises() -> None:
     for q in (u.Q([1.5, 2.5], "m"), u.StaticQuantity(np.array([1.5, 2.5]), "m")):
         with pytest.raises(TypeError, match="unsupported format string"):
             format(q, ".2f")
+
+
+def test_format_presets_are_reachable_from_an_f_string() -> None:
+    """`unxt.fmt.FORMAT_PRESETS` names work as format specs."""
+    q = u.Q([1.0, 2, 3], "m")
+    assert f"{q:mul}" == "[1., 2., 3.] * m"
+    assert f"{q:bare}" == "[1., 2., 3.] m"
+    assert f"{q:short}" == "f32[3] * m"
+    assert f"{q:compact}" == "Q([1., 2., 3.], unit='m')"
+
+
+def test_format_preset_beats_the_value_spec_under_jit() -> None:
+    """The preset lookup must run before the value-spec branch.
+
+    A non-empty spec handed straight to a tracer raises, so a preset checked
+    second would be unreachable inside ``jax.jit``.
+    """
+    seen: list[str] = []
+
+    @jax.jit
+    def f(q: u.Q) -> u.Q:
+        seen.append(f"{q:mul}")
+        return q
+
+    f(u.Q([1.0, 2, 3], "m"))
+    assert seen == ["f32[3] * m"]
+
+
+def test_format_colon_fill_character_is_preserved() -> None:
+    """``:`` is legal as a fill character; no preset may shadow it."""
+    assert f"{u.Q(3.14159, 'm'):>12.2f}" == "        3.14 m"
+    assert format(u.Q(3.14159, "m"), ":>12.2f") == "::::::::3.14 m"
+
+
+def test_format_unknown_spec_names_the_type_and_presets() -> None:
+    with pytest.raises(ValueError, match=r"invalid format spec 'nonsense'"):
+        format(u.Q(3.14, "m"), "nonsense")

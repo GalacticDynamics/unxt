@@ -1092,10 +1092,11 @@ class AbstractQuantity(
         )
 
     def __format__(self, format_spec: str, /) -> str:
-        """Format the quantity, applying ``format_spec`` to the value.
+        """Format the quantity.
 
         An empty spec preserves the default :meth:`__str__` representation. A
-        non-empty spec is applied to the value and the unit is appended (as in
+        `unxt.fmt.FORMAT_PRESETS` name selects a named rendering. Any other
+        spec is applied to the value and the unit is appended (as in
         `astropy.units.Quantity`); a dimensionless quantity has no unit suffix.
 
         Examples
@@ -1109,12 +1110,21 @@ class AbstractQuantity(
         >>> format(u.Q(3.14159, ""), ".2f")
         '3.14'
 
+        The presets give the string-like renderings:
+
+        >>> qs = u.Q([1.0, 2, 3], "m")
+        >>> f"{qs:mul}"
+        '[1., 2., 3.] * m'
+        >>> f"{qs:short}"
+        'f32[3] * m'
+        >>> f"{qs:compact}"
+        "Q([1., 2., 3.], unit='m')"
+
         """
-        if not format_spec:
-            return str(self)
-        value_str = format(self.value, format_spec)
-        unit_str = str(self.unit)
-        return f"{value_str} {unit_str}" if unit_str else value_str
+        # Imported lazily: ``unxt._src.fmt`` imports this module.
+        from unxt._src.fmt import pspec  # noqa: PLC0415
+
+        return pspec(self, format_spec)
 
 
 #: The unchecked ``_mk``. `revalue`'s debug assertion compares against this to
