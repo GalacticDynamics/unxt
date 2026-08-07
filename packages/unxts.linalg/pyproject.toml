@@ -42,7 +42,7 @@ requires      = ["hatch-vcs", "hatchling"]
 
 [dependency-groups]
 test = [
-  "optional-dependencies>=0.3.2",
+  "optional-dependencies>=0.4.1",
   "pytest>=8.4.2",
   "pytest-arraydiff>=0.6.1",
   "pytest-cov>=6.2.1",

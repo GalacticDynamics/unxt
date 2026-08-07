@@ -26,7 +26,7 @@ dependencies = [
   "jax>=0.7.2",
   "jaxlib>=0.7.2",
   "jaxtyping>=0.3.9",
-  "optional-dependencies>=0.3.2",
+  "optional-dependencies>=0.4.1",
   "plum-dispatch>=2.7.0",
   "plum-dispatch>=2.9.0; python_version>='3.14'",
   "quax>=0.4.2",

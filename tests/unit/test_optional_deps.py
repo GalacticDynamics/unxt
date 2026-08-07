@@ -2,66 +2,66 @@
 
 import pytest
 
-from unxt._interop.optional_deps import OptDeps, is_installed
+from optional_dependencies import OptionalDependencyEnum, auto
+from optional_dependencies.utils import is_installed
+
+from unxt._interop.optional_deps import OptDeps
 
 
-class TestOptDepsExcludesNamespacePackages:
-    """`OptDeps` must not contain unxt's own version-colliding `unxts.*`."""
+def test_no_members_alias() -> None:
+    """Every declared member is its own member, not an alias of an earlier one.
 
-    def test_optdeps_has_no_unxts_members(self) -> None:
-        """Guard against reintroducing ``unxts.*`` packages into ``OptDeps``.
-
-        ``OptionalDependencyEnum`` keys each member on its installed *version*,
-        so any two members that share a version silently collapse into one enum
-        alias. unxt's own ``unxts.*`` packages are released together and so
-        typically share a version; that is the concrete aliasing this PR fixed
-        (matplotlib/xarray aliasing gala). They must be detected with
-        ``is_installed`` instead of being ``OptDeps`` members.
-
-        Asserting on the aliasing directly (``len(__members__) == len(OptDeps)``)
-        is version/environment-dependent, so assert the underlying invariant: no
-        member is a ``unxts.*`` package.
-        """
-        offenders = [n for n in OptDeps.__members__ if n.startswith("UNXTS")]
-        assert not offenders, (
-            "unxts.* packages must not be OptDeps members (they alias by shared "
-            f"version); detect them with is_installed() instead. Found: {offenders}"
-        )
+    ``optional-dependencies`` < 0.4.1 keyed members on their resolved version,
+    so co-released packages (unxt's own ``unxts.*``) silently collapsed into a
+    single member, reporting the wrong package's state. 0.4.1 keys on an
+    identity wrapper instead.
+    """
+    assert len(OptDeps.__members__) == len(list(OptDeps))
 
 
-class TestIsInstalled:
-    """`is_installed` detects modules by import-spec discovery (`find_spec`)."""
+def test_absent_packages_do_not_alias() -> None:
+    """Two *uninstalled* members stay distinct.
 
-    def test_returns_true_for_an_installed_module(self) -> None:
-        """A module with a discoverable import spec reports as installed."""
-        assert is_installed("unxt") is True
-        assert is_installed("importlib.util") is True
+    The other half of the pre-0.4.1 aliasing: every absent package resolved to
+    the same ``NOT_INSTALLED`` sentinel, so the second one folded into the
+    first. Asserted on a throwaway enum because it needs packages that are
+    guaranteed absent, which ``OptDeps`` (deliberately) has none of.
+    """
 
-    def test_returns_false_for_absent_module(self) -> None:
-        """A module without a discoverable spec reports as not installed."""
-        assert is_installed("unxts.interop.does_not_exist") is False
-        assert is_installed("unxt._this_module_does_not_exist_xyz") is False
+    class Absent(OptionalDependencyEnum):
+        NO_SUCH_PACKAGE_A = auto()
+        NO_SUCH_PACKAGE_B = auto()
 
-    def test_returns_false_when_find_spec_raises(self) -> None:
-        """A malformed path (parent is not a package) is caught, not raised.
+    assert not Absent.NO_SUCH_PACKAGE_A.installed
+    assert not Absent.NO_SUCH_PACKAGE_B.installed
+    assert Absent.NO_SUCH_PACKAGE_A is not Absent.NO_SUCH_PACKAGE_B
+    assert len(Absent.__members__) == len(list(Absent))
 
-        ``importlib.util.find_spec("os.foo")`` raises ``ModuleNotFoundError``
-        because ``os`` is a module, not a package; ``is_installed`` swallows it.
-        """
-        assert is_installed("os.nonexistent_sub") is False
 
-    @pytest.mark.parametrize(
-        "module",
-        ["unxts.interop.gala", "unxts.interop.matplotlib", "unxts.interop.xarray"],
-    )
-    def test_detects_interop_package_independently(self, module: str) -> None:
-        """Same-versioned interop packages are each detected on their own.
+@pytest.mark.parametrize(
+    ("member", "module"),
+    [
+        (OptDeps.UNXTS_INTEROP_MATPLOTLIB, "unxts.interop.matplotlib"),
+        (OptDeps.UNXTS_INTEROP_XARRAY, "unxts.interop.xarray"),
+    ],
+)
+def test_detects_interop_package_independently(member: OptDeps, module: str) -> None:
+    """Same-versioned interop packages are each detected on their own.
 
-        This is the behaviour the version-keyed enum could not provide: the
-        import spec is resolved per-module, so packages sharing a version never
-        collapse together. The interop packages are optional extras;
-        ``pytest.importorskip`` skips the case where the module can't be
-        imported (e.g. the extra isn't installed).
-        """
-        pytest.importorskip(module)
-        assert is_installed(module) is True
+    These are optional extras, so ``importorskip`` skips the case where the
+    module isn't installed.
+    """
+    pytest.importorskip(module)
+    assert member.installed is True
+
+
+def test_gala_member_requires_the_gala_backend() -> None:
+    """``UNXTS_INTEROP_GALA`` carries *both* halves of the gala condition.
+
+    The member is built with ``chain_checks`` because the interop extra can be
+    installed while gala itself is not -- gala is skipped where it cannot build
+    (e.g. the Windows CI job), and that is the env where dropping the second
+    check would show up as a wrongly-`True` member.
+    """
+    expected = is_installed("unxts.interop.gala") and is_installed("gala")
+    assert OptDeps.UNXTS_INTEROP_GALA.installed is expected
