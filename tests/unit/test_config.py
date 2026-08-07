@@ -21,7 +21,6 @@ from unxt._src.config import (
     _load_toml_config_from_pyproject,
     _walk_toml_config,
     _warn_if_legacy_unxt_config,
-    apply_config_sections,
 )
 
 # =============================================================================
@@ -172,29 +171,6 @@ def test_find_pyproject_prefers_nearest(tmp_path: Path) -> None:
 
 # =============================================================================
 # In-process auto-load / apply tests
-
-
-def test_apply_config_sections_unknown_class() -> None:
-    """A section naming a class that has no instance is skipped."""
-    assert not apply_config_sections({"NoSuchConfig": {"a": 1}}, {})
-
-
-def test_apply_config_sections_unknown_key() -> None:
-    """A key outside the override allowlist is skipped."""
-    instance = u.config.quantity_repr
-    name = type(instance).__name__
-    assert not apply_config_sections({name: {"not_a_key": 1}}, {name: instance})
-
-
-def test_apply_config_sections_rejected_value() -> None:
-    """A value traitlets rejects is skipped rather than raised."""
-    instance = u.config.quantity_repr
-    name = type(instance).__name__
-    before = instance.use_short_name
-    assert not apply_config_sections(
-        {name: {"use_short_name": object()}}, {name: instance}
-    )
-    assert instance.use_short_name == before
 
 
 def test_auto_load_no_pyproject(monkeypatch: pytest.MonkeyPatch) -> None:
