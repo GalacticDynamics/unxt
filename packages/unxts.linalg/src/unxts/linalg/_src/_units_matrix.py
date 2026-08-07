@@ -194,10 +194,8 @@ class UnitsMatrix:
             # Copy from another UnitsMatrix — avoids sharing the mutable array.
             data = iterable._units.copy()
         else:
+            # `_build_object_array` already rejects anything but 1-D/2-D.
             data = _build_object_array(iterable)
-        if data.ndim not in (1, 2):
-            msg = f"UnitsMatrix only supports 1D or 2D, but got ndim={data.ndim}"
-            raise ValueError(msg)
         self._units = data
 
     @classmethod
@@ -543,9 +541,9 @@ class UnitsMatrix:
 
         """
         result = self._units[index]
+        # NumPy returns the contained object for a scalar index and an array
+        # (never 0-d, since a `UnitsMatrix` is 1-D or 2-D) for a slice.
         if isinstance(result, np.ndarray):
-            if result.ndim == 0:  # 0-d array -> extract the contained unit.
-                return result.item()
             return UnitsMatrix._wrap(result)
         return result
 

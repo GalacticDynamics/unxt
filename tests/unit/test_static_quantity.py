@@ -933,3 +933,34 @@ def test_mk_matches_static_value_from_() -> None:
 
     with pytest.raises(TypeError, match="cannot hold a traced JAX value"):
         via_mk(jnp.array([1.0, 2.0]))
+
+
+def test_static_value_comparison_with_jax_array() -> None:
+    """``StaticValue`` compares elementwise against a `jax.Array`."""
+    sv = u.quantity.StaticValue(np.array([1.0, 2.0]))
+    arr = jnp.asarray([1.0, 3.0])
+
+    assert np.array_equal(np.asarray(sv == arr), np.array([True, False]))
+    assert np.array_equal(np.asarray(sv != arr), np.array([False, True]))
+
+
+def test_static_value_from_quantity_rejected() -> None:
+    """A quantity is not a value; ``StaticValue.from_`` says so."""
+    with pytest.raises(TypeError, match=r"use the `\.from_` constructor"):
+        StaticValue.from_(u.Q(1.0, "m"))
+
+
+def test_static_quantity_eq_non_static() -> None:
+    """Comparing to a non-`StaticQuantity` falls back to the array semantics."""
+    got = u.StaticQuantity(1.0, "m") == u.Q(1.0, "m")
+    assert bool(np.asarray(got.value))
+
+
+def test_select_n_static_quantity_and_array() -> None:
+    """``select_n`` over a StaticQuantity degrades to a plain `Quantity`."""
+    got = qnp.where(
+        jnp.asarray(1, dtype=bool), jnp.asarray(2.0), u.StaticQuantity(1.0, "m")
+    )
+    assert isinstance(got, u.quantity.Quantity)
+    assert got.unit == u.unit("m")
+    assert np.isclose(np.asarray(got.value), 2.0)

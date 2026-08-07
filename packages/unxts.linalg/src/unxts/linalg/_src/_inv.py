@@ -15,6 +15,7 @@ Supported transforms:
 import jax
 import jax.numpy as jnp
 import quax
+from jax import lax
 from jax.extend import core as jexc
 from jax.interpreters import ad as jax_ad, batching as jax_batching, mlir as jax_mlir
 from jaxtyping import Array
@@ -135,7 +136,9 @@ def _inv_jvp(primals: tuple, tangents: tuple) -> tuple[Array, Array]:
     (dx,) = tangents
     primal_out = inv_p.bind(x)
     if type(dx) is jax_ad.Zero:
-        tangent_out = jax_ad.Zero.from_primal_value(primal_out)  # ty: ignore[unresolved-attribute]
+        # Materialise the zero (as `_det_jvp` does): `Zero.from_primal_value`
+        # is not part of the supported jax API.
+        tangent_out = lax.full_like(primal_out, 0.0)
     else:
         tangent_out = -primal_out @ dx @ primal_out
     return primal_out, tangent_out

@@ -200,6 +200,15 @@ def test_angle_ufuncs_reject_unsupported_kwargs():
             np.deg2rad(q, **kwargs)
 
 
+def test_angle_ufuncs_only_handle_call():
+    """Angle handlers defer (``NotImplemented``) for non-``__call__`` methods."""
+    q = u.Q([1.0, 2.0], "deg")
+    for method in ("reduce", "accumulate", "at"):
+        assert (
+            register_ufuncs.apply_ufunc(np.deg2rad, method, (q,), {}) is NotImplemented
+        )
+
+
 def test_bare_quantity_also_supported():
     """``__array_ufunc__`` is inherited by all quantity types."""
     q = u.quantity.Quantity(5.0, "m")

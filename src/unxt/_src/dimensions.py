@@ -94,7 +94,7 @@ def _eval_exponent(node: ast.AST, /) -> int | float:
 
 def _eval_dimension_node(
     node: ast.AST, /, *, dim_mapping: dict[str, str] | None = None
-) -> AbstractDimension:
+) -> AbstractDimension | int | float:
     """Recursively evaluate AST nodes into dimensions or numeric values.
 
     Parameters
@@ -106,7 +106,7 @@ def _eval_dimension_node(
 
     Returns
     -------
-    AbstractDimension
+    AbstractDimension | int | float
         Evaluated dimension, or a bare numeric constant when the node is a
         numeric factor (e.g. the ``2`` in ``"2 * length"``).
 

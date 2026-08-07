@@ -10,6 +10,7 @@ import jax.numpy as jax_xp
 import numpy as np
 import pytest
 import unxts.hypothesis as ust
+import wadler_lindig as wl
 from astropy.units import UnitConversionError
 from hypothesis import example, given, settings, strategies as st
 from hypothesis.extra.array_api import make_strategies_namespace
@@ -22,6 +23,7 @@ import quaxed.lax as qlax
 import quaxed.numpy as jnp
 
 import unxt as u
+from unxt._src.quantity.base import _is_different_from_default
 
 xps = make_strategies_namespace(jax_xp)
 
@@ -1566,3 +1568,26 @@ def test_minmax_against_bare_array_of_scaled_dimensionless_is_unscaled():
     assert res_min.unit == u.unit("")
     assert math.isclose(float(u.ustrip("", res_max)), 1.0, rel_tol=1e-5, abs_tol=1e-7)
     assert math.isclose(float(u.ustrip("", res_min)), 0.3, rel_tol=1e-5, abs_tol=1e-7)
+
+
+def test_dlpack_protocol_is_not_implemented():
+    """The DLPack hooks exist for the array API but are not supported."""
+    q = u.Q(1.0, "m")
+    with pytest.raises(NotImplementedError):
+        q.__dlpack__()
+    with pytest.raises(NotImplementedError):
+        q.__dlpack_device__()
+
+
+def test_is_different_from_default_falls_back_to_identity():
+    """An array-valued ``==`` is not a bool, so identity decides."""
+    arr = np.array([1.0, 2.0])
+    assert not _is_different_from_default(arr, arr)
+    assert _is_different_from_default(arr, np.array([1.0, 2.0]))
+
+
+def test_pdoc_short_arrays_false():
+    """``short_arrays=False`` prints the full array repr."""
+    got = wl.pformat(u.Q([1.0, 2.0], "m"), short_arrays=False)
+    assert "1." in got
+    assert "unit='m'" in got

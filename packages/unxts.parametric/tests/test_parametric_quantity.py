@@ -6,6 +6,7 @@ import re
 import equinox as eqx
 import jax.numpy as jnp
 import pytest
+import unxts.parametric as up
 from jaxtyping import Array
 from plum import parametric
 from unxts.parametric import PQ, AbstractParametricQuantity
@@ -66,3 +67,9 @@ class NewQuantity(AbstractParametricQuantity):
 def test_parametric_pickle_dumps_with_kw_fields():
     x = NewQuantity([1, 2, 3], "m", flag=True)
     assert isinstance(pickle.dumps(x), bytes)
+
+
+def test_type_parameter_from_a_unit_without_a_named_dimension():
+    """A unit astropy cannot name falls back to a unit-derived dimension."""
+    cls = up.ParametricQuantity[u.unit("m5/s3")]
+    assert "m5" in str(u.dimension_of(cls))

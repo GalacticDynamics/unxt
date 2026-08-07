@@ -1,7 +1,10 @@
 """Tests for Quantity.mT, and the .at[...] get/apply/power methods."""
 
 import jax
+import jax.numpy as jnp
+import numpy as np
 import pytest
+import quax
 
 import unxt as u
 
@@ -45,3 +48,26 @@ def test_at_apply_and_power_raise_explanatory_errors():
         q.at[0].apply(lambda x: x)
     with pytest.raises(NotImplementedError, match="power is not supported"):
         q.at[0].power(2)
+
+
+def test_at_helper_and_ref_reprs():
+    """``.at`` and ``.at[...]`` name themselves, not the jax base classes."""
+    q = u.Q([1.0, 2.0, 3.0], "m")
+    assert repr(q.at).startswith("_QuantityIndexUpdateHelper(")
+    assert repr(q.at[0]).startswith("_QuantityIndexUpdateRef(")
+
+
+def test_scatter_add_between_quantities():
+    """``.at[...].add`` propagates units, both operands being quantities."""
+    q = u.Q([1.0, 1.0], "m")
+    got = q.at[jnp.asarray([1])].add(u.Q([9.0], "m"))
+    assert got.unit == u.unit("m")
+    assert np.allclose(np.asarray(got.value), [1.0, 10.0])
+
+
+def test_scatter_add_array_operand_with_quantity_updates():
+    """A raw-array operand borrows the units of the quantity updates."""
+    idx = jnp.asarray([1])
+    got = quax.quaxify(lambda a, b: a.at[idx].add(b))(jnp.ones(2), u.Q([9.0], "m"))
+    assert got.unit == u.unit("m")
+    assert np.allclose(np.asarray(got.value), [1.0, 10.0])

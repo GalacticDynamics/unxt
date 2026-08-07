@@ -1035,7 +1035,7 @@ class AbstractQuantity(
             case True:
                 kwargs["custom"] = custom_pdoc_no_kind
                 kwargs["short_arrays"] = True
-            case False:
+            case _:  # False
                 kwargs["short_arrays"] = False
 
         # Make the pdocs for the base and extra fields.
@@ -1563,7 +1563,7 @@ def custom_pdoc_noarray(obj: Any) -> wl.AbstractDoc | None:
 
 
 @StaticValue.from_.dispatch
-def from_(cls: StaticValue, value: AbstractQuantity, /) -> StaticValue:
+def from_(cls: type[StaticValue], value: AbstractQuantity, /) -> StaticValue:
     """Disallow conversion of `AbstractQuantity` to a value."""
     msg = (
         f"Cannot convert '{type(value).__name__}' to a value. "
