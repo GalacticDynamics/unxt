@@ -3,21 +3,17 @@
 
 __all__: tuple[str, ...] = ()
 
-from .optional_deps import OptDeps, is_installed
+from .optional_deps import OptDeps
 
 # Register interoperability
 if OptDeps.ASTROPY.installed:
     from . import unxt_interop_astropy
 
-# Require both the interop package and the gala backend to be importable.
-# `unxts.interop.gala` is an optional extra, and even when it is installed its
-# `gala` dependency is skipped where gala cannot build (e.g. Windows), so the
-# interop package can be present without an importable gala.
-if is_installed("unxts.interop.gala") and OptDeps.GALA.installed:
+if OptDeps.UNXTS_INTEROP_GALA.installed:  # implies an importable gala backend
     import unxts.interop.gala  # registers gala <-> unxt unitsystem conversions
 
-if is_installed("unxts.interop.matplotlib"):
+if OptDeps.UNXTS_INTEROP_MATPLOTLIB.installed:
     import unxts.interop.matplotlib  # registers the matplotlib unit converter
 
-if is_installed("unxts.interop.xarray"):
+if OptDeps.UNXTS_INTEROP_XARRAY.installed:
     import unxts.interop.xarray  # registers the `.unxt` xarray accessor

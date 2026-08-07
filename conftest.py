@@ -1,6 +1,5 @@
 """Doctest configuration."""
 
-import importlib.util
 import os
 from collections.abc import Callable, Iterable, Sequence
 from doctest import ELLIPSIS, NORMALIZE_WHITESPACE
@@ -15,6 +14,7 @@ from sybil.parsers.abstract.codeblock import PythonDocTestOrCodeBlockParser
 from sybil.parsers.abstract.doctest import DocTestStringParser
 
 from optional_dependencies import OptionalDependencyEnum, auto
+from optional_dependencies.utils import chain_checks, get_version, is_installed
 
 optionflags = ELLIPSIS | NORMALIZE_WHITESPACE
 
@@ -31,9 +31,11 @@ optionflags = ELLIPSIS | NORMALIZE_WHITESPACE
 # here makes *loading this conftest* fail, which pytest reports as a usage
 # error (exit code 4) before any test runs -- so it takes down every sibling
 # package job, not just the hypothesis-using ones.
-if importlib.util.find_spec("hypothesis") is not None:
+try:
     import hypothesis
-
+except ImportError:
+    pass
+else:
     hypothesis.settings.register_profile("unxt", deadline=None)
     hypothesis.settings.load_profile("unxt")
 
@@ -109,33 +111,23 @@ def pytest_collect_file(file_path: Path, parent: object) -> object:
 
 
 class OptDeps(OptionalDependencyEnum):
-    """External backends for ``unxt``.
+    """External backends and interop sub-packages for ``unxt``.
 
-    Only genuine third-party backends belong here. ``OptionalDependencyEnum``
-    keys each member on its installed version, so any two members that share a
-    version silently collapse into a single enum alias. unxt's own ``unxts.*``
-    sub-packages are released together and so usually share a version (bug-fix
-    releases can make them diverge), so their presence is checked with
-    ``_is_installed`` (an import-spec lookup via ``find_spec``) instead (see
-    ``unxt._interop.optional_deps`` for the same reasoning).
+    Declared locally (rather than importing the equivalent enum from ``unxt``)
+    so that ``conftest`` never imports ``unxt`` before ``pytest_generate_tests``
+    sets ``UNXT_ENABLE_RUNTIME_TYPECHECKING``.
     """
 
     ASTROPY = auto()
-    GALA = auto()
+    UNXTS_INTEROP_MATPLOTLIB = auto()
+    UNXTS_LINALG = auto()
+    UNXTS_PARAMETRIC = auto()
 
-
-def _is_installed(module: str) -> bool:
-    """Return whether ``module`` has a discoverable import spec.
-
-    Uses :func:`importlib.util.find_spec` (reports installed / findable, not that
-    importing would succeed). Defined locally (rather than importing the
-    equivalent helper from ``unxt``) so that ``conftest`` never imports ``unxt``
-    before ``pytest_generate_tests`` sets ``UNXT_ENABLE_RUNTIME_TYPECHECKING``.
-    """
-    try:
-        return importlib.util.find_spec(module) is not None
-    except (ImportError, ValueError):
-        return False
+    #: The gala interop extra is only usable with an importable gala backend;
+    #: gala is skipped where it cannot build (e.g. Windows).
+    UNXTS_INTEROP_GALA = chain_checks(
+        get_version("unxts.interop.gala"), is_installed("gala")
+    )
 
 
 collect_ignore_glob = []
@@ -143,19 +135,16 @@ if not OptDeps.ASTROPY.installed:
     collect_ignore_glob.append("src/unxt/_interop/unxt_interop_astropy/*")
 # The package docs are collected through the docs/packages/<name> symlinks, so
 # ignore that (symlink) path, not the real package path.
-# `unxts.interop.gala` is an optional extra, so it may be absent; and even when
-# it is present its `gala` dependency may be unimportable (gala is skipped where
-# it cannot build, e.g. Windows). Ignore its docs unless both are available.
-if not (_is_installed("unxts.interop.gala") and OptDeps.GALA.installed):
+if not OptDeps.UNXTS_INTEROP_GALA.installed:
     collect_ignore_glob.append("docs/packages/unxts.interop.gala/*")
     collect_ignore_glob.append("packages/unxts.interop.gala/docs/*")
-if not _is_installed("unxts.interop.matplotlib"):
+if not OptDeps.UNXTS_INTEROP_MATPLOTLIB.installed:
     collect_ignore_glob.append("docs/packages/unxts.interop.matplotlib/*")
     collect_ignore_glob.append("packages/unxts.interop.matplotlib/docs/*")
-if not _is_installed("unxts.linalg"):
+if not OptDeps.UNXTS_LINALG.installed:
     collect_ignore_glob.append("docs/packages/unxts.linalg/*")
     collect_ignore_glob.append("packages/unxts.linalg/docs/*")
-if not _is_installed("unxts.parametric"):
+if not OptDeps.UNXTS_PARAMETRIC.installed:
     collect_ignore_glob.append("docs/packages/unxts.parametric/*")
     collect_ignore_glob.append("packages/unxts.parametric/docs/*")
 

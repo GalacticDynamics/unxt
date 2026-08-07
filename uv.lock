@@ -2411,14 +2411,14 @@ wheels = [
 
 [[package]]
 name = "optional-dependencies"
-version = "0.4.0"
+version = "0.4.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fd/9a/01c2aaee8ec00abe3dd51368c8a8c341b4352c1b23859d862edd62bd7ae5/optional_dependencies-0.4.0.tar.gz", hash = "sha256:8c2a764021ec47466a9c0375608d6976aa7f0d87f9a611e511ae70861edbd921", size = 68226, upload-time = "2025-09-03T03:32:23.117Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a1/42/8344ac009b7ba239b5bd82387aa5ab459dd7f706b80d73692ca6e31a2c95/optional_dependencies-0.4.1.tar.gz", hash = "sha256:8f71acbef015b08945e78fa531630290375d089d06de1d475567634991cb8160", size = 85720, upload-time = "2026-08-07T00:31:45.722Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/70/1c/c03aa5a23a3320f8b2875e1ddf6db679412533d95da2ebee15bfe611c1e3/optional_dependencies-0.4.0-py3-none-any.whl", hash = "sha256:aa5e4c2939681cf6b5f38de9ed7cdd60647526076452c29fbe170335fe34bf4a", size = 8551, upload-time = "2025-09-03T03:32:22.124Z" },
+    { url = "https://files.pythonhosted.org/packages/65/a3/7810502242eba30a288c0e79c5a395c1ec6ed41a4eab6e5b3c8e3cf4ee20/optional_dependencies-0.4.1-py3-none-any.whl", hash = "sha256:f1ceb198a9154f6bdbf6295df663b4b91edebe5dc3d8678c03df3fbb985c1545", size = 10132, upload-time = "2026-08-07T00:31:44.53Z" },
 ]
 
 [[package]]
@@ -4174,7 +4174,7 @@ requires-dist = [
     { name = "jax", extras = ["k8s"], marker = "extra == 'k8s'", specifier = ">=0.7.2" },
     { name = "jaxlib", specifier = ">=0.7.2" },
     { name = "jaxtyping", specifier = ">=0.3.9" },
-    { name = "optional-dependencies", specifier = ">=0.3.2" },
+    { name = "optional-dependencies", specifier = ">=0.4.1" },
     { name = "plum-dispatch", specifier = ">=2.7.0" },
     { name = "plum-dispatch", marker = "python_full_version >= '3.14'", specifier = ">=2.9.0" },
     { name = "quax", specifier = ">=0.4.2" },
@@ -4356,7 +4356,7 @@ requires-dist = [{ name = "unxts-api", editable = "packages/unxts.api" }]
 
 [package.metadata.requires-dev]
 test = [
-    { name = "optional-dependencies", specifier = ">=0.3.2" },
+    { name = "optional-dependencies", specifier = ">=0.4.1" },
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-arraydiff", specifier = ">=0.6.1" },
     { name = "pytest-cov", specifier = ">=6.2.1" },
@@ -4421,7 +4421,7 @@ requires-dist = [{ name = "plum-dispatch", specifier = ">=2.5.7" }]
 
 [package.metadata.requires-dev]
 test = [
-    { name = "optional-dependencies", specifier = ">=0.3.2" },
+    { name = "optional-dependencies", specifier = ">=0.4.1" },
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-arraydiff", specifier = ">=0.6.1" },
     { name = "pytest-cov", specifier = ">=6.2.1" },
@@ -4608,7 +4608,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 test = [
-    { name = "optional-dependencies", specifier = ">=0.3.2" },
+    { name = "optional-dependencies", specifier = ">=0.4.1" },
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-arraydiff", specifier = ">=0.6.1" },
     { name = "pytest-cov", specifier = ">=6.2.1" },
@@ -4648,7 +4648,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 test = [
-    { name = "optional-dependencies", specifier = ">=0.3.2" },
+    { name = "optional-dependencies", specifier = ">=0.4.1" },
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-arraydiff", specifier = ">=0.6.1" },
     { name = "pytest-cov", specifier = ">=6.2.1" },
