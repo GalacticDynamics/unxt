@@ -1161,7 +1161,7 @@ def concatenate_p_v(
 # ==============================================================================
 # Stack
 
-if hasattr(lax, "stack_p"):
+if hasattr(lax, "stack_p"):  # pragma: no branch -- jax-version guard
 
     @quax.register(lax.stack_p)
     def stack_p(operand0: ABCQ, *operands: ABCQ | ArrayLike, axis: int) -> ABCQ:
@@ -1236,14 +1236,12 @@ def cond_p_q(index: ABCQ, consts: ABCQ) -> ABCQ:
 
 
 @quax.register(lax.cond_p)  # TODO: implement
-def cond_p_vq(index: ArrayLike, consts: ABCQ, *, branches: Any) -> ABCQ:
+def cond_p_vq(index: ArrayLike, consts: ABCQ, *, branches: Any) -> list[Array]:
     """Conditional on a value and a quantity.
 
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-    >>> import unxt as u
-
+    ``cond_p`` has ``multiple_results=True``, so this returns the list of bare
+    branch outputs. The branches were traced on the stripped value, so the unit
+    is not carried through -- re-attach it at the call site.
     """
     return lax.cond_p.bind(index, ustrip(consts), branches=branches)  # type: ignore[no-untyped-call]
 
@@ -1554,7 +1552,9 @@ def custom_linear_solve_q(
     # quantity constructor made ``jnp.asarray([arr])`` add a spurious leading
     # axis (e.g. ``(1, n)`` for a 1-D ``b``); unwrap it so the solution keeps
     # the RHS shape.
-    if isinstance(result_value, (list, tuple)):
+    if isinstance(
+        result_value, (list, tuple)
+    ):  # pragma: no branch -- multiple_results, always a list
         (result_value,) = result_value
 
     # Cannot use replace() because physical type may change (e.g., m*s -> s when
@@ -1590,7 +1590,9 @@ def custom_linear_solve_q_array_arg6(
 
     # ``linear_solve_p`` returns a single-element list ``[solution]``; unwrap it
     # so wrapping into a quantity does not add a spurious leading axis.
-    if isinstance(result_value, (list, tuple)):
+    if isinstance(
+        result_value, (list, tuple)
+    ):  # pragma: no branch -- multiple_results, always a list
         (result_value,) = result_value
 
     # Cannot use replace() because physical type changes (m -> 1/m)
@@ -1731,42 +1733,6 @@ def qr_p_q(x: ABCQ, /, **params: Any) -> Any:
         type_np(x)(q_mat, unit=one),
         type_np(x)(r_mat, unit=u_in),
     ]
-
-
-@quax.register(lax_linalg.lu_p)
-def lu_p_q(x: ABCQ, /, **params: Any) -> Any:
-    """LU decomposition of a quantity matrix.
-
-    For a matrix A with units, LU decomposition returns:
-
-    - L: lower triangular with same units as A (diagonal = 1, so overall unit is
-      A's unit)
-    - U: upper triangular with same units as A
-    - Permutation: dimensionless integer array
-
-    Note: JAX's LU returns the LU factorization in a packed format plus pivot indices.
-
-    Examples
-    --------
-    >>> import quaxed.numpy as jnp
-    >>> import unxt as u
-
-    >>> x = u.Q([[1.0, 2.0], [3.0, 4.0]], "m")
-    >>> lu, pivots, permutation = jnp.linalg.lu(x)  # doctest: +SKIP
-
-    """
-    u_in = unit_of(x)
-
-    # Perform LU decomposition on the unitless values
-    # Result is a list: [LU_packed, pivots, permutation]
-    result = lax_linalg.lu_p.bind(ustrip(u_in, x), **params)
-
-    # Unpack the result
-    lu_packed, pivots, permutation = result
-
-    # LU_packed contains both L and U in a packed format, preserving input units
-    # Pivots and permutation are dimensionless integers
-    return [type_np(x)(lu_packed, unit=u_in), pivots, permutation]
 
 
 # ==============================================================================

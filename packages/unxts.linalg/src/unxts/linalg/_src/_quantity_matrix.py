@@ -289,9 +289,9 @@ class QuantityMatrix(u.AbstractQuantity):
 
         """
         if isinstance(other, QuantityMatrix):
-            product = _PRODUCT_BY_RANK.get((self.unit.ndim, other.unit.ndim))
-            if product is not None:
-                return product(self, other)
+            # A `UnitsMatrix` is 1-D or 2-D by construction, so every rank pair
+            # is in the table.
+            return _PRODUCT_BY_RANK[(self.unit.ndim, other.unit.ndim)](self, other)
         return super().__matmul__(other)
 
     # ── Quax API ─────────────────────────────────────────────────────
@@ -495,6 +495,8 @@ def QuantityMatrix_to_quantity(x: QuantityMatrix, /) -> u.Q:
     """
     units = x.unit._units.ravel()
 
+    # An empty `UnitsMatrix` is constructible (see `UnitsMatrix.__pow__`), and
+    # `is_uniform` is vacuously true for it, so this must come first.
     if units.size == 0:
         msg = "Cannot convert QuantityMatrix with no unit entries."
         raise ValueError(msg)
@@ -516,12 +518,10 @@ def _convert_value(
     """Convert value with heterogeneous units (works for both 1D and 2D)."""
     from_tup = from_units.to_tuple()
     to_tup = to_units.to_tuple()
+    # A `UnitsMatrix` is 1-D or 2-D by construction.
     if from_units.ndim == 1:
         return _convert_value_vector(value, from_tup, to_tup)
-    if from_units.ndim == 2:
-        return _convert_value_matrix(value, from_tup, to_tup)
-    msg = f"Unsupported ndim={from_units.ndim}"
-    raise NotImplementedError(msg)
+    return _convert_value_matrix(value, from_tup, to_tup)
 
 
 @plum.dispatch

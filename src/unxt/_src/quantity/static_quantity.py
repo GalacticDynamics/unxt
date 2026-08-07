@@ -130,8 +130,12 @@ class StaticQuantity(AbstractQuantity):
         """Return the hash of the quantity."""
         return hash((self.value, self.unit))
 
-    def __eq__(self, other: Any, /) -> bool | np.ndarray:  # type: ignore[override]
-        """Return structural equality for static quantities."""
+    def __eq__(self, other: Any, /) -> Any:  # type: ignore[override]
+        """Return structural equality for static quantities.
+
+        Non-static operands fall through to `AbstractQuantity.__eq__`, which is
+        array-valued -- hence the `Any` return, matching the base method.
+        """
         if isinstance(other, StaticQuantity):
             # Label, not physical, equality -- see `same_unit_label`.
             return same_unit_label(self.unit, other.unit) and self.value == other.value

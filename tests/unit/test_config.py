@@ -16,6 +16,7 @@ from traitlets.config import Config
 import unxt as u
 from unxt._src.config import (
     QuantityReprConfig,
+    _auto_load_project_toml_config,
     _find_pyproject,
     _load_toml_config_from_pyproject,
     _walk_toml_config,
@@ -166,6 +167,35 @@ def test_find_pyproject_prefers_nearest(tmp_path: Path) -> None:
     # Should find the nearest one
     result = _find_pyproject(nested)
     assert result == nested_pyproject
+
+
+# =============================================================================
+# In-process auto-load / apply tests
+
+
+def test_auto_load_no_pyproject(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No pyproject.toml anywhere means nothing is applied."""
+    monkeypatch.setattr("unxt._src.config._find_pyproject", lambda _: None)
+    assert not _auto_load_project_toml_config(u.config)
+
+
+def test_auto_load_malformed_toml(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A malformed pyproject.toml never breaks import."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text("this is not = = toml\n", encoding="utf-8")
+    monkeypatch.setattr("unxt._src.config._find_pyproject", lambda _: pyproject)
+    assert not _auto_load_project_toml_config(u.config)
+
+
+def test_nested_context_exit_without_enter() -> None:
+    """Exiting a context that was never entered is a no-op."""
+    instance = u.config.quantity_repr
+    ctx = instance.override(use_short_name=True)
+    before = instance.use_short_name
+    ctx.__exit__(None, None, None)
+    assert instance.use_short_name == before
 
 
 # =============================================================================

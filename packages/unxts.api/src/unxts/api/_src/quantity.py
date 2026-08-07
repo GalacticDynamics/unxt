@@ -106,7 +106,7 @@ def is_unit_convertible(to_unit: Any, from_: Any, /) -> bool:
     False
 
     """
-    return False
+    raise NotImplementedError  # pragma: no cover
 
 
 @plum.dispatch.abstract

@@ -94,7 +94,7 @@ class StaticValue:
         We need to explicitly convert them to proper arrays while preserving dtype.
         """
         out = jnp.asarray(self._array)
-        if not isinstance(out, jax.Array):
+        if not isinstance(out, jax.Array):  # pragma: no cover -- jax-version guard
             out = jnp.asarray(out, dtype=out.dtype)
         return out
 
@@ -170,7 +170,7 @@ class StaticValue:
         return format(self._array, format_spec)
 
     @override
-    def __eq__(self, other: object, /) -> bool | np.ndarray:  # type: ignore[override]
+    def __eq__(self, other: object, /) -> bool | np.ndarray | Array:  # type: ignore[override]
         if isinstance(other, StaticValue):
             return np.array_equal(self._array, other._array)
         if isinstance(other, Array):
@@ -179,7 +179,7 @@ class StaticValue:
             return np.equal(self._array, other)
         return NotImplemented
 
-    def __ne__(self, other: object, /) -> bool | np.ndarray:  # type: ignore[override]
+    def __ne__(self, other: object, /) -> bool | np.ndarray | Array:  # type: ignore[override]
         if isinstance(other, StaticValue):
             return not bool(np.array_equal(self._array, other._array))
         if isinstance(other, Array):

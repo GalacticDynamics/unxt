@@ -526,6 +526,12 @@ def test_simulation_usys():
             )
 
 
+def test_simulation_usys_underdetermined():
+    """Too few base dimensions to solve for the rest: pass them through as-is."""
+    usys = unitsystem(DynamicalSimUSysFlag, apyu.Unit("kg"))
+    assert usys == unitsystem(apyu.Unit("kg"))
+
+
 # ===================================================================
 # Natural unit systems (issues #228-#232)
 
