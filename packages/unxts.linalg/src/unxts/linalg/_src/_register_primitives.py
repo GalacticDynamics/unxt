@@ -579,12 +579,9 @@ def dot_general_qm_qm(
         )
         raise NotImplementedError(msg)
 
-    # Delegate on the pair of logical ranks.
-    impl = _DOT_GENERAL_BY_RANK.get((lhs.ndim, rhs.ndim))
-    if impl is None:
-        msg = f"Unsupported dimensionality: lhs.ndim={lhs.ndim}, rhs.ndim={rhs.ndim}"
-        raise NotImplementedError(msg)
-    return impl(
+    # Delegate on the pair of logical ranks. Both are 1 or 2 (a `UnitsMatrix` is
+    # 1-D or 2-D), so every pair is in the table.
+    return _DOT_GENERAL_BY_RANK[(lhs.ndim, rhs.ndim)](
         lhs,
         rhs,
         dimension_numbers=dimension_numbers,

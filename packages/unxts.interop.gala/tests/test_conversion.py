@@ -28,3 +28,7 @@ def test_round_trip():
     # gala's ``UnitSystem.__eq__`` also compares derived/registered units, so
     # compare the base units that the conversion round-trips.
     assert round_tripped._core_units == usys._core_units
+
+
+def test_gala_dimensionless_to_unxt():
+    assert u.unitsystem(gu.DimensionlessUnitSystem()) == u.unitsystems.dimensionless
