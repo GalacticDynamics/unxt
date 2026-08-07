@@ -56,6 +56,8 @@ __all__ = (
     "is_unit_convertible",  # check if units can be converted
     "wrap_to",  # wrap an angle into the half-open range [min, max)
     "equivalent",  # physical equivalence (unit-aware), incl. unit systems
+    # string formatting
+    "fmt",  # module: the shared repr/str/format/IPython engine
     # experimental
     "experimental",  # module: unit-aware autodiff (grad, jacfwd, hessian, where)
 )
@@ -63,7 +65,7 @@ __all__ = (
 from .setup_package import install_import_hook
 
 with install_import_hook("unxt"):
-    from . import dims, quantity, units, unitsystems
+    from . import dims, fmt, quantity, units, unitsystems
     from ._version import version as __version__
     from .config import config
     from .dims import AbstractDimension, dimension, dimension_of
