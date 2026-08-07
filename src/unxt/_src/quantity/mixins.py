@@ -119,7 +119,7 @@ class IPythonReprMixin:
         >>> q._repr_mimebundle_()
         {'text/plain':
          "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')",
-         'text/html': '<span>[1., 2., 3., 4.]</span> * <span>Unit("m")</span>',
+         'text/html': '<span>[1., 2., 3., 4.]</span> * <span>m</span>',
          'text/latex': '$[1.,~2.,~3.,~4.] \\; \\mathrm{m}$'}
 
         >>> q._repr_mimebundle_(include=["text/plain"])
@@ -149,6 +149,17 @@ class IPythonReprMixin:
             key: getattr(self, SUPPORTED_IPYTHON_REPR_FORMATS[key])() for key in keys
         }
 
+    def _repr_markup_(self, markup: str, /) -> str:
+        """Render through the `unxt.fmt` engine in the given markup.
+
+        Imported lazily: ``unxt._src.fmt`` imports
+        ``unxt._src.quantity.base``, which imports this module, so a
+        module-scope import would cycle.
+        """
+        from unxt._src.fmt import parts_to_markup, pparts  # noqa: PLC0415
+
+        return parts_to_markup(pparts(self, markup=markup), markup=markup)
+
     def _repr_html_(self) -> str:
         """Return an HTML representation of the quantity.
 
@@ -158,13 +169,10 @@ class IPythonReprMixin:
 
         >>> q = Quantity([1.0, 2, 3, 4], "m")
         >>> q._repr_html_()
-        '<span>[1., 2., 3., 4.]</span> * <span>Unit("m")</span>'
+        '<span>[1., 2., 3., 4.]</span> * <span>m</span>'
 
         """
-        unit_repr = getattr(self.unit, "_repr_html_", self.unit.__repr__)()
-        value_repr = np.array2string(self.value, separator=", ")  # type: ignore[call-overload]
-
-        return f"<span>{value_repr}</span> * <span>{unit_repr}</span>"
+        return self._repr_markup_("html")
 
     def _repr_latex_(self) -> str:
         r"""Return a LaTeX representation of the quantity.
@@ -178,9 +186,7 @@ class IPythonReprMixin:
         '$[1.,~2.,~3.,~4.] \\; \\mathrm{m}$'
 
         """
-        unit_repr = getattr(self.unit, "_repr_latex_", self.unit.__repr__)()
-        value_repr = np.array2string(self.value, separator=",~")  # type: ignore[call-overload]
-        return f"${value_repr} \\; {unit_repr[1:-1]}$"
+        return self._repr_markup_("latex")
 
     # TODO: implement:
     # - _repr_markdown_

@@ -8,6 +8,7 @@ import numpy as np
 import plum
 
 import unxt as u
+import unxt.fmt as ufmt
 
 T = TypeVar("T")
 
@@ -609,3 +610,24 @@ def unit_of(obj: UnitsMatrix, /) -> UnitsMatrix:
 
     """
     return obj
+
+
+@ufmt.pparts.dispatch  # type: ignore[misc]
+def pparts(obj: UnitsMatrix, /, *, markup: str = "text", **kw: Any) -> tuple[Any, ...]:
+    """Decompose a `UnitsMatrix` for the `unxt.fmt` engine.
+
+    Without this registration a `QuantityMatrix` would fall through to
+    `unxt.fmt.pparts`'s `Any` method and render its unit structure via `str`.
+    It also has to ship with the engine's markup wiring: `_repr_latex_` used to
+    slice ``[1:-1]`` off whatever the unit's repr produced, assuming ``$...$``
+    wrapping, which silently ate real characters here.
+
+    Examples
+    --------
+    >>> from unxts.linalg import UnitsMatrix
+    >>> from unxt.fmt import pparts
+    >>> pparts(UnitsMatrix(("m", "s", "kg")))
+    (PPart(role='unit', text='(m, s, kg)', kind='content'),)
+
+    """
+    return (ufmt.PPart("unit", obj.to_string()),)
