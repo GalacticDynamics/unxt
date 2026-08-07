@@ -83,7 +83,7 @@ def unitsystem(seq: Sequence[Any], /) -> AbstractUnitSystem:
     a system (a bare string, by contrast, is looked up as a *named* system):
 
     >>> u.unitsystem(["km"])
-    LengthUnitSystem(length=Unit("km"))
+    unitsystem(km)
 
     """
     # Elements of an explicit sequence are units. Convert them up front so a
@@ -188,7 +188,10 @@ def unitsystem(*args: Any) -> AbstractUnitSystem:
         frozen=True,
         slots=True,
         eq=True,
-        repr=True,
+        # ``AbstractUnitSystem.__pdoc__`` renders every shape; a generated
+        # ``__repr__`` in the subclass would shadow the base's and reinstate
+        # the split where one constructor produced two repr styles.
+        repr=False,
         init=True,
     )
 
@@ -216,7 +219,7 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
     DimensionlessUnitSystem()
 
     >>> unitsystem("planck")
-    LengthMassTimeTemperatureUnitSystem(length=Unit("...e-35 m"), mass=Unit("...e-08 kg"), time=Unit("...e-44 s"), temperature=Unit("...e+32 K"))
+    unitsystem(...e-35 m, ...e-08 kg, ...e-44 s, ...e+32 K)
 
     A single string is looked up as a *system* name, not a unit. A string that
     is not a registered system -- e.g. a unit like ``"m"`` -- raises a clear
@@ -229,7 +232,7 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
     'm' is not a registered unit system (available: ...). If you meant a unit,
     convert it first, e.g. unitsystem(unxt.unit('m')).
 
-    """  # noqa: E501
+    """
     # Imported lazily to avoid a circular import: `realizations` is built on top
     # of the `unitsystem` factory defined in this module.
     from .realizations import (  # noqa: PLC0415  # pylint: disable=import-outside-toplevel
@@ -259,7 +262,7 @@ def unitsystem(usys: AbstractUnitSystem, *args: Any) -> AbstractUnitSystem:
     >>> from unxt.unitsystems import unitsystem
     >>> usys = unitsystem("galactic")
     >>> unitsystem(usys, "km/s")
-    AngleLengthMassSpeedTimeUnitSystem(angle=Unit("rad"), length=Unit("kpc"), mass=Unit("solMass"), speed=Unit("km / s"), time=Unit("Myr"))
+    unitsystem(rad, kpc, solMass, km / s, Myr)
 
     We can also override the base unit of an existing unit system. Replacing the
     length still leaves a length/time/mass/angle system, so it is recognized as
@@ -269,7 +272,7 @@ def unitsystem(usys: AbstractUnitSystem, *args: Any) -> AbstractUnitSystem:
     >>> new_usys
     unitsystem(pc, Myr, solMass, rad)
 
-    """  # noqa: E501
+    """
     # TODO: not need this hack for single-string inputs
     # TODO: process new units without making a whole unit system
     if len(args) == 1 and isinstance(args[0], str):
@@ -298,7 +301,7 @@ def unitsystem(flag: type[StandardUSysFlag], *args: Any) -> AbstractUnitSystem:
     --------
     >>> from unxt import unitsystem, unitsystems
     >>> unitsystem(unitsystems.StandardUSysFlag, "kpc", "Myr", "Msun")
-    LengthMassTimeUnitSystem(length=Unit("kpc"), mass=Unit("solMass"), time=Unit("Myr"))
+    unitsystem(kpc, solMass, Myr)
 
     """
     return unitsystem(*args)
@@ -317,7 +320,7 @@ def unitsystem(
     >>> from unxt.unitsystems import unitsystem, DynamicalSimUSysFlag
 
     >>> unitsystem(DynamicalSimUSysFlag, "m", "kg")
-    LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("kg"), time=Unit("122404 s"))
+    unitsystem(m, kg, 122404 s)
 
     """
     tmp = unitsystem(*args)
@@ -395,12 +398,12 @@ def unitsystem(
     >>> from unxt.unitsystems import unitsystem, HEPUSysFlag
 
     >>> unitsystem(HEPUSysFlag)
-    LengthMassTimeUnitSystem(length=Unit("...e-16 m"), mass=Unit("...e-27 kg"), time=Unit("...e-25 s"))
+    unitsystem(...e-16 m, ...e-27 kg, ...e-25 s)
 
     >>> unitsystem(HEPUSysFlag, energy="TeV")["time"]
     Unit("...e-28 s")
 
-    """  # noqa: E501
+    """
     _reject_extra_args(flag, args)
     e_scale = 1.0 * unit(energy)
     mass = (e_scale / const_c**2).decompose()
@@ -425,12 +428,12 @@ def unitsystem(
     >>> from unxt.unitsystems import unitsystem, GeometrizedUSysFlag
 
     >>> unitsystem(GeometrizedUSysFlag)
-    LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("...e+27 kg"), time=Unit("...e-09 s"))
+    unitsystem(m, ...e+27 kg, ...e-09 s)
 
     >>> unitsystem(GeometrizedUSysFlag, length="km")["length"]
     Unit("km")
 
-    """  # noqa: E501
+    """
     _reject_extra_args(flag, args)
     length_scale = 1.0 * unit(length)
     time = (length_scale / const_c).decompose()
@@ -450,9 +453,9 @@ def unitsystem(flag: type[PlanckUSysFlag], /, *args: Any) -> AbstractUnitSystem:
     >>> from unxt.unitsystems import unitsystem, PlanckUSysFlag
 
     >>> unitsystem(PlanckUSysFlag)
-    LengthMassTimeTemperatureUnitSystem(length=Unit("...e-35 m"), mass=Unit("...e-08 kg"), time=Unit("...e-44 s"), temperature=Unit("...e+32 K"))
+    unitsystem(...e-35 m, ...e-08 kg, ...e-44 s, ...e+32 K)
 
-    """  # noqa: E501
+    """
     _reject_extra_args(flag, args)
     length = np.sqrt(const_hbar * const_G / const_c**3).decompose()
     mass = np.sqrt(const_hbar * const_c / const_G).decompose()
@@ -479,9 +482,9 @@ def unitsystem(flag: type[AtomicUSysFlag], /, *args: Any) -> AbstractUnitSystem:
     >>> from unxt.unitsystems import unitsystem, AtomicUSysFlag
 
     >>> unitsystem(AtomicUSysFlag)
-    LengthMassTimeElectricalChargeUnitSystem(length=Unit("...e-11 m"), mass=Unit("...e-31 kg"), time=Unit("...e-17 s"), electrical_charge=Unit("...e-19 A s"))
+    unitsystem(...e-11 m, ...e-31 kg, ...e-17 s, ...e-19 A s)
 
-    """  # noqa: E501
+    """
     _reject_extra_args(flag, args)
     # Hartree energy E_h = 2 * Rydberg energy (NOT one Rydberg).
     e_hartree = 2 * const_Ryd * const_h * const_c

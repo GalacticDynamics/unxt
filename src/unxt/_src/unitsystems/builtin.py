@@ -3,9 +3,10 @@
 __all__ = ("DimensionlessUnitSystem", "LTMAUnitSystem", "dimensionless")
 
 from dataclasses import dataclass
-from typing import Annotated, TypeAlias, final, override
+from typing import Annotated, Any, TypeAlias, final, override
 
 import jax.tree_util as jtu
+import wadler_lindig as wl
 from astropy.units import UnitBase as AstropyUnitBase, dimensionless_unscaled
 
 from . import builtin_dimensions as ud
@@ -16,7 +17,7 @@ Unit: TypeAlias = AstropyUnitBase
 
 @jtu.register_static
 @final
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, repr=False)
 class DimensionlessUnitSystem(AbstractUnitSystem):
     """A unit system with only dimensionless units.
 
@@ -36,12 +37,15 @@ class DimensionlessUnitSystem(AbstractUnitSystem):
     #: The dimensionless unit.
     dimensionless: Annotated[Unit, ud.dimensionless] = dimensionless_unscaled
 
-    def __repr__(self) -> str:
-        return "DimensionlessUnitSystem()"
-
     @override
-    def __str__(self) -> str:
-        return self.__repr__()
+    def __pdoc__(self, **kwargs: Any) -> wl.AbstractDoc:
+        """Render as ``DimensionlessUnitSystem()``, in every mode.
+
+        The generic rendering would be ``unitsystem()`` -- correct, and it does
+        round-trip, since ``unitsystem()`` returns this system -- but the class
+        name reads better for the one system that has no units to show.
+        """
+        return wl.TextDoc("DimensionlessUnitSystem()")
 
 
 #: The dimensionless unit system. This realization takes no configuration, so a
@@ -69,14 +73,10 @@ class LTMAUnitSystem(AbstractUnitSystem):
     #: Units for the angle 'dimension'.
     angle: Annotated[Unit, ud.angle]
 
-    def __repr__(self) -> str:
-        fs = ", ".join(map(str, self.base_units))
-        return f"unitsystem({fs})"
-
 
 @jtu.register_static
 @final
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, repr=False)
 class LengthMassTimeTemperatureUnitSystem(AbstractUnitSystem):
     """Length, mass, time, temperature unit system (e.g. Planck units).
 
@@ -100,7 +100,7 @@ class LengthMassTimeTemperatureUnitSystem(AbstractUnitSystem):
 
 @jtu.register_static
 @final
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, repr=False)
 class LengthMassTimeElectricalChargeUnitSystem(AbstractUnitSystem):
     """Length, mass, time, electrical-charge unit system (e.g. atomic units).
 
@@ -124,7 +124,7 @@ class LengthMassTimeElectricalChargeUnitSystem(AbstractUnitSystem):
 
 @jtu.register_static
 @final
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, repr=False)
 class SIUnitSystem(AbstractUnitSystem):
     """SI unit system + angles.
 
@@ -176,14 +176,10 @@ class SIUnitSystem(AbstractUnitSystem):
     #: Units for the angle 'dimension'.
     angle: Annotated[Unit, ud.angle]
 
-    def __repr__(self) -> str:
-        fs = ", ".join(map(str, self.base_units))
-        return f"unitsystem({fs})"
-
 
 @jtu.register_static
 @final
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, repr=False)
 class CGSUnitSystem(AbstractUnitSystem):
     """CGS unit system + angles.
 
@@ -238,7 +234,3 @@ class CGSUnitSystem(AbstractUnitSystem):
     # + angles
     #: Units for the angle 'dimension'.
     angle: Annotated[Unit, ud.angle]
-
-    def __repr__(self) -> str:
-        fs = ", ".join(map(str, self.base_units))
-        return f"unitsystem({fs})"

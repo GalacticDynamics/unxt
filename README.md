@@ -186,8 +186,7 @@ For domains like gravitational dynamics, use dynamical unit systems where $G = 1
 
 >>> dyn_usys = u.unitsystem(DynamicalSimUSysFlag, "kpc", "Myr")
 >>> dyn_usys
-LengthMassTimeUnitSystem(length=Unit("kpc"),
-                         mass=Unit("1.49828e+10 kpc3 s2 kg / (Myr2 m3)"), time=Unit("Myr"))
+unitsystem(kpc, 1.49828e+10 kpc3 s2 kg / (Myr2 m3), Myr)
 ```
 
 The mass unit is the derived one — an exact composite expression, not a rounded label:
