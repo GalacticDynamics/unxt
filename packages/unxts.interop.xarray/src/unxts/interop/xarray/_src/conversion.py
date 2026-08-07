@@ -268,35 +268,54 @@ def extract_units(obj: object, /) -> dict:
     raise TypeError(msg)
 
 
-def _reject_unknown_unit_names(
+#: What a unit mapping is allowed to carry as a value.
+_UNIT_VALUE_TYPES: Final = (u.AbstractUnit, str, type(None))
+
+
+def _validate_units(
     units: "Mapping[Hashable, Any]", valid_names: "set[Any]", obj_kind: str
 ) -> None:
-    """Raise if units names something that is not a variable/coordinate.
+    """Reject a unit mapping with unknown names or non-unit values.
 
-    Without this, a typo in a **unit_kwargs name (e.g.
-    quantify(temperatrue="K")) is silently dropped by units.get(name),
+    *Names*: without this, a typo in a ``**unit_kwargs`` name (e.g.
+    ``quantify(temperatrue="K")``) is silently dropped by ``units.get(name)``,
     leaving the data unquantified with no error or warning.
+
+    *Values*: this replaces what the parametrized
+    ``Mapping[Hashable, AbstractUnit | str | None]`` annotation used to do at
+    dispatch time. That annotation made the whole ``attach_units`` plum function
+    non-faithful -- disabling its method caching -- and its failure mode was to
+    fall through to the ``object`` overload, whose message blames the *object*'s
+    type rather than naming the offending unit value.
     """
     # Sort so the message is deterministic: `units` insertion order follows the
     # accessor's ``set(...)`` iteration, which is not stable across processes.
     unknown = sorted(repr(k) for k in units if k not in valid_names)
-    if not unknown:
-        return
-    # ``None`` is the DataArray's own-data key; render it explicitly so the
-    # message stays helpful (and non-empty) when there are no other names.
-    names = ("None (the data)" if n is None else repr(n) for n in valid_names)
-    valid = ", ".join(sorted(names)) or "(none)"
-    msg = (
-        f"got unit(s) for name(s) not in the {obj_kind}: {', '.join(unknown)}. "
-        f"Valid names: {valid}."
+    if unknown:
+        # ``None`` is the DataArray's own-data key; render it explicitly so the
+        # message stays helpful (and non-empty) when there are no other names.
+        names = ("None (the data)" if n is None else repr(n) for n in valid_names)
+        valid = ", ".join(sorted(names)) or "(none)"
+        msg = (
+            f"got unit(s) for name(s) not in the {obj_kind}: {', '.join(unknown)}. "
+            f"Valid names: {valid}."
+        )
+        raise ValueError(msg)
+
+    bad = sorted(
+        f"{'None (the data)' if k is None else repr(k)} -> {type(v).__name__}"
+        for k, v in units.items()
+        if not isinstance(v, _UNIT_VALUE_TYPES)
     )
-    raise ValueError(msg)
+    if bad:
+        msg = (
+            f"unit values must be a unit, a unit string, or None; got {', '.join(bad)}."
+        )
+        raise TypeError(msg)
 
 
 @dispatch
-def attach_units(
-    obj: DataArray, units: Mapping[Hashable, u.AbstractUnit | str | None]
-) -> DataArray:
+def attach_units(obj: DataArray, units: Mapping) -> DataArray:
     """Attach units to a DataArray's variables.
 
     Parameters
@@ -329,7 +348,7 @@ def attach_units(
     {}
 
     """
-    _reject_unknown_unit_names(units, {None} | set(obj.coords), "DataArray")
+    _validate_units(units, {None} | set(obj.coords), "DataArray")
 
     # Handle the data array itself (None key = the DataArray's own data)
     data_unit = units.get(None)
@@ -363,9 +382,7 @@ def attach_units(
 
 
 @dispatch
-def attach_units(
-    obj: Dataset, units: Mapping[Hashable, u.AbstractUnit | str | None]
-) -> Dataset:
+def attach_units(obj: Dataset, units: Mapping) -> Dataset:
     """Attach units to a Dataset's variables.
 
     Parameters
@@ -381,7 +398,7 @@ def attach_units(
         New Dataset with units attached as Quantities.
 
     """
-    _reject_unknown_unit_names(units, set(obj.data_vars) | set(obj.coords), "Dataset")
+    _validate_units(units, set(obj.data_vars) | set(obj.coords), "Dataset")
 
     # Handle all variables in dataset
     new_vars = {}
