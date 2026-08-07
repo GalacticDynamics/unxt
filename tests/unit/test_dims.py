@@ -5,6 +5,7 @@ import unxts.hypothesis as ust
 from hypothesis import example, given, strategies as st
 
 import unxt as u
+from unxt._src.dimensions import name_of
 
 
 class TestDimensionSimple:
@@ -111,6 +112,27 @@ class TestDimensionMathematicalParsing:
         assert dim2 == expected
 
 
+class TestDimensionNumericFactor:
+    """A bare number in an expression is a factor, not a dimension."""
+
+    def test_unit_factor_is_identity(self):
+        """A ``1`` factor leaves the dimension unchanged."""
+        assert u.dimension("length * 1") == u.dimension("length")
+
+
+class TestNameOf:
+    """Test `unxt.dims.name_of`."""
+
+    def test_named_dimension(self):
+        """A dimension astropy knows reports its own name."""
+        assert name_of(u.dimension("length")) == "length"
+
+    def test_unknown_dimension(self):
+        """A dimension astropy cannot name is spelled out from its unit powers."""
+        dim = u.dimension_of(u.Q(1, "m5/s3"))
+        assert name_of(dim) == "m5 s-3"
+
+
 class TestDimensionErrors:
     """Test error handling in dimension parsing."""
 
@@ -136,6 +158,24 @@ class TestDimensionErrors:
         """Test that non-numeric exponents raise TypeError."""
         with pytest.raises(TypeError, match="Power exponent must be a number"):
             u.dimension("length**time")
+
+    def test_non_numeric_constant_exponent(self):
+        """A constant exponent that is not a number reports its type."""
+        with pytest.raises(TypeError, match="Power exponent must be a number, got"):
+            u.dimension("length**'two'")
+
+    def test_unsupported_unary_operator(self):
+        """A unary operator other than ``+``/``-`` raises."""
+        with pytest.raises(ValueError, match="Unsupported unary operator: Invert"):
+            u.dimension("~(length)")
+
+    @pytest.mark.parametrize(
+        "expr", ["length * [1]", "length * {1}", "length * (a)[0]"]
+    )
+    def test_unsupported_ast_node(self, expr):
+        """Nodes that are neither dimensions nor numbers raise."""
+        with pytest.raises(ValueError, match="Unsupported AST node"):
+            u.dimension(expr)
 
     def test_unary_minus_raises(self):
         """A standalone unary ``-`` raises instead of meaning reciprocal.

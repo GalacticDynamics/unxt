@@ -47,3 +47,25 @@ def test_imshow_with_quantity_extent():
         assert "mas" in ax.get_xlabel()
     finally:
         plt.close(fig)
+
+
+def test_default_units_from_a_quantity():
+    """A quantity carries its own unit; no unwrapping needed."""
+    converter = uimpl.UnxtConverter()
+    assert converter.default_units(u.Q([1.0, 2.0], "mas"), None) == u.unit("mas")
+
+
+def test_default_units_of_a_bare_scalar_is_none():
+    """A plain scalar has no unit and is not iterable."""
+    converter = uimpl.UnxtConverter()
+    assert converter.default_units(1.0, None) is None
+
+
+def test_setup_can_be_disabled_and_re_enabled():
+    """Disabling removes the converter from matplotlib's registry."""
+    try:
+        uimpl.setup_matplotlib_support_for_unxt(enable=False)
+        assert u.quantity.AbstractQuantity not in matplotlib.units.registry
+    finally:
+        uimpl.setup_matplotlib_support_for_unxt()
+    assert u.quantity.AbstractQuantity in matplotlib.units.registry

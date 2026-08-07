@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 import unxts.parametric as up
 from traitlets.config import Config
+from unxts.parametric._src import config as cfgmod
 
 import unxt as u
 
@@ -143,3 +144,48 @@ def test_auto_load_defaults_without_config(tmp_path: Path) -> None:
     payload = json.loads(_run_isolated_import(project))
     assert payload["repr"] is False
     assert payload["str"] is True
+
+
+def test_auto_load_no_pyproject(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No pyproject.toml anywhere: nothing to load."""
+    monkeypatch.setattr(cfgmod, "_find_pyproject", lambda _: None)
+    assert cfgmod._auto_load_project_toml_config(up.config) is None
+
+
+def test_auto_load_malformed_toml(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A malformed pyproject.toml never breaks import."""
+    pyproject = tmp_path / "pyproject.toml"
+    _ = pyproject.write_text("this is not = = toml\n", encoding="utf-8")
+    monkeypatch.setattr(cfgmod, "_find_pyproject", lambda _: pyproject)
+    assert cfgmod._auto_load_project_toml_config(up.config) is None
+    assert up.config.quantity_repr.include_params is False
+
+
+def test_auto_load_pyproject_without_parametric_section(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A pyproject with no ``[tool.unxts.parametric]`` leaves the defaults."""
+    pyproject = tmp_path / "pyproject.toml"
+    _ = pyproject.write_text('[project]\nname = "demo"\n', encoding="utf-8")
+    monkeypatch.setattr(cfgmod, "_find_pyproject", lambda _: pyproject)
+    assert cfgmod._auto_load_project_toml_config(up.config) is None
+    assert up.config.quantity_repr.include_params is False
+
+
+def test_auto_load_applies_parametric_section(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A valid ``[tool.unxts.parametric]`` section is applied to the config."""
+    pyproject = tmp_path / "pyproject.toml"
+    _ = pyproject.write_text(
+        "[tool.unxts.parametric.quantity.repr]\ninclude_params = true\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(cfgmod, "_find_pyproject", lambda _: pyproject)
+    try:
+        cfgmod._auto_load_project_toml_config(up.config)
+        assert up.config.quantity_repr.include_params is True
+    finally:
+        up.config.quantity_repr.include_params = False

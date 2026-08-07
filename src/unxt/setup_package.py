@@ -21,7 +21,7 @@ match os.getenv("UNXT_ENABLE_RUNTIME_TYPECHECKING", "False"):
         _RUNTIME_TYPECHECKER = False
     case "None":
         _RUNTIME_TYPECHECKER = None
-    case str() as _name:
+    case _ as _name:  # any other value names the typechecker
         _RUNTIME_TYPECHECKER = _name
 
 RUNTIME_TYPECHECKER: Final[str | None | Literal[False]] = _RUNTIME_TYPECHECKER

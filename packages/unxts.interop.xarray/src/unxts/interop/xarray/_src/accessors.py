@@ -152,7 +152,7 @@ class UnxtDataArrayAccessor:
         for name in set(list(unit_attrs.keys()) + list(units.keys())):
             if name in units:
                 final_units[name] = units[name]
-            elif name in unit_attrs:
+            else:  # the loop walks the union, so it must be a unit attribute
                 final_units[name] = unit_attrs[name]
 
         # Attach units
@@ -200,7 +200,7 @@ class UnxtDataArrayAccessor:
         # Format units as strings for attributes
         unit_strs: dict[Hashable, str] = {}
         for name, unit in units.items():
-            if unit is not None:
+            if unit is not None:  # pragma: no branch -- never extracted as None
                 if format is not None:
                     unit_strs[name] = builtins.format(unit, format)
                 else:
@@ -213,7 +213,7 @@ class UnxtDataArrayAccessor:
         for name, unit_str in unit_strs.items():
             if name is None:
                 continue
-            if name in stripped.coords:
+            if name in stripped.coords:  # pragma: no branch -- keys are coords
                 stripped.coords[name].attrs[unit_attribute] = unit_str
 
         return stripped
@@ -311,7 +311,7 @@ class UnxtDatasetAccessor:
         for name in set(list(unit_attrs.keys()) + list(units.keys())):
             if name in units:
                 final_units[name] = units[name]
-            elif name in unit_attrs:
+            else:  # the loop walks the union, so it must be a unit attribute
                 final_units[name] = unit_attrs[name]
 
         # Attach units
@@ -360,7 +360,7 @@ class UnxtDatasetAccessor:
         # Format units as strings for attributes
         unit_strs: dict[Hashable, str] = {}
         for name, unit in units.items():
-            if unit is not None:
+            if unit is not None:  # pragma: no branch -- never extracted as None
                 if format is not None:
                     unit_strs[name] = builtins.format(unit, format)
                 else:
@@ -370,7 +370,7 @@ class UnxtDatasetAccessor:
         for name, unit_str in unit_strs.items():
             if name in stripped.data_vars:
                 stripped[name].attrs[unit_attribute] = unit_str
-            elif name in stripped.coords:
+            else:  # a variable that is not a data var is a coordinate
                 stripped.coords[name].attrs[unit_attribute] = unit_str
 
         return stripped
