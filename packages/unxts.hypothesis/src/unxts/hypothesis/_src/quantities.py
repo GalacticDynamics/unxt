@@ -10,15 +10,11 @@ from hypothesis import strategies as st
 from hypothesis.extra.array_api import make_strategies_namespace
 
 import unxt as u
+from ._utils import draw_if_strategy
 from .units import units
 
 # Create array API strategies namespace for JAX
 xps = make_strategies_namespace(jnp)
-
-
-def draw_if_strategy[T](draw: st.DrawFn, v: T | st.SearchStrategy[T], /) -> T:
-    """Draw a value if a strategy is given, else return the value."""
-    return draw(v) if isinstance(v, st.SearchStrategy) else v
 
 
 @st.composite

@@ -5,6 +5,7 @@ __all__ = ("unitsystems",)
 from hypothesis import strategies as st
 
 import unxt as u
+from ._utils import draw_if_strategy
 
 
 @st.composite
@@ -64,9 +65,7 @@ def unitsystems(
 
     """
     # Process each unit argument
-    unit_objs = [
-        u.unit(draw(x) if isinstance(x, st.SearchStrategy) else x) for x in units
-    ]
+    unit_objs = [u.unit(draw_if_strategy(draw, x)) for x in units]
     # Create and return the unit system
     return u.unitsystem(*unit_objs)
 

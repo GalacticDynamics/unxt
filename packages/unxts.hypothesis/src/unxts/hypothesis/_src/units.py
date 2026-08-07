@@ -8,6 +8,7 @@ import astropy.units as apyu
 from hypothesis import strategies as st
 
 import unxt as u
+from ._utils import draw_if_strategy
 from .dimensions import named_dimensions
 
 
@@ -82,7 +83,7 @@ def derived_units(
 
     """
     # Convert base to a unit if it's a string or draw from strategy
-    base_unit = u.unit(draw(base) if isinstance(base, st.SearchStrategy) else base)
+    base_unit = u.unit(draw_if_strategy(draw, base))
 
     # Collect all possible unit forms
     # 1. Start with the base unit
@@ -218,11 +219,7 @@ def units(
 
     """
     # Convert to Dimension object, drawing if necessary
-    dimension = (
-        u.dimension(draw(dimension))
-        if isinstance(dimension, st.SearchStrategy)
-        else u.dimension(dimension)
-    )
+    dimension = u.dimension(draw_if_strategy(draw, dimension))
 
     # Get the canonical unit for this dimension
     base_unit = dimension._unit  # noqa: SLF001

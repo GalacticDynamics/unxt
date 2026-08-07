@@ -153,8 +153,7 @@ DIMENSION_NAMES: Final[tuple[str, ...]] = (
 )
 
 
-@st.composite
-def named_dimensions(draw: st.DrawFn) -> u.AbstractDimension:
+def named_dimensions() -> st.SearchStrategy[u.AbstractDimension]:
     """Generate a named dimension from Astropy's physical type catalogue.
 
     This strategy samples from a finalized, pre-computed set of 134 named
@@ -165,15 +164,10 @@ def named_dimensions(draw: st.DrawFn) -> u.AbstractDimension:
     excludes names that cannot be directly interpreted by unxt (e.g., names
     with parenthetical qualifiers like "electrical charge (EMU)").
 
-    Parameters
-    ----------
-    draw : st.DrawFn
-        Hypothesis draw function (automatically provided by @st.composite).
-
     Returns
     -------
-    unxt.AbstractDimension
-        A randomly selected dimension from the set of named dimensions.
+    st.SearchStrategy[unxt.AbstractDimension]
+        A strategy sampling from the set of named dimensions.
 
     Examples
     --------
@@ -224,5 +218,7 @@ def named_dimensions(draw: st.DrawFn) -> u.AbstractDimension:
     quantities : Generate quantities with a specific dimension.
 
     """
-    name = draw(st.sampled_from(DIMENSION_NAMES))
-    return u.dimension(name)
+    # ``sampled_from(...).map(...)`` is the built-in form of "pick a name, then
+    # convert it"; a ``@st.composite`` wrapper would only re-implement it, and
+    # shrinking still works through the underlying ``sampled_from``.
+    return st.sampled_from(DIMENSION_NAMES).map(u.dimension)
