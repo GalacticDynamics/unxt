@@ -13,7 +13,7 @@ __all__ = ("AbstractQuantity", "is_any_quantity")
 
 import contextlib
 import functools as ft
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from types import ModuleType
 from typing import (
     TYPE_CHECKING,
@@ -1031,9 +1031,13 @@ class AbstractQuantity(
             short_arrays = True
         match short_arrays:
             case "compact":
-                kwargs["custom"] = custom_pdoc_noarray
+                kwargs["custom"] = _chain_custom(
+                    kwargs.get("custom"), custom_pdoc_noarray
+                )
             case True:
-                kwargs["custom"] = custom_pdoc_no_kind
+                kwargs["custom"] = _chain_custom(
+                    kwargs.get("custom"), custom_pdoc_no_kind
+                )
                 kwargs["short_arrays"] = True
             case _:  # False
                 kwargs["short_arrays"] = False
@@ -1535,6 +1539,32 @@ def is_any_quantity(obj: Any, /) -> TypeGuard[AbstractQuantity]:
 
     """
     return isinstance(obj, AbstractQuantity)
+
+
+def _chain_custom(
+    caller: Callable[[Any], wl.AbstractDoc | None] | None,
+    ours: Callable[[Any], wl.AbstractDoc | None],
+    /,
+) -> Callable[[Any], wl.AbstractDoc | None]:
+    """Try the caller's ``custom=`` pdoc hook first, then ours.
+
+    ``__pdoc__`` needs its own hook to implement ``short_arrays``, but it used
+    to install it by *assigning* ``kwargs["custom"]``. ``wadler_lindig.pdoc``
+    always puts ``custom`` in the kwargs it forwards, so that assignment
+    silently discarded whatever the caller passed -- on the default path, since
+    ``short_arrays`` is ``True``/``"compact"`` for both ``repr`` and ``str``.
+
+    The caller goes first: passing ``custom=`` is an explicit request to
+    override rendering, so it must be able to beat the default array handling.
+    """
+    if caller is None:
+        return ours
+
+    def chained(obj: Any) -> wl.AbstractDoc | None:
+        doc = caller(obj)
+        return ours(obj) if doc is None else doc
+
+    return chained
 
 
 # TODO: replace with `equinox.internal.TreeWLCustom` when available.
