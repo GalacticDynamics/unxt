@@ -46,7 +46,7 @@ class AbstractUSysFlag:
     Define a unit system with the standard flag:
 
     >>> unxt.unitsystem(unxt.unitsystems.StandardUSysFlag, "m", "kg", "s")
-    unitsystem(m, kg, s)
+    unitsystem('m', 'kg', 's')
 
     """
 
@@ -65,7 +65,7 @@ class StandardUSysFlag(AbstractUSysFlag):
     Define a unit system with the standard flag:
 
     >>> unitsystem(StandardUSysFlag, "m", "kg", "s")
-    unitsystem(m, kg, s)
+    unitsystem('m', 'kg', 's')
 
     Further examples may be found in the ``unitsystem`` docs.
 
@@ -82,7 +82,7 @@ class DynamicalSimUSysFlag(AbstractUSysFlag):
     Define a unit system with the dynamical simulation flag:
 
     >>> unitsystem(DynamicalSimUSysFlag, "m", "kg")
-    unitsystem(m, kg, 122404 s)
+    unitsystem('m', 'kg', '122404.43065054427 s')
 
     Further examples may be found in the ``unitsystem`` docs.
 
@@ -121,7 +121,7 @@ class HEPUSysFlag(NaturalUSysFlag):
 
     >>> usys = unitsystem(HEPUSysFlag)
     >>> usys
-    unitsystem(...e-16 m, ...e-27 kg, ...e-25 s)
+    unitsystem('...e-16 m', '...e-27 kg', '...e-25 s')
 
     >>> [str(d) for d in usys.base_dimensions]
     ['length', 'mass', 'time']
@@ -148,7 +148,7 @@ class GeometrizedUSysFlag(NaturalUSysFlag):
 
     >>> usys = unitsystem(GeometrizedUSysFlag)
     >>> usys
-    unitsystem(m, ...e+27 kg, ...e-09 s)
+    unitsystem('m', '...e+27 kg', '...e-09 s')
 
     >>> [str(d) for d in usys.base_dimensions]
     ['length', 'mass', 'time']
@@ -173,7 +173,7 @@ class PlanckUSysFlag(NaturalUSysFlag):
 
     >>> usys = unitsystem(PlanckUSysFlag)
     >>> usys
-    unitsystem(...e-35 m, ...e-08 kg, ...e-44 s, ...e+32 K)
+    unitsystem('...e-35 m', '...e-08 kg', '...e-44 s', '...e+32 K')
 
     >>> [str(d) for d in usys.base_dimensions]
     ['length', 'mass', 'time', 'temperature']
@@ -194,7 +194,7 @@ class AtomicUSysFlag(NaturalUSysFlag):
 
     >>> usys = unitsystem(AtomicUSysFlag)
     >>> usys
-    unitsystem(...e-11 m, ...e-31 kg, ...e-17 s, ...e-19 A s)
+    unitsystem('...e-11 m', '...e-31 kg', '...e-17 s', '...e-19 A s')
 
     >>> [str(d) for d in usys.base_dimensions]
     ['length', 'mass', 'time', 'electrical charge']
