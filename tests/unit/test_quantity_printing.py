@@ -8,7 +8,6 @@ import pytest
 import wadler_lindig as wl
 
 import unxt as u
-from unxt._src.quantity.mixins import IPythonReprMixin
 from unxt.units import unit as parse_unit
 
 
@@ -258,42 +257,38 @@ def test_format_non_scalar_raises() -> None:
             format(q, ".2f")
 
 
-class TestReprLatexUnitStripping:
-    r"""`_repr_latex_` strips `$...$` only when the unit actually supplied it."""
+def test_format_presets_are_reachable_from_an_f_string() -> None:
+    """`unxt.fmt.FORMAT_PRESETS` names work as format specs."""
+    q = u.Q([1.0, 2, 3], "m")
+    assert f"{q:mul}" == "[1., 2., 3.] * m"
+    assert f"{q:bare}" == "[1., 2., 3.] m"
+    assert f"{q:short}" == "f32[3] * m"
+    assert f"{q:compact}" == "Q([1., 2., 3.], unit='m')"
 
-    class _Fake:
-        """Stands in for a unit; `IPythonReprMixin` only reads value/unit."""
 
-        def __init__(self, latex: str | None, /) -> None:
-            self._latex = latex
-            if latex is not None:
-                self._repr_latex_ = lambda: latex  # type: ignore[method-assign]
+def test_format_preset_beats_the_value_spec_under_jit() -> None:
+    """The preset lookup must run before the value-spec branch.
 
-        def __repr__(self) -> str:
-            return "Fake(unit)"
+    A non-empty spec handed straight to a tracer raises, so a preset checked
+    second would be unreachable inside ``jax.jit``.
+    """
+    seen: list[str] = []
 
-    def _render(self, latex: str | None) -> str:
-        obj = IPythonReprMixin()
-        obj.value = np.array([1.0, 2.0])  # type: ignore[assignment]
-        obj.unit = self._Fake(latex)  # type: ignore[assignment]
-        return obj._repr_latex_()
+    @jax.jit
+    def f(q: u.Q) -> u.Q:
+        seen.append(f"{q:mul}")
+        return q
 
-    def test_wrapped_latex_is_unwrapped_once(self):
-        r"""Astropy's `$\mathrm{m}$` loses exactly its own delimiters."""
-        assert self._render(r"$\mathrm{m}$") == r"$[1.,~2.] \; \mathrm{m}$"
+    f(u.Q([1.0, 2, 3], "m"))
+    assert seen == ["f32[3] * m"]
 
-    def test_unwrapped_latex_is_left_intact(self):
-        r"""A `_repr_latex_` that returns no `$` must not be sliced.
 
-        Keying the strip off the *existence* of `_repr_latex_` corrupted this
-        case -- the same defect as the `UnitsMatrix` one, one step removed.
-        """
-        assert self._render(r"\mathrm{m}") == r"$[1.,~2.] \; \mathrm{m}$"
+def test_format_colon_fill_character_is_preserved() -> None:
+    """``:`` is legal as a fill character; no preset may shadow it."""
+    assert f"{u.Q(3.14159, 'm'):>12.2f}" == "        3.14 m"
+    assert format(u.Q(3.14159, "m"), ":>12.2f") == "::::::::3.14 m"
 
-    def test_no_repr_latex_falls_back_to_repr(self):
-        """A unit without `_repr_latex_` is rendered by `repr` and not sliced."""
-        assert self._render(None) == r"$[1.,~2.] \; Fake(unit)$"
 
-    def test_lone_dollar_is_not_stripped(self):
-        """A single `$` satisfies both `startswith` and `endswith`."""
-        assert self._render("$") == r"$[1.,~2.] \; $$"
+def test_format_unknown_spec_names_the_type_and_presets() -> None:
+    with pytest.raises(ValueError, match=r"invalid format spec 'nonsense'"):
+        format(u.Q(3.14, "m"), "nonsense")
