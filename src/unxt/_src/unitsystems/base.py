@@ -5,9 +5,10 @@ __all__ = ("UNITSYSTEMS_REGISTRY", "AbstractUnitSystem")
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import ClassVar, get_args, get_type_hints
+from typing import Any, ClassVar, get_args, get_type_hints
 
 import jax.tree_util as jtu
+import wadler_lindig as wl
 from astropy.units import PhysicalType, UnitBase as AstropyUnitBase
 from astropy.units.physical import _physical_unit_mapping
 
@@ -303,6 +304,47 @@ class AbstractUnitSystem:
         """
         yield from self.base_units
 
+    def __pdoc__(self, *, show_units: bool = True, **kwargs: Any) -> "wl.AbstractDoc":
+        """Return the Wadler-Lindig representation of this unit system.
+
+        Every unit system renders through this one method. Before it, the four
+        classes that hand-rolled a ``__repr__`` printed ``unitsystem(m, s, kg,
+        rad)`` while every other shape -- including every dynamically-created
+        one -- fell through to the dataclass default, so the *same constructor*
+        produced two different styles depending on which shape you landed on.
+
+        Parameters
+        ----------
+        show_units
+            If `True`, render the base units, prefixed by the ``unitsystem``
+            constructor. If `False`, render the base *dimension* names, prefixed
+            by the class name -- the shape of the system rather than its units.
+        kwargs
+            Ignored; accepted so this composes with `wadler_lindig.pdoc`.
+
+        Examples
+        --------
+        >>> import wadler_lindig as wl
+        >>> from unxt import unitsystem
+        >>> usys = unitsystem("m", "s", "kg", "radian")
+
+        >>> wl.pprint(usys)
+        unitsystem(m, s, kg, rad)
+
+        >>> wl.pprint(usys, show_units=False)
+        LTMAUnitSystem(length, time, mass, angle)
+
+        """
+        if show_units:
+            name, items = "unitsystem", [b.to_string() for b in self.base_units]
+        else:
+            name = type(self).__name__
+            items = [str(f) for f in self._base_field_names]
+        return wl.TextDoc(f"{name}({', '.join(items)})")
+
+    def __repr__(self) -> str:
+        return wl.pformat(self)
+
     def __str__(self) -> str:
         """Return a string representation of the unit system.
 
@@ -314,8 +356,7 @@ class AbstractUnitSystem:
         'LTMAUnitSystem(length, time, mass, angle)'
 
         """
-        fs = ", ".join(map(str, self._base_field_names))
-        return f"{type(self).__name__}({fs})"
+        return wl.pformat(self, show_units=False)
 
     # ===============================================================
     # Plum stuff
