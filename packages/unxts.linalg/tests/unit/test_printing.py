@@ -29,12 +29,21 @@ class TestQuantityMatrixShortName:
         assert "unit='(m, s, kg)'" in result
 
 
-def test_repr_latex_does_not_eat_characters():
-    r"""Regression: `_repr_latex_` used to slice `[1:-1]` off the unit repr.
+class TestQuantityMatrixMarkup:
+    """The IPython representations route through the ``unxt.fmt`` engine."""
 
-    That assumed astropy's `$...$` wrapping. `UnitsMatrix` has no
-    `_repr_latex_`, so the fallback `__repr__` was sliced and lost its first
-    and last characters, corrupting the output instead of raising.
-    """
-    qm = QuantityMatrix(jnp.array([1.0, 2.0, 3.0]), unit=("m", "s", "kg"))
-    assert qm._repr_latex_() == r'$[1.,~2.,~3.] \; UnitsMatrix("(m, s, kg)")$'
+    def test_latex_does_not_eat_characters(self):
+        r"""Regression: the old ``[1:-1]`` slice assumed ``$...$`` wrapping.
+
+        ``UnitsMatrix`` has no ``_repr_latex_``, so the fallback ``__repr__``
+        was sliced and lost its first and last characters, producing
+        ``... \; nitsMatrix("(m, s, kg)"``.
+        """
+        qm = QuantityMatrix(jnp.array([1.0, 2.0, 3.0]), unit=("m", "s", "kg"))
+        assert qm._repr_latex_() == r"$[1.,~2.,~3.] \; (m, s, kg)$"
+
+    def test_html_shows_the_unit_structure(self):
+        qm = QuantityMatrix(jnp.array([1.0, 2.0, 3.0]), unit=("m", "s", "kg"))
+        assert qm._repr_html_() == (
+            "<span>[1., 2., 3.]</span> * <span>(m, s, kg)</span>"
+        )

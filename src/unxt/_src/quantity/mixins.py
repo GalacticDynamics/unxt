@@ -123,7 +123,7 @@ class IPythonReprMixin:
         >>> q._repr_mimebundle_()
         {'text/plain':
          "Quantity(Array([1., 2., 3., 4.], dtype=float32), unit='m')",
-         'text/html': '<span>[1., 2., 3., 4.]</span> * <span>Unit("m")</span>',
+         'text/html': '<span>[1., 2., 3., 4.]</span> * <span>m</span>',
          'text/latex': '$[1.,~2.,~3.,~4.] \\; \\mathrm{m}$'}
 
         >>> q._repr_mimebundle_(include=["text/plain"])
@@ -153,6 +153,17 @@ class IPythonReprMixin:
             key: getattr(self, SUPPORTED_IPYTHON_REPR_FORMATS[key])() for key in keys
         }
 
+    def _repr_markup_(self, markup: str, /) -> str:
+        """Render through the `unxt.fmt` engine in the given markup.
+
+        Imported lazily: ``unxt._src.fmt`` imports
+        ``unxt._src.quantity.base``, which imports this module, so a
+        module-scope import would cycle.
+        """
+        from unxt._src.fmt import parts_to_markup, pparts  # noqa: PLC0415
+
+        return parts_to_markup(pparts(self, markup=markup), markup=markup)
+
     def _repr_html_(self) -> str:
         """Return an HTML representation of the quantity.
 
@@ -162,13 +173,10 @@ class IPythonReprMixin:
 
         >>> q = Quantity([1.0, 2, 3, 4], "m")
         >>> q._repr_html_()
-        '<span>[1., 2., 3., 4.]</span> * <span>Unit("m")</span>'
+        '<span>[1., 2., 3., 4.]</span> * <span>m</span>'
 
         """
-        unit_repr = getattr(self.unit, "_repr_html_", self.unit.__repr__)()
-        value_repr = np.array2string(self.value, separator=", ")  # type: ignore[call-overload]
-
-        return f"<span>{value_repr}</span> * <span>{unit_repr}</span>"
+        return self._repr_markup_("html")
 
     def _repr_latex_(self) -> str:
         r"""Return a LaTeX representation of the quantity.
@@ -182,23 +190,7 @@ class IPythonReprMixin:
         '$[1.,~2.,~3.,~4.] \\; \\mathrm{m}$'
 
         """
-        unit_repr_latex = getattr(self.unit, "_repr_latex_", None)
-        unit_repr = repr(self.unit) if unit_repr_latex is None else unit_repr_latex()
-        # `_repr_latex_` conventionally wraps its output in `$...$`, and it has
-        # to come off before being re-wrapped below. Strip it only when it is
-        # actually there: keying off the *existence* of `_repr_latex_` would
-        # still corrupt a unit whose implementation returns an unwrapped
-        # string, which is this same defect one step removed. A unit without
-        # `_repr_latex_` at all (a unit system, a `unxts.linalg.UnitsMatrix`)
-        # falls back to `repr` and is likewise left alone.
-        if (
-            len(unit_repr) >= 2
-            and unit_repr.startswith("$")
-            and unit_repr.endswith("$")
-        ):
-            unit_repr = unit_repr[1:-1]
-        value_repr = np.array2string(self.value, separator=",~")  # type: ignore[call-overload]
-        return f"${value_repr} \\; {unit_repr}$"
+        return self._repr_markup_("latex")
 
     # TODO: implement:
     # - _repr_markdown_
