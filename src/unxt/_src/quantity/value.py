@@ -363,8 +363,14 @@ def convert_to_quantity_value(obj: quax.ArrayValue, /) -> Any:
     return obj
 
 
+# NB: the ``list`` / ``tuple`` members are deliberately *unparametrized*. A
+# subscripted generic is not "faithful" in plum, and one unfaithful signature
+# disables method caching for the whole function -- which here is the
+# ``converter=`` on every quantity's ``value`` field, so it runs on every
+# construction. ``list`` and ``list[Any]`` match exactly the same values;
+# only the caching differs.
 @plum.dispatch
-def convert_to_quantity_value(obj: ArrayLike | list[Any] | tuple[Any, ...], /) -> Array:
+def convert_to_quantity_value(obj: ArrayLike | list | tuple, /) -> Array:
     """Convert an array-like object to a `jax.numpy.ndarray`.
 
     >>> import jax.numpy as jnp
@@ -382,7 +388,7 @@ def convert_to_quantity_value(obj: ArrayLike | list[Any] | tuple[Any, ...], /) -
     # quaxed one), which converts a weak Python scalar into a *weak* ``jax.Array``
     # -- passing an explicit ``dtype`` would force ``weak_type=False`` and make
     # ``Quantity(1.0, ...)`` over-promote relative to native JAX.
-    if not isinstance(out, jax.Array):
+    if not isinstance(out, jax.Array):  # pragma: no cover -- jax-version guard
         out = jax.numpy.asarray(out)
 
     return out
