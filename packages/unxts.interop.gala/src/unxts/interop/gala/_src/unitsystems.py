@@ -5,7 +5,6 @@ __all__ = (
     "convert_unxt_unitsystem_to_gala_unitsystem",
 )
 
-from typing import Any
 
 import gala.units
 from astropy.units import UnitBase as AstropyUnit
@@ -84,11 +83,6 @@ def convert_gala_unitsystem_to_unxt_unitsystem(
     return unitsystem(usys)
 
 
-def _convert_unit_to_apyu(u: Any) -> AstropyUnit:
-    """Convert a `unxt.AbstractUnit` to an astropy.unit."""
-    return convert(u, AstropyUnit)
-
-
 @conversion_method(type_from=AbstractUnitSystem, type_to=gala.units.UnitSystem)  # type: ignore[arg-type]
 def convert_unxt_unitsystem_to_gala_unitsystem(
     usys: AbstractUnitSystem, /
@@ -115,4 +109,4 @@ def convert_unxt_unitsystem_to_gala_unitsystem(
     <UnitSystem (km, s, solMass, rad)>
 
     """
-    return gala.units.UnitSystem(*map(_convert_unit_to_apyu, usys.base_units))
+    return gala.units.UnitSystem(*(convert(u, AstropyUnit) for u in usys.base_units))
