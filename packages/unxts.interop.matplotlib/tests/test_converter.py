@@ -4,6 +4,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.units
 import numpy as np
+import pytest
 import unxts.interop.matplotlib as uimpl
 
 import unxt as u
@@ -69,3 +70,62 @@ def test_setup_can_be_disabled_and_re_enabled():
     finally:
         uimpl.setup_matplotlib_support_for_unxt()
     assert u.quantity.AbstractQuantity in matplotlib.units.registry
+
+
+def test_unit_format_default_latex_inline():
+    """Default unit_format produces latex_inline format labels."""
+    converter = uimpl.UnxtConverter()
+    unit = u.unit("m/s")
+    info = converter.axisinfo(unit, None)
+    # latex_inline format should produce something like $\mathrm{m\,s^{-1}}$
+    assert info.label == unit.to_string("latex_inline")
+    assert "$" in info.label
+    assert "mathrm" in info.label
+
+
+def test_unit_format_custom_format():
+    """Custom unit_format respects the specified format."""
+    converter = uimpl.UnxtConverter(unit_format="latex")
+    unit = u.unit("m/s")
+    info = converter.axisinfo(unit, None)
+    # latex format should produce something like $\mathrm{\frac{m}{s}}$
+    assert info.label == unit.to_string("latex")
+    assert "frac" in info.label
+
+
+def test_unit_format_console_format():
+    """unit_format='console' produces plain text format."""
+    converter = uimpl.UnxtConverter(unit_format="console")
+    unit = u.unit("m/s")
+    info = converter.axisinfo(unit, None)
+    # console format should produce plain text like "m / s"
+    assert info.label == unit.to_string("console")
+    assert "$" not in info.label
+
+
+def test_axisinfo_kw_deprecated():
+    """Using axisinfo_kw triggers a deprecation warning."""
+    with pytest.warns(DeprecationWarning, match=r"axisinfo_kw.*deprecated"):
+        converter = uimpl.UnxtConverter(axisinfo_kw={"format": "latex"})
+    # Verify the format was correctly applied
+    assert converter.unit_format == "latex"
+
+
+def test_axisinfo_kw_backwards_compatibility():
+    """axisinfo_kw={'format': ...} still works and produces correct output."""
+    with pytest.warns(DeprecationWarning, match=r"axisinfo_kw.*deprecated"):
+        converter = uimpl.UnxtConverter(axisinfo_kw={"format": "latex"})
+
+    unit = u.unit("m/s")
+    info = converter.axisinfo(unit, None)
+    # Should use the format from axisinfo_kw
+    assert info.label == unit.to_string("latex")
+    assert "frac" in info.label
+
+
+def test_axisinfo_kw_empty_dict():
+    """axisinfo_kw={} uses the default unit_format."""
+    with pytest.warns(DeprecationWarning, match=r"axisinfo_kw.*deprecated"):
+        converter = uimpl.UnxtConverter(axisinfo_kw={})
+    # Should still use default unit_format since no "format" key
+    assert converter.unit_format == "latex_inline"
