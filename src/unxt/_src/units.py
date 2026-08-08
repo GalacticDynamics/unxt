@@ -11,6 +11,7 @@ import astropy.units as apyu
 from plum import dispatch
 
 import unxt_api as uapi
+from unxt._src import fmt
 from unxt.dims import AbstractDimension
 
 # ``FunctionUnitBase`` (mag/dex/dB) is a separate hierarchy from ``UnitBase``, so
@@ -137,3 +138,44 @@ def dimension_of(obj: AbstractUnit, /) -> AbstractDimension:
 
     """
     return uapi.dimension(obj.physical_type)
+
+
+# ===================================================================
+# String formatting
+
+
+@fmt.pparts.dispatch  # type: ignore[misc]
+def pparts(obj: AbstractUnit, /, *, markup: str = "text", **kw: Any) -> tuple[Any, ...]:
+    r"""Decompose a unit for the `unxt._fmt` engine.
+
+    A unit is just an object with parts, so there is no separate unit renderer
+    and the engine's nesting rule covers it.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> from unxt._fmt import pparts
+
+    >>> pparts(u.unit("m"))
+    (PPart(role='unit', text='m', kind='content'),)
+
+    In LaTeX the fragment carries rendered markup, so it is not escaped again:
+
+    >>> pparts(u.unit("m/s2"), markup="latex")
+    (PPart(role='unit', text='\\mathrm{\\frac{m}{s^{2}}}', kind='markup'),)
+
+    A dimensionless unit contributes no fragment at all:
+
+    >>> pparts(u.unit(""))
+    ()
+
+    """
+    # Decide emptiness on the *plain* string: a dimensionless unit's LaTeX form
+    # is ``$\mathrm{}$``, which is truthy after the ``$`` are stripped and would
+    # otherwise emit a phantom unit.
+    plain = obj.to_string()
+    if not plain:
+        return ()
+    if markup == "latex":
+        return (fmt.PPart("unit", obj.to_string("latex")[1:-1], "markup"),)
+    return (fmt.PPart("unit", plain),)

@@ -2,6 +2,7 @@
 
 import itertools
 import pickle
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated
@@ -13,6 +14,7 @@ from astropy import constants as const
 from astropy.constants import G as const_G  # noqa: N811
 
 import unxt as u
+import unxt.unitsystems as usx
 from unxt import dimension, unit, unitsystems
 from unxt._src.unitsystems import base as us_base
 from unxt._src.unitsystems.utils import parse_dimlike_name
@@ -691,3 +693,68 @@ class TestParseFieldNamesAndDimensions:
 
         with pytest.raises(ValueError, match="Some dimensions are repeated"):
             us_base.parse_field_names_and_dimensions(TwoLengths)
+
+
+class TestUnitSystemRendering:
+    """``repr`` round-trips; ``str`` reads."""
+
+    @staticmethod
+    def _realizations():
+        return {
+            name: obj
+            for name in dir(usx)
+            if not name.startswith("_")
+            and isinstance(obj := getattr(usx, name), u.AbstractUnitSystem)
+        }
+
+    def test_repr_round_trips_for_every_realization(self):
+        """``eval(repr(usys)) == usys`` -- the property the quoted form buys.
+
+        Discovered dynamically rather than hard-coded: ``hep`` and
+        ``geometrized`` also need the full-precision scale fallback and are
+        easy to leave off a hand-written list.
+        """
+        ns = {
+            "unitsystem": u.unitsystem,
+            "DimensionlessUnitSystem": DimensionlessUnitSystem,
+        }
+        for name, usys in self._realizations().items():
+            assert eval(repr(usys), ns) == usys, name  # noqa: S307
+
+    def test_single_unit_system_uses_the_list_form(self):
+        """A lone string is looked up as a *system* name, so it must not be bare.
+
+        ``unitsystem("km")`` raises; ``unitsystem(["km"])`` is what reconstructs.
+        """
+        usys = u.unitsystem(["km"])
+        assert repr(usys) == "unitsystem(['km'])"
+        assert eval(repr(usys), {"unitsystem": u.unitsystem}) == usys  # noqa: S307
+
+    def test_conventional_systems_render_without_numeric_scales(self):
+        """The full-precision fallback must stay rare.
+
+        Without this, a regression in the "shortest" half of the rule would
+        silently make every repr long and the round-trip test would still pass.
+        """
+        for name in ("galactic", "solarsystem", "si", "cgs"):
+            assert not re.search(r"\de[+-]\d", repr(self._realizations()[name])), name
+
+    def test_str_is_the_readable_unquoted_form(self):
+        """``str`` drops the quotes."""
+        usys = u.unitsystem("kpc", "Myr", "Msun", "radian")
+        assert str(usys) == "unitsystem(kpc, Myr, solMass, rad)"
+
+    def test_dims_preset_gives_the_dimension_names(self):
+        """The form that used to squat on ``__str__``."""
+        usys = u.unitsystem("kpc", "Myr", "Msun", "radian")
+        assert f"{usys:dims}" == "LTMAUnitSystem(length, time, mass, angle)"
+
+    def test_every_shape_renders_the_same_way(self):
+        """One constructor, one style.
+
+        Guards the `repr=False` on the dataclass decorators: without it each
+        subclass carries a generated ``__repr__`` that shadows the base's, and
+        this reverts silently.
+        """
+        for usys in (u.unitsystem("m", "s", "kg", "rad"), u.unitsystem(["km"])):
+            assert repr(usys).startswith("unitsystem(")

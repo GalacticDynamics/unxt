@@ -5,15 +5,21 @@ __all__ = ("UNITSYSTEMS_REGISTRY", "AbstractUnitSystem")
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import ClassVar, get_args, get_type_hints
+from typing import Any, ClassVar, get_args, get_type_hints
 
 import jax.tree_util as jtu
-from astropy.units import PhysicalType, UnitBase as AstropyUnitBase
+import wadler_lindig as wl
+from astropy.units import (
+    CompositeUnit,
+    PhysicalType,
+    UnitBase as AstropyUnitBase,
+)
 from astropy.units.physical import _physical_unit_mapping
 
 from is_annotated import isannotated
 
 from .utils import parse_dimlike_name
+from unxt._src import fmt
 from unxt.dims import AbstractDimension, dimension
 from unxt.units import AbstractUnit, unit
 
@@ -46,6 +52,26 @@ def registered_unitsystem(
         (cls for d, cls in _UNITSYSTEMS_REGISTRY.items() if frozenset(d) == want),
         None,
     )
+
+
+def _roundtrip_unit_str(u: AbstractUnit, /) -> str:
+    """Return the shortest string for ``u`` that reparses to ``u``.
+
+    ``Unit.to_string()`` truncates past six significant figures, which is
+    invisible for every conventional unit but loses the measured-constant
+    realizations: ``planck``'s length becomes ``1.61626e-35 m``, which does not
+    compare equal on reconstruction. Fall back to the full-precision scale
+    alongside the unscaled bases -- Python's ``repr`` of a float is already the
+    shortest string that round-trips, so there is nothing shorter to reach for.
+
+    The fallback is rare by construction: ``galactic``, ``solarsystem``, ``si``
+    and ``cgs`` all render with named units and no numeric scale.
+    """
+    short = u.to_string()
+    if unit(short) == u:
+        return short
+    bases = CompositeUnit(1, u.bases, u.powers).to_string()
+    return f"{u.scale!r} {bases}"
 
 
 def _is_dataclass_slots_rebuild(
@@ -96,7 +122,7 @@ class AbstractUnitSystem:
     >>> from unxt import unitsystem
     >>> usys = unitsystem("m", "s", "kg", "radian")
     >>> usys
-    unitsystem(m, s, kg, rad)
+    unitsystem('m', 's', 'kg', 'rad')
 
     >>> usys["velocity"]
     Unit("m / s")
@@ -303,19 +329,100 @@ class AbstractUnitSystem:
         """
         yield from self.base_units
 
+    def __pdoc__(
+        self, *, show_units: bool = True, quote_units: bool = True, **kwargs: Any
+    ) -> "wl.AbstractDoc":
+        """Return the Wadler-Lindig representation of this unit system.
+
+        Every unit system renders through this one method. Before it, the four
+        classes that hand-rolled a ``__repr__`` printed ``unitsystem(m, s, kg,
+        rad)`` while every other shape -- including every dynamically-created
+        one -- fell through to the dataclass default, so the *same constructor*
+        produced two different styles depending on which shape you landed on.
+
+        Parameters
+        ----------
+        show_units
+            If `True`, render the base units, prefixed by the ``unitsystem``
+            constructor. If `False`, render the base *dimension* names, prefixed
+            by the class name -- the shape of the system rather than its units.
+        quote_units
+            If `True`, quote each unit so the rendering is valid Python that
+            reconstructs the object. This is what `repr` uses; `str` takes the
+            unquoted form.
+        kwargs
+            Ignored; accepted so this composes with `wadler_lindig.pdoc`.
+
+        Examples
+        --------
+        >>> import wadler_lindig as wl
+        >>> from unxt import unitsystem
+        >>> usys = unitsystem("m", "s", "kg", "radian")
+
+        >>> wl.pprint(usys)
+        unitsystem('m', 's', 'kg', 'rad')
+
+        >>> wl.pprint(usys, quote_units=False)
+        unitsystem(m, s, kg, rad)
+
+        >>> wl.pprint(usys, show_units=False)
+        LTMAUnitSystem(length, time, mass, angle)
+
+        """
+        if not show_units:
+            fields = ", ".join(str(f) for f in self._base_field_names)
+            return wl.TextDoc(f"{type(self).__name__}({fields})")
+
+        if not quote_units:
+            units = ", ".join(b.to_string() for b in self.base_units)
+            return wl.TextDoc(f"unitsystem({units})")
+
+        strs = [_roundtrip_unit_str(b) for b in self.base_units]
+        # A lone string argument is looked up as a *system* name, not a unit, so
+        # a single-unit system must emit the list form to reconstruct.
+        inner = repr(strs) if len(strs) == 1 else ", ".join(map(repr, strs))
+        return wl.TextDoc(f"unitsystem({inner})")
+
+    def __repr__(self) -> str:
+        return wl.pformat(self)
+
     def __str__(self) -> str:
-        """Return a string representation of the unit system.
+        """Return a readable string representation of the unit system.
 
         Examples
         --------
         >>> from unxt import unitsystem
         >>> usys = unitsystem("m", "s", "kg", "radian")
         >>> str(usys)
+        'unitsystem(m, s, kg, rad)'
+
+        The dimension-name form is available as a format preset:
+
+        >>> f"{usys:dims}"
         'LTMAUnitSystem(length, time, mass, angle)'
 
         """
-        fs = ", ".join(map(str, self._base_field_names))
-        return f"{type(self).__name__}({fs})"
+        return wl.pformat(self, quote_units=False)
+
+    def __format__(self, format_spec: str, /) -> str:
+        """Format the unit system, honouring `unxt._fmt.FORMAT_PRESETS`.
+
+        Examples
+        --------
+        >>> from unxt import unitsystem
+        >>> usys = unitsystem("kpc", "Myr", "Msun", "radian")
+
+        >>> f"{usys}"
+        'unitsystem(kpc, Myr, solMass, rad)'
+
+        >>> f"{usys:compact}"
+        'unitsystem(kpc, Myr, solMass, rad)'
+
+        >>> f"{usys:dims}"
+        'LTMAUnitSystem(length, time, mass, angle)'
+
+        """
+        return fmt.pspec(self, format_spec)
 
     # ===============================================================
     # Plum stuff

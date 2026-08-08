@@ -13,7 +13,7 @@ __all__ = ("AbstractQuantity", "is_any_quantity")
 
 import contextlib
 import functools as ft
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from types import ModuleType
 from typing import (
     TYPE_CHECKING,
@@ -43,6 +43,7 @@ from dataclassish import field_items
 import unxt_api as uapi
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
 from .value import StaticValue
+from unxt._src import fmt
 from unxt.config import config
 from unxt.units import AbstractUnit
 
@@ -1031,9 +1032,13 @@ class AbstractQuantity(
             short_arrays = True
         match short_arrays:
             case "compact":
-                kwargs["custom"] = custom_pdoc_noarray
+                kwargs["custom"] = _chain_custom(
+                    kwargs.get("custom", _no_custom), fmt.custom_pdoc_noarray
+                )
             case True:
-                kwargs["custom"] = custom_pdoc_no_kind
+                kwargs["custom"] = _chain_custom(
+                    kwargs.get("custom", _no_custom), fmt.custom_pdoc_no_kind
+                )
                 kwargs["short_arrays"] = True
             case _:  # False
                 kwargs["short_arrays"] = False
@@ -1088,10 +1093,11 @@ class AbstractQuantity(
         )
 
     def __format__(self, format_spec: str, /) -> str:
-        """Format the quantity, applying ``format_spec`` to the value.
+        """Format the quantity.
 
         An empty spec preserves the default :meth:`__str__` representation. A
-        non-empty spec is applied to the value and the unit is appended (as in
+        `unxt._fmt.FORMAT_PRESETS` name selects a named rendering. Any other
+        spec is applied to the value and the unit is appended (as in
         `astropy.units.Quantity`); a dimensionless quantity has no unit suffix.
 
         Examples
@@ -1105,12 +1111,18 @@ class AbstractQuantity(
         >>> format(u.Q(3.14159, ""), ".2f")
         '3.14'
 
+        The presets give the string-like renderings:
+
+        >>> qs = u.Q([1.0, 2, 3], "m")
+        >>> f"{qs:mul}"
+        '[1., 2., 3.] * m'
+        >>> f"{qs:short}"
+        'f32[3] * m'
+        >>> f"{qs:compact}"
+        "Q([1., 2., 3.], unit='m')"
+
         """
-        if not format_spec:
-            return str(self)
-        value_str = format(self.value, format_spec)
-        unit_str = str(self.unit)
-        return f"{value_str} {unit_str}" if unit_str else value_str
+        return fmt.pspec(self, format_spec)
 
 
 #: The unchecked ``_mk``. `revalue`'s debug assertion compares against this to
@@ -1537,29 +1549,39 @@ def is_any_quantity(obj: Any, /) -> TypeGuard[AbstractQuantity]:
     return isinstance(obj, AbstractQuantity)
 
 
-# TODO: replace with `equinox.internal.TreeWLCustom` when available.
-def custom_pdoc_no_kind(obj: Any) -> wl.AbstractDoc | None:
-    """Return custom pdoc for ``AbstractQuantity`` objects."""
-    if isinstance(obj, jax.Array):
-        dtype = obj.dtype.name
-        # Added in JAX 0.4.32 to `ShapeDtypeStruct`
-        if getattr(obj, "weak_type", False):
-            dtype = f"weak_{dtype}"
-        return wl.array_summary(obj.shape, dtype, kind=None)
-    return None
+def _no_custom(obj: Any, /) -> None:
+    """Decline every object, as `wadler_lindig`'s own default hook does.
 
-
-def custom_pdoc_noarray(obj: Any) -> wl.AbstractDoc | None:
-    """Return the compact (values-only) pdoc for an array-like value.
-
-    Handles both a JAX ``Array`` and a NumPy ``ndarray`` -- the latter is what a
-    ``StaticQuantity``'s ``StaticValue`` wraps -- so ``str(StaticQuantity)``
-    shows its values like ``str(Quantity)`` rather than an ``f64[2](numpy)``
-    type summary.
+    Used as the ``kwargs.get`` default so `_chain_custom` never has to test for
+    a missing hook -- a direct ``__pdoc__`` call omits ``custom`` entirely,
+    whereas one routed through `wadler_lindig.pformat` always carries wl's
+    equivalent default.
     """
-    if isinstance(obj, (jax.Array, np.ndarray)):
-        return wl.TextDoc(np.array2string(np.asarray(obj), separator=", "))
-    return None
+    return
+
+
+def _chain_custom(
+    caller: Callable[[Any], wl.AbstractDoc | None],
+    ours: Callable[[Any], wl.AbstractDoc | None],
+    /,
+) -> Callable[[Any], wl.AbstractDoc | None]:
+    """Try the caller's ``custom=`` pdoc hook first, then ours.
+
+    ``__pdoc__`` needs its own hook to implement ``short_arrays``, but it used
+    to install it by *assigning* ``kwargs["custom"]``. ``wadler_lindig.pdoc``
+    always puts ``custom`` in the kwargs it forwards, so that assignment
+    silently discarded whatever the caller passed -- on the default path, since
+    ``short_arrays`` is ``True``/``"compact"`` for both ``repr`` and ``str``.
+
+    The caller goes first: passing ``custom=`` is an explicit request to
+    override rendering, so it must be able to beat the default array handling.
+    """
+
+    def chained(obj: Any) -> wl.AbstractDoc | None:
+        doc = caller(obj)
+        return ours(obj) if doc is None else doc
+
+    return chained
 
 
 @StaticValue.from_.dispatch
@@ -1592,3 +1614,76 @@ def convert_to_quantity_value(obj: AbstractQuantity, /) -> NoReturn:
         "For a Quantity, use the `.from_` constructor instead."
     )
     raise TypeError(msg)
+
+
+# ===================================================================
+# String formatting
+#
+# `AbstractQuantity` is a *consumer* of `unxt._src.fmt`: the engine knows
+# nothing about quantities, and everything quantity-specific is registered
+# from here.
+
+
+@fmt.pparts.dispatch  # type: ignore[misc]
+def pparts(
+    obj: AbstractQuantity,
+    /,
+    *,
+    markup: str = "text",
+    short_arrays: Any = "compact",
+    **kw: Any,
+) -> tuple[Any, ...]:
+    """Decompose a quantity into ``value``, a ``mul`` separator, and ``unit``.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> from unxt._fmt import pparts, parts_to_markup
+
+    >>> parts_to_markup(pparts(u.Q([1.0, 2, 3], "m")))
+    '[1., 2., 3.] * m'
+
+    A dimensionless quantity drops both the separator and the unit:
+
+    >>> parts_to_markup(pparts(u.Q([1.0, 2, 3], "")))
+    '[1., 2., 3.]'
+
+    """
+    kind = "markup" if markup == "latex" else "content"
+    value = fmt.value_str(obj.value, markup=markup, short_arrays=short_arrays)
+    parts: tuple[Any, ...] = (fmt.PPart("value", value, kind),)
+    if unit_parts := fmt.pparts(obj.unit, markup=markup):
+        parts = (*parts, fmt.PPart("mul", " * ", "sep"), *unit_parts)
+    return parts
+
+
+@fmt.pspec_fallback.dispatch  # type: ignore[misc]
+def pspec_fallback(obj: AbstractQuantity, spec: str, /) -> str:
+    """Apply a value format spec, appending the unit (astropy-compatible).
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> from unxt._fmt import pspec
+
+    >>> pspec(u.Q(3.14159, "m"), ".2f")
+    '3.14 m'
+
+    A dimensionless quantity has no unit suffix:
+
+    >>> pspec(u.Q(3.14159, ""), ".2f")
+    '3.14'
+
+    """
+    try:
+        value_str = format(obj.value, spec)
+    except (TypeError, ValueError) as e:
+        if np.ndim(obj.value) != 0:
+            # A perfectly valid spec that NumPy rejects because the value is a
+            # non-0-d array. Keep the original error: calling it an invalid
+            # spec would be a lie, and downstream ``except TypeError`` handlers
+            # depend on the type.
+            raise
+        raise fmt.bad_spec(obj, spec) from e
+    unit_str = str(obj.unit)
+    return f"{value_str} {unit_str}" if unit_str else value_str

@@ -103,25 +103,25 @@ Unit("erg")
 ```{code-block} python
 >>> from unxt.unitsystems import si
 >>> si
-unitsystem(m, kg, s, mol, A, K, cd, rad)
+unitsystem('m', 'kg', 's', 'mol', 'A', 'K', 'cd', 'rad')
 ```
 
 ```{code-block} python
 >>> from unxt.unitsystems import cgs
 >>> cgs
-unitsystem(cm, g, s, dyn, erg, Ba, P, St, rad)
+unitsystem('cm', 'g', 's', 'dyn', 'erg', 'Ba', 'P', 'St', 'rad')
 ```
 
 ```{code-block} python
 >>> from unxt.unitsystems import galactic
 >>> galactic
-unitsystem(kpc, Myr, solMass, rad)
+unitsystem('kpc', 'Myr', 'solMass', 'rad')
 ```
 
 ```{code-block} python
 >>> from unxt.unitsystems import solarsystem
 >>> solarsystem
-unitsystem(AU, yr, solMass, rad)
+unitsystem('AU', 'yr', 'solMass', 'rad')
 ```
 
 #### Natural unit systems
@@ -132,16 +132,16 @@ unitsystem(AU, yr, solMass, rad)
 >>> from unxt.unitsystems import hep, geometrized, planck, atomic
 
 >>> hep  # high-energy physics: hbar = c = 1  (1 GeV scale)
-LengthMassTimeUnitSystem(length=Unit("...e-16 m"), mass=Unit("...e-27 kg"), time=Unit("...e-25 s"))
+unitsystem('...e-16 m', '...e-27 kg', '...e-25 s')
 
 >>> geometrized  # general relativity: c = G = 1  (1 m scale)
-LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("...e+27 kg"), time=Unit("...e-09 s"))
+unitsystem('m', '...e+27 kg', '...e-09 s')
 
 >>> planck  # hbar = c = G = k_B = 1
-LengthMassTimeTemperatureUnitSystem(length=Unit("...e-35 m"), mass=Unit("...e-08 kg"), time=Unit("...e-44 s"), temperature=Unit("...e+32 K"))
+unitsystem('...e-35 m', '...e-08 kg', '...e-44 s', '...e+32 K')
 
 >>> atomic  # Hartree: m_e = hbar = e = 4*pi*eps0 = 1
-LengthMassTimeElectricalChargeUnitSystem(length=Unit("...e-11 m"), mass=Unit("...e-31 kg"), time=Unit("...e-17 s"), electrical_charge=Unit("...e-19 A s"))
+unitsystem('...e-11 m', '...e-31 kg', '...e-17 s', '...e-19 A s')
 ```
 
 By construction the defining constants evaluate to 1 in each system, and the two systems with a remaining free scale (`HEPUSysFlag`, `GeometrizedUSysFlag`) accept it as a keyword. For worked examples on each system — setting those scales, recovering familiar values, and the semantics of natural-unit quantities — see the {doc}`natural-units` guide.
@@ -158,16 +158,16 @@ By construction the defining constants evaluate to 1 in each system, and the two
 
 ```{code-block} python
 >>> unitsystem("si")
-unitsystem(m, kg, s, mol, A, K, cd, rad)
+unitsystem('m', 'kg', 's', 'mol', 'A', 'K', 'cd', 'rad')
 
 >>> unitsystem("cgs")
-unitsystem(cm, g, s, dyn, erg, Ba, P, St, rad)
+unitsystem('cm', 'g', 's', 'dyn', 'erg', 'Ba', 'P', 'St', 'rad')
 
 >>> unitsystem("galactic")
-unitsystem(kpc, Myr, solMass, rad)
+unitsystem('kpc', 'Myr', 'solMass', 'rad')
 
 >>> unitsystem("solarsystem")
-unitsystem(AU, yr, solMass, rad)
+unitsystem('AU', 'yr', 'solMass', 'rad')
 
 ```
 
@@ -179,7 +179,7 @@ Unit systems are statically defined, the "galactic" and "solarsystem" units are 
 
 >>> usys = unitsystem("kpc", "Myr", "solMass", "degree")
 >>> usys
-unitsystem(kpc, Myr, solMass, deg)
+unitsystem('kpc', 'Myr', 'solMass', 'deg')
 
 >>> isinstance(usys, LTMAUnitSystem)
 True
@@ -197,7 +197,7 @@ If the set of units does not correspond to any pre-defined unit system class, `u
 
 >>> usys = unitsystem("kpc", "Myr", "solMass", "degree", "candela")
 >>> usys
-AngleLengthLuminousIntensityMassTimeUnitSystem(angle=Unit("deg"), length=Unit("kpc"), luminous_intensity=Unit("cd"), mass=Unit("solMass"), time=Unit("Myr"))
+unitsystem('deg', 'kpc', 'cd', 'solMass', 'Myr')
 
 >>> isinstance(usys, LTMAUnitSystem)
 False
@@ -220,7 +220,7 @@ The dimensionless unit system is not the only special unit system. `unxt` also s
 >>> from unxt.unitsystems import DynamicalSimUSysFlag
 
 >>> unitsystem(DynamicalSimUSysFlag, "m", "kg")
-LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("kg"), time=Unit("122404 s"))
+unitsystem('m', 'kg', '122404.43065054427 s')
 
 ```
 
@@ -236,7 +236,7 @@ Also, `unitsystem` can replace a unit in a unit system or extend a unit system.
 True
 
 >>> unitsystem(usys, "deg")
-unitsystem(m, s, kg, deg)
+unitsystem('m', 's', 'kg', 'deg')
 
 ```
 

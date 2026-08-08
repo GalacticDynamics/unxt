@@ -6,6 +6,7 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 import wadler_lindig as wl
+from wadler_lindig._wadler_lindig import pformat_doc
 
 import unxt as u
 from unxt.units import unit as parse_unit
@@ -245,3 +246,83 @@ def test_format_non_scalar_raises() -> None:
     for q in (u.Q([1.5, 2.5], "m"), u.StaticQuantity(np.array([1.5, 2.5]), "m")):
         with pytest.raises(TypeError, match="unsupported format string"):
             format(q, ".2f")
+
+
+def test_format_presets_are_reachable_from_an_f_string() -> None:
+    """`unxt._fmt.FORMAT_PRESETS` names work as format specs."""
+    q = u.Q([1.0, 2, 3], "m")
+    assert f"{q:mul}" == "[1., 2., 3.] * m"
+    assert f"{q:bare}" == "[1., 2., 3.] m"
+    assert f"{q:short}" == "f32[3] * m"
+    assert f"{q:compact}" == "Q([1., 2., 3.], unit='m')"
+
+
+def test_format_preset_beats_the_value_spec_under_jit() -> None:
+    """The preset lookup must run before the value-spec branch.
+
+    A non-empty spec handed straight to a tracer raises, so a preset checked
+    second would be unreachable inside ``jax.jit``.
+    """
+    seen: list[str] = []
+
+    @jax.jit
+    def f(q: u.Q) -> u.Q:
+        seen.append(f"{q:mul}")
+        return q
+
+    f(u.Q([1.0, 2, 3], "m"))
+    assert seen == ["f32[3] * m"]
+
+
+def test_format_colon_fill_character_is_preserved() -> None:
+    """``:`` is legal as a fill character; no preset may shadow it."""
+    assert f"{u.Q(3.14159, 'm'):>12.2f}" == "        3.14 m"
+    assert format(u.Q(3.14159, "m"), ":>12.2f") == "::::::::3.14 m"
+
+
+def test_format_unknown_spec_names_the_type_and_presets() -> None:
+    with pytest.raises(ValueError, match=r"invalid format spec 'nonsense'"):
+        format(u.Q(3.14, "m"), "nonsense")
+
+
+class TestCustomPdocHookIsNotClobbered:
+    """``__pdoc__`` must not discard a caller's ``custom=`` hook.
+
+    It used to install its own by *assigning* ``kwargs["custom"]``, and
+    ``wadler_lindig.pdoc`` always puts ``custom`` in the kwargs it forwards --
+    so the caller's was dropped on the default path, since ``short_arrays`` is
+    ``True`` for ``repr`` and ``"compact"`` for ``str``.
+    """
+
+    @staticmethod
+    def _hook(obj):
+        return wl.TextDoc("<<MINE>>") if isinstance(obj, jax.Array) else None
+
+    @pytest.mark.parametrize("short_arrays", [True, "compact", False])
+    def test_caller_hook_wins(self, short_arrays):
+        """A caller's hook beats the default array handling."""
+        q = u.Q([1.0, 2, 3], "m")
+        out = wl.pformat(q, short_arrays=short_arrays, custom=self._hook)
+        assert out == "Quantity(<<MINE>>, unit='m')"
+
+    @pytest.mark.parametrize(
+        ("short_arrays", "expected"),
+        [
+            (True, "Quantity(f32[3], unit='m')"),
+            ("compact", "Quantity([1., 2., 3.], unit='m')"),
+            (False, "Quantity(Array([1., 2., 3.], dtype=float32), unit='m')"),
+        ],
+    )
+    def test_no_hook_is_unchanged(self, short_arrays, expected):
+        """Chaining must not alter rendering when no hook is passed."""
+        assert wl.pformat(u.Q([1.0, 2, 3], "m"), short_arrays=short_arrays) == expected
+
+    def test_direct_pdoc_call_without_a_custom_kwarg(self):
+        """``__pdoc__`` is also callable directly, with no ``custom`` in kwargs.
+
+        Every call routed through ``wadler_lindig.pformat`` carries wl's own
+        ``_none`` default, so the "no caller hook" path is only reachable this
+        way.
+        """
+        doc = u.Q([1.0, 2.0], "m").__pdoc__(short_arrays="compact")
+        assert pformat_doc(doc, 88) == "Quantity([1., 2.], unit='m')"

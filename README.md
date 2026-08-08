@@ -141,13 +141,13 @@ Unit systems define consistent sets of base units for specific domains. `unxt` p
 
 ```{code-block} python
 >>> u.unitsystem("si")  # SI (International System of Units)
-unitsystem(m, kg, s, mol, A, K, cd, rad)
+unitsystem('m', 'kg', 's', 'mol', 'A', 'K', 'cd', 'rad')
 
 >>> u.unitsystem("cgs")  # CGS (centimeter-gram-second)
-unitsystem(cm, g, s, dyn, erg, Ba, P, St, rad)
+unitsystem('cm', 'g', 's', 'dyn', 'erg', 'Ba', 'P', 'St', 'rad')
 
 >>> u.unitsystem("galactic")  # galactic (astrophysics)
-unitsystem(kpc, Myr, solMass, rad)
+unitsystem('kpc', 'Myr', 'solMass', 'rad')
 ```
 
 ### Composing Units from a Unit System
@@ -167,7 +167,7 @@ Create custom unit systems by specifying base units:
 ```{code-block} python
 >>> custom_usys = u.unitsystem("km", "h", "tonne", "degree")
 >>> custom_usys
-unitsystem(km, h, t, deg)
+unitsystem('km', 'h', 't', 'deg')
 ```
 
 Derived units are then available by dimension:
@@ -186,8 +186,7 @@ For domains like gravitational dynamics, use dynamical unit systems where $G = 1
 
 >>> dyn_usys = u.unitsystem(DynamicalSimUSysFlag, "kpc", "Myr")
 >>> dyn_usys
-LengthMassTimeUnitSystem(length=Unit("kpc"),
-                         mass=Unit("1.49828e+10 kpc3 s2 kg / (Myr2 m3)"), time=Unit("Myr"))
+unitsystem('kpc', '14982844642.8839 kpc3 s2 kg / (Myr2 m3)', 'Myr')
 ```
 
 The mass unit is the derived one — an exact composite expression, not a rounded label:
