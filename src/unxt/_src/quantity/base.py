@@ -1032,11 +1032,11 @@ class AbstractQuantity(
         match short_arrays:
             case "compact":
                 kwargs["custom"] = _chain_custom(
-                    kwargs.get("custom"), custom_pdoc_noarray
+                    kwargs.get("custom", _no_custom), custom_pdoc_noarray
                 )
             case True:
                 kwargs["custom"] = _chain_custom(
-                    kwargs.get("custom"), custom_pdoc_no_kind
+                    kwargs.get("custom", _no_custom), custom_pdoc_no_kind
                 )
                 kwargs["short_arrays"] = True
             case _:  # False
@@ -1551,8 +1551,19 @@ def is_any_quantity(obj: Any, /) -> TypeGuard[AbstractQuantity]:
     return isinstance(obj, AbstractQuantity)
 
 
+def _no_custom(obj: Any, /) -> None:
+    """Decline every object, as `wadler_lindig`'s own default hook does.
+
+    Used as the ``kwargs.get`` default so `_chain_custom` never has to test for
+    a missing hook -- a direct ``__pdoc__`` call omits ``custom`` entirely,
+    whereas one routed through `wadler_lindig.pformat` always carries wl's
+    equivalent default.
+    """
+    return
+
+
 def _chain_custom(
-    caller: Callable[[Any], wl.AbstractDoc | None] | None,
+    caller: Callable[[Any], wl.AbstractDoc | None],
     ours: Callable[[Any], wl.AbstractDoc | None],
     /,
 ) -> Callable[[Any], wl.AbstractDoc | None]:
@@ -1567,8 +1578,6 @@ def _chain_custom(
     The caller goes first: passing ``custom=`` is an explicit request to
     override rendering, so it must be able to beat the default array handling.
     """
-    if caller is None:
-        return ours
 
     def chained(obj: Any) -> wl.AbstractDoc | None:
         doc = caller(obj)
