@@ -375,7 +375,7 @@ For domains like gravitational dynamics, use dynamical unit systems where $G = 1
 
 >>> usys = u.unitsystem(DynamicalSimUSysFlag, "kpc", "Myr")
 >>> usys  # doctest: +SKIP
-unitsystem(kpc, Myr, ...)
+unitsystem('kpc', 'Myr', ...)
 
 ```
 

@@ -27,7 +27,7 @@ def unitsystem(value: gala.units.UnitSystem, /) -> AbstractUnitSystem:
     >>> usys = gu.UnitSystem(apyu.km, apyu.s, apyu.Msun, apyu.radian)
 
     >>> u.unitsystem(usys)
-    unitsystem(km, s, solMass, rad)
+    unitsystem('km', 's', 'solMass', 'rad')
 
     """
     # Create a new unit system instance, and possibly class.
@@ -78,7 +78,7 @@ def convert_gala_unitsystem_to_unxt_unitsystem(
     <UnitSystem (km, s, solMass, rad)>
 
     >>> convert(usys, u.AbstractUnitSystem)
-    unitsystem(km, s, solMass, rad)
+    unitsystem('km', 's', 'solMass', 'rad')
 
     """
     return unitsystem(usys)
@@ -109,7 +109,7 @@ def convert_unxt_unitsystem_to_gala_unitsystem(
 
     >>> usys = u.unitsystem(apyu.km, apyu.s, apyu.Msun, apyu.radian)
     >>> usys
-    unitsystem(km, s, solMass, rad)
+    unitsystem('km', 's', 'solMass', 'rad')
 
     >>> convert(usys, gu.UnitSystem)
     <UnitSystem (km, s, solMass, rad)>
