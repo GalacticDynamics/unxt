@@ -43,6 +43,7 @@ from dataclassish import field_items
 import unxt_api as uapi
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
 from .value import StaticValue
+from unxt._src import fmt
 from unxt.config import config
 from unxt.units import AbstractUnit
 
@@ -1032,11 +1033,11 @@ class AbstractQuantity(
         match short_arrays:
             case "compact":
                 kwargs["custom"] = _chain_custom(
-                    kwargs.get("custom", _no_custom), custom_pdoc_noarray
+                    kwargs.get("custom", _no_custom), fmt.custom_pdoc_noarray
                 )
             case True:
                 kwargs["custom"] = _chain_custom(
-                    kwargs.get("custom", _no_custom), custom_pdoc_no_kind
+                    kwargs.get("custom", _no_custom), fmt.custom_pdoc_no_kind
                 )
                 kwargs["short_arrays"] = True
             case _:  # False
@@ -1121,10 +1122,7 @@ class AbstractQuantity(
         "Q([1., 2., 3.], unit='m')"
 
         """
-        # Imported lazily: ``unxt._src.fmt`` imports this module.
-        from unxt._src.fmt import pspec  # noqa: PLC0415
-
-        return pspec(self, format_spec)
+        return fmt.pspec(self, format_spec)
 
 
 #: The unchecked ``_mk``. `revalue`'s debug assertion compares against this to
@@ -1576,36 +1574,6 @@ def _chain_custom(
     return chained
 
 
-# TODO: replace with `equinox.internal.TreeWLCustom` when available.
-def custom_pdoc_no_kind(obj: Any) -> wl.AbstractDoc | None:
-    """Return the array summary without the ``(jax)``/``(numpy)`` kind suffix.
-
-    Handles `numpy.ndarray` as well as `jax.Array` so a
-    `unxt.quantity.StaticQuantity`'s NumPy value renders ``f64[2]`` rather than
-    ``f64[2](numpy)``, consistently with the JAX case.
-    """
-    if isinstance(obj, (jax.Array, np.ndarray)):
-        dtype = obj.dtype.name
-        # Added in JAX 0.4.32 to `ShapeDtypeStruct`
-        if getattr(obj, "weak_type", False):
-            dtype = f"weak_{dtype}"
-        return wl.array_summary(obj.shape, dtype, kind=None)
-    return None
-
-
-def custom_pdoc_noarray(obj: Any) -> wl.AbstractDoc | None:
-    """Return the compact (values-only) pdoc for an array-like value.
-
-    Handles both a JAX ``Array`` and a NumPy ``ndarray`` -- the latter is what a
-    ``StaticQuantity``'s ``StaticValue`` wraps -- so ``str(StaticQuantity)``
-    shows its values like ``str(Quantity)`` rather than an ``f64[2](numpy)``
-    type summary.
-    """
-    if isinstance(obj, (jax.Array, np.ndarray)):
-        return wl.TextDoc(np.array2string(np.asarray(obj), separator=", "))
-    return None
-
-
 @StaticValue.from_.dispatch
 def from_(cls: type[StaticValue], value: AbstractQuantity, /) -> StaticValue:
     """Disallow conversion of `AbstractQuantity` to a value."""
@@ -1636,3 +1604,76 @@ def convert_to_quantity_value(obj: AbstractQuantity, /) -> NoReturn:
         "For a Quantity, use the `.from_` constructor instead."
     )
     raise TypeError(msg)
+
+
+# ===================================================================
+# String formatting
+#
+# `AbstractQuantity` is a *consumer* of `unxt._src.fmt`: the engine knows
+# nothing about quantities, and everything quantity-specific is registered
+# from here.
+
+
+@fmt.pparts.dispatch  # type: ignore[misc]
+def pparts(
+    obj: AbstractQuantity,
+    /,
+    *,
+    markup: str = "text",
+    short_arrays: Any = "compact",
+    **kw: Any,
+) -> tuple[Any, ...]:
+    """Decompose a quantity into ``value``, a ``mul`` separator, and ``unit``.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> from unxt._fmt import pparts, parts_to_markup
+
+    >>> parts_to_markup(pparts(u.Q([1.0, 2, 3], "m")))
+    '[1., 2., 3.] * m'
+
+    A dimensionless quantity drops both the separator and the unit:
+
+    >>> parts_to_markup(pparts(u.Q([1.0, 2, 3], "")))
+    '[1., 2., 3.]'
+
+    """
+    kind = "markup" if markup == "latex" else "content"
+    value = fmt.value_str(obj.value, markup=markup, short_arrays=short_arrays)
+    parts: tuple[Any, ...] = (fmt.PPart("value", value, kind),)
+    if unit_parts := fmt.pparts(obj.unit, markup=markup):
+        parts = (*parts, fmt.PPart("mul", " * ", "sep"), *unit_parts)
+    return parts
+
+
+@fmt.pspec_fallback.dispatch  # type: ignore[misc]
+def pspec_fallback(obj: AbstractQuantity, spec: str, /) -> str:
+    """Apply a value format spec, appending the unit (astropy-compatible).
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> from unxt._fmt import pspec
+
+    >>> pspec(u.Q(3.14159, "m"), ".2f")
+    '3.14 m'
+
+    A dimensionless quantity has no unit suffix:
+
+    >>> pspec(u.Q(3.14159, ""), ".2f")
+    '3.14'
+
+    """
+    try:
+        value_str = format(obj.value, spec)
+    except (TypeError, ValueError) as e:
+        if np.ndim(obj.value) != 0:
+            # A perfectly valid spec that NumPy rejects because the value is a
+            # non-0-d array. Keep the original error: calling it an invalid
+            # spec would be a lie, and downstream ``except TypeError`` handlers
+            # depend on the type.
+            raise
+        raise fmt.bad_spec(obj, spec) from e
+    unit_str = str(obj.unit)
+    return f"{value_str} {unit_str}" if unit_str else value_str
