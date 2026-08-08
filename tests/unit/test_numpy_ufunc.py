@@ -217,3 +217,45 @@ def test_bare_quantity_also_supported():
 
     assert got.unit == u.unit("m2")
     assert got.value == 25.0
+
+
+class TestUnhandledUfuncs:
+    """A ufunc with no unit-aware counterpart must fall through.
+
+    `apply_ufunc` returns ``NotImplemented`` so NumPy raises a loud
+    ``TypeError`` rather than silently dropping units.
+
+    Both tests *force* the "no counterpart" premise rather than relying on a
+    gap that happens to exist in `quaxed` today -- otherwise a future release
+    filling that gap would make them fail (or pass vacuously) even though
+    `apply_ufunc` is behaving correctly.
+    """
+
+    def test_call_without_quaxed_counterpart(self, monkeypatch):
+        """No `quaxed.numpy` function for the ufunc -> ``NotImplemented``.
+
+        `quaxed.numpy` resolves names through a module-level ``__getattr__``
+        that synthesises wrappers on demand, and keeps its module dict empty --
+        so deleting an attribute would neither find anything nor stick. Swap
+        the module reference `apply_ufunc` consults instead.
+        """
+
+        class _NoCounterparts:
+            """Stands in for `quaxed.numpy` with nothing defined."""
+
+            def __getattr__(self, name: str) -> object:
+                raise AttributeError(name)
+
+        monkeypatch.setattr(register_ufuncs, "qnp", _NoCounterparts())
+        got = register_ufuncs.apply_ufunc(np.add, "__call__", (u.Q(1.0, "m"),), {})
+        assert got is NotImplemented
+
+    def test_reduce_without_mapping(self, monkeypatch):
+        """A ufunc absent from the reduce map -> ``NotImplemented``.
+
+        The map is emptied of the ufunc under test so the premise is explicit
+        rather than dependent on which ufuncs `_REDUCE_MAP` happens to list.
+        """
+        monkeypatch.delitem(register_ufuncs._REDUCE_MAP, "add", raising=False)
+        got = register_ufuncs.apply_ufunc(np.add, "reduce", (u.Q([1.0, 2.0], "m"),), {})
+        assert got is NotImplemented

@@ -1,11 +1,13 @@
 """Tests for the internal optional-dependency detection (`unxt._interop`)."""
 
 import pytest
+from astropy.units import Quantity as AstropyQuantity
 
 from optional_dependencies import OptionalDependencyEnum, auto
 from optional_dependencies.utils import is_installed
 
 from unxt._interop.optional_deps import OptDeps
+from unxt._src.quantity.base import _astropy_quantity_types
 
 
 def test_no_members_alias() -> None:
@@ -65,3 +67,32 @@ def test_gala_member_requires_the_gala_backend() -> None:
     """
     expected = is_installed("unxts.interop.gala") and is_installed("gala")
     assert OptDeps.UNXTS_INTEROP_GALA.installed is expected
+
+
+class TestAstropyQuantityTypes:
+    """`_astropy_quantity_types` gates the astropy-coercion path."""
+
+    def test_returns_quantity_when_astropy_installed(self):
+        """With astropy present (the norm), the astropy `Quantity` is coerced."""
+        _astropy_quantity_types.cache_clear()
+        try:
+            assert _astropy_quantity_types() == (AstropyQuantity,)
+        finally:
+            _astropy_quantity_types.cache_clear()
+
+    def test_returns_empty_when_astropy_absent(self, monkeypatch):
+        """Without astropy there is nothing to coerce, so the tuple is empty.
+
+        astropy is a hard dependency today, so this branch is only reachable by
+        forcing the `OptDeps` gate -- but it is the guard that keeps
+        `_coerce_foreign_quantity` working if astropy ever becomes optional
+        again.
+        """
+        monkeypatch.setattr(
+            type(OptDeps.ASTROPY), "installed", property(lambda _self: False)
+        )
+        _astropy_quantity_types.cache_clear()
+        try:
+            assert _astropy_quantity_types() == ()
+        finally:
+            _astropy_quantity_types.cache_clear()

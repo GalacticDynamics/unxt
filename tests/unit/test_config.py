@@ -17,6 +17,7 @@ import unxt as u
 from unxt._src.config import (
     QuantityReprConfig,
     _auto_load_project_toml_config,
+    _config_from_toml_data,
     _find_pyproject,
     _load_toml_config_from_pyproject,
     _walk_toml_config,
@@ -1228,3 +1229,36 @@ def test_update_config_forwards_to_nested_sections() -> None:
         u.config.quantity_str.short_arrays = str_baseline
     assert u.config.quantity_repr.short_arrays == repr_baseline
     assert u.config.quantity_str.short_arrays == str_baseline
+
+
+class TestConfigFromTomlData:
+    """`_config_from_toml_data` bails out on a malformed ``[tool]`` tree."""
+
+    @pytest.mark.parametrize(
+        "data",
+        [
+            pytest.param({}, id="no-tool"),
+            pytest.param({"tool": "not-a-table"}, id="tool-not-a-table"),
+            pytest.param({"tool": {"unxts": "not-a-table"}}, id="mid-not-a-table"),
+            pytest.param(
+                {"tool": {"unxts": {"unxt": "not-a-table"}}}, id="leaf-not-a-table"
+            ),
+        ],
+    )
+    def test_malformed_tool_section_gives_empty_config(self, data):
+        """A non-table anywhere along ``tool.unxts.unxt`` yields an empty Config.
+
+        Project configuration must never break an import, so each of these is
+        skipped rather than raised.
+        """
+        assert not _config_from_toml_data(data)
+
+    def test_explicit_path_to_class(self):
+        """An explicit ``path_to_class`` overrides unxt's default mapping."""
+        data = {"tool": {"pkg": {"quantity": {"repr": {"short_arrays": "compact"}}}}}
+        loaded = _config_from_toml_data(
+            data,
+            tool_path=("pkg",),
+            path_to_class={("quantity", "repr"): "OtherReprConfig"},
+        )
+        assert loaded["OtherReprConfig"]["short_arrays"] == "compact"

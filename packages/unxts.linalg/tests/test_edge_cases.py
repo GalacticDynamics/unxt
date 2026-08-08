@@ -10,6 +10,9 @@ from jax.interpreters import ad
 from unxts.linalg import QuantityMatrix as QMat, UnitsMatrix, det, inv
 from unxts.linalg._src._det import _det_jvp
 from unxts.linalg._src._inv import _inv_jvp
+from unxts.linalg._src._register_primitives import transpose_qm
+
+import quaxed.numpy as qnp
 
 import unxt as u
 
@@ -150,3 +153,39 @@ def test_zero_tangent_rule_short_circuits():
 
     _, inv_tangent = _inv_jvp((x,), (zero,))
     assert np.allclose(np.asarray(inv_tangent), 0.0)
+
+
+class TestTransposeRankGuard:
+    """`transpose_qm` only implements the matrix transpose."""
+
+    def test_non_identity_permutation_below_rank_2(self):
+        """A non-identity permutation of a rank-1 value has no matrix transpose.
+
+        The identity permutation is handled just above as a no-op, so this is
+        the only way to reach the rank guard.
+        """
+        v = QMat(jnp.array([1.0, 2.0]), unit=("m", "s"))
+        with pytest.raises(NotImplementedError, match=r"requires ndim >= 2"):
+            transpose_qm(v, permutation=(1,))
+
+
+class TestTracedScalarGather:
+    """A scalar gather with a *traced* index falls back to the uniform unit."""
+
+    def test_scalar_gather_under_jit(self):
+        """Under `jax.jit` the index is a tracer, so the unit cannot be read off it.
+
+        With uniform units the answer does not depend on which element is
+        picked, so the fallback returns that shared unit.
+        """
+        v = QMat(jnp.array([1.0, 2.0, 3.0]), unit=("m", "m", "m"))
+        got = jax.jit(lambda q, i: qnp.take(q, i))(v, jnp.asarray(1))
+        assert isinstance(got, u.Quantity)
+        assert got.unit == u.unit("m")
+        assert got.value == pytest.approx(2.0)
+
+    def test_scalar_gather_under_jit_rejects_mixed_units(self):
+        """Heterogeneous units make the traced pick ambiguous, so it raises."""
+        v = QMat(jnp.array([1.0, 2.0, 3.0]), unit=("m", "s", "kg"))
+        with pytest.raises(ValueError, match="requires all units to be equal"):
+            jax.jit(lambda q, i: qnp.take(q, i))(v, jnp.asarray(1))
