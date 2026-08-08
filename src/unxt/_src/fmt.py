@@ -1,6 +1,6 @@
 """The string-formatting engine.
 
-This is the private implementation of the `unxt.fmt` module.
+This is the private implementation of the `unxt._fmt` module.
 
 An object declares *how it decomposes* by registering `pparts`, which returns a
 tree of roled fragments. Two consumers turn that tree into output:
@@ -40,7 +40,7 @@ import wadler_lindig as wl
 from plum import Dispatcher
 from wadler_lindig._wadler_lindig import pformat_doc
 
-from unxt._src.quantity.base import AbstractQuantity
+from unxt._src.quantity.base import AbstractQuantity, custom_pdoc_no_kind
 from unxt.units import AbstractUnit
 
 #: A dispatcher private to this module.
@@ -78,7 +78,7 @@ class PPart(NamedTuple):
 
     Examples
     --------
-    >>> from unxt.fmt import PPart
+    >>> from unxt._fmt import PPart
     >>> PPart("value", "1.0")
     PPart(role='value', text='1.0', kind='content')
 
@@ -107,7 +107,7 @@ class PGroup(NamedTuple):
 
     Examples
     --------
-    >>> from unxt.fmt import PGroup, PPart
+    >>> from unxt._fmt import PGroup, PPart
     >>> PGroup("child", (PPart("value", "1.0"),))
     PGroup(role='child', parts=(PPart(role='value', text='1.0', kind='content'),))
 
@@ -178,21 +178,6 @@ def _markup_table(markup: str, /) -> dict[str, Any]:
         raise ValueError(msg) from None
 
 
-def _custom_no_kind(obj: Any, /) -> wl.AbstractDoc | None:
-    """Array summary without the ``(jax)``/``(numpy)`` kind suffix.
-
-    Widened past `unxt._src.quantity.base.custom_pdoc_no_kind`'s `jax.Array` to
-    `numpy.ndarray`, so a `unxt.quantity.StaticQuantity`'s NumPy value renders
-    ``f64[2]`` rather than ``f64[2](numpy)``.
-    """
-    if isinstance(obj, (jax.Array, np.ndarray)):
-        dtype = obj.dtype.name
-        if getattr(obj, "weak_type", False):
-            dtype = f"weak_{dtype}"
-        return wl.array_summary(obj.shape, dtype, kind=None)
-    return None
-
-
 def _value_str(
     value: Any, /, *, markup: str = "text", short_arrays: Any = "compact"
 ) -> str:
@@ -210,7 +195,7 @@ def _value_str(
     # ``show_wrapper=False`` is for ``StaticValue``, whose ``__pdoc__`` would
     # otherwise print ``StaticValue(...)`` around the array.
     return wl.pformat(
-        value, short_arrays=True, show_wrapper=False, custom=_custom_no_kind
+        value, short_arrays=True, show_wrapper=False, custom=custom_pdoc_no_kind
     )
 
 
@@ -235,7 +220,7 @@ def pparts(obj: Any, /, *, markup: str = "text", **kw: Any) -> tuple[Any, ...]:
 
     Examples
     --------
-    >>> from unxt.fmt import pparts
+    >>> from unxt._fmt import pparts
     >>> pparts(object())
     (PPart(role='value', text='<object object at ...>', kind='content'),)
 
@@ -253,7 +238,7 @@ def pparts(obj: AbstractUnit, /, *, markup: str = "text", **kw: Any) -> tuple[An
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt.fmt import pparts
+    >>> from unxt._fmt import pparts
 
     >>> pparts(u.unit("m"))
     (PPart(role='unit', text='m', kind='content'),)
@@ -294,7 +279,7 @@ def pparts(
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt.fmt import pparts, parts_to_markup
+    >>> from unxt._fmt import pparts, parts_to_markup
 
     >>> parts_to_markup(pparts(u.Q([1.0, 2, 3], "m")))
     '[1., 2., 3.] * m'
@@ -337,7 +322,7 @@ def parts_to_doc(
     --------
     >>> import unxt as u
     >>> import wadler_lindig as wl
-    >>> from unxt.fmt import parts_to_doc, pparts
+    >>> from unxt._fmt import parts_to_doc, pparts
 
     >>> doc = parts_to_doc(pparts(u.Q([1.0, 2, 3], "m")))
     >>> wl.pformat_doc(doc, 88) if hasattr(wl, "pformat_doc") else "[1., 2., 3.] * m"
@@ -376,7 +361,7 @@ def parts_to_markup(
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt.fmt import pparts, parts_to_markup
+    >>> from unxt._fmt import pparts, parts_to_markup
 
     >>> q = u.Q([1.0, 2, 3], "m")
     >>> parts_to_markup(pparts(q, markup="html"), markup="html")
@@ -459,7 +444,7 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt.fmt import pspec
+    >>> from unxt._fmt import pspec
 
     >>> pspec(u.Q([1.0, 2, 3], "m"), "mul")
     '[1., 2., 3.] * m'
@@ -502,7 +487,7 @@ def pspec_fallback(obj: Any, spec: str, /) -> str:
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt.fmt import pspec
+    >>> from unxt._fmt import pspec
 
     >>> try:
     ...     pspec(u.unitsystem("m", "s", "kg", "rad"), "nope")
@@ -521,7 +506,7 @@ def pspec_fallback(obj: AbstractQuantity, spec: str, /) -> str:
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt.fmt import pspec
+    >>> from unxt._fmt import pspec
 
     >>> pspec(u.Q(3.14159, "m"), ".2f")
     '3.14 m'

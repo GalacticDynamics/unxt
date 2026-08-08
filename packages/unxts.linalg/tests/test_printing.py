@@ -30,7 +30,7 @@ class TestQuantityMatrixShortName:
 
 
 class TestQuantityMatrixMarkup:
-    """The IPython representations route through the ``unxt.fmt`` engine."""
+    """The IPython representations route through the ``unxt._fmt`` engine."""
 
     def test_latex_does_not_eat_characters(self):
         r"""Regression: the old ``[1:-1]`` slice assumed ``$...$`` wrapping.

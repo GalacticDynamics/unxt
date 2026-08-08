@@ -1095,7 +1095,7 @@ class AbstractQuantity(
         """Format the quantity.
 
         An empty spec preserves the default :meth:`__str__` representation. A
-        `unxt.fmt.FORMAT_PRESETS` name selects a named rendering. Any other
+        `unxt._fmt.FORMAT_PRESETS` name selects a named rendering. Any other
         spec is applied to the value and the unit is appended (as in
         `astropy.units.Quantity`); a dimensionless quantity has no unit suffix.
 
@@ -1579,8 +1579,13 @@ def _chain_custom(
 
 # TODO: replace with `equinox.internal.TreeWLCustom` when available.
 def custom_pdoc_no_kind(obj: Any) -> wl.AbstractDoc | None:
-    """Return custom pdoc for ``AbstractQuantity`` objects."""
-    if isinstance(obj, jax.Array):
+    """Return the array summary without the ``(jax)``/``(numpy)`` kind suffix.
+
+    Handles `numpy.ndarray` as well as `jax.Array` so a
+    `unxt.quantity.StaticQuantity`'s NumPy value renders ``f64[2]`` rather than
+    ``f64[2](numpy)``, consistently with the JAX case.
+    """
+    if isinstance(obj, (jax.Array, np.ndarray)):
         dtype = obj.dtype.name
         # Added in JAX 0.4.32 to `ShapeDtypeStruct`
         if getattr(obj, "weak_type", False):
