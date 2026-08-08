@@ -8,7 +8,7 @@ __all__ = ("UnxtConverter", "setup_matplotlib_support_for_unxt")
 
 
 from collections.abc import Iterable, Sized
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 import matplotlib.units
@@ -30,10 +30,8 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
 
     """
 
-    axisinfo_kw: dict[str, Any] = field(
-        default_factory=lambda: {"format": "latex_inline"}
-    )
-    """Keyword arguments to use when making the :meth:`matplotlib.units.AxisInfo`."""
+    unit_format: str = "latex_inline"
+    """`astropy` unit format for the axis label (see ``Unit.to_string``)."""
 
     def convert(self, obj: Any, unit: Any, axis: Axes) -> Array | list[Array]:
         """Convert *obj* using *unit* for the specified *axis*."""
@@ -60,8 +58,7 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
         # matplotlib may query axisinfo before any unit has been set on the axis.
         if unit is None:
             return matplotlib.units.AxisInfo()
-        fmt = self.axisinfo_kw.get("format", "latex_inline")
-        return matplotlib.units.AxisInfo(label=unit.to_string(fmt))
+        return matplotlib.units.AxisInfo(label=unit.to_string(self.unit_format))
 
     @staticmethod
     def default_units(x: Any, _: Axes) -> Any:
