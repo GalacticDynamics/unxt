@@ -10,6 +10,8 @@ import astropy.units as apyu
 import numpy as np
 import pytest
 
+import quaxed.numpy as qnp
+
 import unxt as u
 from unxt._src.quantity import register_ufuncs
 
@@ -217,3 +219,24 @@ def test_bare_quantity_also_supported():
 
     assert got.unit == u.unit("m2")
     assert got.value == 25.0
+
+
+class TestUnhandledUfuncs:
+    """Built-in ufuncs with no `quaxed.numpy` counterpart fall through.
+
+    `apply_ufunc` must return ``NotImplemented`` -- letting NumPy raise a loud
+    ``TypeError`` -- rather than silently dropping units.
+    """
+
+    def test_call_without_quaxed_counterpart(self):
+        """``np.isnat`` is a real ufunc that `quaxed.numpy` does not provide."""
+        assert getattr(qnp, "isnat", None) is None  # guards the premise
+        got = register_ufuncs.apply_ufunc(np.isnat, "__call__", (u.Q(1.0, "m"),), {})
+        assert got is NotImplemented
+
+    def test_reduce_without_mapping(self):
+        """``np.absolute`` has no entry in the reduce map."""
+        got = register_ufuncs.apply_ufunc(
+            np.absolute, "reduce", (u.Q([1.0, 2.0], "m"),), {}
+        )
+        assert got is NotImplemented

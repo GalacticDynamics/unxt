@@ -662,3 +662,32 @@ def test_equivalent_checks_dimensions_and_unit_convertibility() -> None:
     assert equivalent(galactic, galactic)
     assert not equivalent(galactic, si)
     assert not equivalent(si, cgs)
+
+
+class TestParseFieldNamesAndDimensions:
+    """Field-scanning edge cases in `parse_field_names_and_dimensions`."""
+
+    def test_non_unit_annotated_field_is_skipped(self):
+        """An ``Annotated`` field whose origin is not a unit is not a base dimension.
+
+        Unit systems may carry annotated bookkeeping fields; only the ones
+        annotated as units participate in the dimension signature.
+        """
+
+        class Carrier:
+            length: Annotated[apyu.UnitBase, dimension("length")]
+            label: Annotated[str, "not-a-unit"]
+
+        names, dims = us_base.parse_field_names_and_dimensions(Carrier)
+        assert names == ("length",)
+        assert dims == (dimension("length"),)
+
+    def test_repeated_dimension_is_rejected(self):
+        """Two fields claiming the same dimension is an ambiguous signature."""
+
+        class TwoLengths:
+            length: Annotated[apyu.UnitBase, dimension("length")]
+            breadth: Annotated[apyu.UnitBase, dimension("length")]
+
+        with pytest.raises(ValueError, match="Some dimensions are repeated"):
+            us_base.parse_field_names_and_dimensions(TwoLengths)

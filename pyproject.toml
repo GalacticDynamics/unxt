@@ -205,7 +205,10 @@ name = "cz_gitmoji"
 
 [tool.coverage]
 report.exclude_also = [
-  '\.\.\.',
+  # An `...` *body* (a stub or an abstract method), anchored so it cannot
+  # also match an `...` inside a signature -- e.g. `tuple[Any, ...]` or
+  # `Int[Array, "..."]`, which excluded the whole function from measurement.
+  '^\s*\.\.\.\s*$',
   'if typing.TYPE_CHECKING:',
   'if TYPE_CHECKING:',
 ]
