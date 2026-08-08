@@ -10,8 +10,6 @@ import astropy.units as apyu
 import numpy as np
 import pytest
 
-import quaxed.numpy as qnp
-
 import unxt as u
 from unxt._src.quantity import register_ufuncs
 
@@ -222,21 +220,42 @@ def test_bare_quantity_also_supported():
 
 
 class TestUnhandledUfuncs:
-    """Built-in ufuncs with no `quaxed.numpy` counterpart fall through.
+    """A ufunc with no unit-aware counterpart must fall through.
 
-    `apply_ufunc` must return ``NotImplemented`` -- letting NumPy raise a loud
-    ``TypeError`` -- rather than silently dropping units.
+    `apply_ufunc` returns ``NotImplemented`` so NumPy raises a loud
+    ``TypeError`` rather than silently dropping units.
+
+    Both tests *force* the "no counterpart" premise rather than relying on a
+    gap that happens to exist in `quaxed` today -- otherwise a future release
+    filling that gap would make them fail (or pass vacuously) even though
+    `apply_ufunc` is behaving correctly.
     """
 
-    def test_call_without_quaxed_counterpart(self):
-        """``np.isnat`` is a real ufunc that `quaxed.numpy` does not provide."""
-        assert getattr(qnp, "isnat", None) is None  # guards the premise
-        got = register_ufuncs.apply_ufunc(np.isnat, "__call__", (u.Q(1.0, "m"),), {})
+    def test_call_without_quaxed_counterpart(self, monkeypatch):
+        """No `quaxed.numpy` function for the ufunc -> ``NotImplemented``.
+
+        `quaxed.numpy` resolves names through a module-level ``__getattr__``
+        that synthesises wrappers on demand, and keeps its module dict empty --
+        so deleting an attribute would neither find anything nor stick. Swap
+        the module reference `apply_ufunc` consults instead.
+        """
+
+        class _NoCounterparts:
+            """Stands in for `quaxed.numpy` with nothing defined."""
+
+            def __getattr__(self, name: str) -> object:
+                raise AttributeError(name)
+
+        monkeypatch.setattr(register_ufuncs, "qnp", _NoCounterparts())
+        got = register_ufuncs.apply_ufunc(np.add, "__call__", (u.Q(1.0, "m"),), {})
         assert got is NotImplemented
 
-    def test_reduce_without_mapping(self):
-        """``np.absolute`` has no entry in the reduce map."""
-        got = register_ufuncs.apply_ufunc(
-            np.absolute, "reduce", (u.Q([1.0, 2.0], "m"),), {}
-        )
+    def test_reduce_without_mapping(self, monkeypatch):
+        """A ufunc absent from the reduce map -> ``NotImplemented``.
+
+        The map is emptied of the ufunc under test so the premise is explicit
+        rather than dependent on which ufuncs `_REDUCE_MAP` happens to list.
+        """
+        monkeypatch.delitem(register_ufuncs._REDUCE_MAP, "add", raising=False)
+        got = register_ufuncs.apply_ufunc(np.add, "reduce", (u.Q([1.0, 2.0], "m"),), {})
         assert got is NotImplemented
