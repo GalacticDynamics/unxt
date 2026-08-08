@@ -996,5 +996,5 @@ class TestPickleAcrossProtocols:
         q = u.StaticQuantity(np.array([1.0, 2.0]), "m")
         restored = pickle.loads(pickle.dumps(q, protocol=0))  # noqa: S301
 
-        f = jax.jit(lambda x, s: x * s.value.array.shape[0], static_argnames="s")
+        f = jax.jit(lambda x, s: x * s.value.array.shape[0], static_argnames=("s",))
         assert f(3.0, restored) == pytest.approx(6.0)
