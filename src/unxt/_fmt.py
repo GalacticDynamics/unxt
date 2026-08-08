@@ -71,11 +71,15 @@ __all__ = (
     "MARKUPS",
     "PGroup",
     "PPart",
+    "bad_spec",
+    "custom_pdoc_no_kind",
+    "custom_pdoc_noarray",
     "parts_to_doc",
     "parts_to_markup",
     "pparts",
     "pspec",
     "pspec_fallback",
+    "value_str",
 )
 
 from .setup_package import install_import_hook
@@ -86,11 +90,15 @@ with install_import_hook("unxt._fmt"):
         MARKUPS,
         PGroup,
         PPart,
+        bad_spec,
+        custom_pdoc_no_kind,
+        custom_pdoc_noarray,
         parts_to_doc,
         parts_to_markup,
         pparts,
         pspec,
         pspec_fallback,
+        value_str,
     )
 
 # Clean up the namespace

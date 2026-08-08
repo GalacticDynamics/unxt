@@ -1,9 +1,5 @@
 """Tools for representing systems of units using ``astropy.units``."""
 
-# pylint: disable=import-outside-toplevel
-#    `__format__` lazily imports `unxt._src.fmt`, which imports
-#    `unxt._src.quantity.base`; a module-scope import would cycle.
-
 __all__ = ("UNITSYSTEMS_REGISTRY", "AbstractUnitSystem")
 
 from collections.abc import Iterator, Mapping
@@ -23,6 +19,7 @@ from astropy.units.physical import _physical_unit_mapping
 from is_annotated import isannotated
 
 from .utils import parse_dimlike_name
+from unxt._src import fmt
 from unxt.dims import AbstractDimension, dimension
 from unxt.units import AbstractUnit, unit
 
@@ -50,9 +47,6 @@ def registered_unitsystem(
     the scan is a fraction of a percent of a ``unitsystem(...)`` call, and one
     registry cannot fall out of sync with itself.
     """
-    # pylint: disable=import-outside-toplevel
-    #    `__format__` lazily imports `unxt._src.fmt`, which imports
-    #    `unxt._src.quantity.base`; a module-scope import would cycle.
     want = frozenset(dims)
     return next(
         (cls for d, cls in _UNITSYSTEMS_REGISTRY.items() if frozenset(d) == want),
@@ -428,9 +422,7 @@ class AbstractUnitSystem:
         'LTMAUnitSystem(length, time, mass, angle)'
 
         """
-        from unxt._src.fmt import pspec  # noqa: PLC0415
-
-        return pspec(self, format_spec)
+        return fmt.pspec(self, format_spec)
 
     # ===============================================================
     # Plum stuff

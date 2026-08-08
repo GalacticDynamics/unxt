@@ -1,9 +1,5 @@
 """Orthogonal mixin classes for quantity classes."""
 
-# pylint: disable=import-outside-toplevel
-#    the IPython reprs lazily import `unxt._src.fmt`, which imports
-#    `unxt._src.quantity.base`, which imports this module.
-
 __all__: tuple[str, ...] = ()
 
 from collections.abc import Callable, Sequence
@@ -19,6 +15,7 @@ from dataclassish import replace
 
 import unxt_api as uapi
 from .register_ufuncs import apply_ufunc
+from unxt._src import fmt
 from unxt.units import AbstractUnit, unit as parse_unit
 
 if TYPE_CHECKING:
@@ -27,10 +24,6 @@ if TYPE_CHECKING:
 
 class AstropyQuantityCompatMixin:
     """Mixin for compatibility with `astropy.units.Quantity`."""
-
-    # pylint: disable=import-outside-toplevel
-    #    the IPython reprs lazily import `unxt._src.fmt`, which imports
-    #    `unxt._src.quantity.base`, which imports this module.
 
     value: eqx.AbstractVar[ArrayLike]
     unit: eqx.AbstractVar[AbstractUnit]
@@ -158,15 +151,8 @@ class IPythonReprMixin:
         }
 
     def _repr_markup_(self, markup: str, /) -> str:
-        """Render through the `unxt._fmt` engine in the given markup.
-
-        Imported lazily: ``unxt._src.fmt`` imports
-        ``unxt._src.quantity.base``, which imports this module, so a
-        module-scope import would cycle.
-        """
-        from unxt._src.fmt import parts_to_markup, pparts  # noqa: PLC0415
-
-        return parts_to_markup(pparts(self, markup=markup), markup=markup)
+        """Render through the `unxt._fmt` engine in the given markup."""
+        return fmt.parts_to_markup(fmt.pparts(self, markup=markup), markup=markup)
 
     def _repr_html_(self) -> str:
         """Return an HTML representation of the quantity.

@@ -17,6 +17,13 @@ tree of roled fragments. Two consumers turn that tree into output:
 The engine feeds wadler-lindig; it does not replace it. `__pdoc__` stays the
 definition of *call-style* rendering and is untouched by this module.
 
+**This module knows nothing about quantities, units, or unit systems.** It
+imports no `unxt` module at all, and every domain-specific rendering is
+*registered into* it by its consumers -- `unxt._src.units`,
+`unxt._src.quantity.base`, `unxts.linalg`. Dependencies point inward, which is
+what lets those consumers import it at module scope instead of working around
+a cycle.
+
 """
 
 __all__ = (
@@ -24,11 +31,15 @@ __all__ = (
     "MARKUPS",
     "PGroup",
     "PPart",
+    "bad_spec",
+    "custom_pdoc_no_kind",
+    "custom_pdoc_noarray",
     "parts_to_doc",
     "parts_to_markup",
     "pparts",
     "pspec",
     "pspec_fallback",
+    "value_str",
 )
 
 import html as _html
@@ -39,9 +50,6 @@ import numpy as np
 import wadler_lindig as wl
 from plum import Dispatcher
 from wadler_lindig._wadler_lindig import pformat_doc
-
-from unxt._src.quantity.base import AbstractQuantity, custom_pdoc_no_kind
-from unxt.units import AbstractUnit
 
 #: A dispatcher private to this module.
 #:
@@ -138,7 +146,7 @@ def _latex_escape(s: str, /) -> str:
 #:
 #: A row must define ``_content`` (the wrapper for a ``"content"``/``"markup"``
 #: fragment), ``wrap`` (applied once to the whole rendering), ``vsep`` (the
-#: array element separator, read by `_value_str`) and ``escape`` (`None` for
+#: array element separator, read by `value_str`) and ``escape`` (`None` for
 #: none). Any other key is a per-role override: for a ``"sep"`` fragment it
 #: *replaces* the separator text, and for a content fragment it is the wrapper
 #: template.
@@ -178,7 +186,33 @@ def _markup_table(markup: str, /) -> dict[str, Any]:
         raise ValueError(msg) from None
 
 
-def _value_str(
+def custom_pdoc_no_kind(obj: Any, /) -> wl.AbstractDoc | None:
+    """Return the array summary without the ``(jax)``/``(numpy)`` kind suffix.
+
+    Handles `numpy.ndarray` as well as `jax.Array`, so a NumPy-backed value
+    renders ``f64[2]`` rather than ``f64[2](numpy)``.
+    """
+    if isinstance(obj, (jax.Array, np.ndarray)):
+        dtype = obj.dtype.name
+        if getattr(obj, "weak_type", False):
+            dtype = f"weak_{dtype}"
+        return wl.array_summary(obj.shape, dtype, kind=None)
+    return None
+
+
+def custom_pdoc_noarray(obj: Any, /) -> wl.AbstractDoc | None:
+    """Return the compact (values-only) pdoc for an array-like value.
+
+    Handles both a `jax.Array` and a `numpy.ndarray` -- the latter is what a
+    `unxt.quantity.StaticQuantity`'s value wraps -- so its ``str`` shows values
+    like a plain quantity's rather than an ``f64[2](numpy)`` type summary.
+    """
+    if isinstance(obj, (jax.Array, np.ndarray)):
+        return wl.TextDoc(np.array2string(np.asarray(obj), separator=", "))
+    return None
+
+
+def value_str(
     value: Any, /, *, markup: str = "text", short_arrays: Any = "compact"
 ) -> str:
     """Render a quantity's value.
@@ -226,81 +260,6 @@ def pparts(obj: Any, /, *, markup: str = "text", **kw: Any) -> tuple[Any, ...]:
 
     """
     return (PPart("value", str(obj)),)
-
-
-@dispatch  # type: ignore[no-redef]
-def pparts(obj: AbstractUnit, /, *, markup: str = "text", **kw: Any) -> tuple[Any, ...]:
-    r"""Decompose a unit.
-
-    A unit is just an object with parts, so there is no separate unit renderer
-    and the nesting rule covers it.
-
-    Examples
-    --------
-    >>> import unxt as u
-    >>> from unxt._fmt import pparts
-
-    >>> pparts(u.unit("m"))
-    (PPart(role='unit', text='m', kind='content'),)
-
-    In LaTeX the fragment carries rendered markup, so it is not escaped again:
-
-    >>> pparts(u.unit("m/s2"), markup="latex")
-    (PPart(role='unit', text='\\mathrm{\\frac{m}{s^{2}}}', kind='markup'),)
-
-    A dimensionless unit contributes no fragment at all:
-
-    >>> pparts(u.unit(""))
-    ()
-
-    """
-    # Decide emptiness on the *plain* string: a dimensionless unit's LaTeX form
-    # is ``$\mathrm{}$``, which is truthy after the ``$`` are stripped and would
-    # otherwise emit a phantom unit.
-    plain = obj.to_string()
-    if not plain:
-        return ()
-    if markup == "latex":
-        return (PPart("unit", obj.to_string("latex")[1:-1], "markup"),)
-    return (PPart("unit", plain),)
-
-
-@dispatch  # type: ignore[no-redef]
-def pparts(
-    obj: AbstractQuantity,
-    /,
-    *,
-    markup: str = "text",
-    short_arrays: Any = "compact",
-    **kw: Any,
-) -> tuple[Any, ...]:
-    """Decompose a quantity into ``value``, a ``mul`` separator, and ``unit``.
-
-    Examples
-    --------
-    >>> import unxt as u
-    >>> from unxt._fmt import pparts, parts_to_markup
-
-    >>> parts_to_markup(pparts(u.Q([1.0, 2, 3], "m")))
-    '[1., 2., 3.] * m'
-
-    A dimensionless quantity drops both the separator and the unit:
-
-    >>> parts_to_markup(pparts(u.Q([1.0, 2, 3], "")))
-    '[1., 2., 3.]'
-
-    """
-    kind = "markup" if markup == "latex" else "content"
-    parts: tuple[Any, ...] = (
-        PPart(
-            "value",
-            _value_str(obj.value, markup=markup, short_arrays=short_arrays),
-            kind,
-        ),
-    )
-    if unit_parts := pparts(obj.unit, markup=markup):
-        parts = (*parts, PPart("mul", " * ", "sep"), *unit_parts)
-    return parts
 
 
 def parts_to_doc(
@@ -426,7 +385,7 @@ FORMAT_PRESETS: dict[str, dict[str, Any]] = {
 }
 
 
-def _bad_spec(obj: Any, spec: str, /) -> ValueError:
+def bad_spec(obj: Any, spec: str, /) -> ValueError:
     return ValueError(
         f"invalid format spec {spec!r} for {type(obj).__name__}; "
         f"presets are {', '.join(sorted(FORMAT_PRESETS))}"
@@ -496,36 +455,4 @@ def pspec_fallback(obj: Any, spec: str, /) -> str:
     invalid format spec 'nope' for LTMAUnitSystem; presets are bare, compact, ...
 
     """
-    raise _bad_spec(obj, spec)
-
-
-@dispatch  # type: ignore[no-redef]
-def pspec_fallback(obj: AbstractQuantity, spec: str, /) -> str:
-    """Apply a value format spec, appending the unit (astropy-compatible).
-
-    Examples
-    --------
-    >>> import unxt as u
-    >>> from unxt._fmt import pspec
-
-    >>> pspec(u.Q(3.14159, "m"), ".2f")
-    '3.14 m'
-
-    A dimensionless quantity has no unit suffix:
-
-    >>> pspec(u.Q(3.14159, ""), ".2f")
-    '3.14'
-
-    """
-    try:
-        value_str = format(obj.value, spec)
-    except (TypeError, ValueError) as e:
-        if np.ndim(obj.value) != 0:
-            # A perfectly valid spec that NumPy rejects because the value is a
-            # non-0-d array. Keep the original error: calling it an invalid
-            # spec would be a lie, and downstream ``except TypeError`` handlers
-            # depend on the type.
-            raise
-        raise _bad_spec(obj, spec) from e
-    unit_str = str(obj.unit)
-    return f"{value_str} {unit_str}" if unit_str else value_str
+    raise bad_spec(obj, spec)
