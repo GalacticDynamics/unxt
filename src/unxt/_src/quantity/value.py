@@ -211,6 +211,35 @@ class StaticValue:
     def __hash__(self) -> int:
         return hash((self._array.dtype.str, self._array.shape, self._array.tobytes()))
 
+    def __reduce__(self) -> tuple[Any, tuple[Any, ...]]:
+        """Reconstruct by re-running ``__init__`` on the wrapped array.
+
+        Rebuilding through the constructor -- rather than restoring the slot
+        directly -- is what keeps the read-only invariant across *every* pickle
+        protocol, because ``__init__`` is the one place that calls
+        ``setflags(write=False)``.
+
+        Examples
+        --------
+        >>> import pickle
+        >>> import numpy as np
+        >>> from unxt.quantity import StaticValue
+
+        >>> sv = StaticValue(np.array([1.0, 2.0]))
+        >>> restored = pickle.loads(pickle.dumps(sv, protocol=0))
+        >>> restored == sv
+        True
+
+        The restored value is still immutable, and so still hashes equal:
+
+        >>> restored.array.flags.writeable
+        False
+        >>> hash(restored) == hash(sv)
+        True
+
+        """
+        return (type(self), (self._array,))
+
     def _binary_op(self, other: Any, op: Any) -> Any:
         if isinstance(other, StaticValue):
             result = op(self._jnparray, jnp.asarray(other.array))

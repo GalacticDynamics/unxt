@@ -50,6 +50,7 @@ def test_static_value_deepcopy_preserves_type_and_dtype() -> None:
     assert np.asarray(got).dtype == np.float64
     # deepcopy is independent: the copy is its own read-only buffer.
     assert not np.shares_memory(np.asarray(got), np.asarray(sv))
+    assert not got.array.flags.writeable
 
     shallow = copy.copy(sv)
     assert isinstance(shallow, StaticValue)
@@ -964,3 +965,36 @@ def test_select_n_static_quantity_and_array() -> None:
     assert isinstance(got, u.quantity.Quantity)
     assert got.unit == u.unit("m")
     assert np.isclose(np.asarray(got.value), 2.0)
+
+
+class TestPickleAcrossProtocols:
+    """Pickling preserves equality, hash, and the read-only invariant."""
+
+    @pytest.mark.parametrize("protocol", range(pickle.HIGHEST_PROTOCOL + 1))
+    def test_static_value_roundtrip(self, protocol):
+        """Round-trips, compares equal, and stays read-only and hash-stable."""
+        sv = StaticValue(np.array([1.0, 2.0]))
+        got = pickle.loads(pickle.dumps(sv, protocol=protocol))  # noqa: S301
+
+        assert got == sv
+        assert hash(got) == hash(sv)
+        assert not got.array.flags.writeable
+
+    @pytest.mark.parametrize("protocol", range(pickle.HIGHEST_PROTOCOL + 1))
+    def test_static_quantity_roundtrip(self, protocol):
+        """The wrapping quantity round-trips too, keeping unit and immutability."""
+        q = u.StaticQuantity(np.array([1.0, 2.0]), "m")
+        got = pickle.loads(pickle.dumps(q, protocol=protocol))  # noqa: S301
+
+        assert type(got) is type(q)
+        assert got.unit == q.unit
+        assert got == q
+        assert not got.value.array.flags.writeable
+
+    def test_unpickled_is_still_a_valid_jit_static_arg(self):
+        """The point of the invariant: a restored value still keys a jit cache."""
+        q = u.StaticQuantity(np.array([1.0, 2.0]), "m")
+        restored = pickle.loads(pickle.dumps(q, protocol=0))  # noqa: S301
+
+        f = jax.jit(lambda x, s: x * s.value.array.shape[0], static_argnames=("s",))
+        assert f(3.0, restored) == pytest.approx(6.0)
