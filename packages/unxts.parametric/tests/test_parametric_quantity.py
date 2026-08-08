@@ -76,40 +76,37 @@ def test_type_parameter_from_a_unit_without_a_named_dimension():
     assert "m5" in str(u.dimension_of(cls))
 
 
-class TestGetNewArgsEx:
-    """`__getnewargs_ex__` returns the reconstruction args for `__new__`."""
+class TestReconstructionProtocol:
+    """`__reduce__` is the single reconstruction path for parametric quantities.
 
-    def test_returns_no_positional_args_and_all_fields_as_kwargs(self):
-        """The contract: no positional args, every field as a keyword."""
+    `__getnewargs_ex__` used to be defined alongside it (both landed in #209,
+    "fix: pickling parametric types") but was never reachable: the copy and
+    pickle protocols consult ``__reduce_ex__`` -> ``__reduce__`` first. It was
+    removed; these tests pin the behaviour it was supposed to provide.
+    """
+
+    @pytest.mark.parametrize("protocol", range(pickle.HIGHEST_PROTOCOL + 1))
+    def test_pickle_roundtrip_every_protocol(self, protocol):
+        """Every pickle protocol reconstructs value, unit and type parameter."""
         q = up.PQ([1, 2, 3], "m")
-        args, kwargs = q.__getnewargs_ex__()
-        assert args == ()
-        assert dict(kwargs).keys() == {"value", "unit"}
-        assert dict(kwargs)["unit"] == u.unit("m")
+        got = pickle.loads(pickle.dumps(q, protocol=protocol))  # noqa: S301
+        assert type(got) is type(q)
+        assert got.unit == q.unit
+        assert jnp.array_equal(got.value, q.value)
 
-    def test_reduce_takes_precedence_on_every_copy_path(self):
-        """Note: nothing *reaches* `__getnewargs_ex__` in practice.
+    @pytest.mark.parametrize("copier", [pycopy.copy, pycopy.deepcopy])
+    def test_copy_roundtrip(self, copier):
+        """`copy` and `deepcopy` reconstruct through the same path."""
+        q = up.PQ([1, 2, 3], "m")
+        got = copier(q)
+        assert type(got) is type(q)
+        assert got.unit == q.unit
+        assert jnp.array_equal(got.value, q.value)
 
-        `AbstractParametricQuantity` also defines `__reduce__`, which the copy
-        and pickle protocols consult first, so `copy`, `deepcopy` and `pickle`
-        all bypass this method. It is kept as the documented `__new__` contract
-        and exercised directly above; this test pins the precedence so a future
-        change to `__reduce__` does not silently alter reconstruction.
+    def test_getnewargs_ex_is_not_defined(self):
+        """The superseded hook is gone, so there is no second, dead path.
+
+        `object` does not define it either, so a plain ``hasattr`` is a
+        sufficient check.
         """
-        q = up.PQ([1, 2, 3], "m")
-        calls = []
-        original = type(q).__getnewargs_ex__
-
-        def spy(self):
-            calls.append(1)
-            return original(self)
-
-        type(q).__getnewargs_ex__ = spy
-        try:
-            pycopy.copy(q)
-            pycopy.deepcopy(q)
-            pickle.loads(pickle.dumps(q))  # noqa: S301
-        finally:
-            type(q).__getnewargs_ex__ = original
-
-        assert calls == []
+        assert not hasattr(up.PQ, "__getnewargs_ex__")

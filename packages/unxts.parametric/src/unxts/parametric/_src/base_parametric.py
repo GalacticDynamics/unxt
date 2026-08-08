@@ -13,7 +13,7 @@ from astropy.units import PhysicalType
 from jaxtyping import Array, Shaped
 from plum import dispatch, parametric, type_unparametrized
 
-from dataclassish import field_items, fields
+from dataclassish import fields
 
 from .config import config as parametric_config
 from unxt._src.dimensions import name_of
@@ -130,27 +130,6 @@ class AbstractParametricQuantity(AbstractQuantity):
     # ---------------------------------------------------------------
     # misc
 
-    def __getnewargs_ex__(self) -> tuple[tuple[Any, ...], dict[str, Any]]:
-        """Return args, kwargs for ``__new__``.
-
-        In protocols 2+, this is used to determine the values (args,
-        and kwargs) passed to ``__new__``. We implement ``__getnewargs_ex__``
-        instead of ``__getnewargs__`` because the latter does not support
-        keyword-only arguments.
-
-        Examples
-        --------
-        >>> import copy as pycopy
-        >>> import unxt as u
-        >>> import unxts.parametric as up
-
-        >>> x = up.PQ([1, 2, 3], "m")
-        >>> pycopy.copy(x)
-        ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
-
-        """
-        return (), field_items(self)
-
     # TODO: see if pickling can be accomplished without reduce.
     # https://docs.python.org/3.12/library/pickle.html
     def __reduce__(
@@ -187,6 +166,7 @@ class AbstractParametricQuantity(AbstractQuantity):
 
         Examples
         --------
+        >>> import copy as pycopy
         >>> import pickle
         >>> import unxt as u
         >>> import unxts.parametric as up
@@ -194,6 +174,12 @@ class AbstractParametricQuantity(AbstractQuantity):
         >>> x = up.PQ([1, 2, 3], "m")
         >>> pickle.dumps(x)
         b'...'
+
+        This is also what `copy.copy` and `copy.deepcopy` go through -- the copy
+        protocol consults ``__reduce_ex__`` (and hence ``__reduce__``) too:
+
+        >>> pycopy.copy(x)
+        ParametricQuantity(Array([1, 2, 3], dtype=int32), unit='m')
 
         """
         args, kwargs = [], {}
