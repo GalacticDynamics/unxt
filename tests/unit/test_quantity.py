@@ -1017,6 +1017,12 @@ def test_is_unit_convertible():
 # Property-based tests using unxt-hypothesis
 
 
+# Full-range float32 lets a 3-term sum overflow to inf, which no tolerance can
+# rescue. Cap the magnitude so sums stay finite.
+_1e30 = float(np.float32(1e30))  # exactly representable, as `width=32` requires
+_no_overflow_floats = st.floats(min_value=-_1e30, max_value=_1e30, width=32)
+
+
 class TestQuantityProperties:
     """Property-based tests for Quantity using hypothesis strategies."""
 
@@ -1036,12 +1042,21 @@ class TestQuantityProperties:
         assert result1.unit == result2.unit
 
     @settings(max_examples=20, deadline=None)
-    @given(q1=ust.quantities("m"), q2=ust.quantities("m"), q3=ust.quantities("m"))
+    @given(
+        q1=ust.quantities("m", elements=_no_overflow_floats),
+        q2=ust.quantities("m", elements=_no_overflow_floats),
+        q3=ust.quantities("m", elements=_no_overflow_floats),
+    )
     def test_addition_associative(self, q1, q2, q3):
         """Test that addition is associative: (q1 + q2) + q3 == q1 + (q2 + q3)."""
         result1 = (q1 + q2) + q3
         result2 = q1 + (q2 + q3)
-        assert jnp.allclose(result1.value, result2.value)
+        # Float addition is only associative up to rounding, and the error is
+        # set by the operand magnitudes, not by the (possibly cancelled) result
+        # -- so `rtol` on the result is the wrong test. Each of the two roundings
+        # is bounded by eps/2 * sum(|operands|); 4x that is ample slack.
+        atol = 4 * np.finfo(np.float32).eps * sum(abs(q.value) for q in (q1, q2, q3))
+        assert jnp.allclose(result1.value, result2.value, rtol=0, atol=atol)
         assert result1.unit == result2.unit
 
     @settings(max_examples=20, deadline=None)
