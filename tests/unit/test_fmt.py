@@ -267,3 +267,17 @@ def test_preset_beats_the_value_spec_under_jit() -> None:
 
     f(u.Q([1.0, 2, 3], "m"))
     assert seen == ["f32[3] * m"]
+
+
+def test_short_arrays_marks_a_weak_dtype() -> None:
+    """A weakly-typed scalar keeps the ``weak_`` prefix in the summary."""
+    assert pspec(u.Q(1.0, "m"), "short") == "weak_f32[] * m"
+
+
+def test_short_arrays_unwraps_a_static_value() -> None:
+    """``StaticValue`` is not an array, so the kind hook declines it.
+
+    The wrapper is then suppressed and the inner NumPy array renders without
+    the ``(numpy)`` kind suffix.
+    """
+    assert pspec(u.StaticQuantity([1.0, 2.0], "m"), "short") == "f64[2] * m"
