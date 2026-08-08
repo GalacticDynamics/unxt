@@ -384,7 +384,7 @@ class QuantityMatrix(u.AbstractQuantity):
         >>> aT.unit.to_string()
         '((m, kg), (s, rad))'
 
-        Also accessible via ``jax.numpy.transpose``:
+        Also accessible via ``jax.numpy.matrix_transpose``:
 
         >>> aT2 = qnp.matrix_transpose(a)
         >>> aT2.value

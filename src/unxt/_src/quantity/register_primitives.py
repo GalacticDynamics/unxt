@@ -2831,7 +2831,7 @@ def integer_pow_p(x: ABCQ, *, y: Any) -> ABCQ:
 
     """
     if isinstance(x, StaticQuantity):
-        value = np.power(ustrip(x), y)
+        value = np.pow(ustrip(x), y)
     else:
         value = lax.integer_pow(ustrip(x), y)
     return type_np(x)(value=value, unit=x.unit**y)
@@ -4058,13 +4058,13 @@ def pow_p_qf(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     >>> q1 = u.quantity.Quantity(2.0, "m")
     >>> y = jnp.array(3)
-    >>> jnp.power(q1, y)
+    >>> jnp.pow(q1, y)
     Quantity(Array(8., dtype=float32...), unit='m3')
     >>> q1**y
     Quantity(Array(8., dtype=float32...), unit='m3')
 
     >>> q1 = u.Q(2.0, "m")
-    >>> jnp.power(q1, y)
+    >>> jnp.pow(q1, y)
     Quantity(Array(8., dtype=float32...), unit='m3')
     >>> q1**y
     Quantity(Array(8., dtype=float32...), unit='m3')
@@ -4089,7 +4089,7 @@ def pow_p_q_bareq(x: ABCQ, y: Quantity, /) -> ABCQ:
 
     >>> q1 = u.quantity.Quantity(2.0, "m")
     >>> p = u.Q(3, "")
-    >>> jnp.power(q1, p)
+    >>> jnp.pow(q1, p)
     Quantity(Array(8., dtype=float32...), unit='m3')
     >>> q1**p
     Quantity(Array(8., dtype=float32...), unit='m3')
@@ -4126,7 +4126,7 @@ def pow_p_v_bareq(x: ArrayLike, y: Quantity, /) -> ABCQ:
 
     >>> x = jnp.array([2.0])
     >>> p = u.Q(3, "")
-    >>> jnp.power(x, p)
+    >>> jnp.pow(x, p)
     Quantity(Array([8.], dtype=float32), unit='')
 
     """
@@ -5328,11 +5328,11 @@ def transpose_p(operand: ABCQ, /, *, permutation: Any) -> ABCQ:
     >>> x = jnp.arange(6).reshape(2, 3)
 
     >>> q = u.quantity.Quantity(x, "m")
-    >>> jnp.transpose(q)
+    >>> jnp.matrix_transpose(q)
     Quantity(Array([[0, 3], [1, 4], [2, 5]], dtype=int32), unit='m')
 
     >>> q = u.Q(x, "m")
-    >>> jnp.transpose(q)
+    >>> jnp.matrix_transpose(q)
     Quantity(Array([[0, 3], [1, 4], [2, 5]], dtype=int32), unit='m')
 
     """

@@ -92,7 +92,7 @@ def pow_p_qq(x: ABCQ, y: ABCPQ["dimensionless"], /) -> ABCQ:
 
     >>> q1 = u.Q(2.0, "m")
     >>> p = PQ(3, "")
-    >>> jnp.power(q1, p)
+    >>> jnp.pow(q1, p)
     Quantity(Array(8., dtype=float32...), unit='m3')
     >>> q1**p
     Quantity(Array(8., dtype=float32...), unit='m3')
@@ -126,7 +126,7 @@ def pow_p_vq(x: ArrayLike, y: ABCPQ["dimensionless"], /) -> ABCQ:
 
     >>> x = jnp.array([2.0])
     >>> p = PQ(3, "")
-    >>> jnp.power(x, p)
+    >>> jnp.pow(x, p)
     ParametricQuantity(Array([8.], dtype=float32), unit='')
 
     """
