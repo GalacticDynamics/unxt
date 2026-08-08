@@ -964,3 +964,48 @@ def test_select_n_static_quantity_and_array() -> None:
     assert isinstance(got, u.quantity.Quantity)
     assert got.unit == u.unit("m")
     assert np.isclose(np.asarray(got.value), 2.0)
+
+
+class TestPickleAcrossProtocols:
+    """`StaticValue` must survive every pickle protocol, immutability intact.
+
+    Before `StaticValue.__reduce__` existed, only protocol 5 (pickle's current
+    default) was correct: protocols 0 and 1 could not pickle it at all, and
+    protocols 2 to 4 handed back a *writeable* array -- silently breaking the
+    guarantee the class exists for, since a mutated `StaticValue` hashes
+    differently and can no longer key a `jax.jit` cache.
+    """
+
+    @pytest.mark.parametrize("protocol", range(pickle.HIGHEST_PROTOCOL + 1))
+    def test_static_value_roundtrip(self, protocol):
+        """Round-trips, compares equal, and stays read-only and hash-stable."""
+        sv = StaticValue(np.array([1.0, 2.0]))
+        got = pickle.loads(pickle.dumps(sv, protocol=protocol))  # noqa: S301
+
+        assert got == sv
+        assert hash(got) == hash(sv)
+        assert not got.array.flags.writeable, "unpickled value must stay immutable"
+
+    @pytest.mark.parametrize("protocol", range(pickle.HIGHEST_PROTOCOL + 1))
+    def test_static_quantity_roundtrip(self, protocol):
+        """The wrapping quantity round-trips too, keeping unit and immutability."""
+        q = u.StaticQuantity(np.array([1.0, 2.0]), "m")
+        got = pickle.loads(pickle.dumps(q, protocol=protocol))  # noqa: S301
+
+        assert type(got) is type(q)
+        assert got.unit == q.unit
+        assert got == q
+        assert not got.value.array.flags.writeable
+
+    def test_unpickled_is_still_a_valid_jit_static_arg(self):
+        """The point of the invariant: a restored value still keys a jit cache."""
+        q = u.StaticQuantity(np.array([1.0, 2.0]), "m")
+        restored = pickle.loads(pickle.dumps(q, protocol=0))  # noqa: S301
+
+        f = jax.jit(lambda x, s: x * s.value.array.shape[0], static_argnames="s")
+        assert f(3.0, restored) == pytest.approx(6.0)
+
+    def test_deepcopy_keeps_the_array_read_only(self):
+        """`copy.deepcopy` goes through the same reconstruction path."""
+        sv = StaticValue(np.array([1.0, 2.0]))
+        assert not copy.deepcopy(sv).array.flags.writeable
