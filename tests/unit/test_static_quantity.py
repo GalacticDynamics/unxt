@@ -50,6 +50,7 @@ def test_static_value_deepcopy_preserves_type_and_dtype() -> None:
     assert np.asarray(got).dtype == np.float64
     # deepcopy is independent: the copy is its own read-only buffer.
     assert not np.shares_memory(np.asarray(got), np.asarray(sv))
+    assert not got.array.flags.writeable
 
     shallow = copy.copy(sv)
     assert isinstance(shallow, StaticValue)
@@ -967,14 +968,7 @@ def test_select_n_static_quantity_and_array() -> None:
 
 
 class TestPickleAcrossProtocols:
-    """`StaticValue` must survive every pickle protocol, immutability intact.
-
-    Before `StaticValue.__reduce__` existed, only protocol 5 (pickle's current
-    default) was correct: protocols 0 and 1 could not pickle it at all, and
-    protocols 2 to 4 handed back a *writeable* array -- silently breaking the
-    guarantee the class exists for, since a mutated `StaticValue` hashes
-    differently and can no longer key a `jax.jit` cache.
-    """
+    """Pickling preserves equality, hash, and the read-only invariant."""
 
     @pytest.mark.parametrize("protocol", range(pickle.HIGHEST_PROTOCOL + 1))
     def test_static_value_roundtrip(self, protocol):
@@ -984,7 +978,7 @@ class TestPickleAcrossProtocols:
 
         assert got == sv
         assert hash(got) == hash(sv)
-        assert not got.array.flags.writeable, "unpickled value must stay immutable"
+        assert not got.array.flags.writeable
 
     @pytest.mark.parametrize("protocol", range(pickle.HIGHEST_PROTOCOL + 1))
     def test_static_quantity_roundtrip(self, protocol):
@@ -1004,8 +998,3 @@ class TestPickleAcrossProtocols:
 
         f = jax.jit(lambda x, s: x * s.value.array.shape[0], static_argnames="s")
         assert f(3.0, restored) == pytest.approx(6.0)
-
-    def test_deepcopy_keeps_the_array_read_only(self):
-        """`copy.deepcopy` goes through the same reconstruction path."""
-        sv = StaticValue(np.array([1.0, 2.0]))
-        assert not copy.deepcopy(sv).array.flags.writeable

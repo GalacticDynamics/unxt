@@ -219,17 +219,6 @@ class StaticValue:
         protocol, because ``__init__`` is the one place that calls
         ``setflags(write=False)``.
 
-        Both failure modes this fixes were protocol-dependent, and only
-        protocol 5 (pickle's current default) was correct:
-
-        - Protocols 0 and 1 could not pickle a `StaticValue` at all.
-          ``copyreg._reduce_ex`` rejects a ``__slots__`` class that inherits
-          ``object.__getstate__``, which is every such class on Python 3.11+.
-        - Protocols 2 to 4 round-tripped, but handed back a *writeable* array.
-          That silently breaks the guarantee the class exists for: a mutated
-          `StaticValue` hashes differently, so an unpickled one could no longer
-          be trusted as a `jax.jit` ``static_argnames`` key.
-
         Examples
         --------
         >>> import pickle
