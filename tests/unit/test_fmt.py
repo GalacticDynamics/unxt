@@ -1,4 +1,4 @@
-"""Tests for the `unxt.fmt` string-formatting engine."""
+"""Tests for the `unxt._fmt` string-formatting engine."""
 
 import re
 
@@ -9,8 +9,7 @@ import wadler_lindig as wl
 from wadler_lindig._wadler_lindig import pformat_doc
 
 import unxt as u
-from unxt._src.fmt import REQUIRED_MARKUP_KEYS
-from unxt.fmt import (
+from unxt._fmt import (
     FORMAT_PRESETS,
     MARKUPS,
     PGroup,
@@ -20,6 +19,7 @@ from unxt.fmt import (
     pparts,
     pspec,
 )
+from unxt._src.fmt import REQUIRED_MARKUP_KEYS
 
 # ============================================================================
 # Presets

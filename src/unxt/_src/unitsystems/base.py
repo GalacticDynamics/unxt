@@ -1,5 +1,9 @@
 """Tools for representing systems of units using ``astropy.units``."""
 
+# pylint: disable=import-outside-toplevel
+#    `__format__` lazily imports `unxt._src.fmt`, which imports
+#    `unxt._src.quantity.base`; a module-scope import would cycle.
+
 __all__ = ("UNITSYSTEMS_REGISTRY", "AbstractUnitSystem")
 
 from collections.abc import Iterator, Mapping
@@ -46,6 +50,9 @@ def registered_unitsystem(
     the scan is a fraction of a percent of a ``unitsystem(...)`` call, and one
     registry cannot fall out of sync with itself.
     """
+    # pylint: disable=import-outside-toplevel
+    #    `__format__` lazily imports `unxt._src.fmt`, which imports
+    #    `unxt._src.quantity.base`; a module-scope import would cycle.
     want = frozenset(dims)
     return next(
         (cls for d, cls in _UNITSYSTEMS_REGISTRY.items() if frozenset(d) == want),
@@ -404,7 +411,7 @@ class AbstractUnitSystem:
         return wl.pformat(self, quote_units=False)
 
     def __format__(self, format_spec: str, /) -> str:
-        """Format the unit system, honouring `unxt.fmt.FORMAT_PRESETS`.
+        """Format the unit system, honouring `unxt._fmt.FORMAT_PRESETS`.
 
         Examples
         --------

@@ -1,5 +1,9 @@
 """Orthogonal mixin classes for quantity classes."""
 
+# pylint: disable=import-outside-toplevel
+#    the IPython reprs lazily import `unxt._src.fmt`, which imports
+#    `unxt._src.quantity.base`, which imports this module.
+
 __all__: tuple[str, ...] = ()
 
 from collections.abc import Callable, Sequence
@@ -27,6 +31,10 @@ if TYPE_CHECKING:
 
 class AstropyQuantityCompatMixin:
     """Mixin for compatibility with `astropy.units.Quantity`."""
+
+    # pylint: disable=import-outside-toplevel
+    #    the IPython reprs lazily import `unxt._src.fmt`, which imports
+    #    `unxt._src.quantity.base`, which imports this module.
 
     value: eqx.AbstractVar[ArrayLike]
     unit: eqx.AbstractVar[AbstractUnit]
@@ -154,7 +162,7 @@ class IPythonReprMixin:
         }
 
     def _repr_markup_(self, markup: str, /) -> str:
-        """Render through the `unxt.fmt` engine in the given markup.
+        """Render through the `unxt._fmt` engine in the given markup.
 
         Imported lazily: ``unxt._src.fmt`` imports
         ``unxt._src.quantity.base``, which imports this module, so a
