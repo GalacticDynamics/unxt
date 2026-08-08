@@ -7,8 +7,9 @@
 __all__ = ("UnxtConverter", "setup_matplotlib_support_for_unxt")
 
 
+import warnings
 from collections.abc import Iterable, Sized
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import matplotlib.units
@@ -32,6 +33,30 @@ class UnxtConverter(matplotlib.units.ConversionInterface):  # type: ignore[misc]
 
     unit_format: str = "latex_inline"
     """`astropy` unit format for the axis label (see ``Unit.to_string``)."""
+
+    axisinfo_kw: dict[str, Any] | None = field(default=None, init=True, repr=False)
+    """Deprecated: use ``unit_format`` instead.
+
+    .. deprecated:: 2.0.0
+        Use ``unit_format`` directly instead of ``axisinfo_kw={"format": ...}``.
+        This parameter will be removed in a future release.
+    """
+
+    def __post_init__(self) -> None:
+        """Handle deprecated ``axisinfo_kw`` parameter."""
+        if self.axisinfo_kw is not None:
+            warnings.warn(
+                "The `axisinfo_kw` parameter is deprecated and will be removed "
+                "in a future release. Use `unit_format` directly instead. "
+                "For example, use `UnxtConverter(unit_format='latex')` instead of "
+                "`UnxtConverter(axisinfo_kw={'format': 'latex'})`.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            # Extract format from the dict and set unit_format
+            if "format" in self.axisinfo_kw:
+                # Use object.__setattr__ since this is a frozen dataclass in spirit
+                object.__setattr__(self, "unit_format", self.axisinfo_kw["format"])
 
     def convert(self, obj: Any, unit: Any, axis: Axes) -> Array | list[Array]:
         """Convert *obj* using *unit* for the specified *axis*."""
