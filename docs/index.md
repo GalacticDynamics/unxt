@@ -374,8 +374,8 @@ For domains like gravitational dynamics, use dynamical unit systems where $G = 1
 >>> from unxt.unitsystems import DynamicalSimUSysFlag
 
 >>> usys = u.unitsystem(DynamicalSimUSysFlag, "kpc", "Myr")
->>> usys  # doctest: +SKIP
-unitsystem('kpc', 'Myr', ...)
+>>> usys
+unitsystem(['kpc', '...kpc3 s2 kg / (Myr2 m3)', 'Myr'])
 
 ```
 
