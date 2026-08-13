@@ -184,9 +184,7 @@ class IPythonReprMixin:
         # or a `unxts.linalg.UnitsMatrix`) falls back to plain `__repr__()`,
         # which carries no such wrapping and must not be sliced.
         unit_repr = (
-            unit_repr_latex()[1:-1]
-            if unit_repr_latex is not None
-            else self.unit.__repr__()
+            unit_repr_latex()[1:-1] if unit_repr_latex is not None else repr(self.unit)
         )
         value_repr = np.array2string(self.value, separator=",~")  # type: ignore[call-overload]
         return f"${value_repr} \\; {unit_repr}$"
