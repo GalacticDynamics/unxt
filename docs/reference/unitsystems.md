@@ -58,10 +58,10 @@ LengthMassTimeUnitSystem(length=Unit("...e-16 m"), mass=Unit("...e-27 kg"), time
 LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("...e+27 kg"), time=Unit("...e-09 s"))
 
 >>> planck  # hbar = c = G = k_B = 1
-LengthMassTimeTemperatureUnitSystem(length=Unit("...e-35 m"), mass=Unit("...e-08 kg"), time=Unit("...e-44 s"), temperature=Unit("...e+32 K"))
+LengthMassTimeTemperatureUnitSystem(length=Unit("l_P"), mass=Unit("m_P"), time=Unit("t_P"), temperature=Unit("T_P"))
 
 >>> atomic  # Hartree: m_e = hbar = e = 4*pi*eps0 = 1
-LengthMassTimeElectricalChargeUnitSystem(length=Unit("...e-11 m"), mass=Unit("...e-31 kg"), time=Unit("...e-17 s"), electrical_charge=Unit("...e-19 A s"))
+LengthMassTimeElectricalChargeUnitSystem(length=Unit("a_0"), mass=Unit("m_e"), time=Unit("t_au"), electrical_charge=Unit("e"))
 ```
 
 Natural unit systems are _numeric_ only: they do not add equivalencies between dimensions, so a `Quantity` in `MeV` remains an energy, not a mass. For worked examples on each system see {doc}`../how-to/work-in-natural-units`.
