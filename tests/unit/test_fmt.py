@@ -18,6 +18,7 @@ from unxt._fmt import (
     parts_to_markup,
     pparts,
     pspec,
+    unwrap_math,
 )
 from unxt._src.fmt import REQUIRED_MARKUP_KEYS
 
@@ -281,3 +282,23 @@ def test_short_arrays_unwraps_a_static_value() -> None:
     the ``(numpy)`` kind suffix.
     """
     assert pspec(u.StaticQuantity([1.0, 2.0], "m"), "short") == "f64[2] * m"
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (r"$\mathrm{m}$", r"\mathrm{m}"),  # wrapped: unwrapped once
+        (r"\mathrm{m}", r"\mathrm{m}"),  # unwrapped: left intact
+        ("$", "$"),  # lone delimiter: satisfies both ends
+        ("", ""),
+        ("$a", "$a"),
+        ("a$", "a$"),
+    ],
+)
+def test_unwrap_math_only_strips_real_delimiters(text: str, expected: str) -> None:
+    r"""Slicing unconditionally corrupts an already-unwrapped fragment.
+
+    ``\mathrm{m}`` would become ``mathrm{m`` -- the same defect fixed in
+    ``_repr_latex_`` (#870), which this engine must not reintroduce.
+    """
+    assert unwrap_math(text) == expected

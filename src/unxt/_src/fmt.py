@@ -36,6 +36,7 @@ __all__ = (
     "custom_pdoc_noarray",
     "doc_to_str",
     "parts_to_doc",
+    "unwrap_math",
     "parts_to_markup",
     "pparts",
     "pspec",
@@ -184,6 +185,39 @@ def _markup_table(markup: str, /) -> dict[str, Any]:
     except KeyError:
         msg = f"unknown markup {markup!r}; have {sorted(MARKUPS)}"
         raise ValueError(msg) from None
+
+
+def unwrap_math(text: str, /) -> str:
+    r"""Strip enclosing ``$...$`` from a LaTeX fragment, if it has them.
+
+    Conditional on the delimiters actually being present, not on the source
+    being *expected* to supply them. Slicing unconditionally corrupts any
+    fragment that arrives unwrapped -- ``\mathrm{m}`` becomes ``mathrm{m`` --
+    which is the defect this repo already fixed once in `_repr_latex_`.
+
+    The length guard is load-bearing: a lone ``"$"`` satisfies both
+    ``startswith`` and ``endswith``, and would otherwise be sliced away
+    entirely.
+
+    Examples
+    --------
+    >>> from unxt._fmt import unwrap_math
+
+    >>> unwrap_math(r"$\mathrm{m}$")
+    '\\mathrm{m}'
+
+    Already unwrapped, so left alone:
+
+    >>> unwrap_math(r"\mathrm{m}")
+    '\\mathrm{m}'
+
+    >>> unwrap_math("$")
+    '$'
+
+    """
+    if len(text) >= 2 and text.startswith("$") and text.endswith("$"):
+        return text[1:-1]
+    return text
 
 
 class _DocHolder(NamedTuple):

@@ -76,6 +76,7 @@ __all__ = (
     "custom_pdoc_noarray",
     "doc_to_str",
     "parts_to_doc",
+    "unwrap_math",
     "parts_to_markup",
     "pparts",
     "pspec",
@@ -100,6 +101,7 @@ with install_import_hook("unxt._fmt"):
         pparts,
         pspec,
         pspec_fallback,
+        unwrap_math,
         value_str,
     )
 

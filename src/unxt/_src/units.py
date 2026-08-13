@@ -177,5 +177,5 @@ def pparts(obj: AbstractUnit, /, *, markup: str = "text", **kw: Any) -> tuple[An
     if not plain:
         return ()
     if markup == "latex":
-        return (fmt.PPart("unit", obj.to_string("latex")[1:-1], "markup"),)
+        return (fmt.PPart("unit", fmt.unwrap_math(obj.to_string("latex")), "markup"),)
     return (fmt.PPart("unit", plain),)
