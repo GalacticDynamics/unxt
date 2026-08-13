@@ -721,23 +721,39 @@ class TestUnitSystemRendering:
         for name, usys in self._realizations().items():
             assert eval(repr(usys), ns) == usys, name  # noqa: S307
 
-    def test_single_unit_system_uses_the_list_form(self):
-        """A lone string is looked up as a *system* name, so it must not be bare.
+    def test_units_always_use_the_list_form(self):
+        """Every arity spells its units as a list, not just ``n == 1``.
 
-        ``unitsystem("km")`` raises; ``unitsystem(["km"])`` is what reconstructs.
+        A lone string is looked up as a *system* name, so ``unitsystem("km")``
+        raises where ``unitsystem(["km"])`` reconstructs. Using the list at
+        every arity keeps one spelling instead of a special case.
         """
-        usys = u.unitsystem(["km"])
-        assert repr(usys) == "unitsystem(['km'])"
-        assert eval(repr(usys), {"unitsystem": u.unitsystem}) == usys  # noqa: S307
+        ns = {"unitsystem": u.unitsystem}
+        for usys in (u.unitsystem(["km"]), u.unitsystem("m", "s", "kg", "rad")):
+            assert repr(usys).startswith("unitsystem([")
+            assert eval(repr(usys), ns) == usys  # noqa: S307
 
-    def test_conventional_systems_render_without_numeric_scales(self):
-        """The full-precision fallback must stay rare.
+    def test_no_realization_reprs_with_a_numeric_scale(self):
+        """No realization shows a raw scale factor.
 
-        Without this, a regression in the "shortest" half of the rule would
-        silently make every repr long and the round-trip test would still pass.
+        The conventional systems spell their units exactly; the
+        measured-constant ones (``planck``, ``atomic``, ``hep``,
+        ``geometrized``) fall back to their registered *name*, which round-trips
+        and reads far better than seventeen significant figures. Without this,
+        a regression could reintroduce the long form and the round-trip test
+        alone would still pass.
         """
-        for name in ("galactic", "solarsystem", "si", "cgs"):
-            assert not re.search(r"\de[+-]\d", repr(self._realizations()[name])), name
+        for name, usys in self._realizations().items():
+            assert not re.search(r"\de[+-]\d", repr(usys)), name
+
+    def test_unnameable_lossy_system_reprs_without_raising(self):
+        """An ad-hoc system with a lossy scale degrades rather than exploding.
+
+        A ``repr`` that raises fails exactly when someone is debugging, so this
+        one gives up round-tripping instead.
+        """
+        adhoc = u.unitsystem(usx.planck, "km/s")
+        assert repr(adhoc).startswith("unitsystem(")
 
     def test_str_is_the_readable_unquoted_form(self):
         """``str`` drops the quotes."""

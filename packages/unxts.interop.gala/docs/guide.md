@@ -23,7 +23,7 @@ The most direct route is {func}`unxt.unitsystem`, which accepts a `gala.units.Un
 <UnitSystem (kpc, Myr, solMass, rad)>
 
 >>> unxt.unitsystem(gu.galactic)
-unitsystem('kpc', 'Myr', 'solMass', 'rad')
+unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
 
 ```
 
@@ -35,7 +35,7 @@ Because the conversions are registered with `plum`, you can equivalently use `pl
 
 >>> usys = convert(gu.galactic, unxt.AbstractUnitSystem)
 >>> usys
-unitsystem('kpc', 'Myr', 'solMass', 'rad')
+unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
 
 ```
 

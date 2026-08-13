@@ -53,7 +53,7 @@ def unitsystem(usys: AbstractUnitSystem, /) -> AbstractUnitSystem:
     >>> from unxt.unitsystems import unitsystem
     >>> usys = unitsystem("kpc", "Myr", "Msun", "radian")
     >>> usys
-    unitsystem('kpc', 'Myr', 'solMass', 'rad')
+    unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
 
     >>> unitsystem(usys) is usys
     True
@@ -74,10 +74,10 @@ def unitsystem(seq: Sequence[Any], /) -> AbstractUnitSystem:
     DimensionlessUnitSystem()
 
     >>> u.unitsystem(("kpc", "Myr", "Msun", "radian"))
-    unitsystem('kpc', 'Myr', 'solMass', 'rad')
+    unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
 
     >>> u.unitsystem(["kpc", "Myr", "Msun", "radian"])
-    unitsystem('kpc', 'Myr', 'solMass', 'rad')
+    unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
 
     A sequence's elements are always units, so even a single-element list builds
     a system (a bare string, by contrast, is looked up as a *named* system):
@@ -116,7 +116,7 @@ def unitsystem(*args: Any) -> AbstractUnitSystem:
     >>> from unxt.unitsystems import unitsystem
 
     >>> unitsystem("kpc", "Myr", "Msun", "radian")
-    unitsystem('kpc', 'Myr', 'solMass', 'rad')
+    unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
 
     With no arguments it is the dimensionless system, agreeing with
     ``unitsystem(None)`` and ``unitsystem([])``:
@@ -210,16 +210,16 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
     --------
     >>> from unxt.unitsystems import unitsystem
     >>> unitsystem("galactic")
-    unitsystem('kpc', 'Myr', 'solMass', 'rad')
+    unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
 
     >>> unitsystem("solarsystem")
-    unitsystem('AU', 'yr', 'solMass', 'rad')
+    unitsystem(['AU', 'yr', 'solMass', 'rad'])
 
     >>> unitsystem("dimensionless")
     DimensionlessUnitSystem()
 
     >>> unitsystem("planck")
-    unitsystem('...e-35 m', '...e-08 kg', '...e-44 s', '...e+32 K')
+    unitsystem('planck')
 
     A single string is looked up as a *system* name, not a unit. A string that
     is not a registered system -- e.g. a unit like ``"m"`` -- raises a clear
@@ -262,7 +262,7 @@ def unitsystem(usys: AbstractUnitSystem, *args: Any) -> AbstractUnitSystem:
     >>> from unxt.unitsystems import unitsystem
     >>> usys = unitsystem("galactic")
     >>> unitsystem(usys, "km/s")
-    unitsystem('rad', 'kpc', 'solMass', 'km / s', 'Myr')
+    unitsystem(['rad', 'kpc', 'solMass', 'km / s', 'Myr'])
 
     We can also override the base unit of an existing unit system. Replacing the
     length still leaves a length/time/mass/angle system, so it is recognized as
@@ -270,7 +270,7 @@ def unitsystem(usys: AbstractUnitSystem, *args: Any) -> AbstractUnitSystem:
 
     >>> new_usys = unitsystem(usys, "pc")
     >>> new_usys
-    unitsystem('pc', 'Myr', 'solMass', 'rad')
+    unitsystem(['pc', 'Myr', 'solMass', 'rad'])
 
     """
     # TODO: not need this hack for single-string inputs
@@ -301,7 +301,7 @@ def unitsystem(flag: type[StandardUSysFlag], *args: Any) -> AbstractUnitSystem:
     --------
     >>> from unxt import unitsystem, unitsystems
     >>> unitsystem(unitsystems.StandardUSysFlag, "kpc", "Myr", "Msun")
-    unitsystem('kpc', 'solMass', 'Myr')
+    unitsystem(['kpc', 'solMass', 'Myr'])
 
     """
     return unitsystem(*args)
@@ -320,7 +320,7 @@ def unitsystem(
     >>> from unxt.unitsystems import unitsystem, DynamicalSimUSysFlag
 
     >>> unitsystem(DynamicalSimUSysFlag, "m", "kg")
-    unitsystem('m', 'kg', '122404.43065054427 s')
+    unitsystem(['m', 'kg', '122404...4427 s'])
 
     """
     tmp = unitsystem(*args)
@@ -398,7 +398,7 @@ def unitsystem(
     >>> from unxt.unitsystems import unitsystem, HEPUSysFlag
 
     >>> unitsystem(HEPUSysFlag)
-    unitsystem('...e-16 m', '...e-27 kg', '...e-25 s')
+    unitsystem('hep')
 
     >>> unitsystem(HEPUSysFlag, energy="TeV")["time"]
     Unit("...e-28 s")
@@ -428,7 +428,7 @@ def unitsystem(
     >>> from unxt.unitsystems import unitsystem, GeometrizedUSysFlag
 
     >>> unitsystem(GeometrizedUSysFlag)
-    unitsystem('m', '...e+27 kg', '...e-09 s')
+    unitsystem('geometrized')
 
     >>> unitsystem(GeometrizedUSysFlag, length="km")["length"]
     Unit("km")
@@ -453,7 +453,7 @@ def unitsystem(flag: type[PlanckUSysFlag], /, *args: Any) -> AbstractUnitSystem:
     >>> from unxt.unitsystems import unitsystem, PlanckUSysFlag
 
     >>> unitsystem(PlanckUSysFlag)
-    unitsystem('...e-35 m', '...e-08 kg', '...e-44 s', '...e+32 K')
+    unitsystem('planck')
 
     """
     _reject_extra_args(flag, args)
@@ -482,7 +482,7 @@ def unitsystem(flag: type[AtomicUSysFlag], /, *args: Any) -> AbstractUnitSystem:
     >>> from unxt.unitsystems import unitsystem, AtomicUSysFlag
 
     >>> unitsystem(AtomicUSysFlag)
-    unitsystem('...e-11 m', '...e-31 kg', '...e-17 s', '...e-19 A s')
+    unitsystem('atomic')
 
     """
     _reject_extra_args(flag, args)

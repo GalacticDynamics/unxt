@@ -146,7 +146,7 @@ class SIUnitSystem(AbstractUnitSystem):
     ...     angle=u.unit("radian"),
     ... )
     >>> usys
-    unitsystem('m', 'kg', 's', 'mol', 'A', 'K', 'cd', 'rad')
+    unitsystem(['m', 'kg', 's', 'mol', 'A', 'K', 'cd', 'rad'])
 
     """
 
@@ -202,7 +202,7 @@ class CGSUnitSystem(AbstractUnitSystem):
     ...     kinematic_viscosity=u.unit("stokes"),
     ... )
     >>> usys
-    unitsystem('cm', 'g', 's', 'dyn', 'erg', 'Ba', 'P', 'St', 'rad')
+    unitsystem(['cm', 'g', 's', 'dyn', 'erg', 'Ba', 'P', 'St', 'rad'])
 
     """
 

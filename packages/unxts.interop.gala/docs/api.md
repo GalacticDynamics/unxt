@@ -19,7 +19,7 @@ Convert a `gala.units.UnitSystem` to a [`unxt.unitsystems.AbstractUnitSystem`][u
 >>> from unxts.interop.gala import convert_gala_unitsystem_to_unxt_unitsystem
 
 >>> convert_gala_unitsystem_to_unxt_unitsystem(gu.galactic)
-unitsystem('kpc', 'Myr', 'solMass', 'rad')
+unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
 
 ```
 
@@ -47,7 +47,7 @@ The two calls above are equivalent to `plum.convert` with the target type, which
 >>> from plum import convert
 
 >>> convert(gu.galactic, unxt.AbstractUnitSystem)
-unitsystem('kpc', 'Myr', 'solMass', 'rad')
+unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
 
 >>> convert(usys, gu.UnitSystem)
 <UnitSystem (kpc, Myr, solMass, rad)>

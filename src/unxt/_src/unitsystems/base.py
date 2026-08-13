@@ -54,19 +54,32 @@ def registered_unitsystem(
     )
 
 
-def _roundtrip_unit_str(u: AbstractUnit, /) -> str:
-    """Return the shortest string for ``u`` that reparses to ``u``.
+#: Realization -> its registered name, populated by ``realizations`` at import.
+#:
+#: Declared here rather than imported from ``realizations`` because that module
+#: imports *this* one; the dependency points inward and the consumer registers.
+NAME_BY_SYSTEM: dict["AbstractUnitSystem", str] = {}
 
-    ``Unit.to_string()`` truncates past six significant figures, which is
-    invisible for every conventional unit but loses the measured-constant
-    realizations: ``planck``'s length becomes ``1.61626e-35 m``, which does not
-    compare equal on reconstruction. Fall back to the full-precision scale
-    alongside the unscaled bases -- Python's ``repr`` of a float is already the
-    shortest string that round-trips, so there is nothing shorter to reach for.
 
-    The fallback is rare by construction: ``galactic``, ``solarsystem``, ``si``
-    and ``cgs`` all render with named units and no numeric scale.
+def _exact_unit_strs(usys: "AbstractUnitSystem", /) -> list[str] | None:
+    """Return each base unit's short string, or `None` if any is lossy.
+
+    ``Unit.to_string()`` truncates past six significant figures. That is
+    invisible for every conventional unit, but the measured-constant
+    realizations lose it: ``planck``'s length becomes ``1.61626e-35 m``, which
+    does not compare equal on reconstruction.
     """
+    out = []
+    for base in usys.base_units:
+        short = base.to_string()
+        if unit(short) != base:
+            return None
+        out.append(short)
+    return out
+
+
+def _full_precision_unit_str(u: AbstractUnit, /) -> str:
+    """Spell ``u`` exactly, using the full-precision scale when needed."""
     short = u.to_string()
     if unit(short) == u:
         return short
@@ -122,7 +135,7 @@ class AbstractUnitSystem:
     >>> from unxt import unitsystem
     >>> usys = unitsystem("m", "s", "kg", "radian")
     >>> usys
-    unitsystem('m', 's', 'kg', 'rad')
+    unitsystem(['m', 's', 'kg', 'rad'])
 
     >>> usys["velocity"]
     Unit("m / s")
@@ -360,7 +373,7 @@ class AbstractUnitSystem:
         >>> usys = unitsystem("m", "s", "kg", "radian")
 
         >>> wl.pprint(usys)
-        unitsystem('m', 's', 'kg', 'rad')
+        unitsystem(['m', 's', 'kg', 'rad'])
 
         >>> wl.pprint(usys, quote_units=False)
         unitsystem(m, s, kg, rad)
@@ -377,11 +390,26 @@ class AbstractUnitSystem:
             units = ", ".join(b.to_string() for b in self.base_units)
             return wl.TextDoc(f"unitsystem({units})")
 
-        strs = [_roundtrip_unit_str(b) for b in self.base_units]
-        # A lone string argument is looked up as a *system* name, not a unit, so
-        # a single-unit system must emit the list form to reconstruct.
-        inner = repr(strs) if len(strs) == 1 else ", ".join(map(repr, strs))
-        return wl.TextDoc(f"unitsystem({inner})")
+        # Prefer the explicit units: they round-trip *and* say what the system
+        # is. Where a unit has no short exact spelling, fall back to the
+        # realization's registered name, which is both -- ``unitsystem('planck')``
+        # beats a wall of seventeen significant figures.
+        strs = _exact_unit_strs(self)
+        if strs is None:
+            if (name := NAME_BY_SYSTEM.get(self)) is not None:
+                return wl.TextDoc(f"unitsystem({name!r})")
+            # Neither exactly spellable nor named: spell the scale at full
+            # precision so the repr still reconstructs. Python's ``repr`` of a
+            # float is already the shortest round-tripping string. Reaching
+            # here needs an *ad hoc* system carrying a unit whose scale exceeds
+            # six significant figures -- every named realization is caught
+            # above, so this no longer fires for ``planck`` and friends.
+            strs = [_full_precision_unit_str(b) for b in self.base_units]
+        # Always the list form. A lone string argument is looked up as a
+        # *system* name rather than a unit, so a one-unit system needs the list
+        # to reconstruct -- and using it at every arity keeps one spelling
+        # instead of a special case that only shows up for ``n == 1``.
+        return wl.TextDoc(f"unitsystem({strs!r})")
 
     def __repr__(self) -> str:
         return wl.pformat(self)
