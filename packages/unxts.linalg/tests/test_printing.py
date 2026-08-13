@@ -27,3 +27,14 @@ class TestQuantityMatrixShortName:
         result = wl.pformat(qv, use_short_name=True)
         assert result.startswith("QM(")
         assert "unit='(m, s, kg)'" in result
+
+
+def test_repr_latex_does_not_eat_characters():
+    r"""Regression: `_repr_latex_` used to slice `[1:-1]` off the unit repr.
+
+    That assumed astropy's `$...$` wrapping. `UnitsMatrix` has no
+    `_repr_latex_`, so the fallback `__repr__` was sliced and lost its first
+    and last characters, corrupting the output instead of raising.
+    """
+    qm = QuantityMatrix(jnp.array([1.0, 2.0, 3.0]), unit=("m", "s", "kg"))
+    assert qm._repr_latex_() == r'$[1.,~2.,~3.] \; UnitsMatrix("(m, s, kg)")$'
