@@ -66,6 +66,20 @@ def test_repr_hides_non_singleton_defaults() -> None:
     assert "scale=" not in custom_label_repr  # scale is still default
 
 
+def test_pdoc_chains_caller_custom_hook() -> None:
+    """A caller's `custom=` hook must run before `__pdoc__`'s own array hook.
+
+    Regression: `__pdoc__` used to *assign* `kwargs["custom"]`, discarding
+    whatever the caller passed on the default `short_arrays` path.
+    """
+    q = u.Q([1.0, 2, 3], "m")
+
+    def custom(obj: object) -> wl.AbstractDoc | None:
+        return wl.TextDoc("ARRAY_HOOK_FIRED") if isinstance(obj, jax.Array) else None
+
+    assert wl.pformat(q, custom=custom) == "Quantity(ARRAY_HOOK_FIRED, unit='m')"
+
+
 class TestShortName:
     """Test the short_name feature for wadler-lindig printing."""
 
