@@ -6,7 +6,6 @@ import jax
 import numpy as np
 import pytest
 import wadler_lindig as wl
-from wadler_lindig._wadler_lindig import pformat_doc
 
 import unxt as u
 from unxt._fmt import (
@@ -14,6 +13,7 @@ from unxt._fmt import (
     MARKUPS,
     PGroup,
     PPart,
+    doc_to_str,
     parts_to_doc,
     parts_to_markup,
     pparts,
@@ -144,7 +144,7 @@ def _long_quantity_doc() -> wl.AbstractDoc:
 
 
 def test_layout_stays_inline_when_it_fits() -> None:
-    assert "\n" not in pformat_doc(_long_quantity_doc(), 100)
+    assert "\n" not in doc_to_str(_long_quantity_doc(), 100)
 
 
 def test_separator_ink_survives_a_break() -> None:
@@ -153,7 +153,7 @@ def test_separator_ink_survives_a_break() -> None:
     Mapping ``" * "`` straight to a ``BreakDoc`` silently dropped the ``*`` on
     the broken line.
     """
-    out = pformat_doc(_long_quantity_doc(), 20)
+    out = doc_to_str(_long_quantity_doc(), 20)
     assert "\n" in out
     assert out.rstrip().endswith("m")
     assert "*" in out
@@ -162,7 +162,7 @@ def test_separator_ink_survives_a_break() -> None:
 def test_adjacent_separators_do_not_emit_a_blank_line() -> None:
     """A separator with no trailing space must not offer a break."""
     parts = (PPart("close", ")", "sep"), PPart("gap", " ", "sep"), PPart("frame", "@x"))
-    assert not re.search(r"\n\s*\n", pformat_doc(parts_to_doc(parts), 3))
+    assert not re.search(r"\n\s*\n", doc_to_str(parts_to_doc(parts), 3))
 
 
 def _vector_parts(markup: str = "text") -> tuple:
@@ -186,7 +186,7 @@ def test_nesting_keeps_inner_groups_inline() -> None:
     inner ``*`` separators break for no reason. This count is what fails if
     anyone re-flattens the tree.
     """
-    out = pformat_doc(parts_to_doc(_vector_parts()), 46)
+    out = doc_to_str(parts_to_doc(_vector_parts()), 46)
     assert "\n" in out  # the outer group did break
     assert out.count(" *\n") == 0  # ...but no inner one did
 

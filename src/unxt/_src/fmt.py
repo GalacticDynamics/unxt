@@ -34,6 +34,7 @@ __all__ = (
     "bad_spec",
     "custom_pdoc_no_kind",
     "custom_pdoc_noarray",
+    "doc_to_str",
     "parts_to_doc",
     "parts_to_markup",
     "pparts",
@@ -49,7 +50,6 @@ import jax
 import numpy as np
 import wadler_lindig as wl
 from plum import Dispatcher
-from wadler_lindig._wadler_lindig import pformat_doc
 
 #: A dispatcher private to this module.
 #:
@@ -184,6 +184,43 @@ def _markup_table(markup: str, /) -> dict[str, Any]:
     except KeyError:
         msg = f"unknown markup {markup!r}; have {sorted(MARKUPS)}"
         raise ValueError(msg) from None
+
+
+class _DocHolder(NamedTuple):
+    """Presents a ready-made doc to `wadler_lindig` through its own protocol."""
+
+    doc: wl.AbstractDoc
+
+    def __pdoc__(self, **kw: Any) -> wl.AbstractDoc:
+        return self.doc
+
+
+def doc_to_str(doc: wl.AbstractDoc, /, width: int = 88) -> str:
+    """Lay out a wadler-lindig document at ``width``.
+
+    wadler-lindig lays out a *document* only through
+    ``wadler_lindig._wadler_lindig.pformat_doc``, a private module path that
+    may move between releases. Handing `wadler_lindig.pformat` an object whose
+    ``__pdoc__`` returns the document reaches the same code through the public
+    API, and is verified to produce identical output.
+
+    Examples
+    --------
+    >>> import wadler_lindig as wl
+    >>> from unxt._fmt import doc_to_str
+
+    >>> doc = wl.TextDoc("[1., 2.]") + wl.BreakDoc(" ") + wl.TextDoc("m")
+    >>> doc_to_str(wl.GroupDoc(doc))
+    '[1., 2.] m'
+
+    Narrow enough, and the break is taken:
+
+    >>> print(doc_to_str(wl.GroupDoc(doc), 5))
+    [1., 2.]
+    m
+
+    """
+    return wl.pformat(_DocHolder(doc), width=width)
 
 
 def custom_pdoc_no_kind(obj: Any, /) -> wl.AbstractDoc | None:
@@ -432,7 +469,7 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
     if markup == "text":
         # Feed wadler-lindig, so the rendering is laid out rather than
         # concatenated and composes inside a larger document.
-        return pformat_doc(parts_to_doc(parts, sep=sep), width)
+        return doc_to_str(parts_to_doc(parts, sep=sep), width)
     return parts_to_markup(parts, markup=markup, sep=sep)
 
 

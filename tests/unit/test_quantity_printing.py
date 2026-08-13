@@ -6,9 +6,9 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 import wadler_lindig as wl
-from wadler_lindig._wadler_lindig import pformat_doc
 
 import unxt as u
+from unxt._fmt import doc_to_str
 from unxt.units import unit as parse_unit
 
 
@@ -335,4 +335,4 @@ class TestCustomPdocHookIsNotClobbered:
         way.
         """
         doc = u.Q([1.0, 2.0], "m").__pdoc__(short_arrays="compact")
-        assert pformat_doc(doc, 88) == "Quantity([1., 2.], unit='m')"
+        assert doc_to_str(doc, 88) == "Quantity([1., 2.], unit='m')"
