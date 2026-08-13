@@ -178,9 +178,18 @@ class IPythonReprMixin:
         '$[1.,~2.,~3.,~4.] \\; \\mathrm{m}$'
 
         """
-        unit_repr = getattr(self.unit, "_repr_latex_", self.unit.__repr__)()
+        unit_repr_latex = getattr(self.unit, "_repr_latex_", None)
+        # `_repr_latex_()` wraps its output in `$...$`; strip that so it can be
+        # re-wrapped below. A unit without `_repr_latex_` (e.g. a unit system
+        # or a `unxts.linalg.UnitsMatrix`) falls back to plain `__repr__()`,
+        # which carries no such wrapping and must not be sliced.
+        unit_repr = (
+            unit_repr_latex()[1:-1]
+            if unit_repr_latex is not None
+            else self.unit.__repr__()
+        )
         value_repr = np.array2string(self.value, separator=",~")  # type: ignore[call-overload]
-        return f"${value_repr} \\; {unit_repr[1:-1]}$"
+        return f"${value_repr} \\; {unit_repr}$"
 
     # TODO: implement:
     # - _repr_markdown_
