@@ -2,6 +2,7 @@
 
 import itertools
 import pickle
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated
@@ -13,6 +14,7 @@ from astropy import constants as const
 from astropy.constants import G as const_G  # noqa: N811
 
 import unxt as u
+import unxt.unitsystems as usx
 from unxt import dimension, unit, unitsystems
 from unxt._src.unitsystems import base as us_base
 from unxt._src.unitsystems.utils import parse_dimlike_name
@@ -691,3 +693,61 @@ class TestParseFieldNamesAndDimensions:
 
         with pytest.raises(ValueError, match="Some dimensions are repeated"):
             us_base.parse_field_names_and_dimensions(TwoLengths)
+
+
+class TestNamedNaturalUnits:
+    """The fully-determined natural systems spell their bases by name."""
+
+    @pytest.mark.parametrize(
+        ("name", "expected"),
+        [
+            ("planck", ["l_P", "m_P", "t_P", "T_P"]),
+            ("atomic", ["a_0", "m_e", "t_au", "e"]),
+        ],
+    )
+    def test_bases_are_named(self, name, expected):
+        """Each base prints as its physics symbol."""
+        usys = getattr(usx, name)
+        assert [str(b) for b in usys.base_units] == expected
+
+    @pytest.mark.parametrize("name", ["planck", "atomic"])
+    def test_names_reparse_exactly(self, name):
+        """The point of naming them: the spelling reconstructs.
+
+        ``to_string()`` truncates a scaled unit past six significant figures,
+        so ``1.61626e-35 m`` did not compare equal on reconstruction.
+        """
+        for base in getattr(usx, name).base_units:
+            assert u.unit(str(base)) == base
+
+    @pytest.mark.parametrize("name", ["planck", "atomic"])
+    def test_no_numeric_scale_in_repr(self, name):
+        """No scale factor survives into the repr."""
+        assert not re.search(r"\de[+-]\d", repr(getattr(usx, name)))
+
+    def test_values_track_astropy_constants(self):
+        """Defined from the constant expressions, not hard-coded numbers.
+
+        A CODATA revision in astropy must move these with it.
+        """
+        expected = np.sqrt(const.hbar * const_G / const.c**3).decompose()
+        assert (1 * usx.planck["length"]).to(apyu.m).value == pytest.approx(
+            expected.value
+        )
+
+    @pytest.mark.parametrize(
+        ("unit_str", "latex"),
+        [("l_P", r"\ell_\mathrm{P}"), ("a_0", r"a_{0}"), ("m_e", r"m_\mathrm{e}")],
+    )
+    def test_latex_is_typeset_not_escaped(self, unit_str, latex):
+        r"""Without a ``format`` override astropy emits ``\mathrm{a\_0}``."""
+        assert latex in u.unit(unit_str).to_string("latex")
+
+    def test_defining_e_does_not_disturb_scientific_notation(self):
+        """A unit named ``e`` is the elementary charge, not an exponent."""
+        assert u.unit("1e5 m") == u.unit("100000 m")
+        assert u.unit("1.5e3 kg") == u.unit("1500 kg")
+
+    def test_astropy_a0_is_untouched(self):
+        """``a0`` was already taken by astropy (dimensionless); we use ``a_0``."""
+        assert apyu.Unit("a0").physical_type == "dimensionless"
