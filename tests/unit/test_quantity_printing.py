@@ -8,6 +8,7 @@ import pytest
 import wadler_lindig as wl
 
 import unxt as u
+from unxt._src.quantity.mixins import IPythonReprMixin
 from unxt.units import unit as parse_unit
 
 
@@ -259,3 +260,44 @@ def test_format_non_scalar_raises() -> None:
     for q in (u.Q([1.5, 2.5], "m"), u.StaticQuantity(np.array([1.5, 2.5]), "m")):
         with pytest.raises(TypeError, match="unsupported format string"):
             format(q, ".2f")
+
+
+class TestReprLatexUnitStripping:
+    r"""`_repr_latex_` strips `$...$` only when the unit actually supplied it."""
+
+    class _Fake:
+        """Stands in for a unit; `IPythonReprMixin` only reads value/unit."""
+
+        def __init__(self, latex: str | None, /) -> None:
+            self._latex = latex
+            if latex is not None:
+                self._repr_latex_ = lambda: latex  # type: ignore[method-assign]
+
+        def __repr__(self) -> str:
+            return "Fake(unit)"
+
+    def _render(self, latex: str | None) -> str:
+        obj = IPythonReprMixin()
+        obj.value = np.array([1.0, 2.0])  # type: ignore[assignment]
+        obj.unit = self._Fake(latex)  # type: ignore[assignment]
+        return obj._repr_latex_()
+
+    def test_wrapped_latex_is_unwrapped_once(self):
+        r"""Astropy's `$\mathrm{m}$` loses exactly its own delimiters."""
+        assert self._render(r"$\mathrm{m}$") == r"$[1.,~2.] \; \mathrm{m}$"
+
+    def test_unwrapped_latex_is_left_intact(self):
+        r"""A `_repr_latex_` that returns no `$` must not be sliced.
+
+        Keying the strip off the *existence* of `_repr_latex_` corrupted this
+        case -- the same defect as the `UnitsMatrix` one, one step removed.
+        """
+        assert self._render(r"\mathrm{m}") == r"$[1.,~2.] \; \mathrm{m}$"
+
+    def test_no_repr_latex_falls_back_to_repr(self):
+        """A unit without `_repr_latex_` is rendered by `repr` and not sliced."""
+        assert self._render(None) == r"$[1.,~2.] \; Fake(unit)$"
+
+    def test_lone_dollar_is_not_stripped(self):
+        """A single `$` satisfies both `startswith` and `endswith`."""
+        assert self._render("$") == r"$[1.,~2.] \; $$"

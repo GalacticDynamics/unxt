@@ -178,9 +178,23 @@ class IPythonReprMixin:
         '$[1.,~2.,~3.,~4.] \\; \\mathrm{m}$'
 
         """
-        unit_repr = getattr(self.unit, "_repr_latex_", self.unit.__repr__)()
+        unit_repr_latex = getattr(self.unit, "_repr_latex_", None)
+        unit_repr = repr(self.unit) if unit_repr_latex is None else unit_repr_latex()
+        # `_repr_latex_` conventionally wraps its output in `$...$`, and it has
+        # to come off before being re-wrapped below. Strip it only when it is
+        # actually there: keying off the *existence* of `_repr_latex_` would
+        # still corrupt a unit whose implementation returns an unwrapped
+        # string, which is this same defect one step removed. A unit without
+        # `_repr_latex_` at all (a unit system, a `unxts.linalg.UnitsMatrix`)
+        # falls back to `repr` and is likewise left alone.
+        if (
+            len(unit_repr) >= 2
+            and unit_repr.startswith("$")
+            and unit_repr.endswith("$")
+        ):
+            unit_repr = unit_repr[1:-1]
         value_repr = np.array2string(self.value, separator=",~")  # type: ignore[call-overload]
-        return f"${value_repr} \\; {unit_repr[1:-1]}$"
+        return f"${value_repr} \\; {unit_repr}$"
 
     # TODO: implement:
     # - _repr_markdown_
