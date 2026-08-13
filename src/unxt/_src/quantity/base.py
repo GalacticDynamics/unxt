@@ -1546,17 +1546,7 @@ def _chain_custom(
     ours: Callable[[Any], wl.AbstractDoc | None],
     /,
 ) -> Callable[[Any], wl.AbstractDoc | None]:
-    """Try the caller's ``custom=`` pdoc hook first, then ours.
-
-    ``__pdoc__`` needs its own hook to implement ``short_arrays``, but it used
-    to install it by *assigning* ``kwargs["custom"]``. ``wadler_lindig.pdoc``
-    always puts ``custom`` in the kwargs it forwards, so that assignment
-    silently discarded whatever the caller passed -- on the default path, since
-    ``short_arrays`` is ``True``/``"compact"`` for both ``repr`` and ``str``.
-
-    The caller goes first: passing ``custom=`` is an explicit request to
-    override rendering, so it must be able to beat the default array handling.
-    """
+    """Try the caller's ``custom=`` pdoc hook first, then ours."""
     if caller is None:
         return ours
 

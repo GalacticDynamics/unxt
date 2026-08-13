@@ -68,11 +68,7 @@ def test_repr_hides_non_singleton_defaults() -> None:
 
 
 def test_pdoc_chains_caller_custom_hook() -> None:
-    """A caller's `custom=` hook must run before `__pdoc__`'s own array hook.
-
-    Regression: `__pdoc__` used to *assign* `kwargs["custom"]`, discarding
-    whatever the caller passed on the default `short_arrays` path.
-    """
+    """Regression: __pdoc__ used to drop the caller's custom= hook."""
     q = u.Q([1.0, 2, 3], "m")
 
     def custom(obj: object) -> wl.AbstractDoc | None:
