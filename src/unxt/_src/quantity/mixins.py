@@ -179,13 +179,20 @@ class IPythonReprMixin:
 
         """
         unit_repr_latex = getattr(self.unit, "_repr_latex_", None)
-        # `_repr_latex_()` wraps its output in `$...$`; strip that so it can be
-        # re-wrapped below. A unit without `_repr_latex_` (e.g. a unit system
-        # or a `unxts.linalg.UnitsMatrix`) falls back to plain `__repr__()`,
-        # which carries no such wrapping and must not be sliced.
-        unit_repr = (
-            unit_repr_latex()[1:-1] if unit_repr_latex is not None else repr(self.unit)
-        )
+        unit_repr = repr(self.unit) if unit_repr_latex is None else unit_repr_latex()
+        # `_repr_latex_` conventionally wraps its output in `$...$`, and it has
+        # to come off before being re-wrapped below. Strip it only when it is
+        # actually there: keying off the *existence* of `_repr_latex_` would
+        # still corrupt a unit whose implementation returns an unwrapped
+        # string, which is this same defect one step removed. A unit without
+        # `_repr_latex_` at all (a unit system, a `unxts.linalg.UnitsMatrix`)
+        # falls back to `repr` and is likewise left alone.
+        if (
+            len(unit_repr) >= 2
+            and unit_repr.startswith("$")
+            and unit_repr.endswith("$")
+        ):
+            unit_repr = unit_repr[1:-1]
         value_repr = np.array2string(self.value, separator=",~")  # type: ignore[call-overload]
         return f"${value_repr} \\; {unit_repr}$"
 
