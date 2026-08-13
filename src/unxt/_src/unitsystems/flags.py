@@ -82,7 +82,7 @@ class DynamicalSimUSysFlag(AbstractUSysFlag):
     Define a unit system with the dynamical simulation flag:
 
     >>> unitsystem(DynamicalSimUSysFlag, "m", "kg")
-    unitsystem(['m', 'kg', '122404...4427 s'])
+    unitsystem(['m', 'kg', '122404 s'])
 
     Further examples may be found in the ``unitsystem`` docs.
 

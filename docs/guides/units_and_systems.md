@@ -220,7 +220,7 @@ The dimensionless unit system is not the only special unit system. `unxt` also s
 >>> from unxt.unitsystems import DynamicalSimUSysFlag
 
 >>> unitsystem(DynamicalSimUSysFlag, "m", "kg")
-unitsystem(['m', 'kg', '122404...4427 s'])
+unitsystem(['m', 'kg', '122404 s'])
 
 ```
 

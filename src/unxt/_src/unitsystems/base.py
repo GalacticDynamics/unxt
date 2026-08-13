@@ -9,11 +9,7 @@ from typing import Any, ClassVar, get_args, get_type_hints
 
 import jax.tree_util as jtu
 import wadler_lindig as wl
-from astropy.units import (
-    CompositeUnit,
-    PhysicalType,
-    UnitBase as AstropyUnitBase,
-)
+from astropy.units import PhysicalType, UnitBase as AstropyUnitBase
 from astropy.units.physical import _physical_unit_mapping
 
 from is_annotated import isannotated
@@ -76,15 +72,6 @@ def _exact_unit_strs(usys: "AbstractUnitSystem", /) -> list[str] | None:
             return None
         out.append(short)
     return out
-
-
-def _full_precision_unit_str(u: AbstractUnit, /) -> str:
-    """Spell ``u`` exactly, using the full-precision scale when needed."""
-    short = u.to_string()
-    if unit(short) == u:
-        return short
-    bases = CompositeUnit(1, u.bases, u.powers).to_string()
-    return f"{u.scale!r} {bases}"
 
 
 def _is_dataclass_slots_rebuild(
@@ -398,13 +385,12 @@ class AbstractUnitSystem:
         if strs is None:
             if (name := NAME_BY_SYSTEM.get(self)) is not None:
                 return wl.TextDoc(f"unitsystem({name!r})")
-            # Neither exactly spellable nor named: spell the scale at full
-            # precision so the repr still reconstructs. Python's ``repr`` of a
-            # float is already the shortest round-tripping string. Reaching
-            # here needs an *ad hoc* system carrying a unit whose scale exceeds
-            # six significant figures -- every named realization is caught
-            # above, so this no longer fires for ``planck`` and friends.
-            strs = [_full_precision_unit_str(b) for b in self.base_units]
+            # Neither exactly spellable nor named. Show the short units and
+            # accept that this one does not reconstruct: spelling the scale at
+            # full precision bought exact round-tripping for an *ad hoc*
+            # system at the cost of a wall of seventeen significant figures,
+            # and every system anyone names is already handled above.
+            strs = [b.to_string() for b in self.base_units]
         # Always the list form. A lone string argument is looked up as a
         # *system* name rather than a unit, so a one-unit system needs the list
         # to reconstruct -- and using it at every arity keeps one spelling

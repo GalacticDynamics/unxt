@@ -708,11 +708,17 @@ class TestUnitSystemRendering:
         }
 
     def test_repr_round_trips_for_every_realization(self):
-        """``eval(repr(usys)) == usys`` -- the property the quoted form buys.
+        """``eval(repr(usys)) == usys`` for every *named* system.
 
-        Discovered dynamically rather than hard-coded: ``hep`` and
-        ``geometrized`` also need the full-precision scale fallback and are
-        easy to leave off a hand-written list.
+        Discovered dynamically rather than hard-coded, so a new realization is
+        covered without anyone remembering to add it.
+
+        This is the guarantee, and it stops here. An *ad hoc* system carrying a
+        unit whose scale exceeds six significant figures -- built from a flag,
+        or by extending a measured-constant system -- reprs with the short,
+        truncated units and does not reconstruct exactly. Buying that back cost
+        a full-precision spelling that turned those reprs into a wall of
+        seventeen significant figures, which was worse than the problem.
         """
         ns = {
             "unitsystem": u.unitsystem,
@@ -746,14 +752,16 @@ class TestUnitSystemRendering:
         for name, usys in self._realizations().items():
             assert not re.search(r"\de[+-]\d", repr(usys)), name
 
-    def test_unnameable_lossy_system_reprs_without_raising(self):
-        """An ad-hoc system with a lossy scale degrades rather than exploding.
+    def test_unnameable_lossy_system_reprs_readably(self):
+        """An ad-hoc system with a lossy scale stays readable.
 
-        A ``repr`` that raises fails exactly when someone is debugging, so this
-        one gives up round-tripping instead.
+        It gives up exact reconstruction rather than spelling every scale at
+        full precision. ``str`` and ``repr`` agree on the units here; only the
+        quoting differs.
         """
-        adhoc = u.unitsystem(usx.planck, "km/s")
-        assert repr(adhoc).startswith("unitsystem(")
+        adhoc = u.unitsystem(usx.DynamicalSimUSysFlag, "m", "kg")
+        assert repr(adhoc) == "unitsystem(['m', 'kg', '122404 s'])"
+        assert not re.search(r"\d{10,}", repr(adhoc))
 
     def test_str_is_the_readable_unquoted_form(self):
         """``str`` drops the quotes."""

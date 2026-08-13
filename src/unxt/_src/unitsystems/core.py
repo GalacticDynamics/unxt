@@ -320,7 +320,7 @@ def unitsystem(
     >>> from unxt.unitsystems import unitsystem, DynamicalSimUSysFlag
 
     >>> unitsystem(DynamicalSimUSysFlag, "m", "kg")
-    unitsystem(['m', 'kg', '122404...4427 s'])
+    unitsystem(['m', 'kg', '122404 s'])
 
     """
     tmp = unitsystem(*args)
