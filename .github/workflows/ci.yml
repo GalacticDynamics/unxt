@@ -588,7 +588,8 @@ jobs:
         run: uv sync --no-default-groups --extra all --group test-all --upgrade
 
       - name: Test package
-        run: uv run --no-sync pytest -n logical --dist=loadfile
+        run:
+          uv run --no-sync pytest --benchmark-disable -n logical --dist=loadfile
 
   test-interoperability:
     name: Check Interoperability
