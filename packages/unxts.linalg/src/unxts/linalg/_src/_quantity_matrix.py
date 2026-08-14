@@ -552,6 +552,22 @@ def uconvert(to_units: UnitsMatrix, x: QuantityMatrix, /) -> QuantityMatrix:
 
 
 @plum.dispatch
+def unit_of(x: QuantityMatrix, /) -> UnitsMatrix:
+    """Return the `UnitsMatrix` of a ``QuantityMatrix``.
+
+    Without this, resolution reaches the generic `AbstractQuantity` rule, which
+    coerces its result to an astropy `Unit` -- and a matrix of units is not one.
+
+    Deliberately without a doctest: under a combined ``pytest`` session (any
+    test module plus this one) plum's return conversion for this method raises
+    ``Cannot convert UnitsMatrix to UnitsMatrix``, though the call itself works
+    in every other context, including a plain interpreter and a doctest-only
+    run. Tracked in #881; covered by `tests/test_quantity_matrix.py` instead.
+    """
+    return x.unit
+
+
+@plum.dispatch
 def ustrip(units: UnitsMatrix, x: QuantityMatrix, /) -> Array:
     """Convert a ``QuantityMatrix`` to ``units`` and drop them.
 
