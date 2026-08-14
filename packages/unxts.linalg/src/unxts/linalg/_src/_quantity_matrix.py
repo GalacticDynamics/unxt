@@ -594,10 +594,12 @@ def ustrip(units: UnitsMatrix, x: QuantityMatrix, /) -> Array:
 
 @plum.dispatch
 def ustrip(units: str, x: QuantityMatrix, /) -> Array:
-    """Strip a *homogeneous* ``QuantityMatrix`` to a single unit.
+    """Strip a ``QuantityMatrix`` to one unit shared by every element.
 
-    The common case -- most often ``""`` for a dimensionless matrix -- without
-    making the caller build a `UnitsMatrix` of identical entries by hand.
+    Saves building a `UnitsMatrix` of identical entries by hand; most often
+    ``""`` for a dimensionless matrix. The matrix need not be *homogeneous* --
+    conversion is elementwise, so any entry convertible to ``units`` is fine,
+    and one that is not raises `UnitConversionError`.
 
     >>> import jax.numpy as jnp
     >>> import unxt as u
@@ -605,6 +607,12 @@ def ustrip(units: str, x: QuantityMatrix, /) -> Array:
 
     >>> q = QuantityMatrix(jnp.eye(2), (("", ""), ("", "")))
     >>> bool(jnp.allclose(u.ustrip("", q), jnp.eye(2)))
+    True
+
+    Mixed entries are fine when they share a dimension:
+
+    >>> mixed = QuantityMatrix(jnp.full((2, 2), 1000.0), (("m", "m"), ("m", "m")))
+    >>> bool(jnp.allclose(u.ustrip("km", mixed), jnp.ones((2, 2))))
     True
 
     """
@@ -626,7 +634,7 @@ def ustrip(flag: type[AllowValue], units: UnitsMatrix, x: QuantityMatrix, /) -> 
 
     """
     del flag
-    return uconvert(units, x).value
+    return ustrip(units, x)
 
 
 @plum.dispatch
@@ -644,4 +652,4 @@ def ustrip(flag: type[AllowValue], units: str, x: QuantityMatrix, /) -> Array:
 
     """
     del flag
-    return uconvert(UnitsMatrix.full(x.unit.shape, units), x).value
+    return ustrip(units, x)
