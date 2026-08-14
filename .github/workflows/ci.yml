@@ -29,6 +29,9 @@ concurrency:
 
 env:
   PYTHON_VERSIONS: '["3.12", "3.13", "3.14"]'
+  # NB: the tests-unxt job's exclude list (lines 144-152) hardcodes these
+  # versions; update it if this changes, or macOS/Windows will silently run the
+  # full matrix (GitHub Actions does not warn when exclude entries go stale).
   # Many color libraries just need this to be set to any value, but at least
   # one distinguishes color depth, where "3" -> "256-bit color".
   FORCE_COLOR: 3
@@ -163,6 +166,16 @@ jobs:
         run: |
           uv sync --no-default-groups --group nox --group test --locked --package unxt
 
+      # Parallelization via pytest-xdist: -n logical and --dist=loadfile. The
+      # --dist=loadfile strategy is required (not tuning): Sybil's doctest
+      # regions within one document share a namespace and must run in order in a
+      # single worker; the default --dist=load would shard them across workers
+      # and break those tests. --benchmark-disable appears on only 4 jobs
+      # (tests-unxt, test-oldest, test-newest, test-interoperability):
+      # pytest-benchmark is not installed in per-package job environments, and on
+      # these 4 the flag is required because pyproject.toml's filterwarnings =
+      # ["error",...] turns benchmark's xdist-auto-disable warning into an
+      # INTERNALERROR. Do not add this flag to other jobs without verifying.
       - name: Test package
         run: |
           uv run --frozen --package unxt nox -s "pytest(package='unxt')" -- --cov --cov-report=xml --cov-report=term --durations=20 --benchmark-disable -n logical --dist=loadfile
@@ -326,6 +339,7 @@ jobs:
           # `hypothesis`, so sybil mis-imports it. Run these via pytest's
           # namespace-aware --doctest-modules (doctest plugin re-enabled by
           # overriding addopts, which otherwise sets `-p no:doctest`).
+          # These src invocations run serially (no xdist), by design -- not oversight.
           uv run --frozen --package unxts-hypothesis pytest packages/unxts.hypothesis/src --doctest-modules -o addopts="--import-mode=importlib" -o consider_namespace_packages=true -o doctest_optionflags="ELLIPSIS NORMALIZE_WHITESPACE"
           uv run --frozen --package unxts-hypothesis pytest packages/unxts.hypothesis/tests --cov=packages/unxts.hypothesis/src --cov-report=xml --cov-report=term -n logical --dist=loadfile
 
