@@ -133,6 +133,23 @@ jobs:
       matrix:
         python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
         runs-on: [ubuntu-latest, macos-latest, windows-latest]
+        # macOS runners bill at 10x the Linux rate and Windows at 2x
+        # (https://docs.github.com/en/billing/managing-billing-for-your-products/managing-billing-for-github-actions/about-billing-for-github-actions).
+        # All 3 Python versions are already fully exercised on Linux; running
+        # them again on macOS/Windows is cross-OS coverage, not cross-version
+        # coverage, so one version per non-Linux OS is enough to catch a
+        # platform-specific break. Pin it to the newest version so it also
+        # doubles as a "does the latest supported Python work on this OS"
+        # check.
+        exclude:
+          - runs-on: macos-latest
+            python-version: "3.12"
+          - runs-on: macos-latest
+            python-version: "3.13"
+          - runs-on: windows-latest
+            python-version: "3.12"
+          - runs-on: windows-latest
+            python-version: "3.13"
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
