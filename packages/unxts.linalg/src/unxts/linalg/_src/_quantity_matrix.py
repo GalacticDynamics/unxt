@@ -547,3 +547,94 @@ def uconvert(to_units: UnitsMatrix, x: QuantityMatrix, /) -> QuantityMatrix:
         return x
     value = _convert_value(x.value, x.unit, to_units)
     return QuantityMatrix._mk(value=value, unit=to_units)
+
+
+@plum.dispatch
+def unit_of(x: QuantityMatrix, /) -> UnitsMatrix:
+    """Return the `UnitsMatrix` of a ``QuantityMatrix``.
+
+    Without this, resolution reaches the generic `AbstractQuantity` rule, which
+    coerces its result to an astropy `Unit` -- and a matrix of units is not one.
+
+    No doctest here: under a combined ``pytest`` session plum's return
+    conversion raises ``Cannot convert UnitsMatrix to UnitsMatrix`` (#881),
+    though the call works everywhere else. Covered by a test instead.
+    """
+    return x.unit
+
+
+@plum.dispatch
+def ustrip(units: UnitsMatrix, x: QuantityMatrix, /) -> Array:
+    """Convert a ``QuantityMatrix`` to ``units`` and drop them.
+
+    The companion to `uconvert` above, and the reason it is needed: with no
+    dispatch here, resolution falls through to the generic `AbstractQuantity`
+    rule, which does ``x.unit.to(...)``. A `UnitsMatrix` has no ``.to`` -- it is
+    a matrix of units, not one unit -- so the call fails with an `AttributeError`
+    pointing into the astropy interop rather than at the real cause.
+
+    >>> import jax.numpy as jnp
+    >>> import unxt as u
+    >>> from unxts.linalg import QuantityMatrix, UnitsMatrix
+
+    >>> q = QuantityMatrix(
+    ...     jnp.array([[1.0, 2.0], [3.0, 4.0]]), (("m", "m"), ("m", "m"))
+    ... )
+    >>> got = u.ustrip(UnitsMatrix.full((2, 2), "km"), q)
+    >>> bool(jnp.allclose(got, jnp.array([[0.001, 0.002], [0.003, 0.004]])))
+    True
+
+    """
+    return uconvert(units, x).value
+
+
+@plum.dispatch
+def ustrip(units: str, x: QuantityMatrix, /) -> Array:
+    """Strip a ``QuantityMatrix`` to one unit shared by every element.
+
+    Saves building a `UnitsMatrix` of identical entries by hand; most often
+    ``""`` for a dimensionless matrix. The matrix need not be *homogeneous* --
+    conversion is elementwise, so any entry convertible to ``units`` is fine,
+    and one that is not raises `UnitConversionError`.
+
+    >>> import jax.numpy as jnp
+    >>> import unxt as u
+    >>> from unxts.linalg import QuantityMatrix
+
+    >>> q = QuantityMatrix(jnp.eye(2), (("", ""), ("", "")))
+    >>> bool(jnp.allclose(u.ustrip("", q), jnp.eye(2)))
+    True
+
+    Mixed entries are fine when each is convertible to the target:
+
+    >>> mixed = QuantityMatrix(
+    ...     jnp.array([[1000.0, 1.0], [1000.0, 1.0]]), (("m", "km"), ("m", "km"))
+    ... )
+    >>> bool(jnp.allclose(u.ustrip("km", mixed), jnp.ones((2, 2))))
+    True
+
+    """
+    return ustrip(UnitsMatrix.full(x.unit.shape, units), x)
+
+
+@plum.dispatch
+def ustrip(
+    flag: type[AllowValue], units: UnitsMatrix | str, x: QuantityMatrix, /
+) -> Array:
+    """`AllowValue` form of both spellings, for code that also handles arrays.
+
+    >>> import jax.numpy as jnp
+    >>> import unxt as u
+    >>> from unxt.quantity import AllowValue
+    >>> from unxts.linalg import QuantityMatrix, UnitsMatrix
+
+    >>> q = QuantityMatrix(jnp.full((2, 2), 1000.0), (("m", "m"), ("m", "m")))
+    >>> bool(jnp.allclose(u.ustrip(AllowValue, "km", q), jnp.ones((2, 2))))
+    True
+    >>> target = UnitsMatrix.full((2, 2), "km")
+    >>> bool(jnp.allclose(u.ustrip(AllowValue, target, q), jnp.ones((2, 2))))
+    True
+
+    """
+    del flag
+    return ustrip(units, x)

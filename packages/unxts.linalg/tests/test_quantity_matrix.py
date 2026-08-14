@@ -2574,3 +2574,15 @@ class TestInvQuantityMatrix:
         Ainv = quax.quaxify(qm_inv)(A)
         product = A.value @ Ainv.value
         assert jnp.allclose(product, jnp.eye(2), atol=1e-6)
+
+
+@pytest.mark.xfail(
+    reason="#881: plum resolves `-> UnitsMatrix` to a second class object under "
+    "a combined pytest session, so the return conversion fails. `unit_of` "
+    "itself works -- in a plain interpreter, and in a doctest-only run.",
+    strict=False,
+)
+def test_unit_of_returns_the_units_matrix():
+    """`unit_of` on a `QuantityMatrix` yields its `UnitsMatrix`."""
+    qm = QMat(jnp.eye(2), (("m", "rad"), ("m", "rad")))
+    assert u.unit_of(qm).to_string() == "((m, rad), (m, rad))"
