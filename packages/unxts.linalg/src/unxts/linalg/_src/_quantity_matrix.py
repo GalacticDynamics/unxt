@@ -558,11 +558,9 @@ def unit_of(x: QuantityMatrix, /) -> UnitsMatrix:
     Without this, resolution reaches the generic `AbstractQuantity` rule, which
     coerces its result to an astropy `Unit` -- and a matrix of units is not one.
 
-    Deliberately without a doctest: under a combined ``pytest`` session (any
-    test module plus this one) plum's return conversion for this method raises
-    ``Cannot convert UnitsMatrix to UnitsMatrix``, though the call itself works
-    in every other context, including a plain interpreter and a doctest-only
-    run. Tracked in #881; covered by `tests/test_quantity_matrix.py` instead.
+    No doctest here: under a combined ``pytest`` session plum's return
+    conversion raises ``Cannot convert UnitsMatrix to UnitsMatrix`` (#881),
+    though the call works everywhere else. Covered by a test instead.
     """
     return x.unit
 
@@ -609,46 +607,35 @@ def ustrip(units: str, x: QuantityMatrix, /) -> Array:
     >>> bool(jnp.allclose(u.ustrip("", q), jnp.eye(2)))
     True
 
-    Mixed entries are fine when they share a dimension:
+    Mixed entries are fine when each is convertible to the target:
 
-    >>> mixed = QuantityMatrix(jnp.full((2, 2), 1000.0), (("m", "m"), ("m", "m")))
+    >>> mixed = QuantityMatrix(
+    ...     jnp.array([[1000.0, 1.0], [1000.0, 1.0]]), (("m", "km"), ("m", "km"))
+    ... )
     >>> bool(jnp.allclose(u.ustrip("km", mixed), jnp.ones((2, 2))))
     True
 
     """
-    return uconvert(UnitsMatrix.full(x.unit.shape, units), x).value
+    return ustrip(UnitsMatrix.full(x.unit.shape, units), x)
 
 
 @plum.dispatch
-def ustrip(flag: type[AllowValue], units: UnitsMatrix, x: QuantityMatrix, /) -> Array:
-    """`AllowValue` form, for code that also handles bare arrays.
+def ustrip(
+    flag: type[AllowValue], units: UnitsMatrix | str, x: QuantityMatrix, /
+) -> Array:
+    """`AllowValue` form of both spellings, for code that also handles arrays.
 
     >>> import jax.numpy as jnp
     >>> import unxt as u
     >>> from unxt.quantity import AllowValue
     >>> from unxts.linalg import QuantityMatrix, UnitsMatrix
 
-    >>> q = QuantityMatrix(jnp.eye(2), (("", ""), ("", "")))
-    >>> u.ustrip(AllowValue, UnitsMatrix.full((2, 2), ""), q).shape
-    (2, 2)
-
-    """
-    del flag
-    return ustrip(units, x)
-
-
-@plum.dispatch
-def ustrip(flag: type[AllowValue], units: str, x: QuantityMatrix, /) -> Array:
-    """`AllowValue` form with a single unit.
-
-    >>> import jax.numpy as jnp
-    >>> import unxt as u
-    >>> from unxt.quantity import AllowValue
-    >>> from unxts.linalg import QuantityMatrix
-
-    >>> q = QuantityMatrix(jnp.eye(2), (("", ""), ("", "")))
-    >>> u.ustrip(AllowValue, "", q).shape
-    (2, 2)
+    >>> q = QuantityMatrix(jnp.full((2, 2), 1000.0), (("m", "m"), ("m", "m")))
+    >>> bool(jnp.allclose(u.ustrip(AllowValue, "km", q), jnp.ones((2, 2))))
+    True
+    >>> target = UnitsMatrix.full((2, 2), "km")
+    >>> bool(jnp.allclose(u.ustrip(AllowValue, target, q), jnp.ones((2, 2))))
+    True
 
     """
     del flag
