@@ -189,7 +189,7 @@ jobs:
 
   publish-pypi:
     name: Publish to PyPI
-    needs: [validate]
+    needs: [validate, publish-testpypi]
     if: needs.validate.outputs.publish_pypi == 'true'
     runs-on: ubuntu-latest
     environment:
