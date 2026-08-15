@@ -619,7 +619,7 @@ jobs:
         run: uv sync --no-default-groups --extra all --group test-all --upgrade
 
       - name: Test package
-        run:
+        run: |
           uv run --no-sync pytest --benchmark-disable -n logical --dist=loadfile
 
   test-interoperability:
