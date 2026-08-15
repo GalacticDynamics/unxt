@@ -92,14 +92,10 @@ _sybil_collect_file = (docs + python).pytest()
 # of the real ``unxts.<pkg>`` one. For the packages whose leaf shadows an
 # installed library (gala/xarray/hypothesis) that name collides with the real
 # library and the import fails loudly. ``unxts.linalg`` has no such collision,
-# so the mis-import "succeeds" instead -- but it builds a second, wrongly
-# named module tree alongside the real ``unxts.linalg`` one, so any class
-# defined there (e.g. ``UnitsMatrix``) gets duplicated: the copy the doctest
-# sees and the copy the rest of the session imports are `!=`-different classes,
-# breaking `isinstance` checks and plum dispatch/conversion (see #881). Their
-# ``src`` doctests are instead run with pytest's
-# ``--doctest-modules --import-mode=importlib`` (namespace-aware) in each
-# package's CI job, so skip them here to avoid the mis-import.
+# so the mis-import silently succeeds instead, duplicating classes (e.g.
+# ``UnitsMatrix``) between the two module trees. Their ``src`` doctests are
+# instead run with pytest's ``--doctest-modules --import-mode=importlib``
+# (namespace-aware) in each package's CI job, so skip them here.
 # (unxts.interop.matplotlib also collides but has no ``src`` doctests, so sybil
 # never imports it; it stays on the normal path.)
 _DOCTEST_MODULE_SRC = (
