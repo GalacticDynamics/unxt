@@ -29,6 +29,9 @@ concurrency:
 
 env:
   PYTHON_VERSIONS: '["3.12", "3.13", "3.14"]'
+  # NB: the tests-unxt job's exclude list (lines 144-152) hardcodes these
+  # versions; update it if this changes, or macOS/Windows will silently run the
+  # full matrix (GitHub Actions does not warn when exclude entries go stale).
   # Many color libraries just need this to be set to any value, but at least
   # one distinguishes color depth, where "3" -> "256-bit color".
   FORCE_COLOR: 3
@@ -133,6 +136,23 @@ jobs:
       matrix:
         python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
         runs-on: [ubuntu-latest, macos-latest, windows-latest]
+        # macOS runners bill at 10x the Linux rate and Windows at 2x
+        # (https://docs.github.com/en/billing/managing-billing-for-your-products/managing-billing-for-github-actions/about-billing-for-github-actions).
+        # All 3 Python versions are already fully exercised on Linux; running
+        # them again on macOS/Windows is cross-OS coverage, not cross-version
+        # coverage, so one version per non-Linux OS is enough to catch a
+        # platform-specific break. Pin it to the newest version so it also
+        # doubles as a "does the latest supported Python work on this OS"
+        # check.
+        exclude:
+          - runs-on: macos-latest
+            python-version: "3.12"
+          - runs-on: macos-latest
+            python-version: "3.13"
+          - runs-on: windows-latest
+            python-version: "3.12"
+          - runs-on: windows-latest
+            python-version: "3.13"
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -146,9 +166,19 @@ jobs:
         run: |
           uv sync --no-default-groups --group nox --group test --locked --package unxt
 
+      # Parallelization via pytest-xdist: -n logical and --dist=loadfile. The
+      # --dist=loadfile strategy is required (not tuning): Sybil's doctest
+      # regions within one document share a namespace and must run in order in a
+      # single worker; the default --dist=load would shard them across workers
+      # and break those tests. --benchmark-disable appears on only 4 jobs
+      # (tests-unxt, test-oldest, test-newest, test-interoperability):
+      # pytest-benchmark is not installed in per-package job environments, and on
+      # these 4 the flag is required because pyproject.toml's filterwarnings =
+      # ["error",...] turns benchmark's xdist-auto-disable warning into an
+      # INTERNALERROR. Do not add this flag to other jobs without verifying.
       - name: Test package
         run: |
-          uv run --frozen --package unxt nox -s "pytest(package='unxt')" -- --cov --cov-report=xml --cov-report=term --durations=20
+          uv run --frozen --package unxt nox -s "pytest(package='unxt')" -- --cov --cov-report=xml --cov-report=term --durations=20 --benchmark-disable -n logical --dist=loadfile
 
       - name: Upload coverage report
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -186,7 +216,7 @@ jobs:
 
       - name: Test package
         run: |
-          uv run --frozen --package unxt-api pytest packages/unxt-api/tests --cov=packages/unxt-api/src --cov-report=xml --cov-report=term
+          uv run --frozen --package unxt-api pytest packages/unxt-api/tests --cov=packages/unxt-api/src --cov-report=xml --cov-report=term -n logical --dist=loadfile
 
       - name: Upload coverage report
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -226,7 +256,7 @@ jobs:
 
       - name: Test package
         run: |
-          uv run --frozen --package unxt-hypothesis pytest packages/unxt-hypothesis/tests --cov=packages/unxt-hypothesis/src --cov-report=xml --cov-report=term
+          uv run --frozen --package unxt-hypothesis pytest packages/unxt-hypothesis/tests --cov=packages/unxt-hypothesis/src --cov-report=xml --cov-report=term -n logical --dist=loadfile
 
       - name: Upload coverage report
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -265,7 +295,7 @@ jobs:
       - name: Test package
         run: |
           uv run --frozen --package unxts-api pytest packages/unxts.api/src
-          uv run --frozen --package unxts-api pytest packages/unxts.api/tests --cov=packages/unxts.api/src --cov-report=xml --cov-report=term
+          uv run --frozen --package unxts-api pytest packages/unxts.api/tests --cov=packages/unxts.api/src --cov-report=xml --cov-report=term -n logical --dist=loadfile
 
       - name: Upload coverage report
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -309,8 +339,9 @@ jobs:
           # `hypothesis`, so sybil mis-imports it. Run these via pytest's
           # namespace-aware --doctest-modules (doctest plugin re-enabled by
           # overriding addopts, which otherwise sets `-p no:doctest`).
+          # These src invocations run serially (no xdist), by design -- not oversight.
           uv run --frozen --package unxts-hypothesis pytest packages/unxts.hypothesis/src --doctest-modules -o addopts="--import-mode=importlib" -o consider_namespace_packages=true -o doctest_optionflags="ELLIPSIS NORMALIZE_WHITESPACE"
-          uv run --frozen --package unxts-hypothesis pytest packages/unxts.hypothesis/tests --cov=packages/unxts.hypothesis/src --cov-report=xml --cov-report=term
+          uv run --frozen --package unxts-hypothesis pytest packages/unxts.hypothesis/tests --cov=packages/unxts.hypothesis/src --cov-report=xml --cov-report=term -n logical --dist=loadfile
 
       - name: Upload coverage report
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -353,7 +384,7 @@ jobs:
           # src doctests: leaf dir `unxts/interop/gala` shadows the installed
           # `gala`, so sybil mis-imports it; use namespace-aware --doctest-modules.
           uv run --frozen --package unxts-interop-gala pytest packages/unxts.interop.gala/src --doctest-modules -o addopts="--import-mode=importlib" -o consider_namespace_packages=true -o doctest_optionflags="ELLIPSIS NORMALIZE_WHITESPACE"
-          uv run --frozen --package unxts-interop-gala pytest packages/unxts.interop.gala/tests --cov=packages/unxts.interop.gala/src --cov-report=xml --cov-report=term
+          uv run --frozen --package unxts-interop-gala pytest packages/unxts.interop.gala/tests --cov=packages/unxts.interop.gala/src --cov-report=xml --cov-report=term -n logical --dist=loadfile
 
       - name: Upload coverage report
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -393,7 +424,7 @@ jobs:
 
       - name: Test package
         run: |
-          uv run --frozen --package unxts-interop-matplotlib pytest packages/unxts.interop.matplotlib/tests --cov=packages/unxts.interop.matplotlib/src --cov-report=xml --cov-report=term
+          uv run --frozen --package unxts-interop-matplotlib pytest packages/unxts.interop.matplotlib/tests --cov=packages/unxts.interop.matplotlib/src --cov-report=xml --cov-report=term -n logical --dist=loadfile
 
       - name: Upload coverage report
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -438,7 +469,7 @@ jobs:
           # Both invocations measure coverage (the second appends), so the
           # doctest-only lines are not reported as uncovered.
           uv run --frozen --package unxts-interop-xarray pytest packages/unxts.interop.xarray/src --doctest-modules -o addopts="--import-mode=importlib" -o consider_namespace_packages=true -o doctest_optionflags="ELLIPSIS NORMALIZE_WHITESPACE" --cov=packages/unxts.interop.xarray/src --cov-report=
-          uv run --frozen --package unxts-interop-xarray pytest packages/unxts.interop.xarray/tests --cov=packages/unxts.interop.xarray/src --cov-append --cov-report=xml --cov-report=term
+          uv run --frozen --package unxts-interop-xarray pytest packages/unxts.interop.xarray/tests --cov=packages/unxts.interop.xarray/src --cov-append --cov-report=xml --cov-report=term -n logical --dist=loadfile
 
       - name: Upload coverage report
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -491,7 +522,7 @@ jobs:
           # namespace package's leaf dir is imported under one name for src and
           # another for tests, so co-collecting them double-imports the module.
           uv run --frozen --package unxts-parametric pytest packages/unxts.parametric/src --cov=packages/unxts.parametric/src --cov-report=
-          uv run --frozen --package unxts-parametric pytest packages/unxts.parametric/tests --cov=packages/unxts.parametric/src --cov-append --cov-report=xml --cov-report=term
+          uv run --frozen --package unxts-parametric pytest packages/unxts.parametric/tests --cov=packages/unxts.parametric/src --cov-append --cov-report=xml --cov-report=term -n logical --dist=loadfile
 
       - name: Upload coverage report
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -534,7 +565,7 @@ jobs:
           # namespace package's leaf dir is imported under one name for src and
           # another for tests, so co-collecting them double-imports the module.
           uv run --frozen --package unxts-linalg pytest packages/unxts.linalg/src --cov=packages/unxts.linalg/src --cov-report=
-          uv run --frozen --package unxts-linalg pytest packages/unxts.linalg/tests --cov=packages/unxts.linalg/src --cov-append --cov-report=xml --cov-report=term
+          uv run --frozen --package unxts-linalg pytest packages/unxts.linalg/tests --cov=packages/unxts.linalg/src --cov-append --cov-report=xml --cov-report=term -n logical --dist=loadfile
 
       - name: Upload coverage report
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -565,7 +596,7 @@ jobs:
 
       - name: Test package
         run: |
-          uv run --frozen --package unxt --extra all --group test-all --resolution lowest-direct pytest --cov --cov-report=xml --cov-report=term --durations=20 --mpl
+          uv run --frozen --package unxt --extra all --group test-all --resolution lowest-direct pytest --cov --cov-report=xml --cov-report=term --durations=20 --mpl --benchmark-disable -n logical --dist=loadfile
 
       - name: Upload coverage report
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -588,7 +619,8 @@ jobs:
         run: uv sync --no-default-groups --extra all --group test-all --upgrade
 
       - name: Test package
-        run: uv run --no-sync pytest
+        run: |
+          uv run --no-sync pytest --benchmark-disable -n logical --dist=loadfile
 
   test-interoperability:
     name: Check Interoperability
@@ -610,7 +642,7 @@ jobs:
 
       - name: Test package
         run: |
-          uv run --frozen --package unxt --extra all --group test-all pytest --cov --cov-report=xml --cov-report=term --durations=20 --mpl
+          uv run --frozen --package unxt --extra all --group test-all pytest --cov --cov-report=xml --cov-report=term --durations=20 --mpl --benchmark-disable -n logical --dist=loadfile
 
       - name: Upload coverage report
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0

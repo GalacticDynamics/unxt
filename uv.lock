@@ -4056,6 +4056,7 @@ dev = [
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
     { name = "pytest-mpl" },
+    { name = "pytest-xdist" },
     { name = "pytz" },
     { name = "quax" },
     { name = "sphinx" },
@@ -4123,6 +4124,7 @@ test = [
     { name = "pytest-cov" },
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
+    { name = "pytest-xdist" },
     { name = "sybil", extra = ["pytest"] },
 ]
 test-all = [
@@ -4136,6 +4138,7 @@ test-all = [
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
     { name = "pytest-mpl" },
+    { name = "pytest-xdist" },
     { name = "sybil", extra = ["pytest"] },
 ]
 test-mpl = [
@@ -4234,6 +4237,7 @@ dev = [
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
     { name = "pytest-mpl", specifier = ">=0.17.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "pytz", specifier = ">=2024.2" },
     { name = "quax", specifier = ">=0.4.2" },
     { name = "sphinx", specifier = ">=7.0" },
@@ -4299,6 +4303,7 @@ test = [
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
 test-all = [
@@ -4312,6 +4317,7 @@ test-all = [
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
     { name = "pytest-mpl", specifier = ">=0.17.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
 test-mpl = [
@@ -4350,6 +4356,7 @@ test = [
     { name = "pytest-cov" },
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
+    { name = "pytest-xdist" },
     { name = "sybil", extra = ["pytest"] },
 ]
 
@@ -4364,6 +4371,7 @@ test = [
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
 
@@ -4382,6 +4390,7 @@ test = [
     { name = "pytest-cov" },
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
+    { name = "pytest-xdist" },
     { name = "sybil", extra = ["pytest"] },
 ]
 
@@ -4396,6 +4405,7 @@ test = [
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
 
@@ -4414,6 +4424,7 @@ test = [
     { name = "pytest-cov" },
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
+    { name = "pytest-xdist" },
     { name = "sybil", extra = ["pytest"] },
     { name = "unxt" },
 ]
@@ -4429,6 +4440,7 @@ test = [
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
     { name = "unxt", editable = "." },
 ]
@@ -4450,6 +4462,7 @@ test = [
     { name = "pytest-cov" },
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
+    { name = "pytest-xdist" },
     { name = "sybil", extra = ["pytest"] },
 ]
 
@@ -4468,6 +4481,7 @@ test = [
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
 
@@ -4487,6 +4501,7 @@ test = [
     { name = "pytest-cov" },
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
+    { name = "pytest-xdist" },
     { name = "sybil", extra = ["pytest"] },
 ]
 
@@ -4504,6 +4519,7 @@ test = [
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
 
@@ -4523,6 +4539,7 @@ test = [
     { name = "pytest-cov" },
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
+    { name = "pytest-xdist" },
     { name = "sybil", extra = ["pytest"] },
 ]
 
@@ -4540,6 +4557,7 @@ test = [
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
 
@@ -4558,6 +4576,7 @@ test = [
     { name = "pytest-cov" },
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
+    { name = "pytest-xdist" },
     { name = "sybil", extra = ["pytest"] },
 ]
 
@@ -4574,6 +4593,7 @@ test = [
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
 
@@ -4596,6 +4616,7 @@ test = [
     { name = "pytest-cov" },
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
+    { name = "pytest-xdist" },
     { name = "sybil", extra = ["pytest"] },
 ]
 
@@ -4616,6 +4637,7 @@ test = [
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
 
@@ -4637,6 +4659,7 @@ test = [
     { name = "pytest-cov" },
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
+    { name = "pytest-xdist" },
     { name = "sybil", extra = ["pytest"] },
 ]
 
@@ -4656,6 +4679,7 @@ test = [
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
 
