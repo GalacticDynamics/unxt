@@ -561,10 +561,14 @@ jobs:
 
       - name: Test package
         run: |
-          # src doctests and tests are collected in separate invocations: the
-          # namespace package's leaf dir is imported under one name for src and
-          # another for tests, so co-collecting them double-imports the module.
-          uv run --frozen --package unxts-linalg pytest packages/unxts.linalg/src --cov=packages/unxts.linalg/src --cov-report=
+          # src doctests: sybil's leaf-based import at the namespace boundary
+          # would double-import the module under a second name (see conftest.py
+          # `_DOCTEST_MODULE_SRC`); run these via pytest's namespace-aware
+          # --doctest-modules (doctest plugin re-enabled by overriding addopts,
+          # which otherwise sets `-p no:doctest`). Both invocations measure
+          # coverage (the second appends), so the doctest-only lines are not
+          # reported as uncovered.
+          uv run --frozen --package unxts-linalg pytest packages/unxts.linalg/src --doctest-modules -o addopts="--import-mode=importlib" -o consider_namespace_packages=true -o doctest_optionflags="ELLIPSIS NORMALIZE_WHITESPACE" --cov=packages/unxts.linalg/src --cov-report=
           uv run --frozen --package unxts-linalg pytest packages/unxts.linalg/tests --cov=packages/unxts.linalg/src --cov-append --cov-report=xml --cov-report=term -n logical --dist=loadfile
 
       - name: Upload coverage report

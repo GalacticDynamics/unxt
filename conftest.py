@@ -88,18 +88,21 @@ python = Sybil(
 _sybil_collect_file = (docs + python).pytest()
 
 # Sybil imports a doctest module by walking up through ``__init__.py`` dirs, so
-# at a PEP 420 namespace boundary it computes a leaf-based module name. For the
-# ``unxts.*`` packages whose leaf shadows an installed library
-# (gala/xarray/hypothesis) that name collides with the real library and the
-# import fails. Their ``src`` doctests are instead run with pytest's
-# ``--doctest-modules --import-mode=importlib`` (namespace-aware) in each
-# package's CI job, so skip them here to avoid the failing sybil import.
+# at a PEP 420 namespace boundary it computes a leaf-based module name instead
+# of the real ``unxts.<pkg>`` one. For the packages whose leaf shadows an
+# installed library (gala/xarray/hypothesis) that name collides with the real
+# library and the import fails loudly. ``unxts.linalg`` has no such collision,
+# so the mis-import silently succeeds instead, duplicating classes (e.g.
+# ``UnitsMatrix``) between the two module trees. Their ``src`` doctests are
+# instead run with pytest's ``--doctest-modules --import-mode=importlib``
+# (namespace-aware) in each package's CI job, so skip them here.
 # (unxts.interop.matplotlib also collides but has no ``src`` doctests, so sybil
 # never imports it; it stays on the normal path.)
 _DOCTEST_MODULE_SRC = (
     "packages/unxts.interop.gala/src/",
     "packages/unxts.interop.xarray/src/",
     "packages/unxts.hypothesis/src/",
+    "packages/unxts.linalg/src/",
 )
 
 
