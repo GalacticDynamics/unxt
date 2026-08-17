@@ -601,7 +601,9 @@ print(stripped.data)
 
 ### Dimension Coordinates Cannot Hold Quantities
 
-`xarray` backs every _dimension coordinate_ (one named like its dimension, shown with a `*` in the repr) with a `pandas.Index`. Building that index coerces the data to a plain `numpy` array, so a `Quantity` assigned to a dimension coordinate is silently unwrapped — its unit is lost. This is inherent to `xarray`'s indexing model, not something `unxts.interop.xarray` can override, and it affects every duck-array unit library (including `pint-xarray`) the same way.
+`xarray` backs every _dimension coordinate_ (one named like its dimension, shown with a `*` in the repr) with a `pandas.Index`. Building that index coerces the data to a plain `numpy` array, so a dimension coordinate cannot hold a `Quantity`. This is inherent to `xarray`'s indexing model, not something `unxts.interop.xarray` can override, and it affects every duck-array unit library (including `pint-xarray`) the same way.
+
+Assigning one now **raises** rather than dropping the unit on the floor — `Quantity.__array__` refuses to hand a dimensionful value to a consumer that cannot see its unit. `quantify()` handles this for you by leaving dimension coordinates plain.
 
 **Workaround**: store the unitful values on a _non-dimension_ coordinate, keeping a plain index on the dimension itself:
 
@@ -612,10 +614,12 @@ import xarray as xr
 data = [10.0, 20.0, 30.0]
 quantities = u.Quantity([1.0, 2.0, 3.0], "m")
 
-# Dimension coordinate: ``x`` is unwrapped to a plain array, unit lost
-da = xr.DataArray(data, dims=["x"], coords={"x": quantities})
-print(type(da.coords["x"].data).__name__)
-# ndarray
+# Dimension coordinate: refused, because the unit could not survive
+try:
+    xr.DataArray(data, dims=["x"], coords={"x": quantities})
+except Exception as e:
+    print(type(e).__name__)
+# UnitConversionError
 
 # Non-dimension coordinate: the Quantity (and its unit) is preserved
 da = xr.DataArray(data, dims=["i"], coords={"i": [0, 1, 2], "x": ("i", quantities)})
