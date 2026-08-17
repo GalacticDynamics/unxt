@@ -7,7 +7,11 @@ from typing import TYPE_CHECKING, Any, cast
 
 import equinox as eqx
 import numpy as np
-from astropy.units import CompositeUnit
+from astropy.units import (
+    CompositeUnit,
+    UnitConversionError,
+    dimensionless_unscaled as one,
+)
 from jax.typing import ArrayLike
 from jaxtyping import Array
 
@@ -212,18 +216,46 @@ class NumPyCompatMixin:
     __array_namespace__: Callable[[], Any]
 
     def __array__(self, *args: object, **kw: object) -> np.ndarray:
-        """Return the array as a numpy array, stripping the units.
+        """Return a bare array -- but only where that loses nothing.
+
+        A *dimensionful* quantity has no unambiguous array form. ``np.asarray``
+        on ``Quantity(1.5, "km")`` would give ``1.5`` while the same length in
+        metres gives ``1500``, so the consumer reads a number whose meaning
+        depends on a unit it never saw.
+
+        This matters because ``__array__`` is reached *implicitly*: ``np.asarray``
+        has always used it, and ``jax.numpy.asarray`` does too as of jax 0.10 --
+        where it previously raised. Returning the value here therefore turns a
+        loud failure into a wrong number, which is the one outcome a unit library
+        must not produce. Use `unxt.ustrip` to say which unit you meant.
+
+        Dimensionless quantities convert, because there is nothing to lose.
 
         Examples
         --------
         >>> from unxt import Quantity
         >>> import numpy as np
 
-        >>> q = Quantity(1.01, "m")
-        >>> np.array(q)
+        >>> np.array(Quantity(1.01, ""))
         array(1.01, dtype=float32)
 
+        A dimensionful one refuses, and names the way to be explicit:
+
+        >>> try:
+        ...     np.array(Quantity(1.01, "m"))
+        ... except Exception as e:
+        ...     print(type(e).__name__)
+        UnitConversionError
+
         """
+        if self.unit != one:
+            msg = (
+                f"cannot convert Quantity in {self.unit!r} to a bare array: the "
+                f"result would be a number whose meaning depends on a unit the "
+                f"caller never sees. Use `unxt.ustrip(<unit>, q)` to choose one, "
+                f"or `unxt.uconvert('', q)` if it really is dimensionless."
+            )
+            raise UnitConversionError(msg)
         return np.asarray(uapi.ustrip(self.unit, self), *args, **kw)
 
     # TODO: why doesn't `__array_namespace__` supersede this?

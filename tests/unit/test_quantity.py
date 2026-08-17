@@ -106,13 +106,31 @@ def test_numpy_array_copy_kwarg_uses_array_protocol():
     Without *args/**kwargs in __array__, NumPy's copy parameter would cause
     TypeError: __array__() got an unexpected keyword argument 'copy'.
     """
-    q = u.Q(1.01, "m")
+    # Dimensionless: `__array__` refuses a dimensionful quantity, and the
+    # behaviour under test here is the `copy=` passthrough, not unit handling.
+    q = u.Q(1.01, "")
 
     # NumPy 2.0+ passes copy=True to __array__ by default
     arr = np.array(q)
 
     assert arr.dtype == np.float32
     assert np.isclose(arr, 1.01)
+
+
+def test_numpy_array_refuses_a_dimensionful_quantity():
+    """A bare array cannot carry a unit, so `__array__` must not invent one.
+
+    Regression guard: `np.asarray` has always reached `__array__` implicitly and
+    `jax.numpy.asarray` began doing so in jax 0.10, where it previously raised.
+    Returning the value turns a unit error into a wrong number -- `Q(90, "deg")`
+    silently becoming `90.0` for a radian consumer is a 57x error no assertion
+    would notice.
+    """
+    for spec in ("m", "km", "deg", "rad"):
+        with pytest.raises(UnitConversionError):
+            np.asarray(u.Q(1.0, spec))
+        with pytest.raises(UnitConversionError):
+            jax_xp.asarray(u.Q(1.0, spec))
 
 
 def test_uconvert():

@@ -364,9 +364,18 @@ def attach_units(obj: DataArray, units: Mapping) -> DataArray:
         # DataArray/Dataset constructor keeps copying coordinate attrs -- an
         # xarray implementation detail, not a guarantee. Copying here makes
         # non-mutation of the caller's object structural instead.
+        # A *dimension* coordinate (named like its own dimension) is backed by a
+        # `pandas.Index`, which xarray builds by coercing to a plain array. A
+        # Quantity there cannot survive, so do not attach one: skipping is the
+        # same outcome xarray would reach anyway, but chosen here rather than
+        # left to `Quantity.__array__` to discard silently. See "Dimension
+        # Coordinates Cannot Hold Quantities" in the guide.
+        is_dim_coord = coord.dims == (name,)
         new_coords[name] = Variable(
             coord.dims,
-            coord.data if unit is None else _array_attach_units(coord.data, unit),
+            coord.data
+            if unit is None or is_dim_coord
+            else _array_attach_units(coord.data, unit),
             dict(coord.attrs),
         )
 
@@ -416,9 +425,18 @@ def attach_units(obj: Dataset, units: Mapping) -> Dataset:
         # DataArray/Dataset constructor keeps copying coordinate attrs -- an
         # xarray implementation detail, not a guarantee. Copying here makes
         # non-mutation of the caller's object structural instead.
+        # A *dimension* coordinate (named like its own dimension) is backed by a
+        # `pandas.Index`, which xarray builds by coercing to a plain array. A
+        # Quantity there cannot survive, so do not attach one: skipping is the
+        # same outcome xarray would reach anyway, but chosen here rather than
+        # left to `Quantity.__array__` to discard silently. See "Dimension
+        # Coordinates Cannot Hold Quantities" in the guide.
+        is_dim_coord = coord.dims == (name,)
         new_coords[name] = Variable(
             coord.dims,
-            coord.data if unit is None else _array_attach_units(coord.data, unit),
+            coord.data
+            if unit is None or is_dim_coord
+            else _array_attach_units(coord.data, unit),
             dict(coord.attrs),
         )
 
