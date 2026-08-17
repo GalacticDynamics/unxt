@@ -28,7 +28,7 @@ rejected
 
 ```{code-block} python
 >>> import quax
->>> v = ul.QuantityMatrix(jnp.array([1.0, 2.0]), unit=("m", "s"))
+>>> v = ul.QM(jnp.array([1.0, 2.0]), unit=("m", "s"))
 >>> try:
 ...     quax.quaxify(ul.det)(v)
 ... except ValueError as e:
@@ -41,7 +41,7 @@ needs a 2-D matrix
 The `.diag()` **method** operates on the static unit structure and works for heterogeneous units, even under `jit`:
 
 ```{code-block} python
->>> M = ul.QuantityMatrix(jnp.diag(jnp.array([1.0, 2.0, 3.0])),
+>>> M = ul.QM(jnp.diag(jnp.array([1.0, 2.0, 3.0])),
 ...                       unit=(("m", "s", "kg"),
 ...                             ("m", "s", "kg"),
 ...                             ("m", "s", "kg")))

@@ -13,7 +13,7 @@
 A 1-D `QuantityMatrix` takes a flat array and a tuple of units, one per element:
 
 ```{code-block} python
->>> qv = ul.QuantityMatrix(jnp.array([1.0, 2.0, 3.0]), unit=("m", "s", "kg"))
+>>> qv = ul.QM(jnp.array([1.0, 2.0, 3.0]), unit=("m", "s", "kg"))
 >>> qv.value
 Array([1., 2., 3.], dtype=float32)
 >>> qv.unit.to_string()
@@ -25,7 +25,7 @@ Array([1., 2., 3.], dtype=float32)
 A 2-D `QuantityMatrix` takes a 2-D array and a nested tuple of units:
 
 ```{code-block} python
->>> qm = ul.QuantityMatrix(jnp.ones((2, 2)), unit=(("m", "s"), ("kg", "rad")))
+>>> qm = ul.QM(jnp.ones((2, 2)), unit=(("m", "s"), ("kg", "rad")))
 >>> qm.unit.to_string()
 '((m, s), (kg, rad))'
 >>> qm.ndim, qm.shape
@@ -47,14 +47,14 @@ True
 
 ```{code-block} python
 >>> v = {"x": u.Q(1.0, "m"), "y": u.Q(2.0, "s"), "z": u.Q(3.0, "kg")}
->>> ul.QuantityMatrix.from_cdict(v).unit.to_string()
+>>> ul.QM.from_cdict(v).unit.to_string()
 '(m, s, kg)'
 ```
 
 You may select and reorder a subset of keys:
 
 ```{code-block} python
->>> ul.QuantityMatrix.from_cdict(v, keys=("z", "x")).unit.to_string()
+>>> ul.QM.from_cdict(v, keys=("z", "x")).unit.to_string()
 '(kg, m)'
 ```
 
@@ -86,7 +86,7 @@ Quantity(Array(3., dtype=float32), unit='kg')
 Indexing a row of a 2-D matrix returns a 1-D `QuantityMatrix`, while a full `[i, j]` index returns a scalar `Quantity`:
 
 ```{code-block} python
->>> qm2 = ul.QuantityMatrix(jnp.ones((2, 3)),
+>>> qm2 = ul.QM(jnp.ones((2, 3)),
 ...                         unit=(("m", "s", "kg"), ("rad", "deg", "m")))
 >>> qm2[0]
 QuantityMatrix(Array([1., 1., 1.], dtype=float32), unit='(m, s, kg)')
@@ -100,8 +100,8 @@ Addition and subtraction convert each element of the right operand into the corr
 
 ```{code-block} python
 >>> import quaxed.numpy as qnp
->>> a = ul.QuantityMatrix(jnp.ones(3), unit=("m", "s", "kg"))
->>> b = ul.QuantityMatrix(jnp.ones(3), unit=("km", "ms", "g"))
+>>> a = ul.QM(jnp.ones(3), unit=("m", "s", "kg"))
+>>> b = ul.QM(jnp.ones(3), unit=("km", "ms", "g"))
 >>> result = qnp.add(a, b)
 >>> result.unit.to_string()
 '(m, s, kg)'
@@ -119,7 +119,7 @@ Array([2., 2., 2.], dtype=float32)
 You can convert a whole `QuantityMatrix` to a compatible unit structure with `uconvert`:
 
 ```{code-block} python
->>> q = ul.QuantityMatrix(jnp.array([[1.0, 2.0], [3.0, 4.0]]),
+>>> q = ul.QM(jnp.array([[1.0, 2.0], [3.0, 4.0]]),
 ...                       unit=(("m", "rad"), ("m", "rad")))
 >>> target = u.unit((("km", "deg"), ("km", "deg")))
 >>> q.uconvert(target).unit.to_string()
@@ -130,7 +130,7 @@ When every element shares the same unit, a `QuantityMatrix` converts to a plain 
 
 ```{code-block} python
 >>> import plum
->>> uniform = ul.QuantityMatrix(jnp.array([1.0, 2.0, 3.0]), unit=("m", "m", "m"))
+>>> uniform = ul.QM(jnp.array([1.0, 2.0, 3.0]), unit=("m", "m", "m"))
 >>> plum.convert(uniform, u.Q)
 Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 ```

@@ -16,5 +16,5 @@ pip install unxts.linalg
 import jax.numpy as jnp
 import unxts.linalg as ul
 
-qv = ul.QuantityMatrix(jnp.array([1.0, 2.0, 3.0]), unit=("m", "s", "kg"))
+qv = ul.QM(jnp.array([1.0, 2.0, 3.0]), unit=("m", "s", "kg"))
 ```
