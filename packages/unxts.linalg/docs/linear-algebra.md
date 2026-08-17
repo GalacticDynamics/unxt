@@ -23,9 +23,9 @@ The whole point of `QuantityMatrix` is that linear-algebra operations carry the 
 `matmul` contracts the shared axis and multiplies the corresponding units — here a dimensionless identity leaves a vector's units untouched:
 
 ```{code-block} python
->>> A = ul.QuantityMatrix(jnp.eye(3),
+>>> A = ul.QM(jnp.eye(3),
 ...                       unit=(("", "", ""), ("", "", ""), ("", "", "")))
->>> v = ul.QuantityMatrix(jnp.array([1.0, 2.0, 3.0]), unit=("m", "m", "m"))
+>>> v = ul.QM(jnp.array([1.0, 2.0, 3.0]), unit=("m", "m", "m"))
 >>> ul.matvec(A, v).value
 Array([1., 2., 3.], dtype=float32)
 ```
@@ -33,9 +33,9 @@ Array([1., 2., 3.], dtype=float32)
 Units on the contracted axis are combined and converted to a common reference, so mixed units are handled correctly:
 
 ```{code-block} python
->>> A2 = ul.QuantityMatrix(jnp.array([[1.0, 2.0], [3.0, 4.0]]),
+>>> A2 = ul.QM(jnp.array([[1.0, 2.0], [3.0, 4.0]]),
 ...                        unit=(("m", "km"), ("m", "km")))
->>> v2 = ul.QuantityMatrix(jnp.array([1.0, 1.0]), unit=("s", "s"))
+>>> v2 = ul.QM(jnp.array([1.0, 1.0]), unit=("s", "s"))
 >>> ul.matvec(A2, v2).value
 Array([2001., 4003.], dtype=float32)
 ```
@@ -50,11 +50,11 @@ A `QuantityMatrix` carries its logical 1-D/2-D units in the _trailing_ axes and 
 
 ```{code-block} python
 >>> # A batch of 2 matrices applied to a batch of 2 vectors.
->>> Ab = ul.QuantityMatrix(
+>>> Ab = ul.QM(
 ...     jnp.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]),
 ...     unit=(("m", "m"), ("m", "m")),
 ... )
->>> vb = ul.QuantityMatrix(jnp.ones((2, 2)), unit=("s", "s"))
+>>> vb = ul.QM(jnp.ones((2, 2)), unit=("s", "s"))
 >>> (Ab @ vb).value
 Array([[ 3.,  7.],
        [11., 15.]], dtype=float32)
@@ -67,7 +67,7 @@ There is one subtlety inherited from NumPy: a batched vector's value `(B, K)` is
 `.T` swaps both the values and the unit structure of a 2-D matrix:
 
 ```{code-block} python
->>> a = ul.QuantityMatrix(jnp.array([[1.0, 2.0], [3.0, 4.0]]),
+>>> a = ul.QM(jnp.array([[1.0, 2.0], [3.0, 4.0]]),
 ...                       unit=(("m", "s"), ("kg", "rad")))
 >>> a.T.unit.to_string()
 '((m, kg), (s, rad))'
@@ -76,7 +76,7 @@ There is one subtlety inherited from NumPy: a batched vector's value `(B, K)` is
 `.diag()` extracts the diagonal as a 1-D `QuantityMatrix`, operating directly on the static unit structure so it works under `jax.jit`:
 
 ```{code-block} python
->>> M = ul.QuantityMatrix(jnp.diag(jnp.array([1.0, 2.0, 3.0])),
+>>> M = ul.QM(jnp.diag(jnp.array([1.0, 2.0, 3.0])),
 ...                       unit=(("m", "s", "kg"),
 ...                             ("m", "s", "kg"),
 ...                             ("m", "s", "kg")))
@@ -95,7 +95,7 @@ The determinant multiplies the main-diagonal units:
 
 ```{code-block} python
 >>> from unxts.linalg import det, inv
->>> G = ul.QuantityMatrix(jnp.array([[2.0, 0.0], [0.0, 3.0]]),
+>>> G = ul.QM(jnp.array([[2.0, 0.0], [0.0, 3.0]]),
 ...                       unit=(("m2", "m2"), ("m2", "m2")))
 >>> quax.quaxify(det)(G)
 Quantity(Array(6., dtype=float32), unit='m4')
@@ -104,7 +104,7 @@ Quantity(Array(6., dtype=float32), unit='m4')
 The inverse carries the reciprocal units:
 
 ```{code-block} python
->>> B = ul.QuantityMatrix(jnp.array([[4.0, 0.0], [0.0, 1.0]]),
+>>> B = ul.QM(jnp.array([[4.0, 0.0], [0.0, 1.0]]),
 ...                       unit=(("m2", "m2"), ("m2", "m2")))
 >>> r = quax.quaxify(inv)(B)
 >>> r.unit.to_string()

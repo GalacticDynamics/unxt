@@ -17,7 +17,7 @@ Consider a 2-D configuration space with a radial coordinate (metres) and an angu
 We build `g` as a 2×2 `QuantityMatrix` with per-element units:
 
 ```{code-block} python
->>> g = ul.QuantityMatrix(
+>>> g = ul.QM(
 ...     jnp.array([[1.0, 0.0], [0.0, 4.0]]),
 ...     unit=(("m2", "m2"), ("m2", "m2 / rad2")),
 ... )
@@ -61,7 +61,7 @@ inv on a QuantityMatrix requires uniform units (all entries equal)
 For a uniform-unit metric the inverse carries the single reciprocal unit:
 
 ```{code-block} python
->>> h = ul.QuantityMatrix(jnp.array([[4.0, 0.0], [0.0, 1.0]]),
+>>> h = ul.QM(jnp.array([[4.0, 0.0], [0.0, 1.0]]),
 ...                       unit=(("m2", "m2"), ("m2", "m2")))
 >>> quax.quaxify(ul.inv)(h).unit.to_string()
 '((1 / m2, 1 / m2), (1 / m2, 1 / m2))'

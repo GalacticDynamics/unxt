@@ -74,7 +74,7 @@ Throughout these guides we import `unxt` as `u` and `unxts.linalg` as `ul` (so `
 A 1-D `QuantityMatrix` is a vector whose entries each have their own unit:
 
 ```{code-block} python
->>> qv = ul.QuantityMatrix(jnp.array([1.0, 2.0, 3.0]), unit=("m", "s", "kg"))
+>>> qv = ul.QM(jnp.array([1.0, 2.0, 3.0]), unit=("m", "s", "kg"))
 >>> qv.unit.to_string()
 '(m, s, kg)'
 >>> 2 * qv
