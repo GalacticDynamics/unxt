@@ -340,6 +340,12 @@ filterwarnings = [
   "ignore:'mode' parameter is deprecated and will be removed in Pillow 13 \\(2026-10-15\\):DeprecationWarning",
   # pyparsing <- matplotlib
   "ignore:'parseAll' argument is deprecated, use 'parse_all':DeprecationWarning",
+  # astropy: pytest-xdist workers race to create ~/.astropy/{config,cache} on
+  # first import; whichever worker loses the race gets this warning. Category
+  # is UserWarning (AstropyUserWarning's base), not the astropy class itself:
+  # resolving that name would import astropy, which can re-trigger this same
+  # warning before the ignore rule is installed.
+  "ignore:XDG_(CONFIG|CACHE)_HOME is set to .*, but the default location, .*, already exists, and takes precedence:UserWarning",
 ]
 log_level = "INFO"
 minversion = "8.3"
