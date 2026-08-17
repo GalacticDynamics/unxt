@@ -23,10 +23,9 @@ jobs:
     outputs:
       python-versions: ${{ env.PYTHON_VERSIONS }}
     steps:
-      - id: versions
-        run: |
-          versions='${{ env.PYTHON_VERSIONS }}'
-          echo "versions=$versions" >> $GITHUB_OUTPUT
+      # `strategy.matrix` below can't read `env` directly, only `needs` -- this
+      # step exists solely to re-expose PYTHON_VERSIONS as a job output.
+      - run: "true"
 
   # Newest-supported deps (`uv sync --upgrade`) are already exercised weekly by
   # ci.yml's own `schedule` trigger via the `test-newest` job -- not duplicated
@@ -49,12 +48,12 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install with pre-release deps (alpha/beta/rc/nightly)
-        run:
+        run: >
           uv sync --no-default-groups --extra all --group test-all --upgrade
           --prerelease=allow
 
       - name: Test
-        run:
+        run: >
           uv run --no-sync pytest --benchmark-disable -n logical --dist=loadfile
 
   weekly-pass:
