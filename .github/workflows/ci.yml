@@ -95,7 +95,7 @@ jobs:
           python-version: ${{ needs.setup.outputs.newest-python }}
 
       - name: Install
-        run: uv sync --all-packages --group test --locked
+        run: uv sync --no-default-groups --all-packages --group test --locked
 
       - name: Smoke test
         run: |
