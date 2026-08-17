@@ -76,11 +76,12 @@ jobs:
 
   # Smoke test
   #
-  # A handful of fast, broad checks -- package imports and public-API
-  # re-exports -- across every package in the workspace, gating the full
-  # multi-OS/multi-Python matrix below. Catches "the whole workspace is
-  # broken" in well under a minute, instead of waiting on the full matrix to
-  # find that out.
+  # Every package (unxt itself and each packages/* member) carries a
+  # `tests/smoke/` folder of fast, broad checks -- package imports and
+  # public-API re-exports -- alongside a `tests/unit/` folder for everything
+  # else. This job runs only the former, gating the full multi-OS/multi-Python
+  # matrix below. Catches "the whole workspace is broken" in well under a
+  # minute, instead of waiting on the full matrix to find that out.
   smoke:
     name: Smoke test
     runs-on: ubuntu-latest
@@ -98,21 +99,11 @@ jobs:
 
       - name: Smoke test
         run: |
-          # Every package but unxts.interop.gala/matplotlib has a
-          # test_public_api.py; those two use their smallest existing test
-          # file instead. ponytail: add test_public_api.py to those two and
-          # swap it in here if that becomes the norm.
+          # `packages/*/tests/smoke` picks up every workspace member
+          # automatically -- a new package just needs to add the folder, no
+          # workflow edit required.
           uv run --frozen pytest -x --benchmark-disable \
-            tests/unit/test_package.py \
-            packages/unxt-api/tests \
-            packages/unxt-hypothesis/tests \
-            packages/unxts.api/tests \
-            packages/unxts.hypothesis/tests \
-            packages/unxts.interop.gala/tests/test_conversion.py \
-            packages/unxts.interop.matplotlib/tests/test_converter.py \
-            packages/unxts.interop.xarray/tests/test_public_api.py \
-            packages/unxts.linalg/tests/test_public_api.py \
-            packages/unxts.parametric/tests/test_public_api.py
+            tests/smoke packages/*/tests/smoke
 
   # Documentation build
   #
