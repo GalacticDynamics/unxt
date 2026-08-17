@@ -17,13 +17,3 @@ def test_dispatch_functions_are_callable():
 
 def test_version_is_a_string():
     assert isinstance(unxts.api.__version__, str)
-
-
-def test_wrap_to_keyword_form_redirects_to_positional():
-    """``wrap_to(x, min=..., max=...)`` forwards to the positional method."""
-
-    @unxts.api.wrap_to.dispatch
-    def _(x: int, min: int, max: int, /) -> tuple:
-        return (x, min, max)
-
-    assert unxts.api.wrap_to(1, min=2, max=3) == (1, 2, 3)

@@ -74,6 +74,37 @@ jobs:
   # pre-commit hook, which the `format` job runs in CI. It is deliberately not a
   # dedicated job -- that would just double-run the hook.
 
+  # Smoke test
+  #
+  # Every package (unxt itself and each packages/* member) carries a
+  # `tests/smoke/` folder of fast, broad checks -- package imports and
+  # public-API re-exports -- alongside a `tests/unit/` folder for everything
+  # else. This job runs only the former, gating the full multi-OS/multi-Python
+  # matrix below. Catches "the whole workspace is broken" in well under a
+  # minute, instead of waiting on the full matrix to find that out.
+  smoke:
+    name: Smoke test
+    runs-on: ubuntu-latest
+    needs: [setup, format]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: ${{ needs.setup.outputs.newest-python }}
+
+      - name: Install
+        run: uv sync --no-default-groups --all-packages --group test --locked
+
+      - name: Smoke test
+        run: |
+          # `packages/*/tests/smoke` picks up every workspace member
+          # automatically -- a new package just needs to add the folder, no
+          # workflow edit required.
+          uv run --frozen pytest -x --benchmark-disable \
+            tests/smoke packages/*/tests/smoke
+
   # Documentation build
   #
   # Nothing previously gated Sphinx output: there was no docs job here, and the
@@ -130,7 +161,7 @@ jobs:
   tests-unxt:
     name: unxt Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
-    needs: [setup, format]
+    needs: [setup, format, smoke]
     strategy:
       fail-fast: false
       matrix:
@@ -189,7 +220,7 @@ jobs:
   tests-unxt-api:
     name: unxt-api Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
-    needs: [setup, format]
+    needs: [setup, format, smoke]
     if: |
       github.event_name == 'push' ||
       github.event_name == 'schedule' ||
@@ -229,7 +260,7 @@ jobs:
       unxt-hypothesis Python ${{ matrix.python-version }} on ${{ matrix.runs-on
       }}
     runs-on: ${{ matrix.runs-on }}
-    needs: [setup, format]
+    needs: [setup, format, smoke]
     if: |
       github.event_name == 'push' ||
       github.event_name == 'schedule' ||
@@ -267,7 +298,7 @@ jobs:
   tests-unxts-api:
     name: unxts-api Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
-    needs: [setup, format]
+    needs: [setup, format, smoke]
     if: |
       github.event_name == 'push' ||
       github.event_name == 'schedule' ||
@@ -308,7 +339,7 @@ jobs:
       unxts-hypothesis Python ${{ matrix.python-version }} on ${{ matrix.runs-on
       }}
     runs-on: ${{ matrix.runs-on }}
-    needs: [setup, format]
+    needs: [setup, format, smoke]
     if: |
       github.event_name == 'push' ||
       github.event_name == 'schedule' ||
@@ -354,7 +385,7 @@ jobs:
       unxts-interop-gala Python ${{ matrix.python-version }} on ${{
       matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
-    needs: [setup, format]
+    needs: [setup, format, smoke]
     if: |
       github.event_name == 'push' ||
       github.event_name == 'schedule' ||
@@ -397,7 +428,7 @@ jobs:
       unxts-interop-matplotlib Python ${{ matrix.python-version }} on ${{
       matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
-    needs: [setup, format]
+    needs: [setup, format, smoke]
     if: |
       github.event_name == 'push' ||
       github.event_name == 'schedule' ||
@@ -437,7 +468,7 @@ jobs:
       unxts-interop-xarray Python ${{ matrix.python-version }} on ${{
       matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
-    needs: [setup, format]
+    needs: [setup, format, smoke]
     if: |
       github.event_name == 'push' ||
       github.event_name == 'schedule' ||
@@ -491,7 +522,7 @@ jobs:
       unxts-parametric Python ${{ matrix.python-version }} on ${{ matrix.runs-on
       }}
     runs-on: ${{ matrix.runs-on }}
-    needs: [setup, format]
+    needs: [setup, format, smoke]
     if: |
       github.event_name == 'push' ||
       github.event_name == 'schedule' ||
@@ -534,7 +565,7 @@ jobs:
     name:
       unxts-linalg Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
-    needs: [setup, format]
+    needs: [setup, format, smoke]
     if: |
       github.event_name == 'push' ||
       github.event_name == 'schedule' ||
@@ -579,7 +610,7 @@ jobs:
   test-oldest:
     name: Check Oldest Dependencies
     runs-on: ${{ matrix.runs-on }}
-    needs: [setup, format]
+    needs: [setup, format, smoke]
     strategy:
       fail-fast: false
       matrix:
@@ -610,7 +641,7 @@ jobs:
   test-newest:
     name: Newest supported deps
     runs-on: ubuntu-latest
-    needs: [setup, format]
+    needs: [setup, format, smoke]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -629,7 +660,7 @@ jobs:
   test-interoperability:
     name: Check Interoperability
     runs-on: ${{ matrix.runs-on }}
-    needs: [setup, format]
+    needs: [setup, format, smoke]
     strategy:
       fail-fast: false
       matrix:
@@ -683,6 +714,7 @@ jobs:
       [
         setup,
         format,
+        smoke,
         docs,
         tests-unxt,
         tests-unxt-api,
