@@ -12,7 +12,7 @@ description: >
 ## Scope of this review
 
 - Don't restate what CI already catches: ruff (`nox -s lint`), pyright/ty/mypy (pre-commit, scoped to `tests/typing/`), pytest+Sybil, CodSpeed. If a check is purely mechanical and already enforced, skip it here.
-- No generic security checklist — no user input, no network, no serialization of untrusted data in this library.
+- No generic security checklist — no network, no serialization of untrusted data in this library. Unit/dimension strings (`unit()`, `dimension()`) are parsed from caller input, so a malformed expression should raise a clear error rather than misbehave, but that's a parsing-robustness question, not an OWASP-style attack surface.
 - Don't second-guess JAX's/astropy's own numeric correctness for cases already covered by their test suites; focus on unxt's own dispatch/construction/unit-safety layer on top.
 
 ## What changed → what to check

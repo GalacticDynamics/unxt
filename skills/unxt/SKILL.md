@@ -33,7 +33,7 @@ Quantity(Array(0.06, dtype=float32, ...), unit='km')
 | --- | --- | --- | --- | --- |
 | `Quantity`/`u.Q` | `unxt` (default) | no — one pytree type for every dimension | no | almost always; the fast, general default |
 | `ParametricQuantity`/`up.PQ` | `unxts.parametric` (opt-in) | yes, e.g. `PQ["length"]` | yes, raises on mismatch | you want a runtime guard or dimension-specific dispatch, and can accept a distinct pytree type per dimension |
-| `StaticQuantity` | `unxt` | no | — | value must be `jax.jit(static_argnames=...)`-hashable; equality is **unit-label-blind**, not unit-aware |
+| `StaticQuantity` | `unxt` | no | — | value must be `jax.jit(static_argnames=...)`-hashable; equality is **unit-label-based**, not physical-equivalence |
 | `BareQuantity` | `unxt` | — | — | **deprecated**, alias of `Quantity` — don't use in new code, see the [migration guide](https://unxt.readthedocs.io/en/latest/migration.html) |
 
 The subscript-without-checking trap: `u.Q["length"]` accepts the subscript syntax but performs **no** dimension check — it silently builds a `Quantity` with whatever unit you give it:
@@ -88,7 +88,7 @@ PhysicalType({'speed', 'velocity'})
 
 ## This looks like a bug, it's intentional — don't "fix" it
 
-- **`StaticQuantity` equality is unit-label-blind.** `==` compares unit _labels_, not physical equivalence — two quantities with the same value but different unit spelling for the same physical unit can compare unequal, because equality must stay a valid `jax.jit` `static_argnames` key. Use `unxt.equivalent`/`is_equivalent` for physical-equivalence comparison instead.
+- **`StaticQuantity` equality is unit-label-based, not physical.** `==` compares unit _labels_ (`same_unit_label`), not physical equivalence — two quantities with the same value but different unit spelling for the same physical unit can compare unequal, because equality must stay a valid `jax.jit` `static_argnames` key. Use `unxt.equivalent`/`is_equivalent` for physical-equivalence comparison instead.
 - **`u.Q["length"]` doesn't check dimensions.** See above — that's `unxts.parametric.PQ`'s job, not `Quantity`'s.
 - **Unit-system singletons (`si`, `cgs`, dimensionless) are deliberately shared, immutable objects** — code that used to be able to corrupt them by mutation was a bug (fixed in #704/#718); don't reintroduce mutable state on these.
 

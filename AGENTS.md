@@ -48,7 +48,7 @@ New functionality goes in a canonical `unxts.*` package, never in a shim. Releas
 - **`Quantity`/`Q`** (default, root `unxt`) — non-parametric: one class, one pytree node type, for every physical dimension. No dimension checking at construction.
 - **`ParametricQuantity`/`PQ`** (`unxts.parametric`, opt-in) — dimension encoded in the type (`PQ["length"]`), a distinct pytree type per dimension, runtime-checked at construction.
 - **`BareQuantity`** — **deprecated** alias of `Quantity`; don't reintroduce it in new code (see [docs/glossary.md](docs/glossary.md), [docs/migration.md](docs/migration.md)).
-- **`StaticQuantity`** — value held as a hashable static field (for `jax.jit(static_argnames=...)`); equality is unit-label-blind by design, not unit-aware.
+- **`StaticQuantity`** — value held as a hashable static field (for `jax.jit(static_argnames=...)`); equality is unit-label-based by design (`same_unit_label`), not physical equivalence.
 - **`Angle`** — wrapping-aware `Quantity` subtype.
 
 Dims (`unxt.dims`) parse expressions via a small AST-based grammar in `src/unxt/_src/dimensions.py` — `* / ** ()` are supported, unary `+`/`-` deliberately raise ("dimensions are invariant under negation," not a missing feature). Units (`unxt.units`) wrap `astropy.units`; `AbstractUnit = apyu.UnitBase | apyu.FunctionUnitBase` (`StructuredUnit` is deliberately excluded). Unit systems live under `src/unxt/_src/unitsystems/`.
