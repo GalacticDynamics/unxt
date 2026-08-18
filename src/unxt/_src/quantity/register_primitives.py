@@ -3,7 +3,6 @@
 
 __all__: tuple[str, ...] = ()
 
-from collections.abc import Sequence
 from math import prod
 from typing import Any, Literal, TypeAlias, overload
 
@@ -4183,56 +4182,54 @@ def real_p(x: ABCQ, /) -> ABCQ:
 
 
 @quax.register(lax.reduce_and_p)
-def reduce_and_p(operand: ABCQ, /, *, axes: Sequence[int]) -> ABCQ:
+def reduce_and_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
     # `all` returns a dimensionless quantity sharing the operand's namespace
     # (per the Array API), matching `reduce_or_p` (`any`).
-    return _as_dimensionless_like(
-        operand, lax.reduce_and_p.bind(ustrip(operand), axes=tuple(axes))
-    )
+    return _as_dimensionless_like(operand, lax.reduce_and_p.bind(ustrip(operand), **kw))
 
 
 # ==============================================================================
 
 
 @quax.register(lax.reduce_max_p)
-def reduce_max_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
-    return revalue(operand, lax.reduce_max_p.bind(ustrip(operand), axes=axes))
+def reduce_max_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
+    return revalue(operand, lax.reduce_max_p.bind(ustrip(operand), **kw))
 
 
 # ==============================================================================
 
 
 @quax.register(lax.reduce_min_p)
-def reduce_min_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
-    return revalue(operand, lax.reduce_min_p.bind(ustrip(operand), axes=axes))
+def reduce_min_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
+    return revalue(operand, lax.reduce_min_p.bind(ustrip(operand), **kw))
 
 
 # ==============================================================================
 
 
 @quax.register(lax.reduce_or_p)
-def reduce_or_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
-    return type_np(operand)(lax.reduce_or_p.bind(ustrip(operand), axes=axes), unit=one)
+def reduce_or_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
+    return type_np(operand)(lax.reduce_or_p.bind(ustrip(operand), **kw), unit=one)
 
 
 # ==============================================================================
 
 
 @quax.register(lax.reduce_prod_p)
-def reduce_prod_p(operand: ABCQ, /, *, axes: Axes) -> ABCQ:
-    value = lax.reduce_prod_p.bind(ustrip(operand), axes=axes)
+def reduce_prod_p(operand: ABCQ, /, *, axes: Axes, **kw: Any) -> ABCQ:
+    value = lax.reduce_prod_p.bind(ustrip(operand), axes=axes, **kw)
     u = operand.unit ** prod(operand.shape[ax] for ax in axes)
     return type_np(operand)(value, unit=u)
 
 
 @quax.register(lax.reduce_prod_p)
-def reduce_prod_p_a(operand: AbstractAngle, /, *, axes: Axes) -> ABCQ:
+def reduce_prod_p_a(operand: AbstractAngle, /, *, axes: Axes, **kw: Any) -> ABCQ:
     """Product-reduction of an Angle array.
 
     The product of N angles is not angular (``rad**N``), so it degrades to a
     plain `Quantity`, mirroring ``Angle * Angle``.
     """
-    return reduce_prod_p(convert(operand, Quantity), axes=axes)
+    return reduce_prod_p(convert(operand, Quantity), axes=axes, **kw)
 
 
 # ==============================================================================
