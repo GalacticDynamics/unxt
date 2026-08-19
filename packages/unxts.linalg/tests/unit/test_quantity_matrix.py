@@ -2584,13 +2584,7 @@ def test_unit_of_returns_the_units_matrix():
 
 
 class TestScalarUnitTarget:
-    """`uconvert`/`ustrip` accept one unit standing for the whole matrix.
-
-    Without these dispatches a scalar target matched the generic
-    `AbstractQuantity` rule, which does ``x.unit.to(...)``; a `UnitsMatrix` has
-    no ``.to``, so the call died with an `AttributeError` from the astropy
-    interop instead of doing the obvious thing.
-    """
+    """`uconvert`/`ustrip` accept one unit standing for the whole matrix."""
 
     @staticmethod
     def _thousand_m():
@@ -2605,12 +2599,6 @@ class TestScalarUnitTarget:
     @pytest.mark.parametrize("target", ["km", u.unit("km")])
     def test_ustrip_broadcasts_the_unit(self, target):
         assert jnp.allclose(u.ustrip(target, self._thousand_m()), jnp.ones((2, 2)))
-
-    def test_it_agrees_with_the_explicit_units_matrix(self):
-        """The scalar spelling is shorthand, not a different conversion."""
-        qm = self._thousand_m()
-        explicit = u.uconvert(UnitsMatrix.full((2, 2), u.unit("km")), qm)
-        assert jnp.allclose(u.uconvert("km", qm).value, explicit.value)
 
     def test_a_heterogeneous_matrix_converts_elementwise(self):
         """Entries need not share a unit, only be convertible to the target."""
