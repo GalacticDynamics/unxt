@@ -35,6 +35,7 @@ from unxts.linalg._src._register_primitives import (
 import quaxed.numpy as qnp
 
 import unxt as u
+from unxt.quantity import AllowValue
 
 # ---------------------------------------------------------------------------
 # Unit shorthands (visual noise reduction)
@@ -2580,3 +2581,39 @@ def test_unit_of_returns_the_units_matrix():
     """`unit_of` on a `QuantityMatrix` yields its `UnitsMatrix`."""
     qm = QMat(jnp.eye(2), (("m", "rad"), ("m", "rad")))
     assert u.unit_of(qm).to_string() == "((m, rad), (m, rad))"
+
+
+class TestScalarUnitTarget:
+    """`uconvert`/`ustrip` accept one unit standing for the whole matrix."""
+
+    @staticmethod
+    def _thousand_m():
+        return QMat(jnp.full((2, 2), 1000.0), (("m", "m"), ("m", "m")))
+
+    @pytest.mark.parametrize("target", ["km", u.unit("km")])
+    def test_uconvert_broadcasts_the_unit(self, target):
+        got = u.uconvert(target, self._thousand_m())
+        assert got.unit.to_string() == "((km, km), (km, km))"
+        assert jnp.allclose(got.value, jnp.ones((2, 2)))
+
+    @pytest.mark.parametrize("target", ["km", u.unit("km")])
+    def test_ustrip_broadcasts_the_unit(self, target):
+        assert jnp.allclose(u.ustrip(target, self._thousand_m()), jnp.ones((2, 2)))
+
+    def test_a_heterogeneous_matrix_converts_elementwise(self):
+        """Entries need not share a unit, only be convertible to the target."""
+        mixed = QMat(
+            jnp.array([[1000.0, 1.0], [1000.0, 1.0]]), (("m", "km"), ("m", "km"))
+        )
+        assert jnp.allclose(u.uconvert("km", mixed).value, jnp.ones((2, 2)))
+
+    def test_an_inconvertible_entry_raises_a_unit_error(self):
+        """Not an `AttributeError` from inside the interop -- the real problem."""
+        bad = QMat(jnp.eye(2), (("m", "s"), ("m", "s")))
+        with pytest.raises(apu.UnitConversionError, match="not convertible"):
+            u.uconvert("km", bad)
+
+    @pytest.mark.parametrize("target", ["km", u.unit("km")])
+    def test_allow_value_form_takes_both_spellings(self, target):
+        got = u.ustrip(AllowValue, target, self._thousand_m())
+        assert jnp.allclose(got, jnp.ones((2, 2)))
