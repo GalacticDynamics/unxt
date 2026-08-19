@@ -550,6 +550,39 @@ def uconvert(to_units: UnitsMatrix, x: QuantityMatrix, /) -> QuantityMatrix:
 
 
 @plum.dispatch
+def uconvert(to_units: u.AbstractUnit, x: QuantityMatrix, /) -> QuantityMatrix:
+    """Convert every element of a ``QuantityMatrix`` to one shared unit.
+
+    The matrix need not be homogeneous -- conversion is elementwise, so any
+    entry convertible to ``to_units`` is fine, and one that is not raises
+    `UnitConversionError`.
+
+    >>> import jax.numpy as jnp
+    >>> import unxt as u
+    >>> from unxts.linalg import QuantityMatrix
+
+    >>> q = QuantityMatrix(jnp.full((2, 2), 1000.0), (("m", "m"), ("m", "m")))
+    >>> u.uconvert("km", q).unit.to_string()
+    '((km, km), (km, km))'
+    >>> bool(jnp.allclose(u.uconvert("km", q).value, jnp.ones((2, 2))))
+    True
+
+    """
+    return uconvert(UnitsMatrix.full(x.unit.shape, to_units), x)
+
+
+@plum.dispatch
+def uconvert(to_units: str, x: QuantityMatrix, /) -> QuantityMatrix:
+    """Take the string spelling of the unit, as the dispatch above does.
+
+    Separate from the `u.AbstractUnit` dispatch rather than a union with it: a
+    union is ambiguous against the generic ``uconvert(str, AbstractQuantity)``.
+
+    """
+    return uconvert(UnitsMatrix.full(x.unit.shape, to_units), x)
+
+
+@plum.dispatch
 def unit_of(x: QuantityMatrix, /) -> UnitsMatrix:
     """Return the `UnitsMatrix` of a ``QuantityMatrix``.
 
@@ -589,7 +622,7 @@ def ustrip(units: UnitsMatrix, x: QuantityMatrix, /) -> Array:
 
 
 @plum.dispatch
-def ustrip(units: str, x: QuantityMatrix, /) -> Array:
+def ustrip(units: u.AbstractUnit, x: QuantityMatrix, /) -> Array:
     """Strip a ``QuantityMatrix`` to one unit shared by every element.
 
     Saves building a `UnitsMatrix` of identical entries by hand; most often
@@ -613,13 +646,25 @@ def ustrip(units: str, x: QuantityMatrix, /) -> Array:
     >>> bool(jnp.allclose(u.ustrip("km", mixed), jnp.ones((2, 2))))
     True
 
+    >>> bool(jnp.allclose(u.ustrip(u.unit("km"), mixed), jnp.ones((2, 2))))
+    True
+
     """
     return ustrip(UnitsMatrix.full(x.unit.shape, units), x)
 
 
 @plum.dispatch
+def ustrip(units: str, x: QuantityMatrix, /) -> Array:
+    """Take the string spelling; see the dispatch above for why they are separate."""
+    return ustrip(UnitsMatrix.full(x.unit.shape, units), x)
+
+
+@plum.dispatch
 def ustrip(
-    flag: type[AllowValue], units: UnitsMatrix | str, x: QuantityMatrix, /
+    flag: type[AllowValue],
+    units: UnitsMatrix | u.AbstractUnit | str,
+    x: QuantityMatrix,
+    /,
 ) -> Array:
     """`AllowValue` form of both spellings, for code that also handles arrays.
 
