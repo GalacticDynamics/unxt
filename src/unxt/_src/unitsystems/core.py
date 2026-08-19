@@ -12,14 +12,8 @@ import jax.tree_util as jtu
 import numpy as np
 from astropy.constants import (  # pylint: disable=E0611
     G as const_G,  # noqa: N811
-    Ryd as const_Ryd,
-    a0 as const_a0,
     c as const_c,
-    e as const_e,
-    h as const_h,
     hbar as const_hbar,
-    k_B as const_kB,
-    m_e as const_me,
 )
 from astropy.units import UnitBase as AstropyUnitBase
 from plum import dispatch
@@ -36,6 +30,7 @@ from .flags import (
     PlanckUSysFlag,
     StandardUSysFlag,
 )
+from .named_units import ATOMIC_UNITS, PLANCK_UNITS
 from .utils import parse_dimlike_name
 from unxt.dims import dimension_of
 from unxt.units import unit
@@ -216,7 +211,7 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
     DimensionlessUnitSystem()
 
     >>> unitsystem("planck")
-    LengthMassTimeTemperatureUnitSystem(length=Unit("...e-35 m"), mass=Unit("...e-08 kg"), time=Unit("...e-44 s"), temperature=Unit("...e+32 K"))
+    LengthMassTimeTemperatureUnitSystem(length=Unit("l_P"), mass=Unit("m_P"), time=Unit("t_P"), temperature=Unit("T_P"))
 
     A single string is looked up as a *system* name, not a unit. A string that
     is not a registered system -- e.g. a unit like ``"m"`` -- raises a clear
@@ -450,20 +445,14 @@ def unitsystem(flag: type[PlanckUSysFlag], /, *args: Any) -> AbstractUnitSystem:
     >>> from unxt.unitsystems import unitsystem, PlanckUSysFlag
 
     >>> unitsystem(PlanckUSysFlag)
-    LengthMassTimeTemperatureUnitSystem(length=Unit("...e-35 m"), mass=Unit("...e-08 kg"), time=Unit("...e-44 s"), temperature=Unit("...e+32 K"))
+    LengthMassTimeTemperatureUnitSystem(length=Unit("l_P"), mass=Unit("m_P"), time=Unit("t_P"), temperature=Unit("T_P"))
 
     """  # noqa: E501
     _reject_extra_args(flag, args)
-    length = np.sqrt(const_hbar * const_G / const_c**3).decompose()
-    mass = np.sqrt(const_hbar * const_c / const_G).decompose()
-    time = np.sqrt(const_hbar * const_G / const_c**5).decompose()
-    temperature = (np.sqrt(const_hbar * const_c**5 / const_G) / const_kB).decompose()
-    return unitsystem(
-        length,
-        mass,
-        time,
-        temperature,
-    )
+    # Named units, so the system spells itself as ``l_P`` rather than as a
+    # six-significant-figure scale times a metre. They are defined from these
+    # same constants in ``named_units``.
+    return unitsystem(*PLANCK_UNITS)
 
 
 @dispatch
@@ -479,22 +468,13 @@ def unitsystem(flag: type[AtomicUSysFlag], /, *args: Any) -> AbstractUnitSystem:
     >>> from unxt.unitsystems import unitsystem, AtomicUSysFlag
 
     >>> unitsystem(AtomicUSysFlag)
-    LengthMassTimeElectricalChargeUnitSystem(length=Unit("...e-11 m"), mass=Unit("...e-31 kg"), time=Unit("...e-17 s"), electrical_charge=Unit("...e-19 A s"))
+    LengthMassTimeElectricalChargeUnitSystem(length=Unit("a_0"), mass=Unit("m_e"), time=Unit("t_au"), electrical_charge=Unit("e"))
 
     """  # noqa: E501
     _reject_extra_args(flag, args)
-    # Hartree energy E_h = 2 * Rydberg energy (NOT one Rydberg).
-    e_hartree = 2 * const_Ryd * const_h * const_c
-    length = const_a0.decompose()
-    mass = const_me.decompose()
-    time = (const_hbar / e_hartree).decompose()
-    charge = const_e.si.decompose()
-    return unitsystem(
-        length,
-        mass,
-        time,
-        charge,
-    )
+    # Named units; see ``named_units``, where the Hartree energy used for the
+    # time unit is defined as *twice* the Rydberg energy.
+    return unitsystem(*ATOMIC_UNITS)
 
 
 # ----
