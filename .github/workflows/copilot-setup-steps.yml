@@ -1,0 +1,41 @@
+# Environment for Copilot cloud agent and Copilot code review.
+#
+# Copilot code review runs on a runner from this repository, taking its
+# environment from `copilot-code-review.yml` and falling back to this file.
+# With neither present it can fail to get a runner before its timeout, in which
+# case only the non-agentic review runs and `.github/skills/code-review/SKILL.md`
+# is never consulted.
+#
+# The job MUST be named `copilot-setup-steps`; only `steps`, `permissions`,
+# `runs-on`, `services`, `snapshot` and `timeout-minutes` are honoured.
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+permissions:
+  contents: read
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install dependencies
+        run: uv sync --all-packages --group dev --locked
+
+      - name: Install pre-commit hooks
+        run: uv run prek install
