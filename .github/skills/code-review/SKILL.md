@@ -25,6 +25,7 @@ description: >
 | Anything under `packages/unxt-api/`, `packages/unxt-hypothesis/`, or new files in `packages/unxt-*` | [Canonical vs. legacy packages](#canonical-vs-legacy-packages) |
 | A docstring `Examples` block, or `python` blocks in `README.md`/`docs/**` | [Doctests](#doctests) |
 | `except`/fallback/assert paths, or anything changing what an error message says | [Silent failure](#silent-failure) |
+| A `jax.jit`/`quax.quaxify` wrapper, or code constructing one inside a function | [Performance](#performance) |
 | `tests/**` | [Tests](#tests) |
 
 ## `_mk` usage
@@ -56,6 +57,11 @@ description: >
 - A diff that adds real logic (not a re-export) inside `packages/unxt-api/` or `packages/unxt-hypothesis/` is misplaced — it belongs in the corresponding `unxts.*` package.
 - A diff that duplicates a check/helper between a shim and its canonical package (rather than the shim simply re-exporting) will trip `pylint`'s `duplicate-code` the moment someone lints across packages instead of per-package — point this out even though per-package `nox -s pylint` runs won't catch it locally.
 - New workspace packages should follow the canonical `unxts.<name>` naming and the hatch-vcs versioning template already used by the existing packages (see AGENTS.md's Workspace Packages section), not the legacy hyphenated style.
+
+## Performance
+
+- **A `jax.jit`/`quax.quaxify` outer wrapper built inside a loop, a method body, or any code path called more than once is a compile-cache miss every call, not a cheap re-trace.** `jax.jit` caches on the Python identity of the function it wraps, not on argument equality (measured: several-hundred-x regression from rebuilding). It should be constructed once, at module or `__init__` scope — see `docs/guides/perf.md`.
+- The complementary, already-documented lever for a hot _construction_ path is `_mk` (see [`_mk` usage](#_mk-usage)) — don't conflate the two. `_mk` skips checked construction; the closure-identity issue above is about not re-tracing/re-compiling a `jit`'d function.
 
 ## Doctests
 

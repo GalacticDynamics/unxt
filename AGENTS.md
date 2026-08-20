@@ -78,6 +78,7 @@ Grep `_mk\(` before touching construction-hot code — it's used across `unxts.l
 - `F811`/`F821`/`F722` are ruff-ignored project-wide — they're false positives from plum-dispatch redefinition and jaxtyping shape annotations, not oversights.
 - `UP040` (prefer `type` alias) is ignored: `beartype.door` doesn't support PEP 695 `type` aliases with plum, so `TypeAlias` stays.
 - Import aliases are enforced by ruff (`flake8-import-conventions`): `unxt as u`, `equinox as eqx`, `hypothesis.strategies as st`, `unxt_api as uapi`, `unxt_hypothesis as ust`. Follow the same convention for new canonical imports even where ruff doesn't enforce it yet (e.g. `unxts.parametric as up`, per README usage).
+- **A `jax.jit` wrapper rebuilt inside a loop or method is a compile-cache miss every call, not a cheap re-trace.** `jax.jit` keys its cache on the Python identity of the function it wraps, not on argument equality — a fresh `@jax.jit def outer(...)` built per call costs a full retrace-and-compile every time (measured: several-hundred-x). Build the outer-wrapper closure once, at module or `__init__` scope. See `docs/guides/perf.md`.
 - Never write temp/scratch files outside the repo.
 
 ## Commit style
