@@ -5,6 +5,7 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 
 __all__ = ("unit", "unit_of", "AbstractUnit")
 
+import contextlib
 from typing import Any, TypeAlias
 
 import astropy.units as apyu
@@ -146,12 +147,14 @@ def dimension_of(obj: AbstractUnit, /) -> AbstractDimension:
 
 @fmt.pparts.dispatch  # type: ignore[misc]
 def pparts(
-    obj: AbstractUnit, /, *, markup: str = "text", long_unit: bool = False, **kw: Any
+    obj: AbstractUnit, /, *, markup: str = "text", unit: str = "symbol", **kw: Any
 ) -> tuple[Any, ...]:
     r"""Decompose a unit for the `unxt._fmt` engine.
 
     A unit is just an object with parts, so there is no separate unit renderer
     and the engine's nesting rule covers it.
+
+    ``unit`` is the engine's unit axis: which *spelling* to use.
 
     Examples
     --------
@@ -171,23 +174,29 @@ def pparts(
     >>> pparts(u.unit(""))
     ()
 
-    ``long_unit`` picks the long name over the short/symbol form:
+    ``"name"`` picks the spelled-out name, ``"dim"`` the physical dimension:
 
-    >>> pparts(u.unit("m"), long_unit=True)
+    >>> pparts(u.unit("m"), unit="name")
     (PPart(role='unit', text='meter', kind='content'),)
 
-    A unit with no long name (a composite, or dimensionless) falls back to the
-    short form rather than raising:
+    >>> pparts(u.unit("m"), unit="dim")
+    (PPart(role='unit', text='length', kind='content'),)
 
-    >>> pparts(u.unit("km/s"), long_unit=True)
+    Both fall back to the symbol when the unit has no such spelling -- a
+    composite has no single long name, so asking for one is not an error:
+
+    >>> pparts(u.unit("km/s"), unit="name")
     (PPart(role='unit', text='km / s', kind='content'),)
 
     """
-    # A long name is a plain word (`obj.long_names`), not astropy's own
-    # rendering, so it goes through the engine's ordinary content escaping in
-    # every markup rather than astropy's markup-specific `to_string(markup)`.
-    if long_unit and (names := getattr(obj, "long_names", None)):
+    # A name or a dimension is a plain word, not astropy's own rendering, so it
+    # goes through the engine's ordinary content escaping in every markup
+    # rather than astropy's markup-specific ``to_string(markup)``.
+    if unit == "name" and (names := getattr(obj, "long_names", None)):
         return (fmt.PPart("unit", names[0]),)
+    if unit == "dim":
+        with contextlib.suppress(Exception):
+            return (fmt.PPart("unit", str(obj.physical_type)),)
 
     # Decide emptiness on the *plain* string: a dimensionless unit's LaTeX form
     # is ``$\mathrm{}$``, which is truthy after the ``$`` are stripped and would

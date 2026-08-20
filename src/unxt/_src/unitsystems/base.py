@@ -398,10 +398,27 @@ class AbstractUnitSystem:
         return wl.TextDoc(f"unitsystem({strs!r})")
 
     def __repr__(self) -> str:
-        return wl.pformat(self)
+        """Return a *reconstructing* representation: ``eval(repr(u)) == u``.
+
+        This is plain ``call`` layout, so it routes through `__pdoc__` -- which
+        is where the reconstruction logic lives. Keeping ``repr`` on that path
+        rather than on the product-style one is what makes the round-trip hold.
+
+        Examples
+        --------
+        >>> from unxt import unitsystem
+        >>> usys = unitsystem("m", "s", "kg", "radian")
+        >>> repr(usys)
+        "unitsystem(['m', 's', 'kg', 'rad'])"
+
+        """
+        return fmt.render(self, fmt.Spec(layout="call"))
 
     def __str__(self) -> str:
         """Return a readable string representation of the unit system.
+
+        The abbreviated call form -- which for a unit system means unquoted
+        units, the same idea a quantity spells as a short class name.
 
         Examples
         --------
@@ -410,16 +427,16 @@ class AbstractUnitSystem:
         >>> str(usys)
         'unitsystem(m, s, kg, rad)'
 
-        The dimension-name form is available as a format preset:
+        The dimension-name form is the ``dim`` unit axis:
 
         >>> f"{usys:dims}"
         'LTMAUnitSystem(length, time, mass, angle)'
 
         """
-        return wl.pformat(self, quote_units=False)
+        return fmt.render(self, fmt.Spec(layout="call", abbrev=True))
 
     def __format__(self, format_spec: str, /) -> str:
-        """Format the unit system, honouring `unxt._fmt.FORMAT_PRESETS`.
+        """Format the unit system.
 
         Examples
         --------

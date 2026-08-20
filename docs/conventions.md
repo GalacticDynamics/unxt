@@ -78,75 +78,114 @@ This easy interoperability is enabled by multiple dispatch, which allows the `Qu
 
 For more information on multiple dispatch, see the [plum documentation](https://beartype.github.io/plum/).
 
-## Format Spec Presets
+## Format Specs
 
-`repr`, `str`, and the IPython representations are each free to look however a type wants. `__format__` is different: it is reached through an f-string (`f"{obj:preset}"`), so its spec strings are part of the vocabulary a user carries from one `unxt` type to the next. Every type that routes its `__format__` through `unxt._fmt.pspec` shares the same vocabulary — a spec means the same thing everywhere it is honoured, and a type has to do nothing to inherit one added later.
+`repr`, `str`, and `__format__` are one rendering, reached three ways. They differ only in the `unxt._fmt.Spec` they carry — a settled value for every axis — which `unxt._fmt.render` then executes. A format spec parses that `Spec` out of a string; `repr` and `str` read it from `unxt.config`. There is no second system and no separate preset table.
 
-Two structures exist:
+Because `__format__` is reached through an f-string (`f"{obj:spec}"`), its vocabulary is something a user carries from one `unxt` type to the next, so every type routing through `unxt._fmt.pspec` shares it and a spec means the same thing everywhere.
 
-- **Call-style** — `ClassName(value, unit=...)`, rendered by `wadler_lindig.pformat`. Named by a flat entry in `unxt._fmt.FORMAT_PRESETS`: `full` (full array repr), `compact` (short class name, compact array), `dims` (dimension names instead of units — unit-system only; see below).
-- **Product-style** — `value * unit`, rendered by decomposing the object with `pparts` and running it through `parts_to_doc` / `parts_to_markup`. Named by a small DSL rather than one preset per combination.
+### The grammar
 
-### The product-style DSL
+A spec is a `-`-joined run of **keywords**, optionally followed by a **Python format spec** applied per element:
 
-A product-style spec is up to four optional, independent components, canonically spelled `<markup>-<array>-<separator>-<unit>`:
+```
+spec := keyword ("-" keyword)* ["-" <python format spec>]
+```
 
-| component | values | omitted means |
-| --- | --- | --- |
-| markup | `html`, `latex` | `text` |
-| array | `short` (shape/dtype summary, e.g. `f32[3]`), `values` (the default form, nameable so it can pair with a value spec) | the default form, e.g. `[1., 2., 3.]` |
-| separator | `mul` (show `*`), `bare` (space, no operator) | `mul` |
-| unit | `long` (the unit's spelled-out name, e.g. `meter`) | the short/symbol form, e.g. `m` |
+The parse is total and strictly left-to-right: consume tokens while they are keywords, and **the first token that is not one ends keyword parsing — everything from there, including any further `-`, is the value spec.**
+
+That single rule is what keeps the grammar unambiguous once an arbitrary format spec is in play. A format spec may contain `-` itself, as a sign flag (`-.2f`) or a fill character (`->10.2f`), and neither can be mistaken for a component boundary, because keywords are only recognised _before_ the value spec begins.
+
+Its one consequence worth remembering: **the value spec goes last.** `mul-name-.2f` works; `mul-.2f-name` swallows `name` into the value spec, which then fails as the malformed spec it is (and the error names the vocabulary it missed).
+
+### The axes
+
+Each keyword sets exactly one axis. Keywords are pairwise disjoint — no word names two axes — which is what makes the run order-independent (`html-bare` and `bare-html` are the same request) with no guessing anywhere. A test enforces that the vocabularies stay disjoint.
+
+| axis | keywords | default | notes |
+| --- | --- | --- | --- |
+| layout | `call`, `product` | `product` | `call` is `Quantity(…, unit='m')`; `product` is `1. m` |
+| value | `array`, `values`, `type` | `values` | `Array([1.], dtype=float32)` / `[1.]` / `f32[1]` |
+| markup | `text`, `html`, `latex` | `text` | product layout only |
+| unit | `symbol`, `name`, `dim` | `symbol` | `m` / `meter` / `length` |
+| separator | `mul`, `bare` | `bare` | product layout only |
+| abbreviation | `abbrev` | off | call layout only |
+
+Setting one axis twice (`mul-bare`, `html-latex`) is an error, as is naming an axis the chosen layout has no concept of (`call-mul`). Both are reported as exactly that. Silently ignoring either would hide the mistake.
+
+A value spec requires `values` (the default) — a `type` summary has no elements to format — and product layout.
 
 ```{code-block} python
 
 >>> import unxt as u
-
 >>> q = u.Q([1.0, 2, 3], "m")
+
 >>> f"{q:mul}"
 '[1., 2., 3.] * m'
->>> f"{q:short}"
-'f32[3] * m'
+>>> f"{q:type}"
+'f32[3] m'
 >>> f"{q:html-bare}"
 '<span>[1., 2., 3.]</span> <span>m</span>'
->>> f"{q:html-short-mul}"
-'<span>f32[3]</span> * <span>m</span>'
->>> f"{u.Q(1.0, 'm'):long}"
-'1. * meter'
+>>> f"{q:name}"
+'[1., 2., 3.] meter'
+>>> f"{q:call}"
+"Quantity([1., 2., 3.], unit='m')"
+
 ```
 
-Omitting a component takes its default, which is what makes the short forms just an unremarkable case of the same grammar rather than a separate alias table: `mul` is short for `text-mul` (separator is the only component present), `html` is short for `html-mul` (markup present, separator defaults to `mul`), and `short` is short for `text-mul-short`.
-
-The parser accepts the tokens in any order — `html-bare` and `bare-html` render identically — but `<markup>-<array>-<separator>-<unit>` is the one spelling used in docs and error messages, so pick it when writing a spec by hand. Two tokens from the same component (`mul-bare`, `html-latex`) is invalid and raises `ValueError`, same as an unknown spec.
-
-**The array component alone may also carry a trailing Python format spec**, applied to every element (`np.array2string`'s `formatter=`), e.g. `mul-.3g` or just `.3g-mul`. `values` is spelled out so it has something to attach to on its own: `values-.3g` (equivalently, bare `.3g` combined with any other DSL token — `mul-.3g` reads just as well and is the more natural choice, since `mul` already exists). `short` and a value spec don't compose — a shape/dtype summary has no per-element values to format, and combining them raises. The spec is reassembled from whichever pieces are left over once every recognised keyword is pulled out, in their original order, so a value spec with its own embedded `-` (a sign flag, or a custom fill character) survives being combined with another component: `mul-->10.2f` is `mul` plus the value spec `->10.2f` (fill `-`, align `>`), not three components.
-
-**A value spec needs a real DSL token to activate.** A _bare_ value spec with no recognised keyword anywhere in it — `.3g`, or `:>10` (`:` as a fill character) — is untouched by this parser and keeps going through the unrelated, pre-existing `pspec_fallback` mechanism unchanged: scalar-only, space-joined, unit unaffected (see below). Only once it's paired with a keyword (`mul-.3g`, or `values-.3g` on its own) does the DSL claim it and the array-formatter path apply.
-
-Product-style specs only decompose meaningfully for a type that registers `pparts`; a type that skips this still accepts them without raising, rendering `str(obj)` as one opaque fragment. That is a deliberate degrade, not a bug: a display path must not raise just because one field's type forgot to register. The unit component works the same way: `long` falls back to the short form rather than raising when a unit has no long name (a composite like `km / s`, or dimensionless).
-
-`short` and `compact` are easy to mix up — both mean "terse" in English, but they name different things entirely: `short` is this DSL's array component (shape/dtype summary, product-style); `compact` is a call-style `FORMAT_PRESETS` entry (short class name, kept full array values). That near-miss is also why the array component's own default-form token is spelled `values`, not `compact` — a first pass tried `compact` there too, and a bare `f"{q:compact}"` silently stopped meaning the call-style preset once `_parse_product_spec` claimed it first. `pspec` checking `FORMAT_PRESETS` before the DSL parse (see below) is the general fix; picking non-colliding names is what avoids needing it in the first place.
-
-`dims` is the one call-style preset that is inherently type-specific: only a unit system has "dimension names" to show instead of units.
+A value spec is applied to every element, and composes with the keywords:
 
 ```{code-block} python
+
+>>> qq = u.Q([1.234, 2.345], "m")
+>>> f"{qq:.2f}"
+'[1.23, 2.35] m'
+>>> f"{qq:mul-.2f}"
+'[1.23, 2.35] * m'
+>>> f"{qq:mul-name-.2f}"
+'[1.23, 2.35] * meter'
+
+```
+
+The default separator is `bare`, so a bare value spec keeps astropy's shape (`3.14 m`, not `3.14 * m`).
+
+### Aliases
+
+Sugar, never new meaning: each expands _textually_ into core keywords before parsing, so an alias can never say something the grammar cannot, and combining one with a further keyword raises exactly the error its expansion would.
+
+| alias     | expands to    |
+| --------- | ------------- |
+| `compact` | `call-abbrev` |
+| `full`    | `call-array`  |
+| `dims`    | `call-dim`    |
+
+```{code-block} python
+
+>>> f"{q:compact}"
+"Q([1., 2., 3.], unit='m')"
 
 >>> usys = u.unitsystem("kpc", "Myr", "Msun", "radian")
 >>> f"{usys:dims}"
 'LTMAUnitSystem(length, time, mass, angle)'
+
 ```
 
-It is the precedent for how a type extends the shared vocabulary with a call-style preset of its own, rather than forcing every concept to be universal. Do this when a concept has no equivalent for other types; reuse an existing name — or the product-style DSL — when it does.
+`abbrev` is one idea spelled per type: a short class name for a quantity, unquoted units for a unit system. `dims` stops being a unit-system special case — it is just the `dim` value of the shared unit axis.
 
-Rules for extending the vocabulary:
+### Why `call` layout routes through `__pdoc__`
 
-- A genuinely new _component_ of product-style rendering (a thing that can vary orthogonally to markup/array/separator/unit) is a new DSL token, not a new flat preset — the whole point of the DSL is that components compose instead of each combination needing its own hand-written entry.
-- A concept with no product-style equivalent, and no fit in the DSL, is a new `FORMAT_PRESETS` entry (as `dims` is). Reuse an existing name if its meaning already fits.
-- Lowercase, one word, no punctuation, and not a DSL token already spoken for (`html`, `latex`, `short`, `values`, `mul`, `bare`, `long`).
-- Check any new name against _both_ tables, not just the one you're adding to — a DSL token named `compact` collided with the pre-existing `FORMAT_PRESETS` entry of that name during development, which is why the array component is called `values` instead.
-- `""` (empty spec) always means `str(obj)`, and `!r`/`!s` already cover `repr`/`str` — never add a `"repr"` or `"str"` preset, and never let `""` become a dict key.
+`call` layout renders via `wadler_lindig.pformat`, and so through the object's own `__pdoc__`. That is load-bearing rather than incidental: `__pdoc__` is where a type states how to _reconstruct_ itself, which is what keeps `eval(repr(usys)) == usys` true for every unit-system realization. `repr` is defined as call layout for that reason, and a test pins the round-trip.
 
-Rules for a type joining the engine:
+### Extending
 
-- Register `pspec_fallback` if a _non-preset, non-DSL_ spec should mean something (as `.2f` does for a quantity's value). Skip it and an unrecognised spec raises `ValueError`.
-- Register `pparts` to make the product-style DSL decompose meaningfully instead of falling back to a single opaque `str(obj)` fragment. Accept `value_spec` (a per-element Python format spec, or `None`) and `long_unit` (a bool) as keyword arguments — even if unused — so the engine can pass them through without every type needing to opt in explicitly; `**kw` alone is enough to stay compatible with a future component this DSL doesn't have yet.
+- A new thing that varies orthogonally to the existing axes is a **new axis with its own keywords**, not a new alias — the point of the grammar is that components compose instead of every combination needing a hand-written name.
+- A new alias must expand to a valid core spec, and a test checks that every one does.
+- Keywords are lowercase, one word, no punctuation, and must not collide with an existing keyword _or_ alias — a colliding name would silently steal a meaning, which is how an earlier revision broke `f"{q:compact}"`.
+- No keyword may itself be a legal Python format spec, or the scan rule would prefer the keyword reading and take a meaning users already had. A test checks this for every word.
+- `""` is `str(obj)`, and `!r`/`!s` already cover `repr`/`str` — never add a `repr` or `str` keyword.
+
+### For a type joining the engine
+
+Register `pparts` and the whole grammar follows: every markup, every value form, the unit axis, and the per-element value spec. Accept `markup`, `short_arrays`, `value_spec` and `unit` as keyword arguments — plus `**kw`, so a future axis does not break the signature.
+
+A type that skips `pparts` still renders: it degrades to `str(obj)` as one opaque fragment, because a display path must not raise just because some field's type never registered. The one thing it cannot degrade on is a value spec — that formats _elements_, and a type that never said what its elements are has none — so asking for one is an error rather than a silently different rendering.

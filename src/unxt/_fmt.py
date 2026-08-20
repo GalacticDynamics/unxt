@@ -14,8 +14,11 @@ The main features are:
 - ``unxt._fmt.parts_to_doc``: turn fragments into a `wadler_lindig` document, so
   plain-text rendering gets layout and composes inside a larger document.
 - ``unxt._fmt.parts_to_markup``: turn fragments into an HTML or LaTeX string.
-- ``unxt._fmt.pspec``: the shared ``__format__`` body, including
-  ``unxt._fmt.FORMAT_PRESETS`` for f-string use like ``f"{q:compact}"``.
+- ``unxt._fmt.parse_spec``: resolve a format-spec string into a
+  `unxt._fmt.Spec` -- one settled value per axis.
+- ``unxt._fmt.render``: the single rendering entry point. ``repr``, ``str``
+  and ``__format__`` all arrive here and differ only in the `Spec` they bring.
+- ``unxt._fmt.pspec``: the shared ``__format__`` body (parse, then render).
 
 Examples
 --------
@@ -27,7 +30,7 @@ Examples
 '[1., 2., 3.] * m'
 
 >>> pspec(q, "latex")
-'$[1.,~2.,~3.] \\; \\mathrm{m}$'
+'$[1.,~2.,~3.] \\mathrm{m}$'
 
 `unxt.quantity.AbstractQuantity.__format__` routes through `pspec`, so these
 are also reachable as ``f"{q:mul}"`` and ``f"{q:latex}"``.
@@ -67,20 +70,22 @@ markup:
 # pylint: disable=duplicate-code
 
 __all__ = (
-    "FORMAT_PRESETS",
+    "ALIASES",
     "MARKUPS",
     "PGroup",
     "PPart",
+    "Spec",
     "bad_spec",
     "custom_pdoc_no_kind",
     "custom_pdoc_noarray",
     "doc_to_str",
+    "parse_spec",
     "parts_to_doc",
-    "unwrap_math",
     "parts_to_markup",
     "pparts",
     "pspec",
-    "pspec_fallback",
+    "render",
+    "unwrap_math",
     "value_str",
 )
 
@@ -88,19 +93,21 @@ from .setup_package import install_import_hook
 
 with install_import_hook("unxt._fmt"):
     from ._src.fmt import (
-        FORMAT_PRESETS,
+        ALIASES,
         MARKUPS,
         PGroup,
         PPart,
+        Spec,
         bad_spec,
         custom_pdoc_no_kind,
         custom_pdoc_noarray,
         doc_to_str,
+        parse_spec,
         parts_to_doc,
         parts_to_markup,
         pparts,
         pspec,
-        pspec_fallback,
+        render,
         unwrap_math,
         value_str,
     )

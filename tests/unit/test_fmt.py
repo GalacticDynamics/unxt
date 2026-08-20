@@ -9,240 +9,299 @@ import wadler_lindig as wl
 
 import unxt as u
 from unxt._fmt import (
-    FORMAT_PRESETS,
+    ALIASES,
     MARKUPS,
     PGroup,
     PPart,
+    Spec,
     doc_to_str,
+    parse_spec,
     parts_to_doc,
     parts_to_markup,
     pparts,
     pspec,
+    render,
     unwrap_math,
 )
-from unxt._src.fmt import REQUIRED_MARKUP_KEYS, _parse_product_spec
+from unxt._src.fmt import _KEYWORDS, _LAYOUT_AXES, REQUIRED_MARKUP_KEYS
 
 # ============================================================================
-# Presets
+# The grammar's own invariants
 
 
-#: Every product-style spec this file exercises, alongside the call-style
-#: `FORMAT_PRESETS` entries -- the union is "every spec `pspec` must accept
-#: without raising for a plain quantity".
-_PRODUCT_SPECS = (
-    "short",
-    "mul",
-    "bare",
-    "latex",
-    "html",
-    "long",
-    "html-bare",
-    "html-short",
-    "latex-bare",
-    "latex-short",
-    "bare-short",
-    "html-short-mul",
-    "html-short-bare",
-    "latex-short-bare",
-    "mul-.3g",
-    "values-.3g",
-    "html-.2f-bare-long",
+def test_keyword_namespace_is_pairwise_disjoint() -> None:
+    """One word may never name two axes.
+
+    This is the invariant that lets the keyword run be order-independent with
+    no content-sniffing: if `_KEYWORDS` is a function of the word alone, then
+    ``"html-bare"`` and ``"bare-html"`` cannot differ. A dict literal already
+    enforces uniqueness of *keys*, so the real risk is a new word being added
+    that collides with an `ALIASES` entry -- check that too.
+    """
+    assert not set(_KEYWORDS) & set(ALIASES)
+
+
+@pytest.mark.parametrize("alias", sorted(ALIASES))
+def test_every_alias_expands_to_a_valid_core_spec(alias: str) -> None:
+    """An alias is sugar, never new meaning: it must parse as its expansion."""
+    assert parse_spec(alias) == parse_spec(ALIASES[alias])
+
+
+def test_every_axis_is_claimed_by_some_layout() -> None:
+    """A keyword no layout accepts would be unreachable."""
+    axes = {axis for axis, _ in _KEYWORDS.values()}
+    assert axes == set().union(*_LAYOUT_AXES.values())
+
+
+def test_spec_defaults_are_the_grammar_defaults() -> None:
+    """An all-omitted spec is exactly ``Spec()``."""
+    assert parse_spec("product") == Spec()
+
+
+# ============================================================================
+# Parsing: the scan rule
+
+
+def test_keywords_are_order_independent() -> None:
+    """A keyword run is a set, not a sequence."""
+    assert parse_spec("html-bare") == parse_spec("bare-html")
+    assert parse_spec("latex-type-mul") == parse_spec("mul-latex-type")
+
+
+@pytest.mark.parametrize(
+    ("spec", "value_spec"),
+    [
+        (".3g", ".3g"),  # bare: no keyword at all
+        ("mul-.3g", ".3g"),  # after a keyword
+        ("-.2f", "-.2f"),  # leading '-' is a sign flag, not a delimiter
+        ("mul-->10.2f", "->10.2f"),  # embedded '-' is a fill character
+        ("mul-.2f-.3g", ".2f-.3g"),  # everything after the first non-keyword
+        ("mul", None),  # keywords only
+    ],
 )
+def test_scan_rule_splits_keywords_from_the_value_spec(
+    spec: str, value_spec: str | None
+) -> None:
+    """The first non-keyword token ends keyword parsing; the rest is the spec.
+
+    This one rule is what keeps the grammar unambiguous with an arbitrary
+    Python format spec in play -- a format spec may contain ``-`` itself, and
+    it can never be mistaken for a component boundary.
+    """
+    assert parse_spec(spec).value_spec == value_spec
+
+
+def test_a_keyword_after_the_value_spec_is_not_a_keyword() -> None:
+    """The value spec is last: nothing after it is scanned for keywords.
+
+    ``"mul-name-.2f"`` is the way to say it. ``"mul-.2f-name"`` stops scanning
+    at ``.2f``, so ``name`` is swallowed into the value spec -- which then
+    fails as the malformed spec it is, naming the vocabulary it missed.
+    """
+    q = u.Q([1.234, 2.345], "m")
+    assert pspec(q, "mul-name-.2f") == "[1.23, 2.35] * meter"
+
+    assert parse_spec("mul-.2f-name").value_spec == ".2f-name"
+    with pytest.raises(ValueError, match="not a valid Python format spec"):
+        pspec(q, "mul-.2f-name")
+
+
+def test_a_leftover_run_is_one_spec_not_a_silent_rejoin() -> None:
+    """Regression: ``mul-.2f-.3g`` used to be *parsed by elimination*.
+
+    The old parser pulled keywords out and rejoined whatever was left, so this
+    silently became the value spec ``".2f-.3g"``. Under the scan rule it is
+    still one value spec -- but honestly so, by position -- and Python rejects
+    it as the single malformed spec it is.
+    """
+    assert parse_spec("mul-.2f-.3g").value_spec == ".2f-.3g"
+    with pytest.raises(ValueError, match="Invalid format specifier"):
+        pspec(u.Q([1.0], "m"), "mul-.2f-.3g")
+
+
+# ============================================================================
+# Rendering each axis
 
 
 @pytest.mark.parametrize(
     ("spec", "expected"),
     [
-        ("compact", "Q([1., 2., 3.], unit='m')"),
-        ("full", "Quantity(Array([1., 2., 3.], dtype=float32), unit='m')"),
-        ("short", "f32[3] * m"),
+        # layout
+        ("product", "[1., 2., 3.] m"),
+        ("call", "Quantity([1., 2., 3.], unit='m')"),
+        # value
+        ("array", "Array([1., 2., 3.], dtype=float32) m"),
+        ("values", "[1., 2., 3.] m"),
+        ("type", "f32[3] m"),
+        # separator
         ("mul", "[1., 2., 3.] * m"),
         ("bare", "[1., 2., 3.] m"),
-        ("latex", r"$[1.,~2.,~3.] \; \mathrm{m}$"),
-        ("html", "<span>[1., 2., 3.]</span> * <span>m</span>"),
-        # DSL combinations with no single-word equivalent before this existed.
-        ("html-bare", "<span>[1., 2., 3.]</span> <span>m</span>"),
-        ("latex-bare", r"$[1.,~2.,~3.] \mathrm{m}$"),
-        ("html-short", "<span>f32[3]</span> * <span>m</span>"),
-        ("latex-short", r"$f32[3] \; \mathrm{m}$"),
-        ("html-short-bare", "<span>f32[3]</span> <span>m</span>"),
-        ("bare-short", "f32[3] m"),
+        # markup
+        ("html", "<span>[1., 2., 3.]</span> <span>m</span>"),
+        ("html-mul", "<span>[1., 2., 3.]</span> * <span>m</span>"),
+        ("latex", r"$[1.,~2.,~3.] \mathrm{m}$"),
+        # unit
+        ("symbol", "[1., 2., 3.] m"),
+        ("name", "[1., 2., 3.] meter"),
+        ("dim", "[1., 2., 3.] length"),
+        # aliases
+        ("compact", "Q([1., 2., 3.], unit='m')"),
+        ("full", "Quantity(Array([1., 2., 3.], dtype=float32), unit='m')"),
+        # combinations
+        ("html-type-mul", "<span>f32[3]</span> * <span>m</span>"),
+        ("latex-mul-name", r"$[1.,~2.,~3.] \; meter$"),
+        ("call-type", "Quantity(f32[3], unit='m')"),
     ],
 )
-def test_preset_renders_quantity(spec: str, expected: str) -> None:
-    """Every preset produces its documented string for an array quantity."""
+def test_each_spec_renders_its_documented_string(spec: str, expected: str) -> None:
     assert pspec(u.Q([1.0, 2, 3], "m"), spec) == expected
 
 
-@pytest.mark.parametrize(
-    ("a", "b"),
-    [
-        ("html-bare", "bare-html"),
-        ("html-short-bare", "bare-short-html"),
-        ("html-short-bare", "short-bare-html"),
-        ("latex-short-bare", "bare-latex-short"),
-    ],
-)
-def test_dsl_tokens_are_order_independent(a: str, b: str) -> None:
-    """A product spec is a set of tokens, not a positional grammar.
-
-    ``<markup>-<array>-<separator>`` is the canonical spelling used in docs
-    and error messages, but any order of the same tokens must render
-    identically -- the shorthands (``"html"``, ``"mul"``, ``"short"``) only
-    make sense at all if omitting a component doesn't require the others to
-    move.
-    """
-    q = u.Q([1.0, 2, 3], "m")
-    assert pspec(q, a) == pspec(q, b)
-
-
-@pytest.mark.parametrize(
-    "spec", ["mul-bare", "html-latex", "short-short", "values-short", "short-.2f"]
-)
-def test_dsl_rejects_a_duplicated_component(spec: str) -> None:
-    """Two tokens from the same component is invalid.
-
-    So is ``short`` plus a value spec -- a shape/dtype summary has no
-    per-element values to format.
-    """
-    with pytest.raises(ValueError, match=f"invalid format spec {spec!r}"):
-        pspec(u.Q(1.0, "m"), spec)
+def test_default_separator_is_bare() -> None:
+    """``f"{q:.2f}"`` must stay astropy-shaped: a space, no ``*``."""
+    assert pspec(u.Q(3.14159, "m"), ".2f") == "3.14 m"
 
 
 # ============================================================================
-# Composing the array's per-element value spec and the unit's long name
+# One value-rendering path (the old two-implementation split)
 
 
-@pytest.mark.parametrize(
-    ("spec", "expected"),
-    [
-        ("mul-.2f", "[1.23, 2.35] * m"),
-        ("bare-.2f", "[1.23, 2.35] m"),
-        ("html-.2f", "<span>[1.23, 2.35]</span> * <span>m</span>"),
-        ("values-.2f", "[1.23, 2.35] * m"),  # "values" spelled out is a no-op
-        (".2f-mul", "[1.23, 2.35] * m"),  # order-independent, same as "mul-.2f"
-    ],
-)
-def test_value_spec_composes_with_the_dsl(spec: str, expected: str) -> None:
-    """A per-element Python format spec composes with markup/array/separator."""
-    assert pspec(u.Q([1.234, 2.345], "m"), spec) == expected
+def test_a_value_spec_works_on_an_array() -> None:
+    """Regression: a bare value spec used to be scalar-only.
 
-
-def test_value_spec_survives_its_own_embedded_hyphen() -> None:
-    r"""A value spec's own ``-`` (a fill character, here) must not be split on.
-
-    ``"mul-->10.2f"`` is ``mul`` plus the value spec ``"->10.2f"`` (fill='-',
-    align='>'), reassembled from the pieces left over once ``mul`` is pulled
-    out -- not three components.
+    ``.2f`` went through a second implementation that called
+    ``format(obj.value, spec)`` directly, which `numpy` rejects for a non-0-d
+    array. There is now one value path, so an array formats like a scalar.
     """
-    out = pspec(u.Q([3.14], "m"), "mul-->10.2f")
-    assert out == "[------3.14] * m"
+    assert pspec(u.Q([1.234, 2.345], "m"), ".2f") == "[1.23, 2.35] m"
 
 
-def test_long_unit_picks_the_spelled_out_name() -> None:
-    """``long`` renders the unit's long name instead of its short/symbol form."""
-    assert pspec(u.Q(1.0, "m"), "long") == "1. * meter"
-    assert pspec(u.Q(1.0, "m"), "bare-long") == "1. meter"
-    assert pspec(u.Q(1.0, "kpc"), "long") == "1. * kiloparsec"
+def test_a_value_spec_differs_from_a_keyworded_one_only_by_separator() -> None:
+    """Regression: ``.2f`` and ``mul-.2f`` used to reach different code.
 
-
-def test_long_unit_falls_back_when_there_is_no_long_name() -> None:
-    """A composite unit has no single long name -- fall back, don't raise."""
-    assert pspec(u.Q(1.0, "km / s"), "long") == "1. * km / s"
-
-
-def test_a_format_presets_key_is_never_shadowed_by_the_dsl() -> None:
-    """`FORMAT_PRESETS` is checked before the DSL parse, on principle.
-
-    An early revision named the array component's default-form token
-    ``"compact"`` -- the same string as this call-style preset -- and the DSL
-    parser (checked first, then) silently claimed it, so ``f"{q:compact}"``
-    stopped meaning the preset. The array component is now named ``"values"``
-    instead, so there is no live collision left to guard against here, but the
-    ordering itself stays: a literal preset name must always win, so that a
-    *future* DSL token can never repeat that mistake.
+    One was the astropy-compatible fallback and the other the engine, so they
+    differed in array support *and* separator. Now the only difference is the
+    separator the spec actually names.
     """
-    q = u.Q([1.0, 2, 3], "m")
-    assert pspec(q, "compact") == "Q([1., 2., 3.], unit='m')"
-    assert _parse_product_spec("compact") is None
+    q = u.Q([1.234, 2.345], "m")
+    assert pspec(q, ".2f") == "[1.23, 2.35] m"
+    assert pspec(q, "mul-.2f") == "[1.23, 2.35] * m"
+    assert pspec(q, "bare-.2f") == pspec(q, ".2f")
 
 
-@pytest.mark.parametrize("spec", [".3g", ":>10", ".2f"])
-def test_bare_value_specs_are_unaffected_by_the_dsl(spec: str) -> None:
-    """A value spec with no DSL keyword must keep going through pspec_fallback.
-
-    That legacy path is scalar-only and space-joined, with no ``*``.
-    """
-    assert _parse_product_spec(spec) is None
-    out = pspec(u.Q(3.14159, "m"), spec)
-    assert "*" not in out
-
-
-def test_every_preset_is_reachable_for_a_quantity() -> None:
-    """No preset or product-DSL spec raises for a plain quantity.
-
-    Guards the defect where the preset kwargs did not fit the consumers'
-    signatures and five of eight presets raised ``TypeError``.
-    """
-    q = u.Q([1.0, 2, 3], "m")
-    for spec in (*FORMAT_PRESETS, *_PRODUCT_SPECS):
-        assert isinstance(pspec(q, spec), str)
-
-
-@pytest.mark.parametrize("spec", ["mul", "bare", "latex", "html", "short"])
-def test_dimensionless_has_no_unit_fragment(spec: str) -> None:
-    r"""A dimensionless quantity drops the separator and the unit.
-
-    ``Unit("").to_string("latex")`` is ``$\mathrm{}$``, which is truthy once
-    the ``$`` are stripped, so deciding emptiness on the LaTeX form emitted a
-    phantom ``\mathrm{}``.
-    """
-    out = pspec(u.Q([1.0, 2], ""), spec)
-    assert "*" not in out
-    assert r"\mathrm{}" not in out
-
-
-def test_empty_spec_is_not_a_preset() -> None:
-    """``""`` must never be a preset key.
-
-    A format spec may use ``:`` as its fill character, and an empty-string
-    preset would make ``f"{q::>10}"`` parse as a preset plus a spec, silently
-    dropping the fill character.
-    """
-    assert "" not in FORMAT_PRESETS
-
-
-@pytest.mark.parametrize("name", sorted({*FORMAT_PRESETS, *_PRODUCT_SPECS}))
-def test_preset_names_are_not_valid_value_specs(name: str) -> None:
-    """Registering these names is strictly additive."""
-    for value in (3.14, 3, complex(1, 2), np.float32(1.5)):
-        with pytest.raises((ValueError, TypeError)):
-            format(value, name)
+def test_dimensionless_drops_the_unit_under_a_value_spec() -> None:
+    """The astropy-compatible behaviour, now on the single path."""
+    assert pspec(u.Q(3.14159, ""), ".2f") == "3.14"
 
 
 # ============================================================================
-# Errors
+# Errors: every rejection is a typed one
 
 
-def test_unknown_spec_names_the_type_and_the_presets() -> None:
-    """A bad spec raises `ValueError`, not NumPy's opaque `TypeError`."""
+def test_unknown_spec_names_the_type_and_the_grammar() -> None:
     with pytest.raises(ValueError, match=r"invalid format spec 'nonsense'"):
         pspec(u.Q(3.14, "m"), "nonsense")
 
 
-def test_valid_spec_failing_for_array_reasons_keeps_its_TypeError() -> None:  # noqa: N802
-    """``.2f`` on an array is a *valid* spec NumPy rejects.
+@pytest.mark.parametrize(
+    "spec", ["mul-bare", "html-latex", "type-values", "call-product"]
+)
+def test_setting_one_axis_twice_is_an_error(spec: str) -> None:
+    with pytest.raises(ValueError, match="is set twice"):
+        pspec(u.Q(1.0, "m"), spec)
 
-    Translating it to ``ValueError: invalid format spec`` would be a lie and
-    would break downstream ``except TypeError`` handlers.
+
+@pytest.mark.parametrize(
+    ("spec", "axis"),
+    [
+        ("call-mul", "sep"),
+        ("call-bare", "sep"),
+        ("call-html", "markup"),
+        ("call-latex", "markup"),
+        ("product-abbrev", "abbrev"),
+    ],
+)
+def test_an_axis_the_layout_lacks_is_an_error(spec: str, axis: str) -> None:
+    """Regression: the two systems used to fail incoherently.
+
+    ``html-compact`` leaked past the DSL into ``float.__format__`` and raised
+    ``Invalid format specifier 'compact' for object of type 'float'``. Naming
+    an axis a layout has no concept of now says exactly that instead -- and
+    silently ignoring it was never an option, since it would hide the mistake.
     """
-    with pytest.raises(TypeError, match="unsupported format string"):
-        pspec(u.Q([1.5, 2.5], "m"), ".2f")
+    with pytest.raises(ValueError, match=f"{axis!r} does not apply"):
+        pspec(u.Q(1.0, "m"), spec)
+
+
+def test_alias_plus_a_conflicting_keyword_reports_the_expansion_error() -> None:
+    """An alias is textual, so it fails exactly as its expansion would."""
+    with pytest.raises(ValueError, match="'markup' does not apply"):
+        pspec(u.Q(1.0, "m"), "html-compact")
+
+
+@pytest.mark.parametrize("spec", ["type-.2f", "array-.2f"])
+def test_a_value_spec_needs_the_values_form(spec: str) -> None:
+    """A shape/dtype summary has no elements a per-element spec could format."""
+    with pytest.raises(ValueError, match="value format spec needs"):
+        pspec(u.Q([1.0, 2], "m"), spec)
+
+
+def test_a_value_spec_does_not_apply_to_call_layout() -> None:
+    with pytest.raises(ValueError, match="does not apply to 'call' layout"):
+        pspec(u.Q([1.0, 2], "m"), "call-.2f")
+
+
+def test_a_type_with_no_pparts_rejects_a_value_spec() -> None:
+    """Degrading is right for *display*; silently dropping a request is not.
+
+    A unit system registers no `pparts`, so it has no elements to format. It
+    must say so rather than quietly render something else.
+    """
+    with pytest.raises(TypeError, match="does not support a value format spec"):
+        pspec(u.unitsystem("m", "s", "kg", "rad"), ".2f")
 
 
 def test_unknown_markup_is_named() -> None:
     with pytest.raises(ValueError, match=r"unknown markup 'markdown'"):
         parts_to_markup(pparts(u.Q(1.0, "m")), markup="markdown")
+
+
+@pytest.mark.parametrize("word", sorted({*_KEYWORDS, *ALIASES}))
+def test_grammar_words_are_not_valid_value_specs(word: str) -> None:
+    """Claiming these words is strictly additive.
+
+    If any were also a legal Python format spec, the scan rule would silently
+    prefer the keyword reading and steal a meaning users already had.
+    """
+    for value in (3.14, 3, complex(1, 2), np.float32(1.5)):
+        with pytest.raises((ValueError, TypeError)):
+            format(value, word)
+
+
+# ============================================================================
+# repr / str are the same renderer, reached with a different Spec
+
+
+def test_repr_and_str_are_call_layout_specs() -> None:
+    q = u.Q([1.0, 2, 3], "m")
+    assert repr(q) == render(q, Spec(layout="call", value="array"), named_unit=True)
+    assert str(q) == render(q, Spec(layout="call", value="values"), named_unit=True)
+
+
+def test_the_empty_spec_is_str() -> None:
+    """Not a special case any more -- a defined spec that happens to be `str`."""
+    q = u.Q([1.0, 2, 3], "m")
+    assert f"{q}" == str(q)
+
+
+def test_unit_system_repr_still_round_trips_through_eval() -> None:
+    """``call`` layout routes through ``__pdoc__``, which is what reconstructs.
+
+    Routing ``repr`` anywhere else would break the round-trip; this pins the
+    reason the layout axis exists at all.
+    """
+    usys = u.unitsystem("m", "s", "kg", "rad")
+    assert eval(repr(usys), {"unitsystem": u.unitsystem}) == usys  # noqa: S307
 
 
 # ============================================================================
@@ -268,7 +327,7 @@ def test_plain_roles_are_escaped() -> None:
 
 def test_rendered_markup_is_not_escaped_again() -> None:
     r"""Escaping unxt's own LaTeX would turn ``\mathrm`` into ``\textbackslash``."""
-    assert pspec(u.Q(1.0, "m"), "latex") == r"$1. \; \mathrm{m}$"
+    assert pspec(u.Q(1.0, "m"), "latex-mul") == r"$1. \; \mathrm{m}$"
 
 
 # ============================================================================
@@ -407,7 +466,7 @@ def test_preset_beats_the_value_spec_under_jit() -> None:
 
 def test_short_arrays_marks_a_weak_dtype() -> None:
     """A weakly-typed scalar keeps the ``weak_`` prefix in the summary."""
-    assert pspec(u.Q(1.0, "m"), "short") == "weak_f32[] * m"
+    assert pspec(u.Q(1.0, "m"), "type-mul") == "weak_f32[] * m"
 
 
 def test_short_arrays_unwraps_a_static_value() -> None:
@@ -416,7 +475,7 @@ def test_short_arrays_unwraps_a_static_value() -> None:
     The wrapper is then suppressed and the inner NumPy array renders without
     the ``(numpy)`` kind suffix.
     """
-    assert pspec(u.StaticQuantity([1.0, 2.0], "m"), "short") == "f64[2] * m"
+    assert pspec(u.StaticQuantity([1.0, 2.0], "m"), "type-mul") == "f64[2] * m"
 
 
 @pytest.mark.parametrize(

@@ -251,11 +251,15 @@ def test_format_static_quantity() -> None:
     assert f"{q}" == str(q)
 
 
-def test_format_non_scalar_raises() -> None:
-    """A non-empty spec on a non-scalar quantity raises (NumPy semantics)."""
+def test_format_applies_a_value_spec_elementwise_to_a_non_scalar() -> None:
+    """A value spec used to be scalar-only; it now formats each element.
+
+    ``format(obj.value, spec)`` went straight to `numpy`, which rejects a
+    non-0-d array, so this used to raise ``TypeError``. The spec now goes
+    through the one value path, which applies it per element.
+    """
     for q in (u.Q([1.5, 2.5], "m"), u.StaticQuantity(np.array([1.5, 2.5]), "m")):
-        with pytest.raises(TypeError, match="unsupported format string"):
-            format(q, ".2f")
+        assert format(q, ".2f") == "[1.50, 2.50] m"
 
 
 def test_format_presets_are_reachable_from_an_f_string() -> None:
@@ -263,7 +267,7 @@ def test_format_presets_are_reachable_from_an_f_string() -> None:
     q = u.Q([1.0, 2, 3], "m")
     assert f"{q:mul}" == "[1., 2., 3.] * m"
     assert f"{q:bare}" == "[1., 2., 3.] m"
-    assert f"{q:short}" == "f32[3] * m"
+    assert f"{q:type-mul}" == "f32[3] * m"
     assert f"{q:compact}" == "Q([1., 2., 3.], unit='m')"
 
 

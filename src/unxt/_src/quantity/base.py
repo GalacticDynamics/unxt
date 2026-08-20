@@ -87,6 +87,32 @@ def _coerce_foreign_quantity(other: Any) -> Any:
     return other
 
 
+def _render_configured(obj: Any, cfg: Any, /) -> str:
+    """Render ``obj`` in call layout, with the components ``cfg`` supplies.
+
+    ``repr`` and ``str`` are the same rendering as ``__format__``, reached with
+    a different `unxt._fmt.Spec` -- so there is one renderer, not three. What
+    varies is only where the components come from: a format spec parses them
+    out of a string, while ``repr``/``str`` read them from `unxt.config`.
+
+    The config traits keep their own spelling (``short_arrays``,
+    ``use_short_name``); `unxt._fmt.VALUE_FROM_SHORT_ARRAYS` is the single
+    place the two vocabularies meet. ``named_unit`` has no grammar keyword --
+    it is a quantity-specific ``__pdoc__`` knob, not an axis every type
+    shares -- so it rides through as a pass-through.
+    """
+    return fmt.render(
+        obj,
+        fmt.Spec(
+            layout="call",
+            value=fmt.VALUE_FROM_SHORT_ARRAYS[cfg.short_arrays],
+            abbrev=cfg.use_short_name,
+        ),
+        indent=cfg.indent,
+        named_unit=cfg.named_unit,
+    )
+
+
 def same_unit_label(a: AbstractUnit, b: AbstractUnit, /) -> bool:
     """Return whether two units carry the same *label*.
 
@@ -1075,22 +1101,10 @@ class AbstractQuantity(
         )
 
     def __repr__(self) -> str:
-        return wl.pformat(
-            self,
-            short_arrays=config.quantity_repr.short_arrays,
-            use_short_name=config.quantity_repr.use_short_name,
-            named_unit=config.quantity_repr.named_unit,
-            indent=config.quantity_repr.indent,
-        )
+        return _render_configured(self, config.quantity_repr)
 
     def __str__(self) -> str:
-        return wl.pformat(
-            self,
-            short_arrays=config.quantity_str.short_arrays,
-            use_short_name=config.quantity_str.use_short_name,
-            named_unit=config.quantity_str.named_unit,
-            indent=config.quantity_str.indent,
-        )
+        return _render_configured(self, config.quantity_str)
 
     def __format__(self, format_spec: str, /) -> str:
         """Format the quantity.
@@ -1118,19 +1132,19 @@ class AbstractQuantity(
         >>> qs = u.Q([1.0, 2, 3], "m")
         >>> f"{qs:mul}"
         '[1., 2., 3.] * m'
-        >>> f"{qs:short}"
+        >>> f"{qs:type-mul}"
         'f32[3] * m'
         >>> f"{qs:compact}"
         "Q([1., 2., 3.], unit='m')"
 
         Markup, array, separator, and unit compose, e.g. HTML without the
         multiplication sign, or a per-element precision paired with the
-        unit's long name:
+        unit's long name. A value spec goes last, after every keyword:
 
         >>> f"{qs:html-bare}"
         '<span>[1., 2., 3.]</span> <span>m</span>'
 
-        >>> f"{u.Q([1.234, 2.345], 'm'):mul-.2f-long}"
+        >>> f"{u.Q([1.234, 2.345], 'm'):mul-name-.2f}"
         '[1.23, 2.35] * meter'
 
         """
@@ -1634,7 +1648,7 @@ def pparts(
     markup: str = "text",
     short_arrays: Any = "compact",
     value_spec: str | None = None,
-    long_unit: bool = False,
+    unit: str = "symbol",
     **kw: Any,
 ) -> tuple[Any, ...]:
     """Decompose a quantity into ``value``, a ``mul`` separator, and ``unit``.
@@ -1652,13 +1666,12 @@ def pparts(
     >>> parts_to_markup(pparts(u.Q([1.0, 2, 3], "")))
     '[1., 2., 3.]'
 
-    ``value_spec`` formats each element; ``long_unit`` picks the unit's long
-    name:
+    ``value_spec`` formats each element; ``unit`` picks the unit's spelling:
 
     >>> parts_to_markup(pparts(u.Q([1.234, 2.345], "m"), value_spec=".2f"))
     '[1.23, 2.35] * m'
 
-    >>> parts_to_markup(pparts(u.Q(1.0, "m"), long_unit=True))
+    >>> parts_to_markup(pparts(u.Q(1.0, "m"), unit="name"))
     '1. * meter'
 
     """
@@ -1667,38 +1680,6 @@ def pparts(
         obj.value, markup=markup, short_arrays=short_arrays, value_spec=value_spec
     )
     parts: tuple[Any, ...] = (fmt.PPart("value", value, kind),)
-    if unit_parts := fmt.pparts(obj.unit, markup=markup, long_unit=long_unit):
+    if unit_parts := fmt.pparts(obj.unit, markup=markup, unit=unit):
         parts = (*parts, fmt.PPart("mul", " * ", "sep"), *unit_parts)
     return parts
-
-
-@fmt.pspec_fallback.dispatch  # type: ignore[misc]
-def pspec_fallback(obj: AbstractQuantity, spec: str, /) -> str:
-    """Apply a value format spec, appending the unit (astropy-compatible).
-
-    Examples
-    --------
-    >>> import unxt as u
-    >>> from unxt._fmt import pspec
-
-    >>> pspec(u.Q(3.14159, "m"), ".2f")
-    '3.14 m'
-
-    A dimensionless quantity has no unit suffix:
-
-    >>> pspec(u.Q(3.14159, ""), ".2f")
-    '3.14'
-
-    """
-    try:
-        value_str = format(obj.value, spec)
-    except (TypeError, ValueError) as e:
-        if np.ndim(obj.value) != 0:
-            # A perfectly valid spec that NumPy rejects because the value is a
-            # non-0-d array. Keep the original error: calling it an invalid
-            # spec would be a lie, and downstream ``except TypeError`` handlers
-            # depend on the type.
-            raise
-        raise fmt.bad_spec(obj, spec) from e
-    unit_str = str(obj.unit)
-    return f"{value_str} {unit_str}" if unit_str else value_str
