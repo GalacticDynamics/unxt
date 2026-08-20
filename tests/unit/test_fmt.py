@@ -26,6 +26,26 @@ from unxt._src.fmt import REQUIRED_MARKUP_KEYS
 # Presets
 
 
+#: Every product-style spec this file exercises, alongside the call-style
+#: `FORMAT_PRESETS` entries -- the union is "every spec `pspec` must accept
+#: without raising for a plain quantity".
+_PRODUCT_SPECS = (
+    "short",
+    "mul",
+    "bare",
+    "latex",
+    "html",
+    "html-bare",
+    "html-short",
+    "latex-bare",
+    "latex-short",
+    "bare-short",
+    "html-short-mul",
+    "html-short-bare",
+    "latex-short-bare",
+)
+
+
 @pytest.mark.parametrize(
     ("spec", "expected"),
     [
@@ -36,6 +56,13 @@ from unxt._src.fmt import REQUIRED_MARKUP_KEYS
         ("bare", "[1., 2., 3.] m"),
         ("latex", r"$[1.,~2.,~3.] \; \mathrm{m}$"),
         ("html", "<span>[1., 2., 3.]</span> * <span>m</span>"),
+        # DSL combinations with no single-word equivalent before this existed.
+        ("html-bare", "<span>[1., 2., 3.]</span> <span>m</span>"),
+        ("latex-bare", r"$[1.,~2.,~3.] \mathrm{m}$"),
+        ("html-short", "<span>f32[3]</span> * <span>m</span>"),
+        ("latex-short", r"$f32[3] \; \mathrm{m}$"),
+        ("html-short-bare", "<span>f32[3]</span> <span>m</span>"),
+        ("bare-short", "f32[3] m"),
     ],
 )
 def test_preset_renders_quantity(spec: str, expected: str) -> None:
@@ -43,14 +70,43 @@ def test_preset_renders_quantity(spec: str, expected: str) -> None:
     assert pspec(u.Q([1.0, 2, 3], "m"), spec) == expected
 
 
+@pytest.mark.parametrize(
+    ("a", "b"),
+    [
+        ("html-bare", "bare-html"),
+        ("html-short-bare", "bare-short-html"),
+        ("html-short-bare", "short-bare-html"),
+        ("latex-short-bare", "bare-latex-short"),
+    ],
+)
+def test_dsl_tokens_are_order_independent(a: str, b: str) -> None:
+    """A product spec is a set of tokens, not a positional grammar.
+
+    ``<markup>-<array>-<separator>`` is the canonical spelling used in docs
+    and error messages, but any order of the same tokens must render
+    identically -- the shorthands (``"html"``, ``"mul"``, ``"short"``) only
+    make sense at all if omitting a component doesn't require the others to
+    move.
+    """
+    q = u.Q([1.0, 2, 3], "m")
+    assert pspec(q, a) == pspec(q, b)
+
+
+@pytest.mark.parametrize("spec", ["mul-bare", "html-latex", "short-short"])
+def test_dsl_rejects_a_duplicated_component(spec: str) -> None:
+    """Two tokens from the same component (markup, array, separator) is invalid."""
+    with pytest.raises(ValueError, match=f"invalid format spec {spec!r}"):
+        pspec(u.Q(1.0, "m"), spec)
+
+
 def test_every_preset_is_reachable_for_a_quantity() -> None:
-    """No preset raises for a plain quantity.
+    """No preset or product-DSL spec raises for a plain quantity.
 
     Guards the defect where the preset kwargs did not fit the consumers'
     signatures and five of eight presets raised ``TypeError``.
     """
     q = u.Q([1.0, 2, 3], "m")
-    for spec in FORMAT_PRESETS:
+    for spec in (*FORMAT_PRESETS, *_PRODUCT_SPECS):
         assert isinstance(pspec(q, spec), str)
 
 
@@ -77,7 +133,7 @@ def test_empty_spec_is_not_a_preset() -> None:
     assert "" not in FORMAT_PRESETS
 
 
-@pytest.mark.parametrize("name", sorted(FORMAT_PRESETS))
+@pytest.mark.parametrize("name", sorted({*FORMAT_PRESETS, *_PRODUCT_SPECS}))
 def test_preset_names_are_not_valid_value_specs(name: str) -> None:
     """Registering these names is strictly additive."""
     for value in (3.14, 3, complex(1, 2), np.float32(1.5)):

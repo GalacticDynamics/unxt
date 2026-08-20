@@ -428,10 +428,15 @@ def parts_to_markup(
 
 #: Named renderings usable as a format spec, e.g. ``f"{q:compact}"``.
 #:
+#: These are the *call-style* presets -- rendered by `wadler_lindig.pformat`,
+#: like ``ClassName(value, unit=...)``. The *product-style* presets
+#: (``value * unit``, rendered through `pparts`) are not listed here: they are
+#: a small DSL instead of one dict entry per combination, since three
+#: independent choices (markup, array verbosity, separator) would otherwise
+#: need one hand-written entry per combination. See `_parse_product_spec`.
+#:
 #: Entries are plain kwarg bundles and a type honours the keys it understands,
-#: which is what lets one table serve quantities and unit systems alike. A
-#: ``"style"`` of ``"product"`` routes through `pparts`; anything else goes to
-#: `wadler_lindig.pformat`.
+#: which is what lets one table serve quantities and unit systems alike.
 #:
 #: There is no ``register_preset``: this is a dict, so write
 #: ``FORMAT_PRESETS["mine"] = {...}``. There are deliberately no ``"repr"`` or
@@ -447,29 +452,109 @@ FORMAT_PRESETS: dict[str, dict[str, Any]] = {
         "quote_units": False,
     },
     "full": {"short_arrays": False},
-    "short": {"style": "product", "short_arrays": True},
-    "mul": {"style": "product", "short_arrays": "compact"},
-    "bare": {"style": "product", "short_arrays": "compact", "sep": " "},
-    "latex": {"style": "product", "short_arrays": "compact", "markup": "latex"},
-    "html": {"style": "product", "short_arrays": "compact", "markup": "html"},
     "dims": {"show_units": False},
 }
+
+#: Markup component of a product-style spec, e.g. the ``html`` in
+#: ``"html-bare"``. Omitted means ``"text"`` -- there is no ``"text"`` key,
+#: since that is the absence of a match, not a match.
+_MARKUP_TOKENS: Final[dict[str, str]] = {"html": "html", "latex": "latex"}
+
+#: Separator component: whether the join between top-level parts (e.g. value
+#: and unit) shows its operator. Value is the `parts_to_doc` / `parts_to_markup`
+#: ``sep`` override; `None` means "don't override" -- the object's own `pparts`
+#: already renders its default join (``" * "`` for a quantity), so ``"mul"``
+#: does not have to hard-code that string here to mean the same thing.
+_SEP_TOKENS: Final[dict[str, str | None]] = {"mul": None, "bare": " "}
+
+#: Array-verbosity component: whether the value renders as a shape/dtype
+#: summary (`short_arrays=True`, e.g. ``f32[3]``) or its default compact form
+#: (`short_arrays="compact"`, e.g. ``[1., 2., 3.]``). Omitted means the compact
+#: form.
+_VERBOSITY_TOKENS: Final[frozenset[str]] = frozenset({"short"})
+
+
+def _parse_product_spec(spec: str, /) -> dict[str, Any] | None:
+    """Parse a product-style spec: ``<markup>-<array>-<separator>``.
+
+    Each component is optional and independent, so a spec is really a *set* of
+    up to three tokens -- one per component -- and this parser accepts them in
+    any order (``"html-bare"`` and ``"bare-html"`` are the same request).
+    ``<markup>-<array>-<separator>`` is only the canonical spelling used in
+    docs and error messages, not a grammar this function enforces; a fixed
+    positional grammar would reject the shorthands (``"html"``, ``"mul"``,
+    ``"short"``) that make single-component specs read the same as before this
+    DSL existed.
+
+    Returns `None` -- not a preset -- for anything that is not entirely
+    composed of known tokens: an unrecognised token, a duplicated component
+    (``"mul-bare"``), or a plain value spec like ``".2f"``. That is what lets
+    `pspec` fall through to `pspec_fallback` for those unchanged.
+
+    Examples
+    --------
+    >>> from unxt._src.fmt import _parse_product_spec
+
+    >>> _parse_product_spec("html-bare") == {
+    ...     "markup": "html",
+    ...     "sep": " ",
+    ...     "short_arrays": "compact",
+    ... }
+    True
+
+    Omitted components take their default -- text markup, the object's own
+    separator, compact arrays:
+
+    >>> _parse_product_spec("short") == {
+    ...     "markup": "text",
+    ...     "sep": None,
+    ...     "short_arrays": True,
+    ... }
+    True
+
+    Not a product spec -- a plain value spec, or a duplicated component:
+
+    >>> _parse_product_spec(".2f") is None
+    True
+    >>> _parse_product_spec("mul-bare") is None
+    True
+
+    """
+    tokens = spec.split("-")
+    markups = [t for t in tokens if t in _MARKUP_TOKENS]
+    seps = [t for t in tokens if t in _SEP_TOKENS]
+    verbosities = [t for t in tokens if t in _VERBOSITY_TOKENS]
+    all_known = len(markups) + len(seps) + len(verbosities) == len(tokens)
+    one_each = len(markups) <= 1 and len(seps) <= 1 and len(verbosities) <= 1
+    if not (all_known and one_each):
+        return None
+    return {
+        "markup": _MARKUP_TOKENS[markups[0]] if markups else "text",
+        "sep": _SEP_TOKENS[seps[0]] if seps else None,
+        "short_arrays": True if verbosities else "compact",
+    }
 
 
 def bad_spec(obj: Any, spec: str, /) -> ValueError:
     return ValueError(
         f"invalid format spec {spec!r} for {type(obj).__name__}; "
-        f"presets are {', '.join(sorted(FORMAT_PRESETS))}"
+        f"presets are {', '.join(sorted(FORMAT_PRESETS))}, or a "
+        "'-'-joined <markup>-<array>-<separator> combination, each part "
+        f"optional: markup is {', '.join(sorted(_MARKUP_TOKENS))} (default "
+        f"text), array is {', '.join(sorted(_VERBOSITY_TOKENS))} (default "
+        f"compact), separator is {', '.join(sorted(_SEP_TOKENS))} -- e.g. "
+        "'html-bare' or 'html-short-mul'"
     )
 
 
 def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
     r"""Implement ``__format__`` for an object the engine knows.
 
-    The preset lookup runs *before* the value-spec branch. That ordering is
-    mandatory rather than stylistic: handing a non-empty spec straight to the
-    value raises for a tracer and for any non-scalar array, so a preset checked
-    second would be unreachable under `jax.jit` and for every array quantity.
+    The preset/DSL lookups run *before* the value-spec branch. That ordering
+    is mandatory rather than stylistic: handing a non-empty spec straight to
+    the value raises for a tracer and for any non-scalar array, so a preset
+    checked second would be unreachable under `jax.jit` and for every array
+    quantity.
 
     Examples
     --------
@@ -482,29 +567,40 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
     >>> pspec(u.Q([1.0, 2, 3], "m"), "latex")
     '$[1.,~2.,~3.] \\; \\mathrm{m}$'
 
+    A product-style spec composes markup, array verbosity, and separator --
+    each optional, in any order:
+
+    >>> pspec(u.Q([1.0, 2, 3], "m"), "html-bare")
+    '<span>[1., 2., 3.]</span> <span>m</span>'
+
+    >>> pspec(u.Q([1.0, 2, 3], "m"), "html-short-mul")
+    '<span>f32[3]</span> * <span>m</span>'
+
     An empty spec preserves `str`:
 
     >>> pspec(u.Q(1.0, "m"), "") == str(u.Q(1.0, "m"))
     True
 
     """
-    if spec not in FORMAT_PRESETS:
-        return str(obj) if not spec else pspec_fallback(obj, spec)
+    if not spec:
+        return str(obj)
 
-    kw = dict(FORMAT_PRESETS[spec])
-    if kw.pop("style", None) != "product":
+    if (parsed := _parse_product_spec(spec)) is not None:
+        markup = parsed["markup"]
+        sep = parsed["sep"]
+        parts = pparts(obj, markup=markup, short_arrays=parsed["short_arrays"])
+        if markup == "text":
+            # Feed wadler-lindig, so the rendering is laid out rather than
+            # concatenated and composes inside a larger document.
+            return doc_to_str(parts_to_doc(parts, sep=sep), width)
+        return parts_to_markup(parts, markup=markup, sep=sep)
+
+    if spec in FORMAT_PRESETS:
         # ``wadler_lindig.pformat`` accepts and ignores unknown kwargs, which is
         # what makes one preset table serve several types.
-        return wl.pformat(obj, **kw)
+        return wl.pformat(obj, **FORMAT_PRESETS[spec])
 
-    markup = kw.pop("markup", "text")
-    sep = kw.pop("sep", None)
-    parts = pparts(obj, markup=markup, **kw)
-    if markup == "text":
-        # Feed wadler-lindig, so the rendering is laid out rather than
-        # concatenated and composes inside a larger document.
-        return doc_to_str(parts_to_doc(parts, sep=sep), width)
-    return parts_to_markup(parts, markup=markup, sep=sep)
+    return pspec_fallback(obj, spec)
 
 
 @dispatch
@@ -523,7 +619,7 @@ def pspec_fallback(obj: Any, spec: str, /) -> str:
     ...     pspec(u.unitsystem("m", "s", "kg", "rad"), "nope")
     ... except ValueError as e:
     ...     print(e)
-    invalid format spec 'nope' for LTMAUnitSystem; presets are bare, compact, ...
+    invalid format spec 'nope' for LTMAUnitSystem; presets are compact, dims, ...
 
     """
     raise bad_spec(obj, spec)

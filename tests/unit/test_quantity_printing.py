@@ -259,7 +259,7 @@ def test_format_non_scalar_raises() -> None:
 
 
 def test_format_presets_are_reachable_from_an_f_string() -> None:
-    """`unxt._fmt.FORMAT_PRESETS` names work as format specs."""
+    """Presets and the product-style DSL both work as format specs."""
     q = u.Q([1.0, 2, 3], "m")
     assert f"{q:mul}" == "[1., 2., 3.] * m"
     assert f"{q:bare}" == "[1., 2., 3.] m"

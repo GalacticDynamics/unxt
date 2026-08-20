@@ -1096,8 +1096,9 @@ class AbstractQuantity(
         """Format the quantity.
 
         An empty spec preserves the default :meth:`__str__` representation. A
-        `unxt._fmt.FORMAT_PRESETS` name selects a named rendering. Any other
-        spec is applied to the value and the unit is appended (as in
+        `unxt._fmt.FORMAT_PRESETS` name, or a ``<markup>-<array>-<separator>``
+        combination (see `unxt._fmt.pspec`), selects a named rendering. Any
+        other spec is applied to the value and the unit is appended (as in
         `astropy.units.Quantity`); a dimensionless quantity has no unit suffix.
 
         Examples
@@ -1120,6 +1121,12 @@ class AbstractQuantity(
         'f32[3] * m'
         >>> f"{qs:compact}"
         "Q([1., 2., 3.], unit='m')"
+
+        Markup, array verbosity, and separator compose, e.g. HTML without the
+        multiplication sign:
+
+        >>> f"{qs:html-bare}"
+        '<span>[1., 2., 3.]</span> <span>m</span>'
 
         """
         return fmt.pspec(self, format_spec)

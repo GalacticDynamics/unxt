@@ -80,25 +80,22 @@ For more information on multiple dispatch, see the [plum documentation](https://
 
 ## Format Spec Presets
 
-`repr`, `str`, and the IPython representations are each free to look however a type wants. `__format__` is different: it is reached through an f-string (`f"{obj:preset}"`), so its spec strings are part of the vocabulary a user carries from one `unxt` type to the next. `unxt._fmt.FORMAT_PRESETS` is a single dict shared by every type that routes its `__format__` through `unxt._fmt.pspec` — a preset name means the same thing everywhere it is honoured, and a type has to do nothing to inherit a new preset added later.
+`repr`, `str`, and the IPython representations are each free to look however a type wants. `__format__` is different: it is reached through an f-string (`f"{obj:preset}"`), so its spec strings are part of the vocabulary a user carries from one `unxt` type to the next. Every type that routes its `__format__` through `unxt._fmt.pspec` shares the same vocabulary — a spec means the same thing everywhere it is honoured, and a type has to do nothing to inherit one added later.
 
-Two independent things distinguish a preset:
+Two structures exist:
 
-- **Structure** — _call-style_ (`ClassName(value, unit=...)`, rendered by `wadler_lindig.pformat`) versus _product-style_ (`value * unit`, rendered by decomposing the object with `pparts` and running it through `parts_to_doc` / `parts_to_markup`). Product-style presets only decompose meaningfully for a type that registers `pparts`; a type that skips this still accepts those presets without raising, rendering `str(obj)` as one opaque fragment. That is a deliberate degrade, not a bug: a display path must not raise just because one field's type forgot to register.
-- **Markup** — `text` / `html` / `latex`, orthogonal to structure.
+- **Call-style** — `ClassName(value, unit=...)`, rendered by `wadler_lindig.pformat`. Named by a flat entry in `unxt._fmt.FORMAT_PRESETS`: `full` (full array repr), `compact` (short class name, compact array), `dims` (dimension names instead of units — unit-system only; see below).
+- **Product-style** — `value * unit`, rendered by decomposing the object with `pparts` and running it through `parts_to_doc` / `parts_to_markup`. Named by a small DSL rather than one preset per combination.
 
-The current presets:
+### The product-style DSL
 
-| preset | structure | renders | example |
-| --- | --- | --- | --- |
-| `full` | call | full array repr | `Quantity(Array([1., 2., 3.], dtype=float32), unit='m')` |
-| `compact` | call | short class name, compact array | `Q([1., 2., 3.], unit='m')` |
-| `short` | product | array **shape/dtype summary** | `f32[3] * m` |
-| `mul` | product | full compact array, `*`-joined | `[1., 2., 3.] * m` |
-| `bare` | product | full compact array, space-joined | `[1., 2., 3.] m` |
-| `latex` | product | LaTeX markup | `$[1.,~2.,~3.] \; \mathrm{m}$` |
-| `html` | product | HTML markup | `<span>[1., 2., 3.]</span> * <span>m</span>` |
-| `dims` | call | dimension names instead of units | `LTMAUnitSystem(length, time, mass, angle)` |
+A product-style spec is up to three optional, independent components, canonically spelled `<markup>-<array>-<separator>`:
+
+| component | values | omitted means |
+| --- | --- | --- |
+| markup | `html`, `latex` | `text` |
+| array | `short` (shape/dtype summary, e.g. `f32[3]`) | the compact form, e.g. `[1., 2., 3.]` |
+| separator | `mul` (show `*`), `bare` (space, no operator) | `mul` |
 
 ```{code-block} python
 
@@ -109,23 +106,39 @@ The current presets:
 '[1., 2., 3.] * m'
 >>> f"{q:short}"
 'f32[3] * m'
+>>> f"{q:html-bare}"
+'<span>[1., 2., 3.]</span> <span>m</span>'
+>>> f"{q:html-short-mul}"
+'<span>f32[3]</span> * <span>m</span>'
+```
+
+Omitting a component takes its default, which is what makes the short forms just an unremarkable case of the same grammar rather than a separate alias table: `mul` is short for `text-mul` (equivalently `mul` — separator is the only component present), `html` is short for `html-mul` (markup present, separator defaults to `mul`), and `short` is short for `text-mul-short`.
+
+The parser accepts the three tokens in any order — `html-bare` and `bare-html` render identically — but `<markup>-<array>-<separator>` is the one spelling used in docs and error messages, so pick it when writing a spec by hand. Two tokens from the same component (`mul-bare`, `html-latex`) is invalid and raises `ValueError`, same as an unknown spec.
+
+Product-style specs only decompose meaningfully for a type that registers `pparts`; a type that skips this still accepts them without raising, rendering `str(obj)` as one opaque fragment. That is a deliberate degrade, not a bug: a display path must not raise just because one field's type forgot to register.
+
+`short` and `compact` are easy to mix up — both mean "terse" in English, but they cut different axes. `short` summarizes the _array_ (shape and dtype, product-style); `compact` shortens the _class name_ while keeping the array's compact values (call-style). Read the grammar, not the names, when in doubt.
+
+`dims` is the one call-style preset that is inherently type-specific: only a unit system has "dimension names" to show instead of units.
+
+```{code-block} python
 
 >>> usys = u.unitsystem("kpc", "Myr", "Msun", "radian")
 >>> f"{usys:dims}"
 'LTMAUnitSystem(length, time, mass, angle)'
 ```
 
-`short` and `compact` are easy to mix up — both mean "terse" in English, but they cut different axes. `short` summarizes the _array_ (shape and dtype, product-style); `compact` shortens the _class name_ while keeping the array's compact values (call-style). Read the table, not the names, when in doubt.
+It is the precedent for how a type extends the shared vocabulary with a call-style preset of its own, rather than forcing every concept to be universal. Do this when a concept has no equivalent for other types; reuse an existing name — or the product-style DSL — when it does.
 
-`dims` is the one preset that is inherently type-specific: only a unit system has "dimension names" to show instead of units. It is the precedent for how a type extends the shared vocabulary with a preset of its own, rather than forcing every concept to be universal. Do this when a concept has no equivalent for other types; reuse an existing name when it does.
+Rules for extending the vocabulary:
 
-Rules for adding a preset:
-
-- Reuse an existing name if its meaning already fits; only add a new one for a genuinely new concept.
-- Lowercase, one word, no punctuation.
+- A genuinely new _component_ of product-style rendering (a fourth thing that can vary orthogonally to markup/array/separator) is a new DSL token, not a new flat preset — the whole point of the DSL is that components compose instead of each combination needing its own hand-written entry.
+- A concept with no product-style equivalent, and no fit in the DSL, is a new `FORMAT_PRESETS` entry (as `dims` is). Reuse an existing name if its meaning already fits.
+- Lowercase, one word, no punctuation, and not a DSL token already spoken for (`html`, `latex`, `short`, `mul`, `bare`).
 - `""` (empty spec) always means `str(obj)`, and `!r`/`!s` already cover `repr`/`str` — never add a `"repr"` or `"str"` preset, and never let `""` become a dict key.
 
 Rules for a type joining the engine:
 
-- Register `pspec_fallback` if a _non-preset_ spec should mean something (as `.2f` does for a quantity's value). Skip it and an unrecognised spec raises `ValueError`.
-- Register `pparts` to make the five product-style presets (`short`, `mul`, `bare`, `latex`, `html`) decompose meaningfully instead of falling back to a single opaque `str(obj)` fragment.
+- Register `pspec_fallback` if a _non-preset, non-DSL_ spec should mean something (as `.2f` does for a quantity's value). Skip it and an unrecognised spec raises `ValueError`.
+- Register `pparts` to make the product-style DSL decompose meaningfully instead of falling back to a single opaque `str(obj)` fragment.
