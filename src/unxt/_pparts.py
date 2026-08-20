@@ -1,7 +1,15 @@
 r"""String formatting (private).
 
-Not public API yet: the engine is settling, and `unxt._fmt` keeps it out of the
-documented surface until the shape has been exercised by a downstream package.
+Not public API yet: the engine is settling, and the leading underscore keeps it
+out of the documented surface until the shape has been exercised by a
+downstream package.
+
+**The name is the plan.** This module is spelled to become the standalone
+package ``pparts``, so extraction is dropping the underscore: what is
+``from unxt._pparts import pparts, PPart`` today becomes
+``from pparts import pparts, PPart``, with no other edit at the call site. The
+names re-exported here are exactly that package's intended surface -- see
+`unxt._src.fmt.engine`, which is the code that moves.
 
 The engine behind ``repr``, ``str``, ``format``, and the IPython
 representations. It exists so those all agree on *what an object is made of*,
@@ -31,7 +39,7 @@ the contract:
 Examples
 --------
 >>> import unxt as u
->>> from unxt._fmt import pspec
+>>> from unxt._pparts import pspec
 >>> q = u.Q([1.0, 2, 3], "m")
 
 >>> pspec(q, "mul")
@@ -48,7 +56,7 @@ markup, including ones it has never heard of -- note that ``**kw`` forwards
 the axes this type does not itself act on:
 
 >>> import dataclasses
->>> from unxt._fmt import PGroup, PPart, pparts
+>>> from unxt._pparts import PGroup, PPart, pparts
 
 >>> @dataclasses.dataclass
 ... class Interval:
@@ -98,7 +106,7 @@ __all__ = (
 
 from .setup_package import install_import_hook
 
-with install_import_hook("unxt._fmt"):
+with install_import_hook("unxt._pparts"):
     from ._src.fmt import (
         Axis,
         PGroup,

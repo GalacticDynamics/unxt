@@ -1,4 +1,4 @@
-"""Tests for the `unxt._fmt` string-formatting engine."""
+"""Tests for the `unxt._pparts` string-formatting engine."""
 
 import pathlib
 import re

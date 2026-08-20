@@ -149,7 +149,7 @@ def dimension_of(obj: AbstractUnit, /) -> AbstractDimension:
 def pparts(
     obj: AbstractUnit, /, *, markup: str = "text", unit: str = "symbol", **kw: Any
 ) -> tuple[Any, ...]:
-    r"""Decompose a unit for the `unxt._fmt` engine.
+    r"""Decompose a unit for the `unxt._pparts` engine.
 
     A unit is just an object with parts, so there is no separate unit renderer
     and the engine's nesting rule covers it.

@@ -155,7 +155,7 @@ class IPythonReprMixin:
         }
 
     def _repr_markup_(self, markup: str, /) -> str:
-        """Render through the `unxt._fmt` engine in the given markup."""
+        """Render through the `unxt._pparts` engine in the given markup."""
         return fmt.parts_to_markup(fmt.pparts(self, markup=markup), markup=markup)
 
     def _repr_html_(self) -> str:

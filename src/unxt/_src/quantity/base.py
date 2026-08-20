@@ -91,12 +91,12 @@ def _render_configured(obj: Any, cfg: Any, /) -> str:
     """Render ``obj`` in call layout, with the components ``cfg`` supplies.
 
     ``repr`` and ``str`` are the same rendering as ``__format__``, reached with
-    a different `unxt._fmt.Spec` -- so there is one renderer, not three. What
+    a different `unxt._pparts.Spec` -- so there is one renderer, not three. What
     varies is only where the components come from: a format spec parses them
     out of a string, while ``repr``/``str`` read them from `unxt.config`.
 
     The config traits keep their own spelling (``short_arrays``,
-    ``use_short_name``); `unxt._fmt.VALUE_FROM_SHORT_ARRAYS` is the single
+    ``use_short_name``); `unxt._pparts.VALUE_FROM_SHORT_ARRAYS` is the single
     place the two vocabularies meet. ``named_unit`` has no grammar keyword --
     it is a quantity-specific ``__pdoc__`` knob, not an axis every type
     shares -- so it rides through as a pass-through.
@@ -1110,9 +1110,9 @@ class AbstractQuantity(
         """Format the quantity.
 
         An empty spec preserves the default :meth:`__str__` representation. A
-        `unxt._fmt` alias, or a
+        `unxt._pparts` alias, or a
         ``<markup>-<array>-<separator>-<unit>`` combination (see
-        `unxt._fmt.pspec`), selects a named rendering. Any other spec is
+        `unxt._pparts.pspec`), selects a named rendering. Any other spec is
         applied to the value and the unit is appended (as in
         `astropy.units.Quantity`); a dimensionless quantity has no unit suffix.
 

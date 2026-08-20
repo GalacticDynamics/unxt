@@ -7,6 +7,14 @@ lifted out into a package of its own, with `unxt`, `coordinax` and `galax`
 registering into it as peers; a test pins the import restriction so the seam
 cannot rot.
 
+That package is intended to be called **``pparts``**, after the extension point
+everything here turns on: a type joins in by saying what it is *made of*. The
+name also keeps the ``p``-prefix `wadler_lindig` already uses (``pformat``,
+``pdoc``, ``__pdoc__``), which is the honest form of the kinship -- this
+engine *feeds* wadler-lindig rather than reimplementing any of its algorithm,
+so naming it after another prettyprinting author -- the obvious way to look
+like a sibling -- would claim something untrue.
+
 An object declares *how it decomposes* by registering `pparts`, which returns a
 tree of roled fragments. Two consumers turn that tree into output:
 

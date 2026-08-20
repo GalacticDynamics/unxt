@@ -80,9 +80,9 @@ For more information on multiple dispatch, see the [plum documentation](https://
 
 ## Format Specs
 
-`repr`, `str`, and `__format__` are one rendering, reached three ways. They differ only in the `unxt._fmt.Spec` they carry — a settled value for every axis — which `unxt._fmt.render` then executes. A format spec parses that `Spec` out of a string; `repr` and `str` read it from `unxt.config`. There is no second system and no separate preset table.
+`repr`, `str`, and `__format__` are one rendering, reached three ways. They differ only in the `unxt._pparts.Spec` they carry — a settled value for every axis — which `unxt._pparts.render` then executes. A format spec parses that `Spec` out of a string; `repr` and `str` read it from `unxt.config`. There is no second system and no separate preset table.
 
-Because `__format__` is reached through an f-string (`f"{obj:spec}"`), its vocabulary is something a user carries from one `unxt` type to the next, so every type routing through `unxt._fmt.pspec` shares it and a spec means the same thing everywhere.
+Because `__format__` is reached through an f-string (`f"{obj:spec}"`), its vocabulary is something a user carries from one `unxt` type to the next, so every type routing through `unxt._pparts.pspec` shares it and a spec means the same thing everywhere.
 
 ### The grammar
 
@@ -180,7 +180,7 @@ Sugar, never new meaning: each expands _textually_ into core keywords before par
 
 The code is split along the seam it will eventually be cut at:
 
-- **`unxt._src.fmt.engine`** — domain-agnostic and self-contained. Fragments (`PPart`/`PGroup`), the markup table, the wadler-lindig feed, the `pparts` dispatcher, the scan-rule parser, `Spec`, the two layouts, and the axis registry. It imports nothing from `unxt`, and nothing from `jax`, `numpy` or `astropy` either; a test asserts that from its import list, so the claim cannot rot into prose.
+- **`unxt._src.fmt.engine`** — domain-agnostic and self-contained, and destined to become a standalone package named **`pparts`**, after the extension point it turns on. Fragments (`PPart`/`PGroup`), the markup table, the wadler-lindig feed, the `pparts` dispatcher, the scan-rule parser, `Spec`, the two layouts, and the axis registry. It imports nothing from `unxt`, and nothing from `jax`, `numpy` or `astropy` either; a test asserts that from its import list, so the claim cannot rot into prose.
 - **`unxt._src.fmt.axes`** — the domain layer: the axes `unxt` puts into the grammar, the aliases, and the array helpers those axes need.
 
 `coordinax` and `galax` add their own axes by importing `register_axis` and doing exactly what `axes` does. They are **peers** of that module, not clients of it — there is no privileged set of axes, and a downstream axis is read from a `Spec` the same way a built-in one is.
@@ -191,7 +191,7 @@ An axis is a registration, not an edit:
 
 ```{code-block} python
 
->>> from unxt._fmt import Axis, register_axis
+>>> from unxt._pparts import Axis, register_axis
 
 >>> _ = register_axis(Axis(
 ...     name="vector_form",
@@ -215,7 +215,7 @@ An alias is the same idea one level up, and is the shortest way to watch the ext
 
 ```{code-block} python
 
->>> from unxt._fmt import register_alias
+>>> from unxt._pparts import register_alias
 
 >>> register_alias("terse", "call-abbrev-type")
 >>> f"{q:terse}"
