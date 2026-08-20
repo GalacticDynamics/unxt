@@ -578,7 +578,7 @@ def test_a_downstream_package_can_register_its_own_axis() -> None:
 def test_an_alias_never_collides_silently(word: str) -> None:
     """An alias has no qualified form, so a clash with one stays fatal.
 
-    A keyword can be disambiguated as ``axis:word``; an alias is a whole spec
+    A keyword can be disambiguated as ``axis=word``; an alias is a whole spec
     and cannot, so both directions around an alias must still raise.
     """
     with pytest.raises(ValueError, match="already"):
@@ -615,18 +615,20 @@ def test_only_one_axis_may_claim_free_text() -> None:
 
 
 # ============================================================================
-# Qualification: `axis:word` when two packages want one word
+# Explicit assignment: `axis=word` when two packages want one word
 
 
-def test_a_qualified_keyword_resolves_without_ambiguity() -> None:
-    """``axis:word`` is always available, collision or not.
+def test_an_explicit_axis_assignment_resolves_without_ambiguity() -> None:
+    """``axis=word`` is always available, collision or not.
 
-    A downstream package can write the qualified form from the start and be
-    immune to a word it does not yet share.
+    It also says what a keyword actually does -- set an axis to a value -- so
+    bare ``dim`` is shorthand for ``unit=dim``. A downstream package can write
+    the explicit form from the start and be immune to a word it does not yet
+    share.
     """
     q = u.Q([1.0, 2, 3], "m")
-    assert pspec(q, "unit:dim") == pspec(q, "dim")
-    assert pspec(q, "markup:latex-sep:mul") == pspec(q, "latex-mul")
+    assert pspec(q, "unit=dim") == pspec(q, "dim")
+    assert pspec(q, "markup=latex-sep=mul") == pspec(q, "latex-mul")
 
 
 def test_two_axes_may_claim_one_word_and_both_stay_reachable() -> None:
@@ -650,10 +652,10 @@ def test_two_axes_may_claim_one_word_and_both_stay_reachable() -> None:
         # Bare is now ambiguous, and says so, naming both ways out.
         with pytest.raises(ValueError, match="ambiguous keyword 'dim'"):
             pspec(q, "dim")
-        # Either qualified form still works, and unxt's is unchanged.
-        assert pspec(q, "unit:dim") == "[1., 2., 3.] length"
+        # Either explicit form still works, and unxt's is unchanged.
+        assert pspec(q, "unit=dim") == "[1., 2., 3.] length"
         # Surgical: only the colliding token needs the prefix.
-        assert pspec(q, "latex-mul-unit:dim") == pspec(q, "latex-mul-unit:dim")
+        assert pspec(q, "latex-mul-unit=dim") == "$[1.,~2.,~3.] \\; length$"
         # Every other word is untouched by the collision.
         assert pspec(q, "mul") == "[1., 2., 3.] * m"
     finally:
@@ -661,15 +663,17 @@ def test_two_axes_may_claim_one_word_and_both_stay_reachable() -> None:
         _KEYWORDS["dim"].remove("manifold")
 
 
-def test_an_unknown_qualifier_is_free_text_not_an_error() -> None:
-    """A ``:`` in a value spec must not be read as a qualifier.
+@pytest.mark.parametrize("spec", [":>6", "=>6", "=6", "=^7"])
+def test_an_unresolvable_assignment_is_free_text_not_an_error(spec: str) -> None:
+    """A ``=`` in a value spec must not be read as an axis assignment.
 
-    ``:>10`` is a fill character and an alignment. It resolves to no axis, so
-    it falls through to the value spec exactly like any other non-keyword --
-    which is what keeps qualification from colonising the format-spec syntax.
+    ``=`` is also an *align* character, but align only appears at position 0
+    or 1, so ``=>6`` names no axis and falls through to the value spec exactly
+    like any other non-keyword. Same for a ``:`` fill character, which the
+    grammar no longer uses at all.
     """
-    assert parse_spec(":>6")["value"] == ":>6"
-    assert pspec(u.Q(3, "m"), ":>6") == ":::::3 m"
+    assert parse_spec(spec)["value"] == spec
+    assert pspec(u.Q(3, "m"), spec).endswith(" m")
 
 
 # ============================================================================

@@ -455,7 +455,7 @@ AXES: Final[dict[str, Axis]] = {}
 #: Usually one, and a bare word resolves. Two independent packages may want the
 #: same word for unrelated things -- ``dim`` is a unit spelling here and could
 #: as reasonably be a manifold's dimensionality elsewhere -- so a word may be
-#: claimed more than once and is then reachable only as ``axis:word``.
+#: claimed more than once and is then reachable only as ``axis=word``.
 _KEYWORDS: Final[dict[str, list[str]]] = {}
 
 #: Shorthands for whole specs. Each expands *textually* into core keywords
@@ -601,17 +601,22 @@ def bad_spec(obj: Any, spec: str, /, reason: str = "") -> ValueError:
 def _resolve(word: str, spec: str, obj: Any, /) -> tuple[str, Any] | None:
     """Resolve one spec word to ``(axis, value)``, or `None` if it is not one.
 
-    A word may be written bare, or qualified as ``axis:word``. Bare resolves
-    when exactly one axis claims the word; qualified always resolves, and is
-    the escape hatch for a word two packages both wanted.
+    A word may be written bare, or as an explicit assignment ``axis=word``.
+    Bare resolves when exactly one axis claims the word; the explicit form
+    always resolves, and is the escape hatch for a word two packages wanted.
+
+    ``=`` says what is actually happening -- a keyword *sets an axis to a
+    value*, so ``unit=dim`` is the operation spelled out and bare ``dim`` is
+    its shorthand. It is also an *align* character in a format spec, but align
+    only appears at position 0 or 1, so ``=8`` and ``=>8.1f`` can never be
+    read as an assignment.
 
     Returning `None` rather than raising for an unknown word is what lets the
-    caller stop scanning and treat the rest as free text -- so a format spec
-    using ``:`` as its fill character (``:>10``) falls through here untouched
-    instead of being mistaken for a qualifier.
+    caller stop scanning and treat the rest as free text -- so those specs
+    fall through here untouched instead of being mistaken for an assignment.
     """
-    if ":" in word:
-        axis_name, _, bare = word.partition(":")
+    if "=" in word:
+        axis_name, _, bare = word.partition("=")
         axis = AXES.get(axis_name)
         if axis is None or bare not in axis.keywords:
             return None
@@ -621,11 +626,11 @@ def _resolve(word: str, spec: str, obj: Any, /) -> tuple[str, Any] | None:
     if not claimants:
         return None
     if len(claimants) > 1:
-        qualified = ", ".join(f"{a}:{word}" for a in sorted(claimants))
+        qualified = ", ".join(f"{a}={word}" for a in sorted(claimants))
         msg = (
             f"ambiguous keyword {word!r}; claimed by "
             f"{', '.join(repr(a) for a in sorted(claimants))}. "
-            f"Qualify it as one of: {qualified}"
+            f"Write it as one of: {qualified}"
         )
         raise bad_spec(obj, spec, msg)
     axis_name = claimants[0]
