@@ -155,7 +155,7 @@ def test_a_leftover_run_is_one_spec_not_a_silent_rejoin() -> None:
         # markup
         ("html", "<span>[1., 2., 3.]</span> <span>m</span>"),
         ("html-mul", "<span>[1., 2., 3.]</span> * <span>m</span>"),
-        ("latex", r"$[1.,~2.,~3.] \mathrm{m}$"),
+        ("latex", r"$[1.,~2.,~3.] \, \mathrm{m}$"),
         # unit
         ("symbol", "[1., 2., 3.] m"),
         ("name", "[1., 2., 3.] meter"),

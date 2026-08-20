@@ -12,7 +12,7 @@ Because `__format__` is reached through an f-string (`f"{obj:spec}"`), its vocab
 >>> f"{q:mul}"
 '[1., 2., 3.] * m'
 >>> f"{q:latex}"
-'$[1.,~2.,~3.] \\mathrm{m}$'
+'$[1.,~2.,~3.] \\, \\mathrm{m}$'
 >>> f"{q:.2f}"
 '[1.00, 2.00, 3.00] m'
 

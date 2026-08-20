@@ -169,18 +169,25 @@ def _latex_escape(s: str, /) -> str:
 #: Add a markup by adding a row. Roles need not be enumerated -- an unknown
 #: role falls back to ``_content`` and the fragment's own text.
 MARKUPS: dict[str, dict[str, Any]] = {
-    "text": {"_content": "{}", "wrap": "{}", "vsep": ", ", "escape": None},
+    "text": {"_content": "{}", "wrap": "{}", "vsep": ", ", "escape": None, "bare": " "},
     "html": {
         "_content": "<span>{}</span>",
         "wrap": "{}",
         "vsep": ", ",
         "escape": _html.escape,
+        "bare": " ",
     },
     "latex": {
         "_content": "{}",
         "wrap": "${}$",
         "vsep": ",~",
         "escape": _latex_escape,
+        # Math mode ignores literal whitespace, so a separator that is "just a
+        # space" everywhere else has to be an explicit spacing command here or
+        # it renders as nothing at all -- the unit jammed against the value.
+        # ``\,`` is the thin space conventionally set between a quantity and
+        # its unit; ``\;`` is the wider one asked for by ``mul``.
+        "bare": r" \, ",
         "mul": r" \; ",
         "gap": r"\ ",
         "pm": r" \pm ",
@@ -344,7 +351,10 @@ def parts_to_doc(
         if isinstance(part, PGroup):
             docs.append(parts_to_doc(part.parts, indent=indent, sep=sep))
             continue
-        text = sep if (sep is not None and part.role == "mul") else part.text
+        role = sep if (sep is not None and part.role == "mul") else part.role
+        text = part.text
+        if role != part.role:
+            text = _markup_table("text").get(role, part.text)
         if part.kind != "sep" or not text.endswith(" "):
             docs.append(wl.TextDoc(text))
             continue
@@ -380,9 +390,10 @@ def parts_to_markup(
     >>> parts_to_markup(pparts(q, markup="latex"), markup="latex")
     '$[1.,~2.,~3.] \\; \\mathrm{m}$'
 
-    ``sep`` overrides the ``mul`` separator:
+    ``sep`` names the role standing in for ``mul``, so the markup decides how
+    it renders -- a plain space here, ``\\,`` in LaTeX:
 
-    >>> parts_to_markup(pparts(q), sep=" ")
+    >>> parts_to_markup(pparts(q), sep="bare")
     '[1., 2., 3.] m'
 
     """
@@ -395,10 +406,13 @@ def parts_to_markup(
             continue
         override = table.get(part.role)
         if part.kind == "sep":
-            if sep is not None and part.role == "mul":
-                out.append(sep)
-            else:
-                out.append(override if override is not None else part.text)
+            # ``sep`` names the role to stand in for ``mul``, so the override
+            # comes from the markup table rather than a literal the caller
+            # chose -- which is what lets LaTeX spell a "bare" join as ``\,``
+            # instead of a space that math mode would discard.
+            role = sep if (sep is not None and part.role == "mul") else part.role
+            sub = table.get(role)
+            out.append(sub if sub is not None else part.text)
         else:
             text = escape(part.text) if part.kind == "content" else part.text
             out.append((override or table["_content"]).format(text))
@@ -881,7 +895,7 @@ def pspec(
     '[1., 2., 3.] * m'
 
     >>> pspec(u.Q([1.0, 2, 3], "m"), "latex")
-    '$[1.,~2.,~3.] \\mathrm{m}$'
+    '$[1.,~2.,~3.] \\, \\mathrm{m}$'
 
     A value spec is applied per element, and works on an array -- there is one
     value-rendering path, so it does not matter whether a keyword accompanies

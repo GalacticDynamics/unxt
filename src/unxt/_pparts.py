@@ -37,7 +37,7 @@ Examples
 '[1., 2., 3.] * m'
 
 >>> pspec(q, "latex")
-'$[1.,~2.,~3.] \\mathrm{m}$'
+'$[1.,~2.,~3.] \\, \\mathrm{m}$'
 
 `unxt.quantity.AbstractQuantity.__format__` routes through `pspec`, so these
 are also reachable as ``f"{q:mul}"`` and ``f"{q:latex}"``.
@@ -69,7 +69,7 @@ the axes this type does not itself act on:
 '[0. * m, 1. * m)'
 
 >>> pspec(iv, "latex")
-'$[0. \\mathrm{m}, 1. \\mathrm{m})$'
+'$[0. \\, \\mathrm{m}, 1. \\, \\mathrm{m})$'
 
 The unit axis reaches the nested quantities without `Interval` knowing it
 exists:

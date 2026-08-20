@@ -186,7 +186,7 @@ register_axis(
         name="sep",
         keywords={"mul": "mul", "bare": "bare"},
         default="bare",
-        layouts={"product": lambda v: {"sep": " " if v == "bare" else None}},
+        layouts={"product": lambda v: {"sep": v}},
     )
 )
 
