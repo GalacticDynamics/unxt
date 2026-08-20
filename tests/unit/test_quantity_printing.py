@@ -8,7 +8,7 @@ import pytest
 import wadler_lindig as wl
 
 import unxt as u
-from unxt._src.quantity.mixins import IPythonReprMixin
+from unxt._src.fmt import doc_to_str
 from unxt.units import unit as parse_unit
 
 
@@ -251,49 +251,92 @@ def test_format_static_quantity() -> None:
     assert f"{q}" == str(q)
 
 
-def test_format_non_scalar_raises() -> None:
-    """A non-empty spec on a non-scalar quantity raises (NumPy semantics)."""
+def test_format_applies_a_value_spec_elementwise_to_a_non_scalar() -> None:
+    """A value spec used to be scalar-only; it now formats each element.
+
+    ``format(obj.value, spec)`` went straight to `numpy`, which rejects a
+    non-0-d array, so this used to raise ``TypeError``. The spec now goes
+    through the one value path, which applies it per element.
+    """
     for q in (u.Q([1.5, 2.5], "m"), u.StaticQuantity(np.array([1.5, 2.5]), "m")):
-        with pytest.raises(TypeError, match="unsupported format string"):
-            format(q, ".2f")
+        assert format(q, ".2f") == "[1.50, 2.50] m"
 
 
-class TestReprLatexUnitStripping:
-    r"""`_repr_latex_` strips `$...$` only when the unit actually supplied it."""
+def test_format_presets_are_reachable_from_an_f_string() -> None:
+    """Presets and the product-style DSL both work as format specs."""
+    q = u.Q([1.0, 2, 3], "m")
+    assert f"{q:mul}" == "[1., 2., 3.] * m"
+    assert f"{q:bare}" == "[1., 2., 3.] m"
+    assert f"{q:type-mul}" == "f32[3] * m"
+    assert f"{q:compact}" == "Q([1., 2., 3.], unit='m')"
 
-    class _Fake:
-        """Stands in for a unit; `IPythonReprMixin` only reads value/unit."""
 
-        def __init__(self, latex: str | None, /) -> None:
-            self._latex = latex
-            if latex is not None:
-                self._repr_latex_ = lambda: latex  # type: ignore[method-assign]
+def test_format_preset_beats_the_value_spec_under_jit() -> None:
+    """The preset lookup must run before the value-spec branch.
 
-        def __repr__(self) -> str:
-            return "Fake(unit)"
+    A non-empty spec handed straight to a tracer raises, so a preset checked
+    second would be unreachable inside ``jax.jit``.
+    """
+    seen: list[str] = []
 
-    def _render(self, latex: str | None) -> str:
-        obj = IPythonReprMixin()
-        obj.value = np.array([1.0, 2.0])  # type: ignore[assignment]
-        obj.unit = self._Fake(latex)  # type: ignore[assignment]
-        return obj._repr_latex_()
+    @jax.jit
+    def f(q: u.Q) -> u.Q:
+        seen.append(f"{q:mul}")
+        return q
 
-    def test_wrapped_latex_is_unwrapped_once(self):
-        r"""Astropy's `$\mathrm{m}$` loses exactly its own delimiters."""
-        assert self._render(r"$\mathrm{m}$") == r"$[1.,~2.] \; \mathrm{m}$"
+    f(u.Q([1.0, 2, 3], "m"))
+    assert seen == ["f32[3] * m"]
 
-    def test_unwrapped_latex_is_left_intact(self):
-        r"""A `_repr_latex_` that returns no `$` must not be sliced.
 
-        Keying the strip off the *existence* of `_repr_latex_` corrupted this
-        case -- the same defect as the `UnitsMatrix` one, one step removed.
+def test_format_colon_fill_character_is_preserved() -> None:
+    """``:`` is legal as a fill character; no preset may shadow it."""
+    assert f"{u.Q(3.14159, 'm'):>12.2f}" == "        3.14 m"
+    assert format(u.Q(3.14159, "m"), ":>12.2f") == "::::::::3.14 m"
+
+
+def test_format_unknown_spec_names_the_type_and_presets() -> None:
+    with pytest.raises(ValueError, match=r"invalid format spec 'nonsense'"):
+        format(u.Q(3.14, "m"), "nonsense")
+
+
+class TestCustomPdocHookIsNotClobbered:
+    """``__pdoc__`` must not discard a caller's ``custom=`` hook.
+
+    It used to install its own by *assigning* ``kwargs["custom"]``, and
+    ``wadler_lindig.pdoc`` always puts ``custom`` in the kwargs it forwards --
+    so the caller's was dropped on the default path, since ``short_arrays`` is
+    ``True`` for ``repr`` and ``"compact"`` for ``str``.
+    """
+
+    @staticmethod
+    def _hook(obj):
+        return wl.TextDoc("<<MINE>>") if isinstance(obj, jax.Array) else None
+
+    @pytest.mark.parametrize("short_arrays", [True, "compact", False])
+    def test_caller_hook_wins(self, short_arrays):
+        """A caller's hook beats the default array handling."""
+        q = u.Q([1.0, 2, 3], "m")
+        out = wl.pformat(q, short_arrays=short_arrays, custom=self._hook)
+        assert out == "Quantity(<<MINE>>, unit='m')"
+
+    @pytest.mark.parametrize(
+        ("short_arrays", "expected"),
+        [
+            (True, "Quantity(f32[3], unit='m')"),
+            ("compact", "Quantity([1., 2., 3.], unit='m')"),
+            (False, "Quantity(Array([1., 2., 3.], dtype=float32), unit='m')"),
+        ],
+    )
+    def test_no_hook_is_unchanged(self, short_arrays, expected):
+        """Chaining must not alter rendering when no hook is passed."""
+        assert wl.pformat(u.Q([1.0, 2, 3], "m"), short_arrays=short_arrays) == expected
+
+    def test_direct_pdoc_call_without_a_custom_kwarg(self):
+        """``__pdoc__`` is also callable directly, with no ``custom`` in kwargs.
+
+        Every call routed through ``wadler_lindig.pformat`` carries wl's own
+        ``_none`` default, so the "no caller hook" path is only reachable this
+        way.
         """
-        assert self._render(r"\mathrm{m}") == r"$[1.,~2.] \; \mathrm{m}$"
-
-    def test_no_repr_latex_falls_back_to_repr(self):
-        """A unit without `_repr_latex_` is rendered by `repr` and not sliced."""
-        assert self._render(None) == r"$[1.,~2.] \; Fake(unit)$"
-
-    def test_lone_dollar_is_not_stripped(self):
-        """A single `$` satisfies both `startswith` and `endswith`."""
-        assert self._render("$") == r"$[1.,~2.] \; $$"
+        doc = u.Q([1.0, 2.0], "m").__pdoc__(short_arrays="compact")
+        assert doc_to_str(doc, 88) == "Quantity([1., 2.], unit='m')"

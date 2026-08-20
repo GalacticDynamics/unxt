@@ -163,9 +163,22 @@ class StaticValue:
     def __format__(self, format_spec: str, /) -> str:
         """Format the wrapped value, delegating to the NumPy array.
 
-        This makes ``format(sv, spec)`` (and hence formatting a
-        ``StaticQuantity``) behave like formatting the underlying scalar; a
-        non-scalar value raises ``TypeError`` as NumPy does.
+        This makes ``format(sv, spec)`` behave like formatting the underlying
+        scalar; a non-scalar value raises ``TypeError`` as NumPy does.
+
+        Formatting a `unxt.quantity.StaticQuantity` no longer arrives here.
+        A quantity's format spec is applied per *element* by the formatting
+        engine, so it works on an array too -- which is why this method is now
+        only reached by formatting a `StaticValue` directly.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from unxt._src.quantity.value import StaticValue
+
+        >>> format(StaticValue(np.asarray(3.14159)), ".2f")
+        '3.14'
+
         """
         return format(self._array, format_spec)
 

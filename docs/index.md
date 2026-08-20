@@ -29,6 +29,7 @@ guides/dimensions
 guides/units_and_systems
 guides/natural-units
 guides/type-checking
+guides/formatting
 guides/sharp-bits
 Performance Optimization <guides/perf>
 guides/configuration
@@ -305,19 +306,19 @@ Unit systems define consistent sets of base units for specific domains. `unxt` p
 
 >>> si = u.unitsystem("si")
 >>> si
-unitsystem(m, kg, s, mol, A, K, cd, rad)
+unitsystem(['m', 'kg', 's', 'mol', 'A', 'K', 'cd', 'rad'])
 
 >>> cgs = u.unitsystem("cgs")
 >>> cgs
-unitsystem(cm, g, s, dyn, erg, Ba, P, St, rad)
+unitsystem(['cm', 'g', 's', 'dyn', 'erg', 'Ba', 'P', 'St', 'rad'])
 
 >>> galactic = u.unitsystem("galactic")
 >>> galactic
-unitsystem(kpc, Myr, solMass, rad)
+unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
 
 >>> solarsystem = u.unitsystem("solarsystem")
 >>> solarsystem
-unitsystem(AU, yr, solMass, rad)
+unitsystem(['AU', 'yr', 'solMass', 'rad'])
 
 ```
 
@@ -358,7 +359,7 @@ Create custom unit systems by specifying base units:
 
 >>> custom_usys = u.unitsystem("km", "h", "tonne", "degree")
 >>> custom_usys
-unitsystem(km, h, t, deg)
+unitsystem(['km', 'h', 't', 'deg'])
 
 >>> custom_usys["velocity"]
 Unit("km / h")
@@ -374,8 +375,8 @@ For domains like gravitational dynamics, use dynamical unit systems where $G = 1
 >>> from unxt.unitsystems import DynamicalSimUSysFlag
 
 >>> usys = u.unitsystem(DynamicalSimUSysFlag, "kpc", "Myr")
->>> usys  # doctest: +SKIP
-unitsystem(kpc, Myr, ...)
+>>> usys
+unitsystem(['kpc', '...kpc3 s2 kg / (Myr2 m3)', 'Myr'])
 
 ```
 

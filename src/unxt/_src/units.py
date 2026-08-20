@@ -5,12 +5,14 @@ Copyright (c) 2023 Galactic Dynamics. All rights reserved.
 
 __all__ = ("unit", "unit_of", "AbstractUnit")
 
+import contextlib
 from typing import Any, TypeAlias
 
 import astropy.units as apyu
 from plum import dispatch
 
 import unxt_api as uapi
+from unxt._src import fmt
 from unxt.dims import AbstractDimension
 
 # ``FunctionUnitBase`` (mag/dex/dB) is a separate hierarchy from ``UnitBase``, so
@@ -137,3 +139,78 @@ def dimension_of(obj: AbstractUnit, /) -> AbstractDimension:
 
     """
     return uapi.dimension(obj.physical_type)
+
+
+# ===================================================================
+# String formatting
+
+
+@fmt.pparts.dispatch  # type: ignore[misc]
+def pparts(
+    obj: AbstractUnit,
+    /,
+    *,
+    markup: str = "text",
+    unit_style: str = "symbol",
+    **kw: Any,
+) -> tuple[Any, ...]:
+    r"""Decompose a unit for the `unxt._pparts` engine.
+
+    A unit is just an object with parts, so there is no separate unit renderer
+    and the engine's nesting rule covers it.
+
+    ``unit_style`` is the engine's unit axis: which *spelling* to use. It is
+    not called ``unit`` because in this codebase that name means a unit
+    *object* -- including the `unit` constructor in this very module.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> from unxt._src.fmt import pparts
+
+    >>> pparts(u.unit("m"))
+    (PPart(role='unit', text='m', kind='content'),)
+
+    In LaTeX the fragment carries rendered markup, so it is not escaped again:
+
+    >>> pparts(u.unit("m/s2"), markup="latex")
+    (PPart(role='unit', text='\\mathrm{\\frac{m}{s^{2}}}', kind='markup'),)
+
+    A dimensionless unit contributes no fragment at all:
+
+    >>> pparts(u.unit(""))
+    ()
+
+    ``"name"`` picks the spelled-out name, ``"dim"`` the physical dimension:
+
+    >>> pparts(u.unit("m"), unit_style="name")
+    (PPart(role='unit', text='meter', kind='content'),)
+
+    >>> pparts(u.unit("m"), unit_style="dim")
+    (PPart(role='unit', text='length', kind='content'),)
+
+    Both fall back to the symbol when the unit has no such spelling -- a
+    composite has no single long name, so asking for one is not an error:
+
+    >>> pparts(u.unit("km/s"), unit_style="name")
+    (PPart(role='unit', text='km / s', kind='content'),)
+
+    """
+    # A name or a dimension is a plain word, not astropy's own rendering, so it
+    # goes through the engine's ordinary content escaping in every markup
+    # rather than astropy's markup-specific ``to_string(markup)``.
+    if unit_style == "name" and (names := getattr(obj, "long_names", None)):
+        return (fmt.PPart("unit", names[0]),)
+    if unit_style == "dim":
+        with contextlib.suppress(Exception):
+            return (fmt.PPart("unit", str(obj.physical_type)),)
+
+    # Decide emptiness on the *plain* string: a dimensionless unit's LaTeX form
+    # is ``$\mathrm{}$``, which is truthy after the ``$`` are stripped and would
+    # otherwise emit a phantom unit.
+    plain = obj.to_string()
+    if not plain:
+        return ()
+    if markup == "latex":
+        return (fmt.PPart("unit", fmt.unwrap_math(obj.to_string("latex")), "markup"),)
+    return (fmt.PPart("unit", plain),)

@@ -77,3 +77,32 @@ Quantity(Array(1., dtype=float32), unit='m')
 This easy interoperability is enabled by multiple dispatch, which allows the `Quantity.from_` method to dispatch to the correct implementation based on the types of the arguments.
 
 For more information on multiple dispatch, see the [plum documentation](https://beartype.github.io/plum/).
+
+## Format Specs
+
+`repr`, `str`, and `__format__` are one rendering reached three ways, so a format spec means the same thing on every `unxt` type — and on `coordinax` and `galax` types built on the same engine.
+
+A spec is a `-`-joined run of keywords, optionally ending in a Python format spec applied per element. Keywords are order-independent and each sets one independent axis: layout, value, markup, unit, separator, abbreviation.
+
+```{code-block} python
+
+>>> import unxt as u
+>>> q = u.Q([1.0, 2, 3], "m")
+
+>>> f"{q:mul}"
+'[1., 2., 3.] * m'
+>>> f"{q:html-bare}"
+'<span>[1., 2., 3.]</span> <span>m</span>'
+>>> f"{q:.2f}"
+'[1.00, 2.00, 3.00] m'
+
+```
+
+The conventions that matter when adding to it:
+
+- **One word, one axis.** Keywords share a flat namespace and must stay pairwise disjoint, which is what lets them be given in any order.
+- **A new axis is a registration, not an edit.** Downstream packages register theirs as peers; there is no privileged set.
+- **An alias is sugar, never new meaning** — it expands textually into keywords, so it can never say something the grammar cannot.
+- **`""` means `str(obj)`**, and `!r`/`!s` already cover `repr`/`str`, so neither is ever a keyword.
+
+For the full grammar, the axis table, and how to register your own, see the [String Formatting Guide](guides/formatting.md).

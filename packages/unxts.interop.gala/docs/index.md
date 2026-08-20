@@ -69,7 +69,7 @@ pip install unxts.interop.gala
 <UnitSystem (kpc, Myr, solMass, rad)>
 
 >>> unxt.unitsystem(gu.galactic)  # as a unxt unit system
-unitsystem(kpc, Myr, solMass, rad)
+unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
 
 ```
 
