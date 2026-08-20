@@ -480,10 +480,12 @@ _SEP_TOKENS: Final[dict[str, str | None]] = {"mul": None, "bare": " "}
 
 #: Array component: how many array values render. ``"short"`` is a shape/dtype
 #: summary (`short_arrays=True`, e.g. ``f32[3]``) with no per-element values, so
-#: it cannot combine with a trailing format spec. ``"compact"`` is the default
+#: it cannot combine with a trailing format spec. ``"values"`` is the default
 #: form (`short_arrays="compact"`, e.g. ``[1., 2., 3.]``) and is nameable so it
-#: can be paired with one, e.g. ``"compact-.3g"``. Omitted also means compact.
-_ARRAY_TOKENS: Final[frozenset[str]] = frozenset({"short", "compact"})
+#: can be paired with one, e.g. ``"values-.3g"`` -- named ``"values"`` rather
+#: than ``"compact"`` so it cannot collide with the call-style `FORMAT_PRESETS`
+#: entry of that name. Omitted also means the default form.
+_ARRAY_TOKENS: Final[frozenset[str]] = frozenset({"short", "values"})
 
 #: Unit component: which of a unit's names renders it. ``"long"`` picks
 #: `astropy.units.UnitBase.long_names` (e.g. ``"meter"``) over the default
@@ -505,10 +507,11 @@ def _parse_product_spec(spec: str, /) -> dict[str, Any] | None:
     same as before this DSL existed.
 
     The array component alone may carry a trailing Python format spec, applied
-    per element (e.g. ``"compact-.3g"``, or just ``".3g"`` -- ``"compact"`` is
-    implied). That spec is reassembled from whatever pieces are left over
-    after every recognised keyword is pulled out, in their original order, so
-    a spec with its own embedded ``-`` (a sign flag, or a custom fill
+    per element (e.g. ``"values-.3g"``, or ``".3g"`` combined with any other
+    token -- the default array form is implied). That spec is reassembled from
+    whatever pieces are left over after every recognised keyword is pulled
+    out, in their original order, so a spec with its own embedded ``-`` (a
+    sign flag, or a custom fill
     character) survives being combined with another component:
 
     >>> from unxt._src.fmt import _parse_product_spec
@@ -601,11 +604,11 @@ def bad_spec(obj: Any, spec: str, /) -> ValueError:
         "'-'-joined combination of up to four parts, each optional: markup "
         f"({', '.join(sorted(_MARKUP_TOKENS))}; default text), array "
         f"({', '.join(sorted(_ARRAY_TOKENS))}, optionally with a trailing "
-        "'-<python format spec>' applied per element, e.g. 'compact-.3g'; "
-        f"default compact), separator ({', '.join(sorted(_SEP_TOKENS))}; "
+        "'-<python format spec>' applied per element, e.g. 'values-.3g'; "
+        f"default values), separator ({', '.join(sorted(_SEP_TOKENS))}; "
         f"default mul), and unit ({', '.join(sorted(_UNIT_TOKENS))}; default "
         "the short name) -- e.g. 'html-bare', 'mul-.3g', or "
-        "'html-compact-.2f-bare-long'"
+        "'html-values-.2f-bare-long'"
     )
 
 
@@ -657,11 +660,12 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
         return str(obj)
 
     if spec in FORMAT_PRESETS:
-        # Checked before the DSL parse: "compact" is both a call-style preset
-        # here *and* a valid array-component token there (so it can pair with
-        # a value spec, e.g. "compact-.3g"). A literal preset name must win --
-        # otherwise the pre-existing, documented ``f"{q:compact}"`` would be
-        # silently reinterpreted as the array component alone.
+        # Checked before the DSL parse: a literal preset name must always win,
+        # so that adding a DSL token later can never silently reinterpret an
+        # existing ``f"{q:preset}"``. (The array component is deliberately
+        # named "values" rather than "compact", precisely to avoid colliding
+        # with the "compact" preset here -- this check is the second line of
+        # defence, not the only one.)
         #
         # ``wadler_lindig.pformat`` accepts and ignores unknown kwargs, which is
         # what makes one preset table serve several types.

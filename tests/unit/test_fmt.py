@@ -45,7 +45,7 @@ _PRODUCT_SPECS = (
     "html-short-bare",
     "latex-short-bare",
     "mul-.3g",
-    "compact-.3g",
+    "values-.3g",
     "html-.2f-bare-long",
 )
 
@@ -97,7 +97,7 @@ def test_dsl_tokens_are_order_independent(a: str, b: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "spec", ["mul-bare", "html-latex", "short-short", "compact-short", "short-.2f"]
+    "spec", ["mul-bare", "html-latex", "short-short", "values-short", "short-.2f"]
 )
 def test_dsl_rejects_a_duplicated_component(spec: str) -> None:
     """Two tokens from the same component is invalid.
@@ -119,7 +119,7 @@ def test_dsl_rejects_a_duplicated_component(spec: str) -> None:
         ("mul-.2f", "[1.23, 2.35] * m"),
         ("bare-.2f", "[1.23, 2.35] m"),
         ("html-.2f", "<span>[1.23, 2.35]</span> * <span>m</span>"),
-        ("compact-.2f", "[1.23, 2.35] * m"),  # "compact" spelled out is a no-op
+        ("values-.2f", "[1.23, 2.35] * m"),  # "values" spelled out is a no-op
         (".2f-mul", "[1.23, 2.35] * m"),  # order-independent, same as "mul-.2f"
     ],
 )
@@ -151,16 +151,20 @@ def test_long_unit_falls_back_when_there_is_no_long_name() -> None:
     assert pspec(u.Q(1.0, "km / s"), "long") == "1. * km / s"
 
 
-def test_compact_preset_is_not_shadowed_by_the_array_token() -> None:
-    """``"compact"`` is a call-style `FORMAT_PRESETS` key *and* an array token.
+def test_a_format_presets_key_is_never_shadowed_by_the_dsl() -> None:
+    """`FORMAT_PRESETS` is checked before the DSL parse, on principle.
 
-    It's also a valid array-component token (so it can pair with a value
-    spec, e.g. ``"compact-.3g"``). A bare ``"compact"`` must still resolve to
-    the call-style preset, checked before the DSL parse.
+    An early revision named the array component's default-form token
+    ``"compact"`` -- the same string as this call-style preset -- and the DSL
+    parser (checked first, then) silently claimed it, so ``f"{q:compact}"``
+    stopped meaning the preset. The array component is now named ``"values"``
+    instead, so there is no live collision left to guard against here, but the
+    ordering itself stays: a literal preset name must always win, so that a
+    *future* DSL token can never repeat that mistake.
     """
     q = u.Q([1.0, 2, 3], "m")
     assert pspec(q, "compact") == "Q([1., 2., 3.], unit='m')"
-    assert pspec(q, "compact-.2f") == "[1.00, 2.00, 3.00] * m"
+    assert _parse_product_spec("compact") is None
 
 
 @pytest.mark.parametrize("spec", [".3g", ":>10", ".2f"])
