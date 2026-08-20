@@ -123,8 +123,27 @@ VALUE_FROM_SHORT_ARRAYS: Final[dict[Any, str]] = {
     v: k for k, v in _SHORT_ARRAYS.items()
 }
 
-#: How verbose the numeric payload is. Spelled ``short_arrays`` to both
-#: renderers, since ``__pdoc__`` and `value_str` already share that argument.
+
+def _value_product_kwargs(value: Any, /) -> dict[str, Any]:
+    """Translate the ``value`` axis for product layout.
+
+    The axis holds *either* one of its keywords or a Python format spec, so
+    this is the one place that distinction becomes two arguments: how verbose
+    the array is, and how each element is formatted. Free text implies the
+    values form -- a shape/dtype summary has no elements to format, which is
+    why ``type`` and a format spec cannot both be asked for.
+    """
+    if value in _SHORT_ARRAYS:
+        return {"short_arrays": _SHORT_ARRAYS[value], "value_spec": None}
+    return {"short_arrays": "compact", "value_spec": value}
+
+
+#: How verbose the numeric payload is, or how to format each element.
+#:
+#: This is the axis that accepts free text: a spec's trailing run is a Python
+#: format spec applied per element. Holding it *on* the axis rather than beside
+#: it is what makes ``type-.2f`` an ordinary "value is set twice" error, rather
+#: than a hand-written consistency check between two keys describing one thing.
 register_axis(
     Axis(
         name="value",
@@ -132,8 +151,9 @@ register_axis(
         default="values",
         layouts={
             "call": lambda v: {"short_arrays": _SHORT_ARRAYS[v]},
-            "product": lambda v: {"short_arrays": _SHORT_ARRAYS[v]},
+            "product": _value_product_kwargs,
         },
+        free_text=("product",),
     )
 )
 

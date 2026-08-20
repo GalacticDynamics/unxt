@@ -431,6 +431,14 @@ class Axis(NamedTuple):
         for that layout's renderer. **Membership is applicability**: an axis
         applies to exactly the layouts it has an entry for, so naming it under
         any other layout is an error rather than a silent no-op.
+    free_text
+        The layouts in which this axis's value may instead be *arbitrary text*
+        -- the trailing run a spec ends with, such as a Python format spec.
+        Empty for a closed axis, which is most of them.
+
+        At most one axis may claim free text, and the engine enforces it. That
+        is not a restriction so much as an observation: the scan rule makes the
+        trailing run terminal, so there is only one of them to claim.
 
     """
 
@@ -438,6 +446,7 @@ class Axis(NamedTuple):
     keywords: Mapping[str, Any]
     default: Any
     layouts: Mapping[str, Callable[[Any], Mapping[str, Any]]]
+    free_text: tuple[str, ...] = ()
 
 
 #: Registered axes, by name. Populated only through `register_axis`.
@@ -453,9 +462,9 @@ _KEYWORDS: Final[dict[str, str]] = {}
 #: error its expansion would.
 ALIASES: Final[dict[str, str]] = {}
 
-#: Reserved `Spec` key for the trailing Python format spec. Not an axis: it is
-#: free text rather than a closed vocabulary, so no keyword can name it.
-VALUE_SPEC: Final = "value_spec"
+#: The axis claiming free text, if any -- see `Axis.free_text`. Set by
+#: `register_axis`, which permits only one.
+_FREE_TEXT_AXIS: list[str] = []
 
 
 def register_axis(axis: Axis, /) -> Axis:
@@ -468,8 +477,11 @@ def register_axis(axis: Axis, /) -> Axis:
     if axis.name in AXES:
         msg = f"axis {axis.name!r} is already registered"
         raise ValueError(msg)
-    if axis.name == VALUE_SPEC:
-        msg = f"axis name {VALUE_SPEC!r} is reserved"
+    if axis.free_text and _FREE_TEXT_AXIS:
+        msg = (
+            f"axis {axis.name!r} claims free text, but {_FREE_TEXT_AXIS[0]!r} "
+            "already does; a spec has only one trailing run to give"
+        )
         raise ValueError(msg)
     for word in axis.keywords:
         if word in _KEYWORDS:
@@ -480,6 +492,8 @@ def register_axis(axis: Axis, /) -> Axis:
             raise ValueError(msg)
     AXES[axis.name] = axis
     _KEYWORDS.update(dict.fromkeys(axis.keywords, axis.name))
+    if axis.free_text:
+        _FREE_TEXT_AXIS.append(axis.name)
     return axis
 
 
@@ -540,12 +554,11 @@ class Spec(Mapping[str, Any]):
         True
 
         """
-        unknown = set(overrides) - set(AXES) - {VALUE_SPEC}
+        unknown = set(overrides) - set(AXES)
         if unknown:
             msg = f"not registered axes: {sorted(unknown)}"
             raise ValueError(msg)
-        resolved = {name: overrides.get(name, ax.default) for name, ax in AXES.items()}
-        return cls(resolved, value_spec=overrides.get(VALUE_SPEC))
+        return cls({n: overrides.get(n, ax.default) for n, ax in AXES.items()})
 
     def __getitem__(self, key: str) -> Any:
         return self._d[key]
@@ -559,6 +572,21 @@ class Spec(Mapping[str, Any]):
     def __repr__(self) -> str:
         args = ", ".join(f"{k}={v!r}" for k, v in self._d.items())
         return f"Spec({args})"
+
+
+def free_text_of(spec: Spec, /) -> str | None:
+    """Return the spec's free-text value, or `None` if it carries none.
+
+    An axis that accepts free text holds *either* one of its keyword values or
+    an arbitrary string, so "was free text given?" is asked by elimination
+    against that axis's own vocabulary -- which keeps the question answerable
+    without knowing what the axis is called or what it means.
+    """
+    if not _FREE_TEXT_AXIS:
+        return None
+    axis = AXES[_FREE_TEXT_AXIS[0]]
+    value = spec[axis.name]
+    return None if value in set(axis.keywords.values()) else value
 
 
 def _grammar_help() -> str:
@@ -634,14 +662,14 @@ def parse_spec(spec: str, /, *, obj: Any = None) -> Spec:
 
     A trailing value spec is applied per element:
 
-    >>> parse_spec("mul-.3g")["value_spec"]
+    >>> parse_spec("mul-.3g")["value"]
     '.3g'
 
     A value spec keeps its own ``-``, whether leading or embedded:
 
-    >>> parse_spec("-.2f")["value_spec"]
+    >>> parse_spec("-.2f")["value"]
     '-.2f'
-    >>> parse_spec("mul-->10.2f")["value_spec"]
+    >>> parse_spec("mul-->10.2f")["value"]
     '->10.2f'
 
     An alias expands before parsing:
@@ -653,10 +681,24 @@ def parse_spec(spec: str, /, *, obj: Any = None) -> Spec:
     tokens = spec.split("-")
     seen, i = _scan_keywords(tokens, spec, obj)
 
-    # Whatever the scan did not claim. `None` when it claimed everything; a
-    # spec with no keyword at all is fine -- a bare ".3g" is the commonest
-    # there is -- and simply leaves every axis at its default.
-    value_spec = "-".join(tokens[i:]) or None
+    # Whatever the scan did not claim goes to the axis that accepts free text,
+    # as that axis's value. A spec with no keyword at all is fine -- a bare
+    # ".3g" is the commonest there is -- and leaves every other axis default.
+    #
+    # Routing it *into* an axis rather than a key beside them is what makes
+    # "a keyword and free text for the same axis" the ordinary set-twice error
+    # below, instead of a hand-written consistency check between two keys that
+    # describe one thing.
+    free_text = "-".join(tokens[i:])
+    if free_text:
+        if not _FREE_TEXT_AXIS:
+            msg = "no axis accepts free text"
+            raise bad_spec(obj, spec, msg)
+        axis = _FREE_TEXT_AXIS[0]
+        if axis in seen:
+            msg = f"{axis!r} is set twice"
+            raise bad_spec(obj, spec, msg)
+        seen[axis] = free_text
 
     resolved = {name: seen.get(name, ax.default) for name, ax in AXES.items()}
     layout = resolved["layout"]
@@ -666,15 +708,11 @@ def parse_spec(spec: str, /, *, obj: Any = None) -> Spec:
             msg = f"{axis!r} does not apply to {layout!r} layout"
             raise bad_spec(obj, spec, msg)
 
-    if value_spec is not None:
-        if resolved.get("value") != "values":
-            msg = f"a value format spec needs value='values', not {resolved['value']!r}"
-            raise bad_spec(obj, spec, msg)
-        if layout != "product":
-            msg = f"a value format spec does not apply to {layout!r} layout"
-            raise bad_spec(obj, spec, msg)
+    if free_text and layout not in AXES[_FREE_TEXT_AXIS[0]].free_text:
+        msg = f"free text does not apply to {layout!r} layout"
+        raise bad_spec(obj, spec, msg)
 
-    return Spec(resolved, value_spec=value_spec)
+    return Spec(resolved)
 
 
 def _layout_kwargs(spec: Spec, layout: str, /) -> dict[str, Any]:
@@ -744,7 +782,7 @@ def _render_product(
     """
     markup = kw.pop("markup", "text")
     sep = kw.pop("sep", None)
-    parts = pparts(obj, markup=markup, value_spec=spec["value_spec"], **kw)
+    parts = pparts(obj, markup=markup, **kw)
     if markup == "text":
         # Feed wadler-lindig, so the rendering is laid out rather than
         # concatenated and composes inside a larger document.
@@ -806,11 +844,12 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
     try:
         return render(obj, parsed, width=width)
     except ValueError as e:
-        if parsed["value_spec"] is None:
+        text = free_text_of(parsed)
+        if text is None:
             raise
         # Anything that is not a keyword is taken as a Python format spec, so
         # a mistyped keyword arrives here as the value formatter rejecting it.
         # That message names the offending text but not the vocabulary it
         # missed, which is exactly what a typo needs to see.
-        msg = f"{parsed['value_spec']!r} is not a valid Python format spec ({e})"
+        msg = f"{text!r} is not a valid Python format spec ({e})"
         raise bad_spec(obj, spec, msg) from e

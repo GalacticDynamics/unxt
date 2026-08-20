@@ -29,6 +29,7 @@ guides/dimensions
 guides/units_and_systems
 guides/natural-units
 guides/type-checking
+guides/formatting
 guides/sharp-bits
 Performance Optimization <guides/perf>
 guides/configuration

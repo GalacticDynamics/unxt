@@ -90,7 +90,7 @@ def test_keywords_are_order_independent() -> None:
         ("-.2f", "-.2f"),  # leading '-' is a sign flag, not a delimiter
         ("mul-->10.2f", "->10.2f"),  # embedded '-' is a fill character
         ("mul-.2f-.3g", ".2f-.3g"),  # everything after the first non-keyword
-        ("mul", None),  # keywords only
+        ("mul", "values"),  # keywords only: the axis keeps its default
     ],
 )
 def test_scan_rule_splits_keywords_from_the_value_spec(
@@ -102,7 +102,7 @@ def test_scan_rule_splits_keywords_from_the_value_spec(
     Python format spec in play -- a format spec may contain ``-`` itself, and
     it can never be mistaken for a component boundary.
     """
-    assert parse_spec(spec)["value_spec"] == value_spec
+    assert parse_spec(spec)["value"] == value_spec
 
 
 def test_a_keyword_after_the_value_spec_is_not_a_keyword() -> None:
@@ -115,7 +115,7 @@ def test_a_keyword_after_the_value_spec_is_not_a_keyword() -> None:
     q = u.Q([1.234, 2.345], "m")
     assert pspec(q, "mul-name-.2f") == "[1.23, 2.35] * meter"
 
-    assert parse_spec("mul-.2f-name")["value_spec"] == ".2f-name"
+    assert parse_spec("mul-.2f-name")["value"] == ".2f-name"
     with pytest.raises(ValueError, match="not a valid Python format spec"):
         pspec(q, "mul-.2f-name")
 
@@ -128,7 +128,7 @@ def test_a_leftover_run_is_one_spec_not_a_silent_rejoin() -> None:
     still one value spec -- but honestly so, by position -- and Python rejects
     it as the single malformed spec it is.
     """
-    assert parse_spec("mul-.2f-.3g")["value_spec"] == ".2f-.3g"
+    assert parse_spec("mul-.2f-.3g")["value"] == ".2f-.3g"
     with pytest.raises(ValueError, match="Invalid format specifier"):
         pspec(u.Q([1.0], "m"), "mul-.2f-.3g")
 
@@ -254,14 +254,20 @@ def test_alias_plus_a_conflicting_keyword_reports_the_expansion_error() -> None:
 
 
 @pytest.mark.parametrize("spec", ["type-.2f", "array-.2f"])
-def test_a_value_spec_needs_the_values_form(spec: str) -> None:
-    """A shape/dtype summary has no elements a per-element spec could format."""
-    with pytest.raises(ValueError, match="value format spec needs"):
+def test_a_keyword_and_free_text_for_one_axis_is_set_twice(spec: str) -> None:
+    """Folding the format spec onto the value axis makes this the ordinary rule.
+
+    A shape/dtype summary has no elements a per-element spec could format, so
+    the combination is meaningless. It used to need a bespoke consistency
+    check between `value` and a separate `value_spec` key; now the axis simply
+    cannot be set twice.
+    """
+    with pytest.raises(ValueError, match="'value' is set twice"):
         pspec(u.Q([1.0, 2], "m"), spec)
 
 
 def test_a_value_spec_does_not_apply_to_call_layout() -> None:
-    with pytest.raises(ValueError, match="does not apply to 'call' layout"):
+    with pytest.raises(ValueError, match="free text does not apply to 'call'"):
         pspec(u.Q([1.0, 2], "m"), "call-.2f")
 
 
@@ -585,3 +591,23 @@ def test_registration_rejects_a_name_collision(word: str, expansion: str) -> Non
         register_axis(
             Axis(name="clash", keywords={word: 1}, default=0, layouts={"call": dict})
         )
+
+
+def test_only_one_axis_may_claim_free_text() -> None:
+    """A spec has exactly one trailing run, so only one axis can receive it.
+
+    Not a restriction so much as an observation about the scan rule: the run
+    after the first non-keyword is terminal. Registering a second claimant is
+    a mistake worth catching at registration rather than at parse.
+    """
+    with pytest.raises(ValueError, match="already does"):
+        register_axis(
+            Axis(
+                name="second_free",
+                keywords={"secondfree": 1},
+                default=0,
+                layouts={"product": dict},
+                free_text=("product",),
+            )
+        )
+    assert "second_free" not in AXES
