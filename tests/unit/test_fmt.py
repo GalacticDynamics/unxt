@@ -20,7 +20,7 @@ from unxt._fmt import (
     pspec,
     unwrap_math,
 )
-from unxt._src.fmt import REQUIRED_MARKUP_KEYS
+from unxt._src.fmt import REQUIRED_MARKUP_KEYS, _parse_product_spec
 
 # ============================================================================
 # Presets
@@ -35,6 +35,7 @@ _PRODUCT_SPECS = (
     "bare",
     "latex",
     "html",
+    "long",
     "html-bare",
     "html-short",
     "latex-bare",
@@ -43,6 +44,9 @@ _PRODUCT_SPECS = (
     "html-short-mul",
     "html-short-bare",
     "latex-short-bare",
+    "mul-.3g",
+    "compact-.3g",
+    "html-.2f-bare-long",
 )
 
 
@@ -92,11 +96,82 @@ def test_dsl_tokens_are_order_independent(a: str, b: str) -> None:
     assert pspec(q, a) == pspec(q, b)
 
 
-@pytest.mark.parametrize("spec", ["mul-bare", "html-latex", "short-short"])
+@pytest.mark.parametrize(
+    "spec", ["mul-bare", "html-latex", "short-short", "compact-short", "short-.2f"]
+)
 def test_dsl_rejects_a_duplicated_component(spec: str) -> None:
-    """Two tokens from the same component (markup, array, separator) is invalid."""
+    """Two tokens from the same component is invalid.
+
+    So is ``short`` plus a value spec -- a shape/dtype summary has no
+    per-element values to format.
+    """
     with pytest.raises(ValueError, match=f"invalid format spec {spec!r}"):
         pspec(u.Q(1.0, "m"), spec)
+
+
+# ============================================================================
+# Composing the array's per-element value spec and the unit's long name
+
+
+@pytest.mark.parametrize(
+    ("spec", "expected"),
+    [
+        ("mul-.2f", "[1.23, 2.35] * m"),
+        ("bare-.2f", "[1.23, 2.35] m"),
+        ("html-.2f", "<span>[1.23, 2.35]</span> * <span>m</span>"),
+        ("compact-.2f", "[1.23, 2.35] * m"),  # "compact" spelled out is a no-op
+        (".2f-mul", "[1.23, 2.35] * m"),  # order-independent, same as "mul-.2f"
+    ],
+)
+def test_value_spec_composes_with_the_dsl(spec: str, expected: str) -> None:
+    """A per-element Python format spec composes with markup/array/separator."""
+    assert pspec(u.Q([1.234, 2.345], "m"), spec) == expected
+
+
+def test_value_spec_survives_its_own_embedded_hyphen() -> None:
+    r"""A value spec's own ``-`` (a fill character, here) must not be split on.
+
+    ``"mul-->10.2f"`` is ``mul`` plus the value spec ``"->10.2f"`` (fill='-',
+    align='>'), reassembled from the pieces left over once ``mul`` is pulled
+    out -- not three components.
+    """
+    out = pspec(u.Q([3.14], "m"), "mul-->10.2f")
+    assert out == "[------3.14] * m"
+
+
+def test_long_unit_picks_the_spelled_out_name() -> None:
+    """``long`` renders the unit's long name instead of its short/symbol form."""
+    assert pspec(u.Q(1.0, "m"), "long") == "1. * meter"
+    assert pspec(u.Q(1.0, "m"), "bare-long") == "1. meter"
+    assert pspec(u.Q(1.0, "kpc"), "long") == "1. * kiloparsec"
+
+
+def test_long_unit_falls_back_when_there_is_no_long_name() -> None:
+    """A composite unit has no single long name -- fall back, don't raise."""
+    assert pspec(u.Q(1.0, "km / s"), "long") == "1. * km / s"
+
+
+def test_compact_preset_is_not_shadowed_by_the_array_token() -> None:
+    """``"compact"`` is a call-style `FORMAT_PRESETS` key *and* an array token.
+
+    It's also a valid array-component token (so it can pair with a value
+    spec, e.g. ``"compact-.3g"``). A bare ``"compact"`` must still resolve to
+    the call-style preset, checked before the DSL parse.
+    """
+    q = u.Q([1.0, 2, 3], "m")
+    assert pspec(q, "compact") == "Q([1., 2., 3.], unit='m')"
+    assert pspec(q, "compact-.2f") == "[1.00, 2.00, 3.00] * m"
+
+
+@pytest.mark.parametrize("spec", [".3g", ":>10", ".2f"])
+def test_bare_value_specs_are_unaffected_by_the_dsl(spec: str) -> None:
+    """A value spec with no DSL keyword must keep going through pspec_fallback.
+
+    That legacy path is scalar-only and space-joined, with no ``*``.
+    """
+    assert _parse_product_spec(spec) is None
+    out = pspec(u.Q(3.14159, "m"), spec)
+    assert "*" not in out
 
 
 def test_every_preset_is_reachable_for_a_quantity() -> None:

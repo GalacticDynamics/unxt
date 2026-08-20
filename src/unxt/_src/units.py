@@ -145,7 +145,9 @@ def dimension_of(obj: AbstractUnit, /) -> AbstractDimension:
 
 
 @fmt.pparts.dispatch  # type: ignore[misc]
-def pparts(obj: AbstractUnit, /, *, markup: str = "text", **kw: Any) -> tuple[Any, ...]:
+def pparts(
+    obj: AbstractUnit, /, *, markup: str = "text", long_unit: bool = False, **kw: Any
+) -> tuple[Any, ...]:
     r"""Decompose a unit for the `unxt._fmt` engine.
 
     A unit is just an object with parts, so there is no separate unit renderer
@@ -169,7 +171,24 @@ def pparts(obj: AbstractUnit, /, *, markup: str = "text", **kw: Any) -> tuple[An
     >>> pparts(u.unit(""))
     ()
 
+    ``long_unit`` picks the long name over the short/symbol form:
+
+    >>> pparts(u.unit("m"), long_unit=True)
+    (PPart(role='unit', text='meter', kind='content'),)
+
+    A unit with no long name (a composite, or dimensionless) falls back to the
+    short form rather than raising:
+
+    >>> pparts(u.unit("km/s"), long_unit=True)
+    (PPart(role='unit', text='km / s', kind='content'),)
+
     """
+    # A long name is a plain word (`obj.long_names`), not astropy's own
+    # rendering, so it goes through the engine's ordinary content escaping in
+    # every markup rather than astropy's markup-specific `to_string(markup)`.
+    if long_unit and (names := getattr(obj, "long_names", None)):
+        return (fmt.PPart("unit", names[0]),)
+
     # Decide emptiness on the *plain* string: a dimensionless unit's LaTeX form
     # is ``$\mathrm{}$``, which is truthy after the ``$`` are stripped and would
     # otherwise emit a phantom unit.

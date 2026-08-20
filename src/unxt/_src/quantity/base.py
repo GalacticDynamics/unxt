@@ -1096,9 +1096,10 @@ class AbstractQuantity(
         """Format the quantity.
 
         An empty spec preserves the default :meth:`__str__` representation. A
-        `unxt._fmt.FORMAT_PRESETS` name, or a ``<markup>-<array>-<separator>``
-        combination (see `unxt._fmt.pspec`), selects a named rendering. Any
-        other spec is applied to the value and the unit is appended (as in
+        `unxt._fmt.FORMAT_PRESETS` name, or a
+        ``<markup>-<array>-<separator>-<unit>`` combination (see
+        `unxt._fmt.pspec`), selects a named rendering. Any other spec is
+        applied to the value and the unit is appended (as in
         `astropy.units.Quantity`); a dimensionless quantity has no unit suffix.
 
         Examples
@@ -1122,11 +1123,15 @@ class AbstractQuantity(
         >>> f"{qs:compact}"
         "Q([1., 2., 3.], unit='m')"
 
-        Markup, array verbosity, and separator compose, e.g. HTML without the
-        multiplication sign:
+        Markup, array, separator, and unit compose, e.g. HTML without the
+        multiplication sign, or a per-element precision paired with the
+        unit's long name:
 
         >>> f"{qs:html-bare}"
         '<span>[1., 2., 3.]</span> <span>m</span>'
+
+        >>> f"{u.Q([1.234, 2.345], 'm'):mul-.2f-long}"
+        '[1.23, 2.35] * meter'
 
         """
         return fmt.pspec(self, format_spec)
@@ -1628,6 +1633,8 @@ def pparts(
     *,
     markup: str = "text",
     short_arrays: Any = "compact",
+    value_spec: str | None = None,
+    long_unit: bool = False,
     **kw: Any,
 ) -> tuple[Any, ...]:
     """Decompose a quantity into ``value``, a ``mul`` separator, and ``unit``.
@@ -1645,11 +1652,22 @@ def pparts(
     >>> parts_to_markup(pparts(u.Q([1.0, 2, 3], "")))
     '[1., 2., 3.]'
 
+    ``value_spec`` formats each element; ``long_unit`` picks the unit's long
+    name:
+
+    >>> parts_to_markup(pparts(u.Q([1.234, 2.345], "m"), value_spec=".2f"))
+    '[1.23, 2.35] * m'
+
+    >>> parts_to_markup(pparts(u.Q(1.0, "m"), long_unit=True))
+    '1. * meter'
+
     """
     kind = "markup" if markup == "latex" else "content"
-    value = fmt.value_str(obj.value, markup=markup, short_arrays=short_arrays)
+    value = fmt.value_str(
+        obj.value, markup=markup, short_arrays=short_arrays, value_spec=value_spec
+    )
     parts: tuple[Any, ...] = (fmt.PPart("value", value, kind),)
-    if unit_parts := fmt.pparts(obj.unit, markup=markup):
+    if unit_parts := fmt.pparts(obj.unit, markup=markup, long_unit=long_unit):
         parts = (*parts, fmt.PPart("mul", " * ", "sep"), *unit_parts)
     return parts
 

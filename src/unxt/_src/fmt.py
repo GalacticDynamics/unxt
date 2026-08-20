@@ -284,19 +284,30 @@ def custom_pdoc_noarray(obj: Any, /) -> wl.AbstractDoc | None:
 
 
 def value_str(
-    value: Any, /, *, markup: str = "text", short_arrays: Any = "compact"
+    value: Any,
+    /,
+    *,
+    markup: str = "text",
+    short_arrays: Any = "compact",
+    value_spec: str | None = None,
 ) -> str:
     """Render a quantity's value.
 
     A `jax.core.Tracer` forces the short form: under `jax.jit` only the shape
-    and dtype exist, and `numpy.array2string` on a tracer raises.
+    and dtype exist, and `numpy.array2string` on a tracer raises -- so
+    ``value_spec`` is silently unused there too, same as any other per-element
+    detail a shape/dtype summary cannot show.
+
+    ``value_spec``, when given, is a Python format spec (e.g. ``".3g"``)
+    applied to every element via `numpy.array2string`'s ``formatter``, instead
+    of NumPy's own default float rendering.
     """
     if isinstance(value, jax.core.Tracer):
         short_arrays = True
     if short_arrays == "compact":
-        return np.array2string(
-            np.asarray(value), separator=_markup_table(markup)["vsep"]
-        )
+        formatter = {"all": lambda v: format(v, value_spec)} if value_spec else None
+        vsep = _markup_table(markup)["vsep"]
+        return np.array2string(np.asarray(value), separator=vsep, formatter=formatter)
     # ``show_wrapper=False`` is for ``StaticValue``, whose ``__pdoc__`` would
     # otherwise print ``StaticValue(...)`` around the array.
     return wl.pformat(
@@ -456,9 +467,9 @@ FORMAT_PRESETS: dict[str, dict[str, Any]] = {
 }
 
 #: Markup component of a product-style spec, e.g. the ``html`` in
-#: ``"html-bare"``. Omitted means ``"text"`` -- there is no ``"text"`` key,
-#: since that is the absence of a match, not a match.
-_MARKUP_TOKENS: Final[dict[str, str]] = {"html": "html", "latex": "latex"}
+#: ``"html-bare"``. Omitted means ``"text"``; the token *is* the markup name,
+#: so there is no separate value table like `_SEP_TOKENS` has.
+_MARKUP_TOKENS: Final[frozenset[str]] = frozenset({"html", "latex"})
 
 #: Separator component: whether the join between top-level parts (e.g. value
 #: and unit) shows its operator. Value is the `parts_to_doc` / `parts_to_markup`
@@ -467,71 +478,119 @@ _MARKUP_TOKENS: Final[dict[str, str]] = {"html": "html", "latex": "latex"}
 #: does not have to hard-code that string here to mean the same thing.
 _SEP_TOKENS: Final[dict[str, str | None]] = {"mul": None, "bare": " "}
 
-#: Array-verbosity component: whether the value renders as a shape/dtype
-#: summary (`short_arrays=True`, e.g. ``f32[3]``) or its default compact form
-#: (`short_arrays="compact"`, e.g. ``[1., 2., 3.]``). Omitted means the compact
-#: form.
-_VERBOSITY_TOKENS: Final[frozenset[str]] = frozenset({"short"})
+#: Array component: how many array values render. ``"short"`` is a shape/dtype
+#: summary (`short_arrays=True`, e.g. ``f32[3]``) with no per-element values, so
+#: it cannot combine with a trailing format spec. ``"compact"`` is the default
+#: form (`short_arrays="compact"`, e.g. ``[1., 2., 3.]``) and is nameable so it
+#: can be paired with one, e.g. ``"compact-.3g"``. Omitted also means compact.
+_ARRAY_TOKENS: Final[frozenset[str]] = frozenset({"short", "compact"})
+
+#: Unit component: which of a unit's names renders it. ``"long"`` picks
+#: `astropy.units.UnitBase.long_names` (e.g. ``"meter"``) over the default
+#: short/symbol form (e.g. ``"m"``). A unit with no long name (a composite like
+#: ``km / s``, or dimensionless) falls back to the default rather than raising.
+_UNIT_TOKENS: Final[frozenset[str]] = frozenset({"long"})
 
 
 def _parse_product_spec(spec: str, /) -> dict[str, Any] | None:
-    """Parse a product-style spec: ``<markup>-<array>-<separator>``.
+    """Parse a product-style spec: ``<markup>-<array>-<separator>-<unit>``.
 
     Each component is optional and independent, so a spec is really a *set* of
-    up to three tokens -- one per component -- and this parser accepts them in
+    up to four tokens -- one per component -- and this parser accepts them in
     any order (``"html-bare"`` and ``"bare-html"`` are the same request).
-    ``<markup>-<array>-<separator>`` is only the canonical spelling used in
-    docs and error messages, not a grammar this function enforces; a fixed
+    ``<markup>-<array>-<separator>-<unit>`` is only the canonical spelling used
+    in docs and error messages, not a grammar this function enforces; a fixed
     positional grammar would reject the shorthands (``"html"``, ``"mul"``,
-    ``"short"``) that make single-component specs read the same as before this
-    DSL existed.
+    ``"short"``, bare ``".3g"``) that make single-component specs read the
+    same as before this DSL existed.
+
+    The array component alone may carry a trailing Python format spec, applied
+    per element (e.g. ``"compact-.3g"``, or just ``".3g"`` -- ``"compact"`` is
+    implied). That spec is reassembled from whatever pieces are left over
+    after every recognised keyword is pulled out, in their original order, so
+    a spec with its own embedded ``-`` (a sign flag, or a custom fill
+    character) survives being combined with another component:
+
+    >>> from unxt._src.fmt import _parse_product_spec
+    >>> _parse_product_spec("mul-->10.2f")["value_spec"]  # fill='-', align='>'
+    '->10.2f'
 
     Returns `None` -- not a preset -- for anything that is not entirely
-    composed of known tokens: an unrecognised token, a duplicated component
-    (``"mul-bare"``), or a plain value spec like ``".2f"``. That is what lets
-    `pspec` fall through to `pspec_fallback` for those unchanged.
+    composed of known tokens plus at most one such leftover fragment: a
+    duplicated component (``"mul-bare"``), ``"short"`` combined with a value
+    spec (no per-element values to format), or a spec with *no* recognised
+    keyword at all, like a plain value spec (``".2f"``). That last case is
+    what lets `pspec` fall through to the unchanged `pspec_fallback` for a
+    bare value spec -- a keyword must be present for this DSL to claim the
+    spec at all, so ``".2f"`` alone is untouched by this parser.
 
     Examples
     --------
-    >>> from unxt._src.fmt import _parse_product_spec
-
     >>> _parse_product_spec("html-bare") == {
     ...     "markup": "html",
     ...     "sep": " ",
     ...     "short_arrays": "compact",
+    ...     "value_spec": None,
+    ...     "long_unit": False,
     ... }
     True
 
     Omitted components take their default -- text markup, the object's own
-    separator, compact arrays:
+    separator, compact arrays, the short unit name:
 
     >>> _parse_product_spec("short") == {
     ...     "markup": "text",
     ...     "sep": None,
     ...     "short_arrays": True,
+    ...     "value_spec": None,
+    ...     "long_unit": False,
     ... }
     True
 
-    Not a product spec -- a plain value spec, or a duplicated component:
+    A value spec composes with any other component, e.g. markup and unit:
+
+    >>> _parse_product_spec("html-.3g-long") == {
+    ...     "markup": "html",
+    ...     "sep": None,
+    ...     "short_arrays": "compact",
+    ...     "value_spec": ".3g",
+    ...     "long_unit": True,
+    ... }
+    True
+
+    Not a product spec -- a plain value spec, a duplicated component, or
+    ``short`` combined with a value spec:
 
     >>> _parse_product_spec(".2f") is None
     True
     >>> _parse_product_spec("mul-bare") is None
     True
+    >>> _parse_product_spec("short-.2f") is None
+    True
 
     """
-    tokens = spec.split("-")
-    markups = [t for t in tokens if t in _MARKUP_TOKENS]
-    seps = [t for t in tokens if t in _SEP_TOKENS]
-    verbosities = [t for t in tokens if t in _VERBOSITY_TOKENS]
-    all_known = len(markups) + len(seps) + len(verbosities) == len(tokens)
-    one_each = len(markups) <= 1 and len(seps) <= 1 and len(verbosities) <= 1
-    if not (all_known and one_each):
+    pieces = spec.split("-")
+    markup_i = [i for i, p in enumerate(pieces) if p in _MARKUP_TOKENS]
+    sep_i = [i for i, p in enumerate(pieces) if p in _SEP_TOKENS]
+    array_i = [i for i, p in enumerate(pieces) if p in _ARRAY_TOKENS]
+    unit_i = [i for i, p in enumerate(pieces) if p in _UNIT_TOKENS]
+    if max(len(markup_i), len(sep_i), len(array_i), len(unit_i)) > 1:
         return None
+    claimed = {*markup_i, *sep_i, *array_i, *unit_i}
+    if not claimed:
+        return None
+
+    value_spec = "-".join(p for i, p in enumerate(pieces) if i not in claimed)
+    is_short = bool(array_i) and pieces[array_i[0]] == "short"
+    if is_short and value_spec:
+        return None
+
     return {
-        "markup": _MARKUP_TOKENS[markups[0]] if markups else "text",
-        "sep": _SEP_TOKENS[seps[0]] if seps else None,
-        "short_arrays": True if verbosities else "compact",
+        "markup": pieces[markup_i[0]] if markup_i else "text",
+        "sep": _SEP_TOKENS[pieces[sep_i[0]]] if sep_i else None,
+        "short_arrays": True if is_short else "compact",
+        "value_spec": value_spec or None,
+        "long_unit": bool(unit_i),
     }
 
 
@@ -539,11 +598,14 @@ def bad_spec(obj: Any, spec: str, /) -> ValueError:
     return ValueError(
         f"invalid format spec {spec!r} for {type(obj).__name__}; "
         f"presets are {', '.join(sorted(FORMAT_PRESETS))}, or a "
-        "'-'-joined <markup>-<array>-<separator> combination, each part "
-        f"optional: markup is {', '.join(sorted(_MARKUP_TOKENS))} (default "
-        f"text), array is {', '.join(sorted(_VERBOSITY_TOKENS))} (default "
-        f"compact), separator is {', '.join(sorted(_SEP_TOKENS))} -- e.g. "
-        "'html-bare' or 'html-short-mul'"
+        "'-'-joined combination of up to four parts, each optional: markup "
+        f"({', '.join(sorted(_MARKUP_TOKENS))}; default text), array "
+        f"({', '.join(sorted(_ARRAY_TOKENS))}, optionally with a trailing "
+        "'-<python format spec>' applied per element, e.g. 'compact-.3g'; "
+        f"default compact), separator ({', '.join(sorted(_SEP_TOKENS))}; "
+        f"default mul), and unit ({', '.join(sorted(_UNIT_TOKENS))}; default "
+        "the short name) -- e.g. 'html-bare', 'mul-.3g', or "
+        "'html-compact-.2f-bare-long'"
     )
 
 
@@ -567,7 +629,7 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
     >>> pspec(u.Q([1.0, 2, 3], "m"), "latex")
     '$[1.,~2.,~3.] \\; \\mathrm{m}$'
 
-    A product-style spec composes markup, array verbosity, and separator --
+    A product-style spec composes markup, array, separator, and unit --
     each optional, in any order:
 
     >>> pspec(u.Q([1.0, 2, 3], "m"), "html-bare")
@@ -575,6 +637,15 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
 
     >>> pspec(u.Q([1.0, 2, 3], "m"), "html-short-mul")
     '<span>f32[3]</span> * <span>m</span>'
+
+    The array component may carry a per-element Python format spec, and the
+    unit component may pick the long name over the short/symbol form:
+
+    >>> pspec(u.Q([1.234, 2.345], "m"), "mul-.2f")
+    '[1.23, 2.35] * m'
+
+    >>> pspec(u.Q(1.0, "m"), "long")
+    '1. * meter'
 
     An empty spec preserves `str`:
 
@@ -585,20 +656,32 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
     if not spec:
         return str(obj)
 
+    if spec in FORMAT_PRESETS:
+        # Checked before the DSL parse: "compact" is both a call-style preset
+        # here *and* a valid array-component token there (so it can pair with
+        # a value spec, e.g. "compact-.3g"). A literal preset name must win --
+        # otherwise the pre-existing, documented ``f"{q:compact}"`` would be
+        # silently reinterpreted as the array component alone.
+        #
+        # ``wadler_lindig.pformat`` accepts and ignores unknown kwargs, which is
+        # what makes one preset table serve several types.
+        return wl.pformat(obj, **FORMAT_PRESETS[spec])
+
     if (parsed := _parse_product_spec(spec)) is not None:
         markup = parsed["markup"]
         sep = parsed["sep"]
-        parts = pparts(obj, markup=markup, short_arrays=parsed["short_arrays"])
+        parts = pparts(
+            obj,
+            markup=markup,
+            short_arrays=parsed["short_arrays"],
+            value_spec=parsed["value_spec"],
+            long_unit=parsed["long_unit"],
+        )
         if markup == "text":
             # Feed wadler-lindig, so the rendering is laid out rather than
             # concatenated and composes inside a larger document.
             return doc_to_str(parts_to_doc(parts, sep=sep), width)
         return parts_to_markup(parts, markup=markup, sep=sep)
-
-    if spec in FORMAT_PRESETS:
-        # ``wadler_lindig.pformat`` accepts and ignores unknown kwargs, which is
-        # what makes one preset table serve several types.
-        return wl.pformat(obj, **FORMAT_PRESETS[spec])
 
     return pspec_fallback(obj, spec)
 

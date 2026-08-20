@@ -89,13 +89,14 @@ Two structures exist:
 
 ### The product-style DSL
 
-A product-style spec is up to three optional, independent components, canonically spelled `<markup>-<array>-<separator>`:
+A product-style spec is up to four optional, independent components, canonically spelled `<markup>-<array>-<separator>-<unit>`:
 
 | component | values | omitted means |
 | --- | --- | --- |
 | markup | `html`, `latex` | `text` |
-| array | `short` (shape/dtype summary, e.g. `f32[3]`) | the compact form, e.g. `[1., 2., 3.]` |
+| array | `short` (shape/dtype summary, e.g. `f32[3]`), `compact` (the default form, nameable so it can pair with a value spec) | the compact form, e.g. `[1., 2., 3.]` |
 | separator | `mul` (show `*`), `bare` (space, no operator) | `mul` |
+| unit | `long` (the unit's spelled-out name, e.g. `meter`) | the short/symbol form, e.g. `m` |
 
 ```{code-block} python
 
@@ -110,15 +111,23 @@ A product-style spec is up to three optional, independent components, canonicall
 '<span>[1., 2., 3.]</span> <span>m</span>'
 >>> f"{q:html-short-mul}"
 '<span>f32[3]</span> * <span>m</span>'
+>>> f"{u.Q(1.0, 'm'):long}"
+'1. * meter'
 ```
 
-Omitting a component takes its default, which is what makes the short forms just an unremarkable case of the same grammar rather than a separate alias table: `mul` is short for `text-mul` (equivalently `mul` — separator is the only component present), `html` is short for `html-mul` (markup present, separator defaults to `mul`), and `short` is short for `text-mul-short`.
+Omitting a component takes its default, which is what makes the short forms just an unremarkable case of the same grammar rather than a separate alias table: `mul` is short for `text-mul` (separator is the only component present), `html` is short for `html-mul` (markup present, separator defaults to `mul`), and `short` is short for `text-mul-short`.
 
-The parser accepts the three tokens in any order — `html-bare` and `bare-html` render identically — but `<markup>-<array>-<separator>` is the one spelling used in docs and error messages, so pick it when writing a spec by hand. Two tokens from the same component (`mul-bare`, `html-latex`) is invalid and raises `ValueError`, same as an unknown spec.
+The parser accepts the tokens in any order — `html-bare` and `bare-html` render identically — but `<markup>-<array>-<separator>-<unit>` is the one spelling used in docs and error messages, so pick it when writing a spec by hand. Two tokens from the same component (`mul-bare`, `html-latex`) is invalid and raises `ValueError`, same as an unknown spec.
 
-Product-style specs only decompose meaningfully for a type that registers `pparts`; a type that skips this still accepts them without raising, rendering `str(obj)` as one opaque fragment. That is a deliberate degrade, not a bug: a display path must not raise just because one field's type forgot to register.
+**The array component alone may also carry a trailing Python format spec**, applied to every element (`np.array2string`'s `formatter=`), e.g. `mul-.3g` or just `.3g-mul`. `compact` is spelled out so it has something to attach to on its own: `compact-.3g` (equivalently, bare `.3g` combined with any other DSL token). `short` and a value spec don't compose — a shape/dtype summary has no per-element values to format, and combining them raises. The spec is reassembled from whichever pieces are left over once every recognised keyword is pulled out, in their original order, so a value spec with its own embedded `-` (a sign flag, or a custom fill character) survives being combined with another component: `mul-->10.2f` is `mul` plus the value spec `->10.2f` (fill `-`, align `>`), not three components.
 
-`short` and `compact` are easy to mix up — both mean "terse" in English, but they cut different axes. `short` summarizes the _array_ (shape and dtype, product-style); `compact` shortens the _class name_ while keeping the array's compact values (call-style). Read the grammar, not the names, when in doubt.
+**A value spec needs a real DSL token to activate.** A _bare_ value spec with no recognised keyword anywhere in it — `.3g`, or `:>10` (`:` as a fill character) — is untouched by this parser and keeps going through the unrelated, pre-existing `pspec_fallback` mechanism unchanged: scalar-only, space-joined, unit unaffected (see below). Only once it's paired with a keyword (`mul-.3g`, or `compact-.3g` on its own) does the DSL claim it and the array-formatter path apply.
+
+Product-style specs only decompose meaningfully for a type that registers `pparts`; a type that skips this still accepts them without raising, rendering `str(obj)` as one opaque fragment. That is a deliberate degrade, not a bug: a display path must not raise just because one field's type forgot to register. The unit component works the same way: `long` falls back to the short form rather than raising when a unit has no long name (a composite like `km / s`, or dimensionless).
+
+`short` and `compact` are easy to mix up — both mean "terse" in English, but they cut different axes. `short` summarizes the _array_ (shape and dtype, product-style); `compact` (as a call-style `FORMAT_PRESETS` entry) shortens the _class name_ while keeping the array's compact values. Read the grammar, not the names, when in doubt.
+
+**`compact` is also a gotcha of its own**: it is _both_ a top-level `FORMAT_PRESETS` key (call-style — see above) _and_ a valid array-component token in this DSL, since it needed a name to pair with a value spec. A bare `f"{q:compact}"` always means the call-style preset — `pspec` checks `FORMAT_PRESETS` before parsing the DSL, specifically so this doesn't silently change meaning — and only `compact` combined with something else (`compact-.3g`) reaches the DSL's array component. This is the reason to check any _new_ DSL token or preset name against the other table before adding it.
 
 `dims` is the one call-style preset that is inherently type-specific: only a unit system has "dimension names" to show instead of units.
 
@@ -133,12 +142,13 @@ It is the precedent for how a type extends the shared vocabulary with a call-sty
 
 Rules for extending the vocabulary:
 
-- A genuinely new _component_ of product-style rendering (a fourth thing that can vary orthogonally to markup/array/separator) is a new DSL token, not a new flat preset — the whole point of the DSL is that components compose instead of each combination needing its own hand-written entry.
+- A genuinely new _component_ of product-style rendering (a thing that can vary orthogonally to markup/array/separator/unit) is a new DSL token, not a new flat preset — the whole point of the DSL is that components compose instead of each combination needing its own hand-written entry.
 - A concept with no product-style equivalent, and no fit in the DSL, is a new `FORMAT_PRESETS` entry (as `dims` is). Reuse an existing name if its meaning already fits.
-- Lowercase, one word, no punctuation, and not a DSL token already spoken for (`html`, `latex`, `short`, `mul`, `bare`).
+- Lowercase, one word, no punctuation, and not a DSL token already spoken for (`html`, `latex`, `short`, `compact`, `mul`, `bare`, `long`).
+- Check any new name against _both_ tables, not just the one you're adding to — `pspec` checks `FORMAT_PRESETS` first specifically because `compact` already collided once (a top-level preset name and a DSL array token spelled the same way).
 - `""` (empty spec) always means `str(obj)`, and `!r`/`!s` already cover `repr`/`str` — never add a `"repr"` or `"str"` preset, and never let `""` become a dict key.
 
 Rules for a type joining the engine:
 
 - Register `pspec_fallback` if a _non-preset, non-DSL_ spec should mean something (as `.2f` does for a quantity's value). Skip it and an unrecognised spec raises `ValueError`.
-- Register `pparts` to make the product-style DSL decompose meaningfully instead of falling back to a single opaque `str(obj)` fragment.
+- Register `pparts` to make the product-style DSL decompose meaningfully instead of falling back to a single opaque `str(obj)` fragment. Accept `value_spec` (a per-element Python format spec, or `None`) and `long_unit` (a bool) as keyword arguments — even if unused — so the engine can pass them through without every type needing to opt in explicitly; `**kw` alone is enough to stay compatible with a future component this DSL doesn't have yet.
