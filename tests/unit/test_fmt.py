@@ -2,6 +2,7 @@
 
 import pathlib
 import re
+import warnings
 
 import jax
 import numpy as np
@@ -20,6 +21,7 @@ from unxt._src.fmt import (
     Spec,
     doc_to_str,
     engine as engine_module,
+    inert_axes,
     parse_spec,
     parts_to_doc,
     parts_to_markup,
@@ -668,3 +670,51 @@ def test_an_unknown_qualifier_is_free_text_not_an_error() -> None:
     """
     assert parse_spec(":>6")["value"] == ":>6"
     assert pspec(u.Q(3, "m"), ":>6") == ":::::3 m"
+
+
+# ============================================================================
+# Inert axes: an opt-in check that a spec actually did something
+
+
+def test_inert_axes_finds_an_axis_that_changed_nothing() -> None:
+    """Asked by experiment: re-render with the axis defaulted and compare.
+
+    That needs no cooperation from the type and sees through composites for
+    free -- if a *child* consumed the axis the output differs, which is the
+    answer wanted. Type-level applicability cannot be declared statically,
+    since a composite forwards axes it has never heard of.
+    """
+    # A composite unit has no long name, so `name` falls back to the symbol.
+    q = u.Q([1.0, 2, 3], "km / s")
+    spec = parse_spec("name")
+    assert inert_axes(q, spec, render(q, spec)) == ["unit"]
+
+
+@pytest.mark.parametrize("spec", ["name", "dim", "mul", "latex-mul", ".2f"])
+def test_a_live_axis_is_never_reported_inert(spec: str) -> None:
+    """No false positives: each of these visibly changes a metre quantity."""
+    q = u.Q([1.0, 2, 3], "m")
+    parsed = parse_spec(spec)
+    assert inert_axes(q, parsed, render(q, parsed)) == []
+
+
+def test_the_warning_is_off_by_default_and_opt_in() -> None:
+    """Each probe is a second render, so a library sets this for itself.
+
+    The flag lives on the engine rather than in `unxt.config`, so it survives
+    extraction: a consuming package turns it on for its own debugging instead
+    of the engine reaching into any one library's configuration.
+    """
+    q = u.Q([1.0, 2, 3], "km / s")
+    assert engine_module.WARN_INERT_AXES is False
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        assert pspec(q, "name") == "[1., 2., 3.] km / s"
+    assert not caught
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        assert pspec(q, "name", warn_inert=True) == "[1., 2., 3.] km / s"
+    assert len(caught) == 1
+    assert "changes nothing" in str(caught[0].message)

@@ -219,6 +219,17 @@ The unit axis reaches the nested quantities without `Interval` knowing it exists
 
 A type that skips `pparts` still renders: it degrades to `str(obj)` as one opaque fragment, because a display path must not raise just because some field's type never registered. The one thing it cannot degrade on is a format spec — that formats _elements_, and a type that never said what its elements are has none — so asking for one is an error rather than a silently different rendering.
 
+## Checking that a spec did something
+
+An axis is offered to every type and quietly ignored by one that has no concept of it. That is deliberate — it is what lets a composite forward axes it has never heard of, so `f"{interval:name}"` reaches the nested quantities — but it means a spec can be accepted and do nothing:
+
+- `f"{q:name}"` on `km / s` is inert: a composite unit has no long name, so the axis falls back to the symbol.
+- `f"{q:dims}"` on a `Quantity` is inert: the alias expands to `call-dim`, and only unit systems honour it.
+
+Whether an axis mattered cannot be declared per type — a composite genuinely does not honour `unit`, yet forwarding makes it work — so it is asked by experiment instead: render again with the axis reset to its default and see whether the output moves. Set `WARN_INERT_AXES` on the engine to have every spec checked and warn when one changed nothing.
+
+It is off by default because each probe is a second render, several times the cost of a plain format call. The flag lives on the engine, not in `unxt.config`, so it survives extraction — `unxt`, `coordinax` and `galax` each set it for themselves.
+
 ## Layering
 
 The code is split along the seam it will eventually be cut at:

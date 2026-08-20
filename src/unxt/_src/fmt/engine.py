@@ -44,6 +44,8 @@ __all__ = (
     "Spec",
     "bad_spec",
     "doc_to_str",
+    "WARN_INERT_AXES",
+    "inert_axes",
     "parse_spec",
     "parts_to_doc",
     "parts_to_markup",
@@ -56,6 +58,7 @@ __all__ = (
 )
 
 import html as _html
+import warnings
 from collections.abc import Callable, Iterator, Mapping
 from types import MappingProxyType
 from typing import Any, Final, NamedTuple
@@ -823,7 +826,44 @@ register_axis(
 )
 
 
-def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
+#: Whether `pspec` reports axes that a spec names to no effect.
+#:
+#: The engine's own setting, so it survives extraction into a package: a
+#: consuming library sets it for itself rather than the engine reaching into
+#: any one library's configuration. `False` in production -- each probe is a
+#: second render, several times the cost of a plain format call -- and worth
+#: turning on while debugging a spec or a newly registered axis.
+WARN_INERT_AXES: bool = False
+
+
+def inert_axes(obj: Any, spec: Spec, rendered: str, /, *, width: int = 88) -> list[str]:
+    """Return the axes ``spec`` names explicitly that changed nothing.
+
+    Asked by experiment rather than introspection: re-render with one axis
+    reset to its default and see whether the output moves. That needs no
+    cooperation from the type, and it sees through composites for free -- if a
+    *child* consumed the axis the output differs, which is the answer wanted.
+
+    Only axes given a non-default value are checked; a default cannot be said
+    to have had no effect. An axis whose two renderings agree really did
+    nothing *visible*, which is exactly the claim being made.
+    """
+    dead = []
+    for name, ax in AXES.items():
+        if spec[name] == ax.default:
+            continue
+        baseline = Spec({**dict(spec), name: ax.default})
+        try:
+            if render(obj, baseline, width=width) == rendered:
+                dead.append(name)
+        except Exception:  # noqa: BLE001, S112  # a probe must never break rendering
+            continue
+    return dead
+
+
+def pspec(
+    obj: Any, spec: str, /, *, width: int = 88, warn_inert: bool | None = None
+) -> str:
     r"""Implement ``__format__`` for an object the engine knows.
 
     Examples
@@ -856,7 +896,7 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
         return str(obj)
     parsed = parse_spec(spec, obj=obj)
     try:
-        return render(obj, parsed, width=width)
+        out = render(obj, parsed, width=width)
     except ValueError as e:
         # Anything that is not a keyword was taken as a Python format spec.
         # If none was, this error is not about one and belongs to the caller.
@@ -870,3 +910,12 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
         # missed, which is exactly what a typo needs to see.
         msg = f"{text!r} is not a valid Python format spec ({e})"
         raise bad_spec(obj, spec, msg) from e
+
+    if WARN_INERT_AXES if warn_inert is None else warn_inert:
+        for name in inert_axes(obj, parsed, out, width=width):
+            warnings.warn(
+                f"format spec {spec!r} sets {name!r}, but that changes nothing "
+                f"for this {type(obj).__name__}",
+                stacklevel=2,
+            )
+    return out
