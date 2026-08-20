@@ -176,16 +176,47 @@ Sugar, never new meaning: each expands _textually_ into core keywords before par
 
 `call` layout renders via `wadler_lindig.pformat`, and so through the object's own `__pdoc__`. That is load-bearing rather than incidental: `__pdoc__` is where a type states how to _reconstruct_ itself, which is what keeps `eval(repr(usys)) == usys` true for every unit-system realization. `repr` is defined as call layout for that reason, and a test pins the round-trip.
 
+### Layering: the engine is meant to leave
+
+The code is split along the seam it will eventually be cut at:
+
+- **`unxt._src.fmt.engine`** — domain-agnostic and self-contained. Fragments (`PPart`/`PGroup`), the markup table, the wadler-lindig feed, the `pparts` dispatcher, the scan-rule parser, `Spec`, the two layouts, and the axis registry. It imports nothing from `unxt`, and nothing from `jax`, `numpy` or `astropy` either; a test asserts that from its import list, so the claim cannot rot into prose.
+- **`unxt._src.fmt.axes`** — the domain layer: the axes `unxt` puts into the grammar, the aliases, and the array helpers those axes need.
+
+`coordinax` and `galax` add their own axes by importing `register_axis` and doing exactly what `axes` does. They are **peers** of that module, not clients of it — there is no privileged set of axes, and a downstream axis is read from a `Spec` the same way a built-in one is.
+
 ### Extending
 
-- A new thing that varies orthogonally to the existing axes is a **new axis with its own keywords**, not a new alias — the point of the grammar is that components compose instead of every combination needing a hand-written name.
-- A new alias must expand to a valid core spec, and a test checks that every one does.
-- Keywords are lowercase, one word, no punctuation, and must not collide with an existing keyword _or_ alias — a colliding name would silently steal a meaning, which is how an earlier revision broke `f"{q:compact}"`.
+An axis is a registration, not an edit:
+
+```{code-block} python
+
+>>> from unxt._fmt import Axis, register_axis, parse_spec
+
+>>> _ = register_axis(Axis(
+...     name="demo",
+...     keywords={"demoword": True},   # spec words -> the value each sets
+...     default=False,
+...     layouts={"call": lambda v: {"demo": v}},   # membership IS applicability
+... ))
+
+>>> parse_spec("call-demoword")["demo"]
+True
+
+```
+
+`layouts` does double duty: it says which layouts the axis applies to (naming it under any other is the same typed error a built-in gets) _and_ how its value becomes keyword arguments for that layout's renderer. The two layouts want different things from the same choice often enough that per-layout translation is the honest shape — `unit`, for instance, becomes `show_units=` for `call` but `unit=` for `product`.
+
+Rules:
+
+- Registration rejects a collision in either direction — a keyword that is already an alias, an alias that is already a keyword, a re-registered axis. Silently overwriting is how a spec changes meaning with nobody editing the spec, which is a mistake this grammar has already made once.
 - No keyword may itself be a legal Python format spec, or the scan rule would prefer the keyword reading and take a meaning users already had. A test checks this for every word.
+- `Spec` is built with `Spec.of(**overrides)`, which fills every registered axis from the registry. Constructing the mapping directly leaves a hole that only surfaces as a `KeyError` at render time when a later axis is added.
 - `""` is `str(obj)`, and `!r`/`!s` already cover `repr`/`str` — never add a `repr` or `str` keyword.
+- A genuinely new _arrangement_ of parts is a layout, which is engine-owned; `register_axis` extends the vocabulary, not the set of arrangements.
 
 ### For a type joining the engine
 
-Register `pparts` and the whole grammar follows: every markup, every value form, the unit axis, and the per-element value spec. Accept `markup`, `short_arrays`, `value_spec` and `unit` as keyword arguments — plus `**kw`, so a future axis does not break the signature.
+Register `pparts` and the whole grammar follows: every markup, every value form, the unit axis, and the per-element value spec. Accept `markup`, `short_arrays`, `value_spec` and `unit` as keyword arguments — plus `**kw`, since the product renderer forwards every axis it does not own, including ones registered by someone else.
 
 A type that skips `pparts` still renders: it degrades to `str(obj)` as one opaque fragment, because a display path must not raise just because some field's type never registered. The one thing it cannot degrade on is a value spec — that formats _elements_, and a type that never said what its elements are has none — so asking for one is an error rather than a silently different rendering.

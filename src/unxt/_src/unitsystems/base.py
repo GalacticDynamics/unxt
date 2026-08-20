@@ -412,7 +412,7 @@ class AbstractUnitSystem:
         "unitsystem(['m', 's', 'kg', 'rad'])"
 
         """
-        return fmt.render(self, fmt.Spec(layout="call"))
+        return fmt.render(self, fmt.Spec.of(layout="call"))
 
     def __str__(self) -> str:
         """Return a readable string representation of the unit system.
@@ -433,7 +433,7 @@ class AbstractUnitSystem:
         'LTMAUnitSystem(length, time, mass, angle)'
 
         """
-        return fmt.render(self, fmt.Spec(layout="call", abbrev=True))
+        return fmt.render(self, fmt.Spec.of(layout="call", abbrev=True))
 
     def __format__(self, format_spec: str, /) -> str:
         """Format the unit system.

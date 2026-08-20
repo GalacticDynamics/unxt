@@ -103,7 +103,7 @@ def _render_configured(obj: Any, cfg: Any, /) -> str:
     """
     return fmt.render(
         obj,
-        fmt.Spec(
+        fmt.Spec.of(
             layout="call",
             value=fmt.VALUE_FROM_SHORT_ARRAYS[cfg.short_arrays],
             abbrev=cfg.use_short_name,

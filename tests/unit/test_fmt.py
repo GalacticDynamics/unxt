@@ -1,5 +1,6 @@
 """Tests for the `unxt._fmt` string-formatting engine."""
 
+import pathlib
 import re
 
 import jax
@@ -10,7 +11,10 @@ import wadler_lindig as wl
 import unxt as u
 from unxt._fmt import (
     ALIASES,
+    AXES,
     MARKUPS,
+    REQUIRED_MARKUP_KEYS,
+    Axis,
     PGroup,
     PPart,
     Spec,
@@ -20,10 +24,13 @@ from unxt._fmt import (
     parts_to_markup,
     pparts,
     pspec,
+    register_alias,
+    register_axis,
     render,
     unwrap_math,
 )
-from unxt._src.fmt import _KEYWORDS, _LAYOUT_AXES, REQUIRED_MARKUP_KEYS
+from unxt._src.fmt import engine as engine_module
+from unxt._src.fmt.engine import _KEYWORDS
 
 # ============================================================================
 # The grammar's own invariants
@@ -47,26 +54,22 @@ def test_every_alias_expands_to_a_valid_core_spec(alias: str) -> None:
     assert parse_spec(alias) == parse_spec(ALIASES[alias])
 
 
-def test_every_axis_is_claimed_by_some_layout() -> None:
-    """A keyword no layout accepts would be unreachable."""
-    axes = {axis for axis, _ in _KEYWORDS.values()}
-    assert axes == set().union(*_LAYOUT_AXES.values())
+def test_every_axis_applies_to_some_layout() -> None:
+    """An axis no layout accepts would be unreachable."""
+    for name, ax in AXES.items():
+        assert ax.layouts, name
 
 
-def test_every_axis_is_a_spec_field() -> None:
-    """`parse_spec` builds ``Spec(**seen)``, so axis names *are* field names.
-
-    That is what lets the defaults live once, on `Spec`, instead of being
-    repeated as ``seen.get(axis, default)`` for every axis. A new keyword whose
-    axis has no field would raise ``TypeError`` at parse time.
-    """
-    axes = {axis for axis, _ in _KEYWORDS.values()}
-    assert axes <= set(Spec._fields)
+def test_every_keyword_maps_back_to_its_axis() -> None:
+    """`_KEYWORDS` is the flat namespace `Axis.keywords` describes."""
+    for name, ax in AXES.items():
+        for word in ax.keywords:
+            assert _KEYWORDS[word] == name
 
 
 def test_spec_defaults_are_the_grammar_defaults() -> None:
-    """An all-omitted spec is exactly ``Spec()``."""
-    assert parse_spec("product") == Spec()
+    """An all-omitted spec is exactly ``Spec.of()``."""
+    assert parse_spec("product") == Spec.of()
 
 
 # ============================================================================
@@ -99,7 +102,7 @@ def test_scan_rule_splits_keywords_from_the_value_spec(
     Python format spec in play -- a format spec may contain ``-`` itself, and
     it can never be mistaken for a component boundary.
     """
-    assert parse_spec(spec).value_spec == value_spec
+    assert parse_spec(spec)["value_spec"] == value_spec
 
 
 def test_a_keyword_after_the_value_spec_is_not_a_keyword() -> None:
@@ -112,7 +115,7 @@ def test_a_keyword_after_the_value_spec_is_not_a_keyword() -> None:
     q = u.Q([1.234, 2.345], "m")
     assert pspec(q, "mul-name-.2f") == "[1.23, 2.35] * meter"
 
-    assert parse_spec("mul-.2f-name").value_spec == ".2f-name"
+    assert parse_spec("mul-.2f-name")["value_spec"] == ".2f-name"
     with pytest.raises(ValueError, match="not a valid Python format spec"):
         pspec(q, "mul-.2f-name")
 
@@ -125,7 +128,7 @@ def test_a_leftover_run_is_one_spec_not_a_silent_rejoin() -> None:
     still one value spec -- but honestly so, by position -- and Python rejects
     it as the single malformed spec it is.
     """
-    assert parse_spec("mul-.2f-.3g").value_spec == ".2f-.3g"
+    assert parse_spec("mul-.2f-.3g")["value_spec"] == ".2f-.3g"
     with pytest.raises(ValueError, match="Invalid format specifier"):
         pspec(u.Q([1.0], "m"), "mul-.2f-.3g")
 
@@ -295,8 +298,8 @@ def test_grammar_words_are_not_valid_value_specs(word: str) -> None:
 
 def test_repr_and_str_are_call_layout_specs() -> None:
     q = u.Q([1.0, 2, 3], "m")
-    assert repr(q) == render(q, Spec(layout="call", value="array"), named_unit=True)
-    assert str(q) == render(q, Spec(layout="call", value="values"), named_unit=True)
+    assert repr(q) == render(q, Spec.of(layout="call", value="array"), named_unit=True)
+    assert str(q) == render(q, Spec.of(layout="call", value="values"), named_unit=True)
 
 
 def test_the_empty_spec_is_str() -> None:
@@ -507,3 +510,78 @@ def test_unwrap_math_only_strips_real_delimiters(text: str, expected: str) -> No
     ``_repr_latex_`` (#870), which this engine must not reintroduce.
     """
     assert unwrap_math(text) == expected
+
+
+# ============================================================================
+# The seam: the engine must stay liftable, and downstream must be a peer
+
+
+def test_engine_imports_nothing_domain_specific() -> None:
+    """The engine is meant to lift out into a package of its own.
+
+    Its whole claim is that it knows nothing about quantities, units, arrays
+    or `jax` -- a claim an earlier revision made in prose while `import jax`
+    sat at the top of the file. Pin it to the import list so it cannot rot
+    back: anything domain-specific belongs in `unxt._src.fmt.axes`, which is a
+    peer of `coordinax`'s and `galax`'s future layers, not a privileged one.
+    """
+    source = (
+        pathlib.Path(engine_module.__file__).read_text(encoding="utf-8").splitlines()
+    )
+    imports = [ln for ln in source if re.match(r"^\s*(import|from)\s", ln)]
+    banned = ("unxt", "jax", "numpy", "astropy", "quax")
+    offenders = [ln for ln in imports if any(f"{b}" in ln for b in banned)]
+    assert not offenders, offenders
+
+
+def test_a_downstream_package_can_register_its_own_axis() -> None:
+    """A downstream axis must be indistinguishable from a built-in one.
+
+    This is the check the whole registry exists for: before it, `Spec` was a
+    closed `NamedTuple` and this raised ``TypeError: Spec.__new__() got an
+    unexpected keyword argument``. `coordinax` already carries exactly such an
+    axis (``vector_form``) as an ad-hoc ``__pdoc__`` knob with no way to reach
+    it from a format spec.
+    """
+    axis = Axis(
+        name="demo_form",
+        keywords={"demoform": True},
+        default=False,
+        layouts={"call": lambda v: {"demo_form": v}},
+    )
+    register_axis(axis)
+    register_alias("demoalias", "call-demoform")
+    try:
+        assert parse_spec("call-demoform")["demo_form"] is True
+        assert parse_spec("call")["demo_form"] is False  # default filled in
+        assert parse_spec("demoalias") == parse_spec("call-demoform")
+        # Order-independent alongside a built-in axis, like any other keyword.
+        assert parse_spec("call-demoform-abbrev") == parse_spec("abbrev-demoform-call")
+        # Scoped to its layouts, with the same typed error a built-in gets.
+        with pytest.raises(ValueError, match="'demo_form' does not apply"):
+            parse_spec("product-demoform")
+    finally:
+        AXES.pop("demo_form")
+        _KEYWORDS.pop("demoform")
+        ALIASES.pop("demoalias")
+
+
+@pytest.mark.parametrize(
+    ("word", "expansion"),
+    [("html", "call-abbrev"), ("compact", "call-abbrev")],
+)
+def test_registration_rejects_a_name_collision(word: str, expansion: str) -> None:
+    """A collision must fail loudly at registration, not silently at parse.
+
+    Both directions: a keyword that is already an alias, and an alias that is
+    already a keyword. An earlier revision had exactly this collision (a DSL
+    token spelled ``compact``, same as a preset) and it surfaced as a spec
+    quietly changing meaning.
+    """
+    with pytest.raises(ValueError, match="already"):
+        register_alias(word, expansion)
+
+    with pytest.raises(ValueError, match="already"):
+        register_axis(
+            Axis(name="clash", keywords={word: 1}, default=0, layouts={"call": dict})
+        )

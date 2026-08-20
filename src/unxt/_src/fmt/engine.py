@@ -1,6 +1,11 @@
 """The string-formatting engine.
 
-This is the private implementation of the `unxt._fmt` module.
+**This module is domain-agnostic and self-contained.** It knows nothing about
+quantities, units, arrays, or `jax`, and imports nothing from `unxt` -- see
+`unxt._src.fmt.axes` for the layer that teaches it those. It is written to be
+lifted out into a package of its own, with `unxt`, `coordinax` and `galax`
+registering into it as peers; a test pins the import restriction so the seam
+cannot rot.
 
 An object declares *how it decomposes* by registering `pparts`, which returns a
 tree of roled fragments. Two consumers turn that tree into output:
@@ -14,43 +19,42 @@ tree of roled fragments. Two consumers turn that tree into output:
   which measures `len(ansi_strip(text))` and so bills every ``<span>`` as
   visible columns.
 
-The engine feeds wadler-lindig; it does not replace it. `__pdoc__` stays the
+The engine feeds wadler-lindig; it does not replace it. ``__pdoc__`` stays the
 definition of *call-style* rendering and is untouched by this module.
 
-**This module knows nothing about quantities, units, or unit systems.** It
-imports no `unxt` module at all, and every domain-specific rendering is
-*registered into* it by its consumers -- `unxt._src.units`,
-`unxt._src.quantity.base`, `unxts.linalg`. Dependencies point inward, which is
-what lets those consumers import it at module scope instead of working around
-a cycle.
+The format-spec grammar is likewise a *mechanism* here, not a vocabulary. The
+scan rule, the `Spec` record, and the two layouts are built in; every axis and
+keyword arrives through `register_axis` / `register_alias`, so a downstream
+package's axis is indistinguishable from a core one.
 
 """
 
 __all__ = (
     "ALIASES",
+    "AXES",
+    "Axis",
     "MARKUPS",
     "PGroup",
     "PPart",
+    "REQUIRED_MARKUP_KEYS",
     "Spec",
     "bad_spec",
-    "custom_pdoc_no_kind",
-    "custom_pdoc_noarray",
     "doc_to_str",
     "parse_spec",
     "parts_to_doc",
     "parts_to_markup",
     "pparts",
-    "pspec",
+    "register_alias",
+    "register_axis",
     "render",
     "unwrap_math",
-    "value_str",
 )
 
 import html as _html
+from collections.abc import Callable, Iterator, Mapping
+from types import MappingProxyType
 from typing import Any, Final, NamedTuple
 
-import jax
-import numpy as np
 import wadler_lindig as wl
 from plum import Dispatcher
 
@@ -259,75 +263,6 @@ def doc_to_str(doc: wl.AbstractDoc, /, width: int = 88) -> str:
     return wl.pformat(_DocHolder(doc), width=width)
 
 
-def custom_pdoc_no_kind(obj: Any, /) -> wl.AbstractDoc | None:
-    """Return the array summary without the ``(jax)``/``(numpy)`` kind suffix.
-
-    Handles `numpy.ndarray` as well as `jax.Array`, so a NumPy-backed value
-    renders ``f64[2]`` rather than ``f64[2](numpy)``.
-    """
-    if isinstance(obj, (jax.Array, np.ndarray)):
-        dtype = obj.dtype.name
-        if getattr(obj, "weak_type", False):
-            dtype = f"weak_{dtype}"
-        return wl.array_summary(obj.shape, dtype, kind=None)
-    return None
-
-
-def custom_pdoc_noarray(obj: Any, /) -> wl.AbstractDoc | None:
-    """Return the compact (values-only) pdoc for an array-like value.
-
-    Handles both a `jax.Array` and a `numpy.ndarray` -- the latter is what a
-    `unxt.quantity.StaticQuantity`'s value wraps -- so its ``str`` shows values
-    like a plain quantity's rather than an ``f64[2](numpy)`` type summary.
-    """
-    if isinstance(obj, (jax.Array, np.ndarray)):
-        return wl.TextDoc(np.array2string(np.asarray(obj), separator=", "))
-    return None
-
-
-def value_str(
-    value: Any,
-    /,
-    *,
-    markup: str = "text",
-    short_arrays: Any = "compact",
-    value_spec: str | None = None,
-) -> str:
-    """Render a quantity's value, in one of the three ``value``-axis forms.
-
-    ``short_arrays`` is the axis in `__pdoc__`'s spelling: ``"compact"`` for
-    the values (``[1., 2.]``), `True` for a shape/dtype summary (``f32[2]``),
-    `False` for the full array repr (``Array([1., 2.], dtype=float32)``).
-
-    A `jax.core.Tracer` forces the summary: under `jax.jit` only the shape and
-    dtype exist, and `numpy.array2string` on a tracer raises -- so
-    ``value_spec`` goes unused there too, like any other per-element detail a
-    summary cannot show.
-
-    ``value_spec``, when given, is a Python format spec (e.g. ``".3g"``)
-    applied to every element via `numpy.array2string`'s ``formatter``, instead
-    of NumPy's own default float rendering.
-    """
-    if isinstance(value, jax.core.Tracer):
-        short_arrays = True
-    if short_arrays == "compact":
-        formatter = {"all": lambda v: format(v, value_spec)} if value_spec else None
-        vsep = _markup_table(markup)["vsep"]
-        return np.array2string(np.asarray(value), separator=vsep, formatter=formatter)
-    # ``show_wrapper=False`` is for ``StaticValue``, whose ``__pdoc__`` would
-    # otherwise print ``StaticValue(...)`` around the array. ``short_arrays``
-    # is forwarded rather than pinned: `False` is the *full* array repr, and
-    # hardcoding `True` here collapsed it onto the summary.
-    #
-    # ``custom_pdoc_no_kind`` only applies to the summary, where it strips the
-    # ``(numpy)`` kind suffix. It *builds* a summary, so passing it on the
-    # `False` path would force one back and undo the distinction. There is no
-    # "no hook" argument -- ``custom=None`` is called and raises -- so the
-    # kwarg has to be omitted rather than blanked.
-    kw = {"custom": custom_pdoc_no_kind} if short_arrays else {}
-    return wl.pformat(value, short_arrays=short_arrays, show_wrapper=False, **kw)
-
-
 @dispatch.abstract
 def pparts(obj: Any, /, *, markup: str = "text", **kw: Any) -> tuple[Any, ...]:
     """Decompose an object into a tree of `PPart` / `PGroup` fragments.
@@ -464,102 +399,169 @@ def parts_to_markup(
     return table["wrap"].format(rendered) if _top else rendered
 
 
-#: Every keyword in the grammar, mapped to the axis it sets and the value it
-#: sets that axis to.
-#:
-#: Keywords live in one flat namespace and must stay **pairwise disjoint** --
-#: no word may name two axes. That invariant is what lets the keyword run be
-#: order-independent (``"html-bare"`` and ``"bare-html"`` are the same request)
-#: with no content-sniffing anywhere, and it is checked by a test rather than
-#: left to reviewer diligence.
-_KEYWORDS: Final[dict[str, tuple[str, Any]]] = {
-    # layout -- how the pieces are arranged
-    "call": ("layout", "call"),  # Quantity(Array([1., 2.]), unit='m')
-    "product": ("layout", "product"),  # [1., 2.] m
-    # value -- how the numeric payload renders
-    "array": ("value", "array"),  # Array([1., 2.], dtype=float32)
-    "values": ("value", "values"),  # [1., 2.]
-    "type": ("value", "type"),  # f32[2]
-    # markup
-    "text": ("markup", "text"),
-    "html": ("markup", "html"),
-    "latex": ("markup", "latex"),
-    # unit -- which spelling of the unit
-    "symbol": ("unit", "symbol"),  # m
-    "name": ("unit", "name"),  # meter
-    "dim": ("unit", "dim"),  # length
-    # separator -- product layout only
-    "mul": ("sep", "mul"),  # [1., 2.] * m
-    "bare": ("sep", "bare"),  # [1., 2.] m
-    # abbreviation -- call layout only
-    "abbrev": ("abbrev", True),  # Q(...) rather than Quantity(...)
-}
-
-#: Shorthands for whole specs. Each expands *textually* into core keywords
-#: before parsing, so an alias can never mean something the core grammar cannot
-#: already say, and combining one with a further keyword raises exactly the
-#: error its expansion would.
-ALIASES: Final[dict[str, str]] = {
-    "compact": "call-abbrev",
-    "full": "call-array",
-    "dims": "call-dim",
-}
-
-#: The axes each layout has a concept of. Naming any other is an error, not a
-#: silent no-op: ``f"{q:call-mul}"`` says something about a separator that
-#: call layout does not have, and quietly dropping it would hide the mistake.
-_LAYOUT_AXES: Final[dict[str, frozenset[str]]] = {
-    "call": frozenset({"layout", "value", "unit", "abbrev"}),
-    "product": frozenset({"layout", "value", "unit", "markup", "sep"}),
-}
-
-#: The ``value`` axis as `__pdoc__`'s ``short_arrays`` argument. The public
-#: `unxt.config` traits keep their own spelling of the same three-way choice.
-_SHORT_ARRAYS: Final[dict[str, Any]] = {
-    "array": False,
-    "values": "compact",
-    "type": True,
-}
-
-#: ``short_arrays`` back to the ``value`` axis, for reading `unxt.config`.
-#:
-#: The config traits are public, documented API and keep their own spelling;
-#: this is the one place the two vocabularies are reconciled, so ``repr`` and
-#: ``str`` can be defined as specs without renaming anything users configure.
-#: Derived by inversion rather than written out, so the two cannot drift.
-VALUE_FROM_SHORT_ARRAYS: Final[dict[Any, str]] = {
-    v: k for k, v in _SHORT_ARRAYS.items()
-}
+# ============================================================================
+# The grammar: a registry, not a vocabulary
 
 
-class Spec(NamedTuple):
-    """A fully resolved format spec: one settled value per axis.
+class Axis(NamedTuple):
+    """One independent choice a format spec can make.
 
-    Field defaults are the grammar's defaults, so ``Spec()`` is what an
-    all-omitted spec means.
+    Parameters
+    ----------
+    name
+        The axis, and the key it occupies in a `Spec`.
+    keywords
+        Spec word -> the value it sets. Words live in one flat namespace
+        shared by every axis, and must stay pairwise disjoint; `register_axis`
+        enforces that, which is what lets a keyword run be order-independent
+        with no content-sniffing.
+    default
+        The value when no keyword names this axis.
+    layouts
+        Layout -> a function turning this axis's value into keyword arguments
+        for that layout's renderer. **Membership is applicability**: an axis
+        applies to exactly the layouts it has an entry for, so naming it under
+        any other layout is an error rather than a silent no-op.
+
     """
 
-    layout: str = "product"
-    value: str = "values"
-    value_spec: str | None = None
-    markup: str = "text"
-    unit: str = "symbol"
-    sep: str = "bare"
-    abbrev: bool = False
+    name: str
+    keywords: Mapping[str, Any]
+    default: Any
+    layouts: Mapping[str, Callable[[Any], Mapping[str, Any]]]
+
+
+#: Registered axes, by name. Populated only through `register_axis`.
+AXES: Final[dict[str, Axis]] = {}
+
+#: Spec word -> the axis that claimed it. The flat namespace `Axis.keywords`
+#: describes, maintained here so a collision is caught at registration.
+_KEYWORDS: Final[dict[str, str]] = {}
+
+#: Shorthands for whole specs. Each expands *textually* into core keywords
+#: before parsing, so an alias can never mean something the grammar cannot
+#: already say, and combining one with a further keyword raises exactly the
+#: error its expansion would.
+ALIASES: Final[dict[str, str]] = {}
+
+#: Reserved `Spec` key for the trailing Python format spec. Not an axis: it is
+#: free text rather than a closed vocabulary, so no keyword can name it.
+VALUE_SPEC: Final = "value_spec"
+
+
+def register_axis(axis: Axis, /) -> Axis:
+    """Add an axis to the grammar, rejecting any keyword collision.
+
+    Registration is the only way in. A downstream package registering
+    ``vector_form`` gets exactly what the built-in axes get -- there is no
+    privileged set.
+    """
+    if axis.name in AXES:
+        msg = f"axis {axis.name!r} is already registered"
+        raise ValueError(msg)
+    if axis.name == VALUE_SPEC:
+        msg = f"axis name {VALUE_SPEC!r} is reserved"
+        raise ValueError(msg)
+    for word in axis.keywords:
+        if word in _KEYWORDS:
+            msg = f"keyword {word!r} is already claimed by axis {_KEYWORDS[word]!r}"
+            raise ValueError(msg)
+        if word in ALIASES:
+            msg = f"keyword {word!r} is already an alias"
+            raise ValueError(msg)
+    AXES[axis.name] = axis
+    _KEYWORDS.update(dict.fromkeys(axis.keywords, axis.name))
+    return axis
+
+
+def register_alias(name: str, expansion: str, /) -> None:
+    """Add a whole-spec shorthand, rejecting any collision.
+
+    Both directions are checked, because both are the same mistake: a name
+    that already means something must not quietly start meaning something
+    else. Silently overwriting is how a spec changes meaning without anyone
+    editing the spec.
+    """
+    if name in _KEYWORDS:
+        msg = f"alias {name!r} is already a keyword of axis {_KEYWORDS[name]!r}"
+        raise ValueError(msg)
+    if name in ALIASES:
+        msg = f"alias {name!r} is already registered as {ALIASES[name]!r}"
+        raise ValueError(msg)
+    ALIASES[name] = expansion
+
+
+#: Layout -> the function that renders an object in it. A layout is a way of
+#: arranging an object's parts, so this stays engine-owned: `register_axis`
+#: extends the *vocabulary*, not the set of arrangements.
+_LAYOUTS: Final[dict[str, Callable[..., str]]] = {}
+
+
+class Spec(Mapping[str, Any]):
+    """A fully resolved format spec: one settled value for every axis.
+
+    A mapping rather than a record, so a downstream axis is read exactly like
+    a built-in one (``spec["markup"]``, ``spec["vector_form"]``). Defaults are
+    filled in at parse time, so every registered axis is always present and a
+    reader never has to know which were named.
+    """
+
+    __slots__ = ("_d",)
+
+    def __init__(self, mapping: Mapping[str, Any] = (), /, **kw: Any) -> None:
+        self._d: Mapping[str, Any] = MappingProxyType({**dict(mapping), **kw})
+
+    @classmethod
+    def of(cls, /, **overrides: Any) -> "Spec":
+        """Build a resolved spec, defaulting every axis not named.
+
+        This is the way to construct one by hand. Taking the defaults from the
+        registry is what keeps a hand-built spec complete once a *later* axis
+        is registered -- writing the mapping out directly leaves a hole that
+        surfaces only as a `KeyError` at render time.
+
+        Examples
+        --------
+        >>> from unxt._fmt import Spec, parse_spec
+
+        >>> Spec.of(layout="call")["unit"]
+        'symbol'
+
+        >>> Spec.of() == parse_spec("product")
+        True
+
+        """
+        unknown = set(overrides) - set(AXES) - {VALUE_SPEC}
+        if unknown:
+            msg = f"not registered axes: {sorted(unknown)}"
+            raise ValueError(msg)
+        resolved = {name: overrides.get(name, ax.default) for name, ax in AXES.items()}
+        return cls(resolved, value_spec=overrides.get(VALUE_SPEC))
+
+    def __getitem__(self, key: str) -> Any:
+        return self._d[key]
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._d)
+
+    def __len__(self) -> int:
+        return len(self._d)
+
+    def __repr__(self) -> str:
+        args = ", ".join(f"{k}={v!r}" for k, v in self._d.items())
+        return f"Spec({args})"
+
+    def __hash__(self) -> int:
+        return hash(frozenset(self._d.items()))
 
 
 def _grammar_help() -> str:
-    """Describe the grammar, generated from the tables so it cannot drift."""
-    axes: dict[str, list[str]] = {}
-    for word, (axis, _) in _KEYWORDS.items():
-        axes.setdefault(axis, []).append(word)
-    parts = [f"{axis} ({'|'.join(words)})" for axis, words in axes.items()]
+    """Describe the grammar, generated from the registry so it cannot drift."""
+    parts = [f"{name} ({'|'.join(ax.keywords)})" for name, ax in AXES.items()]
+    aliases = ", ".join(f"{k}={v}" for k, v in ALIASES.items())
     return (
         "a '-'-joined run of keywords, then an optional Python format spec "
-        "applied per element: "
-        + ", ".join(parts)
-        + "; aliases: "
-        + ", ".join(f"{k}={v}" for k, v in ALIASES.items())
+        "applied per element: " + ", ".join(parts) + f"; aliases: {aliases}"
     )
 
 
@@ -588,11 +590,11 @@ def _scan_keywords(
         if not all(word in _KEYWORDS for word in words):
             return seen, i
         for word in words:
-            axis, value = _KEYWORDS[word]
+            axis = _KEYWORDS[word]
             if axis in seen:
                 msg = f"{axis!r} is set twice"
                 raise bad_spec(obj, spec, msg)
-            seen[axis] = value
+            seen[axis] = AXES[axis].keywords[word]
     return seen, len(tokens)
 
 
@@ -612,11 +614,11 @@ def parse_spec(spec: str, /, *, obj: Any = None) -> Spec:
 
     Examples
     --------
-    >>> from unxt._src.fmt import parse_spec
+    >>> from unxt._fmt import parse_spec
 
     Keywords set their axis; everything omitted keeps its default:
 
-    >>> parse_spec("html-bare").markup, parse_spec("html-bare").sep
+    >>> parse_spec("html-bare")["markup"], parse_spec("html-bare")["sep"]
     ('html', 'bare')
 
     Order among keywords does not matter:
@@ -626,14 +628,14 @@ def parse_spec(spec: str, /, *, obj: Any = None) -> Spec:
 
     A trailing value spec is applied per element:
 
-    >>> parse_spec("mul-.3g").value_spec
+    >>> parse_spec("mul-.3g")["value_spec"]
     '.3g'
 
     A value spec keeps its own ``-``, whether leading or embedded:
 
-    >>> parse_spec("-.2f").value_spec
+    >>> parse_spec("-.2f")["value_spec"]
     '-.2f'
-    >>> parse_spec("mul-->10.2f").value_spec
+    >>> parse_spec("mul-->10.2f")["value_spec"]
     '->10.2f'
 
     An alias expands before parsing:
@@ -650,45 +652,57 @@ def parse_spec(spec: str, /, *, obj: Any = None) -> Spec:
     # there is -- and simply leaves every axis at its default.
     value_spec = "-".join(tokens[i:]) or None
 
-    # Every axis name is a `Spec` field, so the scanned axes go straight in and
-    # anything unset falls to that field's default. Spelling the defaults out
-    # again here would be a second copy of the grammar, free to drift.
-    parsed = Spec(**seen, value_spec=value_spec)
+    resolved = {name: seen.get(name, ax.default) for name, ax in AXES.items()}
+    layout = resolved["layout"]
 
-    allowed = _LAYOUT_AXES[parsed.layout]
     for axis in seen:
-        if axis not in allowed:
-            msg = f"{axis!r} does not apply to {parsed.layout!r} layout"
+        if layout not in AXES[axis].layouts:
+            msg = f"{axis!r} does not apply to {layout!r} layout"
             raise bad_spec(obj, spec, msg)
 
     if value_spec is not None:
-        if parsed.value != "values":
-            msg = f"a value format spec needs value='values', not {parsed.value!r}"
+        if resolved.get("value") != "values":
+            msg = f"a value format spec needs value='values', not {resolved['value']!r}"
             raise bad_spec(obj, spec, msg)
-        if parsed.layout != "product":
-            msg = f"a value format spec does not apply to {parsed.layout!r} layout"
+        if layout != "product":
+            msg = f"a value format spec does not apply to {layout!r} layout"
             raise bad_spec(obj, spec, msg)
 
-    return parsed
+    return Spec(resolved, value_spec=value_spec)
+
+
+def _layout_kwargs(spec: Spec, layout: str, /) -> dict[str, Any]:
+    """Translate every axis applicable to ``layout`` into renderer kwargs.
+
+    An axis contributes only where it declared a translation, so an axis a
+    layout has no concept of contributes nothing -- and `parse_spec` has
+    already refused to let one be *named* under that layout.
+    """
+    kw: dict[str, Any] = {}
+    for name, ax in AXES.items():
+        translate = ax.layouts.get(layout)
+        if translate is not None:
+            kw.update(translate(spec[name]))
+    return kw
 
 
 def render(
-    obj: Any, spec: Spec, /, *, width: int = 88, indent: int = 4, **pdoc_kw: Any
+    obj: Any, spec: Spec, /, *, width: int = 88, indent: int = 4, **extra: Any
 ) -> str:
     r"""Render ``obj`` according to an already-resolved `Spec`.
 
     The single rendering entry point: ``repr``, ``str`` and ``__format__`` all
     arrive here, differing only in the `Spec` they bring.
 
-    ``call`` layout goes through `wadler_lindig.pformat`, and so through the
-    object's own ``__pdoc__``. That is deliberate and load-bearing: ``__pdoc__``
-    is where a type states how to *reconstruct* it, which is what keeps
-    ``eval(repr(x)) == x`` true for unit systems.
+    ``extra`` carries renderer arguments that are not grammar axes -- a type's
+    own ``__pdoc__`` knob, say. They stay out of the spec vocabulary, because
+    one word must mean one thing for every type, but still need a route
+    through so a caller's configuration can drive them.
 
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt._src.fmt import parse_spec, render
+    >>> from unxt._fmt import parse_spec, render
 
     >>> render(u.Q([1.0, 2, 3], "m"), parse_spec("mul"))
     '[1., 2., 3.] * m'
@@ -697,39 +711,55 @@ def render(
     "Quantity([1., 2., 3.], unit='m')"
 
     """
-    if spec.layout == "call":
-        # ``pdoc_kw`` carries type-specific ``__pdoc__`` knobs that are not
-        # grammar axes (a quantity's ``named_unit``, say). They stay off the
-        # spec vocabulary -- one word must mean one thing for every type -- but
-        # still need a route through, so `unxt.config` can drive them.
-        return wl.pformat(
-            obj,
-            width=width,
-            indent=indent,
-            short_arrays=_SHORT_ARRAYS[spec.value],
-            use_short_name=spec.abbrev,
-            # The abbreviated call form is one idea, spelled per type: a short
-            # class name for a quantity, unquoted units for a unit system.
-            quote_units=not spec.abbrev,
-            show_units=spec.unit != "dim",
-            **pdoc_kw,
-        )
-
-    parts = pparts(
-        obj,
-        markup=spec.markup,
-        short_arrays=_SHORT_ARRAYS[spec.value],
-        value_spec=spec.value_spec,
-        unit=spec.unit,
+    layout = spec["layout"]
+    return _LAYOUTS[layout](
+        obj, spec, width=width, indent=indent, **_layout_kwargs(spec, layout), **extra
     )
-    # ``mul`` does not override, leaving whatever the object's own `pparts`
-    # emitted (``" * "`` for a quantity), so it need not hard-code that string.
-    sep = " " if spec.sep == "bare" else None
-    if spec.markup == "text":
+
+
+def _render_call(obj: Any, spec: Spec, /, *, width: int, indent: int, **kw: Any) -> str:
+    """Render through `wadler_lindig.pformat`, and so the object's ``__pdoc__``.
+
+    That indirection is load-bearing rather than incidental: ``__pdoc__`` is
+    where a type states how to *reconstruct* itself, which is what keeps
+    ``eval(repr(x)) == x`` true for the types that promise it.
+    """
+    return wl.pformat(obj, width=width, indent=indent, **kw)
+
+
+def _render_product(
+    obj: Any, spec: Spec, /, *, width: int, indent: int, **kw: Any
+) -> str:
+    """Render as juxtaposed parts, via `pparts`.
+
+    ``markup`` and ``sep`` are the engine's own layout parameters; everything
+    else -- including any downstream axis -- is forwarded to `pparts`, which
+    is what lets a type act on an axis the engine has never heard of.
+    """
+    markup = kw.pop("markup", "text")
+    sep = kw.pop("sep", None)
+    parts = pparts(obj, markup=markup, value_spec=spec["value_spec"], **kw)
+    if markup == "text":
         # Feed wadler-lindig, so the rendering is laid out rather than
         # concatenated and composes inside a larger document.
         return doc_to_str(parts_to_doc(parts, indent=indent, sep=sep), width)
-    return parts_to_markup(parts, markup=spec.markup, sep=sep)
+    return parts_to_markup(parts, markup=markup, sep=sep)
+
+
+_LAYOUTS["call"] = _render_call
+_LAYOUTS["product"] = _render_product
+
+#: The ``layout`` axis is the one the engine must own: its keywords name the
+#: renderers in `_LAYOUTS`, so it cannot be supplied by a consumer. It
+#: contributes no renderer kwargs -- it *selects* the renderer.
+register_axis(
+    Axis(
+        name="layout",
+        keywords={"call": "call", "product": "product"},
+        default="product",
+        layouts={"call": lambda _: {}, "product": lambda _: {}},
+    )
+)
 
 
 def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
@@ -755,11 +785,6 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
     >>> pspec(u.Q([1.234, 2.345], "m"), "mul-.2f")
     '[1.23, 2.35] * m'
 
-    The unit axis picks a spelling:
-
-    >>> pspec(u.Q(1.0, "m"), "name")
-    '1. meter'
-
     An empty spec is `str`:
 
     >>> pspec(u.Q(1.0, "m"), "") == str(u.Q(1.0, "m"))
@@ -772,11 +797,11 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
     try:
         return render(obj, parsed, width=width)
     except ValueError as e:
-        if parsed.value_spec is None:
+        if parsed["value_spec"] is None:
             raise
         # Anything that is not a keyword is taken as a Python format spec, so
-        # a mistyped keyword arrives here as `float.__format__` rejecting it.
-        # Python's message names the offending text but not the vocabulary it
+        # a mistyped keyword arrives here as the value formatter rejecting it.
+        # That message names the offending text but not the vocabulary it
         # missed, which is exactly what a typo needs to see.
-        msg = f"{parsed.value_spec!r} is not a valid Python format spec ({e})"
+        msg = f"{parsed['value_spec']!r} is not a valid Python format spec ({e})"
         raise bad_spec(obj, spec, msg) from e
