@@ -53,6 +53,17 @@ def test_every_axis_is_claimed_by_some_layout() -> None:
     assert axes == set().union(*_LAYOUT_AXES.values())
 
 
+def test_every_axis_is_a_spec_field() -> None:
+    """`parse_spec` builds ``Spec(**seen)``, so axis names *are* field names.
+
+    That is what lets the defaults live once, on `Spec`, instead of being
+    repeated as ``seen.get(axis, default)`` for every axis. A new keyword whose
+    axis has no field would raise ``TypeError`` at parse time.
+    """
+    axes = {axis for axis, _ in _KEYWORDS.values()}
+    assert axes <= set(Spec._fields)
+
+
 def test_spec_defaults_are_the_grammar_defaults() -> None:
     """An all-omitted spec is exactly ``Spec()``."""
     assert parse_spec("product") == Spec()

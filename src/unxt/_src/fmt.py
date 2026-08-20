@@ -526,16 +526,10 @@ _SHORT_ARRAYS: Final[dict[str, Any]] = {
 #: The config traits are public, documented API and keep their own spelling;
 #: this is the one place the two vocabularies are reconciled, so ``repr`` and
 #: ``str`` can be defined as specs without renaming anything users configure.
+#: Derived by inversion rather than written out, so the two cannot drift.
 VALUE_FROM_SHORT_ARRAYS: Final[dict[Any, str]] = {
-    False: "array",
-    "compact": "values",
-    True: "type",
+    v: k for k, v in _SHORT_ARRAYS.items()
 }
-
-#: The ``sep`` axis as a `parts_to_doc` / `parts_to_markup` override. ``None``
-#: means "do not override", leaving whatever the object's own `pparts` emitted
-#: (``" * "`` for a quantity) -- so ``"mul"`` need not hard-code that string.
-_SEPARATORS: Final[dict[str, str | None]] = {"mul": None, "bare": " "}
 
 
 class Spec(NamedTuple):
@@ -656,31 +650,26 @@ def parse_spec(spec: str, /, *, obj: Any = None) -> Spec:
     # there is -- and simply leaves every axis at its default.
     value_spec = "-".join(tokens[i:]) or None
 
-    layout = seen.get("layout", "product")
-    allowed = _LAYOUT_AXES[layout]
+    # Every axis name is a `Spec` field, so the scanned axes go straight in and
+    # anything unset falls to that field's default. Spelling the defaults out
+    # again here would be a second copy of the grammar, free to drift.
+    parsed = Spec(**seen, value_spec=value_spec)
+
+    allowed = _LAYOUT_AXES[parsed.layout]
     for axis in seen:
         if axis not in allowed:
-            msg = f"{axis!r} does not apply to {layout!r} layout"
+            msg = f"{axis!r} does not apply to {parsed.layout!r} layout"
             raise bad_spec(obj, spec, msg)
 
-    value = seen.get("value", "values")
     if value_spec is not None:
-        if value != "values":
-            msg = f"a value format spec needs value='values', not {value!r}"
+        if parsed.value != "values":
+            msg = f"a value format spec needs value='values', not {parsed.value!r}"
             raise bad_spec(obj, spec, msg)
-        if layout != "product":
-            msg = f"a value format spec does not apply to {layout!r} layout"
+        if parsed.layout != "product":
+            msg = f"a value format spec does not apply to {parsed.layout!r} layout"
             raise bad_spec(obj, spec, msg)
 
-    return Spec(
-        layout=layout,
-        value=value,
-        value_spec=value_spec,
-        markup=seen.get("markup", "text"),
-        unit=seen.get("unit", "symbol"),
-        sep=seen.get("sep", "bare"),
-        abbrev=seen.get("abbrev", False),
-    )
+    return parsed
 
 
 def render(
@@ -733,7 +722,9 @@ def render(
         value_spec=spec.value_spec,
         unit=spec.unit,
     )
-    sep = _SEPARATORS[spec.sep]
+    # ``mul`` does not override, leaving whatever the object's own `pparts`
+    # emitted (``" * "`` for a quantity), so it need not hard-code that string.
+    sep = " " if spec.sep == "bare" else None
     if spec.markup == "text":
         # Feed wadler-lindig, so the rendering is laid out rather than
         # concatenated and composes inside a larger document.
