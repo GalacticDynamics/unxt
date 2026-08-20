@@ -77,3 +77,55 @@ Quantity(Array(1., dtype=float32), unit='m')
 This easy interoperability is enabled by multiple dispatch, which allows the `Quantity.from_` method to dispatch to the correct implementation based on the types of the arguments.
 
 For more information on multiple dispatch, see the [plum documentation](https://beartype.github.io/plum/).
+
+## Format Spec Presets
+
+`repr`, `str`, and the IPython representations are each free to look however a type wants. `__format__` is different: it is reached through an f-string (`f"{obj:preset}"`), so its spec strings are part of the vocabulary a user carries from one `unxt` type to the next. `unxt._fmt.FORMAT_PRESETS` is a single dict shared by every type that routes its `__format__` through `unxt._fmt.pspec` — a preset name means the same thing everywhere it is honoured, and a type has to do nothing to inherit a new preset added later.
+
+Two independent things distinguish a preset:
+
+- **Structure** — _call-style_ (`ClassName(value, unit=...)`, rendered by `wadler_lindig.pformat`) versus _product-style_ (`value * unit`, rendered by decomposing the object with `pparts` and running it through `parts_to_doc` / `parts_to_markup`). Product-style presets only decompose meaningfully for a type that registers `pparts`; a type that skips this still accepts those presets without raising, rendering `str(obj)` as one opaque fragment. That is a deliberate degrade, not a bug: a display path must not raise just because one field's type forgot to register.
+- **Markup** — `text` / `html` / `latex`, orthogonal to structure.
+
+The current presets:
+
+| preset | structure | renders | example |
+| --- | --- | --- | --- |
+| `full` | call | full array repr | `Quantity(Array([1., 2., 3.], dtype=float32), unit='m')` |
+| `compact` | call | short class name, compact array | `Q([1., 2., 3.], unit='m')` |
+| `short` | product | array **shape/dtype summary** | `f32[3] * m` |
+| `mul` | product | full compact array, `*`-joined | `[1., 2., 3.] * m` |
+| `bare` | product | full compact array, space-joined | `[1., 2., 3.] m` |
+| `latex` | product | LaTeX markup | `$[1.,~2.,~3.] \; \mathrm{m}$` |
+| `html` | product | HTML markup | `<span>[1., 2., 3.]</span> * <span>m</span>` |
+| `dims` | call | dimension names instead of units | `LTMAUnitSystem(length, time, mass, angle)` |
+
+```{code-block} python
+
+>>> import unxt as u
+
+>>> q = u.Q([1.0, 2, 3], "m")
+>>> f"{q:mul}"
+'[1., 2., 3.] * m'
+>>> f"{q:short}"
+'f32[3] * m'
+
+>>> usys = u.unitsystem("kpc", "Myr", "Msun", "radian")
+>>> f"{usys:dims}"
+'LTMAUnitSystem(length, time, mass, angle)'
+```
+
+`short` and `compact` are easy to mix up — both mean "terse" in English, but they cut different axes. `short` summarizes the _array_ (shape and dtype, product-style); `compact` shortens the _class name_ while keeping the array's compact values (call-style). Read the table, not the names, when in doubt.
+
+`dims` is the one preset that is inherently type-specific: only a unit system has "dimension names" to show instead of units. It is the precedent for how a type extends the shared vocabulary with a preset of its own, rather than forcing every concept to be universal. Do this when a concept has no equivalent for other types; reuse an existing name when it does.
+
+Rules for adding a preset:
+
+- Reuse an existing name if its meaning already fits; only add a new one for a genuinely new concept.
+- Lowercase, one word, no punctuation.
+- `""` (empty spec) always means `str(obj)`, and `!r`/`!s` already cover `repr`/`str` — never add a `"repr"` or `"str"` preset, and never let `""` become a dict key.
+
+Rules for a type joining the engine:
+
+- Register `pspec_fallback` if a _non-preset_ spec should mean something (as `.2f` does for a quantity's value). Skip it and an unrecognised spec raises `ValueError`.
+- Register `pparts` to make the five product-style presets (`short`, `mul`, `bare`, `latex`, `html`) decompose meaningfully instead of falling back to a single opaque `str(obj)` fragment.
