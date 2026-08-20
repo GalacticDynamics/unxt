@@ -462,9 +462,14 @@ _KEYWORDS: Final[dict[str, str]] = {}
 #: error its expansion would.
 ALIASES: Final[dict[str, str]] = {}
 
-#: The axis claiming free text, if any -- see `Axis.free_text`. Set by
-#: `register_axis`, which permits only one.
-_FREE_TEXT_AXIS: list[str] = []
+
+def _free_text_axis() -> Axis | None:
+    """Return the axis accepting free text, if one is registered.
+
+    Derived rather than maintained, so it cannot fall out of step with `AXES`.
+    `register_axis` permits only one claimant.
+    """
+    return next((ax for ax in AXES.values() if ax.free_text), None)
 
 
 def register_axis(axis: Axis, /) -> Axis:
@@ -477,9 +482,9 @@ def register_axis(axis: Axis, /) -> Axis:
     if axis.name in AXES:
         msg = f"axis {axis.name!r} is already registered"
         raise ValueError(msg)
-    if axis.free_text and _FREE_TEXT_AXIS:
+    if axis.free_text and (claimed := _free_text_axis()) is not None:
         msg = (
-            f"axis {axis.name!r} claims free text, but {_FREE_TEXT_AXIS[0]!r} "
+            f"axis {axis.name!r} claims free text, but {claimed.name!r} "
             "already does; a spec has only one trailing run to give"
         )
         raise ValueError(msg)
@@ -492,8 +497,6 @@ def register_axis(axis: Axis, /) -> Axis:
             raise ValueError(msg)
     AXES[axis.name] = axis
     _KEYWORDS.update(dict.fromkeys(axis.keywords, axis.name))
-    if axis.free_text:
-        _FREE_TEXT_AXIS.append(axis.name)
     return axis
 
 
@@ -572,21 +575,6 @@ class Spec(Mapping[str, Any]):
     def __repr__(self) -> str:
         args = ", ".join(f"{k}={v!r}" for k, v in self._d.items())
         return f"Spec({args})"
-
-
-def free_text_of(spec: Spec, /) -> str | None:
-    """Return the spec's free-text value, or `None` if it carries none.
-
-    An axis that accepts free text holds *either* one of its keyword values or
-    an arbitrary string, so "was free text given?" is asked by elimination
-    against that axis's own vocabulary -- which keeps the question answerable
-    without knowing what the axis is called or what it means.
-    """
-    if not _FREE_TEXT_AXIS:
-        return None
-    axis = AXES[_FREE_TEXT_AXIS[0]]
-    value = spec[axis.name]
-    return None if value in set(axis.keywords.values()) else value
 
 
 def _grammar_help() -> str:
@@ -690,15 +678,12 @@ def parse_spec(spec: str, /, *, obj: Any = None) -> Spec:
     # below, instead of a hand-written consistency check between two keys that
     # describe one thing.
     free_text = "-".join(tokens[i:])
-    if free_text:
-        if not _FREE_TEXT_AXIS:
-            msg = "no axis accepts free text"
+    text_axis = _free_text_axis() if free_text else None
+    if text_axis is not None:
+        if text_axis.name in seen:
+            msg = f"{text_axis.name!r} is set twice"
             raise bad_spec(obj, spec, msg)
-        axis = _FREE_TEXT_AXIS[0]
-        if axis in seen:
-            msg = f"{axis!r} is set twice"
-            raise bad_spec(obj, spec, msg)
-        seen[axis] = free_text
+        seen[text_axis.name] = free_text
 
     resolved = {name: seen.get(name, ax.default) for name, ax in AXES.items()}
     layout = resolved["layout"]
@@ -708,7 +693,7 @@ def parse_spec(spec: str, /, *, obj: Any = None) -> Spec:
             msg = f"{axis!r} does not apply to {layout!r} layout"
             raise bad_spec(obj, spec, msg)
 
-    if free_text and layout not in AXES[_FREE_TEXT_AXIS[0]].free_text:
+    if text_axis is not None and layout not in text_axis.free_text:
         msg = f"free text does not apply to {layout!r} layout"
         raise bad_spec(obj, spec, msg)
 
@@ -844,8 +829,11 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
     try:
         return render(obj, parsed, width=width)
     except ValueError as e:
-        text = free_text_of(parsed)
-        if text is None:
+        # Anything that is not a keyword was taken as a Python format spec.
+        # If none was, this error is not about one and belongs to the caller.
+        axis = _free_text_axis()
+        text = None if axis is None else parsed[axis.name]
+        if text is None or text in axis.keywords.values():
             raise
         # Anything that is not a keyword is taken as a Python format spec, so
         # a mistyped keyword arrives here as the value formatter rejecting it.
