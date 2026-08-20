@@ -147,14 +147,21 @@ def dimension_of(obj: AbstractUnit, /) -> AbstractDimension:
 
 @fmt.pparts.dispatch  # type: ignore[misc]
 def pparts(
-    obj: AbstractUnit, /, *, markup: str = "text", unit: str = "symbol", **kw: Any
+    obj: AbstractUnit,
+    /,
+    *,
+    markup: str = "text",
+    unit_style: str = "symbol",
+    **kw: Any,
 ) -> tuple[Any, ...]:
     r"""Decompose a unit for the `unxt._pparts` engine.
 
     A unit is just an object with parts, so there is no separate unit renderer
     and the engine's nesting rule covers it.
 
-    ``unit`` is the engine's unit axis: which *spelling* to use.
+    ``unit_style`` is the engine's unit axis: which *spelling* to use. It is
+    not called ``unit`` because in this codebase that name means a unit
+    *object* -- including the `unit` constructor in this very module.
 
     Examples
     --------
@@ -176,25 +183,25 @@ def pparts(
 
     ``"name"`` picks the spelled-out name, ``"dim"`` the physical dimension:
 
-    >>> pparts(u.unit("m"), unit="name")
+    >>> pparts(u.unit("m"), unit_style="name")
     (PPart(role='unit', text='meter', kind='content'),)
 
-    >>> pparts(u.unit("m"), unit="dim")
+    >>> pparts(u.unit("m"), unit_style="dim")
     (PPart(role='unit', text='length', kind='content'),)
 
     Both fall back to the symbol when the unit has no such spelling -- a
     composite has no single long name, so asking for one is not an error:
 
-    >>> pparts(u.unit("km/s"), unit="name")
+    >>> pparts(u.unit("km/s"), unit_style="name")
     (PPart(role='unit', text='km / s', kind='content'),)
 
     """
     # A name or a dimension is a plain word, not astropy's own rendering, so it
     # goes through the engine's ordinary content escaping in every markup
     # rather than astropy's markup-specific ``to_string(markup)``.
-    if unit == "name" and (names := getattr(obj, "long_names", None)):
+    if unit_style == "name" and (names := getattr(obj, "long_names", None)):
         return (fmt.PPart("unit", names[0]),)
-    if unit == "dim":
+    if unit_style == "dim":
         with contextlib.suppress(Exception):
             return (fmt.PPart("unit", str(obj.physical_type)),)
 

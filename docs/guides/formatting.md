@@ -167,7 +167,7 @@ The engine is a mechanism, not a fixed vocabulary. Axes and aliases are register
 
 ```
 
-`layouts` does double duty: it says which layouts the axis applies to _and_ how its value becomes keyword arguments for that layout's renderer. The two layouts often want different things from one choice — `unit` becomes `show_units=` for `call` but `unit=` for `product` — which is why the translation is per-layout.
+`layouts` does double duty: it says which layouts the axis applies to _and_ how its value becomes keyword arguments for that layout's renderer. The two layouts often want different things from one choice — `unit` becomes `show_units=` for `call` but `unit_style=` for `product` — which is why the translation is per-layout.
 
 An axis may also declare `free_text=(...)`, naming the layouts in which its value may be arbitrary text instead of a keyword. At most one axis may do so, since a spec has only one trailing run to give; in `unxt` that axis is `value`.
 
@@ -180,7 +180,7 @@ Rules:
 
 ## Joining in
 
-Register `pparts` and the whole grammar follows: every markup, every value form, the unit axis, and the per-element format spec. Accept `markup`, `short_arrays`, `value_spec` and `unit` as keyword arguments — plus `**kw`, since the product renderer forwards every axis it does not own, including ones registered by someone else.
+Register `pparts` and the whole grammar follows: every markup, every value form, the unit axis, and the per-element format spec. Accept `markup`, `short_arrays`, `value_spec` and `unit_style` as keyword arguments — plus `**kw`, since the product renderer forwards every axis it does not own, including ones registered by someone else.
 
 ```{code-block} python
 

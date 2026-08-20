@@ -1648,7 +1648,7 @@ def pparts(
     markup: str = "text",
     short_arrays: Any = "compact",
     value_spec: str | None = None,
-    unit: str = "symbol",
+    unit_style: str = "symbol",
     **kw: Any,
 ) -> tuple[Any, ...]:
     """Decompose a quantity into ``value``, a ``mul`` separator, and ``unit``.
@@ -1666,12 +1666,12 @@ def pparts(
     >>> parts_to_markup(pparts(u.Q([1.0, 2, 3], "")))
     '[1., 2., 3.]'
 
-    ``value_spec`` formats each element; ``unit`` picks the unit's spelling:
+    ``value_spec`` formats each element; ``unit_style`` picks the spelling:
 
     >>> parts_to_markup(pparts(u.Q([1.234, 2.345], "m"), value_spec=".2f"))
     '[1.23, 2.35] * m'
 
-    >>> parts_to_markup(pparts(u.Q(1.0, "m"), unit="name"))
+    >>> parts_to_markup(pparts(u.Q(1.0, "m"), unit_style="name"))
     '1. * meter'
 
     """
@@ -1680,6 +1680,6 @@ def pparts(
         obj.value, markup=markup, short_arrays=short_arrays, value_spec=value_spec
     )
     parts: tuple[Any, ...] = (fmt.PPart("value", value, kind),)
-    if unit_parts := fmt.pparts(obj.unit, markup=markup, unit=unit):
+    if unit_parts := fmt.pparts(obj.unit, markup=markup, unit_style=unit_style):
         parts = (*parts, fmt.PPart("mul", " * ", "sep"), *unit_parts)
     return parts

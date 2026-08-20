@@ -173,7 +173,7 @@ register_axis(
         default="symbol",
         layouts={
             "call": lambda v: {"show_units": v != "dim"},
-            "product": lambda v: {"unit": v},
+            "product": lambda v: {"unit_style": v},
         },
     )
 )

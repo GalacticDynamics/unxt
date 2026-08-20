@@ -856,7 +856,8 @@ def inert_axes(obj: Any, spec: Spec, rendered: str, /, *, width: int = 88) -> li
         try:
             if render(obj, baseline, width=width) == rendered:
                 dead.append(name)
-        except Exception:  # noqa: BLE001, S112  # a probe must never break rendering
+        # pylint: disable-next=broad-exception-caught
+        except Exception:  # noqa: BLE001, S112  # a probe must not break rendering
             continue
     return dead
 
