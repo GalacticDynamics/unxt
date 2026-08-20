@@ -64,7 +64,7 @@ def test_every_keyword_maps_back_to_its_axis() -> None:
     """`_KEYWORDS` is the flat namespace `Axis.keywords` describes."""
     for name, ax in AXES.items():
         for word in ax.keywords:
-            assert _KEYWORDS[word] == name
+            assert name in _KEYWORDS[word]
 
 
 def test_spec_defaults_are_the_grammar_defaults() -> None:
@@ -572,24 +572,23 @@ def test_a_downstream_package_can_register_its_own_axis() -> None:
         ALIASES.pop("demoalias")
 
 
-@pytest.mark.parametrize(
-    ("word", "expansion"),
-    [("html", "call-abbrev"), ("compact", "call-abbrev")],
-)
-def test_registration_rejects_a_name_collision(word: str, expansion: str) -> None:
-    """A collision must fail loudly at registration, not silently at parse.
+@pytest.mark.parametrize("word", ["html", "compact"])
+def test_an_alias_never_collides_silently(word: str) -> None:
+    """An alias has no qualified form, so a clash with one stays fatal.
 
-    Both directions: a keyword that is already an alias, and an alias that is
-    already a keyword. An earlier revision had exactly this collision (a DSL
-    token spelled ``compact``, same as a preset) and it surfaced as a spec
-    quietly changing meaning.
+    A keyword can be disambiguated as ``axis:word``; an alias is a whole spec
+    and cannot, so both directions around an alias must still raise.
     """
     with pytest.raises(ValueError, match="already"):
-        register_alias(word, expansion)
+        register_alias(word, "call-abbrev")
 
-    with pytest.raises(ValueError, match="already"):
+
+def test_an_alias_name_may_not_be_claimed_as_a_keyword() -> None:
+    with pytest.raises(ValueError, match="already an alias"):
         register_axis(
-            Axis(name="clash", keywords={word: 1}, default=0, layouts={"call": dict})
+            Axis(
+                name="clash", keywords={"compact": 1}, default=0, layouts={"call": dict}
+            )
         )
 
 
@@ -611,3 +610,61 @@ def test_only_one_axis_may_claim_free_text() -> None:
             )
         )
     assert "second_free" not in AXES
+
+
+# ============================================================================
+# Qualification: `axis:word` when two packages want one word
+
+
+def test_a_qualified_keyword_resolves_without_ambiguity() -> None:
+    """``axis:word`` is always available, collision or not.
+
+    A downstream package can write the qualified form from the start and be
+    immune to a word it does not yet share.
+    """
+    q = u.Q([1.0, 2, 3], "m")
+    assert pspec(q, "unit:dim") == pspec(q, "dim")
+    assert pspec(q, "markup:latex-sep:mul") == pspec(q, "latex-mul")
+
+
+def test_two_axes_may_claim_one_word_and_both_stay_reachable() -> None:
+    """The collision this exists for: one word, two unrelated meanings.
+
+    ``dim`` is a unit spelling here and could as reasonably be a manifold's
+    dimensionality in `coordinax`. Registration no longer refuses the second
+    claimant -- which used to make ``import coordinax; import galax`` explode
+    in user code, with neither library at fault and no fix open to either.
+    """
+    q = u.Q([1.0, 2, 3], "m")
+    register_axis(
+        Axis(
+            name="manifold",
+            keywords={"dim": 3},
+            default=0,
+            layouts={"product": lambda v: {"manifold": v}},
+        )
+    )
+    try:
+        # Bare is now ambiguous, and says so, naming both ways out.
+        with pytest.raises(ValueError, match="ambiguous keyword 'dim'"):
+            pspec(q, "dim")
+        # Either qualified form still works, and unxt's is unchanged.
+        assert pspec(q, "unit:dim") == "[1., 2., 3.] length"
+        # Surgical: only the colliding token needs the prefix.
+        assert pspec(q, "latex-mul-unit:dim") == pspec(q, "latex-mul-unit:dim")
+        # Every other word is untouched by the collision.
+        assert pspec(q, "mul") == "[1., 2., 3.] * m"
+    finally:
+        AXES.pop("manifold")
+        _KEYWORDS["dim"].remove("manifold")
+
+
+def test_an_unknown_qualifier_is_free_text_not_an_error() -> None:
+    """A ``:`` in a value spec must not be read as a qualifier.
+
+    ``:>10`` is a fill character and an alignment. It resolves to no axis, so
+    it falls through to the value spec exactly like any other non-keyword --
+    which is what keeps qualification from colonising the format-spec syntax.
+    """
+    assert parse_spec(":>6")["value"] == ":>6"
+    assert pspec(u.Q(3, "m"), ":>6") == ":::::3 m"

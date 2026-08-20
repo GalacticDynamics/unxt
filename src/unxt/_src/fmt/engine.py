@@ -447,9 +447,13 @@ class Axis(NamedTuple):
 #: Registered axes, by name. Populated only through `register_axis`.
 AXES: Final[dict[str, Axis]] = {}
 
-#: Spec word -> the axis that claimed it. The flat namespace `Axis.keywords`
-#: describes, maintained here so a collision is caught at registration.
-_KEYWORDS: Final[dict[str, str]] = {}
+#: Spec word -> every axis claiming it, in registration order.
+#:
+#: Usually one, and a bare word resolves. Two independent packages may want the
+#: same word for unrelated things -- ``dim`` is a unit spelling here and could
+#: as reasonably be a manifold's dimensionality elsewhere -- so a word may be
+#: claimed more than once and is then reachable only as ``axis:word``.
+_KEYWORDS: Final[dict[str, list[str]]] = {}
 
 #: Shorthands for whole specs. Each expands *textually* into core keywords
 #: before parsing, so an alias can never mean something the grammar cannot
@@ -484,14 +488,14 @@ def register_axis(axis: Axis, /) -> Axis:
         )
         raise ValueError(msg)
     for word in axis.keywords:
-        if word in _KEYWORDS:
-            msg = f"keyword {word!r} is already claimed by axis {_KEYWORDS[word]!r}"
-            raise ValueError(msg)
         if word in ALIASES:
+            # An alias is a whole spec, so it has no qualified form to fall
+            # back on -- unlike a keyword, it cannot be disambiguated.
             msg = f"keyword {word!r} is already an alias"
             raise ValueError(msg)
     AXES[axis.name] = axis
-    _KEYWORDS.update(dict.fromkeys(axis.keywords, axis.name))
+    for word in axis.keywords:
+        _KEYWORDS.setdefault(word, []).append(axis.name)
     return axis
 
 
@@ -504,7 +508,7 @@ def register_alias(name: str, expansion: str, /) -> None:
     editing the spec.
     """
     if name in _KEYWORDS:
-        msg = f"alias {name!r} is already a keyword of axis {_KEYWORDS[name]!r}"
+        msg = f"alias {name!r} is already a keyword of axis {_KEYWORDS[name][0]!r}"
         raise ValueError(msg)
     if name in ALIASES:
         msg = f"alias {name!r} is already registered as {ALIASES[name]!r}"
@@ -591,6 +595,40 @@ def bad_spec(obj: Any, spec: str, /, reason: str = "") -> ValueError:
     )
 
 
+def _resolve(word: str, spec: str, obj: Any, /) -> tuple[str, Any] | None:
+    """Resolve one spec word to ``(axis, value)``, or `None` if it is not one.
+
+    A word may be written bare, or qualified as ``axis:word``. Bare resolves
+    when exactly one axis claims the word; qualified always resolves, and is
+    the escape hatch for a word two packages both wanted.
+
+    Returning `None` rather than raising for an unknown word is what lets the
+    caller stop scanning and treat the rest as free text -- so a format spec
+    using ``:`` as its fill character (``:>10``) falls through here untouched
+    instead of being mistaken for a qualifier.
+    """
+    if ":" in word:
+        axis_name, _, bare = word.partition(":")
+        axis = AXES.get(axis_name)
+        if axis is None or bare not in axis.keywords:
+            return None
+        return axis_name, axis.keywords[bare]
+
+    claimants = _KEYWORDS.get(word)
+    if not claimants:
+        return None
+    if len(claimants) > 1:
+        qualified = ", ".join(f"{a}:{word}" for a in sorted(claimants))
+        msg = (
+            f"ambiguous keyword {word!r}; claimed by "
+            f"{', '.join(repr(a) for a in sorted(claimants))}. "
+            f"Qualify it as one of: {qualified}"
+        )
+        raise bad_spec(obj, spec, msg)
+    axis_name = claimants[0]
+    return axis_name, AXES[axis_name].keywords[word]
+
+
 def _scan_keywords(
     tokens: list[str], spec: str, obj: Any, /
 ) -> tuple[dict[str, Any], int]:
@@ -604,14 +642,14 @@ def _scan_keywords(
     seen: dict[str, Any] = {}
     for i, token in enumerate(tokens):
         words = ALIASES.get(token, token).split("-")
-        if not all(word in _KEYWORDS for word in words):
+        resolved = [_resolve(word, spec, obj) for word in words]
+        if any(r is None for r in resolved):
             return seen, i
-        for word in words:
-            axis = _KEYWORDS[word]
+        for axis, value in resolved:  # type: ignore[misc]
             if axis in seen:
                 msg = f"{axis!r} is set twice"
                 raise bad_spec(obj, spec, msg)
-            seen[axis] = AXES[axis].keywords[word]
+            seen[axis] = value
     return seen, len(tokens)
 
 

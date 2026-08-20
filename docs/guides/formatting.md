@@ -111,6 +111,41 @@ Sugar, never new meaning: each expands _textually_ into keywords before parsing,
 
 `call` layout renders via `wadler_lindig.pformat`, and so through the object's own `__pdoc__`. That is load-bearing rather than incidental: `__pdoc__` is where a type states how to _reconstruct_ itself, which is what keeps `eval(repr(usys)) == usys` true for every unit-system realization. `repr` is defined as call layout for that reason.
 
+## Qualified keywords
+
+Keywords share one flat namespace — that is what lets them be given in any order, since a bare word must identify its axis without help from position. The cost is that two packages can want the same word for unrelated things: `dim` is a unit spelling here, and could as reasonably be a manifold's dimensionality in `coordinax`.
+
+Any keyword may therefore be written **qualified**, as `axis:word`:
+
+```{code-block} python
+
+>>> f"{q:unit:dim}"
+'[1., 2., 3.] length'
+>>> f"{q:markup:latex-sep:mul}" == f"{q:latex-mul}"
+True
+
+```
+
+A bare word resolves while exactly one axis claims it — which is every word today, so qualification never intrudes on ordinary use. When two axes claim one, the bare form becomes ambiguous and says so, naming both ways out:
+
+```
+f"{q:dim}"  ->  ambiguous keyword 'dim'; claimed by 'manifold', 'unit'.
+                Qualify it as one of: manifold:dim, unit:dim
+```
+
+Qualification is per-token, so a collision costs one prefix on one word and leaves the rest of a spec alone — `latex-mul-unit:dim-.3f`, not a fully qualified rewrite. A downstream package can also write qualified forms from the start and be immune to a word it does not yet share.
+
+A `:` that names no registered axis is not a qualifier: it falls through to the format spec like any other non-keyword, so a fill character still works.
+
+```{code-block} python
+
+>>> f"{u.Q(3, 'm'):>6}"      # '>' alignment, space fill
+'     3 m'
+>>> f"{u.Q(3, 'm')::>6}"     # ':' fill, '>' alignment
+':::::3 m'
+
+```
+
 ## Extending
 
 The engine is a mechanism, not a fixed vocabulary. Axes and aliases are registered, so a downstream package's axis is indistinguishable from a built-in one.
