@@ -15,26 +15,17 @@ The engine behind ``repr``, ``str``, ``format``, and the IPython
 representations. It exists so those all agree on *what an object is made of*,
 and so a new type can join in by registering one function.
 
-**This re-exports only what a downstream package needs**, which is a smaller
-set than the engine defines. Widening it later is easy and narrowing it is not,
-so anything unproven stays behind `unxt._src.fmt` until something outside this
-repo actually needs it. The full surface is documented there; what follows is
-the contract:
+This re-exports only what a downstream package needs -- a smaller set than the
+engine defines, since widening later is easy and narrowing is not. Anything
+unproven stays behind `unxt._src.fmt`. The contract, in three groups:
 
-*Join in* -- teach the engine your type:
+- **join in**: ``pparts`` (the extension point), ``PPart`` / ``PGroup``.
+- **extend the grammar**: ``Axis``, ``register_axis``, ``register_alias``.
+- **render**: ``pspec`` for ``__format__``; ``render`` + ``Spec`` for
+  ``repr``/``str``.
 
-- ``pparts``: decompose an object into roled fragments. The extension point.
-- ``PPart`` / ``PGroup``: the fragments to decompose into.
-
-*Extend the grammar* -- teach it a new axis:
-
-- ``Axis``, ``register_axis``, ``register_alias``.
-
-*Render* -- implement your dunders:
-
-- ``pspec``: the shared ``__format__`` body (parse a spec, then render).
-- ``render`` + ``Spec``: for ``repr``/``str``, which are the same rendering
-  reached with a `Spec` built by hand rather than parsed.
+The guide has the grammar, the axis table, and worked extension examples:
+:doc:`/guides/formatting`.
 
 Examples
 --------

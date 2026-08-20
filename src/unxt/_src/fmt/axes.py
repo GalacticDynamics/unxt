@@ -89,15 +89,10 @@ def value_str(
         vsep = _markup_table(markup)["vsep"]
         return np.array2string(np.asarray(value), separator=vsep, formatter=formatter)
     # ``show_wrapper=False`` is for ``StaticValue``, whose ``__pdoc__`` would
-    # otherwise print ``StaticValue(...)`` around the array. ``short_arrays``
-    # is forwarded rather than pinned: `False` is the *full* array repr, and
-    # hardcoding `True` here collapsed it onto the summary.
+    # otherwise print ``StaticValue(...)`` around the array.
     #
-    # ``custom_pdoc_no_kind`` only applies to the summary, where it strips the
-    # ``(numpy)`` kind suffix. It *builds* a summary, so passing it on the
-    # `False` path would force one back and undo the distinction. There is no
-    # "no hook" argument -- ``custom=None`` is called and raises -- so the
-    # kwarg has to be omitted rather than blanked.
+    # The hook *builds* a summary, so it belongs only on the `True` path;
+    # ``custom=None`` is called and raises, so it is omitted, not blanked.
     kw = {"custom": custom_pdoc_no_kind} if short_arrays else {}
     return wl.pformat(value, short_arrays=short_arrays, show_wrapper=False, **kw)
 

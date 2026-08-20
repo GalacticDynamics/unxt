@@ -7,13 +7,9 @@ lifted out into a package of its own, with `unxt`, `coordinax` and `galax`
 registering into it as peers; a test pins the import restriction so the seam
 cannot rot.
 
-That package is intended to be called **``pparts``**, after the extension point
-everything here turns on: a type joins in by saying what it is *made of*. The
-name also keeps the ``p``-prefix `wadler_lindig` already uses (``pformat``,
-``pdoc``, ``__pdoc__``), which is the honest form of the kinship -- this
-engine *feeds* wadler-lindig rather than reimplementing any of its algorithm,
-so naming it after another prettyprinting author -- the obvious way to look
-like a sibling -- would claim something untrue.
+That package is intended to be called **``pparts``**, after the extension
+point everything here turns on: a type joins in by saying what it is *made
+of*.
 
 An object declares *how it decomposes* by registering `pparts`, which returns a
 tree of roled fragments. Two consumers turn that tree into output:
@@ -207,8 +203,7 @@ def unwrap_math(text: str, /) -> str:
 
     Conditional on the delimiters actually being present, not on the source
     being *expected* to supply them. Slicing unconditionally corrupts any
-    fragment that arrives unwrapped -- ``\mathrm{m}`` becomes ``mathrm{m`` --
-    which is the defect this repo already fixed once in `_repr_latex_`.
+    fragment that arrives unwrapped -- ``\mathrm{m}`` becomes ``mathrm{m``.
 
     The length guard is load-bearing: a lone ``"$"`` satisfies both
     ``startswith`` and ``endswith``, and would otherwise be sliced away
@@ -670,13 +665,9 @@ def parse_spec(spec: str, /, *, obj: Any = None) -> Spec:
     seen, i = _scan_keywords(tokens, spec, obj)
 
     # Whatever the scan did not claim goes to the axis that accepts free text,
-    # as that axis's value. A spec with no keyword at all is fine -- a bare
-    # ".3g" is the commonest there is -- and leaves every other axis default.
-    #
-    # Routing it *into* an axis rather than a key beside them is what makes
-    # "a keyword and free text for the same axis" the ordinary set-twice error
-    # below, instead of a hand-written consistency check between two keys that
-    # describe one thing.
+    # as that axis's value -- which is what makes "a keyword and free text for
+    # one axis" the ordinary set-twice error below. A spec with no keyword at
+    # all is fine; a bare ".3g" is the commonest there is.
     free_text = "-".join(tokens[i:])
     text_axis = _free_text_axis() if free_text else None
     if text_axis is not None:
