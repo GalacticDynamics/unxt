@@ -2,6 +2,8 @@
 
 __all__ = ("AbstractAngle",)
 
+import weakref
+
 import equinox as eqx
 from jaxtyping import Array, Shaped
 from plum import add_promotion_rule
@@ -14,6 +16,15 @@ from unxt._src.quantity.value import StaticValue
 from unxt.units import AbstractUnit
 
 angle_dimension = dimension("angle")
+
+
+#: Units already shown to be angular. `__check_init__` runs per angle
+#: constructed, and its check is a dispatched call whose result depends only on
+#: the unit -- an immutable value object -- so it is answered once per unit. A
+#: `WeakSet` lets dynamically-built units (e.g. scaled/compound ones) be
+#: collected once nothing else references them, instead of pinning every unit
+#: ever seen for the life of the process.
+_ANGULAR_UNITS: "weakref.WeakSet[AbstractUnit]" = weakref.WeakSet()
 
 
 class AbstractAngle(AbstractQuantity):
@@ -51,9 +62,21 @@ class AbstractAngle(AbstractQuantity):
 
     def __check_init__(self) -> None:
         """Check the initialization."""
-        if dimension_of(self) != angle_dimension:
+        # `dimension_of(self)` forwards to `dimension_of(self.unit)`, so going
+        # straight to the unit skips a dispatch. The answer is then memoised:
+        # units are immutable value objects, so one that is angular stays
+        # angular, and the set is bounded by the units a program constructs.
+        # This runs on every angle built, and the dispatch dominates it --
+        # ~138us against ~0.9us for the `physical_type` lookup underneath.
+        unit = self.unit
+        if unit in _ANGULAR_UNITS:
+            return
+        if dimension_of(unit) != angle_dimension:
             msg = f"{type(self).__name__} must have units with angular dimensions."
             raise ValueError(msg)
+        # pylint sees the module's other `dimension_of` overload, typed
+        # `-> NoReturn`, and (wrongly) infers this line as unreachable.
+        _ANGULAR_UNITS.add(unit)  # pylint: disable=unreachable
 
     def wrap_to(
         self, /, min: AbstractQuantity, max: AbstractQuantity
