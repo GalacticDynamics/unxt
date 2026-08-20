@@ -718,3 +718,68 @@ def test_the_warning_is_off_by_default_and_opt_in() -> None:
         assert pspec(q, "name", warn_inert=True) == "[1., 2., 3.] km / s"
     assert len(caught) == 1
     assert "changes nothing" in str(caught[0].message)
+
+
+def test_registering_an_axis_name_twice_is_an_error() -> None:
+    """A second axis of the same name would shadow the first in `AXES`."""
+    with pytest.raises(ValueError, match="already registered"):
+        register_axis(
+            Axis(name="value", keywords={"nope": 1}, default=0, layouts={"call": dict})
+        )
+
+
+def test_spec_of_rejects_an_unregistered_axis() -> None:
+    """A typo'd axis would otherwise sit in the mapping and never be read."""
+    with pytest.raises(ValueError, match="not registered axes"):
+        Spec.of(markup="html", nonsuch="x")
+
+
+def test_spec_repr_shows_every_axis() -> None:
+    """`Spec` is a mapping, so it needs a repr of its own to be legible."""
+    text = repr(Spec.of(layout="call"))
+    assert text.startswith("Spec(")
+    assert "layout='call'" in text
+
+
+def test_a_probe_that_raises_is_skipped_not_propagated() -> None:
+    """The inert check must never break the render it is only inspecting.
+
+    A type may legitimately reject the *default* of an axis while accepting
+    the value asked for. The probe swallows that and reports nothing for the
+    axis, rather than turning a working format call into an exception.
+    """
+
+    class Picky:
+        pass
+
+    @pparts.dispatch
+    def _(obj: Picky, /, *, markup: str = "text", unit_style: str = "symbol", **kw):
+        if unit_style == "symbol":  # the default -- what the probe re-renders with
+            msg = "no symbol form"
+            raise RuntimeError(msg)
+        return (PPart("unit", unit_style),)
+
+    obj = Picky()
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        assert pspec(obj, "name", warn_inert=True) == "name"
+    assert not caught
+
+
+def test_a_render_error_without_free_text_keeps_its_own_exception() -> None:
+    """Only a *value spec* failure is reworded as a bad format spec.
+
+    A keyword-only spec that fails is the type's own error, and rewording it
+    as "invalid format spec" would blame the spec for something it did not do.
+    """
+
+    class Exploding:
+        pass
+
+    @pparts.dispatch
+    def _(obj: Exploding, /, *, markup: str = "text", **kw):
+        msg = "boom from pparts"
+        raise ValueError(msg)
+
+    with pytest.raises(ValueError, match="boom from pparts"):
+        pspec(Exploding(), "mul")
