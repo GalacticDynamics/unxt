@@ -185,6 +185,32 @@ Wow! Notice the dramatic speedup—we're nearly as fast as the raw JAX version!
 
 **Important caveat:** This is a _fixed_ cost that only appears once per outermost function call. If your function is called once with a million-element array, this optimization is huge. If your function is called a million times with scalar inputs, the overhead per element is negligible.
 
+### One more trap: build the wrapper once, not per call
+
+Every `jit`'d function in this guide -- `jitted_func`, `jitted_quax_func`, `outer_func`, `outer_func3` -- is defined exactly once, outside any loop, and every timing above reuses that same object. This matters more than it looks: `jax.jit` caches on the _identity_ of the Python function it wraps, not on argument equality. A fresh `@jax.jit def outer_func(...): ...` built inside a loop or a function body is a compile-cache miss on every call, not a cheap re-trace:
+
+```{code-cell} ipython3
+def make_outer():
+    @jax.jit
+    def outer_func(x, y):
+        qx = u.Q(x, "m")
+        qy = u.Q(y, "m")
+        return quax.quaxify(func)(qx, qy).ustrip("m")
+
+    return outer_func
+
+
+def rebuild_each_call(x, y):
+    fn = make_outer()
+    return jax.block_until_ready(fn(x, y))
+
+
+%timeit rebuild_each_call(x, y)
+%timeit jax.block_until_ready(outer_func(x, y))
+```
+
+Rebuilding pays a full retrace-and-compile every call -- tens of milliseconds instead of low microseconds, several-hundred-x slower in practice. Build the jitted wrapper once, at module scope or in `__init__`, and call that same object every time.
+
 ## Summary: How to Think About Performance
 
 Here are the key takeaways for optimizing performance with `unxt` Quantities:
@@ -193,6 +219,7 @@ Here are the key takeaways for optimizing performance with `unxt` Quantities:
 2. **Minimize pytree boundary crossings** - Use the outer wrapper pattern where you pass raw arrays to the outermost function
 3. **Create Quantities inside JIT** - This lets the compiler optimize away unit handling
 4. **It's a fixed cost per call** - The optimization matters more for functions that process large arrays or are called infrequently
-5. **Don't microoptimize prematurely** - Write correct code first. If units make your code clearer, use them. Only optimize the outermost layer if profiling shows it's necessary.
+5. **Build the jitted wrapper once** - `jax.jit` caches on function identity, not argument equality; a wrapper rebuilt inside a loop or method recompiles every call instead of hitting the cache
+6. **Don't microoptimize prematurely** - Write correct code first. If units make your code clearer, use them. Only optimize the outermost layer if profiling shows it's necessary.
 
 The bottom line: **Use Quantities freely in your code—they're designed to work well with JAX.** When you need performance, apply the outer wrapper pattern to your hot functions. The rest of your codebase can stay clean and unit-aware.
