@@ -2,6 +2,8 @@
 
 __all__ = ("AbstractAngle",)
 
+import weakref
+
 import equinox as eqx
 from jaxtyping import Array, Shaped
 from plum import add_promotion_rule
@@ -18,8 +20,11 @@ angle_dimension = dimension("angle")
 
 #: Units already shown to be angular. `__check_init__` runs per angle
 #: constructed, and its check is a dispatched call whose result depends only on
-#: the unit -- an immutable value object -- so it is answered once per unit.
-_ANGULAR_UNITS: set[AbstractUnit] = set()
+#: the unit -- an immutable value object -- so it is answered once per unit. A
+#: `WeakSet` lets dynamically-built units (e.g. scaled/compound ones) be
+#: collected once nothing else references them, instead of pinning every unit
+#: ever seen for the life of the process.
+_ANGULAR_UNITS: "weakref.WeakSet[AbstractUnit]" = weakref.WeakSet()
 
 
 class AbstractAngle(AbstractQuantity):
@@ -69,7 +74,9 @@ class AbstractAngle(AbstractQuantity):
         if dimension_of(unit) != angle_dimension:
             msg = f"{type(self).__name__} must have units with angular dimensions."
             raise ValueError(msg)
-        _ANGULAR_UNITS.add(unit)
+        # pylint sees the module's other `dimension_of` overload, typed
+        # `-> NoReturn`, and (wrongly) infers this line as unreachable.
+        _ANGULAR_UNITS.add(unit)  # pylint: disable=unreachable
 
     def wrap_to(
         self, /, min: AbstractQuantity, max: AbstractQuantity
