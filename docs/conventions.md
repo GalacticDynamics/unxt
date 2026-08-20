@@ -191,17 +191,35 @@ An axis is a registration, not an edit:
 
 ```{code-block} python
 
->>> from unxt._fmt import Axis, register_axis, parse_spec
+>>> from unxt._fmt import Axis, register_axis
 
 >>> _ = register_axis(Axis(
-...     name="demo",
-...     keywords={"demoword": True},   # spec words -> the value each sets
+...     name="vector_form",
+...     keywords={"vecform": True},   # spec words -> the value each sets
 ...     default=False,
-...     layouts={"call": lambda v: {"demo": v}},   # membership IS applicability
+...     layouts={"call": lambda v: {"vector_form": v}},  # membership IS applicability
 ... ))
 
->>> parse_spec("call-demoword")["demo"]
-True
+```
+
+The keyword is now a first-class part of the grammar: order-independent alongside the built-in ones, defaulted when unnamed, and scoped to its layouts. A type that does not act on it simply ignores it, exactly as it would a built-in axis it has no use for:
+
+```{code-block} python
+
+>>> f"{q:call-vecform}"
+"Quantity([1., 2., 3.], unit='m')"
+
+```
+
+An alias is the same idea one level up, and is the shortest way to watch the extension path work end to end:
+
+```{code-block} python
+
+>>> from unxt._fmt import register_alias
+
+>>> register_alias("terse", "call-abbrev-type")
+>>> f"{q:terse}"
+"Q(f32[3], unit='m')"
 
 ```
 

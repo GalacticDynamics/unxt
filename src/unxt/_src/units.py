@@ -159,7 +159,7 @@ def pparts(
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt._fmt import pparts
+    >>> from unxt._src.fmt import pparts
 
     >>> pparts(u.unit("m"))
     (PPart(role='unit', text='m', kind='content'),)

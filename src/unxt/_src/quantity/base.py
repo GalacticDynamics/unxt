@@ -1110,7 +1110,7 @@ class AbstractQuantity(
         """Format the quantity.
 
         An empty spec preserves the default :meth:`__str__` representation. A
-        `unxt._fmt.FORMAT_PRESETS` name, or a
+        `unxt._fmt` alias, or a
         ``<markup>-<array>-<separator>-<unit>`` combination (see
         `unxt._fmt.pspec`), selects a named rendering. Any other spec is
         applied to the value and the unit is appended (as in
@@ -1656,7 +1656,7 @@ def pparts(
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt._fmt import pparts, parts_to_markup
+    >>> from unxt._src.fmt import pparts, parts_to_markup
 
     >>> parts_to_markup(pparts(u.Q([1.0, 2, 3], "m")))
     '[1., 2., 3.] * m'

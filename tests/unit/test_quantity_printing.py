@@ -8,7 +8,7 @@ import pytest
 import wadler_lindig as wl
 
 import unxt as u
-from unxt._fmt import doc_to_str
+from unxt._src.fmt import doc_to_str
 from unxt.units import unit as parse_unit
 
 

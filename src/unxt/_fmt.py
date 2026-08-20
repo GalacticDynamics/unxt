@@ -7,18 +7,26 @@ The engine behind ``repr``, ``str``, ``format``, and the IPython
 representations. It exists so those all agree on *what an object is made of*,
 and so a new type can join in by registering one function.
 
-The main features are:
+**This re-exports only what a downstream package needs**, which is a smaller
+set than the engine defines. Widening it later is easy and narrowing it is not,
+so anything unproven stays behind `unxt._src.fmt` until something outside this
+repo actually needs it. The full surface is documented there; what follows is
+the contract:
 
-- ``unxt._fmt.pparts``: decompose an object into roled fragments. This is the
-  extension point.
-- ``unxt._fmt.parts_to_doc``: turn fragments into a `wadler_lindig` document, so
-  plain-text rendering gets layout and composes inside a larger document.
-- ``unxt._fmt.parts_to_markup``: turn fragments into an HTML or LaTeX string.
-- ``unxt._fmt.parse_spec``: resolve a format-spec string into a
-  `unxt._fmt.Spec` -- one settled value per axis.
-- ``unxt._fmt.render``: the single rendering entry point. ``repr``, ``str``
-  and ``__format__`` all arrive here and differ only in the `Spec` they bring.
-- ``unxt._fmt.pspec``: the shared ``__format__`` body (parse, then render).
+*Join in* -- teach the engine your type:
+
+- ``pparts``: decompose an object into roled fragments. The extension point.
+- ``PPart`` / ``PGroup``: the fragments to decompose into.
+
+*Extend the grammar* -- teach it a new axis:
+
+- ``Axis``, ``register_axis``, ``register_alias``.
+
+*Render* -- implement your dunders:
+
+- ``pspec``: the shared ``__format__`` body (parse a spec, then render).
+- ``render`` + ``Spec``: for ``repr``/``str``, which are the same rendering
+  reached with a `Spec` built by hand rather than parsed.
 
 Examples
 --------
@@ -35,11 +43,12 @@ Examples
 `unxt.quantity.AbstractQuantity.__format__` routes through `pspec`, so these
 are also reachable as ``f"{q:mul}"`` and ``f"{q:latex}"``.
 
-Register a type by registering `pparts`; it then gets every preset and every
-markup:
+Register a type by registering `pparts`; it then gets every axis and every
+markup, including ones it has never heard of -- note that ``**kw`` forwards
+the axes this type does not itself act on:
 
 >>> import dataclasses
->>> from unxt._fmt import PGroup, PPart, pparts, parts_to_markup
+>>> from unxt._fmt import PGroup, PPart, pparts
 
 >>> @dataclasses.dataclass
 ... class Interval:
@@ -57,11 +66,17 @@ markup:
 ...     )
 
 >>> iv = Interval(u.Q(0.0, "m"), u.Q(1.0, "m"))
->>> parts_to_markup(pparts(iv))
+>>> pspec(iv, "mul")
 '[0. * m, 1. * m)'
 
->>> parts_to_markup(pparts(iv, markup="latex"), markup="latex")
-'$[0. \\; \\mathrm{m}, 1. \\; \\mathrm{m})$'
+>>> pspec(iv, "latex")
+'$[0. \\mathrm{m}, 1. \\mathrm{m})$'
+
+The unit axis reaches the nested quantities without `Interval` knowing it
+exists:
+
+>>> pspec(iv, "name")
+'[0. meter, 1. meter)'
 
 """
 
@@ -70,58 +85,30 @@ markup:
 # pylint: disable=duplicate-code
 
 __all__ = (
-    "ALIASES",
-    "AXES",
     "Axis",
-    "MARKUPS",
     "PGroup",
     "PPart",
-    "REQUIRED_MARKUP_KEYS",
     "Spec",
-    "VALUE_FROM_SHORT_ARRAYS",
-    "bad_spec",
-    "custom_pdoc_no_kind",
-    "custom_pdoc_noarray",
-    "doc_to_str",
-    "parse_spec",
-    "parts_to_doc",
-    "parts_to_markup",
     "pparts",
     "pspec",
     "register_alias",
     "register_axis",
     "render",
-    "unwrap_math",
-    "value_str",
 )
 
 from .setup_package import install_import_hook
 
 with install_import_hook("unxt._fmt"):
     from ._src.fmt import (
-        ALIASES,
-        AXES,
-        MARKUPS,
-        REQUIRED_MARKUP_KEYS,
-        VALUE_FROM_SHORT_ARRAYS,
         Axis,
         PGroup,
         PPart,
         Spec,
-        bad_spec,
-        custom_pdoc_no_kind,
-        custom_pdoc_noarray,
-        doc_to_str,
-        parse_spec,
-        parts_to_doc,
-        parts_to_markup,
         pparts,
         pspec,
         register_alias,
         register_axis,
         render,
-        unwrap_math,
-        value_str,
     )
 
 # Clean up the namespace

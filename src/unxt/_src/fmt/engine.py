@@ -93,7 +93,7 @@ class PPart(NamedTuple):
 
     Examples
     --------
-    >>> from unxt._fmt import PPart
+    >>> from unxt._src.fmt import PPart
     >>> PPart("value", "1.0")
     PPart(role='value', text='1.0', kind='content')
 
@@ -122,7 +122,7 @@ class PGroup(NamedTuple):
 
     Examples
     --------
-    >>> from unxt._fmt import PGroup, PPart
+    >>> from unxt._src.fmt import PGroup, PPart
     >>> PGroup("child", (PPart("value", "1.0"),))
     PGroup(role='child', parts=(PPart(role='value', text='1.0', kind='content'),))
 
@@ -207,7 +207,7 @@ def unwrap_math(text: str, /) -> str:
 
     Examples
     --------
-    >>> from unxt._fmt import unwrap_math
+    >>> from unxt._src.fmt import unwrap_math
 
     >>> unwrap_math(r"$\mathrm{m}$")
     '\\mathrm{m}'
@@ -247,7 +247,7 @@ def doc_to_str(doc: wl.AbstractDoc, /, width: int = 88) -> str:
     Examples
     --------
     >>> import wadler_lindig as wl
-    >>> from unxt._fmt import doc_to_str
+    >>> from unxt._src.fmt import doc_to_str
 
     >>> doc = wl.TextDoc("[1., 2.]") + wl.BreakDoc(" ") + wl.TextDoc("m")
     >>> doc_to_str(wl.GroupDoc(doc))
@@ -291,7 +291,7 @@ def pparts(
 
     Examples
     --------
-    >>> from unxt._fmt import pparts
+    >>> from unxt._src.fmt import pparts
     >>> pparts(object())
     (PPart(role='value', text='<object object at ...>', kind='content'),)
 
@@ -325,7 +325,7 @@ def parts_to_doc(
     --------
     >>> import unxt as u
     >>> import wadler_lindig as wl
-    >>> from unxt._fmt import parts_to_doc, pparts
+    >>> from unxt._src.fmt import parts_to_doc, pparts
 
     >>> doc = parts_to_doc(pparts(u.Q([1.0, 2, 3], "m")))
     >>> wl.pformat_doc(doc, 88) if hasattr(wl, "pformat_doc") else "[1., 2., 3.] * m"
@@ -364,7 +364,7 @@ def parts_to_markup(
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt._fmt import pparts, parts_to_markup
+    >>> from unxt._src.fmt import pparts, parts_to_markup
 
     >>> q = u.Q([1.0, 2, 3], "m")
     >>> parts_to_markup(pparts(q, markup="html"), markup="html")
@@ -522,7 +522,7 @@ class Spec(Mapping[str, Any]):
 
         Examples
         --------
-        >>> from unxt._fmt import Spec, parse_spec
+        >>> from unxt._src.fmt import Spec, parse_spec
 
         >>> Spec.of(layout="call")["unit"]
         'symbol'
@@ -614,7 +614,7 @@ def parse_spec(spec: str, /, *, obj: Any = None) -> Spec:
 
     Examples
     --------
-    >>> from unxt._fmt import parse_spec
+    >>> from unxt._src.fmt import parse_spec
 
     Keywords set their axis; everything omitted keeps its default:
 
@@ -702,7 +702,7 @@ def render(
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt._fmt import parse_spec, render
+    >>> from unxt._src.fmt import parse_spec, render
 
     >>> render(u.Q([1.0, 2, 3], "m"), parse_spec("mul"))
     '[1., 2., 3.] * m'
@@ -768,7 +768,7 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt._fmt import pspec
+    >>> from unxt._src.fmt import pspec
 
     >>> pspec(u.Q([1.0, 2, 3], "m"), "mul")
     '[1., 2., 3.] * m'

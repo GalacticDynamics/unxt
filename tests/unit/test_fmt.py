@@ -9,7 +9,7 @@ import pytest
 import wadler_lindig as wl
 
 import unxt as u
-from unxt._fmt import (
+from unxt._src.fmt import (
     ALIASES,
     AXES,
     MARKUPS,
@@ -19,6 +19,7 @@ from unxt._fmt import (
     PPart,
     Spec,
     doc_to_str,
+    engine as engine_module,
     parse_spec,
     parts_to_doc,
     parts_to_markup,
@@ -29,7 +30,6 @@ from unxt._fmt import (
     render,
     unwrap_math,
 )
-from unxt._src.fmt import engine as engine_module
 from unxt._src.fmt.engine import _KEYWORDS
 
 # ============================================================================
