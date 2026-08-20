@@ -44,6 +44,7 @@ __all__ = (
     "parts_to_doc",
     "parts_to_markup",
     "pparts",
+    "pspec",
     "register_alias",
     "register_axis",
     "render",
@@ -551,9 +552,6 @@ class Spec(Mapping[str, Any]):
         args = ", ".join(f"{k}={v!r}" for k, v in self._d.items())
         return f"Spec({args})"
 
-    def __hash__(self) -> int:
-        return hash(frozenset(self._d.items()))
-
 
 def _grammar_help() -> str:
     """Describe the grammar, generated from the registry so it cannot drift."""
@@ -752,12 +750,15 @@ _LAYOUTS["product"] = _render_product
 #: The ``layout`` axis is the one the engine must own: its keywords name the
 #: renderers in `_LAYOUTS`, so it cannot be supplied by a consumer. It
 #: contributes no renderer kwargs -- it *selects* the renderer.
+#:
+#: Both its tables are derived from `_LAYOUTS` rather than written out, so the
+#: layout names live in exactly one place.
 register_axis(
     Axis(
         name="layout",
-        keywords={"call": "call", "product": "product"},
+        keywords={name: name for name in _LAYOUTS},
         default="product",
-        layouts={"call": lambda _: {}, "product": lambda _: {}},
+        layouts=dict.fromkeys(_LAYOUTS, lambda _: {}),
     )
 )
 
