@@ -69,6 +69,16 @@ The `astropy` spelling `.to_value` also works:
 Array(500., dtype=float32, ...)
 ```
 
+`ustrip` is also how you hand a quantity to code that does not understand units at all. A dimensionful `Quantity` refuses to become a bare array on its own — `np.asarray(q)` raises rather than guess which unit you meant — so name the unit and the refusal goes away:
+
+```{code-block} python
+>>> import numpy as np
+>>> np.asarray(u.ustrip("cm", q))
+array(500., dtype=float32)
+```
+
+See {doc}`../explanation/sharp-bits` for why it refuses.
+
 If your input may be _either_ a quantity or a bare array — a common signature in library code — pass the `AllowValue` flag. A bare array is then taken to be already in the output units and passed through untouched, instead of raising:
 
 ```{code-block} python

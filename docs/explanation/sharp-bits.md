@@ -15,6 +15,41 @@ import unxt as u
 
 This is not a stylistic choice inherited from Equinox. JAX transformations — `jit`, `grad`, `vmap` — require pure functions, and a mutable array threaded through a trace is a side effect the tracer cannot see. Immutability is what makes a `Quantity` safe to hand to any of them. See {doc}`../how-to/use-jax-functions` for the functional-update syntax.
 
+## A dimensionful quantity will not silently become a bare array
+
+Handing a `Quantity` to something that expects a plain array — `numpy.asarray`, or any library that calls it for you — raises rather than quietly dropping the unit:
+
+```{code-block} python
+>>> import numpy as np
+
+>>> try:
+...     np.asarray(u.Q([1.0, 2.0, 3.0], "m"))
+... except Exception as e:
+...     print(type(e).__name__)
+UnitConversionError
+
+```
+
+This is deliberate, and it is the one sharp bit on this page that `unxt` chose rather than inherited. `__array__` has no way to ask the caller which unit it wants, so any answer it invents is a number whose meaning depends on information the caller never sees — the classic silent-unit-bug. Refusing is the only honest option.
+
+A **dimensionless** quantity converts fine, because there is nothing to lose:
+
+```{code-block} python
+>>> np.asarray(u.Q([1.0, 2.0], ""))
+array([1., 2.], dtype=float32)
+
+```
+
+The fix is to name the unit you mean, with `ustrip`:
+
+```{code-block} python
+>>> np.asarray(u.ustrip("m", u.Q([1.0, 2.0, 3.0], "m")))
+array([1., 2., 3.], dtype=float32)
+
+```
+
+See {doc}`../how-to/convert-units`.
+
 ## Dimensions are checked inside `jit`, but units drive recompilation
 
 Both halves of this follow from one fact: the `unit` field is **static** on the `Quantity` pytree. It lives in the aux data, not the leaves.

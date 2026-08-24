@@ -144,7 +144,7 @@ def test_sum_reduces_dimension(q):
 @given(q=ust.quantities(shape=(5, 5)))
 def test_transpose_shape(q):
     """Transposing a square matrix quantity preserves its shape and unit."""
-    qt = jnp.transpose(q)
+    qt = jnp.matrix_transpose(q)
     assert qt.shape == (5, 5)
     assert qt.unit == q.unit
 

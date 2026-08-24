@@ -44,22 +44,40 @@ Installing `unxt` brings in JAX, [`quax`](https://github.com/patrick-kidger/quax
 
 ## Install an add-on package
 
-The `unxts.*` packages are separate distributions, installed only if you want them:
+The `unxts.*` packages are separate distributions. Install each through the matching **extra** rather than by name, so that it and `unxt` are resolved together as a compatible set:
+
+| Extra | Package | Adds |
+| --- | --- | --- |
+| `unxt[parametric]` | `unxts.parametric` | `ParametricQuantity` — dimension in the type, runtime dimension checking |
+| `unxt[linalg]` | `unxts.linalg` | `QuantityMatrix` — per-element units for Jacobians and metrics |
+| `unxt[interop-gala]` | `unxts.interop.gala` | Unit-system conversion with `gala` |
+| `unxt[interop-mpl]` | `unxts.interop.matplotlib` | Plotting quantities with `matplotlib` |
+| `unxt[interop-xarray]` | `unxts.interop.xarray` | A `.unxt` accessor for `DataArray` and `Dataset` |
+
+```bash
+pip install "unxt[parametric]"
+```
+
+Two packages have no extra of their own — install them by name:
 
 | Package | Adds |
 | --- | --- |
-| `unxts.parametric` | `ParametricQuantity` — dimension in the type, runtime dimension checking |
-| `unxts.linalg` | Unitful linear algebra |
 | `unxts.hypothesis` | `hypothesis` strategies for property-based testing |
-| `unxts.interop.gala` | Interoperability with `gala` |
-| `unxts.interop.matplotlib` | Plotting quantities with `matplotlib` |
-| `unxts.interop.xarray` | Interoperability with `xarray` |
+| `unxts.api` | The abstract dispatch API. Already a dependency of `unxt`; install it directly only if you are writing against the API _without_ `unxt` |
 
 ```bash
-pip install unxts.parametric
+pip install unxts.hypothesis
 ```
 
-Each has its own documentation under **Packages** in the sidebar.
+### Everything at once
+
+`unxt[workspace]` installs every package above, `unxts.hypothesis` and `unxts.api` included. `unxt[all]` is `workspace` plus `backend-astropy`, which pins the `astropy` unit backend explicitly:
+
+```bash
+pip install "unxt[all]"
+```
+
+Each package has its own documentation under **Packages** in the sidebar.
 
 ## Check it worked
 
