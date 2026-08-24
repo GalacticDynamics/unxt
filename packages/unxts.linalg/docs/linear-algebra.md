@@ -1,4 +1,4 @@
-# Linear algebra with unit tracking
+# Linear-algebra operations
 
 The whole point of `QuantityMatrix` is that linear-algebra operations carry the per-element units through the computation. `unxts.linalg` registers Quax rules for the underlying JAX primitives, so the [`quaxed`](https://github.com/GalacticDynamics/quaxed) drop-in `numpy` operators work directly on `QuantityMatrix` objects.
 

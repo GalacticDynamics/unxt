@@ -4,10 +4,10 @@
 :maxdepth: 1
 :hidden:
 
+tutorial-metric
 quantity-matrix
 units-matrix
 linear-algebra
-tutorial-metric
 sharp-bits
 ```
 
@@ -88,13 +88,21 @@ Indexing a single element yields an ordinary `unxt.Quantity`:
 Quantity(Array(1., dtype=float32), unit='m')
 ```
 
-## Guides
+## Pages
 
-- [Quantity matrices](quantity-matrix) — constructing `QuantityMatrix`, indexing, unit conversion, and arithmetic.
-- [Units matrices](units-matrix) — the immutable, hashable `UnitsMatrix` unit structure.
-- [Linear algebra](linear-algebra) — matmul, transpose, `diag`, `det`, and `inv` with per-element unit tracking.
-- [Tutorial: a heterogeneous metric](tutorial-metric) — a worked end-to-end example.
-- [Sharp bits](sharp-bits) — the 1-D/2-D restriction and the uniform-unit requirements under `jax.jit`.
+**Tutorial**
+
+- [Build a heterogeneous metric](tutorial-metric) — start here: construct a metric whose entries carry different units, then take its diagonal, determinant and a unit conversion.
+
+**Reference**
+
+- [`QuantityMatrix`](quantity-matrix) — construction, indexing, unit conversion and arithmetic.
+- [`UnitsMatrix`](units-matrix) — the immutable, hashable per-element unit structure.
+- [Linear-algebra operations](linear-algebra) — `matmul`, `matvec`, `vecmat`, `vecdot`, transpose, `diag`, `det` and `inv`, and how each combines units.
+
+**Discussion**
+
+- [The linalg sharp bits](sharp-bits) — the 1-D/2-D restriction, the uniform-unit requirements of `inv` and of `diag` under `jax.jit`, and why each holds.
 
 ## Public API
 
