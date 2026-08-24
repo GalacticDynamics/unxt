@@ -1,4 +1,4 @@
-# Testing with `hypothesis`
+# How to write property-based tests
 
 This guide shows how to use the `unxts.hypothesis` package for property-based testing of code that uses `unxt` quantities.
 
@@ -872,8 +872,10 @@ This approach is useful when you need to:
 
 For more on debugging strategies, see the Hypothesis documentation on [Reproducing Failures](https://hypothesis.readthedocs.io/en/latest/reproducing.html) and [Testing Your Tests](https://hypothesis.readthedocs.io/en/latest/details.html#making-assumptions).
 
-## See Also
+## See also
 
-- [Full API Reference](api)
+- [Strategies](strategies) — every strategy, its parameters and what it generates.
+- [How to combine strategies](recipes) — composition patterns.
+- [API](api)
 - [Hypothesis Documentation](https://hypothesis.readthedocs.io/)
 - [Property-Based Testing Introduction](https://hypothesis.works/articles/what-is-property-based-testing/)
