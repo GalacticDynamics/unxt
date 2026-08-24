@@ -93,7 +93,7 @@ Quantity(Array(471483., dtype=float32...), unit='Myr')
 
 ```
 
-The derived units are composites of the solved base unit, and read as a plain scale factor on SI:
+Derived units come out already reduced to `astropy`'s own base units, since the units they are built from are scaled composites with no name of their own:
 
 ```{code-block} python
 >>> usys["velocity"]
@@ -103,6 +103,8 @@ Unit("2.07387 m / s")
 Unit("1.39383e-19 m / s2")
 
 ```
+
+One velocity unit in this system is 2.07 m/s — which is the conversion `ustrip(usys)` just did for you.
 
 ## See also
 
