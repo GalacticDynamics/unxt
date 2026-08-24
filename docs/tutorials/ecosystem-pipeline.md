@@ -147,14 +147,11 @@ Plot the mass we derived, and the label follows the same route:
 >>> print(ax2.get_ylabel())
 $\mathrm{M_{\odot}}$
 
-```
-
-The solar-mass symbol, from a quantity we computed rather than declared.
-
-```{code-block} python
 >>> plt.close("all")
 
 ```
+
+The solar-mass symbol, from a quantity we computed rather than declared.
 
 ## Put it back
 

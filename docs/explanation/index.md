@@ -6,6 +6,7 @@ If you want to get something done, see the {doc}`../how-to/index`; if you want t
 
 ```{toctree}
 :maxdepth: 1
+:hidden:
 
 sharp-bits
 why-quantity-is-non-parametric

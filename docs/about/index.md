@@ -4,11 +4,12 @@ Material about the `unxt` project itself, rather than about using it.
 
 ```{toctree}
 :maxdepth: 1
+:hidden:
 
 contributing
 ```
 
-- {doc}`contributing` — reporting issues, contributing code and documentation, and building the docs.
+[Contributing](contributing) covers reporting issues, contributing code and documentation, and building the docs.
 
 ## Citation
 

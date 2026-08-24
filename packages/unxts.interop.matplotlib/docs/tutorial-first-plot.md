@@ -126,14 +126,11 @@ Unit(dimensionless)
 >>> print(ax3.get_xlabel())
 $\mathrm{{}^{\circ}}$
 
-```
-
-`jnp.sin` took degrees and returned a dimensionless result, and the x-axis picked up the degree symbol on its own.
-
-```{code-block} python
 >>> plt.close("all")
 
 ```
+
+`jnp.sin` took degrees and returned a dimensionless result, and the x-axis picked up the degree symbol on its own.
 
 ## What we built
 

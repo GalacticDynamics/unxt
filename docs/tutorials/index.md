@@ -6,6 +6,7 @@ If you already know what you want to accomplish, the {doc}`../how-to/index` will
 
 ```{toctree}
 :maxdepth: 1
+:hidden:
 
 first-quantity
 mars-lander

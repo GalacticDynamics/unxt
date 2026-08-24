@@ -6,6 +6,7 @@ If you are new to `unxt`, work through {doc}`../tutorials/first-quantity` first 
 
 ```{toctree}
 :maxdepth: 1
+:hidden:
 
 install
 convert-units

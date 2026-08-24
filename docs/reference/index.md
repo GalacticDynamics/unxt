@@ -6,6 +6,7 @@ For instructions see the {doc}`../how-to/index`; for the reasoning behind the de
 
 ```{toctree}
 :maxdepth: 1
+:hidden:
 
 quantity
 units
