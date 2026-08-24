@@ -231,7 +231,15 @@ Trigonometric and product operations on an `Angle` return a plain `Quantity`.
 
 ## `StaticQuantity`
 
-A non-parametric quantity whose value is a NumPy array. It accepts Python scalars and NumPy arrays and **rejects** JAX arrays, which is what makes it hashable and therefore usable as a `jax.jit` static argument.
+A non-parametric quantity whose value is stored as a static, hashable NumPy array — which is what lets it be a `jax.jit` static argument.
+
+It accepts Python scalars and anything array-like that NumPy can materialise, **including a concrete JAX array**, which is converted back to NumPy. Only a _traced_ value is rejected, since a tracer cannot be static:
+
+```{code-block} python
+>>> import jax.numpy as jnp
+>>> u.StaticQuantity(jnp.array([1.0, 2.0]), "m")
+StaticQuantity(array([1., 2.], dtype=float32), unit='m')
+```
 
 ```{code-block} python
 >>> import numpy as np
@@ -284,6 +292,62 @@ rescale(jnp.ones(2), scale=new_scale)  # different value → recompiles
 ```
 
 Use `Quantity(StaticValue, ...)` when you need the dynamic/static distinction at the _value_ level while keeping the `Quantity` type; use `StaticQuantity` when the whole quantity is static. The equality semantics of both are covered in {doc}`../explanation/equality-and-equivalence`.
+
+## `is_unit_convertible`
+
+`is_unit_convertible(to_unit, from_, /)` reports whether a conversion is possible, without attempting it. Use it to branch rather than to catch an exception.
+
+```{code-block} python
+>>> u.is_unit_convertible("km", "m")
+True
+
+>>> u.is_unit_convertible("s", "m")
+False
+```
+
+The second argument may be anything with a unit, not just a unit — a `Quantity` works:
+
+```{code-block} python
+>>> u.is_unit_convertible("km", u.Q(1.0, "m"))
+True
+```
+
+## `register_ufunc`
+
+NumPy ufuncs reach quantities through `__array_ufunc__`. The **built-in** ufuncs already work — they delegate to the matching `quaxed.numpy` function, which propagates units:
+
+```{code-block} python
+>>> import numpy as np
+>>> np.sqrt(u.Q(4.0, "m2"))
+Quantity(Array(2., dtype=float32...), unit='m')
+```
+
+A **custom** ufunc — one you built with `numpy.frompyfunc`, `numba`, or a third-party library — carries no unit semantics, so `unxt` cannot guess one. Calling it on a quantity raises rather than silently dropping the unit:
+
+```{code-block} python
+>>> doubler = np.frompyfunc(lambda x: 2 * x, 1, 1)
+
+>>> try:
+...     doubler(u.Q(3.0, "m"))
+... except TypeError:
+...     print("no handler registered")
+no handler registered
+```
+
+`register_ufunc(ufunc)` supplies the missing rule. The decorated handler is called as `handler(ufunc, method, *inputs, **kwargs)` and must return a unit-carrying result:
+
+```{code-block} python
+>>> @u.quantity.register_ufunc(doubler)
+... def _(ufunc, method, x, /, **kw):
+...     return u.Q(2 * x.value, x.unit)
+
+>>> doubler(u.Q(3.0, "m"))
+Quantity(Array(6., dtype=float32...), unit='m')
+```
+
+The registry is keyed on the ufunc _object_, not its name, so a custom ufunc that happens to share a name with a built-in still requires its own handler. Handlers may themselves be `plum`-dispatched on the input types.
+
+Registration is global and permanent for the process.
 
 ## `AllowValue`
 

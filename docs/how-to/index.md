@@ -9,8 +9,11 @@ If you are new to `unxt`, work through {doc}`../tutorials/first-quantity` first 
 
 install
 convert-units
+compare-quantities
 use-jax-functions
 control-display
+wrap-angles
+use-a-quantity-as-a-static-argument
 check-types-at-runtime
 register-a-quax-rule
 define-a-unit-system
@@ -29,6 +32,9 @@ migrate-to-v2
 ## Working with quantities
 
 - {doc}`convert-units` — `uconvert`, `ustrip` and `uconvert_value`.
+- {doc}`compare-quantities` — `is_unit_convertible`, `equivalent` and `==`.
+- {doc}`wrap-angles` — map an angle onto a branch cut.
+- {doc}`use-a-quantity-as-a-static-argument` — `StaticQuantity` and `StaticValue` under `jax.jit`.
 - {doc}`use-jax-functions` — `quaxify`, `quaxed`, `jit`, autodiff and functional updates.
 - {doc}`control-display` — change how quantities render, for a call, a block, a process or a project.
 
