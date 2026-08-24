@@ -4,6 +4,7 @@
 :maxdepth: 1
 :hidden:
 
+tutorial-your-own-type
 why-abstract-dispatch
 extending
 api
@@ -55,6 +56,10 @@ u.uconvert("km", q)
 `u.uconvert` here is `unxt`'s registered implementation of the abstract `unxts.api.uconvert`. To make your own type work with the same call, you register an implementation of your own — see [Extending](extending).
 
 ## Pages
+
+**Tutorial**
+
+- [Teach unxt about your own type](tutorial-your-own-type) — start here: make `unit_of`, `dimension_of`, `ustrip` and `uconvert` work on a class of your own.
 
 **Discussion**
 
