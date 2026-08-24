@@ -151,7 +151,7 @@ print(quantified.coords["time"].data)
 
 **Dimension coordinates cannot hold Quantities.** xarray automatically coerces dimension coordinates (those named after their dimension, shown with `*` in the repr) to plain NumPy arrays via `pandas.Index`. This silently drops the Quantity wrapper and its unit — there is no error or warning.
 
-The workaround is to use _non-dimension_ coordinates: give the coordinate a name different from its dimension (e.g., `"time"` attached to dimension `"i"`). See [Limitations: Dimension Coordinates Cannot Hold Quantities](#dimension-coordinates-cannot-hold-quantities) for the full explanation and workaround.
+The workaround is to use _non-dimension_ coordinates: give the coordinate a name different from its dimension (e.g., `"time"` attached to dimension `"i"`). See [The xarray sharp bits](sharp-bits) for the full explanation and workaround.
 
 :::
 

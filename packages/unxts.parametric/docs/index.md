@@ -70,16 +70,16 @@ Everything else — arithmetic, unit conversion, JAX transforms, interop — wor
 
 **Reference**
 
-- [`ParametricQuantity`](quantity) — construction, runtime dimension checking, dimension-specific dispatch, promotion with the default `Quantity`, and `dimension_of` on a parametrized class.
-- [Configuration](configuration) — the `include_params` display option.
+- [`ParametricQuantity`](./quantity) — construction, runtime dimension checking, dimension-specific dispatch, promotion with the default `Quantity`, and `dimension_of` on a parametrized class.
+- [Configuration](./configuration) — the `include_params` display option.
 
 **How-to**
 
-- [How to check dimensions at runtime](type-checking) — dimension annotations enforced by `jaxtyping`.
+- [How to check dimensions at runtime](./type-checking) — dimension annotations enforced by `jaxtyping`.
 
 **Discussion**
 
-- [The parametric sharp bits](sharp-bits) — pytree-type proliferation and `StaticValue` equality.
+- [The parametric sharp bits](./sharp-bits) — pytree-type proliferation and `StaticValue` equality.
 
 ## Public API
 
@@ -87,6 +87,6 @@ Everything else — arithmetic, unit conversion, JAX transforms, interop — wor
 
 - `ParametricQuantity` — the dimension-parametrized quantity (alias `PQ`).
 - `AbstractParametricQuantity` — its abstract base.
-- `config` — the `unxts.parametric.config` singleton (see [Configuration](configuration)).
+- `config` — the `unxts.parametric.config` singleton (see [Configuration](./configuration)).
 
 Importing `unxts.parametric` also registers, as import side effects, the promotion rules, `plum` conversions, and JAX primitive rules that let `ParametricQuantity` interoperate with the rest of `unxt`.

@@ -2,7 +2,7 @@
 
 Two things about the integration surprise people. Both follow from how `xarray` itself works rather than from anything `unxts.interop.xarray` chose, which is why neither is going to be fixed.
 
-### Dimension Coordinates Cannot Hold Quantities
+## Dimension Coordinates Cannot Hold Quantities
 
 `xarray` backs every _dimension coordinate_ (one named like its dimension, shown with a `*` in the repr) with a `pandas.Index`. Building that index coerces the data to a plain `numpy` array, so a `Quantity` assigned to a dimension coordinate is silently unwrapped — its unit is lost. This is inherent to `xarray`'s indexing model, not something `unxts.interop.xarray` can override, and it affects every duck-array unit library (including `pint-xarray`) the same way.
 
