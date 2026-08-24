@@ -8,7 +8,7 @@ from types import MappingProxyType
 from typing import ClassVar, get_args, get_type_hints
 
 import jax.tree_util as jtu
-from astropy.units import PhysicalType, UnitBase as AstropyUnitBase
+from astropy.units import NamedUnit, PhysicalType, UnitBase as AstropyUnitBase
 from astropy.units.physical import _physical_unit_mapping
 
 from is_annotated import isannotated
@@ -269,6 +269,15 @@ class AbstractUnitSystem:
 
         out = out.decompose(self.base_units)
         out._scale = 1.0  # noqa: SLF001
+        # A system built on a scaled unit -- every flag-solved one, e.g.
+        # ``unitsystem(DynamicalSimUSysFlag, "kpc", "solMass")`` -- has
+        # `CompositeUnit` base units, and `decompose` nests those inside
+        # ``out.bases``. astropy's formatters call `_get_format_name` on each
+        # base, which only `NamedUnit` has, so such a unit can be neither
+        # printed nor converted to. Reducing to irreducible bases keeps the same
+        # physical unit and makes it usable.
+        if any(not isinstance(b, NamedUnit) for b in out.bases):
+            out = out.decompose()
         return out
 
     def __len__(self) -> int:
