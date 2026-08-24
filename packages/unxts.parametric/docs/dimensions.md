@@ -1,6 +1,6 @@
 # Dimensions
 
-How `unxt.dimension_of` interacts with parametric quantities. For dimensions in general, see the [unxt Dimensions guide](../../guides/dimensions).
+How `unxt.dimension_of` interacts with parametric quantities. For dimensions in general, see the [unxt dimensions reference](../../reference/dimensions).
 
 ```{code-block} python
 >>> import unxt as u
@@ -23,4 +23,4 @@ PhysicalType('length')
 can only get dimensions from parametrized ParametricQuantity -- ParametricQuantity[dim].
 ```
 
-The default `Quantity` carries no dimension, so `dimension_of` on the _class_ raises (only instances have a unit, and hence a dimension) — see the [unxt Dimensions guide](../../guides/dimensions).
+The default `Quantity` carries no dimension, so `dimension_of` on the _class_ raises (only instances have a unit, and hence a dimension) — see the [unxt dimensions reference](../../reference/dimensions).

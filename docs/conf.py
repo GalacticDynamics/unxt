@@ -44,12 +44,40 @@ extensions = [
     "sphinx_copybutton",
     "sphinx-prompt",
     "sphinxext.opengraph",
-    # "sphinxext.rediraffe",  # Add redirects
+    "sphinxext.rediraffe",  # Add redirects
     "sphinx_togglebutton",
     "sphinx_tippy",
 ]
 
 python_use_unqualified_type_names = True
+
+# -- Redirects (rediraffe) ---------------------------------------------------
+
+# The docs were reorganised into Diataxis sections; every pre-existing URL is
+# redirected to its new home so external links keep working.
+rediraffe_redirects = {
+    "guides/quantity.md": "reference/quantity.md",
+    "guides/dimensions.md": "reference/dimensions.md",
+    "guides/units_and_systems.md": "reference/units.md",
+    "guides/configuration.md": "reference/configuration.md",
+    "guides/natural-units.md": "how-to/work-in-natural-units.md",
+    "guides/type-checking.md": "how-to/check-types-at-runtime.md",
+    "guides/perf.md": "how-to/optimize-performance.md",
+    "guides/sharp-bits.md": "explanation/sharp-bits.md",
+    "conventions.md": "explanation/api-conventions.md",
+    "glossary.md": "reference/glossary.md",
+    "migration.md": "how-to/migrate-to-v2.md",
+    "contributing.md": "about/contributing.md",
+    "dev.md": "about/contributing.md",
+    "interop/astropy.md": "how-to/interoperate-with-astropy.md",
+    "interop/dataclassish.md": "reference/dataclassish.md",
+    "api/index.md": "reference/api/index.md",
+    "api/quantity.md": "reference/api/quantity.md",
+    "api/dims.md": "reference/api/dims.md",
+    "api/units.md": "reference/api/units.md",
+    "api/unitsystems.md": "reference/api/unitsystems.md",
+    "api/experimental.md": "reference/api/experimental.md",
+}
 
 exclude_patterns = [
     "_build",
@@ -58,7 +86,8 @@ exclude_patterns = [
     ".DS_Store",
     ".env",
     ".venv",
-    "guides/perf.md",  # Excluded: converted to perf.ipynb during build
+    # Excluded: converted to optimize-performance.ipynb during the build
+    "how-to/optimize-performance.md",
     "**/_data/**",  # Sample-data dirs (e.g. the xarray guide's), not doc pages
 ]
 

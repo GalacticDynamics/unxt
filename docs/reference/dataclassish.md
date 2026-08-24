@@ -1,12 +1,12 @@
-# 🧱 Dataclassish
+# `dataclassish` support
 
-This guide demonstrates how `unxt` types work with the `dataclassish` library for introspection and manipulation of unitful quantities and related types.
+Every `unxt` type — dimensions, units, unit systems and quantities — is an Equinox module, and therefore a Python dataclass. This page records what each [`dataclassish`](https://pypi.org/project/dataclassish/) function returns for each of them.
 
 `unxt` types (dimensions, units, unit systems, and quantities) are all Equinox modules, which are Python dataclasses. This means they work seamlessly with `dataclassish` functions for field manipulation and introspection.
 
-## Summary
+## Functions
 
-`dataclassish` provides convenient tools for introspecting and manipulating `unxt` types:
+`dataclassish` provides:
 
 - **`fields(obj)`**: Get all field information for a quantity or related type
 - **`field_keys(obj)`**: Iterate over field names
@@ -28,6 +28,8 @@ This makes it easy to build generic code that works with unxt types without need
 
 ## Setup
 
+The examples below use:
+
 ```pycon
 >>> import unxt as u
 >>> import dataclassish as dc
@@ -40,7 +42,7 @@ dataclassish version: ...
 
 ## Dimensions
 
-Let's start by exploring how `dataclassish` works with `unxt` dimensions.
+Dimensions are `astropy` `PhysicalType` objects, with two fields.
 
 ```pycon
 >>> # Create a dimension
@@ -66,7 +68,7 @@ Field items: [('_unit', Unit("m")), ('_physical_type', ['length'])]
 
 ## Units
 
-Now let's explore units with `dataclassish`.
+Units expose a single `_names` field.
 
 ```pycon
 >>> # Create a unit
@@ -92,7 +94,7 @@ Field items: [('_names', ['m', 'meter'])]
 
 ## Unit Systems
 
-Let's explore unit systems with `dataclassish`.
+A unit system exposes one field per base dimension, in declaration order.
 
 ```pycon
 >>> # Create a unit system
@@ -129,11 +131,11 @@ astuple(unit_system): (Unit("m"), Unit("kg"), Unit("s"), Unit("mol"), Unit("A"),
 
 ## Quantities
 
-Now let's explore how `dataclassish` works with quantities. We'll examine different quantity types.
+Every quantity class exposes the same two fields, `value` and `unit`.
 
 ### Basic Quantity
 
-The default `Quantity` type is the lightweight class wrapping unit information with a value.
+The default quantity class.
 
 ```pycon
 >>> # Create a quantity
@@ -188,7 +190,7 @@ get_field(distance, 'unit'): m
 
 ### Angle (specialized quantity with wrapping)
 
-`Angle` is a specialized quantity type for angular measurements with automatic wrapping.
+`Angle` has the same two fields as `Quantity`.
 
 ```pycon
 >>> # Create an Angle quantity
@@ -221,3 +223,8 @@ Angle value: 45.0
 >>> print(f"Angle unit: {angle_unit}")
 Angle unit: deg
 ```
+
+## See also
+
+- {doc}`quantity` — the quantity classes.
+- {doc}`unitsystems` — the unit-system classes and their fields.

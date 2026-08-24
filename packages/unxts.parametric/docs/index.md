@@ -13,7 +13,7 @@ sharp-bits
 
 `unxts.parametric` provides `ParametricQuantity` (alias `PQ`): a quantity that encodes its physical **dimension** in its _type_. It is the opt-in counterpart to the lightweight, non-parametric default `unxt.Quantity`.
 
-`ParametricQuantity` used to be the default `Quantity` in `unxt` v1. As of v2 the non-parametric class is the default and the parametric class lives here, in its own package. See the [migration guide](../../migration) for the full mapping.
+`ParametricQuantity` used to be the default `Quantity` in `unxt` v1. As of v2 the non-parametric class is the default and the parametric class lives here, in its own package. See the [migration guide](../../how-to/migrate-to-v2) for the full mapping.
 
 ## Install
 

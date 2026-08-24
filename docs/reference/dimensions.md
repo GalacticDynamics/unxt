@@ -190,6 +190,9 @@ The dimension-parametrized `ParametricQuantity` (from the separate [`unxts.param
 
 :::{seealso}
 
-[API Documentation for Dimensions](../api/dims)
+{doc}`API documentation for dimensions <api/dims>`
 
 :::
+
+- {doc}`units` — the measures of a dimension.
+- {doc}`unitsystems` — collections of base units.

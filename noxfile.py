@@ -241,9 +241,9 @@ def docs(s: nox.Session, /) -> None:
         "jupytext",
         "--to",
         "notebook",
-        "guides/perf.md",
+        "how-to/optimize-performance.md",
         "--output",
-        "guides/perf.ipynb",
+        "how-to/optimize-performance.ipynb",
     )
 
     if args.builder == "linkcheck":
@@ -275,7 +275,7 @@ def build_api_docs(s: nox.Session, /) -> None:
     s.run(
         "sphinx-apidoc",
         "-o",
-        "api/",
+        "reference/api/",
         "--module-first",
         "--no-toc",
         "--force",

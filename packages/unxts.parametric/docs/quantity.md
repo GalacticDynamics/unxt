@@ -1,6 +1,6 @@
 # Parametric Quantities
 
-Constructing a `ParametricQuantity` and its runtime dimension checking. For the lightweight, non-parametric default, see the [unxt Quantity guide](../../guides/quantity).
+Constructing a `ParametricQuantity` and its runtime dimension checking. For the lightweight, non-parametric default, see the [unxt Quantity reference](../../reference/quantity).
 
 ```{code-block} python
 >>> import unxt as u

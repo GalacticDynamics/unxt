@@ -29,7 +29,7 @@ Quantity
 
 ParametricQuantity
   `ParametricQuantity` (alias `up.PQ`, from the separate
-  [`unxts.parametric`](packages/unxts.parametric/index) package) is the opt-in,
+  [`unxts.parametric`](../packages/unxts.parametric/index) package) is the opt-in,
   *parametric* quantity class. It encodes the physical dimension in its type
   (e.g. ``ParametricQuantity['length']``), enabling dimension-specific
   multiple-dispatch and runtime dimension checking, at the cost of a distinct
