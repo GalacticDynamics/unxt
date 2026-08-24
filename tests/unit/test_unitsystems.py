@@ -532,6 +532,42 @@ def test_simulation_usys_underdetermined():
     assert usys == unitsystem(apyu.Unit("kg"))
 
 
+@pytest.mark.parametrize(
+    "usys",
+    [
+        unitsystem(DynamicalSimUSysFlag, "kpc", "Msun"),
+        unitsystems.hep,
+        unitsystems.geometrized,
+        unitsystems.planck,
+        unitsystems.atomic,
+    ],
+    ids=["dynamical", "hep", "geometrized", "planck", "atomic"],
+)
+@pytest.mark.parametrize(
+    ("dim", "unit_str"),
+    [
+        ("velocity", "km / s"),
+        ("acceleration", "km / s2"),
+        ("energy", "J"),
+        ("force", "N"),
+    ],
+)
+def test_derived_unit_of_scaled_system_is_printable(usys, dim, unit_str) -> None:
+    """Derived units of a flag-solved system can be printed and converted to.
+
+    Regression: these systems have `CompositeUnit` base units, so a derived
+    unit nested a composite inside its own bases, which astropy cannot format
+    -- ``repr(usys["velocity"])`` raised ``AttributeError: 'CompositeUnit'
+    object has no attribute '_get_format_name'``.
+    """
+    assert repr(usys[dim])  # used to raise; `repr` formats via `str`
+
+    # Converting onto the derived unit raised the same error, and must agree
+    # with stripping to the system as a whole.
+    q = u.Quantity(1.0, unit_str)
+    assert np.isclose(q.uconvert(usys[dim]).value, q.ustrip(usys), rtol=1e-5)
+
+
 # ===================================================================
 # Natural unit systems (issues #228-#232)
 
