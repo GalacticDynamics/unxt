@@ -9,7 +9,21 @@ import unxt as u
 import unxts.hypothesis as ust
 ```
 
-## `named_dimensions()`
+| Strategy             | Generates                                      |
+| -------------------- | ---------------------------------------------- |
+| `named_dimensions()` | a named physical dimension                     |
+| `units()`            | a unit of a given dimension                    |
+| `derived_units()`    | a unit dimensionally equivalent to a given one |
+| `quantities()`       | a `Quantity` of a given unit, shape and dtype  |
+| `angles()`           | an `Angle`, optionally wrapped to a range      |
+| `unitsystems()`      | an `AbstractUnitSystem` from given base units  |
+| `wrap_to()`          | a wrapped copy of a generated quantity         |
+
+`st.from_type()` also works on `unxt` types directly; the registrations are listed at the end of this page.
+
+## Dimensions and units
+
+### `named_dimensions()`
 
 Generate a named physical dimension from Astropy's physical type catalogue. This strategy samples from a curated set of 134 physical types and returns `u.AbstractDimension`. It pairs well with `units()` and `quantities()` for building dimension-aware tests.
 
@@ -41,7 +55,7 @@ def test_quantities_any_dimension(q):
 
 See also: `ust.DIMENSION_NAMES` for the full set of names, and `unxt.dimension` to construct dimensions directly from names. You can use `st.sampled_from(ust.DIMENSION_NAMES)` to create custom strategies using these names.
 
-## `derived_units(base, *, integer_powers=True, max_complexity=3)`
+### `derived_units(base, *, integer_powers=True, max_complexity=3)`
 
 Generate units that are dimensionally equivalent to a given base unit.
 
@@ -86,7 +100,7 @@ def test_simple_mass_units(unit):
     assert u.dimension_of(unit) == u.dimension("mass")
 ```
 
-## `units(dimension=named_dimensions(), /, **kwargs)`
+### `units(dimension=named_dimensions(), /, **kwargs)`
 
 Generate random `Unit` objects from astropy.
 
@@ -124,7 +138,9 @@ def test_complex_unit(u):
     assert u is not None
 ```
 
-## `quantities(unit=units(...), *, shape=(), dtype=jnp.float32, ...)`
+## Quantities, angles and unit systems
+
+### `quantities(unit=units(...), *, shape=(), dtype=jnp.float32, ...)`
 
 Generate random `Quantity` objects.
 
@@ -195,7 +211,7 @@ def test_custom_quantity(q):
     assert u.dimension_of(q) == u.dimension("length")
 ```
 
-## `unitsystems(*units)`
+### `unitsystems(*units)`
 
 Generate random `UnitSystem` objects.
 
@@ -241,7 +257,7 @@ def test_galactic_system(sys):
     assert len(sys) == 4
 ```
 
-## `angles(*, wrap_to=None, **kwargs)`
+### `angles(*, wrap_to=None, **kwargs)`
 
 Generate random `Angle` objects with optional wrapping bounds.
 
@@ -301,7 +317,7 @@ def test_angle_with_strategy_wrapping(angle):
     assert -180 <= angle.value <= 180
 ```
 
-## `wrap_to(quantity, min, max)`
+### `wrap_to(quantity, min, max)`
 
 Generate wrapped quantities by constraining values to a specified range.
 
@@ -362,7 +378,7 @@ def test_wrapped_angle_with_strategies(angle):
 
 Note: The `angles()` strategy provides a more convenient interface for generating wrapped angles and should be preferred for most use cases involving angle generation.
 
-## Type Strategy Registration
+## Type strategy registration
 
 The package automatically registers type strategies for Hypothesis's `st.from_type()` function, enabling automatic strategy generation for unxt types. This allows you to use type annotations directly in your tests without explicitly importing the strategy functions.
 
