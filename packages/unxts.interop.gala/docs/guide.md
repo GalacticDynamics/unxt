@@ -52,7 +52,7 @@ The reverse conversion goes through `plum.convert` with `gala.units.UnitSystem` 
 
 ## Round trip
 
-Converting a unit system to the other library and back yields an equivalent unit system:
+Converting a unit system to the other library and back gives you the same **base units**, and the repr is identical:
 
 ```{code-block} python
 
@@ -61,6 +61,32 @@ Converting a unit system to the other library and back yields an equivalent unit
 <UnitSystem (kpc, Myr, solMass, rad)>
 
 ```
+
+:::{warning}
+
+The round trip is **not** lossless, and the recovered system does not compare equal to the original:
+
+```{code-block} python
+
+>>> back == gu.galactic
+False
+
+```
+
+A `gala.units.UnitSystem` can register a preferred unit for a _derived_ dimension alongside its base units, and `gala.galactic` does exactly that — it prefers `km / s` for velocity, even though its base units would give `kpc / Myr`:
+
+```{code-block} python
+
+>>> gu.galactic["speed"]
+Unit("km / s")
+
+```
+
+An `unxt` unit system has no slot for that: it holds one unit per _base_ dimension and composes everything else, so `usys["velocity"]` is always `kpc / Myr`. The preference is dropped on the way in and cannot be reconstructed on the way back.
+
+If you need the original object, keep a reference to it rather than round-tripping. If you only need the base units, the round trip is fine.
+
+:::
 
 ## See also
 

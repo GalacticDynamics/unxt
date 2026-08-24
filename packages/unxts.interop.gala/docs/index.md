@@ -4,6 +4,7 @@
 :maxdepth: 1
 :hidden:
 
+tutorial-galactic-units
 guide
 api
 ```
@@ -74,6 +75,10 @@ unitsystem(kpc, Myr, solMass, rad)
 ```
 
 ## Pages
+
+**Tutorial**
+
+- [Compute in galactic units](tutorial-galactic-units) — start here: borrow `gala`'s galactic unit system and use it to work out the Sun's orbital timescale.
 
 **How-to**
 
