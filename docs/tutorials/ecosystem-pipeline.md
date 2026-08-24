@@ -1,8 +1,8 @@
 # Carry units through a whole analysis
 
-In this tutorial we will take a dataset whose units are only labels, turn them into real units, compute a derived physical quantity, and plot it — passing the data through `xarray`, `unxt` and `matplotlib` without ever writing a conversion factor or an axis label by hand.
+Three libraries that know nothing about each other, and the units survive all of it. That is what the `unxts.*` packages are for, and it is much easier to watch than to describe.
 
-Three libraries that know nothing about each other, and the units survive all of it. That is the point of the `unxts.*` packages, and it is easier to see than to describe.
+So let's watch. We will take a dataset whose units are only labels, make them real, compute a derived quantity from them, and plot the result — passing the data through `xarray`, `unxt` and `matplotlib` without writing one conversion factor or axis label by hand.
 
 You need `unxt`, `unxts.interop.xarray`, `unxts.interop.matplotlib`, `xarray` and `matplotlib` installed. `pip install "unxt[interop-xarray,interop-mpl]"` gets all of it.
 

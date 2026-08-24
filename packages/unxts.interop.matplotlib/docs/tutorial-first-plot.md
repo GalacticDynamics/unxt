@@ -1,6 +1,6 @@
 # Plot data that knows its units
 
-In this tutorial we will plot two `unxt` quantities and never once tell `matplotlib` what the axes are measured in. The units come from the data, the axis labels write themselves, and a second dataset in a different unit lands in the right place on the same axes.
+We are going to plot two `unxt` quantities and never once tell `matplotlib` what the axes are measured in. The units come from the data, the axis labels write themselves, and a second dataset in a different unit still lands in the right place on the same axes.
 
 You need `unxt`, `unxts.interop.matplotlib` and `matplotlib` installed, and nothing else.
 
@@ -67,7 +67,7 @@ Unit("h")
 
 ## Add data in a different unit
 
-This is the part worth slowing down for. Let's add a second journey — the same distances, but with the times given in **minutes** instead of hours:
+Now for the interesting bit. Let's add a second journey: same distances, but the times given in **minutes** instead of hours.
 
 ```{code-block} python
 >>> t_minutes = u.Q(jnp.asarray([0.0, 60.0, 120.0]), "min")

@@ -1,6 +1,6 @@
 # Build a heterogeneous metric
 
-In this tutorial we will build a metric tensor whose entries have _different_ physical units, read its diagonal, take its determinant, and convert the whole thing to another unit system — all with the units tracked for us. A single-unit `unxt.Quantity` cannot represent such an object at all.
+Some objects refuse to have a single unit. A metric tensor is one: its entries carry _different_ physical units, so an ordinary `unxt.Quantity` cannot represent it at all. Here we will build one, read its diagonal, take its determinant, and convert the whole thing into other units, with the bookkeeping done for us.
 
 You need `unxt` and `unxts.linalg` installed and nothing else.
 
@@ -53,7 +53,7 @@ Quantity(Array(4., dtype=float32), unit='m2 / rad2')
 
 ```
 
-Two entries of the same matrix, two different units. That is the whole point of the type.
+Two entries of the same matrix, two different units. This is what the type exists for.
 
 ## Read off the diagonal
 
@@ -69,7 +69,7 @@ Array([1., 4.], dtype=float32)
 
 ```
 
-Notice that the heterogeneous units came through unchanged. `.diag()` works on the stored unit structure rather than on the numbers, so each output element keeps the unit it had.
+The heterogeneous units came through unchanged. `.diag()` works on the stored unit structure rather than on the numbers, so each output element keeps the unit it had.
 
 ## Take the determinant
 

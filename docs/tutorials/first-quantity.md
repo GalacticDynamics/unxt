@@ -1,6 +1,6 @@
 # Your first calculation with units
 
-In this tutorial we will build a small projectile-range calculator in which every number carries its physical units, and then run it through JAX's compiler and autodifferentiation. By the end you will have a function you can re-run, on vectors of inputs, on any planet.
+We are going to build a projectile-range calculator in which every number carries its physical units, then hand the whole thing to JAX's compiler and its autodifferentiation. It is a small program, and by the end you will be able to re-run it on vectors of inputs, or on another planet, without touching the arithmetic.
 
 You need `unxt` installed and nothing else — no accounts, no data files, no network.
 
@@ -41,7 +41,7 @@ Quantity(Array(9.81, dtype=float32, weak_type=True), unit='m / s2')
 
 ## Watch the units do arithmetic
 
-Here is the part worth slowing down for. Divide the speed by the acceleration:
+Now divide the speed by the acceleration, and watch what comes back:
 
 ```{code-block} python
 >>> v0 / g

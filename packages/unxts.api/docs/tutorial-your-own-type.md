@@ -1,6 +1,6 @@
 # Teach unxt about your own type
 
-In this tutorial we will take a class that `unxt` has never heard of and make `unxt`'s own functions work on it — `unit_of`, `dimension_of`, `ustrip`, `uconvert` — without subclassing anything and without touching `unxt`'s source. By the end, a function written against `unxt`'s API will accept our type as readily as a `Quantity`.
+Take a class that `unxt` has never heard of. By the end of this page, `unxt`'s own functions will work on it — `unit_of`, `dimension_of`, `ustrip`, `uconvert` — with nothing subclassed and not a line of `unxt` touched. A function written against `unxt`'s API will accept our class as readily as it accepts a `Quantity`.
 
 You need `unxt` installed and nothing else. (`unxts.api` comes with it.)
 

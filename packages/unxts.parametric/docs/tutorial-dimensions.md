@@ -92,7 +92,7 @@ PhysicalType('area')
 
 ```
 
-Notice that the result is not a length. Its type changed along with its unit:
+The result is no longer a length. Its type changed along with its unit:
 
 ```{code-block} python
 >>> type(area) is up.PQ["area"]

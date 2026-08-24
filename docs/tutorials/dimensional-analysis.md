@@ -1,6 +1,6 @@
 # Check a formula before you run it
 
-In this tutorial we will catch mistakes in physics formulas without computing anything. No arrays, no units, no numbers — just dimensions. By the end you will have a small consistency checker you can point at your own expressions, and you will have used it to derive a result rather than merely verify one.
+You can catch a mistake in a physics formula without computing anything at all. No arrays, no units, not a single number: just dimensions. In this tutorial we will do exactly that, and end up with a small consistency checker you can point at your own expressions — and with a result we derived rather than merely checked.
 
 You need `unxt` installed and nothing else.
 
@@ -71,7 +71,7 @@ PhysicalType('unknown')
 
 ```
 
-`unknown` is the answer you want to be alarmed by. It means the expression is dimensionally coherent but corresponds to nothing anybody has named — usually a sign that a term is missing.
+`unknown` is the answer you want to be alarmed by. The expression is dimensionally coherent, but it corresponds to nothing anybody has bothered to name, which usually means a term went missing.
 
 ## Derive something you do not know
 

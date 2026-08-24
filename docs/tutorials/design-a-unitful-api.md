@@ -80,7 +80,7 @@ Quantity(Array(617.3908, dtype=float32), unit='km / s')
 
 ## Find out what units still do not protect you from
 
-Here is the part worth slowing down for. Pass a **time** where the mass goes:
+So far so good. Now pass a **time** where the mass goes:
 
 ```{code-block} python
 >>> wrong = escape_velocity(u.Q(1.0, "s"), u.Q(696340.0, "km"))

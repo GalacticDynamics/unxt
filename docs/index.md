@@ -35,7 +35,7 @@ unxts.interop.xarray <packages/unxts.interop.xarray/index>
 
 **Unitful quantities and calculations in [JAX][jax].**
 
-`unxt` gives you arrays that carry their physical units, and keeps them working through everything JAX does: JIT compilation, vectorization, automatic differentiation, and GPU/TPU acceleration. It does not require unit-aware re-exports of JAX — your existing JAX code works, through one decorator.
+`unxt` gives you arrays that carry their physical units, and keeps them carrying those units through everything JAX does: JIT compilation, vectorization, automatic differentiation, GPU and TPU. There are no unit-aware re-exports of JAX to learn. Your existing JAX code works, with one decorator.
 
 ```{code-block} python
 
@@ -63,15 +63,15 @@ Install it with `pip install unxt` — see {doc}`how-to/install` for the other o
 :link: tutorials/index
 :link-type: doc
 
-**Tutorials.** A guided lesson that builds a unit-aware calculation from nothing
-and runs it through JAX. Start here if `unxt` is new to you.
+**Tutorials.** Guided lessons that build something from nothing and run it
+through JAX. Start here if `unxt` is new to you.
 :::
 
 :::{grid-item-card} 🔧 I need to get something done
 :link: how-to/index
 :link-type: doc
 
-**How-to guides.** Directions for a specific task: converting units, using JAX
+**How-to guides.** Directions for one specific task: converting units, using JAX
 functions, controlling display, migrating from v1, making it fast.
 :::
 
@@ -79,7 +79,7 @@ functions, controlling display, migrating from v1, making it fast.
 :link: reference/index
 :link-type: doc
 
-**Reference.** What every class, function and option is and does — plus the
+**Reference.** What every class, function and option is and does, plus the
 generated API documentation and the glossary.
 :::
 
@@ -87,8 +87,8 @@ generated API documentation and the glossary.
 :link: explanation/index
 :link-type: doc
 
-**Discussion.** Why `unxt` is designed the way it is, and where units and JAX
-interact in ways that surprise people.
+**Discussion.** Why `unxt` is built the way it is, and where units and JAX
+surprise people.
 :::
 
 ::::

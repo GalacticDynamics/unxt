@@ -86,7 +86,7 @@ UnitConversionError
 
 ```
 
-That is the whole point of the exercise. The operation that silently produced nonsense a moment ago now refuses to run.
+There it is. The operation that quietly produced nonsense a moment ago now refuses to run at all.
 
 ## Compute something that does make sense
 
@@ -149,7 +149,7 @@ Quantity(Array([ 90000., 180000., 270000.], dtype=float32), unit='m')
 
 ## What we built
 
-You took a dataset whose units were decorative, made them real, watched a bug that had been silent become an exception, computed a derived quantity whose unit came out of the arithmetic, and wrote the labels back for storage. That is the whole `quantify` / `dequantify` cycle, and it is the shape of nearly every workflow with this package.
+You took a dataset whose units were decorative, made them real, watched a bug that had been silent become an exception, computed a derived quantity whose unit came out of the arithmetic, and wrote the labels back for storage. That round trip — `quantify`, compute, `dequantify` — is the shape of nearly every workflow with this package.
 
 ## Where to go next
 
