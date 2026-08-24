@@ -54,5 +54,6 @@ setup_matplotlib_support_for_unxt(enable=True)  # re-enable
 
 ## See also
 
+- [Plot data that knows its units](tutorial-first-plot) — the lesson, if you have not plotted a quantity before.
 - [API](api) — the converter and its setup function.
 - [matplotlib units documentation](https://matplotlib.org/stable/gallery/units/index.html)

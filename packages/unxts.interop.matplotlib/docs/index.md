@@ -4,6 +4,7 @@
 :maxdepth: 1
 :hidden:
 
+tutorial-first-plot
 guide
 api
 ```
@@ -73,6 +74,10 @@ plt.plot(x, y)
 ```
 
 ## Pages
+
+**Tutorial**
+
+- [Plot data that knows its units](tutorial-first-plot) — start here: plot two quantities, watch the axis labels write themselves, and see a dataset in the wrong unit land in the right place.
 
 **How-to**
 
