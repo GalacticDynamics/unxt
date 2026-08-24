@@ -12,7 +12,9 @@ convert-units
 use-jax-functions
 control-display
 check-types-at-runtime
+register-a-quax-rule
 define-a-unit-system
+build-a-simulation-unit-system
 work-in-natural-units
 interoperate-with-astropy
 optimize-performance
@@ -33,10 +35,12 @@ migrate-to-v2
 ## Units and unit systems
 
 - {doc}`define-a-unit-system` — write your own `AbstractUnitSystem` subclass.
+- {doc}`build-a-simulation-unit-system` — a system where $G = 1$, for dynamics codes.
 - {doc}`work-in-natural-units` — worked examples in HEP, geometrized, atomic and Planck units.
 
 ## Correctness and speed
 
 - {doc}`check-types-at-runtime` — enforce dtype and shape annotations at runtime.
 - {doc}`optimize-performance` — keep wrapper overhead off your hot path.
+- {doc}`register-a-quax-rule` — teach JAX a primitive rule of your own.
 - {doc}`interoperate-with-astropy` — move values between `astropy` and `unxt` safely.

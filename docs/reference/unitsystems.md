@@ -187,5 +187,6 @@ Unit("m2 kg / s2")
 
 - {doc}`units` — individual units.
 - {doc}`../how-to/define-a-unit-system` — writing an `AbstractUnitSystem` subclass.
+- {doc}`../how-to/build-a-simulation-unit-system` — a system where $G = 1$.
 - {doc}`../how-to/work-in-natural-units` — worked examples in each natural system.
 - {doc}`API documentation for unit systems <api/unitsystems>`

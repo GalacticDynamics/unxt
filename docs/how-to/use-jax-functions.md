@@ -154,5 +154,6 @@ Branching on a _dimension_ is a different matter and is fine: dimensions are sta
 - {doc}`../explanation/sharp-bits` — where units and JAX surprise you, and why.
 - {doc}`optimize-performance` — keeping the wrapper overhead off your hot path.
 - {doc}`../reference/quantity` — the full `Quantity` surface.
+- {doc}`register-a-quax-rule` — if a primitive is missing, or you have your own array type.
 
 [quaxed]: https://quaxed.readthedocs.io/en/latest/

@@ -194,5 +194,6 @@ The dimension-parametrized `ParametricQuantity` (from the separate [`unxts.param
 
 :::
 
+- {doc}`../tutorials/dimensional-analysis` — checking and deriving formulas with dimensions alone.
 - {doc}`units` — the measures of a dimension.
 - {doc}`unitsystems` — collections of base units.
