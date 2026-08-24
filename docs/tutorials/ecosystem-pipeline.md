@@ -151,6 +151,11 @@ $\mathrm{M_{\odot}}$
 
 The solar-mass symbol, from a quantity we computed rather than declared.
 
+```{code-block} python
+>>> plt.close("all")
+
+```
+
 ## Put it back
 
 Store the derived column alongside the originals and hand the dataset back to the world it came from:

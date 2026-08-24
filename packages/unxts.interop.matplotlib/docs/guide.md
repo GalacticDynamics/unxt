@@ -23,7 +23,8 @@ import jax.numpy as jnp
 x = u.Q(jnp.linspace(0, 360, 100), "deg")
 y = u.Q(jnp.sin(x.ustrip("rad")), "")
 
-plt.plot(x, y)
+fig, ax = plt.subplots()
+ax.plot(x, y)
 ```
 
 ## Using `quaxed.numpy`
@@ -37,7 +38,8 @@ import quaxed.numpy as jnp
 x = u.Q(jnp.linspace(0, 360, 100), "deg")
 y = jnp.sin(x)
 
-plt.plot(x, y)
+fig, ax = plt.subplots()
+ax.plot(x, y)
 ```
 
 ## Disabling the converter

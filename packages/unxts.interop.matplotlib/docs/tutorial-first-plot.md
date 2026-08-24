@@ -130,6 +130,11 @@ $\mathrm{{}^{\circ}}$
 
 `jnp.sin` took degrees and returned a dimensionless result, and the x-axis picked up the degree symbol on its own.
 
+```{code-block} python
+>>> plt.close("all")
+
+```
+
 ## What we built
 
 Three figures, no axis labels written by hand, and a dataset in the wrong unit placed correctly instead of silently misplotted. All of it came from one import.

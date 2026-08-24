@@ -31,7 +31,7 @@ True
 
 ```
 
-To see what that time unit actually is, decompose it:
+To see what that time unit actually is in seconds, decompose it:
 
 ```{code-block} python
 >>> usys["time"].decompose()
@@ -93,21 +93,16 @@ Quantity(Array(471483., dtype=float32...), unit='Myr')
 
 ```
 
-:::{warning}
-
-**Derived units of a flag-built system cannot be printed.** The solved unit is a composite whose bases are themselves composite, and `astropy`'s formatter cannot name it — so `usys["velocity"]`, `usys["force"]` and friends raise `AttributeError` when `repr`'d or `str`'d, even though the unit itself is correct and usable.
-
-Work with them through `.decompose()`:
+The derived units are composites of the solved base unit, and read as a plain scale factor on SI:
 
 ```{code-block} python
->>> usys["velocity"].decompose()
+>>> usys["velocity"]
 Unit("2.07387 m / s")
 
+>>> usys["acceleration"]
+Unit("1.39383e-19 m / s2")
+
 ```
-
-or avoid naming them at all and let `ustrip(usys)` / `uconvert` do the work, as above. The base units (`length`, `mass`, `time`) print normally.
-
-:::
 
 ## See also
 
