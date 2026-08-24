@@ -35,11 +35,11 @@ Dispatch is on the annotated operand types, so one primitive can have many rules
 
 `unxt`'s own registrations are the largest worked example available, and they are grouped by package:
 
-| Module | Covers |
+| Module (path from the repository root) | Covers |
 | --- | --- |
-| `unxt/_src/quantity/register_primitives.py` | the core `Quantity` rules |
-| `unxts.parametric/_src/register_primitives.py` | rules that fire only for a parametric operand |
-| `unxts.linalg/_src/_register_primitives.py` | `QuantityMatrix`, including `dot_general` and `gather` |
+| `src/unxt/_src/quantity/register_primitives.py` | the core `Quantity` rules |
+| `packages/unxts.parametric/src/unxts/parametric/_src/register_primitives.py` | rules that fire only for a parametric operand |
+| `packages/unxts.linalg/src/unxts/linalg/_src/_register_primitives.py` | `QuantityMatrix`, including `dot_general` and `gather` |
 
 These are private modules. They are excellent to read and are **not** a stable interface — import from them and your code will break.
 

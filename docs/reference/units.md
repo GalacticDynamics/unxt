@@ -46,7 +46,7 @@ Unit("km / h")
 Returns the unit of an object. Objects that carry no unit — strings, for example — return `None`.
 
 ```{code-block} python
->>> print(u.unit_of("m"))  # str have no units
+>>> print(u.unit_of("m"))  # strings have no units
 None
 
 >>> u.unit_of(m)  # from a unit object
