@@ -8,10 +8,14 @@ If you already know what you want to accomplish, the {doc}`../how-to/index` will
 :maxdepth: 1
 
 first-quantity
+mars-lander
 ```
 
-- {doc}`first-quantity` — build a unit-aware projectile calculator, then compile, differentiate and vectorise it. **Start here.**
+Work through them in order.
+
+1. {doc}`first-quantity` — build a unit-aware projectile calculator, then compile, differentiate and vectorise it. **Start here.**
+2. {doc}`mars-lander` — build your own unit system, fly a descent simulation in it, and reproduce the unit mistake that destroyed the Mars Climate Orbiter.
 
 ## Not yet written
 
-There is currently one tutorial. A second lesson — building a small unit-aware simulation across a custom unit system — would be a natural follow-on and does not exist yet.
+Nothing teaches dimensional analysis with `unxt.dimension` as a technique in its own right — deriving what a formula's result _must_ be before computing it. That is the obvious third lesson.
