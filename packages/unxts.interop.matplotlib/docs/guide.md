@@ -1,6 +1,6 @@
-# `matplotlib` Interoperability Guide
+# How to plot quantities with matplotlib
 
-This guide shows how to plot `unxt.Quantity` objects with [matplotlib](https://matplotlib.org/).
+This guide shows you how to plot `unxt.Quantity` objects with [matplotlib](https://matplotlib.org/).
 
 ## Setup
 
@@ -52,7 +52,7 @@ setup_matplotlib_support_for_unxt(enable=False)  # stop converting Quantity
 setup_matplotlib_support_for_unxt(enable=True)  # re-enable
 ```
 
-## See Also
+## See also
 
-- [API reference](api) — the converter and its setup function
+- [API](api) — the converter and its setup function.
 - [matplotlib units documentation](https://matplotlib.org/stable/gallery/units/index.html)

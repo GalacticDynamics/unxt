@@ -12,7 +12,7 @@ The [`gala`][gala-link] package provides tools for Galactic dynamics. It is buil
 
 `unxts.interop.gala` is the canonical location for `gala` integration. It provides conversions between `gala.units.UnitSystem` and [`unxt.unitsystems.AbstractUnitSystem`][unxt-AbstractUnitSystem] objects. Importing the package — directly, or transitively via `unxt`, which imports it when both the package and `gala` are importable — registers the conversions as a side effect. (`unxt` guards on `gala` too, so on platforms where `gala` is absent the conversions are not registered.)
 
-## Installation
+## Install
 
 The recommended install adds `unxts.interop.gala` alongside `unxt` via the `interop-gala` [extra](https://peps.python.org/pep-0508/#extras), so it, `unxt`, and `gala` are resolved together as a compatible set:
 
@@ -58,7 +58,7 @@ pip install unxts.interop.gala
 
 ::::
 
-## Quick example
+## At a glance
 
 ```{code-block} python
 
@@ -73,9 +73,17 @@ unitsystem(kpc, Myr, solMass, rad)
 
 ```
 
-See the [guide](guide) for two-way conversion, and the [API reference](api) for the exposed functions.
+## Pages
+
+**How-to**
+
+- [How to convert between gala and unxt unit systems](guide) — both directions, via `unxt.unitsystem` and via `plum.convert`.
+
+**Reference**
+
+- [API](api) — the exposed conversion functions.
 
 [gala-link]: https://gala.adrian.pw/en/stable/
 [astropy-link]: https://www.astropy.org/
 [gala-UnitSystem]: https://gala.adrian.pw/en/stable/api/gala.units.UnitSystem.html
-[unxt-AbstractUnitSystem]: https://unxt.readthedocs.io/en/latest/api/unitsystems/#unxt.unitsystems.AbstractUnitSystem
+[unxt-AbstractUnitSystem]: https://unxt.readthedocs.io/en/latest/reference/api/unitsystems.html#unxt.unitsystems.AbstractUnitSystem

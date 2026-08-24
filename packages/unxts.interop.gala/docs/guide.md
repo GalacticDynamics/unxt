@@ -1,6 +1,6 @@
-# `gala` Interoperability Guide
+# How to convert between gala and unxt unit systems
 
-This guide shows how to convert between [`gala`][gala-link]'s `gala.units.UnitSystem` and `unxt`'s [`unxt.unitsystems.AbstractUnitSystem`][unxt-AbstractUnitSystem].
+This guide shows you how to convert between [`gala`][gala-link]'s `gala.units.UnitSystem` and `unxt`'s [`unxt.unitsystems.AbstractUnitSystem`][unxt-AbstractUnitSystem].
 
 ## Setup
 
@@ -62,11 +62,11 @@ Converting a unit system to the other library and back yields an equivalent unit
 
 ```
 
-## See Also
+## See also
 
-- [API reference](api) — the exposed conversion functions
+- [API](api) — the exposed conversion functions.
+- [unxt unit systems reference](https://unxt.readthedocs.io/en/latest/reference/unitsystems.html)
 - [gala documentation](https://gala.adrian.pw/en/stable/)
-- [unxt unit systems](https://unxt.readthedocs.io/)
 
 [gala-link]: https://gala.adrian.pw/en/stable/
-[unxt-AbstractUnitSystem]: https://unxt.readthedocs.io/en/latest/api/unitsystems/#unxt.unitsystems.AbstractUnitSystem
+[unxt-AbstractUnitSystem]: https://unxt.readthedocs.io/en/latest/reference/api/unitsystems.html#unxt.unitsystems.AbstractUnitSystem

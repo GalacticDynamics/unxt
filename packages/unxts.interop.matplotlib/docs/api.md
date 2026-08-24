@@ -1,4 +1,4 @@
-# `unxts.interop.matplotlib` API
+# API
 
 `unxts.interop.matplotlib` exposes the converter and a function to toggle it. Importing the package enables the converter automatically, so most users never need to call either directly.
 
