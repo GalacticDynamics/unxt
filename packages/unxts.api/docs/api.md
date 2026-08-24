@@ -1,4 +1,6 @@
-# `unxts.api` API
+# API
+
+Every abstract function `unxts.api` declares, with its signature, the implementations `unxt` registers for it, and an illustrative call.
 
 ## Dimensions
 

@@ -1,8 +1,10 @@
-# Extending `unxt`
+# How to extend unxt with your own types
 
-This guide shows how to extend `unxt` using the multiple dispatch system provided by `unxts.api`.
+This guide shows you how to make your own type work with `unxt`'s functions — `unit_of`, `dimension_of`, `uconvert`, `ustrip` and the rest — by registering implementations through `unxts.api`'s multiple dispatch. You do not need to modify `unxt`, and your type does not need to inherit from anything.
 
-## Understanding the Dispatch System
+For _why_ the API is built this way, see [Why an abstract dispatch API](why-abstract-dispatch).
+
+## What you are extending
 
 `unxt` uses [plum](https://beartype.github.io/plum/) for multiple dispatch, which means:
 
@@ -10,7 +12,7 @@ This guide shows how to extend `unxt` using the multiple dispatch system provide
 - The **runtime types** of arguments determine which implementation executes
 - You can **add new implementations** without modifying unxt's source code
 
-## Quick Example
+## Register your first implementation
 
 Let's say you have a custom quantity type and want it to work with unxt's functions:
 
@@ -50,7 +52,7 @@ u.unit_of(temp)  # Unit("K")
 u.dimension_of(temp)  # PhysicalType('temperature')
 ```
 
-## Registering Dispatch Functions
+## The three steps
 
 ### Step 1: Import the Abstract Function
 
@@ -85,7 +87,7 @@ def unit_of(obj: Temperature, /) -> u.AbstractUnit:
     return u.unit(obj.unit_str)
 ```
 
-## Common Extension Patterns
+## Common patterns
 
 ### Adding Unit Support to Custom Types
 
@@ -227,7 +229,7 @@ sys["length"]  # Unit("kpc")
 sys["time"]  # Unit("Myr")
 ```
 
-## Advanced Patterns
+## Harder cases
 
 ### Conditional Dispatch Based on Multiple Arguments
 
@@ -313,7 +315,7 @@ class MyClass:
 u.unit_of(MyClass())  # None
 ```
 
-## Debugging Dispatch
+## When dispatch does not do what you expect
 
 ### Viewing All Implementations
 
@@ -413,7 +415,7 @@ def my_func(obj: C, /):
 my_func(C())  # "C" - now unambiguous
 ```
 
-## Best Practices
+## Rules worth following
 
 ### 1. Use Type Annotations
 
@@ -502,7 +504,7 @@ def test_temperature_conversion():
     assert abs(temp_k.value - 273.15) < 1e-10
 ```
 
-## Package Integration Examples
+## Shipping it in a package
 
 ### Minimal Dependency Package
 
@@ -560,8 +562,9 @@ else:
 
 Users can use your package with or without unxt!
 
-## See Also
+## See also
 
-- [unxts.api API Reference](api)
+- [API](api) — what each abstract function promises.
+- [Why an abstract dispatch API](why-abstract-dispatch) — and what it costs.
 - [plum Documentation](https://beartype.github.io/plum/)
 - [unxt Documentation](https://unxt.readthedocs.io/)
