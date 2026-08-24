@@ -4,6 +4,7 @@
 :maxdepth: 1
 :hidden:
 
+tutorial-first-property
 strategies
 testing-guide
 recipes
@@ -60,6 +61,10 @@ def test_quantity_property(q):
 Hypothesis runs that test on many generated quantities and, when one fails, shrinks it to the smallest input that still fails.
 
 ## Pages
+
+**Tutorial**
+
+- [Write your first property test](tutorial-first-property) — start here: state a property instead of picking examples, and watch it run across units, shapes and dimensions you never enumerated.
 
 **How-to**
 

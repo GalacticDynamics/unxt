@@ -874,6 +874,7 @@ For more on debugging strategies, see the Hypothesis documentation on [Reproduci
 
 ## See also
 
+- [Write your first property test](tutorial-first-property) — if you have not written one before, start there.
 - [Strategies](strategies) — every strategy, its parameters and what it generates.
 - [How to combine strategies](recipes) — composition patterns.
 - [API](api)
