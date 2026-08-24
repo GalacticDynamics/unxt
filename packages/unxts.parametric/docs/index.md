@@ -4,6 +4,7 @@
 :maxdepth: 1
 :hidden:
 
+tutorial-dimensions
 quantity
 type-checking
 configuration
@@ -67,6 +68,10 @@ Reach for `ParametricQuantity` only when you need one of its two extra features:
 Everything else — arithmetic, unit conversion, JAX transforms, interop — works identically with either class. The cost of the parametric class, and why the non-parametric one became the default, is set out in the core docs under [Why `Quantity` is not parametric](../../explanation/why-quantity-is-non-parametric); the comparison table against `StaticQuantity` is in [the sharp bits](../../explanation/sharp-bits).
 
 ## Pages
+
+**Tutorial**
+
+- [Let the type system catch a unit mistake](./tutorial-dimensions) — start here: watch a wrong unit get rejected at construction, then write a function that dispatches on physical dimension.
 
 **Reference**
 
