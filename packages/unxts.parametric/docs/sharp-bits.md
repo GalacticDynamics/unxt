@@ -1,6 +1,6 @@
-# Sharp Bits
+# The parametric sharp bits
 
-Gotchas specific to `ParametricQuantity`. For the core `unxt` sharp bits, see the [unxt sharp bits](../../explanation/sharp-bits).
+Behaviours specific to `ParametricQuantity` that surprise people, and why. For the core `unxt` sharp bits, see the [unxt sharp bits](../../explanation/sharp-bits).
 
 ```{code-block} python
 >>> import unxt as u

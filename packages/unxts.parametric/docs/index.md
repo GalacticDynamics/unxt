@@ -5,7 +5,6 @@
 :hidden:
 
 quantity
-dimensions
 type-checking
 configuration
 sharp-bits
@@ -37,16 +36,16 @@ pip install unxts.parametric
 
 ::::
 
-Throughout these guides we import `unxt` as `u` and `unxts.parametric` as `up` (so `ParametricQuantity` is `up.PQ`):
+Throughout these pages we import `unxt` as `u` and `unxts.parametric` as `up` (so `ParametricQuantity` is `up.PQ`):
 
 ```{code-block} python
 >>> import unxt as u
 >>> import unxts.parametric as up
 ```
 
-## Quick start
+## At a glance
 
-`ParametricQuantity` (`up.PQ`) is used just like `Quantity`, but it encodes the physical dimension in its _type_ — and can check it at construction:
+`ParametricQuantity` is used just like `Quantity`, but it encodes the physical dimension in its _type_ — and can check it at construction:
 
 ```{code-block} python
 
@@ -58,38 +57,29 @@ ParametricQuantity(Array(1., dtype=float32, ...), unit='m')
 
 ```
 
-The sections below explain when this parametric behaviour is worth its cost.
-
-## Why the default `Quantity` is non-parametric
-
-`Quantity` (`u.Q`) is the lightweight, non-parametric default: a single class — and a single JAX pytree type — for all physical dimensions. `ParametricQuantity` (`up.PQ`) instead encodes the dimension in its _type_ — `ParametricQuantity["length"]` and `ParametricQuantity["time"]` are distinct Python classes, created on demand, and each is registered as its own JAX pytree node type.
-
-That per-dimension type proliferation carries real costs: a new class is created the first time each dimension is used (via `plum`'s parametric machinery), every one is a separately-registered pytree and dispatch type that JAX and `plum` must track, and construction runs dimension inference plus a validation check. The single-class `Quantity` avoids all of it — one class, one pytree type, lighter construction and dispatch.
-
-A note on `jax.jit`: this is **not** about jit cache misses. The `unit` is a _static_ field, so it lives in the pytree aux data (the treedef), which is part of the jit cache key — a jitted function therefore specializes per distinct unit with **either** class (a call on `"m"` is not reused for `"s"`). Choosing the parametric class does not change that per-unit compilation; it only adds the redundant per-dimension _type_ (a unit already implies its dimension).
-
-## When to reach for `ParametricQuantity`
+## Should you use it?
 
 Reach for `ParametricQuantity` only when you need one of its two extra features:
 
-1. **Runtime dimension checking** — `up.PQ["length"](1, "m")` validates the unit against the dimension at construction; the default `u.Q["length"](1, "m")` accepts the subscript for compatibility but does not check it.
+1. **Runtime dimension checking** — `up.PQ["length"](1, "s")` raises; the default `u.Q["length"](1, "s")` accepts the subscript for compatibility but does not check it.
 2. **Dispatch on specific dimensions** — `up.PQ["length"]` is a real type usable in `plum` dispatch annotations; `u.Q["length"]` is just `Quantity`.
 
-Everything else — arithmetic, unit conversion, JAX transforms, interop — works identically with either class.
+Everything else — arithmetic, unit conversion, JAX transforms, interop — works identically with either class. The cost of the parametric class, and why the non-parametric one became the default, is set out in the core docs under [Why `Quantity` is not parametric](../../explanation/why-quantity-is-non-parametric); the comparison table against `StaticQuantity` is in [the sharp bits](../../explanation/sharp-bits).
 
-| Type | Use case | Dimension in type | Performance |
-| --- | --- | --- | --- |
-| `unxt.Quantity` | Default choice | ❌ None | Better |
-| `ParametricQuantity` | Dimension dispatch / runtime checking | ✅ Yes | Good (a distinct type per dimension) |
-| `unxt.StaticQuantity` | Compile-time constants | ❌ None | Best (no tracer) |
+## Pages
 
-## Guides
+**Reference**
 
-- [Parametric Quantities](./quantity) — construction, runtime dimension checking, dimension-specific dispatch.
-- [Dimensions](dimensions) — `dimension_of` on a parametric class.
-- [Type Checking](type-checking) — dimension annotations enforced at runtime.
+- [`ParametricQuantity`](quantity) — construction, runtime dimension checking, dimension-specific dispatch, promotion with the default `Quantity`, and `dimension_of` on a parametrized class.
 - [Configuration](configuration) — the `include_params` display option.
-- [Sharp Bits](sharp-bits) — pytree-type proliferation and `StaticValue` equality.
+
+**How-to**
+
+- [How to check dimensions at runtime](type-checking) — dimension annotations enforced by `jaxtyping`.
+
+**Discussion**
+
+- [The parametric sharp bits](sharp-bits) — pytree-type proliferation and `StaticValue` equality.
 
 ## Public API
 

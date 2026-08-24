@@ -1,6 +1,6 @@
-# Parametric Quantities
+# `ParametricQuantity`
 
-Constructing a `ParametricQuantity` and its runtime dimension checking. For the lightweight, non-parametric default, see the [unxt Quantity reference](../../reference/quantity).
+`ParametricQuantity` (alias `PQ`) is a quantity parametrized by its physical dimension: `ParametricQuantity["length"]` and `ParametricQuantity["time"]` are distinct classes. For the lightweight, non-parametric default, see the [unxt Quantity reference](../../reference/quantity).
 
 ```{code-block} python
 >>> import unxt as u
@@ -74,3 +74,21 @@ ParametricQuantity(Array(10., dtype=float32, ...), unit='m2')
 >>> u.dimension_of(area)
 PhysicalType('area')
 ```
+
+## The dimension of a parametric class
+
+Because a `ParametricQuantity` encodes its dimension in the _class itself_, `unxt.dimension_of` works on a parametrized class — not only on instances:
+
+```{code-block} python
+>>> u.dimension_of(up.PQ["length"])  # a parameterized class carries a dimension
+PhysicalType('length')
+
+>>> u.dimension_of(up.PQ["length"](5.0, "m"))  # as does an instance of it
+PhysicalType('length')
+
+>>> try: u.dimension_of(up.PQ)  # ... the unparameterized class does not
+... except Exception as e: print(e)
+can only get dimensions from parametrized ParametricQuantity -- ParametricQuantity[dim].
+```
+
+The default `Quantity` carries no dimension, so `dimension_of` on the _class_ raises (only instances have a unit, and hence a dimension) — see the [unxt dimensions reference](../../reference/dimensions).

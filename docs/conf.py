@@ -77,6 +77,8 @@ rediraffe_redirects = {
     "api/units.md": "reference/api/units.md",
     "api/unitsystems.md": "reference/api/unitsystems.md",
     "api/experimental.md": "reference/api/experimental.md",
+    # Package doc sets, reorganised in the same pass.
+    "packages/unxts.parametric/dimensions.md": "packages/unxts.parametric/quantity.md",
 }
 
 exclude_patterns = [
