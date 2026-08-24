@@ -1,42 +1,32 @@
-# `xarray` Integration Guide
+# How to use unxt with xarray
 
-This guide shows how to use `unxts.interop.xarray` to integrate JAX-based physical quantities with `xarray`'s labeled multi-dimensional arrays.
+This guide shows you how to move between `xarray`'s unit _metadata_ — a `units` string in `.attrs` — and real `unxt` quantities, in both directions, for `DataArray`s and `Dataset`s alike.
 
-## Overview
+It assumes you already know `xarray`. If you want the functions underneath the `.unxt` accessor, see [API](api); for the two cases where the integration cannot do what you would expect, see [The xarray sharp bits](sharp-bits).
 
-`unxts.interop.xarray` provides seamless integration between:
-
-- **`unxt`**: JAX-based physical quantities with dimension checking
-- **`xarray`**: N-dimensional labeled arrays for scientific computing
-
-The integration enables you to:
-
-- Attach physical units to `xarray` DataArrays and Datasets
-- Preserve units through `xarray` operations
-- Convert between unit-aware (Quantity) and plain arrays with metadata
-- Use JAX transformations (jit, vmap, grad) on unit-aware `xarray` objects
-
-## Installation
+## Install
 
 ::::{tab-set}
-
-:::{tab-item} pip
-
-```bash
-pip install unxts.interop.xarray
-```
-
-:::
 
 :::{tab-item} uv
 
 ```bash
-uv add unxts.interop.xarray
+uv add "unxt[interop-xarray]"
+```
+
+:::
+
+:::{tab-item} pip
+
+```bash
+pip install "unxt[interop-xarray]"
 ```
 
 :::
 
 ::::
+
+Importing `unxts.interop.xarray` registers the `.unxt` accessor as a side effect, so import it once at startup — before you reach for `.unxt` on any object.
 
 ## Basic Usage
 
@@ -516,129 +506,3 @@ da_km = xr.DataArray(converted, dims=plain.dims).unxt.dequantify()
 print(da_km.attrs["units"])
 # 'km'
 ```
-
-## Lower-Level API
-
-The `.unxt` accessor covers most workflows, but the four underlying functions are also exported for use in pipelines, custom integrations, or cases where you need direct control.
-
-### `extract_unit_attributes`
-
-Reads `"units"` attrs from each variable and coordinate — without converting anything to a Quantity. Use this to inspect declared units before committing to a conversion.
-
-```python
-import xarray as xr
-from unxts.interop.xarray import extract_unit_attributes
-
-ds = xr.Dataset(
-    {
-        "temperature": ("time", [273.0, 293.0], {"units": "K"}),
-        "pressure": ("time", [101325.0, 102000.0]),
-    }
-)
-print(extract_unit_attributes(ds))
-# {'temperature': Unit("K")}
-```
-
-### `attach_units`
-
-Attaches units to a DataArray or Dataset, converting plain array data into Quantities. Use `None` as the key for a DataArray's own data (as opposed to a named coordinate).
-
-```python
-import xarray as xr
-from unxts.interop.xarray import attach_units
-
-da = xr.DataArray([1.0, 2.0, 3.0], dims=["x"])
-quantified = attach_units(da, {None: "m"})
-print(quantified.data)
-# Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
-```
-
-Use `attach_units` directly when you already have a units mapping (e.g., from a file header or a prior `extract_unit_attributes` call) and want to skip the attribute-reading step.
-
-### `extract_units`
-
-Reads the units from **existing Quantities** in a DataArray or Dataset. This is the inverse of `attach_units` — use it when you need the units for computation before stripping them.
-
-```python
-import xarray as xr
-import unxt as u
-from unxts.interop.xarray import extract_units
-
-q = u.Quantity([1.0, 2.0], "m")
-da = xr.DataArray(q, dims=["x"])
-print(extract_units(da))
-# {None: Unit("m")}
-```
-
-### `strip_units`
-
-Removes Quantity wrappers, returning plain arrays. The unit information is discarded unless you capture it with `extract_units` first.
-
-```python
-import xarray as xr
-import unxt as u
-from unxts.interop.xarray import strip_units
-
-q = u.Quantity([1.0, 2.0], "m")
-da = xr.DataArray(q, dims=["x"])
-stripped = strip_units(da)
-print(stripped.data)
-# Array([1., 2.], dtype=float32)
-```
-
-### When to use the low-level API
-
-| Task | Use |
-| --- | --- |
-| Interactive quantify/dequantify | `.unxt.quantify()` / `.unxt.dequantify()` |
-| Inspect declared units without converting | `extract_unit_attributes` |
-| Attach a pre-built units mapping | `attach_units` |
-| Read units from already-quantified data | `extract_units` |
-| Strip Quantities to plain arrays | `strip_units` |
-| Build a custom quantify/dequantify pipeline | All four, composed manually |
-
-## Limitations
-
-### Dimension Coordinates Cannot Hold Quantities
-
-`xarray` backs every _dimension coordinate_ (one named like its dimension, shown with a `*` in the repr) with a `pandas.Index`. Building that index coerces the data to a plain `numpy` array, so a dimension coordinate cannot hold a `Quantity`. This is inherent to `xarray`'s indexing model, not something `unxts.interop.xarray` can override, and it affects every duck-array unit library (including `pint-xarray`) the same way.
-
-Assigning one now **raises** rather than dropping the unit on the floor — `Quantity.__array__` refuses to hand a dimensionful value to a consumer that cannot see its unit. `quantify()` handles this for you by leaving dimension coordinates plain.
-
-**Workaround**: store the unitful values on a _non-dimension_ coordinate, keeping a plain index on the dimension itself:
-
-```python
-import unxt as u
-import xarray as xr
-
-data = [10.0, 20.0, 30.0]
-quantities = u.Quantity([1.0, 2.0, 3.0], "m")
-
-# Dimension coordinate: refused, because the unit could not survive
-try:
-    xr.DataArray(data, dims=["x"], coords={"x": quantities})
-except Exception as e:
-    print(type(e).__name__)
-# UnitConversionError
-
-# Non-dimension coordinate: the Quantity (and its unit) is preserved
-da = xr.DataArray(data, dims=["i"], coords={"i": [0, 1, 2], "x": ("i", quantities)})
-print(da.coords["x"].data)
-# Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
-```
-
-### Operations That Drop Units
-
-A few `xarray` operations route through code paths that cannot preserve a `Quantity`:
-
-- **`rolling` / sliding-window reductions** use `numpy.lib.stride_tricks`, which has no Array API (or `jax.numpy`) equivalent, so they are unsupported on JAX-backed data generally — not specific to units.
-- **`interp`** delegates to `scipy`/`numpy` interpolation internally and returns a plain array (the same behavior as `pint-xarray`).
-
-For these, `dequantify`, operate, then re-`quantify`, or work on `.data` with `unxt`/`quaxed` directly.
-
-## See Also
-
-- [unxt documentation](https://unxt.readthedocs.io/) - Core unitful quantities
-- [xarray documentation](https://docs.xarray.dev/) - Labeled arrays
-- [JAX documentation](https://jax.readthedocs.io/) - Composable transformations
-- [Astropy units](https://docs.astropy.org/en/stable/units/) - Unit definitions
