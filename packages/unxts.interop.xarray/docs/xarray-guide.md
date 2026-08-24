@@ -2,7 +2,7 @@
 
 This guide shows you how to move between `xarray`'s unit _metadata_ — a `units` string in `.attrs` — and real `unxt` quantities, in both directions, for `DataArray`s and `Dataset`s alike.
 
-It assumes you already know `xarray`. If you want the functions underneath the `.unxt` accessor, see [API](api); for the two cases where the integration cannot do what you would expect, see [The xarray sharp bits](sharp-bits).
+It assumes you already know `xarray`; if you have not quantified anything before, start with [Turn unit labels into real units](tutorial-first-dataset). If you want the functions underneath the `.unxt` accessor, see [API](api); for the two cases where the integration cannot do what you would expect, see [The xarray sharp bits](sharp-bits).
 
 ## Install
 

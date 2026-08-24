@@ -4,6 +4,7 @@
 :maxdepth: 1
 :hidden:
 
+tutorial-first-dataset
 xarray-guide
 api
 sharp-bits
@@ -81,6 +82,10 @@ plain.attrs["units"]
 `quantify()` reads the `units` attribute and turns the values into a `Quantity`; `dequantify()` reverses it, putting the unit back in `.attrs`.
 
 ## Pages
+
+**Tutorial**
+
+- [Turn unit labels into real units](tutorial-first-dataset) — start here: watch `xarray` add kilometres to hours without complaint, then quantify and watch the same operation refuse.
 
 **How-to**
 
