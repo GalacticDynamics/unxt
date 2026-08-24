@@ -58,7 +58,17 @@ Unit("m")
 
 ```
 
-Look carefully at what just happened. We called `u.unit_of` — `unxt`'s function, the one we did not modify — and it dispatched into the implementation we wrote a moment ago. A bare `@dispatch` on a function of the same name extends the existing dispatch function rather than shadowing it, so `unit_of` and `u.unit_of` are now literally the same object with one more method on it.
+Look carefully at what just happened. We called `u.unit_of` — `unxt`'s function, the one we did not modify — and it dispatched into the implementation we wrote a moment ago:
+
+```{code-block} python
+>>> unit_of is u.unit_of
+True
+
+```
+
+The same object, with one more method on it. We never imported `unit_of`, and we did not need to: `plum.dispatch` is a single shared dispatcher, and it files module-level functions under their bare `__name__`. Writing `@dispatch` on a function called `unit_of` puts your implementation into the one and only `unit_of`, wherever in your codebase you wrote it.
+
+That cuts both ways, so it is worth saying plainly: the name is the whole key. A `@dispatch def unit_of` you meant as your own private helper would join `unxt`'s function too. Name these after the API function you intend to extend, and nothing else.
 
 ## Add the dimension
 
