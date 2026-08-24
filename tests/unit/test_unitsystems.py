@@ -543,8 +543,16 @@ def test_simulation_usys_underdetermined():
     ],
     ids=["dynamical", "hep", "geometrized", "planck", "atomic"],
 )
-@pytest.mark.parametrize("dim", ["velocity", "acceleration", "energy", "force"])
-def test_derived_unit_of_scaled_system_is_printable(usys, dim) -> None:
+@pytest.mark.parametrize(
+    ("dim", "unit_str"),
+    [
+        ("velocity", "km / s"),
+        ("acceleration", "km / s2"),
+        ("energy", "J"),
+        ("force", "N"),
+    ],
+)
+def test_derived_unit_of_scaled_system_is_printable(usys, dim, unit_str) -> None:
     """Derived units of a flag-solved system can be printed and converted to.
 
     Regression: these systems have `CompositeUnit` base units, so a derived
@@ -552,12 +560,12 @@ def test_derived_unit_of_scaled_system_is_printable(usys, dim) -> None:
     -- ``repr(usys["velocity"])`` raised ``AttributeError: 'CompositeUnit'
     object has no attribute '_get_format_name'``.
     """
-    assert str(usys[dim])  # used to raise
+    assert repr(usys[dim])  # used to raise; `repr` formats via `str`
 
-    speed = u.Quantity(220.0, "km/s")
-    assert np.isclose(
-        speed.uconvert(usys["velocity"]).value, speed.ustrip(usys), rtol=1e-5
-    )
+    # Converting onto the derived unit raised the same error, and must agree
+    # with stripping to the system as a whole.
+    q = u.Quantity(1.0, unit_str)
+    assert np.isclose(q.uconvert(usys[dim]).value, q.ustrip(usys), rtol=1e-5)
 
 
 # ===================================================================
