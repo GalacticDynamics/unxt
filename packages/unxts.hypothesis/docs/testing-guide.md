@@ -149,14 +149,12 @@ def test_transpose_shape(q):
     assert qt.unit == q.unit
 
 
-@given(q1=ust.quantities(shape=(3, 4)), q2=ust.quantities(shape=(4, 5)))
+# Generate dimensionless quantities: `ustrip("")` converts *to* dimensionless,
+# so it raises on a quantity that has a real unit rather than discarding it.
+@given(q1=ust.quantities("", shape=(3, 4)), q2=ust.quantities("", shape=(4, 5)))
 def test_matrix_multiplication_shape(q1, q2):
     """Matrix multiplication produces correct shape."""
-    # Make dimensionless for matrix multiplication
-    q1_dimensionless = q1.ustrip("")
-    q2_dimensionless = q2.ustrip("")
-
-    result = jnp.matmul(q1_dimensionless, q2_dimensionless)
+    result = jnp.matmul(q1.ustrip(""), q2.ustrip(""))
     assert result.shape == (3, 5)
 ```
 
@@ -253,8 +251,10 @@ Example combining both approaches:
 @given(q1=st.from_type(u.Q), q2=st.from_type(u.Q))
 def test_quantity_equality_reflexive(q1, q2):
     """Quantity equality is reflexive."""
-    assert q1 == q1
-    assert q2 == q2
+    # `==` is element-wise and returns a dimensionless Quantity of bools, so
+    # reduce it: a bare `assert q1 == q1` is ambiguous for any non-scalar.
+    assert bool(jnp.all((q1 == q1).value))
+    assert bool(jnp.all((q2 == q2).value))
 
 
 # Specific test using explicit strategy
@@ -435,19 +435,35 @@ def test_realistic_radius(radius):
 
 ### Using Dtype Strategies
 
-The `dtype` parameter can also be a strategy, allowing you to test across different numeric types:
+The `dtype` parameter can also be a strategy, allowing you to test across different numeric types.
+
+:::{important}
+
+JAX disables 64-bit types unless you opt in. Asking a strategy for `jnp.float64` without setting `jax_enable_x64` makes Hypothesis generate values that the float32 array JAX actually builds cannot hold, and the test errors with `InvalidArgument` rather than failing a property. Either keep to 32-bit types, as below, or enable x64 for the whole process before importing anything that builds arrays:
+
+<!-- skip: next -->
+
+```python
+import jax
+
+jax.config.update("jax_enable_x64", True)
+```
+
+That switch is global and permanent for the process, so set it in `conftest.py` rather than inside one test module.
+
+:::
 
 ```python
 @given(
     q=ust.quantities(
         unit="m",
-        dtype=st.sampled_from([jnp.float32, jnp.float64]),
+        dtype=st.sampled_from([jnp.float32, jnp.complex64]),
         shape=(3,),
     )
 )
 def test_precision_independence(q):
-    """Test that operations work with different precisions."""
-    assert q.dtype in (jnp.float32, jnp.float64)
+    """Test that operations work across numeric types."""
+    assert q.dtype in (jnp.float32, jnp.complex64)
     # Operation should work regardless of dtype
     norm = jnp.linalg.norm(q.value)
     assert jnp.isfinite(norm)
@@ -456,14 +472,14 @@ def test_precision_independence(q):
 @given(
     q=ust.quantities(
         unit="rad",
-        dtype=st.sampled_from([jnp.float32, jnp.float64, jnp.complex64]),
+        dtype=st.sampled_from([jnp.float32, jnp.complex64]),
         shape=(),
     )
 )
 def test_angle_with_various_dtypes(q):
     """Test that angle operations handle different dtypes."""
     # Even complex dtypes might be used in some contexts
-    assert q.dtype in (jnp.float32, jnp.float64, jnp.complex64)
+    assert q.dtype in (jnp.float32, jnp.complex64)
 ```
 
 ### Combining Strategies
@@ -474,7 +490,7 @@ You can combine dimension and dtype strategies for comprehensive testing:
 @given(
     q=ust.quantities(
         st.sampled_from([u.dimension("length"), u.dimension("time")]),
-        dtype=st.sampled_from([jnp.float32, jnp.float64]),
+        dtype=st.sampled_from([jnp.float32, jnp.int32]),
         shape=(5,),
     )
 )
@@ -483,7 +499,7 @@ def test_combined_strategies(q):
     # Both dimension and dtype will vary across test runs
     dim = u.dimension_of(q)
     assert dim in (u.dimension("length"), u.dimension("time"))
-    assert q.dtype in (jnp.float32, jnp.float64)
+    assert q.dtype in (jnp.float32, jnp.int32)
     assert q.shape == (5,)
 ```
 
@@ -606,14 +622,14 @@ def test_distance_generation(distance):
     angle=ust.quantities(
         "deg",
         quantity_cls=u.Angle,
-        dtype=jnp.float64,
-        elements=st.floats(min_value=0, max_value=360, width=64),
+        dtype=jnp.float32,
+        elements=st.floats(min_value=0, max_value=360, width=32),
     )
 )
 def test_angle_with_constraints(angle):
     """Combine quantity_cls with dtype and element constraints."""
     assert isinstance(angle, u.Angle)
-    assert angle.dtype == jnp.float64
+    assert angle.dtype == jnp.float32
     assert bool(jnp.all(angle.value >= 0)) and bool(jnp.all(angle.value <= 360))
 ```
 
