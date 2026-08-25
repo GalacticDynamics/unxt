@@ -105,4 +105,4 @@ For citation information and the surrounding ecosystem, see {doc}`about/index`.
 
 <!-- LINKS -->
 
-[jax]: https://jax.readthedocs.io/en/latest/
+[jax]: https://docs.jax.dev/en/latest/

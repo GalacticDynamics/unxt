@@ -40,7 +40,7 @@ pip install -e .  # editable mode
 
 ::::
 
-Installing `unxt` brings in JAX, [`quax`](https://github.com/patrick-kidger/quax), [`quaxed`](https://quaxed.readthedocs.io/en/latest/) and [`astropy`](https://www.astropy.org/), which is the unit backend.
+Installing `unxt` brings in JAX, [`quax`](https://github.com/patrick-kidger/quax), [`quaxed`](https://github.com/GalacticDynamics/quaxed) and [`astropy`](https://www.astropy.org/), which is the unit backend.
 
 ## Install an add-on package
 

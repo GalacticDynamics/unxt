@@ -23,7 +23,7 @@ If `unxt` was useful in your work and you want to support the development and ma
 
 - [Equinox](https://docs.kidger.site/equinox/) — one-stop JAX library, for everything not already in core JAX.
 - [Quax](https://github.com/patrick-kidger/quax) — JAX + multiple dispatch + custom array-ish objects.
-- [Quaxed](https://quaxed.readthedocs.io/en/latest/) — pre-`quaxify`ed JAX.
+- [Quaxed](https://github.com/GalacticDynamics/quaxed) — pre-`quaxify`ed JAX.
 - [plum](https://pypi.org/project/plum-dispatch/) — multiple dispatch in Python.
 - [unxts.api](https://pypi.org/project/unxts.api/) — the abstract dispatch API for `unxt`.
 

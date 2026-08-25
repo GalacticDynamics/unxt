@@ -29,7 +29,7 @@ ax.plot(x, y)
 
 ## Using `quaxed.numpy`
 
-With [`quaxed`](https://quaxed.readthedocs.io/)'s unit-aware `numpy` namespace, the intermediate values stay `Quantity` objects and units propagate through the computation:
+With [`quaxed`](https://github.com/GalacticDynamics/quaxed)'s unit-aware `numpy` namespace, the intermediate values stay `Quantity` objects and units propagate through the computation:
 
 ```{code-block} python
 

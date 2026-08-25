@@ -113,7 +113,7 @@ $\mathrm{km\,h^{-1}}$
 
 The `km / h` label came out of the division. Nothing in the plotting code knows what a speed is.
 
-Using [`quaxed`](https://quaxed.readthedocs.io/)'s `numpy` keeps units through maths functions too:
+Using [`quaxed`](https://github.com/GalacticDynamics/quaxed)'s `numpy` keeps units through maths functions too:
 
 ```{code-block} python
 >>> angle = u.Q(jnp.linspace(0.0, 360.0, 100), "deg")

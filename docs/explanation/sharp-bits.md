@@ -168,6 +168,6 @@ The equality semantics differ too: a `ParametricQuantity` backed by a JAX array 
 
 ## See also
 
-- [JAX Common Gotchas](https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html)
+- [JAX Common Gotchas](https://docs.jax.dev/en/latest/notebooks/Common_Gotchas_in_JAX.html)
 - {doc}`../how-to/use-jax-functions`, {doc}`../how-to/optimize-performance`
 - {doc}`equality-and-equivalence`, {doc}`why-quantity-is-non-parametric`

@@ -99,7 +99,7 @@ os.environ["UNXT_ENABLE_RUNTIME_TYPECHECKING"] = "beartype.beartype"
 
 :::{attention}
 
-Enable runtime type checking during development. For production runs, measure with it **on and off**: the overhead is usually small, but it can affect how long [`jax.jit`](https://jax.readthedocs.io/en/latest/_autosummary/jax.jit.html#jax.jit) takes to compile.
+Enable runtime type checking during development. For production runs, measure with it **on and off**: the overhead is usually small, but it can affect how long [`jax.jit`](https://docs.jax.dev/en/latest/_autosummary/jax.jit.html#jax.jit) takes to compile.
 
 :::
 

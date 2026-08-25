@@ -156,4 +156,4 @@ Branching on a _dimension_ is a different matter and is fine: dimensions are sta
 - {doc}`../reference/quantity` — the full `Quantity` surface.
 - {doc}`register-a-quax-rule` — if a primitive is missing, or you have your own array type.
 
-[quaxed]: https://quaxed.readthedocs.io/en/latest/
+[quaxed]: https://github.com/GalacticDynamics/quaxed

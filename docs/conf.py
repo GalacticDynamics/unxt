@@ -55,6 +55,11 @@ python_use_unqualified_type_names = True
 
 # The docs were reorganised into Diataxis sections; every pre-existing URL is
 # redirected to its new home so external links keep working.
+# `rediraffecheckdiff` compares against this branch and fails when a page is
+# renamed or deleted without a redirect, so the map above cannot silently fall
+# behind the tree.
+rediraffe_branch = "origin/main"
+
 rediraffe_redirects = {
     "guides/quantity.md": "reference/quantity.md",
     "guides/dimensions.md": "reference/dimensions.md",
@@ -80,6 +85,25 @@ rediraffe_redirects = {
     # Package doc sets, reorganised in the same pass.
     "packages/unxts.parametric/dimensions.md": "packages/unxts.parametric/quantity.md",
 }
+
+# -- Link checking -----------------------------------------------------------
+
+linkcheck_ignore = [
+    # Our own published docs. A PR that adds a page cannot link to it on Read
+    # the Docs until the PR merges, so these 404 by construction pre-merge.
+    # Internal navigation is already gated by `myst.xref_missing` in CI.
+    r"https://unxt\.readthedocs\.io/.*",
+]
+
+# Third-party pages whose in-page anchors are generated client-side, so the
+# fragment is never present in the fetched HTML. The URLs themselves are checked.
+linkcheck_anchors_ignore_for_url = [
+    r"https://docs\.kidger\.site/.*",
+    r"https://hypothesis\.readthedocs\.io/.*",
+]
+
+linkcheck_retries = 2
+linkcheck_timeout = 20
 
 exclude_patterns = [
     "_build",
