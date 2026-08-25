@@ -1,4 +1,4 @@
-# Quantity matrices
+# `QuantityMatrix`
 
 `QuantityMatrix` (alias `QM`) stores one numeric JAX array together with a static [`UnitsMatrix`](units-matrix) that gives the unit of **each** logical element. The shape of the unit structure decides whether the object behaves as a heterogeneous vector (1-D) or matrix (2-D).
 
@@ -125,6 +125,41 @@ You can convert a whole `QuantityMatrix` to a compatible unit structure with `uc
 >>> q.uconvert(target).unit.to_string()
 '((km, deg), (km, deg))'
 ```
+
+A **scalar** unit target also works, and is applied to every element. It requires each element to be convertible to that unit, so it is the natural form when the matrix is dimensionally uniform even if its unit labels differ:
+
+```{code-block} python
+>>> ul.QM(jnp.array([1.0, 2.0]), unit=("m", "km")).uconvert("cm").unit.to_string()
+'(cm, cm)'
+```
+
+An element that cannot reach the target is rejected:
+
+```{code-block} python
+>>> try:
+...     qv.uconvert("km")
+... except Exception as e:
+...     print(type(e).__name__)
+UnitConversionError
+```
+
+## Unit inspection and stripping
+
+`unit_of` returns the whole `UnitsMatrix`:
+
+```{code-block} python
+>>> u.unit_of(qv)
+UnitsMatrix("(m, s, kg)")
+```
+
+`ustrip` converts every element to one unit and returns the bare array, so it carries the same convertibility requirement as a scalar `uconvert`:
+
+```{code-block} python
+>>> u.ustrip("km", ul.QM(jnp.array([1.0, 2.0, 3.0]), unit=("m", "m", "m")))
+Array([0.001, 0.002, 0.003], dtype=float32)
+```
+
+## Converting to a plain `Quantity`
 
 When every element shares the same unit, a `QuantityMatrix` converts to a plain `unxt.Quantity`:
 

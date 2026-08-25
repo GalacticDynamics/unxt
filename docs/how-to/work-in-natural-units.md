@@ -1,8 +1,8 @@
-# Working in Natural Units
+# How to work in natural units
 
 [Natural unit systems](https://en.wikipedia.org/wiki/Natural_units) set a chosen set of fundamental physical constants to the dimensionless value 1. This removes those constants from equations and makes quantities of different "everyday" dimensions share a scale — a mass expressed as an energy, a length as a time, and so on.
 
-`unxt` provides four natural unit systems built in. They are realized _numerically_: the base units are chosen so the named constants evaluate to `1.0`, while the full dimensional structure is preserved (so `unxt`'s dimension checking keeps working). This tutorial works through each one on a small physics problem.
+`unxt` provides four natural unit systems built in. They are realized _numerically_: the base units are chosen so the named constants evaluate to `1.0`, while the full dimensional structure is preserved (so `unxt`'s dimension checking keeps working). This guide works through each one on a small physics problem. For the realizations themselves — base dimensions, flags, free scales — see {doc}`../reference/unitsystems`.
 
 ```{code-block} python
 >>> import numpy as np
@@ -89,6 +89,11 @@ Planck units set $\hbar = c = G = k_B = 1$ and are _fully determined_ — there 
 ...     assert np.isclose(getattr(const, name).decompose(planck).value, 1.0)
 ```
 
-## A note on semantics
+## What natural units do not do
 
 `unxt`'s natural unit systems are _numeric_: they choose base units so the named constants equal 1. They do **not** (yet) add equivalences that let you convert directly between, say, a mass and an energy — a `Quantity` in `MeV` is still an energy, not a mass. Decomposing into a natural unit system (as above) is the supported way to obtain natural-unit values.
+
+## See also
+
+- {doc}`../reference/unitsystems` — the built-in realizations and their flags.
+- {doc}`../reference/quantity` — the quantity classes these operate on.

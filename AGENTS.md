@@ -47,13 +47,13 @@ New functionality goes in a canonical `unxts.*` package, never in a shim. Releas
 
 - **`Quantity`/`Q`** (default, root `unxt`) — non-parametric: one class, one pytree node type, for every physical dimension. No dimension checking at construction.
 - **`ParametricQuantity`/`PQ`** (`unxts.parametric`, opt-in) — dimension encoded in the type (`PQ["length"]`), a distinct pytree type per dimension, runtime-checked at construction.
-- **`BareQuantity`** — **deprecated** alias of `Quantity`; don't reintroduce it in new code (see [docs/glossary.md](docs/glossary.md), [docs/migration.md](docs/migration.md)).
+- **`BareQuantity`** — **deprecated** alias of `Quantity`; don't reintroduce it in new code (see [docs/reference/glossary.md](docs/reference/glossary.md), [docs/how-to/migrate-to-v2.md](docs/how-to/migrate-to-v2.md)).
 - **`StaticQuantity`** — value held as a hashable static field (for `jax.jit(static_argnames=...)`); equality is unit-label-based by design (`same_unit_label`), not physical equivalence.
 - **`Angle`** — wrapping-aware `Quantity` subtype.
 
 Dims (`unxt.dims`) parse expressions via a small AST-based grammar in `src/unxt/_src/dimensions.py` — `* / ** ()` are supported, unary `+`/`-` deliberately raise ("dimensions are invariant under negation," not a missing feature). Units (`unxt.units`) wrap `astropy.units`; `AbstractUnit = apyu.UnitBase | apyu.FunctionUnitBase` (`StructuredUnit` is deliberately excluded). Unit systems live under `src/unxt/_src/unitsystems/`.
 
-Naming rule (see [docs/conventions.md](docs/conventions.md)): `Abstract...` prefix marks a non-instantiable base; no abstract class inherits from a concrete one, no concrete class inherits from another concrete one.
+Naming rule (see [docs/explanation/api-conventions.md](docs/explanation/api-conventions.md)): `Abstract...` prefix marks a non-instantiable base; no abstract class inherits from a concrete one, no concrete class inherits from another concrete one.
 
 ## The `_mk` unchecked constructor
 
@@ -78,7 +78,7 @@ Grep `_mk\(` before touching construction-hot code — it's used across `unxts.l
 - `F811`/`F821`/`F722` are ruff-ignored project-wide — they're false positives from plum-dispatch redefinition and jaxtyping shape annotations, not oversights.
 - `UP040` (prefer `type` alias) is ignored: `beartype.door` doesn't support PEP 695 `type` aliases with plum, so `TypeAlias` stays.
 - Import aliases are enforced by ruff (`flake8-import-conventions`): `unxt as u`, `equinox as eqx`, `hypothesis.strategies as st`, `unxt_api as uapi`, `unxt_hypothesis as ust`. Follow the same convention for new canonical imports even where ruff doesn't enforce it yet (e.g. `unxts.parametric as up`, per README usage).
-- **A `jax.jit` wrapper rebuilt inside a loop or method is a compile-cache miss every call, not a cheap re-trace.** `jax.jit` keys its cache on the Python identity of the function it wraps, not on argument equality — a fresh `@jax.jit def outer(...)` built per call costs a full retrace-and-compile every time (measured: several-hundred-x). Build the outer-wrapper closure once, at module or `__init__` scope. See `docs/guides/perf.md`.
+- **A `jax.jit` wrapper rebuilt inside a loop or method is a compile-cache miss every call, not a cheap re-trace.** `jax.jit` keys its cache on the Python identity of the function it wraps, not on argument equality — a fresh `@jax.jit def outer(...)` built per call costs a full retrace-and-compile every time (measured: several-hundred-x). Build the outer-wrapper closure once, at module or `__init__` scope. See `docs/how-to/optimize-performance.md`.
 - Never write temp/scratch files outside the repo.
 
 ## Commit style
@@ -107,6 +107,6 @@ Dependency floors follow SPEC 0 roughly (see `pyproject.toml` for exact pins: `j
 
 - [skills/unxt/SKILL.md](skills/unxt/SKILL.md) — using `unxt` correctly (consumer-facing)
 - [.github/skills/code-review/SKILL.md](.github/skills/code-review/SKILL.md) — reviewing PRs in this repo
-- [docs/conventions.md](docs/conventions.md), [docs/glossary.md](docs/glossary.md), [docs/migration.md](docs/migration.md)
+- [docs/explanation/api-conventions.md](docs/explanation/api-conventions.md), [docs/reference/glossary.md](docs/reference/glossary.md), [docs/how-to/migrate-to-v2.md](docs/how-to/migrate-to-v2.md)
 - [CONTRIBUTING.md](CONTRIBUTING.md), [RELEASING.md](RELEASING.md)
 - Upstream skills this repo builds on: [quax](https://github.com/nstarman/quax/blob/main/skills/quax/SKILL.md), [quaxed](https://github.com/GalacticDynamics/quaxed/blob/main/skills/quaxed/SKILL.md), [quax-blocks](https://github.com/GalacticDynamics/quax-blocks/blob/main/skills/quax-blocks/SKILL.md)

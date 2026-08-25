@@ -4,13 +4,14 @@
 :maxdepth: 1
 :hidden:
 
+tutorial-first-plot
 guide
 api
 ```
 
 `unxts.interop.matplotlib` is the canonical location for [matplotlib](https://matplotlib.org/) integration. Importing the package — or `unxt` itself, which imports it automatically when installed — registers a `matplotlib.units.ConversionInterface` for `AbstractQuantity`, so `unxt.Quantity` objects (and the other quantity types) can be plotted directly.
 
-## Installation
+## Install
 
 The recommended install adds `unxts.interop.matplotlib` alongside `unxt` via the `interop-mpl` [extra](https://peps.python.org/pep-0508/#extras), so it, `unxt`, and `matplotlib` are resolved together as a compatible set:
 
@@ -56,7 +57,7 @@ pip install unxts.interop.matplotlib
 
 ::::
 
-## Quick example
+## At a glance
 
 Once installed, plot `Quantity` objects directly with `matplotlib`:
 
@@ -69,7 +70,20 @@ import unxt as u
 x = u.Q(jnp.linspace(0, 360, 100), "deg")
 y = u.Q(jnp.sin(x.ustrip("rad")), "")
 
-plt.plot(x, y)
+fig, ax = plt.subplots()
+ax.plot(x, y)
 ```
 
-See the [guide](guide) for more plotting patterns, and the [API reference](api) for toggling the converter.
+## Pages
+
+**Tutorial**
+
+- [Plot data that knows its units](tutorial-first-plot) — start here: plot two quantities, watch the axis labels write themselves, and see a dataset in the wrong unit land in the right place.
+
+**How-to**
+
+- [How to plot quantities with matplotlib](guide) — plotting directly, keeping units through the computation with `quaxed`, and turning the converter off.
+
+**Reference**
+
+- [API](api) — the converter and its setup function.

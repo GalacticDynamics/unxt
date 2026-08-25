@@ -44,12 +44,71 @@ extensions = [
     "sphinx_copybutton",
     "sphinx-prompt",
     "sphinxext.opengraph",
-    # "sphinxext.rediraffe",  # Add redirects
+    "sphinxext.rediraffe",  # Add redirects
     "sphinx_togglebutton",
     "sphinx_tippy",
 ]
 
 python_use_unqualified_type_names = True
+
+# -- Redirects (rediraffe) ---------------------------------------------------
+
+# The docs were reorganised into Diataxis sections; every pre-existing URL is
+# redirected to its new home so external links keep working.
+# `rediraffecheckdiff` compares against this branch and fails when a page that
+# exists there was deleted without a redirect, so the map below cannot silently
+# fall behind the tree. It reports deletions; a pure rename is only a hint.
+#
+# In CI `origin` is this repository, so `origin/main` is the branch to diff
+# against. Running the builder from a fork clone diffs against the *fork's*
+# `main`, which is usually stale and will report deletions that upstream never
+# had -- point it at `upstream/main` locally instead of trusting the result.
+rediraffe_branch = "origin/main"
+
+rediraffe_redirects = {
+    "guides/quantity.md": "reference/quantity.md",
+    "guides/dimensions.md": "reference/dimensions.md",
+    "guides/units_and_systems.md": "reference/units.md",
+    "guides/configuration.md": "reference/configuration.md",
+    "guides/natural-units.md": "how-to/work-in-natural-units.md",
+    "guides/type-checking.md": "how-to/check-types-at-runtime.md",
+    "guides/perf.md": "how-to/optimize-performance.md",
+    "guides/sharp-bits.md": "explanation/sharp-bits.md",
+    "conventions.md": "explanation/api-conventions.md",
+    "glossary.md": "reference/glossary.md",
+    "migration.md": "how-to/migrate-to-v2.md",
+    "contributing.md": "about/contributing.md",
+    "dev.md": "about/contributing.md",
+    "interop/astropy.md": "how-to/interoperate-with-astropy.md",
+    "interop/dataclassish.md": "reference/dataclassish.md",
+    "api/index.md": "reference/api/index.md",
+    "api/quantity.md": "reference/api/quantity.md",
+    "api/dims.md": "reference/api/dims.md",
+    "api/units.md": "reference/api/units.md",
+    "api/unitsystems.md": "reference/api/unitsystems.md",
+    "api/experimental.md": "reference/api/experimental.md",
+    # Package doc sets, reorganised in the same pass.
+    "packages/unxts.parametric/dimensions.md": "packages/unxts.parametric/quantity.md",
+}
+
+# -- Link checking -----------------------------------------------------------
+
+linkcheck_ignore = [
+    # Our own published docs. A PR that adds a page cannot link to it on Read
+    # the Docs until the PR merges, so these 404 by construction pre-merge.
+    # Internal navigation is already gated by `myst.xref_missing` in CI.
+    r"https://unxt\.readthedocs\.io/.*",
+]
+
+# Third-party pages whose in-page anchors are generated client-side, so the
+# fragment is never present in the fetched HTML. The URLs themselves are checked.
+linkcheck_anchors_ignore_for_url = [
+    r"https://docs\.kidger\.site/.*",
+    r"https://hypothesis\.readthedocs\.io/.*",
+]
+
+linkcheck_retries = 2
+linkcheck_timeout = 20
 
 exclude_patterns = [
     "_build",
@@ -58,7 +117,8 @@ exclude_patterns = [
     ".DS_Store",
     ".env",
     ".venv",
-    "guides/perf.md",  # Excluded: converted to perf.ipynb during build
+    # Excluded: converted to optimize-performance.ipynb during the build
+    "how-to/optimize-performance.md",
     "**/_data/**",  # Sample-data dirs (e.g. the xarray guide's), not doc pages
 ]
 

@@ -1,23 +1,22 @@
-# unxts.interop.xarray
+# `unxts.interop.xarray`
 
 ```{toctree}
 :maxdepth: 1
 :hidden:
 
+tutorial-first-dataset
 xarray-guide
+api
+sharp-bits
 ```
 
-`xarray` integration for unxt - JAX-based physical quantities with `xarray`'s labeled arrays.
+`unxts.interop.xarray` is the canonical location for [xarray](https://docs.xarray.dev/) integration. It adds a `.unxt` accessor to `DataArray` and `Dataset` that converts between `xarray`'s unit _metadata_ — a `units` string in `.attrs` — and real `unxt.Quantity` values, so units become part of the data rather than a label beside it.
 
-:::{note}
+Importing the package registers the accessor as an import side effect.
 
-`unxts.interop.xarray` is the canonical package, superseding the deprecated `unxt-xarray` distribution. Once installed, it registers the `.unxt` xarray accessor on import.
+## Install
 
-:::
-
-## Installation
-
-The recommended install adds `unxts.interop.xarray` alongside `unxt` via the `interop-xarray` [extra](https://peps.python.org/pep-0508/#extras), so it, `unxt`, and `xarray` are resolved together as a compatible set:
+The recommended install adds `unxts.interop.xarray` alongside `unxt` via the `interop-xarray` [extra](https://peps.python.org/pep-0508/#extras), so it, `unxt` and `xarray` are resolved together as a compatible set:
 
 ::::{tab-set}
 
@@ -61,164 +60,46 @@ pip install unxts.interop.xarray
 
 ::::
 
-## Quick Start
+## At a glance
 
 ```python
+import numpy as np
 import xarray as xr
-import unxt as u
-import unxts.interop.xarray  # This registers the .unxt accessor
 
-# Create DataArray with unit attributes
-da = xr.DataArray(
-    [1.0, 2.0, 3.0],
-    dims=["x"],
-    attrs={"units": "m"},
-)
+import unxts.interop.xarray  # registers the .unxt accessor
 
-# Convert to unxt Quantities
-quantified = da.unxt.quantify()
-print(quantified.data)
+da = xr.DataArray(np.array([1.0, 2.0, 3.0]), dims="x", attrs={"units": "m"})
+
+q = da.unxt.quantify()
+q.data
 # Quantity(Array([1., 2., 3.], dtype=float32), unit='m')
 
-# Convert back to plain arrays with unit attributes
-dequantified = quantified.unxt.dequantify()
-print(dequantified.attrs["units"])
+plain = q.unxt.dequantify()
+plain.attrs["units"]
 # 'm'
 ```
 
-## Usage
+`quantify()` reads the `units` attribute and turns the values into a `Quantity`; `dequantify()` reverses it, putting the unit back in `.attrs`.
 
-### DataArray Operations
+## Pages
 
-The `.unxt` accessor provides two main methods for `DataArray`:
+**Tutorial**
 
-#### `quantify()`
+- [Turn unit labels into real units](tutorial-first-dataset) — start here: watch `xarray` add kilometres to hours without complaint, then quantify and watch the same operation refuse.
 
-Convert a DataArray with unit attributes into one containing unxt Quantities:
+**How-to**
 
-```python
-import xarray as xr
-import unxts.interop.xarray
+- [How to use unxt with xarray](xarray-guide) — quantifying and dequantifying `DataArray`s and `Dataset`s, coordinates, unit conversion, JAX transforms, and round-tripping through NetCDF.
 
-# From attributes
-da = xr.DataArray([1.0, 2.0, 3.0], dims=["x"], attrs={"units": "m"})
-q = da.unxt.quantify()
+**Reference**
 
-# With explicit units
-da = xr.DataArray([1.0, 2.0, 3.0], dims=["x"])
-q = da.unxt.quantify("km")
+- [API](api) — the functions underneath the accessor: `extract_unit_attributes`, `attach_units`, `extract_units`, `strip_units`.
 
-# With coordinate units. Use a *non-dimension* coordinate ("time" on dim "i"):
-# a dimension coordinate is coerced to a plain array by xarray, dropping its unit.
-da = xr.DataArray(
-    [1.0, 2.0],
-    dims=["i"],
-    coords={"time": ("i", [0.0, 1.0])},
-    attrs={"units": "m"},
-)
-q = da.unxt.quantify(time="s")  # Specify units for the "time" coord
-```
+**Discussion**
 
-#### `dequantify()`
+- [The xarray sharp bits](sharp-bits) — why dimension coordinates cannot hold quantities, and which operations drop units.
 
-Convert Quantities back to plain arrays with unit attributes:
+## See also
 
-```python
-import unxt as u
-
-q = u.Quantity([1.0, 2.0, 3.0], "m")
-da = xr.DataArray(q, dims=["x"])
-
-plain = da.unxt.dequantify()
-print(plain.attrs["units"])  # 'm'
-print(type(plain.data))  # Array (not Quantity)
-```
-
-### Dataset Operations
-
-The accessor works similarly for `Dataset` objects:
-
-```python
-import xarray as xr
-import unxts.interop.xarray
-
-# Create Dataset with unit attributes
-ds = xr.Dataset(
-    {
-        "temperature": ("time", [20.0, 25.0, 30.0], {"units": "deg_C"}),
-        "pressure": ("time", [1.0, 1.1, 1.2], {"units": "bar"}),
-    }
-)
-
-# Quantify all variables
-q_ds = ds.unxt.quantify()
-print(q_ds["temperature"].data)
-# Quantity(Array([20., 25., 30.], dtype=float32), unit='deg_C')
-
-# Dequantify back
-plain_ds = q_ds.unxt.dequantify()
-print(plain_ds["temperature"].attrs["units"])  # 'deg_C'
-```
-
-## Advanced Usage
-
-### Custom Unit Attributes
-
-By default, units are stored in the `"units"` attribute. You can customize this:
-
-```python
-da = xr.DataArray([1.0, 2.0], dims=["x"])
-q_da = xr.DataArray(u.Quantity([1.0, 2.0], "m"), dims=["x"])
-
-# Use custom attribute name
-plain = q_da.unxt.dequantify(unit_attribute="unit_str")
-print(plain.attrs["unit_str"])  # 'm'
-```
-
-### Format Strings
-
-Control how units are formatted when dequantifying:
-
-```python
-import unxt as u
-
-q = u.Quantity([1.0, 2.0], "m/s")
-da = xr.DataArray(q, dims=["x"])
-
-# Default format
-plain = da.unxt.dequantify()
-print(plain.attrs["units"])  # 'm / s'
-
-# Custom format (if supported by unit system)
-# plain = da.unxt.dequantify(format="{:~}")  # Compact format
-```
-
-### Partial Quantification
-
-You can quantify only specific variables in a Dataset:
-
-```python
-ds = xr.Dataset(
-    {
-        "with_units": ("x", [1.0, 2.0], {"units": "m"}),
-        "without_units": ("y", [3.0, 4.0]),
-    }
-)
-
-q_ds = ds.unxt.quantify()
-# Only "with_units" is quantified
-```
-
-## Best Practices
-
-1. **Consistent Units**: Ensure unit attributes are consistent across your workflow
-2. **Explicit is Better**: Use explicit units in `quantify()` when possible for clarity
-3. **Preserve Attributes**: Other attributes (like `long_name`, `description`) are preserved
-4. **JAX Compatibility**: Remember that quantified data is JAX arrays - use `jax.numpy` operations
-
-## See Also
-
-- [unxt documentation](https://unxt.readthedocs.io/)
 - [xarray documentation](https://docs.xarray.dev/)
-- [pint-xarray](https://pint-xarray.readthedocs.io/) - The original inspiration
-- [JAX documentation](https://jax.readthedocs.io/)
+- [unxt documentation](https://unxt.readthedocs.io/)

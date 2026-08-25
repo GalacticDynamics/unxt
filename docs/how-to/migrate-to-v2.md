@@ -1,12 +1,12 @@
 (migration-v2)=
 
-# Migrating to v2
+# How to migrate to v2
 
-This guide covers the breaking changes introduced in `unxt` v2: the rename of the quantity classes and the extraction of the parametric quantity into the separate `unxts.parametric` package. If you are starting fresh with `unxt`, you do not need this guide — consult the [Quantity guide](guides/quantity) and the [parametric quantity guide](packages/unxts.parametric/index) for the current API.
+This guide covers the breaking changes introduced in `unxt` v2: the rename of the quantity classes and the extraction of the parametric quantity into the separate `unxts.parametric` package. If you are starting fresh with `unxt`, you do not need this guide — consult the {doc}`Quantity reference <../reference/quantity>` and the [parametric quantity guide](../packages/unxts.parametric/index) for the current API.
 
 ---
 
-## Class Rename Mapping
+## Class rename mapping
 
 | v1 name | v2 name | Short alias | Notes |
 | --- | --- | --- | --- |
@@ -114,7 +114,7 @@ The `include_params` display option — whether `repr()`/`str()` show the `['len
 | `u.config.override(quantity_repr__include_params=True)` | `up.config.override(quantity_repr__include_params=True)` |
 | `[tool.unxt.quantity.repr]` → `include_params` | `[tool.unxts.parametric.quantity.repr]` → `include_params` |
 
-Defaults are unchanged (`repr` hides the parameter, `str` shows it). The other display settings (`short_arrays`, `use_short_name`, `named_unit`, `indent`) remain in `unxt.config`. See the [parametric quantity guide](packages/unxts.parametric/configuration).
+Defaults are unchanged (`repr` hides the parameter, `str` shows it). The other display settings (`short_arrays`, `use_short_name`, `named_unit`, `indent`) remain in `unxt.config`. See the [parametric quantity guide](../packages/unxts.parametric/configuration).
 
 ### Config file section renamed to `[tool.unxts.unxt]`
 
@@ -304,28 +304,9 @@ True
 
 ---
 
-## Why the Default Changed: Pytree Types, Not JIT Cache Misses
+## Why the default changed
 
-The motivation for making the non-parametric class the default is how it interacts with JAX's pytree machinery — but it is worth being precise about what does and does not change.
-
-`ParametricQuantity` encodes the physical dimension in its _type_: `ParametricQuantity["length"]` and `ParametricQuantity["time"]` are distinct Python classes, created on demand, and each is registered as its own JAX pytree node type. The new default `Quantity` is a _single_ class — and a single pytree node type — for every dimension.
-
-**What this does _not_ change: `jax.jit` recompilation.** A quantity's `unit` is a _static_ field, so it lives in the pytree aux data (the treedef), which is part of the `jit` cache key. A jitted function therefore specializes per distinct unit with _either_ class — a function compiled for a length quantity in metres is **not** reused for a time quantity in seconds, because their units (and treedefs) differ. Since a unit already implies its dimension, `ParametricQuantity`'s per-dimension _class_ is redundant with the per-unit key and adds no extra compilations. The two classes produce the same number of `jit` compilations for the same inputs.
-
-**What it _does_ change: the cost of the type proliferation itself.** With `ParametricQuantity`, every physical dimension you touch:
-
-- creates a new Python class the first time it is used (via `plum`'s parametric machinery),
-- registers a new JAX pytree node type and grows `plum`'s dispatch tables, all of which must be tracked and searched, and
-- pays a per-construction cost for dimension inference and the `__check_init__` validation.
-
-The single-class `Quantity` avoids all of that: one class, one registered pytree type, no on-the-fly class creation, and a lighter construction/dispatch path. That is the efficiency win — a smaller, simpler type surface and cheaper per-operation overhead — rather than fewer `jit` compilations.
-
-`ParametricQuantity` remains available — and is the right choice — when you genuinely need:
-
-- **Runtime dimension checking**: `up.PQ["length"](1, "s")` raises immediately.
-- **Dimension-specific `plum` dispatch**: `up.PQ["length"]` is a distinct type.
-
-For everything else — arithmetic, unit conversion, JAX transforms, interop — `Quantity` and `ParametricQuantity` behave identically.
+The motivation — and, more usefully, the reason it is _not_ about `jax.jit` cache misses — is set out in {doc}`../explanation/why-quantity-is-non-parametric`. The short version: both classes produce the same number of `jit` compilations, and what the parametric class actually costs is a Python class and a pytree node type per dimension.
 
 ---
 

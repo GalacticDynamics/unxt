@@ -1,4 +1,4 @@
-# `unxts.interop.gala` API
+# API
 
 `unxts.interop.gala` exposes two conversion functions. Both are registered as [`plum`](https://beartype.github.io/plum/) conversion methods when the package is imported, so the idiomatic way to use them is through `plum.convert` (shown below). The functions are also importable directly.
 
@@ -54,4 +54,4 @@ unitsystem(kpc, Myr, solMass, rad)
 
 ```
 
-[unxt-AbstractUnitSystem]: https://unxt.readthedocs.io/en/latest/api/unitsystems/#unxt.unitsystems.AbstractUnitSystem
+[unxt-AbstractUnitSystem]: https://unxt.readthedocs.io/en/latest/reference/api/unitsystems.html#unxt.unitsystems.AbstractUnitSystem

@@ -1,13 +1,13 @@
-# Type Checking
+# How to check dimensions at runtime
 
-Annotating and checking the physical **dimension** of an argument. For enabling runtime type checking and for dtype/shape annotations on the default `Quantity`, see the [unxt Type Checking guide](../../guides/type-checking).
+This guide shows you how to have the physical **dimension** of an argument checked at call time. For enabling runtime type checking and for dtype/shape annotations on the default `Quantity`, see the [unxt runtime type-checking guide](../../how-to/check-types-at-runtime).
 
 ```{code-block} python
 >>> import unxt as u
 >>> import unxts.parametric as up
 ```
 
-## Dimension annotations for type checking
+## Annotate with a dimensioned type
 
 Because the dimension lives in the type, you can annotate function signatures with dimensioned `ParametricQuantity` types, and `unxt`'s runtime type checking (via [`jaxtyping`](https://pypi.org/project/jaxtyping/)) will enforce them. This dimension-level checking is what `ParametricQuantity` adds over the default `Quantity` (whose type carries only dtype and shape):
 

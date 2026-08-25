@@ -60,13 +60,13 @@ description: >
 
 ## Performance
 
-- **A `jax.jit`/`quax.quaxify` outer wrapper built inside a loop, a method body, or any code path called more than once is a compile-cache miss every call, not a cheap re-trace.** `jax.jit` caches on the Python identity of the function it wraps, not on argument equality (measured: several-hundred-x regression from rebuilding). It should be constructed once, at module or `__init__` scope — see `docs/guides/perf.md`.
+- **A `jax.jit`/`quax.quaxify` outer wrapper built inside a loop, a method body, or any code path called more than once is a compile-cache miss every call, not a cheap re-trace.** `jax.jit` caches on the Python identity of the function it wraps, not on argument equality (measured: several-hundred-x regression from rebuilding). It should be constructed once, at module or `__init__` scope — see `docs/how-to/optimize-performance.md`.
 - The complementary, already-documented lever for a hot _construction_ path is `_mk` (see [`_mk` usage](#_mk-usage)) — don't conflate the two. `_mk` skips checked construction; the closure-identity issue above is about not re-tracing/re-compiling a `jit`'d function.
 
 ## Doctests
 
 - Every changed or added `Examples` block (docstring) or `python`-tagged block (`README.md`, `docs/**`) must show output that was actually produced by running it — not hand-typed. Sybil matches exactly, including `dtype=float32` vs a hand-typed `dtype=float`.
-- Prefer `u.Q(...)` over `u.Quantity(...)` (house style) and real physically-meaningful values over toy `x = 1` examples, per `CONTRIBUTING.md`/`docs/conventions.md`.
+- Prefer `u.Q(...)` over `u.Quantity(...)` (house style) and real physically-meaningful values over toy `x = 1` examples, per `CONTRIBUTING.md`/`docs/explanation/api-conventions.md`.
 - A new `filterwarnings` ignore entry needs a comment saying which library/version emits it and why it's expected — an unscoped or uncommented ignore is a smell (warnings are errors project-wide by design).
 
 ## Silent failure

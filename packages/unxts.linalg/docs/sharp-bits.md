@@ -1,6 +1,6 @@
-# Sharp bits
+# The linalg sharp bits
 
-`QuantityMatrix` covers the common heterogeneous-unit vector/matrix cases, but a few restrictions follow from its design. Keep these in mind.
+`QuantityMatrix` covers the common heterogeneous-unit vector and matrix cases, but a few restrictions follow from its design. This page collects them and explains where each one comes from.
 
 ```{code-block} python
 >>> import jax.numpy as jnp
@@ -36,6 +36,18 @@ rejected
 needs a 2-D matrix
 ```
 
+`inv` mixes the matrix entries, so a per-element reciprocal would be wrong unless every entry already shares one unit. It refuses a heterogeneous matrix rather than return a plausible-looking answer:
+
+```{code-block} python
+>>> g = ul.QuantityMatrix(jnp.array([[1.0, 0.0], [0.0, 4.0]]),
+...                       unit=(("m2", "m2"), ("m2", "m2 / rad2")))
+>>> try:
+...     quax.quaxify(ul.inv)(g)
+... except ValueError as e:
+...     print(str(e).split(";")[0])
+inv on a QuantityMatrix requires uniform units (all entries equal)
+```
+
 ## `diag` under `jax.jit` needs uniform units
 
 The `.diag()` **method** operates on the static unit structure and works for heterogeneous units, even under `jit`:
@@ -57,4 +69,4 @@ A batched vector's value `(B, K)` is shape-indistinguishable from a matrix. The 
 
 ## It is a Quax type, not a materialisable array
 
-`QuantityMatrix` is a `quax` array-ish value: it flows through `quax.quaxify`-ed functions but refuses to _materialise_ into a plain array (its elements have no single dtype-plus-unit), so use `.value` / `.unit` to inspect it, and `plum.convert(..., u.Q)` only when every unit is identical (see [Quantity matrices](quantity-matrix)).
+`QuantityMatrix` is a `quax` array-ish value: it flows through `quax.quaxify`-ed functions but refuses to _materialise_ into a plain array (its elements have no single dtype-plus-unit), so use `.value` / `.unit` to inspect it, and `plum.convert(..., u.Q)` only when every unit is identical (see [`QuantityMatrix`](quantity-matrix)).

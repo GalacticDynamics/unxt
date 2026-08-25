@@ -1,4 +1,18 @@
-# `unxts.api` API
+# API
+
+Every abstract function `unxts.api` declares, with its signature, the implementations `unxt` registers for it, and an illustrative call.
+
+The **Example Implementations** lists below are illustrative and hand-written, so they lag the code. For the authoritative set at any moment, ask the dispatch function itself — `plum` keeps the registry:
+
+```{code-block} python
+>>> import unxt  # registers unxt's implementations
+>>> import unxts.api as uapi
+
+>>> len(uapi.dimension.methods) >= 2
+True
+```
+
+Note the `import unxt`: the abstract functions carry no implementations until a provider is imported, so `f.methods` reflects whatever is loaded — including implementations added by third-party packages that this page cannot know about.
 
 ## Dimensions
 

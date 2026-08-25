@@ -125,6 +125,10 @@ jobs:
     needs: [setup]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          # `rediraffecheckdiff` diffs the doc tree against `main`, so the base
+          # branch has to be in the clone.
+          fetch-depth: 0
 
       - name: Install uv
         uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
@@ -156,6 +160,27 @@ jobs:
             exit 1
           fi
           echo "No broken cross-references."
+
+      # Prose that points a reader at a file -- "the rules live in
+      # `src/unxt/.../register_primitives.py`" -- is not a link, so nothing
+      # validated it and three such paths had already gone stale.
+      - name: Check cited repository paths exist
+        run: uv run --frozen python scripts/check_doc_paths.py
+
+      # 22 URLs are redirected by rediraffe. Without this, moving a page again
+      # silently breaks every inbound link to its old address.
+      - name: Check moved pages still have redirects
+        run: |
+          git fetch --no-tags --depth=1 origin main
+          uv run --frozen sphinx-build -b rediraffecheckdiff docs docs/_build/redirects
+
+      # External links rot without warning. Self-links to unxt.readthedocs.io
+      # are ignored in conf.py: a page added by a PR does not exist on Read the
+      # Docs until that PR merges.
+      - name: Check external links
+        run: |
+          set -o pipefail
+          uv run --frozen sphinx-build -b linkcheck docs docs/_build/linkcheck 2>&1 | tee linkcheck.log
 
   # Main package tests
   tests-unxt:

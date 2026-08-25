@@ -80,7 +80,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
-docs/guides/perf.ipynb
+docs/how-to/optimize-performance.ipynb
 
 # PyBuilder
 .pybuilder/

@@ -7,9 +7,9 @@ kernelspec:
   name: "python3"
 ---
 
-# Performance Optimization with Unitful Quantities
+# How to optimize performance with unitful quantities
 
-In this guide, we'll explore how to think about performance optimization when working with `unxt` Quantities in JAX. The key insight is understanding **where the overhead lives** and **when it matters**.
+This guide shows you how to keep `unxt`'s wrapper overhead off your hot path. It is a measured walkthrough: every timing below is produced by running the notebook. For _why_ a quantity costs anything at a `jit` boundary, see {doc}`../explanation/sharp-bits`.
 
 ## Key Concepts
 

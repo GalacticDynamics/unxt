@@ -201,7 +201,7 @@ Unit("1.49828e+10 kpc3 s2 kg / (Myr2 m3)")
 
 Quantities combine values with units, providing type-safe unitful arithmetic.
 
-`Quantity` (`u.Q`) is the lightweight, non-parametric default: a single class — and a single JAX pytree type — for all physical dimensions. `ParametricQuantity` (`up.PQ`) adds runtime dimension checking and dimension-specific `plum` dispatch by encoding each dimension in its own on-the-fly class (and pytree type), which grows the type/dispatch surface and adds per-construction overhead. (This is not about `jax.jit` cache misses: the `unit` is static, so a jitted function specializes per unit with either class — that part is inherent.) See the [Quantity guide](https://unxt.readthedocs.io/en/latest/guides/quantity.html) for full details; upgrading from an earlier version? See the [migration guide](https://unxt.readthedocs.io/en/latest/migration.html).
+`Quantity` (`u.Q`) is the lightweight, non-parametric default: a single class — and a single JAX pytree type — for all physical dimensions. `ParametricQuantity` (`up.PQ`) adds runtime dimension checking and dimension-specific `plum` dispatch by encoding each dimension in its own on-the-fly class (and pytree type), which grows the type/dispatch surface and adds per-construction overhead. (This is not about `jax.jit` cache misses: the `unit` is static, so a jitted function specializes per unit with either class — that part is inherent.) See the [Quantity guide](https://unxt.readthedocs.io/en/latest/reference/quantity.html) for full details; upgrading from an earlier version? See the [migration guide](https://unxt.readthedocs.io/en/latest/how-to/migrate-to-v2.html).
 
 #### Basic Quantities
 
