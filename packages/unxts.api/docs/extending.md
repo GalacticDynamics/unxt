@@ -52,40 +52,28 @@ u.unit_of(temp)  # Unit("K")
 u.dimension_of(temp)  # PhysicalType('temperature')
 ```
 
-## The three steps
+## What registration actually does
 
-### Step 1: Import the Abstract Function
-
-Import the abstract function from `unxts.api`:
-
-```python
-from unxts.api import unit_of, dimension_of, uconvert
-```
-
-### Step 2: Use `@dispatch` Decorator
-
-Register your implementation with type annotations:
+A bare `@dispatch` needs no import of the function you are extending. `plum.dispatch` is one shared dispatcher, and it files module-level functions under their bare `__name__`, so a function you call `unit_of` becomes part of _the_ `unit_of` wherever you define it:
 
 ```python
 from plum import dispatch
+import unxt as u
 
 
 @dispatch
 def unit_of(obj: Temperature, /) -> u.AbstractUnit:
-    """Docstring explaining this specific implementation."""
+    """Get unit from Temperature."""
     return u.unit(obj.unit_str)
+
+
+assert unit_of is u.unit_of  # the same object, with one more method
 ```
 
-### Step 3: Implement the Logic
+Two consequences worth keeping in mind:
 
-Provide the concrete implementation for your type:
-
-```python
-@dispatch
-def unit_of(obj: Temperature, /) -> u.AbstractUnit:
-    """Get unit from Temperature object."""
-    return u.unit(obj.unit_str)
-```
+- **The name is the whole key.** A `@dispatch def unit_of` you meant as a private helper joins `unxt`'s function too. Name these after the API function you intend to extend, and nothing else.
+- **The annotations are the contract.** Dispatch selects on the annotated argument types, so an unannotated parameter matches anything and a wrong annotation silently never fires.
 
 ## Common patterns
 
@@ -249,15 +237,22 @@ class SpecialQuantity:
 @dispatch
 def uconvert(to_unit: str, obj: SpecialQuantity, /):
     """Convert SpecialQuantity when target is a string."""
-    # Implementation for string units
-    return SpecialQuantity(u.ustrip(to_unit, obj.value, obj.unit), to_unit)
+    value = u.ustrip(to_unit, u.Q(obj.value, obj.unit))
+    return SpecialQuantity(value, to_unit)
 
 
 @dispatch
 def uconvert(to_unit: u.AbstractUnit, obj: SpecialQuantity, /):
-    """Convert SpecialQuantity when target is AbstractUnit."""
-    # Implementation for Unit objects
-    return SpecialQuantity(u.ustrip(to_unit, obj.value, obj.unit), str(to_unit))
+    """Convert SpecialQuantity when target is a Unit object."""
+    value = u.ustrip(to_unit, u.Q(obj.value, obj.unit))
+    return SpecialQuantity(value, str(to_unit))
+
+
+# Both branches now resolve: `ustrip` takes (unit, quantity), so the raw value
+# and its unit have to be assembled into a Quantity first.
+sq = SpecialQuantity(1000.0, "m")
+u.uconvert("km", sq).unit  # 'km'
+u.uconvert(u.unit("km"), sq).unit  # 'km'
 ```
 
 ### Handling Multiple Dispatch Signatures
