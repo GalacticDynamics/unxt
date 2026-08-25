@@ -27,9 +27,21 @@ PATH_RE = re.compile(
     r"`((?:src|packages|tests|docs|scripts)/[A-Za-z0-9_./-]+\.(?:py|md|toml|yaml|yml|cfg))`"
 )
 
-#: Where documentation lives. Package docs are reached directly rather than
-#: through the ``docs/packages/*`` symlinks, so each file is checked once.
-DOC_GLOBS = ("docs/**/*.md", "packages/*/docs/*.md", "*.md")
+#: Where prose that cites repository paths lives. Package docs are reached
+#: directly rather than through the ``docs/packages/*`` symlinks, so each file is
+#: checked once. Skill files are included because they point contributors and
+#: agents at source files and rot exactly the same way.
+#:
+#: ``.claude/plans`` and ``.claude/specs`` are deliberately excluded: they are
+#: dated records of past work and correctly name paths as they were then.
+#: "Fixing" them would falsify the record.
+DOC_GLOBS = (
+    "docs/**/*.md",
+    "packages/*/docs/*.md",
+    "skills/**/*.md",
+    ".github/**/*.md",
+    "*.md",
+)
 
 
 def main(root: Path) -> int:
