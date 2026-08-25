@@ -55,9 +55,14 @@ python_use_unqualified_type_names = True
 
 # The docs were reorganised into Diataxis sections; every pre-existing URL is
 # redirected to its new home so external links keep working.
-# `rediraffecheckdiff` compares against this branch and fails when a page is
-# renamed or deleted without a redirect, so the map above cannot silently fall
-# behind the tree.
+# `rediraffecheckdiff` compares against this branch and fails when a page that
+# exists there was deleted without a redirect, so the map below cannot silently
+# fall behind the tree. It reports deletions; a pure rename is only a hint.
+#
+# In CI `origin` is this repository, so `origin/main` is the branch to diff
+# against. Running the builder from a fork clone diffs against the *fork's*
+# `main`, which is usually stale and will report deletions that upstream never
+# had -- point it at `upstream/main` locally instead of trusting the result.
 rediraffe_branch = "origin/main"
 
 rediraffe_redirects = {
