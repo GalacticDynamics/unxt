@@ -98,6 +98,11 @@ linkcheck_ignore = [
     # the Docs until the PR merges, so these 404 by construction pre-merge.
     # Internal navigation is already gated by `myst.xref_missing` in CI.
     r"https://unxt\.readthedocs\.io/.*",
+    # Zenodo. The DOI badge and its record page routinely take 15-35s to
+    # follow their redirect chain and intermittently answer 504, so the build
+    # fails on Zenodo's uptime rather than on anything in this repo. A DOI is a
+    # permanent identifier, so there is nothing here that can rot.
+    r"https://zenodo\.org/.*",
 ]
 
 # Third-party pages whose in-page anchors are generated client-side, so the
