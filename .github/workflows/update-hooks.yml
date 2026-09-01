@@ -5,15 +5,26 @@ on:
     - cron: "0 0 1 * *" # Monthly, on the 1st at midnight UTC
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   prek-auto-update:
     name: prek auto-update
     runs-on: ubuntu-latest
+    # GITHUB_TOKEN is read-only in this repo and Actions is not permitted to
+    # open pull requests, so the PR below is created with a GitHub App token.
+    # Requires RELEASE_APP_ID / RELEASE_APP_PRIVATE_KEY (see
+    # create-package-tags.yml); the App needs "Contents: Read and write" and
+    # "Pull requests: Read and write".
+    permissions:
+      contents: read
+
     steps:
+      - name: Mint a GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
@@ -27,6 +38,7 @@ jobs:
       - name: Open pull request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
+          token: ${{ steps.app-token.outputs.token }}
           commit-message: "👷: update pre-commit hooks"
           title: "👷: update pre-commit hooks"
           body: "Automated hook update via `prek auto-update`."
