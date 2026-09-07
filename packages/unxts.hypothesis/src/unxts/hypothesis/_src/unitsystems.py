@@ -24,6 +24,7 @@ def unitsystems(
         Hypothesis draw function (automatically provided by @st.composite).
     *units : str | unxt.AbstractUnit | st.SearchStrategy[u.AbstractUnit]
         Variable number of unit specifications. Each can be:
+
         - str: Fixed unit string (e.g., "kpc", "Myr", "Msun")
         - unxt.AbstractUnit: Fixed unit object
         - SearchStrategy: Strategy that generates units
