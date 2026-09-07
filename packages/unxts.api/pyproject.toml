@@ -17,7 +17,12 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
 ]
-dependencies = ["plum-dispatch>=2.5.7,!=2.10.0"] # !=2.10.0: see root pyproject
+# !=2.10.0: see the root `pyproject.toml`. The 3.14 floor is spelled out because,
+# unlike the sibling packages, this one does not depend on `unxt` to supply it.
+dependencies = [
+  "plum-dispatch>=2.5.7,!=2.10.0",
+  "plum-dispatch>=2.9.0; python_version>='3.14'",
+]
 description = "Abstract dispatch API definitions for unxt (canonical: unxts.api)"
 dynamic = ["version"]
 license = "BSD-3-Clause"

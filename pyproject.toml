@@ -28,9 +28,12 @@ dependencies = [
   "jaxtyping>=0.3.9",
   "optional-dependencies>=0.4.1",
   # 2.10.0 ships mypyc-compiled wheels whose `Function` is a native class, so it
-  # is not weak-referenceable and `jax.jit(<dispatched function>)` raises. Only
-  # cp310-cp313 on manylinux/win/macos-x86_64 are affected; other platforms get
-  # the pure-Python wheel. Drop the exclusion once a fixed plum is released.
+  # is not weak-referenceable and `jax.jit(<dispatched function>)` raises. plum
+  # builds those wheels for cp310-cp313 on manylinux/win/macos-x86_64, which of
+  # the versions we support means 3.12 and 3.13; 3.14 and macOS arm64 get the
+  # pure-Python wheel and are unaffected. The exclusion is unconditional anyway,
+  # since the resolver cannot know which wheel an install will get. Fixed by
+  # beartype/plum#319 -- drop this once a release carries it.
   "plum-dispatch>=2.7.0,!=2.10.0",
   "plum-dispatch>=2.9.0; python_version>='3.14'",
   "quax>=0.4.2",

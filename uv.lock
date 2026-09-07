@@ -4428,7 +4428,10 @@ test = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "plum-dispatch", specifier = ">=2.5.7,!=2.10.0" }]
+requires-dist = [
+    { name = "plum-dispatch", specifier = ">=2.5.7,!=2.10.0" },
+    { name = "plum-dispatch", marker = "python_full_version >= '3.14'", specifier = ">=2.9.0" },
+]
 
 [package.metadata.requires-dev]
 test = [
