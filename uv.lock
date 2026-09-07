@@ -4180,7 +4180,7 @@ requires-dist = [
     { name = "jaxtyping", specifier = ">=0.3.9" },
     { name = "optional-dependencies", specifier = ">=0.3.2" },
     { name = "packaging", specifier = ">=20.0" },
-    { name = "plum-dispatch", specifier = ">=2.7.0" },
+    { name = "plum-dispatch", specifier = ">=2.7.0,!=2.10.0" },
     { name = "plum-dispatch", marker = "python_full_version >= '3.14'", specifier = ">=2.9.0" },
     { name = "quax", specifier = ">=0.4.2" },
     { name = "quax-blocks", specifier = ">=0.5.0" },
@@ -4430,7 +4430,10 @@ test = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "plum-dispatch", specifier = ">=2.5.7" }]
+requires-dist = [
+    { name = "plum-dispatch", specifier = ">=2.5.7,!=2.10.0" },
+    { name = "plum-dispatch", marker = "python_full_version >= '3.14'", specifier = ">=2.9.0" },
+]
 
 [package.metadata.requires-dev]
 test = [
@@ -4624,7 +4627,7 @@ test = [
 requires-dist = [
     { name = "equinox", specifier = ">=0.11.8" },
     { name = "jaxtyping", specifier = ">=0.2.34" },
-    { name = "plum-dispatch", specifier = ">=2.5.7" },
+    { name = "plum-dispatch", specifier = ">=2.5.7,!=2.10.0" },
     { name = "quax", specifier = ">=0.2.0" },
     { name = "unxt", editable = "." },
 ]
@@ -4666,7 +4669,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "astropy", specifier = ">=7.0.0" },
-    { name = "plum-dispatch", specifier = ">=2.5.7" },
+    { name = "plum-dispatch", specifier = ">=2.5.7,!=2.10.0" },
     { name = "unxt", editable = "." },
     { name = "unxts-api", editable = "packages/unxts.api" },
 ]
