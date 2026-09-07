@@ -17,7 +17,7 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
 ]
-dependencies = ["plum-dispatch>=2.5.7"]
+dependencies = ["plum-dispatch>=2.5.7,!=2.10.0"] # !=2.10.0: see root pyproject
 description = "Abstract dispatch API definitions for unxt (canonical: unxts.api)"
 dynamic = ["version"]
 license = "BSD-3-Clause"

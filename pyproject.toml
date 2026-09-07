@@ -27,7 +27,11 @@ dependencies = [
   "jaxlib>=0.7.2",
   "jaxtyping>=0.3.9",
   "optional-dependencies>=0.4.1",
-  "plum-dispatch>=2.7.0",
+  # 2.10.0 ships mypyc-compiled wheels whose `Function` is a native class, so it
+  # is not weak-referenceable and `jax.jit(<dispatched function>)` raises. Only
+  # cp310-cp313 on manylinux/win/macos-x86_64 are affected; other platforms get
+  # the pure-Python wheel. Drop the exclusion once a fixed plum is released.
+  "plum-dispatch>=2.7.0,!=2.10.0",
   "plum-dispatch>=2.9.0; python_version>='3.14'",
   "quax>=0.4.2",
   "quax-blocks>=0.5.0",

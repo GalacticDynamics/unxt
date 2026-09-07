@@ -19,7 +19,8 @@ classifiers = [
 ]
 dependencies = [
   "astropy>=7.1",
-  "plum-dispatch>=2.5.7",
+  # See the root `pyproject.toml`: 2.10.0's compiled `Function` breaks `jax.jit`.
+  "plum-dispatch>=2.5.7,!=2.10.0",
   "unxt>=2.0.0",
   "unxts.api>=2.0.0",
 ]
