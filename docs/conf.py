@@ -124,6 +124,12 @@ exclude_patterns = [
     ".venv",
     # Excluded: converted to optimize-performance.ipynb during the build
     "how-to/optimize-performance.md",
+    # The pre-Diataxis tree is gone and every path under it is now a rediraffe
+    # redirect. A machine that built the docs before the move still has the
+    # notebook jupytext generated there (`guides/perf.ipynb`), and `.ipynb` is a
+    # `source_suffix` -- so Sphinx would build `guides/perf.html` and rediraffe
+    # would then refuse to write its redirect over it, failing the build.
+    "guides/**",
     "**/_data/**",  # Sample-data dirs (e.g. the xarray guide's), not doc pages
 ]
 
