@@ -280,9 +280,11 @@ class QuantityReprConfig(AbstractQuantityDisplayConfig):
     ----------
     short_arrays : bool | Literal["compact"]
         Controls how arrays are displayed in repr. Options:
+
         - "compact": Show array values without Array wrapper
         - `True`: Show short array summary (shape/dtype)
         - `False`: Show full array representation
+
         Default: `False`
     use_short_name : bool
         If True and a class has a `short_name` attribute, use the short
@@ -319,9 +321,11 @@ class QuantityStrConfig(AbstractQuantityDisplayConfig):
     ----------
     short_arrays : bool | Literal["compact"]
         Controls how arrays are displayed in str. Options:
+
         - "compact": Show array values without Array wrapper
         - `True`: Show short array summary (shape/dtype)
         - `False`: Show full array representation
+
         Default: "compact"
     use_short_name : bool
         If True and a class has a `short_name` attribute, use the short
@@ -807,6 +811,7 @@ def _auto_load_project_toml_config(cfg: UnxtConfig, /, *, stacklevel: int = 2) -
     """Auto-load nearest project TOML config without raising import-time errors.
 
     This function:
+
     1. Searches for nearest pyproject.toml from cwd
     2. Loads [tool.unxts.unxt] configuration
     3. Applies valid settings to config instances
