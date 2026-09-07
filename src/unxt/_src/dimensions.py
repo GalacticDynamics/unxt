@@ -231,6 +231,7 @@ def dimension(obj: str, /) -> AbstractDimension:
     """Construct dimension from a string.
 
     The string can be:
+
     1. A simple dimension name (e.g., "length", "time", "mass")
     2. A multi-word dimension name (e.g., "amount of substance", "absement")
     3. A mathematical expression using *, /, and ** operators
@@ -238,21 +239,25 @@ def dimension(obj: str, /) -> AbstractDimension:
     Mathematical Expressions:
 
     Expressions are evaluated using operator precedence (PEMDAS):
+
     - ** (exponentiation, highest precedence)
     - * and / (multiplication and division, equal precedence, left-to-right)
 
     Parentheses are supported for grouping and for dimension names with spaces.
 
     Operators Supported:
+
     - `*` : Multiplication (e.g., "length * time")
     - `/` : Division (e.g., "length / time")
     - `**` : Exponentiation (e.g., "length**2")
 
     Unsupported Operators:
+
     - `+` and `-` are NOT supported as operators since dimensions are invariant
       under addition and subtraction. They are treated as part of dimension names.
 
     Rules for Dimension Names in Expressions:
+
     - Single-word names don't need parentheses: "length * time"
     - Multi-word names MUST be parenthesized: "(amount of substance) * time"
     - Parenthesized single-word names are allowed: "(length) / (time)"
