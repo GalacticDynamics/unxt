@@ -1,6 +1,7 @@
 """Quax primitive registrations for QuantityMatrix arithmetic.
 
 Registers handlers for the following JAX primitives:
+
 - ``lax.add_p`` — element-wise addition
 - ``lax.sub_p`` — element-wise subtraction
 - ``lax.mul_p`` — element-wise multiplication
@@ -437,6 +438,7 @@ def _dot_general_2d_2d(
     then sum with a plain matmul.
 
     The strategy:
+
     1. Pick a reference unit for each ``(i, k)`` output element:
        ``ref[i][k] = A.unit[i][0] * B.unit[0][k]``.
     2. For each contraction index ``j``, compute per-element conversion
@@ -503,6 +505,7 @@ def dot_general_qm_qm(
 
     Delegates to specialized implementations based on the (logical)
     dimensionality of each operand:
+
     - 1D @ 1D → scalar (vector dot product)
     - 2D @ 1D → 1D (matrix-vector product)
     - 1D @ 2D → 1D (vector-matrix product)

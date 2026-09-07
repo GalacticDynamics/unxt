@@ -1622,6 +1622,7 @@ def svd_p_q(
     """SVD decomposition of a quantity matrix.
 
     For a matrix with units (e.g., 'm'), SVD returns:
+
     - When compute_uv=True: [U, S, VT] where S has input units
     - When compute_uv=False: [S] (singular values with input units)
 
@@ -1701,6 +1702,7 @@ def qr_p_q(x: ABCQ, /, **params: Any) -> Any:
     """QR decomposition of a quantity matrix.
 
     For QR decomposition A = Q·R:
+
     - Q is orthonormal (dimensionless)
     - R is upper triangular with the same units as the input
 

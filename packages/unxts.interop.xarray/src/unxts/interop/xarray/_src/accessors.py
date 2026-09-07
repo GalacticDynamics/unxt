@@ -79,6 +79,7 @@ class UnxtDataArrayAccessor:
         ----------
         units : str | AbstractUnit | Mapping | None, optional
             Units to attach. Can be:
+
             - A string or unit object to apply to the data array
             - A dict-like mapping coordinate/variable names to units
             - None to use the "units" attribute
