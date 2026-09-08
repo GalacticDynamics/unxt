@@ -8,20 +8,18 @@ Regression guard for the `unit`-field converter: the quantity classes use the
 ``eqx.field`` converter, so ``Quantity(1, "m")`` type-checks while ``.unit``
 still reads as a unit.
 
-pyright and ty both read equinox's `converter` field-specifier, so both
-validate the full constructor: the str `unit` and the raw-int `value` are
-accepted and `.unit` reads back as `AbstractUnit`. mypy does less: it types the
-`value` field as `Array | StaticValue` (rejecting a raw int/float -- suppressed
-below) and the `unit` param / `.unit` result as `Any`, so it neither
-discriminates the unit argument nor checks `.unit`. What mypy *does* guard is
-that the constructors type-check under the strict config and return the right
-type (`assert_type(Quantity(1, "m"), Quantity)` is a real check -- a return-type
-regression fails it). A regression here is the trigger to revisit a `.pyi` stub.
-
-The `# type: ignore[arg-type]` on each constructor marks mypy's `value`-converter
-gap per call site (rather than a blanket module-level disable), so any *other*
-`arg-type` error the fixture grows still surfaces; `warn_unused_ignores` flags
-them if the gap ever closes. pyright/ty apply the converter and need no ignore.
+pyright and ty read equinox's `converter` field-specifier directly from the
+real source and always validated the full constructor. mypy could not infer
+through the converter, so it used to type `Quantity`'s `value` field as
+`Array | StaticValue` (rejecting a raw int/float) and `unit`/`.unit` as `Any` --
+neither discriminating the unit argument nor checking `.unit`.
+`src/unxt/quantity.pyi` (a hand-written stub -- a `.pyi` fully shadows its
+`.py` module for every checker) now gives mypy an explicit
+``__init__(value: ArrayLike, unit: str | AbstractUnit)``, closing that gap:
+all three checkers now agree on the full constructor and on `.unit`'s type
+below, with no ``type: ignore`` needed. See `test_quantity_stub.py` for
+broader coverage of the stub's surface (arithmetic, comparisons, `ustrip`/
+`uconvert` overloads, `Angle.wrap_to`, etc).
 """
 
 from typing import assert_type
@@ -34,12 +32,12 @@ import unxt as u
 def test_string_unit_constructors_typecheck_and_run() -> None:
     """A unit string is accepted by the quantity constructors.
 
-    The ``assert_type`` calls are checked statically by pyright (the actual
-    guard); the runtime assertions make it a real behavioural test too -- the
-    string unit must be parsed to the expected unit.
+    The ``assert_type`` calls are checked statically by pyright/ty/mypy (the
+    actual guard); the runtime assertions make it a real behavioural test too
+    -- the string unit must be parsed to the expected unit.
     """
     # The README's first line -- and the bug this guards.
-    assert_type(u.Quantity(1, "m"), u.Quantity)  # type: ignore[arg-type]
+    assert_type(u.Quantity(1, "m"), u.Quantity)
 
     # ``Angle`` shares the same ``unit``-field converter. StaticQuantity does
     # too, but its *value* field is separately opaque to pyright (it types
@@ -47,15 +45,15 @@ def test_string_unit_constructors_typecheck_and_run() -> None:
     # would fail pyright for a reason unrelated to this unit-field fix -- a
     # separate follow-up. ParametricQuantity lives in the ``unxts.parametric``
     # package and is guarded by that package's own suite.
-    assert_type(u.Angle(1, "rad"), u.Angle)  # type: ignore[arg-type]
+    assert_type(u.Angle(1, "rad"), u.Angle)
 
     # Runtime: the string unit is parsed to the right unit on each constructor.
-    assert u.Quantity(1, "m").unit == apyu.Unit("m")  # type: ignore[arg-type]
-    assert u.Q(1.0, "m").unit == apyu.Unit("m")  # type: ignore[arg-type]
-    assert u.Angle(1, "rad").unit == apyu.Unit("rad")  # type: ignore[arg-type]
+    assert u.Quantity(1, "m").unit == apyu.Unit("m")
+    assert u.Q(1.0, "m").unit == apyu.Unit("m")
+    assert u.Angle(1, "rad").unit == apyu.Unit("rad")
 
     # A real unit object is still accepted and round-trips.
-    assert u.Quantity(1, apyu.Unit("m")).unit == apyu.Unit("m")  # type: ignore[arg-type]
+    assert u.Quantity(1, apyu.Unit("m")).unit == apyu.Unit("m")
 
     # The ``unit`` field reads back as a unit, not ``str``.
-    assert_type(u.Quantity(1, "m").unit, u.AbstractUnit)  # type: ignore[arg-type]
+    assert_type(u.Quantity(1, "m").unit, u.AbstractUnit)
