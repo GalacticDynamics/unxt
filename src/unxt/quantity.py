@@ -113,6 +113,12 @@ Quantity(Array(49., dtype=float32...), unit='kg m / s2')
 
 """
 
+# pylint: disable=duplicate-code
+# The `quantity.pyi` stub next to this file redeclares (most of) this
+# module's public surface for mypy; pylint's duplicate-code checker (R0801)
+# doesn't know about the PEP 561 stub relationship and flags the `.pyi` as a
+# self-duplicate of this file's `__all__` tuple and import block.
+
 __all__ = (
     # Core
     "Quantity",
