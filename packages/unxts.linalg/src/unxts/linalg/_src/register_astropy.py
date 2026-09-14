@@ -92,7 +92,27 @@ def structured_unit_to_unitsmatrix(obj: apyu.StructuredUnit, /) -> UnitsMatrix:
     >>> convert(apyu.StructuredUnit((("m", "s"), ("kg", "rad"))), UnitsMatrix).shape
     (2, 2)
 
+    Astropy nests to any depth; a `UnitsMatrix` is a vector or a matrix, so
+    anything deeper is refused by depth rather than reaching `UnitsMatrix`'s
+    own "ragged structure" check, which names the wrong fault:
+
+    >>> deep = apyu.StructuredUnit(((("m", "s"), ("kg", "rad")),))
+    >>> try:
+    ...     convert(deep, UnitsMatrix)
+    ... except ValueError as e:
+    ...     print(e)
+    UnitsMatrix holds a 1-D or 2-D layout; got a 3-deep StructuredUnit
+    (((m, s), (kg, rad)),).
+
     """
+    # An empty StructuredUnit has no first value to recurse into, and
+    # `UnitsMatrix` already rejects it by name.
+    if obj.values() and (depth := _structured_depth(obj)) > 2:
+        msg = (
+            f"UnitsMatrix holds a 1-D or 2-D layout; got a {depth}-deep "
+            f"StructuredUnit {obj}."
+        )
+        raise ValueError(msg)
     return UnitsMatrix(_structured_unit_to_tuple(obj))
 
 

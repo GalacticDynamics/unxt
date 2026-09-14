@@ -43,6 +43,22 @@ def test_units_round_trip(units: tuple, shape: tuple) -> None:
     assert plum.convert(plum.convert(umat, apyu.StructuredUnit), UnitsMatrix) == umat
 
 
+def test_a_layout_deeper_than_a_matrix_is_refused_by_depth() -> None:
+    """Astropy nests to any depth; `UnitsMatrix` is a vector or a matrix.
+
+    Without the check this reaches `UnitsMatrix`'s own "ragged structure"
+    error, which names the wrong fault: the layout is not ragged, it is deep.
+    """
+    deep = apyu.StructuredUnit(((("m", "s"), ("kg", "rad")),))
+    with pytest.raises(ValueError, match="3-deep"):
+        plum.convert(deep, UnitsMatrix)
+
+
+def test_an_empty_layout_keeps_its_own_message() -> None:
+    with pytest.raises(ValueError, match="at least one element"):
+        plum.convert(apyu.StructuredUnit(()), UnitsMatrix)
+
+
 class TestQuantityMatrixToAstropyQuantity:
     """The unit layout claims the trailing axes; one axis in front is batch."""
 
