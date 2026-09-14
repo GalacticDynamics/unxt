@@ -153,6 +153,16 @@ def quantitymatrix_to_astropy_quantity(q: QuantityMatrix, /) -> apyu.Quantity:
     unit = apyu.StructuredUnit(q.unit.to_tuple())
     value = np.asarray(q.value)
 
+    # An empty layout is a legal `UnitsMatrix` (see its `__pow__`) but has no
+    # astropy counterpart: a structured dtype must have at least one field.
+    if not unit.values():
+        msg = (
+            "cannot convert a QuantityMatrix with an empty unit layout: "
+            "astropy's structured dtype must have at least one field, so "
+            "there is no empty structured Quantity to convert to."
+        )
+        raise ValueError(msg)
+
     depth = _structured_depth(unit)
     dtype = _structured_dtype(unit, value.dtype)
     if value.ndim == depth:

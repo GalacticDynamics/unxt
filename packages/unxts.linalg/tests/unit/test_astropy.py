@@ -91,6 +91,14 @@ class TestQuantityMatrixToAstropyQuantity:
         qmat = QuantityMatrix(jnp.array([1.0, 2.0], dtype=jnp.float32), ("km", "s"))
         assert plum.convert(qmat, apyu.Quantity).dtype["f0"] == np.float32
 
+    def test_an_empty_layout_is_refused_by_name(self) -> None:
+        """Legal here (see `UnitsMatrix.__pow__`), impossible in astropy."""
+        qmat = QuantityMatrix(
+            jnp.zeros((0,)), unit=UnitsMatrix(np.empty(0, dtype=object))
+        )
+        with pytest.raises(ValueError, match="at least one field"):
+            plum.convert(qmat, apyu.Quantity)
+
     def test_more_batch_axes_than_astropy_allows_are_refused(self) -> None:
         qmat = QuantityMatrix(jnp.ones((2, 2, 3)), unit=("m", "s", "kg"))
         with pytest.raises(ValueError, match="one batch axis"):
