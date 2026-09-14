@@ -38,7 +38,7 @@ __all__ = (
     "vecmat",
 )
 
-from . import _register_primitives  # noqa: F401
+from . import _register_primitives, register_astropy  # noqa: F401
 from ._det import det, det_p
 from ._inv import inv, inv_p
 from ._products import matmul, matvec, vecdot, vecmat
