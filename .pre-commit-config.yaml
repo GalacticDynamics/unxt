@@ -31,9 +31,7 @@ repos:
       - id: no-commit-to-branch
         args: ["--branch", "main", "--pattern", "^versions/.*"]
         always_run: true
-        # default_stages includes pre-push; restrict to pre-commit so a
-        # tag-only push (or any push) from a checked-out main isn't
-        # mistaken for a commit to main.
+        # Restrict to pre-commit so a push (e.g. a release tag) isn't mistaken for a commit.
         stages: [pre-commit]
       - id: trailing-whitespace
 
