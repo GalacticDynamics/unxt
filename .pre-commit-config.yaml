@@ -28,6 +28,8 @@ repos:
       - id: mixed-line-ending
       - id: name-tests-test
         args: ["--pytest-test-first"]
+      - id: no-commit-to-branch
+        args: ["--branch", "main", "--pattern", "^versions/.*"]
       - id: trailing-whitespace
 
   - repo: https://github.com/pre-commit/pygrep-hooks
