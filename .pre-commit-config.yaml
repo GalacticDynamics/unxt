@@ -30,6 +30,7 @@ repos:
         args: ["--pytest-test-first"]
       - id: no-commit-to-branch
         args: ["--branch", "main", "--pattern", "^versions/.*"]
+        always_run: true
       - id: trailing-whitespace
 
   - repo: https://github.com/pre-commit/pygrep-hooks
