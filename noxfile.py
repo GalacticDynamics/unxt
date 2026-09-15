@@ -5,6 +5,7 @@
 """Nox setup."""
 
 import argparse
+import os
 import shutil
 from enum import StrEnum, auto
 from pathlib import Path
@@ -74,8 +75,10 @@ def precommit(s: nox.Session, /) -> None:
     """Run prek."""
     # no-commit-to-branch always fails here: CI checks out the real
     # `main` branch on every push, which is exactly what the hook exists to
-    # block for a human running `git commit`/`git push` locally.
-    s.run("prek", "run", "--all-files", *s.posargs, env={"SKIP": "no-commit-to-branch"})
+    # block for a human running `git commit`/`git push` locally. Add it to
+    # any SKIP a caller already set, rather than clobbering it.
+    skip = ",".join(filter(None, [os.environ.get("SKIP"), "no-commit-to-branch"]))
+    s.run("prek", "run", "--all-files", *s.posargs, env={"SKIP": skip})
 
 
 @session(uv_groups=["typecheck"], uv_extras=["all"], reuse_venv=True)
