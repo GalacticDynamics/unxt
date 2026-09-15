@@ -75,11 +75,12 @@ def precommit(s: nox.Session, /) -> None:
     """Run the pre-commit hooks (via prek)."""
     # no-commit-to-branch guards a human's local `git commit` (it's
     # scoped to stages: [pre-commit] in .pre-commit-config.yaml, so it
-    # never runs on push) -- not a manual "run every hook over all files"
-    # invocation like this one, which CI also runs on every push to
-    # `main`, where it would otherwise always fail. Skipped here (locally
-    # or in CI); the installed git hook still catches the real case. Add
-    # it to any SKIP a caller already set, rather than clobbering it.
+    # never fires as a pre-push git hook) -- not a manual "run every
+    # hook over all files" invocation like this one, which CI also runs
+    # on every push to `main`, where it would otherwise always fail.
+    # Skipped here (locally or in CI); the installed git hook still
+    # catches the real case. Add it to any SKIP a caller already set,
+    # rather than clobbering it.
     skip = ",".join(filter(None, [os.environ.get("SKIP"), "no-commit-to-branch"]))
     s.run("prek", "run", "--all-files", *s.posargs, env={"SKIP": skip})
 
