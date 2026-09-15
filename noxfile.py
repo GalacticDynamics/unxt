@@ -72,7 +72,7 @@ def lint(s: nox.Session, /) -> None:
 
 @session(uv_groups=["lint"], reuse_venv=True)
 def precommit(s: nox.Session, /) -> None:
-    """Run prek."""
+    """Run the pre-commit hooks (via prek)."""
     # no-commit-to-branch guards a human's local `git commit`/`git push`,
     # not a manual "run every hook over all files" invocation like this
     # one -- which CI also runs on every push to `main`, where it would
