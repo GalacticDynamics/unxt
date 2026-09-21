@@ -1170,7 +1170,7 @@ def concatenate_p_v(
 # ==============================================================================
 # Stack
 
-if JAX_VERSION >= (0, 10, 1):  # `stack_p` was added in JAX 0.10.1
+if JAX_VERSION >= (0, 10, 1):  # pragma: no branch -- `stack_p`: JAX 0.10.1
 
     @quax.register(lax.stack_p)
     def stack_p(operand0: ABCQ, *operands: ABCQ | ArrayLike, axis: int) -> ABCQ:
@@ -3059,7 +3059,9 @@ def log1p_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 # ==============================================================================
 
 
-if JAX_VERSION >= (0, 11, 2):
+# `no cover`: the coverage job resolves the *oldest* supported dependencies, so
+# this block cannot run there. The newest-deps job exercises it, without `--cov`.
+if JAX_VERSION >= (0, 11, 2):  # pragma: no cover -- jax-version guard
     # `jnp.log2` lowered to `log_p` / `div_p` before JAX 0.11.2, which gave it
     # its own `log2_p` primitive. Without this rule `quax` falls through to
     # materialising the operand, which `AbstractQuantity` refuses.

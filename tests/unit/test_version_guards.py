@@ -14,6 +14,7 @@ guard at or below it, since such a guard is by then a constant. Bumping the
 floor therefore produces a list of exactly the shims to delete.
 """
 
+import operator
 import re
 import tomllib
 from pathlib import Path
@@ -25,8 +26,16 @@ from packaging.version import Version
 REPO_ROOT = Path(__file__).parents[2]
 SCAN_DIRS = ("src", "tests")
 
-# A `JAX_VERSION >= (0, 11, 2)`-style guard.
-GUARD_RE = re.compile(r"JAX_VERSION\s*[<>=]=?\s*\((\d+),\s*(\d+),\s*(\d+)\)")
+# A `JAX_VERSION >= (0, 11, 2)`-style guard. The convention is `>=`; the other
+# comparisons are matched too, so a stray one is still checked rather than
+# silently skipped.
+GUARD_RE = re.compile(r"JAX_VERSION\s*(>=|<=|>|<)\s*\((\d+),\s*(\d+),\s*(\d+)\)")
+
+# When a floor makes each comparison a constant. Given `JAX_VERSION >= floor`,
+# `>=` and `<` are constant as soon as the floor *reaches* the guarded version.
+# The strict `>` and the inclusive `<=` only become constant once it *passes*:
+# at exactly the floor both still discriminate, since JAX may be newer.
+DEAD_AT = {">=": operator.ge, "<": operator.ge, ">": operator.gt, "<=": operator.gt}
 
 
 def _jax_floor() -> Version:
@@ -41,8 +50,8 @@ def _jax_floor() -> Version:
     raise AssertionError(msg)
 
 
-def _guards() -> list[tuple[Path, int, Version]]:
-    """Every JAX version guard in the codebase, with its location."""
+def _guards() -> list[tuple[Path, int, str, Version]]:
+    """Every JAX version guard in the codebase, with its location and operator."""
     found = set()
     for directory in SCAN_DIRS:
         for path in sorted((REPO_ROOT / directory).rglob("*.py")):
@@ -50,10 +59,10 @@ def _guards() -> list[tuple[Path, int, Version]]:
                 continue
             for lineno, line in enumerate(path.read_text().splitlines(), start=1):
                 found |= {
-                    (path.relative_to(REPO_ROOT), lineno, Version(".".join(m)))
-                    for m in GUARD_RE.findall(line)
+                    (path.relative_to(REPO_ROOT), lineno, op, Version(".".join(ver)))
+                    for op, *ver in GUARD_RE.findall(line)
                 }
-    return sorted(found, key=lambda g: (str(g[0]), g[1], g[2]))
+    return sorted(found, key=lambda g: (str(g[0]), g[1], g[3]))
 
 
 def test_no_version_guard_below_supported_floor() -> None:
@@ -62,9 +71,9 @@ def test_no_version_guard_below_supported_floor() -> None:
     guards = _guards()
     assert guards, "found no version guards at all -- the scan is broken"
 
-    dead = [(p, n, v) for p, n, v in guards if floor >= v]
+    dead = [(p, n, op, v) for p, n, op, v in guards if DEAD_AT[op](floor, v)]
     assert not dead, "JAX version guards made dead by the jax>={} floor:\n{}".format(
-        floor, "\n".join(f"  {p}:{n}: guards JAX {v}" for p, n, v in dead)
+        floor, "\n".join(f"  {p}:{n}: `JAX_VERSION {op} {v}`" for p, n, op, v in dead)
     )
 
 
