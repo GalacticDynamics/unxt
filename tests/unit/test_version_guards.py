@@ -1,0 +1,86 @@
+"""Guard against JAX compatibility shims outliving the supported floor.
+
+Every JAX version guard in `unxt` names the release it is there for, as a
+comparison against `jax.version.__version_info__`::
+
+    if JAX_VERSION >= (0, 11, 2):
+        ...
+
+Never probe with ``hasattr``: it hides *which* release changed, so the shim can
+never be confidently deleted.
+
+This test reads the ``jax>=`` floor from `pyproject.toml` and fails for any
+guard at or below it, since such a guard is by then a constant. Bumping the
+floor therefore produces a list of exactly the shims to delete.
+"""
+
+import re
+import tomllib
+from pathlib import Path
+
+import pytest
+from packaging.requirements import Requirement
+from packaging.version import Version
+
+REPO_ROOT = Path(__file__).parents[2]
+SCAN_DIRS = ("src", "tests")
+
+# A `JAX_VERSION >= (0, 11, 2)`-style guard.
+GUARD_RE = re.compile(r"JAX_VERSION\s*[<>=]=?\s*\((\d+),\s*(\d+),\s*(\d+)\)")
+
+
+def _jax_floor() -> Version:
+    """The lowest JAX release `unxt` claims to support."""
+    pyproject = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text())
+    for dep in pyproject["project"]["dependencies"]:
+        req = Requirement(dep)
+        if req.name == "jax":
+            (spec,) = [s for s in req.specifier if s.operator == ">="]
+            return Version(spec.version)
+    msg = "no `jax` dependency found in pyproject.toml"
+    raise AssertionError(msg)
+
+
+def _guards() -> list[tuple[Path, int, Version]]:
+    """Every JAX version guard in the codebase, with its location."""
+    found = set()
+    for directory in SCAN_DIRS:
+        for path in sorted((REPO_ROOT / directory).rglob("*.py")):
+            if path == Path(__file__):
+                continue
+            for lineno, line in enumerate(path.read_text().splitlines(), start=1):
+                found |= {
+                    (path.relative_to(REPO_ROOT), lineno, Version(".".join(m)))
+                    for m in GUARD_RE.findall(line)
+                }
+    return sorted(found, key=lambda g: (str(g[0]), g[1], g[2]))
+
+
+def test_no_version_guard_below_supported_floor() -> None:
+    """Every JAX version guard is still meaningful at the supported floor."""
+    floor = _jax_floor()
+    guards = _guards()
+    assert guards, "found no version guards at all -- the scan is broken"
+
+    dead = [(p, n, v) for p, n, v in guards if floor >= v]
+    assert not dead, "JAX version guards made dead by the jax>={} floor:\n{}".format(
+        floor, "\n".join(f"  {p}:{n}: guards JAX {v}" for p, n, v in dead)
+    )
+
+
+def test_no_hasattr_probing_of_jax_primitives() -> None:
+    """Primitive registration names a JAX version rather than probing for it."""
+    path = Path("src/unxt/_src/quantity/register_primitives.py")
+    probes = [
+        f"  {path}:{n}: {line.strip()}"
+        for n, line in enumerate((REPO_ROOT / path).read_text().splitlines(), start=1)
+        if "hasattr(lax" in line
+    ]
+    assert not probes, (
+        "`hasattr` probing of `jax.lax`; find the JAX release that introduced "
+        "the primitive and guard on `JAX_VERSION` instead:\n" + "\n".join(probes)
+    )
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])

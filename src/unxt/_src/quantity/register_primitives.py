@@ -7,6 +7,7 @@ from math import prod
 from typing import Any, Literal, TypeAlias, overload
 
 import equinox as eqx
+import jax
 import jax.tree as jt
 import numpy as np
 import quax
@@ -33,6 +34,15 @@ from unxt._src.utils import promote_dtypes, promote_dtypes_if_needed
 from unxt_api import is_unit_convertible, uconvert, unit, unit_of, ustrip
 
 Axes: TypeAlias = tuple[int, ...]
+
+#: The running JAX release, e.g. ``(0, 11, 2)``.
+JAX_VERSION: tuple[int, ...] = jax.version.__version_info__
+
+# Every JAX version guard below compares against `JAX_VERSION`, naming the
+# release that introduced the primitive it guards. Never probe with `hasattr`:
+# that hides *which* release changed, so the shim can never confidently be
+# deleted. When `pyproject.toml`'s `jax>=` floor rises past one of these, the
+# guard is a constant and should go -- `test_version_guards.py` fails to say so.
 
 mul_qbind = quax.quaxify(lax.mul_p.bind)
 
@@ -1160,7 +1170,7 @@ def concatenate_p_v(
 # ==============================================================================
 # Stack
 
-if hasattr(lax, "stack_p"):  # pragma: no branch -- jax-version guard
+if JAX_VERSION >= (0, 10, 1):  # `stack_p` was added in JAX 0.10.1
 
     @quax.register(lax.stack_p)
     def stack_p(operand0: ABCQ, *operands: ABCQ | ArrayLike, axis: int) -> ABCQ:
@@ -3044,6 +3054,35 @@ def log1p_p(x: ABCQ, /, **kw: Any) -> ABCQ:
 
     """
     return _as_dimensionless_like(x, lax.log1p_p.bind(ustrip(one, x), **kw))
+
+
+# ==============================================================================
+
+
+if JAX_VERSION >= (0, 11, 2):
+    # `jnp.log2` lowered to `log_p` / `div_p` before JAX 0.11.2, which gave it
+    # its own `log2_p` primitive. Without this rule `quax` falls through to
+    # materialising the operand, which `AbstractQuantity` refuses.
+
+    @quax.register(lax.log2_p)
+    def log2_p(x: ABCQ, /, **kw: Any) -> ABCQ:
+        """Base-2 logarithm of a quantity.
+
+        Examples
+        --------
+        >>> import quaxed.numpy as jnp
+        >>> import unxt as u
+
+        >>> q = u.quantity.Quantity(2, "")
+        >>> jnp.log2(q)
+        Quantity(Array(1., dtype=float32...), unit='')
+
+        >>> q = u.Q(2, "")
+        >>> jnp.log2(q)
+        Quantity(Array(1., dtype=float32...), unit='')
+
+        """
+        return _as_dimensionless_like(x, lax.log2_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
