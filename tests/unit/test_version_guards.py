@@ -23,7 +23,11 @@ import pytest
 from packaging.requirements import Requirement
 from packaging.version import Version
 
-REPO_ROOT = Path(__file__).parents[2]
+# Resolved, so the self-skip in `_guards` is a reliable comparison whatever
+# `__file__` looks like under a given pytest import mode, and through symlinked
+# checkouts (on macOS a `/tmp` working copy is really `/private/tmp`).
+SELF = Path(__file__).resolve()
+REPO_ROOT = SELF.parents[2]
 SCAN_DIRS = ("src", "tests")
 
 # A `JAX_VERSION >= (0, 11, 2)`-style guard. The convention is `>=`; the other
@@ -55,7 +59,7 @@ def _guards() -> list[tuple[Path, int, str, Version]]:
     found = set()
     for directory in SCAN_DIRS:
         for path in sorted((REPO_ROOT / directory).rglob("*.py")):
-            if path == Path(__file__):
+            if path.resolve() == SELF:  # this file's own examples are not guards
                 continue
             for lineno, line in enumerate(path.read_text().splitlines(), start=1):
                 found |= {
@@ -70,6 +74,9 @@ def test_no_version_guard_below_supported_floor() -> None:
     floor = _jax_floor()
     guards = _guards()
     assert guards, "found no version guards at all -- the scan is broken"
+    assert not [g for g in guards if g[0] == SELF.relative_to(REPO_ROOT)], (
+        "this file's own docstring examples were scanned -- the self-skip broke"
+    )
 
     dead = [(p, n, op, v) for p, n, op, v in guards if DEAD_AT[op](floor, v)]
     assert not dead, "JAX version guards made dead by the jax>={} floor:\n{}".format(
