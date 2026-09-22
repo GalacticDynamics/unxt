@@ -31,10 +31,11 @@ jobs:
           # Can be removed if switching to hardcoded versions.
           fetch-depth: 0
           persist-credentials: false
-          # This workflow only runs on trusted `push` and `workflow_dispatch` events.
-          # `github.ref` is therefore constrained to repository refs (main/tag or a
-          # manually selected ref) and does not accept untrusted PR fork heads.
-          ref: ${{ github.ref }}
+          # Pin to the triggering commit: on `workflow_dispatch` a queued job
+          # would re-resolve `github.ref` to the branch's current tip. Only
+          # trusted `push`/`workflow_dispatch` events run here, so this never
+          # accepts an untrusted PR fork head.
+          ref: ${{ github.sha }}
 
       - name: Validate git tag (for tagged releases)
         if: startsWith(github.ref, 'refs/tags/')
