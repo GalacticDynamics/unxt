@@ -129,7 +129,3 @@ def test_hasattr_pattern_catches_probe_spellings(line: str) -> None:
 def test_hasattr_pattern_ignores_unrelated_probes(line: str) -> None:
     """Probing non-JAX objects is ordinary Python, not the banned anti-pattern."""
     assert not HASATTR_RE.search(line)
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])
