@@ -1,5 +1,9 @@
 """Guard against JAX compatibility shims outliving the supported floor.
 
+A repository-hygiene check, not a unit test: it asserts a property of the
+source tree rather than any runtime behaviour of `unxt`, which is why it lives
+in `tests/repo/` rather than `tests/unit/`.
+
 Every JAX version guard in `unxt` names the release it is there for, as a
 comparison against `jax.version.__version_info__`::
 
