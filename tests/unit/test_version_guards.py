@@ -41,6 +41,11 @@ GUARD_RE = re.compile(r"JAX_VERSION\s*(>=|<=|>|<)\s*\((\d+),\s*(\d+),\s*(\d+)\)"
 # at exactly the floor both still discriminate, since JAX may be newer.
 DEAD_AT = {">=": operator.ge, "<": operator.ge, ">": operator.gt, "<=": operator.gt}
 
+# A `hasattr` probe of a JAX module -- the anti-pattern these tests ban. Matched
+# as a pattern rather than a fixed substring so spacing and the module spelling
+# (`lax`, `jax.lax`, `jnp`, ...) cannot slip a probe past the check.
+HASATTR_RE = re.compile(r"\bhasattr\s*\(\s*(?:jax[\w.]*|lax|jnp)\s*,")
+
 
 def _jax_floor() -> Version:
     """The lowest JAX release `unxt` claims to support."""
@@ -90,12 +95,36 @@ def test_no_hasattr_probing_of_jax_primitives() -> None:
     probes = [
         f"  {path}:{n}: {line.strip()}"
         for n, line in enumerate((REPO_ROOT / path).read_text().splitlines(), start=1)
-        if "hasattr(lax" in line
+        if HASATTR_RE.search(line)
     ]
     assert not probes, (
         "`hasattr` probing of `jax.lax`; find the JAX release that introduced "
         "the primitive and guard on `JAX_VERSION` instead:\n" + "\n".join(probes)
     )
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        'if hasattr(lax, "stack_p"):',
+        'if hasattr( lax , "stack_p"):',
+        'if hasattr(jax.lax, "stack_p"):',
+        'if hasattr(jnp, "float_"):',
+        "if hasattr (jax, 'Inline'):",
+    ],
+)
+def test_hasattr_pattern_catches_probe_spellings(line: str) -> None:
+    """The probe pattern catches the spellings a fixed substring would miss."""
+    assert HASATTR_RE.search(line)
+
+
+@pytest.mark.parametrize(
+    "line",
+    ["missing = [n for n in names if not hasattr(self, n)]", "x = hasattr(obj, 'a')"],
+)
+def test_hasattr_pattern_ignores_unrelated_probes(line: str) -> None:
+    """Probing non-JAX objects is ordinary Python, not the banned anti-pattern."""
+    assert not HASATTR_RE.search(line)
 
 
 if __name__ == "__main__":
