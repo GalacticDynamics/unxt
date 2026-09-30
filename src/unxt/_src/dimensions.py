@@ -314,7 +314,7 @@ def dimension(obj: str, /) -> AbstractDimension:
 
     See Also
     --------
-    dimension_of : Get the dimension of an object
+    unxt.dims.dimension_of : Get the dimension of an object
     unxt.units : Unit specifications can also use dimension expressions
 
     """
