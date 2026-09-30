@@ -518,7 +518,7 @@ Quantity(Array([2., 3.], dtype=float32), unit='m')
 
 ### Working with `StaticValue` in a `Quantity`
 
-If you want a {class}`~unxt.Quantity` but need its value to be static (for hashing or static JAX arguments), wrap the value with {class}`~unxt.quantity.StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`:
+If you want a {class}`~unxt.quantity.Quantity` but need its value to be static (for hashing or static JAX arguments), wrap the value with {class}`~unxt.quantity.StaticValue`. Arithmetic behaves like the wrapped array, and `StaticValue + StaticValue` returns a `StaticValue`:
 
 ```{code-block} python
 >>> import numpy as np
@@ -567,7 +567,7 @@ Quantity(Array([ True, False], dtype=bool), unit='')
 
 #### Equality vs. equivalence
 
-Because `==` on a `StaticValue`-backed quantity is **unit-blind**, reach for {func}`unxt.equivalent` (or the {meth}`~unxt.quantity.AbstractQuantity.is_equivalent` method) when you want a **unit-aware** "same physical quantity" check:
+Because `==` on a `StaticValue`-backed quantity is **unit-blind**, reach for {func}`unxt.quantity.equivalent` (or the {meth}`~unxt.quantity.AbstractQuantity.is_equivalent` method) when you want a **unit-aware** "same physical quantity" check:
 
 ```{code-block} python
 >>> u.Q(sv1, "m") == u.Q(sv_km, "km")               # unit-blind: labels differ

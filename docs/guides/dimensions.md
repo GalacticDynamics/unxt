@@ -32,7 +32,7 @@ List of 2 method(s):
 
 ### 1. From Dimension Objects
 
-If you already have a dimension object (from {mod}`astropy`), you can pass it directly. The function will return the same object unchanged.
+If you already have a dimension object (from `astropy`), you can pass it directly. The function will return the same object unchanged.
 
 ```{code-block} python
 >>> import astropy.units as apyu

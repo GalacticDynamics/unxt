@@ -44,7 +44,7 @@ class StaticValue:
     :func:`jax.jit`.  JAX needs a scalar ``bool`` to decide whether a cached
     compilation can be reused.
 
-    This is fundamentally different from a normal :class:`~unxt.Quantity`
+    This is fundamentally different from a normal :class:`~unxt.quantity.Quantity`
     (backed by a JAX array), whose ``==`` operator follows NumPy broadcasting
     rules and returns an element-wise boolean array.
 

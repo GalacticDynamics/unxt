@@ -21,7 +21,7 @@ USys
 Quantity
   A quantity refers to a property of a system that can be measured or calculated, expressed as a number combined with a unit.
   Examples include 5 meters, 10 seconds, or 50 joules.
-  In `unxt`, {class}`~unxt.Quantity` (alias `u.Q`) is the **default**, lightweight
+  In `unxt`, {class}`~unxt.quantity.Quantity` (alias `u.Q`) is the **default**, lightweight
   quantity class. It is *non-parametric*: it tracks units without encoding the
   physical dimension in its type, so it stays a single class — and a single JAX
   pytree node type — for every dimension instead of proliferating one per
@@ -38,7 +38,7 @@ ParametricQuantity
   driven by the static unit for either class.)
 
 BareQuantity
-  A **deprecated** alias of {class}`~unxt.Quantity` (`u.Q`); new code should use
+  A **deprecated** alias of {class}`~unxt.quantity.Quantity` (`u.Q`); new code should use
   `Quantity`. See the {ref}`migration guide <migration-v2>`.
 
 Multiple-Dispatch
@@ -57,6 +57,6 @@ Equality
   For quantities, `==`. On a `StaticValue`-backed quantity it is **unit-blind** — two quantities are equal only when their unit *labels* match (so they remain distinct `jax.jit` `static_argnames` keys). Array-backed quantities compare element-wise and unit-aware. See {term}`Equivalence` for a cross-unit comparison.
 
 Equivalence
-  Whether two quantities are the **same physical amount**, accounting for unit conversion — e.g. `1000 m` and `1 km` are equivalent though not equal. Exposed as {func}`unxt.equivalent` and the `is_equivalent` method. The same `equivalent` function also reports whether two {term}`Unit System`s span the same dimensions.
+  Whether two quantities are the **same physical amount**, accounting for unit conversion — e.g. `1000 m` and `1 km` are equivalent though not equal. Exposed as {func}`unxt.quantity.equivalent` and the `is_equivalent` method. The same `equivalent` function also reports whether two {term}`Unit System`s span the same dimensions.
 
 ```

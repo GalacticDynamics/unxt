@@ -49,6 +49,10 @@ extensions = [
     "sphinx_tippy",
 ]
 
+# Wikipedia previews need live API access at build time, which fails (empty,
+# non-JSON reply) under CI rate-limiting and offline builds, warning each time.
+tippy_enable_wikitips = False
+
 python_use_unqualified_type_names = True
 
 exclude_patterns = [
@@ -89,6 +93,8 @@ intersphinx_mapping = {
     "astropy": ("https://docs.astropy.org/en/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "quax": ("https://docs.kidger.site/quax/", None),
+    "gala": ("https://gala.adrian.pw/en/latest/", None),
+    "hypothesis": ("https://hypothesis.readthedocs.io/en/latest/", None),
 }
 
 # -- Napoleon settings ---------------------------------------------------
@@ -138,6 +144,7 @@ _SHAPE_NAME_RE: Final[str] = r"^(?:F|N|S|1|2|\.\.\.)$"
 _SHAPE_TUPLE_RE: Final[str] = r"^(?:F|N|S|\d+|\.\.\.)(?:\s+(?:F|N|S|\d+|\.\.\.))*$"
 
 nitpick_ignore_regex: Final[list[tuple[str, str]]] = [
+    ("py:class", r"quax_blocks\._src\..*"),
     ("py:class", _SHAPE_TUPLE_RE),
     ("py:data", _SHAPE_TUPLE_RE),
     ("py:class", _SHAPE_NAME_RE),
@@ -158,6 +165,22 @@ nitpick_ignore = [
     ("py:class", "quax._core.ArrayValue"),
     ("py:class", "PhysicalType"),
     ("py:class", "astropy.units.core.Annotated"),
+    # Annotations that autodoc renders from names with no documented target:
+    # bare ``ndarray``/``Union`` spellings, an unimported ``st.DrawFn`` alias,
+    # and private modules of third-party dependencies that publish no inventory.
+    ("py:class", "ndarray"),
+    ("py:obj", "DIMENSION_NAMES"),  # a constant, not documented as a target
+    ("py:data", "typing.Union"),
+    ("py:obj", "typing.Args"),
+    ("py:class", "R"),
+    ("py:class", "int | tuple[int"),
+    ("py:class", "st.DrawFn"),
+    ("py:class", "AbstractQuantity"),
+    ("py:class", "jax._src.core.Tracer"),
+    ("py:class", "quax._values.ArrayValue"),
+    ("py:class", "equinox._module._better_abstract.AbstractVar"),
+    ("py:class", "jaxtyping.Bool[Array, '*shape']"),
+    ("py:class", "unxt._src.quantity.mixins.NumPyCompatMixin"),
 ]
 
 # -- MyST Setting -------------------------------------------------
