@@ -46,7 +46,7 @@ class AbstractUSysFlag:
     Define a unit system with the standard flag:
 
     >>> unxt.unitsystem(unxt.unitsystems.StandardUSysFlag, "m", "kg", "s")
-    LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("kg"), time=Unit("s"))
+    unitsystem(['m', 'kg', 's'])
 
     """
 
@@ -65,7 +65,7 @@ class StandardUSysFlag(AbstractUSysFlag):
     Define a unit system with the standard flag:
 
     >>> unitsystem(StandardUSysFlag, "m", "kg", "s")
-    LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("kg"), time=Unit("s"))
+    unitsystem(['m', 'kg', 's'])
 
     Further examples may be found in the ``unitsystem`` docs.
 
@@ -82,7 +82,7 @@ class DynamicalSimUSysFlag(AbstractUSysFlag):
     Define a unit system with the dynamical simulation flag:
 
     >>> unitsystem(DynamicalSimUSysFlag, "m", "kg")
-    LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("kg"), time=Unit("122404 s"))
+    unitsystem(['m', 'kg', '122404 s'])
 
     Further examples may be found in the ``unitsystem`` docs.
 
@@ -121,7 +121,7 @@ class HEPUSysFlag(NaturalUSysFlag):
 
     >>> usys = unitsystem(HEPUSysFlag)
     >>> usys
-    LengthMassTimeUnitSystem(length=Unit("...e-16 m"), mass=Unit("...e-27 kg"), time=Unit("...e-25 s"))
+    unitsystem('hep')
 
     >>> [str(d) for d in usys.base_dimensions]
     ['length', 'mass', 'time']
@@ -133,7 +133,7 @@ class HEPUSysFlag(NaturalUSysFlag):
     >>> usys_tev["time"] == usys["time"] / 1000
     True
 
-    """  # noqa: E501
+    """
 
 
 class GeometrizedUSysFlag(NaturalUSysFlag):
@@ -148,7 +148,7 @@ class GeometrizedUSysFlag(NaturalUSysFlag):
 
     >>> usys = unitsystem(GeometrizedUSysFlag)
     >>> usys
-    LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("...e+27 kg"), time=Unit("...e-09 s"))
+    unitsystem('geometrized')
 
     >>> [str(d) for d in usys.base_dimensions]
     ['length', 'mass', 'time']
@@ -158,7 +158,7 @@ class GeometrizedUSysFlag(NaturalUSysFlag):
     >>> unitsystem(GeometrizedUSysFlag, length="km")["length"]
     Unit("km")
 
-    """  # noqa: E501
+    """
 
 
 class PlanckUSysFlag(NaturalUSysFlag):
@@ -173,12 +173,12 @@ class PlanckUSysFlag(NaturalUSysFlag):
 
     >>> usys = unitsystem(PlanckUSysFlag)
     >>> usys
-    LengthMassTimeTemperatureUnitSystem(length=Unit("l_P"), mass=Unit("m_P"), time=Unit("t_P"), temperature=Unit("T_P"))
+    unitsystem(['l_P', 'm_P', 't_P', 'T_P'])
 
     >>> [str(d) for d in usys.base_dimensions]
     ['length', 'mass', 'time', 'temperature']
 
-    """  # noqa: E501
+    """
 
 
 class AtomicUSysFlag(NaturalUSysFlag):
@@ -194,9 +194,9 @@ class AtomicUSysFlag(NaturalUSysFlag):
 
     >>> usys = unitsystem(AtomicUSysFlag)
     >>> usys
-    LengthMassTimeElectricalChargeUnitSystem(length=Unit("a_0"), mass=Unit("m_e"), time=Unit("t_au"), electrical_charge=Unit("e"))
+    unitsystem(['a_0', 'm_e', 't_au', 'e'])
 
     >>> [str(d) for d in usys.base_dimensions]
     ['length', 'mass', 'time', 'electrical charge']
 
-    """  # noqa: E501
+    """

@@ -14,25 +14,25 @@ To define your own subclass, see {doc}`../how-to/define-a-unit-system`.
 ```{code-block} python
 >>> from unxt.unitsystems import si
 >>> si
-unitsystem(m, kg, s, mol, A, K, cd, rad)
+unitsystem(['m', 'kg', 's', 'mol', 'A', 'K', 'cd', 'rad'])
 ```
 
 ```{code-block} python
 >>> from unxt.unitsystems import cgs
 >>> cgs
-unitsystem(cm, g, s, dyn, erg, Ba, P, St, rad)
+unitsystem(['cm', 'g', 's', 'dyn', 'erg', 'Ba', 'P', 'St', 'rad'])
 ```
 
 ```{code-block} python
 >>> from unxt.unitsystems import galactic
 >>> galactic
-unitsystem(kpc, Myr, solMass, rad)
+unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
 ```
 
 ```{code-block} python
 >>> from unxt.unitsystems import solarsystem
 >>> solarsystem
-unitsystem(AU, yr, solMass, rad)
+unitsystem(['AU', 'yr', 'solMass', 'rad'])
 ```
 
 Each is also reachable by name through `unitsystem` (see below).
@@ -52,16 +52,16 @@ Each is also reachable by name through `unitsystem` (see below).
 >>> from unxt.unitsystems import hep, geometrized, planck, atomic
 
 >>> hep  # high-energy physics: hbar = c = 1  (1 GeV scale)
-LengthMassTimeUnitSystem(length=Unit("...e-16 m"), mass=Unit("...e-27 kg"), time=Unit("...e-25 s"))
+unitsystem('hep')
 
 >>> geometrized  # general relativity: c = G = 1  (1 m scale)
-LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("...e+27 kg"), time=Unit("...e-09 s"))
+unitsystem('geometrized')
 
 >>> planck  # hbar = c = G = k_B = 1
-LengthMassTimeTemperatureUnitSystem(length=Unit("l_P"), mass=Unit("m_P"), time=Unit("t_P"), temperature=Unit("T_P"))
+unitsystem(['l_P', 'm_P', 't_P', 'T_P'])
 
 >>> atomic  # Hartree: m_e = hbar = e = 4*pi*eps0 = 1
-LengthMassTimeElectricalChargeUnitSystem(length=Unit("a_0"), mass=Unit("m_e"), time=Unit("t_au"), electrical_charge=Unit("e"))
+unitsystem(['a_0', 'm_e', 't_au', 'e'])
 ```
 
 Natural unit systems are _numeric_ only: they do not add equivalencies between dimensions, so a `Quantity` in `MeV` remains an energy, not a mass. For worked examples on each system see {doc}`../how-to/work-in-natural-units`.
@@ -76,16 +76,16 @@ Natural unit systems are _numeric_ only: they do not add equivalencies between d
 
 ```{code-block} python
 >>> unitsystem("si")
-unitsystem(m, kg, s, mol, A, K, cd, rad)
+unitsystem(['m', 'kg', 's', 'mol', 'A', 'K', 'cd', 'rad'])
 
 >>> unitsystem("cgs")
-unitsystem(cm, g, s, dyn, erg, Ba, P, St, rad)
+unitsystem(['cm', 'g', 's', 'dyn', 'erg', 'Ba', 'P', 'St', 'rad'])
 
 >>> unitsystem("galactic")
-unitsystem(kpc, Myr, solMass, rad)
+unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
 
 >>> unitsystem("solarsystem")
-unitsystem(AU, yr, solMass, rad)
+unitsystem(['AU', 'yr', 'solMass', 'rad'])
 
 ```
 
@@ -97,7 +97,7 @@ unitsystem(AU, yr, solMass, rad)
 
 >>> usys = unitsystem("kpc", "Myr", "solMass", "degree")
 >>> usys
-unitsystem(kpc, Myr, solMass, deg)
+unitsystem(['kpc', 'Myr', 'solMass', 'deg'])
 
 >>> isinstance(usys, LTMAUnitSystem)
 True
@@ -113,7 +113,7 @@ If the dimensions match no pre-defined class, a class is defined dynamically, ca
 
 >>> usys = unitsystem("kpc", "Myr", "solMass", "degree", "candela")
 >>> usys
-AngleLengthLuminousIntensityMassTimeUnitSystem(angle=Unit("deg"), length=Unit("kpc"), luminous_intensity=Unit("cd"), mass=Unit("solMass"), time=Unit("Myr"))
+unitsystem(['deg', 'kpc', 'cd', 'solMass', 'Myr'])
 
 >>> isinstance(usys, LTMAUnitSystem)
 False
@@ -136,7 +136,7 @@ DimensionlessUnitSystem()
 >>> from unxt.unitsystems import DynamicalSimUSysFlag
 
 >>> unitsystem(DynamicalSimUSysFlag, "m", "kg")
-LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("kg"), time=Unit("122404 s"))
+unitsystem(['m', 'kg', '122404 s'])
 
 ```
 
@@ -150,7 +150,7 @@ LengthMassTimeUnitSystem(length=Unit("m"), mass=Unit("kg"), time=Unit("122404 s"
 True
 
 >>> unitsystem(usys, "deg")
-unitsystem(m, s, kg, deg)
+unitsystem(['m', 's', 'kg', 'deg'])
 
 ```
 

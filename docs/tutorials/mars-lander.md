@@ -21,7 +21,7 @@ Every mission picks working units and sticks to them. Ours will be kilometres, s
 ```{code-block} python
 >>> usys = u.unitsystem("km", "s", "kg", "rad")
 >>> usys
-unitsystem(km, s, kg, rad)
+unitsystem(['km', 's', 'kg', 'rad'])
 
 ```
 
