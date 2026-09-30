@@ -34,7 +34,7 @@ q = u.Q([1.0, 2.0, 3.0], "m")
 new_q = q.at[0].set(u.Q(5.0, "m"))
 ```
 
-Or use {func}`dataclasses.replace` (or {func}`dataclassish.replace`) for more complex updates:
+Or use {func}`dataclasses.replace` (or `dataclassish.replace`) for more complex updates:
 
 ::::{tab-set}
 
@@ -278,7 +278,7 @@ except Exception as e:
     print(e)
 ```
 
-**Why it works:** The units are static on the Quantity PyTree. {mod}`unxt` can catch dimension mismatches during tracing.
+**Why it works:** The units are static on the Quantity PyTree. `unxt` can catch dimension mismatches during tracing.
 
 ### ❌ Problem: Units Triggering Recompilation
 
