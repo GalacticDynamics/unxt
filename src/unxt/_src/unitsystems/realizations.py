@@ -17,6 +17,7 @@ __all__ = (
     "NAMED_UNIT_SYSTEMS",
 )
 
+from . import base as _us_base
 from .base import AbstractUnitSystem
 from .builtin import (
     CGSUnitSystem,
@@ -106,3 +107,10 @@ NAMED_UNIT_SYSTEMS: dict[str, AbstractUnitSystem] = {
     "planck": planck,
     "atomic": atomic,
 }
+
+
+# Register the reverse mapping used by ``AbstractUnitSystem.__pdoc__``: a
+# realization whose units have no short exact spelling (``planck``, ``atomic``,
+# ``hep``, ``geometrized``) reprs as its name, which round-trips exactly and
+# reads far better than a full-precision scale.
+_us_base.NAME_BY_SYSTEM.update({v: k for k, v in NAMED_UNIT_SYSTEMS.items()})

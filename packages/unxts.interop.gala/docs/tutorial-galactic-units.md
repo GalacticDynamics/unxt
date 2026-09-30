@@ -33,7 +33,7 @@ Kiloparsecs, megayears, solar masses, radians.
 ```{code-block} python
 >>> usys = u.unitsystem(gu.galactic)
 >>> usys
-unitsystem(kpc, Myr, solMass, rad)
+unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
 
 ```
 
