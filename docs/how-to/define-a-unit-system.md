@@ -1,6 +1,6 @@
 # How to define a unit system
 
-`unxt` ships realizations for SI, CGS, galactic, solar-system and the natural unit systems, and {func}`unxt.unitsystem` will build one on the fly from any set of units. You only need a hand-written subclass when you want a **named, statically defined** system — one you can annotate against, dispatch on, or ship from your own package.
+`unxt` ships realizations for SI, CGS, galactic, solar-system and the natural unit systems, and {func}`unxt.unitsystems.unitsystem` will build one on the fly from any set of units. You only need a hand-written subclass when you want a **named, statically defined** system — one you can annotate against, dispatch on, or ship from your own package.
 
 If you just need a system for a set of units, call `unitsystem` instead:
 

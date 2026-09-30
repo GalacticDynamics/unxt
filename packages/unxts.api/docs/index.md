@@ -18,7 +18,7 @@ Abstract dispatch API for [unxt](https://github.com/GalacticDynamics/unxt).
 
 :::
 
-{mod}`unxts.api` declares the abstract dispatch interfaces that {mod}`unxt` and other packages implement. It depends only on {mod}`plum` — not on {mod}`jax`, {mod}`numpy` or {mod}`astropy` — so a package can speak `unxt`'s API without pulling in its implementation.
+`unxts.api` declares the abstract dispatch interfaces that `unxt` and other packages implement. It depends only on `plum` — not on `jax`, `numpy` or `astropy` — so a package can speak `unxt`'s API without pulling in its implementation.
 
 ## Install
 
@@ -79,10 +79,10 @@ The abstract functions, by domain:
 
 | Domain | Functions |
 | --- | --- |
-| Dimensions | {func}`~unxts.api.dimension`, {func}`~unxts.api.dimension_of` |
-| Units | {func}`~unxts.api.unit`, {func}`~unxts.api.unit_of` |
-| Quantities | {func}`~unxts.api.uconvert`, {func}`~unxts.api.uconvert_value`, {func}`~unxts.api.ustrip`, {func}`~unxts.api.is_unit_convertible`, {func}`~unxts.api.wrap_to` |
-| Unit systems | {func}`~unxts.api.unitsystem_of` |
+| Dimensions | {func}`~unxt.dims.dimension`, {func}`~unxt.dims.dimension_of` |
+| Units | {func}`~unxt.units.unit`, {func}`~unxt.units.unit_of` |
+| Quantities | {func}`~unxt.quantity.uconvert`, {func}`~unxt.quantity.uconvert_value`, {func}`~unxt.quantity.ustrip`, {func}`~unxt.quantity.is_unit_convertible`, {func}`~unxt.quantity.wrap_to` |
+| Unit systems | {func}`~unxt.unitsystems.unitsystem_of` |
 
 Every one is a [plum](https://beartype.github.io/plum/) dispatch function, so `f.methods` lists what is currently registered:
 

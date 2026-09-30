@@ -213,7 +213,7 @@ def named_dimensions() -> st.SearchStrategy[u.AbstractDimension]:
     See Also
     --------
     DIMENSION_NAMES : The tuple of all available dimension names.
-    unxt.dimension : Create a dimension from a name string.
+    unxt.dims.dimension : Create a dimension from a name string.
     units : Generate units with a specific dimension.
     quantities : Generate quantities with a specific dimension.
 

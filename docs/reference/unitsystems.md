@@ -181,7 +181,7 @@ Unit("m2 kg / s2")
 
 ## Comparison
 
-`==` compares unit systems structurally. {func}`unxt.equivalent` reports whether two systems span the same dimensions — see {doc}`../explanation/equality-and-equivalence`.
+`==` compares unit systems structurally. {func}`unxt.quantity.equivalent` reports whether two systems span the same dimensions — see {doc}`../explanation/equality-and-equivalence`.
 
 ## See also
 

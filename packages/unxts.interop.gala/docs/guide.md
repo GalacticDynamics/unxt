@@ -15,7 +15,7 @@ Importing `unxts.interop.gala` registers the conversions with [`plum`](https://b
 
 ## `gala` → `unxt`
 
-The most direct route is {func}`unxt.unitsystem`, which accepts a `gala.units.UnitSystem`:
+The most direct route is {func}`unxt.unitsystems.unitsystem`, which accepts a `gala.units.UnitSystem`:
 
 ```{code-block} python
 

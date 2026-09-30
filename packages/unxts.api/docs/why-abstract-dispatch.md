@@ -1,6 +1,6 @@
 # Why an abstract dispatch API
 
-`unxts.api` contains almost no code. It declares a dozen functions with {func}`plum.dispatch.abstract` and implements none of them; `unxt` supplies the bodies. Splitting a package in half like that is unusual enough to be worth justifying.
+`unxts.api` contains almost no code. It declares a dozen functions with `plum.dispatch.abstract` and implements none of them; `unxt` supplies the bodies. Splitting a package in half like that is unusual enough to be worth justifying.
 
 ## The dependency argument
 

@@ -27,7 +27,7 @@
 Quantity(Array(5, dtype=int32...), unit='m')
 ```
 
-`Q` is an alias for `Quantity`, and units may be given as strings, parsed by {func}`unxt.unit`.
+`Q` is an alias for `Quantity`, and units may be given as strings, parsed by {func}`unxt.units.unit`.
 
 ### `Quantity.from_`
 
@@ -153,7 +153,7 @@ Quantity(Array([ True, False,  True], dtype=bool), unit='')
 
 ```
 
-`==` behaves differently for `StaticValue`-backed quantities, and {func}`unxt.equivalent` is the unit-aware alternative — see {doc}`../explanation/equality-and-equivalence`.
+`==` behaves differently for `StaticValue`-backed quantities, and {func}`unxt.quantity.equivalent` is the unit-aware alternative — see {doc}`../explanation/equality-and-equivalence`.
 
 ### Indexing and updates
 

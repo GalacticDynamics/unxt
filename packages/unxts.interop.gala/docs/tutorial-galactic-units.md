@@ -28,7 +28,7 @@ Kiloparsecs, megayears, solar masses, radians.
 
 ## Bring it into unxt
 
-{func}`unxt.unitsystem` accepts it directly:
+{func}`unxt.unitsystems.unitsystem` accepts it directly:
 
 ```{code-block} python
 >>> usys = u.unitsystem(gu.galactic)

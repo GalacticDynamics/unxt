@@ -1,6 +1,6 @@
 # Equality and equivalence
 
-`unxt` gives you two comparisons, and they answer different questions. `==` asks whether two quantities are _the same object-shaped thing_; {func}`unxt.equivalent` asks whether they are _the same physical amount_. Most of the time these agree. Where they diverge is worth understanding, because the divergence is deliberate and it is load-bearing for `jax.jit`.
+`unxt` gives you two comparisons, and they answer different questions. `==` asks whether two quantities are _the same object-shaped thing_; {func}`unxt.quantity.equivalent` asks whether they are _the same physical amount_. Most of the time these agree. Where they diverge is worth understanding, because the divergence is deliberate and it is load-bearing for `jax.jit`.
 
 ```{code-block} python
 >>> import numpy as np
@@ -45,7 +45,7 @@ This looks wrong until you follow it through to `jit`. If `==` converted units f
 
 ## `equivalent` answers the physical question
 
-When you want "same physical amount, regardless of how it is labelled", that is {func}`unxt.equivalent`, or the `is_equivalent` method:
+When you want "same physical amount, regardless of how it is labelled", that is {func}`unxt.quantity.equivalent`, or the `is_equivalent` method:
 
 ```{code-block} python
 >>> u.equivalent(u.Q(sv1, "m"), u.Q(sv_km, "km"))
