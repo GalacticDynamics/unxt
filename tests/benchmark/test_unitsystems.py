@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 def func_unitsystem() -> "jaxlib._jax.PjitFunction":
     # The lambda function is necessary because JIT doesn't understand how to
     # introspect the signature of a multiple-dispatch function.
-    return eqx.filter_jit(lambda *args: u.unitsystem(*args))
+    return eqx.filter_jit(u.unitsystem)
 
 
 @pytest.fixture

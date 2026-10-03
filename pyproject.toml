@@ -388,7 +388,13 @@ MPLBACKEND = "Agg"
 
 
 [tool.repo-review]
-ignore = ["PC140", "PC901", "PC902", "PC903"]
+ignore = [
+  "PC140",
+  "PC901",
+  "PC902",
+  "PC903",
+  "SEC001",
+] # SEC001: zizmor adoption is separate (133 findings)
 
 
 [tool.ruff]
@@ -412,6 +418,7 @@ ignore = [
   "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed
   "ARG001",  # Unused function argument  # TODO: resolve
   "COM812",  # <- for ruff.format
+  "CPY001",  # Missing copyright notice at top of file
   "D103",    # Missing docstring in public function  # TODO: resolve
   "D105",    # Missing docstring in magic method
   "D107",    # Missing docstring in __init__

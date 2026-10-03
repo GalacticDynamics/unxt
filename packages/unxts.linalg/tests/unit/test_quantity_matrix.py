@@ -2212,7 +2212,7 @@ class TestQuantityMatrixTranspose:
         assert jnp.allclose(r.value, v.value)
         assert r.unit == (_m, _s, _kg)
         # jnp.transpose on a 1-D QuantityMatrix works end-to-end (no exception).
-        r2 = quax.quaxify(lambda a: jnp.transpose(a))(v)
+        r2 = quax.quaxify(jnp.transpose)(v)
         assert jnp.allclose(r2.value, v.value)
         assert r2.unit == (_m, _s, _kg)
 
