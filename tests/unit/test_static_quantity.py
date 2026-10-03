@@ -528,7 +528,7 @@ def test_quantity_static_value_jit_grad() -> None:
     out = jit_f(jnp.array([1.0, 1.0]), q)
     assert np.allclose(out, np.array(3.0))
 
-    grad_f = eqx.filter_grad(lambda x, q: f(x, q))
+    grad_f = eqx.filter_grad(f)
     grad = grad_f(jnp.array([1.0, 1.0]), q)
     assert np.allclose(grad, np.array([1.0, 2.0]))
 

@@ -126,7 +126,7 @@ def test_reduce_sum_over_an_unsupported_axis_combination():
     """Summing both logical axes of a 2-D unit structure has no single unit."""
     qm = QMat(jnp.ones((2, 2)), (("m", "s"), ("m", "s")))
     with pytest.raises(NotImplementedError, match="unsupported reduction"):
-        quax.quaxify(lambda q: jnp.sum(q))(qm)
+        quax.quaxify(jnp.sum)(qm)
 
 
 def test_quantity_matrix_division_variants():
@@ -179,7 +179,7 @@ class TestTracedScalarGather:
         picked, so the fallback returns that shared unit.
         """
         v = QMat(jnp.array([1.0, 2.0, 3.0]), unit=("m", "m", "m"))
-        got = jax.jit(lambda q, i: qnp.take(q, i))(v, jnp.asarray(1))
+        got = jax.jit(qnp.take)(v, jnp.asarray(1))
         assert isinstance(got, u.Quantity)
         assert got.unit == u.unit("m")
         assert got.value == pytest.approx(2.0)
@@ -188,4 +188,4 @@ class TestTracedScalarGather:
         """Heterogeneous units make the traced pick ambiguous, so it raises."""
         v = QMat(jnp.array([1.0, 2.0, 3.0]), unit=("m", "s", "kg"))
         with pytest.raises(ValueError, match="requires all units to be equal"):
-            jax.jit(lambda q, i: qnp.take(q, i))(v, jnp.asarray(1))
+            jax.jit(qnp.take)(v, jnp.asarray(1))

@@ -509,7 +509,7 @@ class AbstractQuantity(
         """
         self.value[key] = value
 
-    def to_device(self, device: None | jax.Device = None) -> "AbstractQuantity":
+    def to_device(self, device: jax.Device | None = None) -> "AbstractQuantity":
         """Move the array to a new device.
 
         Examples

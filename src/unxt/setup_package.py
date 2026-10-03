@@ -15,7 +15,7 @@ from typing import Any, Final, Literal
 
 from jaxtyping import install_import_hook as _install_import_hook
 
-_RUNTIME_TYPECHECKER: str | None | Literal[False]
+_RUNTIME_TYPECHECKER: str | Literal[False] | None
 match os.getenv("UNXT_ENABLE_RUNTIME_TYPECHECKING", "False"):
     case "False":
         _RUNTIME_TYPECHECKER = False
@@ -24,7 +24,7 @@ match os.getenv("UNXT_ENABLE_RUNTIME_TYPECHECKING", "False"):
     case _ as _name:  # any other value names the typechecker
         _RUNTIME_TYPECHECKER = _name
 
-RUNTIME_TYPECHECKER: Final[str | None | Literal[False]] = _RUNTIME_TYPECHECKER
+RUNTIME_TYPECHECKER: Final[str | Literal[False] | None] = _RUNTIME_TYPECHECKER
 """Runtime type checking variable "UNXT_ENABLE_RUNTIME_TYPECHECKING".
 
 Set to "False" to disable runtime typechecking (default).
