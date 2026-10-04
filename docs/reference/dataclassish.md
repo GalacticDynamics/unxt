@@ -100,7 +100,7 @@ A unit system exposes one field per base dimension, in declaration order.
 >>> # Create a unit system
 >>> si = u.unitsystem("si")
 >>> print(f"Unit System: {si}")
-Unit System: SIUnitSystem(length, mass, time, amount, electric_current, temperature, luminous_intensity, angle)
+Unit System: unitsystem(m, kg, s, mol, A, K, cd, rad)
 >>> print(f"Type: {type(si)}")
 Type: <class 'unxt...unitsystems...SIUnitSystem'>
 

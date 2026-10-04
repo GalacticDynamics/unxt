@@ -19,7 +19,7 @@ Pass `DynamicalSimUSysFlag` as the first argument, then the two units you want t
 ```{code-block} python
 >>> usys = u.unitsystem(DynamicalSimUSysFlag, "kpc", "solMass")
 >>> usys
-LengthMassTimeUnitSystem(length=Unit("kpc"), mass=Unit("solMass"), time=Unit("...kpc(3/2) s kg(1/2) / (solMass(1/2) m(3/2))"))
+unitsystem(['kpc', 'solMass', '122404 kpc(3/2) s kg(1/2) / (solMass(1/2) m(3/2))'])
 
 ```
 

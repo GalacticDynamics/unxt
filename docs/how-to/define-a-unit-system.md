@@ -7,7 +7,7 @@ If you just need a system for a set of units, call `unitsystem` instead:
 ```{code-block} python
 >>> import unxt as u
 >>> u.unitsystem("m", "s")
-LengthTimeUnitSystem(length=Unit("m"), time=Unit("s"))
+unitsystem(['m', 's'])
 ```
 
 ## Write the subclass
