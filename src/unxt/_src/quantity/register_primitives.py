@@ -4364,10 +4364,18 @@ def rem_p_aa(x: AbstractAngle, y: ABCQ, /) -> AbstractAngle:
     >>> q % u.Q(4, "deg")
     Angle(Array([1, 2, 3], dtype=int32), unit='deg')
 
+    Integer operands in different units are promoted after conversion:
+
+    >>> u.Angle(3, "rad") % u.Q(360, "deg")
+    Angle(Array(3., dtype=float32...), unit='rad')
+
     """
     # Don't promote - preserve the Angle type. Use lax.rem (truncated
     # remainder) to match lax.rem_p, unlike ``%`` which is floor-mod.
-    return revalue(x, lax.rem(ustrip(x), ustrip(x.unit, y)))
+    xv = ustrip(x)
+    yv = ustrip(x.unit, y)  # this can change the dtype
+    xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
+    return revalue(x, lax.rem(xv, yv))
 
 
 @quax.register(lax.rem_p)
@@ -4388,10 +4396,16 @@ def rem_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     >>> q1 % q2
     Quantity(Array(1, dtype=int32...), unit='m')
 
+    Integer operands in different units are promoted after conversion:
+
+    >>> u.Q(3, "rad") % u.Q(360, "deg")
+    Quantity(Array(3., dtype=float32...), unit='rad')
+
     """
     x, y = promote(x, y)
     xv = ustrip(x)
-    yv = ustrip(x.unit, y)
+    yv = ustrip(x.unit, y)  # this can change the dtype
+    xv, yv = promote_dtypes_if_needed((x.dtype, y.dtype), xv, yv)
     # ``lax.rem_p`` is C-style *truncated* remainder (result takes the
     # dividend's sign); ``%`` is floor-mod (divisor's sign), which disagrees
     # whenever the operands' signs differ. Use ``lax.rem`` to match the

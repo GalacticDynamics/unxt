@@ -3,6 +3,7 @@
 """Test the Array API."""
 
 import math
+import operator
 
 import astropy.units as apyu
 import jax
@@ -1492,6 +1493,21 @@ def test_rem_p_preserves_staticness_and_truncated_semantics():
     )
     assert isinstance(got, u.StaticQuantity)
     assert float(np.asarray(got.value)) == -1.0  # truncated, not 2.0 (floor-mod)
+
+
+@pytest.mark.parametrize("cls", [u.Quantity, u.Angle])
+@pytest.mark.parametrize("op", [operator.mod, jnp.mod, qlax.rem])
+def test_rem_p_integer_across_units_promotes(cls, op):
+    """Integer `rem` across units promotes after the unit conversion (#946).
+
+    Converting ``360 deg`` to ``rad`` yields a float, which ``lax.rem`` rejects
+    against the ``int32`` dividend unless promoted, as ``add`` does.
+    """
+    got = op(cls(3, "rad"), cls(360, "deg"))
+    assert isinstance(got, cls)
+    assert got.unit == "rad"
+    assert jnp.issubdtype(got.dtype, jnp.floating)
+    assert float(got.value) == pytest.approx(3.0)
 
 
 def test_angle_products_degrade_to_quantity():
