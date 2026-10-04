@@ -1084,7 +1084,7 @@ def _combine_quantities(operands: tuple[Any, ...], combine: Any) -> ABCQ:
     out = combine(arrs)
     first = operands[0]
     if isinstance(first, ABCQ):
-        return type_np(first)(out, unit=one)
+        return _as_dimensionless_like(first, out)
     return Quantity(out, unit=one)
 
 
@@ -1349,7 +1349,7 @@ def cos_p_aq(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(0.5403023, dtype=float32...), unit='')
 
     """
-    return type_np(x)(lax.cos_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
+    return _as_dimensionless_like(x, lax.cos_p.bind(_to_val_rad_or_one(x), **kw))
 
 
 @quax.register(lax.cos_p)
@@ -1393,7 +1393,7 @@ def cosh_p_aq(x: ABCQ) -> ABCQ:
     Quantity(Array(1.5430806, dtype=float32...), unit='')
 
     """
-    return type_np(x)(lax.cosh(_to_val_rad_or_one(x)), unit=one)
+    return _as_dimensionless_like(x, lax.cosh(_to_val_rad_or_one(x)))
 
 
 # ==============================================================================
@@ -1741,7 +1741,7 @@ def qr_p_q(x: ABCQ, /, **params: Any) -> Any:
     # Q is orthonormal (dimensionless), R has input units
     # Return as list to match JAX primitive conventions
     return [
-        type_np(x)(q_mat, unit=one),
+        _as_dimensionless_like(x, q_mat),
         type_np(x)(r_mat, unit=u_in),
     ]
 
@@ -2900,7 +2900,7 @@ def is_finite_p(x: ABCQ) -> ABCQ:
     False
 
     """
-    return type_np(x)(lax.is_finite(ustrip(x)), unit=one)
+    return _as_dimensionless_like(x, lax.is_finite(ustrip(x)))
 
 
 # ==============================================================================
@@ -4252,7 +4252,7 @@ def reduce_min_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
 
 @quax.register(lax.reduce_or_p)
 def reduce_or_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
-    return type_np(operand)(lax.reduce_or_p.bind(ustrip(operand), **kw), unit=one)
+    return _as_dimensionless_like(operand, lax.reduce_or_p.bind(ustrip(operand), **kw))
 
 
 # ==============================================================================
@@ -4886,7 +4886,7 @@ def sin_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(1., dtype=float32...), unit='')
 
     """
-    return type_np(x)(lax.sin_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
+    return _as_dimensionless_like(x, lax.sin_p.bind(_to_val_rad_or_one(x), **kw))
 
 
 @quax.register(lax.sin_p)
@@ -4935,7 +4935,7 @@ def sinh_p(x: ABCQ, /) -> ABCQ:
     Quantity(Array(2.301299, dtype=float32...), unit='')
 
     """
-    return type_np(x)(lax.sinh(_to_val_rad_or_one(x)), unit=one)
+    return _as_dimensionless_like(x, lax.sinh(_to_val_rad_or_one(x)))
 
 
 # ==============================================================================
@@ -5284,7 +5284,7 @@ def tan_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(1., dtype=float32...), unit='')
 
     """
-    return type_np(x)(lax.tan_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
+    return _as_dimensionless_like(x, lax.tan_p.bind(_to_val_rad_or_one(x), **kw))
 
 
 @quax.register(lax.tan_p)
@@ -5333,7 +5333,7 @@ def tanh_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     Quantity(Array(0.65579426, dtype=float32...), unit='')
 
     """
-    return type_np(x)(lax.tanh_p.bind(_to_val_rad_or_one(x), **kw), unit=one)
+    return _as_dimensionless_like(x, lax.tanh_p.bind(_to_val_rad_or_one(x), **kw))
 
 
 # ==============================================================================
