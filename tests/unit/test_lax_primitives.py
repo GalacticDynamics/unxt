@@ -1,5 +1,6 @@
 """Tests for `quax` registrations that the array-API suites do not reach."""
 
+import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
@@ -32,6 +33,40 @@ def test_angle_divided_by_angle_is_dimensionless():
     assert isinstance(got, u.quantity.Quantity)
     assert got.unit == u.unit("")
     assert np.isclose(np.asarray(got.value), 1.0)
+
+
+_ANGLE = u.Angle([0.0, 1.0], "rad")
+
+
+@pytest.mark.parametrize(
+    "op",
+    [
+        qnp.isfinite,
+        qnp.any,
+        qnp.cosh,
+        qnp.sinh,
+        qnp.tanh,
+        lambda a: qnp.linalg.qr(qnp.stack([a, a[::-1]]))[0],
+    ],
+    ids=["isfinite", "any", "cosh", "sinh", "tanh", "qr-Q"],
+)
+def test_angle_dimensionless_result_degrades_to_quantity(op):
+    """A dimensionless result from an `Angle` degrades to a plain `Quantity`."""
+    got = op(_ANGLE)
+    assert type(got) is u.quantity.Quantity
+    assert got.unit == u.unit("")
+
+
+def test_angle_allclose():
+    """``allclose`` on `Angle` works (GalacticDynamics/unxt#945)."""
+    assert qnp.allclose(_ANGLE, _ANGLE, atol=u.Q(1e-8, "rad"))
+
+
+def test_isfinite_staticquantity_under_jit():
+    """Under ``jit`` a `StaticQuantity` result degrades to a plain `Quantity`."""
+    got = jax.jit(qnp.isfinite)(u.StaticQuantity([1.0], "m"))
+    assert type(got) is u.quantity.Quantity
+    assert bool(got.value.all())
 
 
 def test_scatter_add_quantity_operand_and_updates():
