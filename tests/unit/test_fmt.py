@@ -869,3 +869,20 @@ def test_large_array_respects_width():
     """Known gap: `width` does not reach array elements (see the audit)."""
     text = render(u.Q(np.arange(30.0), "m"), parse_spec("mul"), width=40)
     assert max(map(len, text.splitlines())) <= 40
+
+
+def test_unregistered_type_degrades_to_str():
+    """A type with no `pparts` renders as its `str`, so display never raises."""
+
+    class Opaque:
+        def __str__(self) -> str:
+            return "opaque"
+
+    assert pparts(Opaque()) == (PPart("value", "opaque"),)
+    assert pspec(Opaque(), "html") == "<span>opaque</span>"
+
+
+def test_unregistered_type_rejects_a_value_spec():
+    """No elements to format: say so rather than answer a different request."""
+    with pytest.raises(TypeError, match="does not support a value format spec"):
+        pspec(object(), ".2f")
