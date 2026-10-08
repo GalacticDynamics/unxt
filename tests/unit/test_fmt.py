@@ -524,22 +524,27 @@ def test_unwrap_math_only_strips_real_delimiters(text: str, expected: str) -> No
 # The seam: the engine must stay liftable, and downstream must be a peer
 
 
-def test_engine_imports_nothing_domain_specific() -> None:
-    """The engine is meant to lift out into a package of its own.
+def test_package_side_imports_only_wl_plum_and_stdlib() -> None:
+    """engine.py and generic.py are the future `pparts` package.
 
-    Its whole claim is that it knows nothing about quantities, units, arrays
-    or `jax` -- a claim an earlier revision made in prose while `import jax`
-    sat at the top of the file. Pin it to the import list so it cannot rot
-    back: anything domain-specific belongs in `unxt._src.fmt.axes`, which is a
-    peer of `coordinax`'s and `galax`'s future layers, not a privileged one.
+    They may import `wadler_lindig`, `plum`, the standard library, and each
+    other (relative imports). Anything domain-specific belongs in `axes.py`.
     """
-    source = (
-        pathlib.Path(engine_module.__file__).read_text(encoding="utf-8").splitlines()
-    )
-    imports = [ln for ln in source if re.match(r"^\s*(import|from)\s", ln)]
-    banned = ("unxt", "jax", "numpy", "astropy", "quax")
-    offenders = [ln for ln in imports if any(f"{b}" in ln for b in banned)]
-    assert not offenders, offenders
+    import ast  # noqa: PLC0415
+    import sys  # noqa: PLC0415
+
+    allowed = {"wadler_lindig", "plum", *sys.stdlib_module_names}
+    for mod in ("engine", "generic"):
+        path = pathlib.Path(engine_module.__file__).with_name(f"{mod}.py")
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                roots = [a.name.split(".")[0] for a in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.level == 0:
+                roots = [(node.module or "").split(".")[0]]
+            else:
+                continue
+            assert set(roots) <= allowed, (mod, roots)
 
 
 def test_a_downstream_package_can_register_its_own_axis() -> None:
