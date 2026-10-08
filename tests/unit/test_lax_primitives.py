@@ -5,6 +5,7 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 import quax
+from astropy.units import UnitConversionError
 from jax import lax
 
 import quaxed.numpy as qnp
@@ -137,3 +138,25 @@ def test_select_n_mixed_quantity_and_arrays(select, want):
 
     assert got.unit == u.unit("km")
     assert np.array_equal(np.asarray(got.value), want)
+
+
+_TABLE = jnp.array([10.0, 20.0, 30.0])
+
+
+@pytest.mark.parametrize(
+    "operand", [_TABLE, u.Q(_TABLE, "m")], ids=["array", "quantity"]
+)
+def test_gather_with_quantity_indices(operand):
+    """A dimensionless quantity indexes like its value (#953)."""
+    idx = u.Q(jnp.array([1, 2], jnp.int32), "")
+
+    got = quax.quaxify(lambda a, i: a[i])(operand, idx)
+
+    assert np.array_equal(np.asarray(u.ustrip(AllowValue, "m", got)), [20.0, 30.0])
+
+
+def test_gather_with_dimensionful_indices_raises():
+    """An index with a dimension has no meaning."""
+    idx = u.Q(jnp.array([1, 2], jnp.int32), "m")
+    with pytest.raises(UnitConversionError):
+        quax.quaxify(lambda a, i: a[i])(_TABLE, idx)

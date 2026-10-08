@@ -33,7 +33,6 @@ def _xfail(raises, issue):
     )
 
 
-_GATHER = _xfail(RuntimeError, 953)
 # Raised by whichever runtime type-checker is installed (jaxtyping wraps beartype).
 _ARGMAX = _xfail((TypeError, BeartypeCallHintViolation), 956)
 
@@ -47,7 +46,7 @@ CASES = [
     pytest.param(sp.k2, (x,), id="k2"),
     pytest.param(sp.k0e, (x,), id="k0e"),
     pytest.param(sp.gamma, (x,), id="gamma"),
-    pytest.param(sp.zeta, (jnp.array([2.0, 3.0]),), id="zeta", marks=_GATHER),
+    pytest.param(sp.zeta, (jnp.array([2.0, 3.0]),), id="zeta"),
     # spence then hits select_n_p (unxt#954) once argmax_p is fixed.
     pytest.param(sp.spence, (x,), id="spence", marks=_ARGMAX),
     pytest.param(ft.partial(sp.polylog, 2), (z,), id="polylog"),
