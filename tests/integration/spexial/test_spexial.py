@@ -31,7 +31,6 @@ def _xfail(raises, issue):
 
 # A traced exponent surfaces as TracerArrayConversionError instead of ValueError.
 _POW = _xfail((ValueError, TracerArrayConversionError), 951)
-_SHIFT = _xfail(RuntimeError, 952)
 _GATHER = _xfail(RuntimeError, 953)
 # Raised by whichever runtime type-checker is installed (jaxtyping wraps beartype).
 _ARGMAX = _xfail((TypeError, BeartypeCallHintViolation), 956)
@@ -51,7 +50,7 @@ CASES = [
     pytest.param(sp.k1, (x,), id="k1", marks=_POW),
     pytest.param(sp.k2, (x,), id="k2", marks=_POW),
     pytest.param(sp.k0e, (x,), id="k0e", marks=_POW),
-    pytest.param(sp.gamma, (x,), id="gamma", marks=_SHIFT),
+    pytest.param(sp.gamma, (x,), id="gamma"),
     pytest.param(sp.zeta, (jnp.array([2.0, 3.0]),), id="zeta", marks=_GATHER),
     # spence then hits select_n_p (unxt#954) once argmax_p is fixed.
     pytest.param(sp.spence, (x,), id="spence", marks=[_SCAN, _ARGMAX]),
