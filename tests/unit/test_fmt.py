@@ -1424,3 +1424,15 @@ def test_register_markup_rejects_attribute_or_index_content(content):
     with pytest.raises(ValueError, match="_content"):
         register_markup("bad_content", {**_GOOD_ROW, "_content": content})
     assert "bad_content" not in MARKUPS
+
+
+@pytest.mark.parametrize("short_arrays", [False, True])
+def test_default_pvalue_non_compact_goes_through_wl_pdoc(short_arrays):
+    """The numpy-free default also serves the ``array``/``type`` forms."""
+    from unxt._src.fmt import pvalue  # noqa: PLC0415
+
+    assert doc_to_str(pvalue("a<b", short_arrays=short_arrays)) == "'a<b'"
+    assert (
+        doc_to_str(pvalue("a<b", short_arrays=short_arrays, markup="html"))
+        == "&#x27;a&lt;b&#x27;"
+    )
