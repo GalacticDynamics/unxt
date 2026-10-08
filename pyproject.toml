@@ -137,7 +137,10 @@ test = [
   "sybil[pytest]>=9.2.0",
 ]
 test-all = [{ include-group = "test" }, { include-group = "test-mpl" }]
-test-mpl = ["pytest-mpl>=0.17.0", "matplotlib>=3.8"]
+# Third-party JAX libraries exercised by the weekly ecosystem job only; their
+# tests `importorskip`, so they are not part of `test-all`.
+test-ecosystem = ["spexial>=0.2.1"]
+test-mpl       = ["pytest-mpl>=0.17.0", "matplotlib>=3.8"]
 # Pinned so the typing guards cannot drift as new checker releases change
 # diagnostics. All scoped to the `tests/typing` fixture; see [tool.pyright],
 # [tool.ty.src], and [tool.mypy].

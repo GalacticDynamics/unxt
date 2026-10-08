@@ -3540,6 +3540,21 @@ wheels = [
 ]
 
 [[package]]
+name = "spexial"
+version = "0.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "jax" },
+    { name = "jaxlib" },
+    { name = "jaxtyping" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b7/bd/d2b65409d29c709d2dd792cef3620e15acd2ab6ab34ae7050df2c3a87b41/spexial-0.2.1.tar.gz", hash = "sha256:1a1ad8dac67b3d1084b047096d7f2b4b053f4273b6e09f0bd6705092134a7842", size = 205963, upload-time = "2026-09-14T03:03:39.186Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2a/4e/cf3db03dabaaa5b8f096986e004fb1c4f7933307b40a0d7ee0258d095aba/spexial-0.2.1-py3-none-any.whl", hash = "sha256:cf1f43846788f65f196e529216f02897886578b518804158029bd65c518f488c", size = 81306, upload-time = "2026-09-14T03:03:37.983Z" },
+]
+
+[[package]]
 name = "sphinx"
 version = "9.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -4141,6 +4156,9 @@ test-all = [
     { name = "pytest-xdist" },
     { name = "sybil", extra = ["pytest"] },
 ]
+test-ecosystem = [
+    { name = "spexial" },
+]
 test-mpl = [
     { name = "matplotlib" },
     { name = "pytest-mpl" },
@@ -4319,6 +4337,7 @@ test-all = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
+test-ecosystem = [{ name = "spexial", specifier = ">=0.2.1" }]
 test-mpl = [
     { name = "matplotlib", specifier = ">=3.8" },
     { name = "pytest-mpl", specifier = ">=0.17.0" },
