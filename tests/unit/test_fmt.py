@@ -1039,3 +1039,21 @@ def test_text_layout_uses_the_part_doc_so_width_reaches_it():
     narrow = doc_to_str(parts_to_doc(parts), 10)
     assert "\n" in narrow
     assert max(map(len, narrow.splitlines())) <= 10
+
+
+@pytest.mark.parametrize("markup", ["text", "html", "latex"])
+@pytest.mark.parametrize("spec", ["", "bare", "mul"])
+def test_markup_strings_equal_the_flat_layout_of_the_unified_doc(markup, spec):
+    q = u.Q([1.0, 2.0], "m")
+    parts = pparts(q, markup=markup)
+    sep = spec or None
+    flat = doc_to_str(parts_to_doc(parts, markup=markup, sep=sep), 10**9)
+    assert parts_to_markup(parts, markup=markup, sep=sep) == flat
+
+
+def test_markup_docs_offer_no_breaks_until_wl_23():
+    """HTML/LaTeX stay one line at any width (tags would count as columns)."""
+    q = u.Q(np.arange(30.0), "m")
+    for markup in ("html", "latex"):
+        out = render(q, parse_spec(markup), width=10)
+        assert "\n" not in out
