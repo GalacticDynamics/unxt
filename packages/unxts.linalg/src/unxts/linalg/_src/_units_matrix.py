@@ -627,7 +627,7 @@ def pparts(obj: UnitsMatrix, /, *, markup: str = "text", **kw: Any) -> tuple[Any
     >>> from unxts.linalg import UnitsMatrix
     >>> from unxt._pparts import pparts
     >>> pparts(UnitsMatrix(("m", "s", "kg")))
-    (PPart(role='unit', text='(m, s, kg)', kind='content'),)
+    (PPart(role='unit', text='(m, s, kg)', kind='content', doc=None),)
 
     """
     return (ufmt.PPart("unit", obj.to_string()),)

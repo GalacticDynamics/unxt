@@ -19,6 +19,7 @@ from unxt._src.fmt import (
     PGroup,
     PPart,
     Spec,
+    doc_part,
     doc_to_str,
     engine as engine_module,
     inert_axes,
@@ -891,3 +892,35 @@ def test_unregistered_type_rejects_a_value_spec():
     """No elements to format: say so rather than answer a different request."""
     with pytest.raises(TypeError, match="does not support a value format spec"):
         pspec(object(), ".2f")
+
+
+def test_ppart_doc_defaults_to_none_and_keeps_text():
+    assert PPart("value", "1.0").doc is None
+
+
+def test_doc_part_keeps_flat_text_and_the_doc():
+    doc = wl.bracketed(
+        begin=wl.TextDoc("["),
+        docs=[wl.TextDoc("1."), wl.TextDoc("2.")],
+        sep=wl.comma,
+        end=wl.TextDoc("]"),
+        indent=1,
+    )
+    part = doc_part("value", doc)
+    assert part.text == "[1., 2.]"
+    assert part.doc is doc
+
+
+def test_text_layout_uses_the_part_doc_so_width_reaches_it():
+    doc = wl.bracketed(
+        begin=wl.TextDoc("["),
+        docs=[wl.TextDoc(str(i)) for i in range(8)],
+        sep=wl.comma,
+        end=wl.TextDoc("]"),
+        indent=1,
+    )
+    parts = (doc_part("value", doc), PPart("mul", " * ", "sep"), PPart("unit", "m"))
+    assert doc_to_str(parts_to_doc(parts), 88) == "[0, 1, 2, 3, 4, 5, 6, 7] * m"
+    narrow = doc_to_str(parts_to_doc(parts), 10)
+    assert "\n" in narrow
+    assert max(map(len, narrow.splitlines())) <= 10

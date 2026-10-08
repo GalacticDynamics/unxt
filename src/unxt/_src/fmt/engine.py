@@ -43,6 +43,7 @@ __all__ = (
     "REQUIRED_MARKUP_KEYS",
     "Spec",
     "bad_spec",
+    "doc_part",
     "doc_to_str",
     "WARN_INERT_AXES",
     "inert_axes",
@@ -96,6 +97,10 @@ class PPart(NamedTuple):
         ``"sep"`` -- a literal separator, not wrapped; it may offer a line
         break (see `parts_to_doc`). Escaped like content, unless the markup
         has a per-role override for it, which is trusted as markup.
+    doc
+        An optional wadler-lindig document for the fragment. Text-mode layout
+        uses it, so line breaking reaches inside; `text` stays as the flat
+        fallback, and is what markup layouts use.
 
     Escaping defaults to on so the failure mode is closed: a fragment carrying
     real markup must say so.
@@ -104,13 +109,14 @@ class PPart(NamedTuple):
     --------
     >>> from unxt._src.fmt import PPart
     >>> PPart("value", "1.0")
-    PPart(role='value', text='1.0', kind='content')
+    PPart(role='value', text='1.0', kind='content', doc=None)
 
     """
 
     role: str
     text: str
     kind: str = "content"
+    doc: wl.AbstractDoc | None = None
 
 
 class PGroup(NamedTuple):
@@ -132,8 +138,9 @@ class PGroup(NamedTuple):
     Examples
     --------
     >>> from unxt._src.fmt import PGroup, PPart
-    >>> PGroup("child", (PPart("value", "1.0"),))
-    PGroup(role='child', parts=(PPart(role='value', text='1.0', kind='content'),))
+    >>> PGroup("child", (PPart("value", "1.0"),))  # doctest: +NORMALIZE_WHITESPACE
+    PGroup(role='child',
+           parts=(PPart(role='value', text='1.0', kind='content', doc=None),))
 
     """
 
@@ -289,6 +296,24 @@ def doc_to_str(doc: wl.AbstractDoc, /, width: int = 88) -> str:
     return wl.pformat(_DocHolder(doc), width=width)
 
 
+#: Wide enough that no break is taken: lays a doc out on one line.
+_FLAT: Final = 10**9
+
+
+def doc_part(role: str, doc: wl.AbstractDoc, /, kind: str = "content") -> PPart:
+    """Build a `PPart` carrying a document, with its flat text alongside.
+
+    Examples
+    --------
+    >>> import wadler_lindig as wl
+    >>> from unxt._src.fmt import doc_part
+    >>> doc_part("value", wl.TextDoc("1.0")).text
+    '1.0'
+
+    """
+    return PPart(role, doc_to_str(doc, _FLAT), kind, doc)
+
+
 @dispatch.abstract
 def pparts(obj: Any, /, *, markup: str = "text", **kw: Any) -> tuple[Any, ...]:
     """Decompose an object into a tree of `PPart` / `PGroup` fragments.
@@ -319,7 +344,7 @@ def pparts(
     --------
     >>> from unxt._src.fmt import pparts
     >>> pparts(object())
-    (PPart(role='value', text='<object object at ...>', kind='content'),)
+    (PPart(role='value', text='<object object at ...>', kind='content', doc=None),)
 
     """
     if value_spec is not None:
@@ -362,6 +387,9 @@ def parts_to_doc(
     for part in parts:
         if isinstance(part, PGroup):
             docs.append(parts_to_doc(part.parts, indent=indent, sep=sep))
+            continue
+        if part.doc is not None:
+            docs.append(part.doc)
             continue
         role = sep if (sep is not None and part.role == "mul") else part.role
         text = part.text
