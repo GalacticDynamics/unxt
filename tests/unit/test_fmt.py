@@ -1190,3 +1190,81 @@ def test_register_markup_rejects_a_keyword_clash():
     with pytest.raises(ValueError, match="keyword or alias"):
         register_markup("mul", _GOOD_ROW)
     assert "mul" not in MARKUPS
+
+
+# ============================================================================
+# width= and indent=
+
+
+def test_width_and_indent_in_the_spec() -> None:
+    q = u.Q(np.arange(30.0), "m")
+    wide = f"{q:mul-width=200}"
+    narrow = f"{q:mul-width=20}"
+    assert "\n" not in wide
+    assert max(map(len, narrow.splitlines())) <= 20
+    two = f"{q:mul-width=20-indent=2}".splitlines()
+    four = f"{q:mul-width=20-indent=4}".splitlines()
+    assert two != four
+
+    def lead(ln: str) -> int:
+        return len(ln) - len(ln.lstrip())
+
+    # continuation lines indent two more spaces under indent=4 than indent=2
+    assert len(two) == len(four)
+    assert {lead(b) - lead(a) for a, b in zip(two[1:-1], four[1:-1], strict=True)} == {
+        2
+    }
+
+
+def test_width_is_rejected_when_not_a_number() -> None:
+    """Non-numeric text is not a width: it falls through to the value spec."""
+    with pytest.raises(ValueError, match="invalid format spec"):
+        f"{u.Q(1.0, 'm'):width=wide}"
+
+
+def test_width_does_not_eat_a_format_spec() -> None:
+    assert parse_spec("mul-width=40-.2f")["value"] == ".2f"
+    assert parse_spec(">10.2f")["value"] == ">10.2f"
+
+
+def test_width_and_indent_are_not_bare_words() -> None:
+    spec = parse_spec("mul")
+    assert spec["width"] is None
+    assert spec["indent"] is None
+    assert "width" not in _KEYWORDS
+    assert "40" not in _KEYWORDS
+    assert parse_spec("width=40")["width"] == 40
+
+
+def test_spec_width_overrides_the_argument_and_defaults_do_not_clobber() -> None:
+    q = u.Q(np.arange(30.0), "m")
+    assert "\n" in render(q, parse_spec("mul"), width=20)
+    assert "\n" not in render(q, parse_spec("mul-width=200"), width=20)
+    # indent=None leaves the caller's indent alone
+    assert render(q, Spec.of(layout="call"), indent=4) == render(
+        q, Spec.of(layout="call", indent=4)
+    )
+
+
+def test_call_layout_honours_width() -> None:
+    usys = u.unitsystems.si
+    assert "\n" in f"{usys:call-width=20}"
+    assert "\n" not in f"{usys:call-width=200}"
+
+
+@pytest.mark.parametrize("digit", ["\u00b2", "\u0663"])
+def test_non_ascii_digits_are_not_a_count(digit: str) -> None:
+    with pytest.raises(ValueError, match="invalid format spec"):
+        f"{u.Q(1.0, 'm'):width={digit}}"
+
+
+def test_zero_width_and_indent_render() -> None:
+    q = u.Q(np.arange(3.0), "m")
+    assert "1." in f"{q:mul-width=0}"
+    assert "1." in f"{q:mul-indent=0}"
+
+
+def test_hand_built_spec_without_width_or_indent_renders() -> None:
+    q = u.Q(1.0, "m")
+    spec = Spec({k: v for k, v in Spec.of().items() if k not in ("width", "indent")})
+    assert render(q, spec) == render(q, Spec.of())

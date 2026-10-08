@@ -684,7 +684,7 @@ class Spec(Mapping[str, Any]):
 
 def _grammar_help() -> str:
     """Describe the grammar, generated from the registry so it cannot drift."""
-    parts = [f"{name} ({'|'.join(ax.keywords)})" for name, ax in AXES.items()]
+    parts = [f"{name} ({'|'.join(ax.keywords) or '<n>'})" for name, ax in AXES.items()]
     aliases = ", ".join(f"{k}={v}" for k, v in ALIASES.items())
     return (
         "a '-'-joined run of keywords, then an optional Python format spec "
@@ -851,7 +851,7 @@ def _layout_kwargs(spec: Spec, layout: str, /) -> dict[str, Any]:
     for name, ax in AXES.items():
         translate = ax.layouts.get(layout)
         if translate is not None:
-            kw.update(translate(spec[name]))
+            kw.update(translate(spec.get(name, ax.default)))
     return kw
 
 
@@ -881,6 +881,8 @@ def render(
 
     """
     layout = spec["layout"]
+    width = w if (w := spec.get("width")) is not None else width
+    indent = i if (i := spec.get("indent")) is not None else indent
     return _LAYOUTS[layout](
         obj, spec, width=width, indent=indent, **_layout_kwargs(spec, layout), **extra
     )
@@ -928,6 +930,39 @@ register_axis(
         layouts=dict.fromkeys(_LAYOUTS, lambda _: {}),
     )
 )
+
+
+class _Count(Mapping[str, int]):
+    """Keywords for a numeric axis: any digit string maps to its `int`.
+
+    It iterates empty, so it claims no *bare* word in the shared keyword
+    namespace; only the explicit ``axis=<n>`` form resolves.
+    """
+
+    def __getitem__(self, key: str) -> int:
+        if key.isascii() and key.isdigit():
+            return int(key)
+        raise KeyError(key)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(())
+
+    def __len__(self) -> int:
+        return 0
+
+
+#: Layout parameters, not renderer kwargs: they contribute nothing to
+#: `_layout_kwargs`; `render` reads them off the spec directly.
+for _name in ("width", "indent"):
+    register_axis(
+        Axis(
+            name=_name,
+            keywords=_Count(),
+            default=None,
+            layouts=dict.fromkeys(_LAYOUTS, lambda _: {}),
+        )
+    )
+del _name
 
 
 #: Whether `pspec` reports axes that a spec names to no effect.
