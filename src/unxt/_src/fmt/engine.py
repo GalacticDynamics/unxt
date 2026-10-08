@@ -41,6 +41,7 @@ __all__ = (
     "PGroup",
     "PPart",
     "REQUIRED_MARKUP_KEYS",
+    "ReprMixin",
     "Spec",
     "bad_spec",
     "doc_part",
@@ -51,6 +52,7 @@ __all__ = (
     "parts_to_doc",
     "parts_to_markup",
     "pparts",
+    "pparts_to_pdoc",
     "pspec",
     "register_alias",
     "register_axis",
@@ -62,7 +64,7 @@ import html as _html
 import warnings
 from collections.abc import Callable, Iterator, Mapping
 from types import MappingProxyType
-from typing import Any, Final, NamedTuple
+from typing import Any, ClassVar, Final, NamedTuple
 
 import wadler_lindig as wl
 from plum import Dispatcher
@@ -995,3 +997,112 @@ def pspec(
                 stacklevel=2,
             )
     return out
+
+
+def pparts_to_pdoc(
+    obj: Any,
+    /,
+    *,
+    indent: int = 2,
+    sep: str | None = None,
+    markup: str = "text",
+    **kw: Any,
+) -> wl.AbstractDoc:
+    """Return ``obj``'s `pparts` as a wadler-lindig document.
+
+    This is what makes a type that only registers `pparts` work with
+    ``wl.pformat`` / ``wl.pprint``: its ``__pdoc__`` is this call.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> from unxt._src.fmt import doc_to_str, pparts_to_pdoc
+    >>> doc_to_str(pparts_to_pdoc(u.Q([1.0, 2], "m")))
+    '[1., 2.] * m'
+
+    """
+    return parts_to_doc(
+        pparts(obj, markup=markup, **kw), indent=indent, sep=sep, markup=markup
+    )
+
+
+def _check_repr_spec(spec: str, parsed: Spec, /) -> None:
+    """Reject a spec whose free-text remainder is not a Python format spec.
+
+    `parse_spec` sends any word that is not a keyword to the value axis, so a
+    typo or an alias registered too late would otherwise survive until the
+    first print.
+    """
+    axis = _free_text_axis()
+    text = None if axis is None else parsed[axis.name]
+    if text is None or text in axis.keywords.values():
+        return
+    # Elements need not be floats, so any probe type that accepts it will do.
+    errors = []
+    for probe in (0.0, 0, ""):
+        try:
+            format(probe, text)
+        except ValueError as e:
+            errors.append(e)
+        else:
+            return
+    msg = f"{text!r} is not a valid Python format spec"
+    raise bad_spec(None, spec, msg) from errors[0]
+
+
+class ReprMixin:
+    """Derive ``repr``/``str``/``format``/IPython reprs/``__pdoc__`` from `pparts`.
+
+    Declare the layout once as a spec string; it is resolved when the *class*
+    is created, so a bad spec -- or an alias registered too late -- fails at
+    definition, not on first print::
+
+        @dataclass(repr=False)  # repr=True would shadow the mixin
+        class Version(ReprMixin):
+            __repr_spec__ = "bare"
+
+    Register `pparts` for the type; everything else follows. A type whose
+    ``repr`` is a *constructor expression* should keep an explicit
+    ``__pdoc__`` instead.
+    """
+
+    __repr_spec__: ClassVar[str] = "product"
+    _repr_spec_parsed: ClassVar[Spec]
+
+    def __init_subclass__(cls, **kw: Any) -> None:
+        super().__init_subclass__(**kw)
+        parsed = parse_spec(cls.__repr_spec__)
+        _check_repr_spec(cls.__repr_spec__, parsed)
+        cls._repr_spec_parsed = parsed
+
+    def __repr__(self) -> str:
+        return render(self, self._repr_spec_parsed)
+
+    def __str__(self) -> str:
+        return render(self, self._repr_spec_parsed)
+
+    def __format__(self, format_spec: str, /) -> str:
+        return pspec(self, format_spec)
+
+    def _repr_html_(self) -> str:
+        return pspec(self, "html")
+
+    def _repr_latex_(self) -> str:
+        return pspec(self, "latex")
+
+    def __pdoc__(self, *, indent: int = 2, **kw: Any) -> wl.AbstractDoc:
+        layout = _layout_kwargs(self._repr_spec_parsed, "product")
+        markup = layout.pop("markup", "text")
+        sep = layout.pop("sep", None)
+        return pparts_to_pdoc(self, indent=indent, sep=sep, markup=markup, **layout)
+
+
+@dispatch  # type: ignore[no-redef]
+def pparts(obj: ReprMixin, /, *, markup: str = "text", **kw: Any) -> tuple[Any, ...]:
+    """Refuse a `ReprMixin` type that registered no `pparts` of its own.
+
+    Without this the generic `str` fallback would call back into the mixin's
+    ``__str__`` and recurse forever.
+    """
+    msg = f"{type(obj).__name__} subclasses ReprMixin but registers no pparts"
+    raise TypeError(msg)
