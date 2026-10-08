@@ -4772,6 +4772,47 @@ def select_n_p_jsq(which: ArrayLike, case0: StaticQuantity, /, *cases: ABCQ) -> 
 
 
 @quax.register(lax.select_n_p)
+def select_n_p_jmixed(
+    which: ArrayLike, /, *cases: ABCQ | ArrayLike
+) -> ABCQ | ArrayLike:
+    """Select from any mix of quantities and raw arrays.
+
+    The n-case generalisation of `select_n_p_jjq` / `select_n_p_jqj` (which
+    stay the more specific match for two cases): each raw case is
+    **intentionally** taken to be in the unit of the first quantity case. This
+    is what ``jnp.select`` with mixed choices lowers to.
+
+    This signature also matches an all-array ``select_n``, which quax still
+    dispatches inside a quaxified ``jit``. That is bound unchanged -- exactly
+    what quax does when no rule matches -- since ``*cases`` cannot require a
+    quantity in some position.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> q = u.Q([0.5, 2.0], "km")
+    >>> jnp.select([q < u.Q(1, "km"), q < u.Q(3, "km")], [q, jnp.ones(2)])
+    Quantity(Array([0.5, 1. ], dtype=float32), unit='km')
+
+    """
+    ref = next((c for c in cases if isinstance(c, ABCQ)), None)
+    if ref is None:
+        return lax.select_n_p.bind(which, *cases)
+    u = unit_of(ref)
+    casesv = tuple(jnp.asarray(ustrip(AllowValue, u, c)) for c in cases)
+    dtypes = tuple(
+        c.dtype if isinstance(c, ABCQ) else v.dtype
+        for c, v in zip(cases, casesv, strict=True)
+    )
+    casesv = promote_dtypes_if_needed(dtypes, *casesv)
+    out = lax.select_n(which, *casesv)
+    # A StaticQuantity cannot hold the (possibly traced) result; see select_n_p_jsqj.
+    return Q(out, unit=u) if isinstance(ref, StaticQuantity) else revalue(ref, out)
+
+
+@quax.register(lax.select_n_p)
 def select_n_p_jqq(which: ArrayLike, /, *cases: ABCQ) -> ABCQ:
     """Select from a list of quantities using a non-quantity selector.
 
