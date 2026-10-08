@@ -28,6 +28,7 @@ from unxt._src.fmt import (
     parts_to_markup,
     pparts,
     pspec,
+    pvalue,
     register_alias,
     register_axis,
     register_markup,
@@ -1328,4 +1329,98 @@ def test_array_doc_rejects_text_after_the_closing_bracket():
     from unxt._src.fmt.axes import _SENTINEL, _array_doc  # noqa: PLC0415
 
     with pytest.raises(IndexError):
-        _array_doc(f"[1{_SENTINEL}2] x", sep=wl.TextDoc(", "), escape=str)
+        _array_doc(f"[1{_SENTINEL}2] x", vsep=", ", escape=str)
+
+
+# ============================================================================
+# Fill layout for the innermost row of an array
+
+
+def test_long_array_exact_layout_at_default_width():
+    """A long 1-D array flows across lines; it is not one element per line."""
+    out = f"{u.Q(np.arange(30.0), 'm'):mul}"
+    assert out == (
+        "[ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10., 11., 12., 13., 14.,"
+        " 15., 16.,\n"
+        "   17., 18., 19., 20., 21., 22., 23., 24., 25., 26., 27., 28., 29.] *\n"
+        "  m"
+    )
+
+
+@pytest.mark.parametrize("spec", ["mul-width=40", "bare-width=40", "width=40-.2f"])
+@pytest.mark.parametrize(
+    "value",
+    [
+        np.arange(30.0),
+        np.arange(60.0).reshape(2, 30),
+        np.arange(4000.0).reshape(2000, 2),
+    ],
+)
+def test_array_lines_respect_width(spec, value):
+    out = f"{u.Q(value, 'm'):{spec}}"
+    assert max(map(len, out.splitlines())) <= 40
+    assert len(out.splitlines()) < 400
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        np.array([1.5, 10.0]),
+        np.array([1.0, 2.0, 3.0]),
+        np.array([]),
+        np.array(1.5),
+        np.arange(10.0),
+    ],
+)
+def test_short_1d_arrays_are_byte_identical_to_numpy(value):
+    expected = np.array2string(value, separator=", ", max_line_width=10**9)
+    assert f"{u.Q(value, 'm'):mul}" == f"{expected} * m"
+
+
+@pytest.mark.parametrize("spec", ["html", "latex"])
+def test_markup_arrays_never_break(spec):
+    out = f"{u.Q(np.arange(30.0), 'm'):{spec}-width=20}"
+    assert "\n" not in out.replace("\\\\\n", "")
+
+
+# ============================================================================
+# ml_dtypes and the flat fallback
+
+
+@pytest.mark.parametrize("name", ["bfloat16", "float8_e4m3fn", "int4"])
+def test_ml_dtype_arrays_take_the_parser_path(name):
+    ml_dtypes = pytest.importorskip("ml_dtypes")
+    arr = np.arange(40).astype(getattr(ml_dtypes, name))
+    out = f"{u.Q(arr, 'm'):mul-width=40}"
+    assert max(map(len, out.splitlines())) <= 40
+    assert len(out.splitlines()) > 1
+
+
+def test_bfloat16_jax_array_wraps():
+    import jax.numpy as jnp  # noqa: PLC0415
+
+    out = f"{u.Q(jnp.arange(40, dtype=jnp.bfloat16), 'm'):mul-width=40}"
+    assert max(map(len, out.splitlines())) <= 40
+
+
+def test_flat_fallback_has_no_trailing_space():
+    out = doc_to_str(pvalue(np.ones((2, 2), dtype=object)), 88)
+    assert all(line == line.rstrip() for line in out.splitlines())
+    assert out.startswith("[[1, 1],\n [1, 1]]")
+
+
+# ============================================================================
+# register_markup validation
+
+
+def test_register_markup_rejects_a_non_callable_escape():
+    with pytest.raises(ValueError, match="escape"):
+        register_markup("bad_escape", {**_GOOD_ROW, "escape": "x"})
+    assert "bad_escape" not in MARKUPS
+
+
+@pytest.mark.parametrize("content", ["{0.foo}", "{0[a]}"])
+def test_register_markup_rejects_attribute_or_index_content(content):
+    with pytest.raises(ValueError, match="_content"):
+        register_markup("bad_content", {**_GOOD_ROW, "_content": content})
+    assert "bad_content" not in MARKUPS

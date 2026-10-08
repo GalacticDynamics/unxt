@@ -5,7 +5,6 @@ library: it is part of the future standalone package.
 """
 
 __all__ = (
-    "VALUE_FROM_SHORT_ARRAYS",
     "pvalue",
     "register_markup",
     "unregister_markup",
@@ -35,16 +34,6 @@ _SHORT_ARRAYS: Final[dict[str, Any]] = {
     "array": False,
     "values": "compact",
     "type": True,
-}
-
-#: ``short_arrays`` back to the ``value`` axis, for reading `unxt.config`.
-#:
-#: The config traits are public, documented API and keep their own spelling;
-#: this is the one place the two vocabularies are reconciled, so ``repr`` and
-#: ``str`` can be defined as specs without renaming anything users configure.
-#: Derived by inversion rather than written out, so the two cannot drift.
-VALUE_FROM_SHORT_ARRAYS: Final[dict[Any, str]] = {
-    v: k for k, v in _SHORT_ARRAYS.items()
 }
 
 
@@ -126,9 +115,12 @@ def _check_markup_row(row: Mapping[str, Any], /) -> None:
     if row["wrap"].count("{}") != 1:
         msg = f"markup 'wrap' must contain exactly one '{{}}', got {row['wrap']!r}"
         raise ValueError(msg)
+    if row["escape"] is not None and not callable(row["escape"]):
+        msg = f"markup 'escape' must be None or callable, got {row['escape']!r}"
+        raise ValueError(msg)
     try:
         row["_content"].format("x")
-    except (IndexError, KeyError, ValueError):
+    except (AttributeError, IndexError, KeyError, TypeError, ValueError):
         msg = f"markup '_content' must format one argument, got {row['_content']!r}"
         raise ValueError(msg) from None
 

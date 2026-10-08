@@ -1134,7 +1134,9 @@ class ReprMixin:
     The registered `pparts` method must accept ``**kw`` (the engine forwards
     axes such as ``short_arrays`` and ``unit_style`` on every route).
     ``__repr_spec__`` is parsed when the class is created; reassigning it
-    later is not re-parsed.
+    later is not re-parsed. ``width=``/``indent=`` in ``__repr_spec__`` apply to
+    ``repr``/``str`` only: `wadler_lindig.pformat` picks the width when it is
+    called, so ``__pdoc__`` cannot honour them.
     """
 
     __repr_spec__: ClassVar[str] = "product"
