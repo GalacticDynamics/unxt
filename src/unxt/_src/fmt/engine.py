@@ -169,7 +169,7 @@ def _latex_escape(s: str, /) -> str:
 #:
 #: A row must define ``_content`` (the wrapper for a ``"content"``/``"markup"``
 #: fragment), ``wrap`` (applied once to the whole rendering), ``vsep`` (the
-#: array element separator, read by `value_str`) and ``escape`` (`None` for
+#: array element separator, read by `pvalue`) and ``escape`` (`None` for
 #: none). Any other key is a per-role override: for a ``"sep"`` fragment it
 #: *replaces* the separator text, and for a content fragment it is the wrapper
 #: template. The four required names are reserved: a role called ``escape`` or

@@ -4,11 +4,13 @@ Like `engine`, this imports only `wadler_lindig`, `plum` and the standard
 library: it is part of the future standalone package.
 """
 
-__all__ = ("VALUE_FROM_SHORT_ARRAYS",)
+__all__ = ("VALUE_FROM_SHORT_ARRAYS", "pvalue")
 
 from typing import Any, Final
 
-from .engine import Axis, register_axis
+import wadler_lindig as wl
+
+from .engine import _FLAT, Axis, _markup_table, dispatch, doc_to_str, register_axis
 
 #: The ``value`` axis as `__pdoc__`'s ``short_arrays`` argument. The public
 #: `unxt.config` traits keep their own spelling of the same three-way choice.
@@ -84,3 +86,41 @@ register_axis(
         free_text=("product",),
     )
 )
+
+
+@dispatch.abstract
+def pvalue(
+    obj: Any,
+    /,
+    *,
+    markup: str = "text",
+    short_arrays: Any = "compact",
+    value_spec: str | None = None,
+    **kw: Any,
+) -> wl.AbstractDoc:
+    """Render a *value* as a wadler-lindig document, escaped for ``markup``.
+
+    The extension point for how numbers (or anything else a type holds) are
+    shown. Register a method for your value type; the package default below
+    renders through ``repr`` / ``format`` / `wadler_lindig.pdoc`.
+    """
+    raise NotImplementedError  # pragma: no cover
+
+
+@dispatch  # type: ignore[no-redef]
+def pvalue(
+    obj: Any,
+    /,
+    *,
+    markup: str = "text",
+    short_arrays: Any = "compact",
+    value_spec: str | None = None,
+    **kw: Any,
+) -> wl.AbstractDoc:
+    """Fall back to ``repr`` (or ``format`` when a value spec is given)."""
+    escape = _markup_table(markup)["escape"]
+    if short_arrays == "compact":
+        text = format(obj, value_spec) if value_spec else repr(obj)
+        return wl.TextDoc(escape(text) if escape else text)
+    doc = wl.pdoc(obj, short_arrays=short_arrays, show_wrapper=False, **kw)
+    return doc if escape is None else wl.TextDoc(escape(doc_to_str(doc, _FLAT)))
