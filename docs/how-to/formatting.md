@@ -44,6 +44,18 @@ Each keyword sets exactly one axis. Keywords are pairwise disjoint — no word n
 | unit | `symbol`, `name`, `dim` | `symbol` | `m` / `meter` / `length` |
 | separator | `mul`, `bare` | `bare` | product layout only |
 | abbreviation | `abbrev` | off | call layout only |
+| width | `width=<n>` | 88 | line width the layout wraps at |
+| indent | `indent=<n>` | 2 | indent of a wrapped layout |
+
+```{code-block} python
+
+>>> f"{q:call-width=20}"
+"Quantity(\n  [1., 2., 3.],\n  unit='m'\n)"
+
+>>> f"{q:call-indent=4-width=20}"
+"Quantity(\n    [1., 2., 3.],\n    unit='m'\n)"
+
+```
 
 ```{code-block} python
 
@@ -220,6 +232,56 @@ The unit axis reaches the nested quantities without `Interval` knowing it exists
 ```
 
 A type that skips `pparts` still renders: it degrades to `str(obj)` as one opaque fragment, because a display path must not raise just because some field's type never registered. The one thing it cannot degrade on is a format spec — that formats _elements_, and a type that never said what its elements are has none — so asking for one is an error rather than a silently different rendering.
+
+A registered `pparts` method must accept `**kw`: the engine forwards every axis the type does not itself act on (`short_arrays`, `unit_style`, `value_spec`, ...) to it on every route, `wl.pformat` included.
+
+## Give your own type a format
+
+`ReprMixin` derives `repr`, `str`, `format`, the IPython representations and `__pdoc__` from `pparts` plus one spec string, `__repr_spec__`. The spec is parsed when the class is created, so a bad one fails at definition (and reassigning it later is not re-parsed). Use `@dataclass(repr=False)`: the default `repr=True` would overwrite the mixin's `__repr__`.
+
+```{code-block} python
+
+>>> import dataclasses
+>>> import wadler_lindig as wl
+>>> from unxt._pparts import PPart, ReprMixin, pparts
+
+>>> @dataclasses.dataclass(repr=False)
+... class Version(ReprMixin):
+...     major: int
+...     minor: int
+...     __repr_spec__ = "bare"
+
+>>> @pparts.dispatch
+... def _(obj: Version, /, *, markup="text", **kw):
+...     return (
+...         PPart("major", str(obj.major)),
+...         PPart("dot", ".", "sep"),
+...         PPart("minor", str(obj.minor)),
+...     )
+
+>>> v = Version(1, 2)
+>>> v
+1.2
+>>> f"{v:html}"
+'<span>1</span>.<span>2</span>'
+>>> wl.pformat(v)
+'1.2'
+
+```
+
+A type that registers no `pparts` raises a `TypeError` pointing at `@pparts.dispatch`, rather than recursing.
+
+`register_markup(name, row)` adds a markup beside `text`, `html` and `latex`; the row needs `_content`, `wrap`, `vsep` and `escape`. `unregister_markup` removes it again (a test/reload helper -- do not remove a built-in).
+
+```{code-block} python
+
+>>> from unxt._pparts import register_markup, unregister_markup
+>>> register_markup("brackets", {"_content": "[{}]", "wrap": "{}", "vsep": ", ", "escape": None})
+>>> f"{q:brackets}"
+'[[1., 2., 3.]] * [m]'
+>>> unregister_markup("brackets")
+
+```
 
 ## Checking that a spec did something
 
