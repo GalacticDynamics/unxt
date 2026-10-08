@@ -5,7 +5,7 @@ import dataclasses
 import pytest
 import wadler_lindig as wl
 
-from unxt._src.fmt import (
+from unxt._pparts import (
     PPart,
     ReprMixin,
     pparts,

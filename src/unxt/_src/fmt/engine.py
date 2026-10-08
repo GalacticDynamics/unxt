@@ -328,6 +328,10 @@ def pparts(obj: Any, /, *, markup: str = "text", **kw: Any) -> tuple[Any, ...]:
 
     This is the extension point: register an implementation for your type and
     it gains every preset, every markup, and the wadler-lindig layout path.
+
+    A registered method must accept ``**kw``: the engine forwards the axes it
+    does not itself act on (``short_arrays``, ``unit_style``, ``value_spec``,
+    ...) to it on every route, ``wl.pformat`` included.
     """
     raise NotImplementedError  # pragma: no cover
 
@@ -1126,6 +1130,11 @@ class ReprMixin:
     Register `pparts` for the type; everything else follows. A type whose
     ``repr`` is a *constructor expression* should keep an explicit
     ``__pdoc__`` instead.
+
+    The registered `pparts` method must accept ``**kw`` (the engine forwards
+    axes such as ``short_arrays`` and ``unit_style`` on every route).
+    ``__repr_spec__`` is parsed when the class is created; reassigning it
+    later is not re-parsed.
     """
 
     __repr_spec__: ClassVar[str] = "product"
@@ -1166,5 +1175,8 @@ def pparts(obj: ReprMixin, /, *, markup: str = "text", **kw: Any) -> tuple[Any, 
     Without this the generic `str` fallback would call back into the mixin's
     ``__str__`` and recurse forever.
     """
-    msg = f"{type(obj).__name__} subclasses ReprMixin but registers no pparts"
+    msg = (
+        f"{type(obj).__name__} subclasses ReprMixin but registers no pparts "
+        "(register one with @pparts.dispatch)"
+    )
     raise TypeError(msg)

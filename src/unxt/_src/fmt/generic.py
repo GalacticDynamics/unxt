@@ -151,7 +151,11 @@ def register_markup(
 
 
 def unregister_markup(name: str, /) -> None:
-    """Remove a markup added by `register_markup`."""
+    """Remove a markup added by `register_markup`.
+
+    A test/reload helper: removing a built-in markup (``text``, ``html``,
+    ``latex``) breaks the product layouts that name it.
+    """
     del _MARKUPS[name]
     del _MARKUP_WORDS[name]
     _KEYWORDS[name].remove("markup")
