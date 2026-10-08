@@ -57,6 +57,8 @@ __all__ = (
     "register_alias",
     "register_axis",
     "render",
+    "unregister_alias",
+    "unregister_axis",
     "unwrap_math",
 )
 
@@ -179,7 +181,7 @@ def _latex_escape(s: str, /) -> str:
 #:
 #: Add a markup by adding a row. Roles need not be enumerated -- an unknown
 #: role falls back to ``_content`` and the fragment's own text.
-MARKUPS: dict[str, dict[str, Any]] = {
+_MARKUPS: dict[str, dict[str, Any]] = {
     "text": {"_content": "{}", "wrap": "{}", "vsep": ", ", "escape": None, "bare": " "},
     "html": {
         "_content": "<span>{}</span>",
@@ -205,6 +207,10 @@ MARKUPS: dict[str, dict[str, Any]] = {
     },
 }
 
+#: Read-only view of the markup rows; `unxt._src.fmt.register_markup` is the
+#: way in.
+MARKUPS: Final[Mapping[str, Mapping[str, Any]]] = MappingProxyType(_MARKUPS)
+
 #: Keys every `MARKUPS` row must define; they are the ones with no per-fragment
 #: fallback.
 REQUIRED_MARKUP_KEYS: Final = ("_content", "wrap", "vsep", "escape")
@@ -220,7 +226,7 @@ def _role_override(table: Mapping[str, Any], role: str, /) -> Any:
     return None if role in REQUIRED_MARKUP_KEYS else table.get(role)
 
 
-def _markup_table(markup: str, /) -> dict[str, Any]:
+def _markup_table(markup: str, /) -> Mapping[str, Any]:
     """Return the `MARKUPS` row, naming the markup if it is unknown."""
     try:
         return MARKUPS[markup]
@@ -524,7 +530,8 @@ class Axis(NamedTuple):
 
 
 #: Registered axes, by name. Populated only through `register_axis`.
-AXES: Final[dict[str, Axis]] = {}
+_AXES: Final[dict[str, Axis]] = {}
+AXES: Final[Mapping[str, Axis]] = MappingProxyType(_AXES)
 
 #: Spec word -> every axis claiming it, in registration order.
 #:
@@ -538,7 +545,8 @@ _KEYWORDS: Final[dict[str, list[str]]] = {}
 #: before parsing, so an alias can never mean something the grammar cannot
 #: already say, and combining one with a further keyword raises exactly the
 #: error its expansion would.
-ALIASES: Final[dict[str, str]] = {}
+_ALIASES: Final[dict[str, str]] = {}
+ALIASES: Final[Mapping[str, str]] = MappingProxyType(_ALIASES)
 
 
 def _free_text_axis() -> Axis | None:
@@ -550,17 +558,18 @@ def _free_text_axis() -> Axis | None:
     return next((ax for ax in AXES.values() if ax.free_text), None)
 
 
-def register_axis(axis: Axis, /) -> Axis:
+def register_axis(axis: Axis, /, *, replace: bool = False) -> Axis:
     """Add an axis to the grammar, rejecting any keyword collision.
 
     Registration is the only way in. A downstream package registering
     ``vector_form`` gets exactly what the built-in axes get -- there is no
-    privileged set.
+    privileged set. ``replace=True`` swaps out an axis of the same name.
     """
-    if axis.name in AXES:
+    if axis.name in AXES and not replace:
         msg = f"axis {axis.name!r} is already registered"
         raise ValueError(msg)
-    if axis.free_text and (claimed := _free_text_axis()) is not None:
+    claimed = _free_text_axis()
+    if axis.free_text and claimed is not None and claimed.name != axis.name:
         msg = (
             f"axis {axis.name!r} claims free text, but {claimed.name!r} "
             "already does; a spec has only one trailing run to give"
@@ -572,27 +581,45 @@ def register_axis(axis: Axis, /) -> Axis:
             # back on -- unlike a keyword, it cannot be disambiguated.
             msg = f"keyword {word!r} is already an alias"
             raise ValueError(msg)
-    AXES[axis.name] = axis
+    # Everything is validated: only now touch the registries, so a rejected
+    # replacement leaves the axis it meant to replace in place.
+    if axis.name in _AXES:
+        unregister_axis(axis.name)
+    _AXES[axis.name] = axis
     for word in axis.keywords:
         _KEYWORDS.setdefault(word, []).append(axis.name)
     return axis
 
 
-def register_alias(name: str, expansion: str, /) -> None:
+def register_alias(name: str, expansion: str, /, *, replace: bool = False) -> None:
     """Add a whole-spec shorthand, rejecting any collision.
 
     Both directions are checked, because both are the same mistake: a name
     that already means something must not quietly start meaning something
     else. Silently overwriting is how a spec changes meaning without anyone
-    editing the spec.
+    editing the spec. ``replace=True`` overwrites an alias deliberately.
     """
     if name in _KEYWORDS:
         msg = f"alias {name!r} is already a keyword of axis {_KEYWORDS[name][0]!r}"
         raise ValueError(msg)
-    if name in ALIASES:
+    if name in ALIASES and not replace:
         msg = f"alias {name!r} is already registered as {ALIASES[name]!r}"
         raise ValueError(msg)
-    ALIASES[name] = expansion
+    _ALIASES[name] = expansion
+
+
+def unregister_axis(name: str, /) -> None:
+    """Remove an axis and its keywords from the grammar (for tests and reloads)."""
+    axis = _AXES.pop(name)
+    for word in axis.keywords:
+        _KEYWORDS[word].remove(name)
+        if not _KEYWORDS[word]:
+            del _KEYWORDS[word]
+
+
+def unregister_alias(name: str, /) -> None:
+    """Remove a whole-spec shorthand."""
+    del _ALIASES[name]
 
 
 #: Layout -> the function that renders an object in it. A layout is a way of

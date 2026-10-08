@@ -30,10 +30,15 @@ from unxt._src.fmt import (
     pspec,
     register_alias,
     register_axis,
+    register_markup,
     render,
+    unregister_alias,
+    unregister_axis,
+    unregister_markup,
     unwrap_math,
 )
-from unxt._src.fmt.engine import _KEYWORDS
+from unxt._src.fmt.engine import _ALIASES, _AXES, _KEYWORDS, _MARKUPS
+from unxt._src.fmt.generic import _MARKUP_WORDS, _check_markup_row
 
 # ============================================================================
 # The grammar's own invariants
@@ -575,9 +580,8 @@ def test_a_downstream_package_can_register_its_own_axis() -> None:
         with pytest.raises(ValueError, match="'demo_form' does not apply"):
             parse_spec("product-demoform")
     finally:
-        AXES.pop("demo_form")
-        _KEYWORDS.pop("demoform")
-        ALIASES.pop("demoalias")
+        unregister_axis("demo_form")
+        unregister_alias("demoalias")
 
 
 @pytest.mark.parametrize("word", ["html", "compact"])
@@ -665,8 +669,7 @@ def test_two_axes_may_claim_one_word_and_both_stay_reachable() -> None:
         # Every other word is untouched by the collision.
         assert pspec(q, "mul") == "[1., 2., 3.] * m"
     finally:
-        AXES.pop("manifold")
-        _KEYWORDS["dim"].remove("manifold")
+        unregister_axis("manifold")
 
 
 @pytest.mark.parametrize("spec", [":>6", "=>6", "=6", "=^7"])
@@ -1057,3 +1060,133 @@ def test_markup_docs_offer_no_breaks_until_wl_23():
     for markup in ("html", "latex"):
         out = render(q, parse_spec(markup), width=10)
         assert "\n" not in out
+
+
+# ============================================================================
+# Read-only registries, register/unregister
+
+
+def test_registries_are_read_only_views():
+    for reg in (AXES, ALIASES, MARKUPS):
+        with pytest.raises(TypeError):
+            reg["x"] = 1  # type: ignore[index]
+
+
+def test_register_axis_rejects_a_duplicate_unless_replace():
+    ax = Axis("tmp_axis", {"tmpword": 1}, 0, {"call": lambda _: {}})
+    register_axis(ax)
+    try:
+        with pytest.raises(ValueError, match="already registered"):
+            register_axis(ax)
+        register_axis(ax, replace=True)
+        assert "tmp_axis" in AXES
+    finally:
+        unregister_axis("tmp_axis")
+    assert "tmp_axis" not in AXES
+    assert "tmpword" not in _KEYWORDS
+
+
+def test_register_alias_replace():
+    register_alias("tmp_alias", "bare")
+    try:
+        with pytest.raises(ValueError, match="already registered"):
+            register_alias("tmp_alias", "mul")
+        register_alias("tmp_alias", "mul", replace=True)
+        assert ALIASES["tmp_alias"] == "mul"
+    finally:
+        unregister_alias("tmp_alias")
+    assert "tmp_alias" not in ALIASES
+
+
+_GOOD_ROW = {"_content": "[{}]", "wrap": "{}", "vsep": ", ", "escape": None}
+
+
+def test_register_markup_validates_and_extends_the_markup_axis():
+    register_markup("brackets", _GOOD_ROW)
+    try:
+        assert parse_spec("brackets")["markup"] == "brackets"
+        assert f"{u.Q(1.0, 'm'):brackets}" == "[1.] * [m]"
+        with pytest.raises(ValueError, match="already"):
+            register_markup("brackets", _GOOD_ROW)
+        register_markup("brackets", _GOOD_ROW, replace=True)
+        with pytest.raises(ValueError, match="missing"):
+            register_markup("broken", {"wrap": "{}"})
+    finally:
+        unregister_markup("brackets")
+    assert "brackets" not in MARKUPS
+    assert "brackets" not in _KEYWORDS
+
+
+@pytest.mark.parametrize(
+    ("bad", "match"),
+    [
+        ({"wrap": "no braces"}, "wrap"),
+        ({"wrap": "{}{}"}, "wrap"),
+        ({"wrap": 3}, "wrap"),
+        ({"_content": "{}{}"}, "_content"),
+        ({"_content": "{x}"}, "_content"),
+        ({"_content": "{"}, "_content"),
+        ({"_content": None}, "_content"),
+    ],
+)
+def test_register_markup_rejects_a_malformed_template(bad, match):
+    with pytest.raises(ValueError, match=match):
+        register_markup("bad_markup", {**_GOOD_ROW, **bad})
+    assert "bad_markup" not in MARKUPS
+    assert "bad_markup" not in _KEYWORDS
+
+
+@pytest.mark.parametrize("content", ["", "<{0}>", "{}", "plain"])
+def test_register_markup_accepts_any_content_str_that_formats(content):
+    register_markup("ok_markup", {**_GOOD_ROW, "_content": content})
+    unregister_markup("ok_markup")
+
+
+@pytest.mark.parametrize("markup", sorted(MARKUPS))
+def test_builtin_markup_rows_satisfy_the_register_markup_checks(markup):
+    _check_markup_row(MARKUPS[markup])
+
+
+def _snapshot():
+    return (
+        dict(_AXES),
+        {k: list(v) for k, v in _KEYWORDS.items()},
+        dict(_ALIASES),
+        {k: dict(v) for k, v in _MARKUPS.items()},
+        dict(_MARKUP_WORDS),
+    )
+
+
+def test_a_failed_replace_leaves_every_registry_untouched():
+    before = _snapshot()
+    with pytest.raises(ValueError, match="claims free text"):
+        register_axis(AXES["sep"]._replace(free_text=("product",)), replace=True)
+    assert _snapshot() == before
+    assert parse_spec("bare")["sep"] == "bare"
+
+
+def test_a_keyword_clash_on_replace_leaves_the_old_axis():
+    before = _snapshot()
+    clash = AXES["sep"]._replace(keywords={"compact": 1})  # an alias
+    with pytest.raises(ValueError, match="already an alias"):
+        register_axis(clash, replace=True)
+    assert _snapshot() == before
+
+
+def test_a_successful_replace_keeps_keywords_consistent():
+    old = AXES["sep"]
+    new = old._replace(keywords={"mul": "mul", "bare": "bare", "tmpsep": "mul"})
+    register_axis(new, replace=True)
+    try:
+        assert _KEYWORDS["tmpsep"] == ["sep"]
+        assert _KEYWORDS["mul"].count("sep") == 1
+    finally:
+        register_axis(old, replace=True)
+    assert "tmpsep" not in _KEYWORDS
+    assert _KEYWORDS["bare"].count("sep") == 1
+
+
+def test_register_markup_rejects_a_keyword_clash():
+    with pytest.raises(ValueError, match="keyword or alias"):
+        register_markup("mul", _GOOD_ROW)
+    assert "mul" not in MARKUPS

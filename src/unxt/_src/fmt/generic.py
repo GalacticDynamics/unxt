@@ -4,13 +4,30 @@ Like `engine`, this imports only `wadler_lindig`, `plum` and the standard
 library: it is part of the future standalone package.
 """
 
-__all__ = ("VALUE_FROM_SHORT_ARRAYS", "pvalue")
+__all__ = (
+    "VALUE_FROM_SHORT_ARRAYS",
+    "pvalue",
+    "register_markup",
+    "unregister_markup",
+)
 
+from collections.abc import Mapping
 from typing import Any, Final
 
 import wadler_lindig as wl
 
-from .engine import _FLAT, Axis, _markup_table, dispatch, doc_to_str, register_axis
+from .engine import (
+    _FLAT,
+    _KEYWORDS,
+    _MARKUPS,
+    ALIASES,
+    REQUIRED_MARKUP_KEYS,
+    Axis,
+    _markup_table,
+    dispatch,
+    doc_to_str,
+    register_axis,
+)
 
 #: The ``value`` axis as `__pdoc__`'s ``short_arrays`` argument. The public
 #: `unxt.config` traits keep their own spelling of the same three-way choice.
@@ -45,12 +62,20 @@ def _value_product_kwargs(value: Any, /) -> dict[str, Any]:
     return {"short_arrays": "compact", "value_spec": value}
 
 
+#: Markup spec word -> markup name; `register_markup` extends it in place, and
+#: the ``markup`` axis below shares this very dict.
+_MARKUP_WORDS: Final[dict[str, str]] = {
+    "text": "text",
+    "html": "html",
+    "latex": "latex",
+}
+
 #: Which markup the fragments are wrapped in. Product layout only: a call-style
 #: rendering is a constructor expression, which has no markup form.
 register_axis(
     Axis(
         name="markup",
-        keywords={"text": "text", "html": "html", "latex": "latex"},
+        keywords=_MARKUP_WORDS,
         default="text",
         layouts={"product": lambda v: {"markup": v}},
     )
@@ -86,6 +111,52 @@ register_axis(
         free_text=("product",),
     )
 )
+
+
+def _check_markup_row(row: Mapping[str, Any], /) -> None:
+    """Reject a row the renderers could not use, naming what is wrong."""
+    if missing := [k for k in REQUIRED_MARKUP_KEYS if k not in row]:
+        msg = f"markup row is missing required keys {missing}"
+        raise ValueError(msg)
+    for key in ("wrap", "_content"):
+        if not isinstance(row[key], str):
+            msg = f"markup {key!r} must be a str, got {row[key]!r}"
+            raise ValueError(msg)  # noqa: TRY004
+    # ``wrap`` is consumed by ``split("{}")``, ``_content`` by ``str.format``.
+    if row["wrap"].count("{}") != 1:
+        msg = f"markup 'wrap' must contain exactly one '{{}}', got {row['wrap']!r}"
+        raise ValueError(msg)
+    try:
+        row["_content"].format("x")
+    except (IndexError, KeyError, ValueError):
+        msg = f"markup '_content' must format one argument, got {row['_content']!r}"
+        raise ValueError(msg) from None
+
+
+def register_markup(
+    name: str, row: Mapping[str, Any], /, *, replace: bool = False
+) -> None:
+    """Add a markup (a `MARKUPS` row) and make it selectable by spec."""
+    _check_markup_row(row)
+    if name in _MARKUPS and not replace:
+        msg = f"markup {name!r} is already registered"
+        raise ValueError(msg)
+    if name not in _MARKUP_WORDS and (name in _KEYWORDS or name in ALIASES):
+        msg = f"{name!r} is already a keyword or alias"
+        raise ValueError(msg)
+    _MARKUPS[name] = dict(row)
+    if name not in _MARKUP_WORDS:
+        _MARKUP_WORDS[name] = name
+        _KEYWORDS.setdefault(name, []).append("markup")
+
+
+def unregister_markup(name: str, /) -> None:
+    """Remove a markup added by `register_markup`."""
+    del _MARKUPS[name]
+    del _MARKUP_WORDS[name]
+    _KEYWORDS[name].remove("markup")
+    if not _KEYWORDS[name]:
+        del _KEYWORDS[name]
 
 
 @dispatch.abstract

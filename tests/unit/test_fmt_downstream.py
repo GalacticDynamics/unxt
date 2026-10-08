@@ -5,8 +5,14 @@ import dataclasses
 import pytest
 import wadler_lindig as wl
 
-from unxt._src.fmt import PPart, ReprMixin, pparts, pspec, register_alias
-from unxt._src.fmt.engine import ALIASES
+from unxt._src.fmt import (
+    PPart,
+    ReprMixin,
+    pparts,
+    pspec,
+    register_alias,
+    unregister_alias,
+)
 
 
 @dataclasses.dataclass(repr=False)
@@ -71,7 +77,7 @@ def test_an_alias_must_exist_before_the_class():
 
         assert Late._repr_spec_parsed["sep"] == "bare"
     finally:
-        ALIASES.pop("later_alias")
+        unregister_alias("later_alias")
 
 
 def test_spec_is_inherited_and_overridable():
