@@ -87,6 +87,7 @@ def test_dimensionless(fn, args):
     assert jnp.allclose(got.value, fn(*args))
 
 
+# Root cause: bitcast_convert_type_p keeps the `%` unit on the bits (unxt#958).
 @_xfail(TypeError, 955)
 def test_scaled_dimensionless():
     """A '%' input is converted to dimensionless before evaluating."""
