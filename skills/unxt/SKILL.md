@@ -8,7 +8,7 @@ description: >
 
 `unxt` gives JAX unitful quantities: `Quantity` is a `quax.ArrayValue` (an Equinox PyTree), so it flows through `jax.jit`/`vmap`/`grad` like any other JAX array-ish type, while carrying a unit and enforcing unit-safe arithmetic.
 
-Checked against unxt 2.0.x (quax>=0.4.2, quax-blocks>=0.5.0, quaxed>=0.10.5, plum-dispatch>=2.7.0, astropy>=7.1), Python >=3.12. Docs: <https://unxt.readthedocs.io/en/>.
+Checked against unxt 2.0.x (quax>=0.4.4, quax-blocks>=0.5.0, quaxed>=0.10.5, plum-dispatch>=2.7.0, astropy>=7.1), Python >=3.12. Docs: <https://unxt.readthedocs.io/en/>.
 
 **Read the [quax](https://github.com/nstarman/quax/blob/main/skills/quax/SKILL.md), [quaxed](https://github.com/GalacticDynamics/quaxed/blob/main/skills/quaxed/SKILL.md), and [quax-blocks](https://github.com/GalacticDynamics/quax-blocks/blob/main/skills/quax-blocks/SKILL.md) skills first** for anything about `quaxify`, dispatch resolution, or the mixin operator overloads — this skill covers only what's specific to `unxt`, and doesn't restate any of it.
 
