@@ -813,7 +813,18 @@ def bitcast_convert_type_p(x: ABCQ, /, *, new_dtype: DTypeLike) -> ABCQ:
     >>> qlax.bitcast_convert_type(x, jnp.int16)
     Quantity(Array([    0, 16256], dtype=int16), unit='')
 
+    A scaled-dimensionless quantity is bitcast in true units, so equal values
+    give equal bits:
+
+    >>> qlax.bitcast_convert_type(u.Q(100.0, "%"), jnp.int16)
+    Quantity(Array([    0, 16256], dtype=int16), unit='')
+
     """
+    # Bits are only comparable across quantities if taken in one fixed unit, and
+    # a bit pattern must not carry a scale that later ops would re-apply.
+    if x.unit.is_equivalent(one):
+        value = lax.bitcast_convert_type_p.bind(ustrip(one, x), new_dtype=new_dtype)
+        return _as_dimensionless_like(x, value)
     return revalue(x, lax.bitcast_convert_type_p.bind(ustrip(x), new_dtype=new_dtype))
 
 
