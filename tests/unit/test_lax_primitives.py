@@ -265,3 +265,35 @@ def test_compare_scaled_dimensionless_with_raw(op, quantity_first):
 
     assert got.unit == u.unit("")
     assert np.array_equal(np.asarray(got.value), want)
+
+
+def test_signbit_copysign_on_dimensionful_quantity():
+    """Sign bit tricks ignore the unit; copysign keeps ``x``'s unit (#973)."""
+    q = u.Q(jnp.array([1.5, -2.0]), "m")
+
+    sb = quax.quaxify(jnp.signbit)(q)
+    assert sb.unit == u.unit("")
+    assert np.array_equal(np.asarray(sb.value), [False, True])
+
+    cs = quax.quaxify(jnp.copysign)(q, u.Q(jnp.array([-1.0, 1.0]), "s"))
+    assert cs.unit == u.unit("m")
+    assert np.array_equal(np.asarray(cs.value), [-1.5, 2.0])
+
+
+def test_dimensionful_integer_bits_to_bool_and_logical_shift():
+    """Bool cast of dimensionful int bits is a plain array; also for static (#973)."""
+    bits = u.Q(jnp.array([1, 0]), "m")
+    got = quax.quaxify(lambda q: lax.convert_element_type(q, jnp.bool_))(bits)
+    assert got.unit == u.unit("")
+    assert np.array_equal(np.asarray(got.value), [True, False])
+
+    static = u.StaticQuantity(np.array([1, 0]), "m")
+    got = quax.quaxify(lambda q: lax.convert_element_type(q, jnp.bool_))(static)
+    assert got.unit == u.unit("")
+    assert np.array_equal(np.asarray(got.value), [True, False])
+
+    shifted = quax.quaxify(lambda q: lax.shift_right_logical(q, 1))(
+        u.Q(jnp.array([4, 8]), "m")
+    )
+    assert shifted.unit == u.unit("m")
+    assert np.array_equal(np.asarray(shifted.value), [2, 4])
