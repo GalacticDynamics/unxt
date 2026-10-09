@@ -4,7 +4,7 @@
 __all__: tuple[str, ...] = ()
 
 from math import prod
-from typing import Any, Literal, TypeAlias, overload
+from typing import Any, Literal, SupportsIndex, TypeAlias, overload
 
 import equinox as eqx
 import jax
@@ -33,7 +33,9 @@ from .value import StaticValue
 from unxt._src.utils import promote_dtypes, promote_dtypes_if_needed
 from unxt_api import is_unit_convertible, uconvert, unit, unit_of, ustrip
 
-Axes: TypeAlias = tuple[int, ...]
+# JAX can bind axis params as NumPy integers (e.g. ``(np.int64(1),)``), not only
+# ``int``; ``SupportsIndex`` admits both.
+Axes: TypeAlias = tuple[SupportsIndex, ...]
 
 #: The running JAX release, e.g. ``(0, 11, 2)``.
 JAX_VERSION: tuple[int, ...] = jax.version.__version_info__
@@ -507,7 +509,7 @@ def approx_top_k_p(x: ABCQ, /, **kwargs: Any) -> list[ABCQ | Array]:
 
 @quax.register(lax.argmax_p)
 def argmax_p(
-    operand: ABCQ, /, *, axes: int | tuple[int, ...], index_dtype: DTypeLike
+    operand: ABCQ, /, *, axes: SupportsIndex | Axes, index_dtype: DTypeLike
 ) -> Array:
     """Argmax of a quantity.
 
@@ -533,7 +535,7 @@ def argmax_p(
 
 @quax.register(lax.argmin_p)
 def argmin_p(
-    operand: ABCQ, *, axes: int | tuple[int, ...], index_dtype: DTypeLike
+    operand: ABCQ, *, axes: SupportsIndex | Axes, index_dtype: DTypeLike
 ) -> Array:
     """Argmin of a quantity.
 
@@ -1187,7 +1189,9 @@ def concatenate_p_v(
 if JAX_VERSION >= (0, 10, 1):  # pragma: no branch -- `stack_p`: JAX 0.10.1
 
     @quax.register(lax.stack_p)
-    def stack_p(operand0: ABCQ, *operands: ABCQ | ArrayLike, axis: int) -> ABCQ:
+    def stack_p(
+        operand0: ABCQ, *operands: ABCQ | ArrayLike, axis: SupportsIndex
+    ) -> ABCQ:
         """Stack operands along a new axis, the first being a quantity.
 
         Like :func:`concatenate_p`, there are two regimes (see
@@ -1230,7 +1234,10 @@ if JAX_VERSION >= (0, 10, 1):  # pragma: no branch -- `stack_p`: JAX 0.10.1
 
     @quax.register(lax.stack_p)
     def stack_p_v(
-        operand0: ArrayLike, operand1: ABCQ, *operands: ABCQ | ArrayLike, axis: int
+        operand0: ArrayLike,
+        operand1: ABCQ,
+        *operands: ABCQ | ArrayLike,
+        axis: SupportsIndex,
     ) -> ABCQ:
         """Stack a leading raw array followed by a quantity along a new axis.
 

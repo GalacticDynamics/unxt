@@ -194,3 +194,49 @@ def test_bitcast_dimensionless_uses_true_value():
     assert np.array_equal(
         np.asarray(got.value), lax.bitcast_convert_type(jnp.array([0.5]), jnp.int32)
     )
+
+
+_NP_AXES = (np.int64(1),)
+
+
+@pytest.mark.parametrize(
+    ("bind", "want"),
+    [
+        (
+            lambda q: lax.argmax_p.bind(q, axes=_NP_AXES, index_dtype=jnp.int32),
+            [1, 0],
+        ),
+        (
+            lambda q: lax.argmin_p.bind(q, axes=_NP_AXES, index_dtype=jnp.int32),
+            [0, 1],
+        ),
+        (lambda q: lax.reduce_prod_p.bind(q, axes=_NP_AXES), [1.0, 3.0]),
+    ],
+    ids=["argmax", "argmin", "reduce_prod"],
+)
+def test_numpy_integer_axes(bind, want):
+    """JAX can bind axis params as NumPy integers; the rules accept them (#956)."""
+    q = u.Q(jnp.array([[0.5, 2.0], [3.0, 1.0]]), "")
+
+    got = quax.quaxify(bind)(q)
+
+    assert np.allclose(np.asarray(u.ustrip(AllowValue, "", got)), want)
+
+
+@pytest.mark.skipif(not hasattr(lax, "stack_p"), reason="`stack_p` is JAX >= 0.10.1")
+@pytest.mark.parametrize(
+    ("quantity_first", "unit"),
+    # A raw array may only be stacked with a dimensionless quantity.
+    [(True, "m"), (False, "")],
+    ids=["qq", "vq"],
+)
+def test_stack_numpy_integer_axis(quantity_first, unit):
+    """``stack_p`` accepts a NumPy-integer ``axis`` in both overloads (#956)."""
+    a, b = jnp.array([1.0, 2.0]), jnp.array([3.0, 4.0])
+    first = u.Q(a, unit) if quantity_first else a
+    stack = quax.quaxify(lambda x, y: lax.stack_p.bind(x, y, axis=np.int64(0)))
+
+    got = stack(first, u.Q(b, unit))
+
+    assert got.unit == u.unit(unit)
+    assert np.array_equal(np.asarray(got.value), [[1.0, 2.0], [3.0, 4.0]])
