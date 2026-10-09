@@ -16,7 +16,6 @@ from astropy.units import (
 )
 from jax import lax
 from jaxtyping import ArrayLike
-from plum import type_unparametrized as type_np
 
 from unxts.api import ustrip
 
@@ -24,6 +23,8 @@ from .base_parametric import AbstractParametricQuantity as ABCPQ  # noqa: N814
 from .parametric import ParametricQuantity
 from unxt._src.quantity.base import revalue
 from unxt.quantity import AbstractQuantity as ABCQ  # noqa: N814
+
+_pow = quax.quaxify(lax.pow)
 
 # ==============================================================================
 # clamp
@@ -97,7 +98,7 @@ def pow_p_qq(x: ABCQ, y: ABCPQ["dimensionless"], /) -> ABCQ:
     >>> q1**p
     Quantity(Array(8., dtype=float32...), unit='m3')
 
-    Non-scalar exponents raise a ValueError:
+    Non-scalar exponents raise a ValueError, unless the base is dimensionless:
 
     >>> p_arr = PQ([3, 2], "")
     >>> try:
@@ -106,13 +107,17 @@ def pow_p_qq(x: ABCQ, y: ABCPQ["dimensionless"], /) -> ABCQ:
     ...     print(e)
     Exponent must be a scalar.
 
+    >>> u.Q([2.0, 2.0], "") ** p_arr
+    Quantity(Array([8., 4.], dtype=float32), unit='')
+
     """
-    yv = ustrip(one, y)
-    y0 = yv[()]
-    if y0.ndim != 0:
+    y0 = ustrip(one, y)[()]
+    if y0.ndim != 0 and not x.unit.is_equivalent(one):
         msg = "Exponent must be a scalar."
         raise ValueError(msg)
-    return type_np(x)(value=lax.pow(ustrip(x), y0), unit=x.unit**y0)
+    # Re-dispatch with the bare exponent to core's ``pow`` rule, which owns the
+    # quantity-base semantics (incl. the dimensionless-base case).
+    return _pow(x, y0)
 
 
 @quax.register(lax.pow_p)

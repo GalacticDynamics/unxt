@@ -15,12 +15,16 @@ import pytest
 import quax
 from astropy.units import UnitConversionError
 from beartype.roar import BeartypeCallHintViolation
-from jax.errors import TracerArrayConversionError
 from packaging.version import Version
 
 import unxt as u
 
 sp = pytest.importorskip("spexial")
+
+# quax < 0.4.4 has a `scan` rule that breaks on jax 0.10 and leaks tracers across
+# tests, making results order-dependent. The weekly job installs the newest quax.
+if Version(version("quax")) < Version("0.4.4"):
+    pytest.skip("needs quax>=0.4.4", allow_module_level=True)
 
 
 def _xfail(raises, issue):
@@ -29,44 +33,34 @@ def _xfail(raises, issue):
     )
 
 
-# A traced exponent surfaces as TracerArrayConversionError instead of ValueError.
-_POW = _xfail((ValueError, TracerArrayConversionError), 951)
 _GATHER = _xfail(RuntimeError, 953)
 # Raised by whichever runtime type-checker is installed (jaxtyping wraps beartype).
 _ARGMAX = _xfail((TypeError, BeartypeCallHintViolation), 956)
-# quax < 0.4.4 passed `linear` to `scan_p`, which jax 0.10 no longer accepts.
-_SCAN = pytest.mark.xfail(
-    Version(version("quax")) < Version("0.4.4"),
-    raises=TypeError,
-    reason="quax < 0.4.4 scan rule passes `linear` to scan_p",
-)
 
 x = jnp.array([0.5, 1.0, 2.0])
 z = jnp.array([0.1, 0.5])
 
 # (function, raw dimensionless args); quaxified with every arg as Quantity(_, "").
 CASES = [
-    pytest.param(sp.k0, (x,), id="k0", marks=_POW),
-    pytest.param(sp.k1, (x,), id="k1", marks=_POW),
-    pytest.param(sp.k2, (x,), id="k2", marks=_POW),
-    pytest.param(sp.k0e, (x,), id="k0e", marks=_POW),
+    pytest.param(sp.k0, (x,), id="k0"),
+    pytest.param(sp.k1, (x,), id="k1"),
+    pytest.param(sp.k2, (x,), id="k2"),
+    pytest.param(sp.k0e, (x,), id="k0e"),
     pytest.param(sp.gamma, (x,), id="gamma"),
     pytest.param(sp.zeta, (jnp.array([2.0, 3.0]),), id="zeta", marks=_GATHER),
     # spence then hits select_n_p (unxt#954) once argmax_p is fixed.
-    pytest.param(sp.spence, (x,), id="spence", marks=[_SCAN, _ARGMAX]),
-    pytest.param(ft.partial(sp.polylog, 2), (z,), id="polylog", marks=_POW),
+    pytest.param(sp.spence, (x,), id="spence", marks=_ARGMAX),
+    pytest.param(ft.partial(sp.polylog, 2), (z,), id="polylog"),
     pytest.param(sp.comb, (jnp.array(5.0), jnp.array(2.0)), id="comb"),
     pytest.param(
         sp.incomplete_beta,
         (jnp.array(2.0), jnp.array(3.0), z),
         id="incomplete_beta",
-        marks=_SCAN,
     ),
     pytest.param(
         ft.partial(sp.eval_gegenbauer, 3),
         (jnp.array(0.5), z),
         id="eval_gegenbauer",
-        marks=_SCAN,
     ),
     pytest.param(
         ft.partial(sp.sph_harm_y_cart, 2, 1),

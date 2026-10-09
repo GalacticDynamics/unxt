@@ -608,6 +608,30 @@ def test_pow():
     assert u.dimension_of(result) == u.dimension("dimensionless")
 
 
+@pytest.mark.parametrize(
+    "exponent",
+    [jnp.array([1.0, 2.0]), u.Q([1.0, 2.0], "")],
+    ids=["array", "quantity"],
+)
+@pytest.mark.parametrize("unit", ["", "%"])
+@pytest.mark.parametrize("jit", [False, True], ids=["eager", "jit"])
+def test_pow_dimensionless_base_any_exponent(exponent, unit, jit):
+    """A dimensionless base takes an array or traced exponent (#951)."""
+    pow_ = jax.jit(jnp.pow) if jit else jnp.pow
+    q = u.uconvert(unit, u.Q([0.5, 2.0], ""))
+
+    got = pow_(q, exponent)
+
+    assert got.unit == u.unit("")
+    assert jnp.allclose(got.value, jnp.array([0.5, 4.0]))
+
+
+def test_pow_dimensionful_base_array_exponent_raises():
+    """A dimensionful base still needs a scalar exponent: its unit depends on it."""
+    with pytest.raises(ValueError, match="scalar"):
+        jnp.pow(u.Q([2.0, 3.0], "m"), jnp.array([1.0, 2.0]))
+
+
 def test_truediv():
     """Test the ``Quantity.__truediv__`` method."""
     # Scalar division
