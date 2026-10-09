@@ -194,3 +194,30 @@ def test_bitcast_dimensionless_uses_true_value():
     assert np.array_equal(
         np.asarray(got.value), lax.bitcast_convert_type(jnp.array([0.5]), jnp.int32)
     )
+
+
+_NP_AXES = (np.int64(1),)
+
+
+@pytest.mark.parametrize(
+    ("bind", "want"),
+    [
+        (
+            lambda q: lax.argmax_p.bind(q, axes=_NP_AXES, index_dtype=jnp.int32),
+            [1, 0],
+        ),
+        (
+            lambda q: lax.argmin_p.bind(q, axes=_NP_AXES, index_dtype=jnp.int32),
+            [0, 1],
+        ),
+        (lambda q: lax.reduce_prod_p.bind(q, axes=_NP_AXES), [1.0, 3.0]),
+    ],
+    ids=["argmax", "argmin", "reduce_prod"],
+)
+def test_numpy_integer_axes(bind, want):
+    """JAX can bind axis params as NumPy integers; the rules accept them (#956)."""
+    q = u.Q(jnp.array([[0.5, 2.0], [3.0, 1.0]]), "")
+
+    got = quax.quaxify(bind)(q)
+
+    assert np.allclose(np.asarray(u.ustrip(AllowValue, "", got)), want)
