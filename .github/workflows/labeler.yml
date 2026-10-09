@@ -138,8 +138,10 @@ jobs:
                 return;
               }
               if (prHeadSha !== runSha) {
-                core.setFailed(
-                  "PR number from artifact does not match workflow_run head SHA."
+                // Stale run (PR pushed again) or a mismatched PR number.
+                // Either way, label nothing; a newer push gets its own run.
+                core.notice(
+                  `PR ${prNumber} head is ${prHeadSha}, not ${runSha}; skipping labeling.`
                 );
                 return;
               }
@@ -164,12 +166,14 @@ jobs:
             core.setOutput("pr_number", String(prNumber));
 
       - name: Apply path-based labels
+        if: steps.pr.outputs.pr_number != ''
         uses: actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13 # v7.0.0
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           configuration-path: .github/labeler.yml
           pr-number: ${{ steps.pr.outputs.pr_number }}
       - name: Label from commit emojis
+        if: steps.pr.outputs.pr_number != ''
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
