@@ -1316,7 +1316,7 @@ def conj_p(x: ABCQ, *, input_dtype: Any) -> ABCQ:
 
 
 @quax.register(lax.convert_element_type_p)
-def convert_element_type_p(operand: ABCQ, /, **kw: Any) -> ABCQ | Array:
+def convert_element_type_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
     """Convert the element type of a quantity."""
     # TODO: examples
     # The truthiness of integer bits (e.g. the sign bit in ``signbit``) is
@@ -1326,7 +1326,8 @@ def convert_element_type_p(operand: ABCQ, /, **kw: Any) -> ABCQ | Array:
         and jnp.issubdtype(operand.dtype, jnp.integer)
         and not operand.unit.is_equivalent(one)
     ):
-        return lax.convert_element_type_p.bind(ustrip(operand), **kw)
+        value = lax.convert_element_type_p.bind(ustrip(operand), **kw)
+        return _as_dimensionless_like(operand, value)
 
     # For StaticQuantity, use numpy's astype to avoid converting to JAX array
     if isinstance(operand, StaticQuantity):
