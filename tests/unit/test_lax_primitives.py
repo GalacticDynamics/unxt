@@ -182,3 +182,15 @@ def test_gather_with_dimensionful_indices_raises():
     idx = u.Q(jnp.array([1, 2], jnp.int32), "m")
     with pytest.raises(UnitConversionError):
         quax.quaxify(lambda a, i: a[i])(_TABLE, idx)
+
+
+def test_bitcast_dimensionless_uses_true_value():
+    """Equal dimensionless values bitcast to equal bits, with unit '' (#958)."""
+    bitcast = quax.quaxify(lambda q: lax.bitcast_convert_type(q, jnp.int32))
+
+    got = bitcast(u.Q(jnp.array([50.0]), "%"))
+
+    assert got.unit == u.unit("")
+    assert np.array_equal(
+        np.asarray(got.value), lax.bitcast_convert_type(jnp.array([0.5]), jnp.int32)
+    )
