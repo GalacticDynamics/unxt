@@ -1329,11 +1329,11 @@ def convert_element_type_p(operand: ABCQ, /, **kw: Any) -> ABCQ | Array:
     # The truthiness of integer bits (e.g. the sign bit in ``signbit``) is
     # unit-independent (#973).
     if (
-        kw.get("new_dtype") == jnp.bool_
+        jnp.dtype(kw["new_dtype"]) == jnp.bool_
         and jnp.issubdtype(operand.dtype, jnp.integer)
         and not operand.unit.is_equivalent(one)
     ):
-        return value
+        return value.array if isinstance(value, StaticValue) else value
     return revalue(operand, value)
 
 

@@ -277,3 +277,21 @@ def test_signbit_copysign_on_dimensionful_quantity():
     cs = quax.quaxify(jnp.copysign)(q, u.Q(jnp.array([-1.0, 1.0]), "s"))
     assert cs.unit == u.unit("m")
     assert np.array_equal(np.asarray(cs.value), [-1.5, 2.0])
+
+
+def test_dimensionful_integer_bits_to_bool_and_logical_shift():
+    """Bool cast of dimensionful int bits is a plain array; also for static (#973)."""
+    bits = u.Q(jnp.array([1, 0]), "m")
+    got = quax.quaxify(lambda q: lax.convert_element_type(q, jnp.bool_))(bits)
+    assert np.array_equal(np.asarray(got), [True, False])
+
+    static = u.StaticQuantity(np.array([1, 0]), "m")
+    got = quax.quaxify(lambda q: lax.convert_element_type(q, jnp.bool_))(static)
+    assert isinstance(got, np.ndarray | jax.Array)
+    assert np.array_equal(np.asarray(got), [True, False])
+
+    shifted = quax.quaxify(lambda q: lax.shift_right_logical(q, 1))(
+        u.Q(jnp.array([4, 8]), "m")
+    )
+    assert shifted.unit == u.unit("m")
+    assert np.array_equal(np.asarray(shifted.value), [2, 4])
