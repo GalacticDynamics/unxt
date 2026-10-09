@@ -63,12 +63,15 @@ def _require_dimensionless_bitwise(op_name: str, /, *operands: Any) -> None:
     and unary overloads -- so the error is consistently clear regardless of which
     operand carries the unit. A plain array operand (``unit_of`` returns ``None``)
     is inherently dimensionless.
+
+    A *scaled*-dimensionless unit (e.g. ``%``) is refused too: converting it to
+    ``""`` rescales the integer bit pattern into a float, which is meaningless.
     """
     units = [unit_of(o) for o in operands]
-    if all(u is None or u.is_equivalent(one) for u in units):
+    if all(u is None or (u.is_equivalent(one) and u.to(one) == 1) for u in units):
         return
     got = " and ".join(repr("" if u is None else str(u)) for u in units)
-    msg = f"{op_name} requires dimensionless quantities, got units {got}"
+    msg = f"{op_name} requires unscaled dimensionless quantities, got units {got}"
     raise ValueError(msg)
 
 
