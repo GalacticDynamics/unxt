@@ -360,4 +360,11 @@ def wrap_to(
     # arithmetic (rather than ``where``) keeps this valid for both traced and
     # static (NumPy) values.
     value = value - (value >= maxv) * (maxv - minv)
+    # The same rounding can bite on unit conversion: a value just below
+    # ``maxv`` in ``angle.unit`` may still round up to exactly ``max`` in
+    # ``max.unit`` (e.g. float32 ``6.283185 rad`` -> ``360.0 deg``). Fold that
+    # onto ``minv`` too, so the range also holds in the bounds' unit.
+    if max.unit != angle.unit:
+        at_max = uapi.uconvert_value(max.unit, angle.unit, value) >= max.value
+        value = value - at_max * (value - minv)
     return replace(angle, value=value)
