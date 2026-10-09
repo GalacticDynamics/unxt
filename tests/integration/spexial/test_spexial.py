@@ -26,12 +26,6 @@ if Version(version("quax")) < Version("0.4.4"):
     pytest.skip("needs quax>=0.4.4", allow_module_level=True)
 
 
-def _xfail(raises, issue):
-    return pytest.mark.xfail(
-        raises=raises, reason=f"https://github.com/GalacticDynamics/unxt/issues/{issue}"
-    )
-
-
 x = jnp.array([0.5, 1.0, 2.0])
 z = jnp.array([0.1, 0.5])
 
