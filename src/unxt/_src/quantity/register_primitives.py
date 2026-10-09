@@ -1331,6 +1331,16 @@ def conj_p(x: ABCQ, *, input_dtype: Any) -> ABCQ:
 def convert_element_type_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
     """Convert the element type of a quantity."""
     # TODO: examples
+    # The truthiness of integer bits (e.g. the sign bit in ``signbit``) is
+    # unit-independent (#973).
+    if (
+        jnp.dtype(kw["new_dtype"]) == jnp.bool_
+        and jnp.issubdtype(operand.dtype, jnp.integer)
+        and not operand.unit.is_equivalent(one)
+    ):
+        value = lax.convert_element_type_p.bind(ustrip(operand), **kw)
+        return _as_dimensionless_like(operand, value)
+
     # For StaticQuantity, use numpy's astype to avoid converting to JAX array
     if isinstance(operand, StaticQuantity):
         new_dtype = kw.get("new_dtype")
@@ -4966,9 +4976,10 @@ def shift_right_arithmetic_p(x: ABCQ, y: ABCQ | ArrayLike, /) -> ABCQ:
     Quantity(Array([2, 2], dtype=int32), unit='')
 
     """
-    return _as_dimensionless_like(
-        x, lax.shift_right_arithmetic(ustrip(one, x), ustrip(AllowValue, one, y))
-    )
+    shift = ustrip(AllowValue, one, y)
+    if not x.unit.is_equivalent(one):  # bits of a dimensionful bitcast (#973)
+        return revalue(x, lax.shift_right_arithmetic(ustrip(x), shift))
+    return _as_dimensionless_like(x, lax.shift_right_arithmetic(ustrip(one, x), shift))
 
 
 @quax.register(lax.shift_right_logical_p)
@@ -4988,9 +4999,10 @@ def shift_right_logical_p(x: ABCQ, y: ABCQ | ArrayLike, /) -> ABCQ:
     Quantity(Array([2, 2], dtype=int32), unit='')
 
     """
-    return _as_dimensionless_like(
-        x, lax.shift_right_logical(ustrip(one, x), ustrip(AllowValue, one, y))
-    )
+    shift = ustrip(AllowValue, one, y)
+    if not x.unit.is_equivalent(one):  # bits of a dimensionful bitcast (#973)
+        return revalue(x, lax.shift_right_logical(ustrip(x), shift))
+    return _as_dimensionless_like(x, lax.shift_right_logical(ustrip(one, x), shift))
 
 
 # ==============================================================================
