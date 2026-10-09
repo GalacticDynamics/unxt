@@ -2,7 +2,7 @@
 
 __all__ = ("derived_units", "units")
 
-import contextlib
+import functools
 from typing import Any
 
 import astropy.units as apyu
@@ -11,6 +11,21 @@ from hypothesis import strategies as st
 import unxt as u
 from ._utils import draw_if_strategy
 from .dimensions import named_dimensions
+
+
+@functools.cache
+def _composed(unit: u.AbstractUnit, /) -> tuple[u.AbstractUnit, ...]:
+    """Return the first 20 composed forms of ``unit``, memoized.
+
+    ``compose()`` is deterministic but slow (~2s for an 8-base unit), and
+    ``derived_units`` would otherwise redo it on every draw. It can also
+    overflow (e.g. Wb2, magnetic helicity); a strategy must not raise, so that
+    yields no composed forms.
+    """
+    try:
+        return tuple(unit.compose())[:20]
+    except OverflowError:
+        return ()
 
 
 @st.composite
@@ -91,10 +106,7 @@ def derived_units(
     candidates = [base_unit]
 
     # 2. Add composed forms (limited to first 20 to avoid huge search space)
-    # ``compose()`` can overflow for some units (e.g. Wb2, magnetic helicity);
-    # a strategy must not raise, so fall back to the base unit alone.
-    with contextlib.suppress(OverflowError):
-        candidates.extend(list(base_unit.compose())[:20])
+    candidates.extend(_composed(base_unit))
 
     # 3. Optionally create compound units by combining cancelling factors
     if max_complexity > 0:
