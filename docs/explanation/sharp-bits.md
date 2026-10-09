@@ -97,15 +97,15 @@ The NumPy entry points (`np.deg2rad(q)`, `np.rad2deg(q)`) _are_ handled correctl
 
 JAX implements both with float bit tricks: bitcast to an integer, shift and mask out the exponent field, subtract the bias, and compare against the smallest normal number. `quax` hands `unxt` those primitives one at a time, with no record that they add up to `frexp`. Subtracting a raw integer from unit-tagged bits, or comparing a dimensionful value against a raw finite threshold, is exactly what `unxt` refuses, and allowing it at the primitive level would weaken unit checking everywhere. (`signbit`, `copysign` and `spacing` use bit tricks too, but only unit-independent ones, so those work.)
 
-Write them out explicitly instead. `ldexp(x, n)` is `x * 2**n`, which keeps the unit:
+Write them out explicitly instead. `ldexp(x, n)` is `x * jnp.exp2(n)`, which keeps the unit. Use `jnp.exp2` rather than a literal `2**n`: with an integer-array `n`, `2**n` is integer exponentiation, which silently gives `0` for a negative exponent.
 
 ```{code-block} python
 >>> import quaxed.numpy as jnp
 >>> import unxt as u
 
 >>> q = u.Q([1.5, 1000.0], "m")
->>> q * 2**2
-Quantity(Array([   6., 4000.], dtype=float32), unit='m')
+>>> q * jnp.exp2(jnp.array([2, -1]))
+Quantity(Array([  6., 500.], dtype=float32), unit='m')
 ```
 
 For `frexp`, choose the unit the mantissa should be in, decompose the bare value, and reattach the unit:
