@@ -366,13 +366,14 @@ def test_spacing_keeps_unit(unit):
 @pytest.mark.parametrize("target", [jnp.inf, -jnp.inf], ids=["inf", "-inf"])
 def test_nextafter_dimensionful_toward_raw_inf(target):
     """Stepping toward ±inf is unit-independent, so it is allowed (#973)."""
-    got = quax.quaxify(lambda q: lax.nextafter(q, jnp.full(3, target)))(
+    got = quax.quaxify(lambda q: lax.nextafter(q, jnp.full_like(_FLOATS, target)))(
         u.Q(_FLOATS, "m")
     )
 
     assert got.unit == u.unit("m")
     assert np.array_equal(
-        np.asarray(got.value), np.asarray(lax.nextafter(_FLOATS, jnp.full(3, target)))
+        np.asarray(got.value),
+        np.asarray(lax.nextafter(_FLOATS, jnp.full_like(_FLOATS, target))),
     )
 
 
@@ -391,4 +392,6 @@ def test_nextafter_scaled_dimensionless_toward_raw():
 def test_nextafter_dimensionful_toward_finite_raw_raises():
     """A finite raw target's direction depends on the unit, so it is refused."""
     with pytest.raises(eqx.EquinoxRuntimeError, match="nextafter"):
-        quax.quaxify(lambda q: lax.nextafter(q, jnp.full(3, 2.0)))(u.Q(_FLOATS, "m"))
+        quax.quaxify(lambda q: lax.nextafter(q, jnp.full_like(_FLOATS, 2.0)))(
+            u.Q(_FLOATS, "m")
+        )
