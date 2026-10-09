@@ -84,7 +84,7 @@ def _value_vs_raw(q: ABCQ) -> ArrayLike:
     ``km / m``) compares by value, not by its stored number. A dimensionful ``q``
     may only be compared to 0 or infinity, which its own unit gets right.
     """
-    return ustrip(one if q.unit.is_equivalent(one) else q.unit, q)
+    return ustrip(one if is_unit_convertible(one, q.unit) else q.unit, q)
 
 
 def _as_dimensionless_like(q: ABCQ, value: ArrayLike) -> ABCQ:
