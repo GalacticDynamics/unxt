@@ -2,6 +2,7 @@
 
 __all__ = ("derived_units", "units")
 
+import contextlib
 from typing import Any
 
 import astropy.units as apyu
@@ -90,8 +91,10 @@ def derived_units(
     candidates = [base_unit]
 
     # 2. Add composed forms (limited to first 20 to avoid huge search space)
-    composed = list(base_unit.compose())[:20]
-    candidates.extend(composed)
+    # ``compose()`` can overflow for some units (e.g. Wb2, magnetic helicity);
+    # a strategy must not raise, so fall back to the base unit alone.
+    with contextlib.suppress(OverflowError):
+        candidates.extend(list(base_unit.compose())[:20])
 
     # 3. Optionally create compound units by combining cancelling factors
     if max_complexity > 0:
