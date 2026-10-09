@@ -287,7 +287,7 @@ def test_dimensionful_integer_bits_to_bool_and_logical_shift():
 
     static = u.StaticQuantity(np.array([1, 0]), "m")
     got = quax.quaxify(lambda q: lax.convert_element_type(q, jnp.bool_))(static)
-    assert isinstance(got, np.ndarray | jax.Array)
+    assert isinstance(got, jax.Array)
     assert np.array_equal(np.asarray(got), [True, False])
 
     shifted = quax.quaxify(lambda q: lax.shift_right_logical(q, 1))(

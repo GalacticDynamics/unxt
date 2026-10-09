@@ -1333,7 +1333,7 @@ def convert_element_type_p(operand: ABCQ, /, **kw: Any) -> ABCQ | Array:
         and jnp.issubdtype(operand.dtype, jnp.integer)
         and not operand.unit.is_equivalent(one)
     ):
-        return value.array if isinstance(value, StaticValue) else value
+        return jnp.asarray(value.array if isinstance(value, StaticValue) else value)
     return revalue(operand, value)
 
 
