@@ -82,9 +82,8 @@ def _value_vs_raw(q: ABCQ) -> ArrayLike:
 
     A dimensionless ``q`` is taken in true units, so a scaled one (``%``,
     ``km / m``) compares by value, not by its stored number. A dimensionful ``q``
-    may only be compared to 0, or for ``==``/``!=`` also to +/-inf (see
-    ``_unit_independent``); those values are unit-independent, so its own unit
-    gets them right.
+    may only be compared to 0 or +/-inf (see ``_unit_independent``); those values
+    are unit-independent, so its own unit gets them right.
     """
     return ustrip(one if is_unit_convertible(one, q.unit) else q.unit, q)
 
@@ -93,8 +92,8 @@ def _unit_independent(v: ArrayLike) -> Array:
     """Whether every element of raw ``v`` is 0 or +/-inf.
 
     Only these raw values mean the same in every unit (``0 m == 0 km``,
-    ``inf m == inf km``), so only they can be compared for (in)equality with a
-    dimensionful quantity.
+    ``inf m == inf km``), so only they can be compared with a dimensionful
+    quantity.
     """
     v = jnp.asarray(v)
     return jnp.all((v == 0) | jnp.isinf(v))
@@ -2683,8 +2682,8 @@ def ge_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     yv = _value_vs_raw(y)
     yv = eqx.error_if(  # TODO: customize Exception type
         yv,
-        not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
-        f"Cannot compare x >= Q(y, {y.unit}) (except for x=0).",
+        not is_unit_convertible(one, y.unit) and jnp.logical_not(_unit_independent(x)),
+        f"Cannot compare x >= Q(y, {y.unit}) (except for x=0 or +/-inf).",
     )
     return _as_dimensionless_like(y, lax.ge(x, yv))  # re-dispatch on the value
 
@@ -2719,8 +2718,8 @@ def ge_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     xv = _value_vs_raw(x)
     xv = eqx.error_if(  # TODO: customize Exception type
         xv,
-        not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
-        f"Cannot compare Q(x, {x.unit}) >= y (except for y=0).",
+        not is_unit_convertible(one, x.unit) and jnp.logical_not(_unit_independent(y)),
+        f"Cannot compare Q(x, {x.unit}) >= y (except for y=0 or +/-inf).",
     )
     return _as_dimensionless_like(x, lax.ge(xv, y))  # re-dispatch on the value
 
@@ -2788,8 +2787,8 @@ def gt_p_vq(x: ArrayLike, y: ABCQ) -> ABCQ:
     yv = _value_vs_raw(y)
     yv = eqx.error_if(  # TODO: customize Exception type
         yv,
-        not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
-        f"Cannot compare x > Q(y, {y.unit}) (except for x=0).",
+        not is_unit_convertible(one, y.unit) and jnp.logical_not(_unit_independent(x)),
+        f"Cannot compare x > Q(y, {y.unit}) (except for x=0 or +/-inf).",
     )
     return _as_dimensionless_like(y, lax.gt(x, yv))  # re-dispatch on the value
 
@@ -2824,8 +2823,8 @@ def gt_p_qv(x: ABCQ, y: ArrayLike) -> ABCQ:
     xv = _value_vs_raw(x)
     xv = eqx.error_if(  # TODO: customize Exception type
         xv,
-        not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
-        f"Cannot compare Q(x, {x.unit}) > y (except for y=0).",
+        not is_unit_convertible(one, x.unit) and jnp.logical_not(_unit_independent(y)),
+        f"Cannot compare Q(x, {x.unit}) > y (except for y=0 or +/-inf).",
     )
     return _as_dimensionless_like(x, lax.gt(xv, y))  # re-dispatch on the value
 
@@ -3049,8 +3048,8 @@ def le_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     yv = _value_vs_raw(y)
     yv = eqx.error_if(  # TODO: customize Exception type
         yv,
-        not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
-        f"Cannot compare x <= Q(y, {y.unit}) (except for x=0).",
+        not is_unit_convertible(one, y.unit) and jnp.logical_not(_unit_independent(x)),
+        f"Cannot compare x <= Q(y, {y.unit}) (except for x=0 or +/-inf).",
     )
     return _as_dimensionless_like(y, lax.le(x, yv))  # re-dispatch on the value
 
@@ -3085,8 +3084,8 @@ def le_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     xv = _value_vs_raw(x)
     xv = eqx.error_if(  # TODO: customize Exception type
         xv,
-        not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
-        f"Cannot compare Q(x, {x.unit}) <= y (except for y=0).",
+        not is_unit_convertible(one, x.unit) and jnp.logical_not(_unit_independent(y)),
+        f"Cannot compare Q(x, {x.unit}) <= y (except for y=0 or +/-inf).",
     )
     return _as_dimensionless_like(x, lax.le(xv, y))  # re-dispatch on the value
 
@@ -3329,8 +3328,8 @@ def lt_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     yv = _value_vs_raw(y)
     yv = eqx.error_if(  # TODO: customize Exception type
         yv,
-        not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
-        f"Cannot compare x < Q(y, {y.unit}) (except for x=0).",
+        not is_unit_convertible(one, y.unit) and jnp.logical_not(_unit_independent(x)),
+        f"Cannot compare x < Q(y, {y.unit}) (except for x=0 or +/-inf).",
     )
     return _as_dimensionless_like(y, jnp.less(x, yv))  # re-dispatch on the value
 
@@ -3389,8 +3388,8 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     xv = _value_vs_raw(x)
     xv = eqx.error_if(  # TODO: customize Exception type
         xv,
-        not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
-        f"Cannot compare Q(x, {x.unit}) < y (except for y=0).",
+        not is_unit_convertible(one, x.unit) and jnp.logical_not(_unit_independent(y)),
+        f"Cannot compare Q(x, {x.unit}) < y (except for y=0 or +/-inf).",
     )
     return _as_dimensionless_like(x, jnp.less(xv, y))  # re-dispatch on the value
 
