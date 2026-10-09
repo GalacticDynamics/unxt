@@ -4111,7 +4111,20 @@ def pow_p_qf(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     >>> q1**y
     Quantity(Array(8., dtype=float32...), unit='m3')
 
+    A dimensionless base takes any exponent, including an array or a traced
+    one, and stays dimensionless:
+
+    >>> u.Q([0.5, 2.0], "") ** jnp.array([1.0, 2.0])
+    Quantity(Array([0.5, 4. ], dtype=float32), unit='')
+    >>> u.Q([50.0, 200.0], "%") ** jnp.array([1.0, 2.0])
+    Quantity(Array([0.5, 4. ], dtype=float32), unit='')
+
     """
+    # The result unit ``unit ** y`` needs a concrete scalar ``y``, but a
+    # dimensionless base never needs it: strip in true units (so a scaled base
+    # like ``%`` is exact) and the result is dimensionless for any ``y``.
+    if x.unit.is_equivalent(one):
+        return _as_dimensionless_like(x, lax.pow(ustrip(one, x), y))
     return type_np(x)(value=lax.pow(ustrip(x), y), unit=x.unit**y)
 
 
@@ -4136,7 +4149,8 @@ def pow_p_q_bareq(x: ABCQ, y: Quantity, /) -> ABCQ:
     >>> q1**p
     Quantity(Array(8., dtype=float32...), unit='m3')
 
-    Non-scalar exponents raise a ValueError:
+    Non-scalar exponents raise a ValueError, unless the base is dimensionless
+    (see :func:`pow_p_qf`):
 
     >>> p_arr = u.Q([3, 2], "")
     >>> try:
@@ -4145,13 +4159,15 @@ def pow_p_q_bareq(x: ABCQ, y: Quantity, /) -> ABCQ:
     ...     print(e)
     Exponent must be a scalar.
 
+    >>> u.Q([2.0, 2.0], "") ** p_arr
+    Quantity(Array([8., 4.], dtype=float32), unit='')
+
     """
-    yv = ustrip("", y)
-    y0 = yv[()]
-    if y0.ndim != 0:
+    y0 = ustrip("", y)[()]
+    if y0.ndim != 0 and not x.unit.is_equivalent(one):
         msg = "Exponent must be a scalar."
         raise ValueError(msg)
-    return type_np(x)(value=lax.pow(ustrip(x), y0), unit=x.unit**y0)
+    return pow_p_qf(x, y0)
 
 
 @quax.register(lax.pow_p)
