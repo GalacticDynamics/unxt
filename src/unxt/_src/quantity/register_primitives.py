@@ -4812,12 +4812,13 @@ def select_n_p_jqq(which: ArrayLike, /, *cases: ABCQ) -> ABCQ:
 
 
 @quax.register(lax.shift_right_arithmetic_p)
-def shift_right_arithmetic_p(x: ABCQ, y: ABCQ | float | int, /) -> ABCQ:
+def shift_right_arithmetic_p(x: ABCQ, y: ABCQ | ArrayLike, /) -> ABCQ:
     """Shift right arithmetic of a quantity.
 
     Examples
     --------
     >>> import quaxed.lax as qlax
+    >>> import quaxed.numpy as jnp
     >>> import unxt as u
 
     >>> q = u.quantity.Quantity(1, "")
@@ -4828,9 +4829,37 @@ def shift_right_arithmetic_p(x: ABCQ, y: ABCQ | float | int, /) -> ABCQ:
     >>> qlax.shift_right_arithmetic(q, 2)
     Quantity(Array(0, dtype=int32...), unit='')
 
+    The shift amount may be an array:
+
+    >>> q = u.Q(jnp.array([4, 8]), "")
+    >>> qlax.shift_right_arithmetic(q, jnp.array([1, 2]))
+    Quantity(Array([2, 2], dtype=int32), unit='')
+
     """
     return _as_dimensionless_like(
         x, lax.shift_right_arithmetic(ustrip(one, x), ustrip(AllowValue, one, y))
+    )
+
+
+@quax.register(lax.shift_right_logical_p)
+def shift_right_logical_p(x: ABCQ, y: ABCQ | ArrayLike, /) -> ABCQ:
+    """Shift right logical of a quantity.
+
+    Examples
+    --------
+    >>> import quaxed.lax as qlax
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> q = u.Q(jnp.array([4, 8]), "")
+    >>> qlax.shift_right_logical(q, 2)
+    Quantity(Array([1, 2], dtype=int32), unit='')
+    >>> qlax.shift_right_logical(q, jnp.array([1, 2]))
+    Quantity(Array([2, 2], dtype=int32), unit='')
+
+    """
+    return _as_dimensionless_like(
+        x, lax.shift_right_logical(ustrip(one, x), ustrip(AllowValue, one, y))
     )
 
 
@@ -4942,7 +4971,7 @@ def sinh_p(x: ABCQ, /) -> ABCQ:
 
 
 @quax.register(lax.shift_left_p)
-def shift_left_p(x: ABCQ, y: ABCQ | float | int, /, **kw: Any) -> ABCQ:
+def shift_left_p(x: ABCQ, y: ABCQ | ArrayLike, /, **kw: Any) -> ABCQ:
     """Shift left of a quantity.
 
     Examples
