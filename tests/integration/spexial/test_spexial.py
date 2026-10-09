@@ -79,9 +79,9 @@ def test_dimensionless(fn, args):
     assert jnp.allclose(got.value, fn(*args))
 
 
-# bitcast_convert_type_p keeps the `%` unit on the bits, which the bitwise ops
-# then (since #955) refuse with a clear error.
-@_xfail(ValueError, 958)
+# Now runs to completion, but comparisons with a raw operand ignore the `%`
+# scale (unxt#965), so it returns wrong values rather than raising.
+@_xfail(AssertionError, 965)
 def test_scaled_dimensionless():
     """A '%' input is converted to dimensionless before evaluating."""
     got = quax.quaxify(sp.k0)(u.Q(100 * x, "%"))
