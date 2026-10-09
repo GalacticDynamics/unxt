@@ -96,6 +96,7 @@ def _unit_independent(v: ArrayLike) -> Array:
     ``inf m == inf km``), so only they can be compared for (in)equality with a
     dimensionful quantity.
     """
+    v = jnp.asarray(v)
     return jnp.all((v == 0) | jnp.isinf(v))
 
 
