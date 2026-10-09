@@ -24,6 +24,8 @@ from .parametric import ParametricQuantity
 from unxt._src.quantity.base import revalue
 from unxt.quantity import AbstractQuantity as ABCQ  # noqa: N814
 
+_pow = quax.quaxify(lax.pow)
+
 # ==============================================================================
 # clamp
 
@@ -115,7 +117,7 @@ def pow_p_qq(x: ABCQ, y: ABCPQ["dimensionless"], /) -> ABCQ:
         raise ValueError(msg)
     # Re-dispatch with the bare exponent to core's ``pow`` rule, which owns the
     # quantity-base semantics (incl. the dimensionless-base case).
-    return quax.quaxify(lax.pow)(x, y0)
+    return _pow(x, y0)
 
 
 @quax.register(lax.pow_p)
