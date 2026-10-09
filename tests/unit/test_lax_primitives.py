@@ -11,6 +11,7 @@ import quaxed.numpy as qnp
 
 import unxt as u
 from unxt._src.quantity.register_primitives import cond_p_q
+from unxt.quantity import AllowValue
 
 
 def test_cond_on_a_quantity_operand():
@@ -81,3 +82,23 @@ def test_scatter_add_quantity_operand_and_updates():
     )
     assert got.unit == u.unit("m")
     assert np.allclose(np.asarray(got.value), [1.0, 10.0, 1.0, 1.0])
+
+
+@pytest.mark.parametrize(
+    "shift", [lax.shift_left, lax.shift_right_arithmetic, lax.shift_right_logical]
+)
+@pytest.mark.parametrize(
+    "amount",
+    [jnp.array([1, 2], jnp.int32), u.Q(jnp.array([1, 2], jnp.int32), ""), 1],
+    ids=["array", "quantity", "int"],
+)
+def test_shift_dimensionless_quantity(shift, amount):
+    """Shifting a dimensionless int quantity by any amount works (#952)."""
+    x = jnp.array([4, 8], jnp.int32)
+
+    got = quax.quaxify(shift)(u.Q(x, ""), amount)
+
+    assert got.unit == u.unit("")
+    assert np.array_equal(
+        np.asarray(got.value), shift(x, u.ustrip(AllowValue, "", amount))
+    )
