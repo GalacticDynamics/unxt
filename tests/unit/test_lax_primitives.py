@@ -265,3 +265,15 @@ def test_compare_scaled_dimensionless_with_raw(op, quantity_first):
 
     assert got.unit == u.unit("")
     assert np.array_equal(np.asarray(got.value), want)
+
+
+def test_signbit_copysign_on_dimensionful_quantity():
+    """Sign bit tricks ignore the unit; copysign keeps ``x``'s unit (#973)."""
+    q = u.Q(jnp.array([1.5, -2.0]), "m")
+
+    sb = quax.quaxify(jnp.signbit)(q)
+    assert np.array_equal(np.asarray(sb), [False, True])
+
+    cs = quax.quaxify(jnp.copysign)(q, u.Q(jnp.array([-1.0, 1.0]), "s"))
+    assert cs.unit == u.unit("m")
+    assert np.array_equal(np.asarray(cs.value), [-1.5, 2.0])
