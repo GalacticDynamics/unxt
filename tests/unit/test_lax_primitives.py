@@ -94,13 +94,18 @@ def test_scatter_add_quantity_operand_and_updates():
     [jnp.array([1, 2], jnp.int32), u.Q(jnp.array([1, 2], jnp.int32), ""), 1],
     ids=["array", "quantity", "int"],
 )
-def test_shift_dimensionless_quantity(shift, amount):
-    """Shifting a dimensionless int quantity by any amount works (#952)."""
+@pytest.mark.parametrize("unit", ["", "%", "m"])
+def test_shift_quantity_keeps_unit(shift, amount, unit):
+    """Shifting an int quantity by any amount shifts its stored ints (#952).
+
+    The unit is kept, including a scaled one like ``%``: a shift multiplies or
+    divides by ``2**n``, which commutes with the unit's scale.
+    """
     x = jnp.array([4, 8], jnp.int32)
 
-    got = quax.quaxify(shift)(u.Q(x, ""), amount)
+    got = quax.quaxify(shift)(u.Q(x, unit), amount)
 
-    assert got.unit == u.unit("")
+    assert got.unit == u.unit(unit)
     assert np.array_equal(
         np.asarray(got.value), shift(x, u.ustrip(AllowValue, "", amount))
     )
