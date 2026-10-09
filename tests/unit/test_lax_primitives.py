@@ -102,3 +102,38 @@ def test_shift_dimensionless_quantity(shift, amount):
     assert np.array_equal(
         np.asarray(got.value), shift(x, u.ustrip(AllowValue, "", amount))
     )
+
+
+@pytest.mark.parametrize(
+    ("select", "want"),
+    [
+        (
+            lambda q, *_: lax.select_n(
+                jnp.array([0, 2]), q, jnp.ones(2), jnp.full(2, 3.0)
+            ),
+            [0.5, 3.0],
+        ),
+        (
+            lambda q, *_: lax.select_n(
+                jnp.array([1, 3]), jnp.ones(2), q, q, jnp.full(2, 3.0)
+            ),
+            [0.5, 3.0],
+        ),
+        (
+            lambda q, lo, hi: jnp.select([q < lo, q < hi], [q, jnp.ones(2)]),
+            [0.5, 1.0],
+        ),
+    ],
+    ids=["select_n-3", "select_n-4", "jnp.select"],
+)
+def test_select_n_mixed_quantity_and_arrays(select, want):
+    """>2 cases mixing quantities and raw arrays select like the 2-case rules (#954).
+
+    As there, a raw case is taken to be in the quantity's unit.
+    """
+    q = u.Q(jnp.array([0.5, 2.0]), "km")
+
+    got = quax.quaxify(select)(q, u.Q(1.0, "km"), u.Q(3.0, "km"))
+
+    assert got.unit == u.unit("km")
+    assert np.array_equal(np.asarray(got.value), want)
