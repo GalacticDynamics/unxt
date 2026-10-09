@@ -240,3 +240,28 @@ def test_stack_numpy_integer_axis(quantity_first, unit):
 
     assert got.unit == u.unit(unit)
     assert np.array_equal(np.asarray(got.value), [[1.0, 2.0], [3.0, 4.0]])
+
+
+@pytest.mark.parametrize(
+    "op",
+    [
+        jnp.less,
+        jnp.less_equal,
+        jnp.greater,
+        jnp.greater_equal,
+        jnp.equal,
+        jnp.not_equal,
+    ],
+)
+@pytest.mark.parametrize("quantity_first", [True, False], ids=["qv", "vq"])
+def test_compare_scaled_dimensionless_with_raw(op, quantity_first):
+    """A raw operand compares to the quantity's true dimensionless value (#965)."""
+    q = u.Q(jnp.array([50.0, 50.0, 50.0]), "%")  # == 0.5
+    raw = jnp.array([0.25, 0.5, 4.65])
+    f = (lambda q: op(q, raw)) if quantity_first else (lambda q: op(raw, q))
+    want = op(jnp.full(3, 0.5), raw) if quantity_first else op(raw, jnp.full(3, 0.5))
+
+    got = quax.quaxify(f)(q)
+
+    assert got.unit == u.unit("")
+    assert np.array_equal(np.asarray(got.value), want)

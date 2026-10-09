@@ -77,6 +77,17 @@ def _require_dimensionless_bitwise(op_name: str, /, *operands: Any) -> None:
     raise ValueError(msg)
 
 
+def _value_vs_raw(q: ABCQ) -> ArrayLike:
+    """``q``'s value for comparing against a raw (dimensionless) operand.
+
+    A dimensionless ``q`` is taken in true units, so a scaled one (``%``,
+    ``km / m``) compares by value, not by its stored number. A dimensionful ``q``
+    may only be compared to 0 (or, for ``Q == x``, also to infinity); those values
+    are unit-independent, so its own unit gets them right.
+    """
+    return ustrip(one if is_unit_convertible(one, q.unit) else q.unit, q)
+
+
 def _as_dimensionless_like(q: ABCQ, value: ArrayLike) -> ABCQ:
     """Wrap a dimensionless-valued result as a dimensionless quantity like ``q``.
 
@@ -2265,7 +2276,7 @@ def eq_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     can't compare
 
     """
-    yv = ustrip(y)
+    yv = _value_vs_raw(y)
     yv = eqx.error_if(  # TODO: customize Exception type
         yv,
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
@@ -2325,7 +2336,7 @@ def eq_p_aqv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     """
     special_vals = jnp.logical_or(jnp.all(y == 0), jnp.all(jnp.isinf(y)))
-    xv = ustrip(x)
+    xv = _value_vs_raw(x)
     xv = eqx.error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(one, x.unit) and jnp.logical_not(special_vals),
@@ -2648,7 +2659,7 @@ def ge_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     can't compare
 
     """
-    yv = ustrip(y)
+    yv = _value_vs_raw(y)
     yv = eqx.error_if(  # TODO: customize Exception type
         yv,
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
@@ -2684,7 +2695,7 @@ def ge_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     can't compare
 
     """
-    xv = ustrip(x)
+    xv = _value_vs_raw(x)
     xv = eqx.error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
@@ -2753,7 +2764,7 @@ def gt_p_vq(x: ArrayLike, y: ABCQ) -> ABCQ:
     can't compare
 
     """
-    yv = ustrip(y)
+    yv = _value_vs_raw(y)
     yv = eqx.error_if(  # TODO: customize Exception type
         yv,
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
@@ -2789,7 +2800,7 @@ def gt_p_qv(x: ABCQ, y: ArrayLike) -> ABCQ:
     can't compare
 
     """
-    xv = ustrip(x)
+    xv = _value_vs_raw(x)
     xv = eqx.error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
@@ -3014,7 +3025,7 @@ def le_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     can't compare
 
     """
-    yv = ustrip(y)
+    yv = _value_vs_raw(y)
     yv = eqx.error_if(  # TODO: customize Exception type
         yv,
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
@@ -3050,7 +3061,7 @@ def le_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     can't compare
 
     """
-    xv = ustrip(x)
+    xv = _value_vs_raw(x)
     xv = eqx.error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
@@ -3294,7 +3305,7 @@ def lt_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     can't compare
 
     """
-    yv = ustrip(y)
+    yv = _value_vs_raw(y)
     yv = eqx.error_if(  # TODO: customize Exception type
         yv,
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
@@ -3354,7 +3365,7 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     can't compare
 
     """
-    xv = ustrip(x)
+    xv = _value_vs_raw(x)
     xv = eqx.error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
@@ -3802,7 +3813,7 @@ def ne_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
     Quantity(Array(False, dtype=bool...), unit='')
 
     """
-    yv = ustrip(y)
+    yv = _value_vs_raw(y)
     yv = eqx.error_if(  # TODO: customize Exception type
         yv,
         not is_unit_convertible(one, y.unit) and jnp.logical_not(jnp.all(x == 0)),
@@ -3847,7 +3858,7 @@ def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     Quantity(Array(False, dtype=bool...), unit='')
 
     """
-    xv = ustrip(x)
+    xv = _value_vs_raw(x)
     xv = eqx.error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(one, x.unit) and jnp.logical_not(jnp.all(y == 0)),
