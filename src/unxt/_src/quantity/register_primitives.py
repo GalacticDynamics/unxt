@@ -3941,6 +3941,35 @@ def nextafter_p(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
     return revalue(x1, lax.nextafter(ustrip(u, x1), ustrip(u, x2)))
 
 
+@quax.register(lax.nextafter_p)
+def nextafter_p_qv(x1: ABCQ, x2: ArrayLike, /) -> ABCQ:
+    """Next representable value after a quantity, toward a raw value.
+
+    A raw ``x2`` is dimensionless. For a dimensionless ``x1`` it is converted to
+    ``x1``'s unit; for a dimensionful ``x1`` only 0 and +/-inf have a direction
+    that is the same in every unit (this is what ``jnp.spacing`` uses).
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> q = u.Q([1.0], "m")
+    >>> jnp.nextafter(q, jnp.inf) > q
+    Quantity(Array([ True], dtype=bool), unit='')
+
+    """
+    if is_unit_convertible(one, x1.unit):
+        x2v = ustrip(x1.unit, Q(x2, one))
+    else:
+        x2v = eqx.error_if(  # TODO: customize Exception type
+            x2,
+            jnp.logical_not(_unit_independent(x2)),
+            f"Cannot nextafter Q(x, {x1.unit}) toward y (except for y=0 or +/-inf).",
+        )
+    return revalue(x1, lax.nextafter(ustrip(x1), x2v))
+
+
 # =============================================================================
 
 

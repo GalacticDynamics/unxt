@@ -349,3 +349,46 @@ def test_compare_dimensionful_with_finite_raw_raises(form):
     """A nonzero finite raw number depends on the unit, so it is still refused."""
     with pytest.raises(eqx.EquinoxRuntimeError, match="Cannot compare"):
         _RAW_CMP[form](u.Q(jnp.array([1.0, 2.0]), "m"), jnp.asarray(2.0))
+
+
+_FLOATS = jnp.array([1.5, -2.0, 1000.0])
+
+
+@pytest.mark.parametrize("unit", ["m", ""])
+def test_spacing_keeps_unit(unit):
+    """``spacing`` (``nextafter`` toward inf) works and keeps the unit (#973)."""
+    got = quax.quaxify(jnp.spacing)(u.Q(_FLOATS, unit))
+
+    assert got.unit == u.unit(unit)
+    assert np.array_equal(np.asarray(got.value), np.asarray(jnp.spacing(_FLOATS)))
+
+
+@pytest.mark.parametrize("target", [jnp.inf, -jnp.inf], ids=["inf", "-inf"])
+def test_nextafter_dimensionful_toward_raw_inf(target):
+    """Stepping toward ±inf is unit-independent, so it is allowed (#973)."""
+    got = quax.quaxify(lambda q: lax.nextafter(q, jnp.full(3, target)))(
+        u.Q(_FLOATS, "m")
+    )
+
+    assert got.unit == u.unit("m")
+    assert np.array_equal(
+        np.asarray(got.value), np.asarray(lax.nextafter(_FLOATS, jnp.full(3, target)))
+    )
+
+
+def test_nextafter_scaled_dimensionless_toward_raw():
+    """A raw target is dimensionless: 1.0 is 100% in the quantity's own unit."""
+    x = jnp.array([50.0])
+
+    got = quax.quaxify(lambda q: lax.nextafter(q, jnp.array([1.0])))(u.Q(x, "%"))
+
+    assert got.unit == u.unit("%")
+    assert np.array_equal(
+        np.asarray(got.value), np.asarray(lax.nextafter(x, jnp.array([100.0])))
+    )
+
+
+def test_nextafter_dimensionful_toward_finite_raw_raises():
+    """A finite raw target's direction depends on the unit, so it is refused."""
+    with pytest.raises(eqx.EquinoxRuntimeError, match="nextafter"):
+        quax.quaxify(lambda q: lax.nextafter(q, jnp.full(3, 2.0)))(u.Q(_FLOATS, "m"))
