@@ -83,7 +83,7 @@ def _value_vs_raw(q: ABCQ) -> ArrayLike:
     A dimensionless ``q`` is taken in true units, so a scaled one (``%``,
     ``km / m``) compares by value, not by its stored number. A dimensionful ``q``
     may only be compared to 0, or for ``==``/``!=`` also to +/-inf (see
-    `_unit_independent`); those values are unit-independent, so its own unit
+    ``_unit_independent``); those values are unit-independent, so its own unit
     gets them right.
     """
     return ustrip(one if is_unit_convertible(one, q.unit) else q.unit, q)
