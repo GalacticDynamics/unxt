@@ -14,7 +14,6 @@ import jax.numpy as jnp
 import pytest
 import quax
 from astropy.units import UnitConversionError
-from beartype.roar import BeartypeCallHintViolation
 from packaging.version import Version
 
 import unxt as u
@@ -33,9 +32,6 @@ def _xfail(raises, issue):
     )
 
 
-# Raised by whichever runtime type-checker is installed (jaxtyping wraps beartype).
-_ARGMAX = _xfail((TypeError, BeartypeCallHintViolation), 956)
-
 x = jnp.array([0.5, 1.0, 2.0])
 z = jnp.array([0.1, 0.5])
 
@@ -47,8 +43,7 @@ CASES = [
     pytest.param(sp.k0e, (x,), id="k0e"),
     pytest.param(sp.gamma, (x,), id="gamma"),
     pytest.param(sp.zeta, (jnp.array([2.0, 3.0]),), id="zeta"),
-    # spence then hits select_n_p (unxt#954) once argmax_p is fixed.
-    pytest.param(sp.spence, (x,), id="spence", marks=_ARGMAX),
+    pytest.param(sp.spence, (x,), id="spence"),
     pytest.param(ft.partial(sp.polylog, 2), (z,), id="polylog"),
     pytest.param(sp.comb, (jnp.array(5.0), jnp.array(2.0)), id="comb"),
     pytest.param(
