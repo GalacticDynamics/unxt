@@ -1,6 +1,7 @@
 """Tests for ``wrap_to`` -- the half-open [min, max) contract and its export."""
 
 import jax
+import jax.numpy as jnp
 import pytest
 
 import unxt as u
@@ -37,3 +38,15 @@ def test_wrap_to_half_open_holds_under_jit():
 
     r = jax.jit(wrap)(u.Angle(-1e-8, "deg"))
     assert 0.0 <= float(r.value) < 360.0
+
+
+def test_wrap_to_half_open_in_bounds_unit():
+    """Just under 2π rad (float32) wraps to < 360 deg, not exactly 360.0.
+
+    ``6.283185 rad`` is inside ``[0, 2π)`` in radians, but converting it to
+    degrees rounds up to ``360.0``, the excluded upper bound.
+    """
+    a = u.Angle(jnp.float32(6.283185), "rad")
+    r = a.wrap_to(u.Q(0, "deg"), u.Q(360, "deg"))
+    assert r.unit == u.unit("rad")
+    assert 0.0 <= float(r.ustrip("deg")) < 360.0
