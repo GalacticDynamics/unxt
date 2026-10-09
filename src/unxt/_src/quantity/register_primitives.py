@@ -1319,13 +1319,6 @@ def conj_p(x: ABCQ, *, input_dtype: Any) -> ABCQ:
 def convert_element_type_p(operand: ABCQ, /, **kw: Any) -> ABCQ | Array:
     """Convert the element type of a quantity."""
     # TODO: examples
-    # For StaticQuantity, use numpy's astype to avoid converting to JAX array
-    if isinstance(operand, StaticQuantity):
-        new_dtype = kw.get("new_dtype")
-        value = StaticValue(operand.value.array.astype(new_dtype))
-    else:
-        value = lax.convert_element_type_p.bind(ustrip(operand), **kw)
-
     # The truthiness of integer bits (e.g. the sign bit in ``signbit``) is
     # unit-independent (#973).
     if (
@@ -1333,7 +1326,15 @@ def convert_element_type_p(operand: ABCQ, /, **kw: Any) -> ABCQ | Array:
         and jnp.issubdtype(operand.dtype, jnp.integer)
         and not operand.unit.is_equivalent(one)
     ):
-        return jnp.asarray(value.array if isinstance(value, StaticValue) else value)
+        return lax.convert_element_type_p.bind(ustrip(operand), **kw)
+
+    # For StaticQuantity, use numpy's astype to avoid converting to JAX array
+    if isinstance(operand, StaticQuantity):
+        new_dtype = kw.get("new_dtype")
+        value = StaticValue(operand.value.array.astype(new_dtype))
+    else:
+        value = lax.convert_element_type_p.bind(ustrip(operand), **kw)
+
     return revalue(operand, value)
 
 
