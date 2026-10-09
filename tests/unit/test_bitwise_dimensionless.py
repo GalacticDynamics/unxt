@@ -67,3 +67,17 @@ def test_bitwise_on_dimensionless_still_works(op, name):
 
 def test_bitwise_not_on_dimensionless_still_works():
     assert qnp.bitwise_not(u.Q(1, "")).unit == u.unit("")
+
+
+@pytest.mark.parametrize(
+    ("op", "name"), [*BITWISE_OPS, (lambda q, _: qnp.bitwise_not(q), "not")]
+)
+def test_bitwise_on_scaled_dimensionless_raises_clear_error(op, name):
+    """A scaled-dimensionless (``%``) int would be rescaled to a float (#955).
+
+    Rescaling a bit pattern is meaningless, so this must be a clear error naming
+    the op and the unit, not jax's "does not accept dtype float32".
+    """
+    q = u.Q(jnp.array([50, 60]), "%")
+    with pytest.raises(ValueError, match=rf"bitwise/logical {name}.*'%'"):
+        _ = op(q, jnp.array(1))
