@@ -5,6 +5,7 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 import quax
+from astropy.units import UnitConversionError
 from jax import lax
 
 import quaxed.numpy as qnp
@@ -137,3 +138,47 @@ def test_select_n_mixed_quantity_and_arrays(select, want):
 
     assert got.unit == u.unit("km")
     assert np.array_equal(np.asarray(got.value), want)
+
+
+_TABLE = jnp.array([10.0, 20.0, 30.0])
+
+
+def test_gather_array_with_quantity_indices():
+    """A plain array indexed by a dimensionless quantity gives a plain array (#953)."""
+    idx = u.Q(jnp.array([1, 2], jnp.int32), "")
+
+    got = quax.quaxify(lambda a, i: a[i])(_TABLE, idx)
+
+    assert not isinstance(got, u.quantity.AbstractQuantity)
+    assert np.array_equal(np.asarray(got), [20.0, 30.0])
+
+
+def test_gather_quantity_with_quantity_indices():
+    """A quantity indexed by a dimensionless quantity keeps its unit."""
+    idx = u.Q(jnp.array([1, 2], jnp.int32), "")
+
+    got = quax.quaxify(lambda a, i: a[i])(u.Q(_TABLE, "m"), idx)
+
+    assert got.unit == u.unit("m")
+    assert np.array_equal(np.asarray(got.value), [20.0, 30.0])
+
+
+@pytest.mark.parametrize(
+    "operand", [_TABLE, u.Q(_TABLE, "m")], ids=["array", "quantity"]
+)
+def test_gather_with_scaled_dimensionless_indices_raises(operand):
+    """A ``%`` int index converts to a float in true units, so it is rejected.
+
+    It must never be read in its own unit, which would silently select element
+    100 for ``Q(100, "%")``.
+    """
+    idx = u.Q(jnp.array([100], jnp.int32), "%")
+    with pytest.raises(TypeError):
+        quax.quaxify(lambda a, i: a[i])(operand, idx)
+
+
+def test_gather_with_dimensionful_indices_raises():
+    """An index with a dimension has no meaning."""
+    idx = u.Q(jnp.array([1, 2], jnp.int32), "m")
+    with pytest.raises(UnitConversionError):
+        quax.quaxify(lambda a, i: a[i])(_TABLE, idx)

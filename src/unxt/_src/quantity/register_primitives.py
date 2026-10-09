@@ -2528,11 +2528,41 @@ def floor_p(x: ABCQ) -> ABCQ:
 # used in `jnp.cross`
 @quax.register(lax.gather_p)
 def gather_p(operand: ABCQ, start_indices: ArrayLike | ABCQ, /, **kw: Any) -> ABCQ:
-    # ``start_indices`` may be a dimensionless quantity, as produced internally
-    # by e.g. jax's nan-aware quantile (``nanmedian``); strip it to its value.
-    # TODO: examples
-    idx = ustrip(AllowValue, start_indices)
+    """Gather from a quantity.
+
+    ``start_indices`` may be a dimensionless quantity, as produced internally by
+    e.g. jax's nan-aware quantile (``nanmedian``); it is stripped in true
+    dimensionless units.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> u.Q([10.0, 20.0, 30.0], "m")[u.Q(jnp.array([1, 2]), "")]
+    Quantity(Array([20., 30.], dtype=float32), unit='m')
+
+    """
+    idx = ustrip(AllowValue, one, start_indices)
     return revalue(operand, lax.gather_p.bind(ustrip(operand), idx, **kw))
+
+
+@quax.register(lax.gather_p)
+def gather_p_vq(operand: ArrayLike, start_indices: ABCQ, /, **kw: Any) -> Array:
+    """Gather from an array with dimensionless-quantity indices.
+
+    Examples
+    --------
+    >>> import quax
+    >>> import jax.numpy as jnp
+    >>> import unxt as u
+
+    >>> table = jnp.array([10.0, 20.0, 30.0])
+    >>> quax.quaxify(lambda i: table[i])(u.Q(jnp.array([1, 2]), ""))
+    Array([20., 30.], dtype=float32)
+
+    """
+    return lax.gather_p.bind(operand, ustrip(one, start_indices), **kw)
 
 
 # ==============================================================================
