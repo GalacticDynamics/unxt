@@ -4976,10 +4976,9 @@ def shift_right_arithmetic_p(x: ABCQ, y: ABCQ | ArrayLike, /) -> ABCQ:
     Quantity(Array([2, 2], dtype=int32), unit='')
 
     """
-    shift = ustrip(AllowValue, one, y)
-    if not x.unit.is_equivalent(one):  # bits of a dimensionful bitcast (#973)
-        return revalue(x, lax.shift_right_arithmetic(ustrip(x), shift))
-    return _as_dimensionless_like(x, lax.shift_right_arithmetic(ustrip(one, x), shift))
+    # Shift the stored ints and keep x's unit, as `shift_left_p` does: a shift
+    # scales by 2**n, which commutes with any unit (incl. a scaled ``%``).
+    return revalue(x, lax.shift_right_arithmetic(ustrip(x), ustrip(AllowValue, one, y)))
 
 
 @quax.register(lax.shift_right_logical_p)
@@ -4999,10 +4998,9 @@ def shift_right_logical_p(x: ABCQ, y: ABCQ | ArrayLike, /) -> ABCQ:
     Quantity(Array([2, 2], dtype=int32), unit='')
 
     """
-    shift = ustrip(AllowValue, one, y)
-    if not x.unit.is_equivalent(one):  # bits of a dimensionful bitcast (#973)
-        return revalue(x, lax.shift_right_logical(ustrip(x), shift))
-    return _as_dimensionless_like(x, lax.shift_right_logical(ustrip(one, x), shift))
+    # Shift the stored ints and keep x's unit, as `shift_left_p` does: a shift
+    # scales by 2**n, which commutes with any unit (incl. a scaled ``%``).
+    return revalue(x, lax.shift_right_logical(ustrip(x), ustrip(AllowValue, one, y)))
 
 
 # ==============================================================================
