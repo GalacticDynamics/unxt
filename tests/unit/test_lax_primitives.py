@@ -1,5 +1,6 @@
 """Tests for `quax` registrations that the array-API suites do not reach."""
 
+import equinox as eqx
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -265,3 +266,48 @@ def test_compare_scaled_dimensionless_with_raw(op, quantity_first):
 
     assert got.unit == u.unit("")
     assert np.array_equal(np.asarray(got.value), want)
+
+
+_EQ_NE = {
+    "Q == x": qnp.equal,
+    "x == Q": lambda q, x: qnp.equal(x, q),
+    "Q != x": qnp.not_equal,
+    "x != Q": lambda q, x: qnp.not_equal(x, q),
+}
+
+
+@pytest.mark.parametrize("form", list(_EQ_NE))
+@pytest.mark.parametrize("raw", [jnp.inf, -jnp.inf, 0.0], ids=["inf", "-inf", "0"])
+def test_eq_ne_dimensionful_with_unit_independent_raw(form, raw):
+    """``==``/``!=`` accept 0 and ±inf against a dimensionful quantity (#978).
+
+    Both are unit-independent, so all four forms must agree.
+    """
+    v = jnp.array([1.0, raw])
+    raw = jnp.asarray(raw)
+    want = _EQ_NE[form](v, raw)
+
+    got = _EQ_NE[form](u.Q(v, "m"), raw)
+
+    assert np.array_equal(np.asarray(got.value), np.asarray(want))
+
+
+@pytest.mark.parametrize("form", list(_EQ_NE))
+def test_eq_ne_dimensionful_with_mixed_zero_and_inf_raw(form):
+    """A raw array mixing 0 and ±inf is accepted: each element is unit-independent.
+
+    The old ``Q == x`` guard required all-zeros *or* all-infs and rejected this.
+    """
+    v = jnp.array([0.0, jnp.inf, -jnp.inf, 1.0])
+    raw = jnp.array([0.0, jnp.inf, -jnp.inf, jnp.inf])
+
+    got = _EQ_NE[form](u.Q(v, "m"), raw)
+
+    assert np.array_equal(np.asarray(got.value), np.asarray(_EQ_NE[form](v, raw)))
+
+
+@pytest.mark.parametrize("form", list(_EQ_NE))
+def test_eq_ne_dimensionful_with_finite_raw_raises(form):
+    """A nonzero finite raw number depends on the unit, so it is still refused."""
+    with pytest.raises(eqx.EquinoxRuntimeError, match="Cannot compare"):
+        _EQ_NE[form](u.Q(jnp.array([1.0, 2.0]), "m"), jnp.asarray(2.0))
