@@ -74,9 +74,6 @@ def test_dimensionless(fn, args):
     assert jnp.allclose(got.value, fn(*args))
 
 
-# Now runs to completion, but comparisons with a raw operand ignore the `%`
-# scale (unxt#965), so it returns wrong values rather than raising.
-@_xfail(AssertionError, 965)
 def test_scaled_dimensionless():
     """A '%' input is converted to dimensionless before evaluating."""
     got = quax.quaxify(sp.k0)(u.Q(100 * x, "%"))
