@@ -79,3 +79,9 @@ def test_derived_units_with_fractional_powers(unit):
 def test_derived_units_when_every_si_base_is_used(unit):
     """No SI base is left over to build a cancelling factor from."""
     assert u.dimension_of(unit) == u.dimension_of(u.unit("m*s*kg*A*K*mol*cd*rad"))
+
+
+@given(unit=unxts.hypothesis.units("magnetic helicity"))
+def test_units_when_compose_overflows(unit):
+    """Astropy's ``Wb2.compose()`` raises ``OverflowError``."""
+    assert u.dimension_of(unit) == u.dimension("magnetic helicity")
