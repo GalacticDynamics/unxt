@@ -95,7 +95,7 @@ The NumPy entry points (`np.deg2rad(q)`, `np.rad2deg(q)`) _are_ handled correctl
 
 `jnp.frexp` and `jnp.ldexp` work on dimensionless quantities but raise on dimensionful ones, with an error about a bitwise `and` you never wrote: `ValueError: bitwise/logical and requires unscaled dimensionless quantities, got units 'm' and ''`.
 
-JAX implements both with float bit tricks: bitcast to an integer, shift and mask out the exponent field, subtract the bias, and compare against the smallest normal number. `quax` hands `unxt` those primitives one at a time, with no record that they add up to `frexp`. Subtracting a raw integer from unit-tagged bits, or comparing a dimensionful value against a raw finite threshold, is exactly what `unxt` refuses, and allowing it at the primitive level would weaken unit checking everywhere. (`signbit`, `copysign` and `spacing` use bit tricks too, but only unit-independent ones, so those work.)
+JAX implements both with float bit tricks: bitcast to an integer, shift and mask out the exponent field, subtract the bias, and compare against the smallest normal number. `quax` hands `unxt` those primitives one at a time, with no record that they add up to `frexp`. Subtracting a raw integer from unit-tagged bits, or comparing a dimensionful value against a raw finite threshold, is exactly what `unxt` refuses, and allowing it at the primitive level would weaken unit checking everywhere. (`signbit` and `copysign` use bit tricks too, but only unit-independent ones, so those work.)
 
 Write them out explicitly instead. `ldexp(x, n)` is `x * jnp.exp2(n)`, which keeps the unit. Use `jnp.exp2` rather than a literal `2**n`: with an integer-array `n`, `2**n` is integer exponentiation, which silently gives `0` for a negative exponent.
 
