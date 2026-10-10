@@ -91,6 +91,33 @@ u.uconvert("deg", u.Q(3.14159, "rad"))
 
 The NumPy entry points (`np.deg2rad(q)`, `np.rad2deg(q)`) _are_ handled correctly: they convert the angle, and raise on a non-angle quantity.
 
+## `frexp` and `ldexp` are unsupported on dimensionful quantities
+
+`jnp.frexp` and `jnp.ldexp` work on dimensionless quantities but raise on dimensionful ones, with an error about a bitwise `and` you never wrote: `ValueError: bitwise/logical and requires unscaled dimensionless quantities, got units 'm' and ''`.
+
+JAX implements both with float bit tricks: bitcast to an integer, shift and mask out the exponent field, subtract the bias, and compare against the smallest normal number. `quax` hands `unxt` those primitives one at a time, with no record that they add up to `frexp`. Subtracting a raw integer from unit-tagged bits, or comparing a dimensionful value against a raw finite threshold, is exactly what `unxt` refuses, and allowing it at the primitive level would weaken unit checking everywhere. (`signbit`, `copysign` and `spacing` use bit tricks too, but only unit-independent ones, so those work.)
+
+Write them out explicitly instead. `ldexp(x, n)` is `x * jnp.exp2(n)`, which keeps the unit. Use `jnp.exp2` rather than a literal `2**n`: with an integer-array `n`, `2**n` is integer exponentiation, which silently gives `0` for a negative exponent.
+
+```{code-block} python
+>>> import quaxed.numpy as jnp
+>>> import unxt as u
+
+>>> q = u.Q([1.5, 1000.0], "m")
+>>> q * jnp.exp2(jnp.array([2, -1]))
+Quantity(Array([  6., 500.], dtype=float32), unit='m')
+```
+
+For `frexp`, choose the unit the mantissa should be in, decompose the bare value, and reattach the unit:
+
+```{code-block} python
+>>> mantissa, exponent = jnp.frexp(u.ustrip("m", q))
+>>> u.Q(mantissa, "m"), exponent
+(Quantity(Array([0.75     , 0.9765625], dtype=float32), unit='m'), Array([ 1, 10], dtype=int32))
+```
+
+The choice of unit is real, not bookkeeping. The mantissa and exponent describe the stored float, so `1 km` and `1000 m` decompose differently. That is why `unxt` does not pick one for you.
+
 ## `jnp.where` lets a raw array adopt a unit
 
 Selecting between a quantity and a **raw array** treats the raw array as being in the quantity's unit. It does not reject the mix the way `jnp.concat` does:
