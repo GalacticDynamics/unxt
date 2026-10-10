@@ -23,7 +23,7 @@ dependencies = [
   "jaxtyping>=0.2.34",
   # See the root `pyproject.toml`: 2.10.0's compiled `Function` breaks `jax.jit`.
   "plum-dispatch>=2.5.7,!=2.10.0",
-  "quax>=0.2.0",
+  "quax>=0.4.4",
 ]
 description = "Heterogeneous-unit matrices and vectors for unxt (canonical: unxts.linalg)"
 dynamic = ["version"]

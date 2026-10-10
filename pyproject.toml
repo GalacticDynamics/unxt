@@ -35,7 +35,7 @@ dependencies = [
   # on a single bad release is exactly what keeps a resolver off it.
   "plum-dispatch>=2.7.0,!=2.10.0",
   "plum-dispatch>=2.9.0; python_version>='3.14'",
-  "quax>=0.4.2",
+  "quax>=0.4.4",
   "quax-blocks>=0.5.0",
   "quaxed>=0.10.5",
   "traitlets>=5.0.0",
@@ -120,7 +120,7 @@ docs = [
   # Runtime dependencies for notebook execution
   "jax[cpu]>=0.7.2",
   "jaxlib>=0.7.2",
-  "quax>=0.4.2",
+  "quax>=0.4.4",
 ]
 lint = ["prek>=0.3.9", "pylint>=3.3.8"]
 nox = ["nox>=2024.10.9", "nox-uv>=0.6.3"]
