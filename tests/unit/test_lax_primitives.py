@@ -368,6 +368,15 @@ def test_spacing_keeps_unit(unit):
     assert np.array_equal(np.asarray(got.value), np.asarray(jnp.spacing(_FLOATS)))
 
 
+@pytest.mark.parametrize("unit", ["m", ""])
+def test_quaxed_spacing_keeps_unit(unit):
+    """``quaxed.numpy.spacing`` works on a quantity (quaxed>=0.10.6 quaxifies it)."""
+    got = qnp.spacing(u.Q(_FLOATS, unit))
+
+    assert got.unit == u.unit(unit)
+    assert np.array_equal(np.asarray(got.value), np.asarray(jnp.spacing(_FLOATS)))
+
+
 @pytest.mark.parametrize("target", [jnp.inf, -jnp.inf], ids=["inf", "-inf"])
 def test_nextafter_dimensionful_toward_raw_inf(target):
     """Stepping toward ±inf is unit-independent, so it is allowed (#973)."""

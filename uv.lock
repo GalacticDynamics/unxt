@@ -3271,7 +3271,7 @@ wheels = [
 
 [[package]]
 name = "quaxed"
-version = "0.10.5"
+version = "0.10.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "equinox" },
@@ -3281,9 +3281,9 @@ dependencies = [
     { name = "plum-dispatch" },
     { name = "quax" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8c/9f/7fdd817ee42e53f7249eecc2bc6f93156a8846d05e2d69e5540a63630747/quaxed-0.10.5.tar.gz", hash = "sha256:97c8b96b46ae832afb83f9e845397738dcbacd61c165bbe9f6542b3bf6892593", size = 170089, upload-time = "2026-05-04T19:12:29.856Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/be/66/3037b535113e21692b04db618f28e51bd8534d42e5e49829ff0008d1be81/quaxed-0.10.6.tar.gz", hash = "sha256:44228c05b6d7d65a6fc320090ebf561f7cef30bd0ce73d8e68bfbf084effcab5", size = 172508, upload-time = "2026-10-10T17:52:59.366Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c2/71/69e5f77bebbac8db7315e26dbacdf21655c6a8992974276d4dff37c2a64a/quaxed-0.10.5-py3-none-any.whl", hash = "sha256:f5db02cbed3809b7ec349c287fc492ecef226c1ca7063118a7722b1e7a98284c", size = 45669, upload-time = "2026-05-04T19:12:28.146Z" },
+    { url = "https://files.pythonhosted.org/packages/68/bc/375307de632edbd2de26c799933bb6fbbc2d32dfd95e681d0f78227b5c9b/quaxed-0.10.6-py3-none-any.whl", hash = "sha256:82b4ff7c2a9d66f67211741887d3b89a3f6c7c3c8c41ce3490b66d4ce6554626", size = 46500, upload-time = "2026-10-10T17:52:57.912Z" },
 ]
 
 [[package]]
@@ -4240,7 +4240,7 @@ requires-dist = [
     { name = "plum-dispatch", marker = "python_full_version >= '3.14'", specifier = ">=2.9.0" },
     { name = "quax", specifier = ">=0.4.4" },
     { name = "quax-blocks", specifier = ">=0.5.0" },
-    { name = "quaxed", specifier = ">=0.10.5" },
+    { name = "quaxed", specifier = ">=0.10.6" },
     { name = "traitlets", specifier = ">=5.0.0" },
     { name = "unxt-api", editable = "packages/unxt-api" },
     { name = "unxts-api", editable = "packages/unxts.api" },
