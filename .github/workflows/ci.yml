@@ -24,7 +24,12 @@ concurrency:
   # to main would share a group and, with `cancel-in-progress`, cancel each
   # other. Including it keeps them independent while still collapsing repeated
   # pushes to the same branch or PR.
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  # Each push to main gets its own group, so merges never cancel each other
+  # and main keeps a complete CI record. All other events keep the per-ref
+  # group and still supersede older runs.
+  group: >-
+    ${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name ==
+    'push' && github.sha || github.ref }}
   cancel-in-progress: true
 
 env:
