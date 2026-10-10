@@ -36,7 +36,7 @@ dependencies = [
   "plum-dispatch>=2.9.0; python_version>='3.14'",
   "quax>=0.4.4",
   "quax-blocks>=0.5.0",
-  "quaxed>=0.10.5",
+  "quaxed>=0.10.6",
   "traitlets>=5.0.0",
   "unxt-api>=2.0.0",
   "unxts.api>=2.0.0",
