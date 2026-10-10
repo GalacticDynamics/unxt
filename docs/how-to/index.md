@@ -13,6 +13,7 @@ convert-units
 compare-quantities
 use-jax-functions
 control-display
+formatting
 wrap-angles
 use-a-quantity-as-a-static-argument
 check-types-at-runtime
@@ -38,6 +39,7 @@ migrate-to-v2
 - {doc}`use-a-quantity-as-a-static-argument` — `StaticQuantity` and `StaticValue` under `jax.jit`.
 - {doc}`use-jax-functions` — `quaxify`, `quaxed`, `jit`, autodiff and functional updates.
 - {doc}`control-display` — change how quantities render, for a call, a block, a process or a project.
+- {doc}`formatting` — the string-formatting engine behind `repr`, `str` and `__format__`.
 
 ## Units and unit systems
 
