@@ -7,24 +7,16 @@ the job and the marker can be dropped.
 """
 
 import functools as ft
-from importlib.metadata import version
 
 import jax
 import jax.numpy as jnp
 import pytest
 import quax
 from astropy.units import UnitConversionError
-from packaging.version import Version
 
 import unxt as u
 
 sp = pytest.importorskip("spexial")
-
-# quax < 0.4.4 has a `scan` rule that breaks on jax 0.10 and leaks tracers across
-# tests, making results order-dependent. The weekly job installs the newest quax.
-if Version(version("quax")) < Version("0.4.4"):
-    pytest.skip("needs quax>=0.4.4", allow_module_level=True)
-
 
 x = jnp.array([0.5, 1.0, 2.0])
 z = jnp.array([0.1, 0.5])

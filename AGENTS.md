@@ -101,7 +101,7 @@ No `CHANGELOG.md` — intentional; GitHub Releases (generated at tag-push time) 
 
 ## Dependencies & release
 
-Dependency floors follow SPEC 0 roughly (see `pyproject.toml` for exact pins: `jax>=0.7.2`, `plum-dispatch>=2.7.0`, `quax>=0.4.2`, `quax-blocks>=0.5.0`, `quaxed>=0.10.5`, `astropy>=7.1`, Python `>=3.12`). Multi-package, tag-driven releases: a `vX.Y.0` coordinator tag releases everything together; any package can also get an independent `<pkg>-vX.Y.Z` bug-fix tag. Full detail, including the GitHub App token setup required for tag-triggered CD, is in [RELEASING.md](RELEASING.md).
+Dependency floors follow SPEC 0 roughly (see `pyproject.toml` for exact pins: `jax>=0.7.2`, `plum-dispatch>=2.7.0`, `quax>=0.4.4`, `quax-blocks>=0.5.0`, `quaxed>=0.10.5`, `astropy>=7.1`, Python `>=3.12`). Multi-package, tag-driven releases: a `vX.Y.0` coordinator tag releases everything together; any package can also get an independent `<pkg>-vX.Y.Z` bug-fix tag. Full detail, including the GitHub App token setup required for tag-triggered CD, is in [RELEASING.md](RELEASING.md).
 
 ## Further reading
 
