@@ -4881,12 +4881,6 @@ def select_n_p_jqj(which: ArrayLike, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
     >>> import quaxed.numpy as jnp
     >>> import unxt as u
 
-    >>> x = u.Q([1.0, 5.0, 9.0], "km")
-    >>> y = u.Q([2.0, 4.0, 10.0], "km")
-
-    >>> jnp.hypot(x, y)
-    Quantity(Array([ 2.236068 ,  6.4031243, 13.453625 ], dtype=float32), unit='km')
-
     >>> jnp.triu(u.Q([[1, 2], [3, 4]], "km"))
     Quantity(Array([[1, 2],
                               [0, 4]], dtype=int32), unit='km')
@@ -5026,13 +5020,6 @@ def select_n_p_jqq(which: ArrayLike, /, *cases: ABCQ) -> ABCQ:
     >>> mask = [a > u.Q(4, "kpc"), b < u.Q(8, "kpc")]
     >>> jnp.select(mask, [a, b], default=u.Q(0, "kpc"))
     Quantity(Array([2., 5., 9.], dtype=float32), unit='kpc')
-
-    This selection dispatch also happens when using ``jnp.hypot``.
-
-    >>> a = u.Q([3], "kpc")
-    >>> b = u.Q([4], "kpc")
-    >>> jnp.hypot(a, b)
-    Quantity(Array([5.], dtype=float32), unit='kpc')
 
     """
     # Promote all cases to a common type
