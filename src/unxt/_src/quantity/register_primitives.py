@@ -2845,16 +2845,16 @@ def igamma_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
 
     >>> x = u.quantity.Quantity(1.0, "")
     >>> lax.igamma(1.0, x)
-    Quantity(Array(0.6321202, dtype=float32...), unit='')
+    Quantity(Array(0.63212..., dtype=float32...), unit='')
 
     >>> a = u.quantity.Quantity(1.0, "")
     >>> lax.igamma(a, x)
-    Quantity(Array(0.6321202, dtype=float32...), unit='')
+    Quantity(Array(0.63212..., dtype=float32...), unit='')
 
     >>> a = u.Q(1.0, "")
     >>> x = u.Q(1.0, "")
     >>> lax.igamma(a, x)
-    Quantity(Array(0.6321202, dtype=float32...), unit='')
+    Quantity(Array(0.63212..., dtype=float32...), unit='')
 
     """
     return _as_dimensionless_like(
@@ -2876,16 +2876,16 @@ def igammac_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
 
     >>> x = u.quantity.Quantity(1.0, "")
     >>> qlax.igammac(1.0, x)
-    Quantity(Array(0.36787927, dtype=float32...), unit='')
+    Quantity(Array(0.36787..., dtype=float32...), unit='')
 
     >>> a = u.quantity.Quantity(1.0, "")
     >>> qlax.igammac(a, x)
-    Quantity(Array(0.36787927, dtype=float32...), unit='')
+    Quantity(Array(0.36787..., dtype=float32...), unit='')
 
     >>> a = u.Q(1.0, "")
     >>> x = u.Q(1.0, "")
     >>> qlax.igammac(a, x)
-    Quantity(Array(0.36787927, dtype=float32...), unit='')
+    Quantity(Array(0.36787..., dtype=float32...), unit='')
 
     """
     return _as_dimensionless_like(
@@ -3104,11 +3104,11 @@ def lgamma_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.quantity.Quantity(3, "")
     >>> jsp.special.gammaln(q)
-    Quantity(Array(0.6931474, dtype=float32...), unit='')
+    Quantity(Array(0.693147..., dtype=float32...), unit='')
 
     >>> q = u.Q(3, "")
     >>> jsp.special.gammaln(q)
-    Quantity(Array(0.6931474, dtype=float32...), unit='')
+    Quantity(Array(0.693147..., dtype=float32...), unit='')
 
     """
     # TODO: are there any units that this can support?
@@ -4498,12 +4498,12 @@ def regularized_incomplete_beta_q(
     >>> b = u.quantity.Quantity(3.0, "")
     >>> x = 0.5
     >>> jsp.betainc(a, b, x).round(7)
-    Array(0.6874998, dtype=float32...)
+    Array(0.687..., dtype=float32...)
 
     >>> a = u.Q(2.0, "")
     >>> b = u.Q(3.0, "")
     >>> jsp.betainc(a, b, x).round(7)
-    Array(0.6874998, dtype=float32...)
+    Array(0.687..., dtype=float32...)
 
     """
     a = ustrip(AllowValue, one, a)
@@ -4526,11 +4526,11 @@ def regularized_incomplete_beta_q(
     >>> b = 3.0
     >>> x = u.quantity.Quantity(0.5, "")
     >>> jsp.betainc(a, b, x).round(7)
-    Quantity(Array(0.6874998, dtype=float32...), unit='')
+    Quantity(Array(0.687..., dtype=float32...), unit='')
 
     >>> x = u.Q(0.5, "")
     >>> jsp.betainc(a, b, x).round(7)
-    Quantity(Array(0.6874998, dtype=float32...), unit='')
+    Quantity(Array(0.687..., dtype=float32...), unit='')
 
     >>> x = u.Q(0.5, "m")
     >>> try:
