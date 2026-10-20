@@ -4239,8 +4239,9 @@ if JAX_VERSION >= (0, 12, 0):  # pragma: no cover -- jax-version guard
         Quantity(Array(7., dtype=float32), unit='')
 
         """
-        # ponytail: a raw constant term with a quantity in a higher term only
-        # dispatches when `x` is a quantity; add a rule if that case shows up.
+        # Not covered: a raw `x` with a raw constant term but a quantity in a
+        # higher term (all coefficients must then be dimensionless). That only
+        # dispatches when `x` is a quantity; add a rule if the case shows up.
         return _polynomial(x, (c0, *coeffs), kw)
 
 
