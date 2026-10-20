@@ -2419,7 +2419,7 @@ def erf_p(x: ABCQ) -> ABCQ:
 
 
 @quax.register(lax.erfc_p)
-def erfc_p(x: ABCQ) -> ABCQ:
+def erfc_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Complementary error function of a quantity.
 
     Examples
@@ -2437,7 +2437,8 @@ def erfc_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return _as_dimensionless_like(x, lax.erfc(ustrip(one, x)))
+    # `**kw`: JAX 0.12 added an `accuracy` parameter to `erfc_p`.
+    return _as_dimensionless_like(x, lax.erfc_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -4172,6 +4173,75 @@ def polygamma_p(m: ArrayLike, x: ABCQ, /) -> ABCQ:
 
     """
     return _as_dimensionless_like(x, lax.polygamma(m, ustrip(one, x)))
+
+
+# ==============================================================================
+
+
+# `no cover`: the coverage job resolves the *oldest* supported dependencies, so
+# this block cannot run there. The newest-deps job exercises it, without `--cov`.
+if JAX_VERSION >= (0, 12, 0):  # pragma: no cover -- jax-version guard
+    # JAX 0.12 added the `polynomial_p` primitive, which `jnp.polyval` (and so
+    # e.g. `jax.scipy.special.spence`) now lowers to, instead of `mul` / `add`.
+    # Without these rules `quax` falls through to materialising the operand,
+    # which `AbstractQuantity` refuses.
+
+    def _polynomial(x: Any, coeffs: tuple[Any, ...], kw: dict[str, Any]) -> ABCQ:
+        """Evaluate ``sum_k coeffs[k] * x**k`` with units.
+
+        The result is in the unit of ``coeffs[0]`` (dimensionless if raw), and
+        each ``coeffs[k]`` is converted to that unit divided by ``x``'s unit to
+        the ``k``. Raw operands are dimensionless.
+        """
+        x_unit = x.unit if isinstance(x, ABCQ) else one
+        c0 = coeffs[0]
+        out_unit = c0.unit if isinstance(c0, ABCQ) else one
+        cs = [
+            ustrip(out_unit / x_unit**k, c if isinstance(c, ABCQ) else Q(c, one))
+            for k, c in enumerate(coeffs)
+        ]
+        out = lax.polynomial(ustrip(x) if isinstance(x, ABCQ) else x, cs, **kw)
+        if isinstance(c0, ABCQ):
+            return revalue(c0, out)
+        return _as_dimensionless_like(x, out)
+
+    @quax.register(lax.polynomial_p)
+    def polynomial_p(x: ABCQ, /, *coeffs: ABCQ | ArrayLike, **kw: Any) -> ABCQ:
+        """Evaluate a polynomial at a quantity.
+
+        Examples
+        --------
+        >>> import quaxed.numpy as jnp
+        >>> import unxt as u
+
+        >>> jnp.polyval(jnp.array([2.0, 3.0]), u.Q(2.0, ""))
+        Quantity(Array(7., dtype=float32), unit='')
+
+        With quantity coefficients, coefficient ``k`` is converted to the
+        result unit over ``x``'s unit to the ``k``: ``lax.polynomial(1 min,
+        [3 m, 2 m/s])`` is ``123 m``.
+
+        """
+        return _polynomial(x, coeffs, kw)
+
+    @quax.register(lax.polynomial_p)
+    def polynomial_p_v(
+        x: ArrayLike, c0: ABCQ, /, *coeffs: ABCQ | ArrayLike, **kw: Any
+    ) -> ABCQ:
+        """Evaluate a polynomial with quantity coefficients at a raw array.
+
+        Examples
+        --------
+        >>> import quaxed.numpy as jnp
+        >>> import unxt as u
+
+        >>> jnp.polyval(u.Q([2.0, 3.0], ""), 2.0)
+        Quantity(Array(7., dtype=float32), unit='')
+
+        """
+        # ponytail: a raw constant term with a quantity in a higher term only
+        # dispatches when `x` is a quantity; add a rule if that case shows up.
+        return _polynomial(x, (c0, *coeffs), kw)
 
 
 # ==============================================================================
