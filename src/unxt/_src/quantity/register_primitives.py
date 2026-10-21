@@ -3998,6 +3998,36 @@ def not_p(x: ABCQ, /) -> ABCQ:
 # ==============================================================================
 
 
+# `no cover`: the coverage job resolves the *oldest* supported dependencies, so
+# this block cannot run there. The newest-deps job exercises it, without `--cov`.
+if JAX_VERSION >= (0, 11, 2):  # pragma: no cover -- jax-version guard
+    # JAX 0.11.2 added the `one_minus_square_p` primitive (``1 - x**2``), which
+    # the JVPs of `tanh`, `asin`, `acos` and `atanh` now use. Without this rule
+    # differentiating them inside `quax.quaxify` falls through to materialising
+    # the operand, which `AbstractQuantity` refuses.
+
+    @quax.register(lax.one_minus_square_p)
+    def one_minus_square_p(x: ABCQ, /, **kw: Any) -> ABCQ:
+        """Compute ``1 - x**2`` of a dimensionless quantity.
+
+        Examples
+        --------
+        >>> import jax, quax
+        >>> from jax import lax
+        >>> import unxt as u
+
+        >>> quax.quaxify(jax.grad(lax.tanh))(u.Q(50.0, "%"))
+        Quantity(Array(0.7864477, dtype=float32...), unit='')
+
+        """
+        return _as_dimensionless_like(
+            x, lax.one_minus_square_p.bind(ustrip(one, x), **kw)
+        )
+
+
+# ==============================================================================
+
+
 @quax.register(lax.or_p)
 def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """Bitwise OR of two quantities.
@@ -4191,16 +4221,24 @@ if JAX_VERSION >= (0, 12, 0):  # pragma: no cover -- jax-version guard
 
         The result is in the unit of ``coeffs[0]`` (dimensionless if raw), and
         each ``coeffs[k]`` is converted to that unit divided by ``x``'s unit to
-        the ``k``. Raw operands are dimensionless.
+        the ``k``. Raw operands are dimensionless. The stripped values are
+        dtype-promoted, since a unit conversion can make a coefficient float.
+        A ``StaticQuantity`` constant term gives a ``Quantity``: the result is
+        computed, so it may be traced.
         """
         x_unit = x.unit if isinstance(x, ABCQ) else one
         c0 = coeffs[0]
         out_unit = c0.unit if isinstance(c0, ABCQ) else one
-        cs = [
-            ustrip(out_unit / x_unit**k, c if isinstance(c, ABCQ) else Q(c, one))
-            for k, c in enumerate(coeffs)
-        ]
-        out = lax.polynomial(ustrip(x) if isinstance(x, ABCQ) else x, cs, **kw)
+        xv, *cs = promote_dtypes(
+            ustrip(x) if isinstance(x, ABCQ) else jnp.asarray(x),
+            *(
+                ustrip(out_unit / x_unit**k, c if isinstance(c, ABCQ) else Q(c, one))
+                for k, c in enumerate(coeffs)
+            ),
+        )
+        out = lax.polynomial(xv, cs, **kw)
+        if isinstance(c0, StaticQuantity):
+            return Q(out, unit=out_unit)
         if isinstance(c0, ABCQ):
             return revalue(c0, out)
         return _as_dimensionless_like(x, out)
