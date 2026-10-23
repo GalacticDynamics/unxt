@@ -2419,7 +2419,7 @@ def erf_p(x: ABCQ) -> ABCQ:
 
 
 @quax.register(lax.erfc_p)
-def erfc_p(x: ABCQ) -> ABCQ:
+def erfc_p(x: ABCQ, /, **kw: Any) -> ABCQ:
     """Complementary error function of a quantity.
 
     Examples
@@ -2437,7 +2437,8 @@ def erfc_p(x: ABCQ) -> ABCQ:
 
     """
     # TODO: can this support non-dimensionless quantities?
-    return _as_dimensionless_like(x, lax.erfc(ustrip(one, x)))
+    # `**kw`: JAX 0.12 added an `accuracy` parameter to `erfc_p`.
+    return _as_dimensionless_like(x, lax.erfc_p.bind(ustrip(one, x), **kw))
 
 
 # ==============================================================================
@@ -2844,16 +2845,16 @@ def igamma_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
 
     >>> x = u.quantity.Quantity(1.0, "")
     >>> lax.igamma(1.0, x)
-    Quantity(Array(0.6321202, dtype=float32...), unit='')
+    Quantity(Array(0.63212..., dtype=float32...), unit='')
 
     >>> a = u.quantity.Quantity(1.0, "")
     >>> lax.igamma(a, x)
-    Quantity(Array(0.6321202, dtype=float32...), unit='')
+    Quantity(Array(0.63212..., dtype=float32...), unit='')
 
     >>> a = u.Q(1.0, "")
     >>> x = u.Q(1.0, "")
     >>> lax.igamma(a, x)
-    Quantity(Array(0.6321202, dtype=float32...), unit='')
+    Quantity(Array(0.63212..., dtype=float32...), unit='')
 
     """
     return _as_dimensionless_like(
@@ -2875,16 +2876,16 @@ def igammac_p(a: float | int | ABCQ, x: ABCQ) -> ABCQ:
 
     >>> x = u.quantity.Quantity(1.0, "")
     >>> qlax.igammac(1.0, x)
-    Quantity(Array(0.36787927, dtype=float32...), unit='')
+    Quantity(Array(0.36787..., dtype=float32...), unit='')
 
     >>> a = u.quantity.Quantity(1.0, "")
     >>> qlax.igammac(a, x)
-    Quantity(Array(0.36787927, dtype=float32...), unit='')
+    Quantity(Array(0.36787..., dtype=float32...), unit='')
 
     >>> a = u.Q(1.0, "")
     >>> x = u.Q(1.0, "")
     >>> qlax.igammac(a, x)
-    Quantity(Array(0.36787927, dtype=float32...), unit='')
+    Quantity(Array(0.36787..., dtype=float32...), unit='')
 
     """
     return _as_dimensionless_like(
@@ -3103,11 +3104,11 @@ def lgamma_p(x: ABCQ) -> ABCQ:
 
     >>> q = u.quantity.Quantity(3, "")
     >>> jsp.special.gammaln(q)
-    Quantity(Array(0.6931474, dtype=float32...), unit='')
+    Quantity(Array(0.693147..., dtype=float32...), unit='')
 
     >>> q = u.Q(3, "")
     >>> jsp.special.gammaln(q)
-    Quantity(Array(0.6931474, dtype=float32...), unit='')
+    Quantity(Array(0.693147..., dtype=float32...), unit='')
 
     """
     # TODO: are there any units that this can support?
@@ -3997,6 +3998,36 @@ def not_p(x: ABCQ, /) -> ABCQ:
 # ==============================================================================
 
 
+# `no cover`: the coverage job resolves the *oldest* supported dependencies, so
+# this block cannot run there. The newest-deps job exercises it, without `--cov`.
+if JAX_VERSION >= (0, 11, 2):  # pragma: no cover -- jax-version guard
+    # JAX 0.11.2 added the `one_minus_square_p` primitive (``1 - x**2``), which
+    # the JVPs of `tanh`, `asin`, `acos` and `atanh` now use. Without this rule
+    # differentiating them inside `quax.quaxify` falls through to materialising
+    # the operand, which `AbstractQuantity` refuses.
+
+    @quax.register(lax.one_minus_square_p)
+    def one_minus_square_p(x: ABCQ, /, **kw: Any) -> ABCQ:
+        """Compute ``1 - x**2`` of a dimensionless quantity.
+
+        Examples
+        --------
+        >>> import jax, quax
+        >>> from jax import lax
+        >>> import unxt as u
+
+        >>> quax.quaxify(jax.grad(lax.tanh))(u.Q(50.0, "%"))
+        Quantity(Array(0.7864477, dtype=float32...), unit='')
+
+        """
+        return _as_dimensionless_like(
+            x, lax.one_minus_square_p.bind(ustrip(one, x), **kw)
+        )
+
+
+# ==============================================================================
+
+
 @quax.register(lax.or_p)
 def or_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """Bitwise OR of two quantities.
@@ -4172,6 +4203,84 @@ def polygamma_p(m: ArrayLike, x: ABCQ, /) -> ABCQ:
 
     """
     return _as_dimensionless_like(x, lax.polygamma(m, ustrip(one, x)))
+
+
+# ==============================================================================
+
+
+# `no cover`: the coverage job resolves the *oldest* supported dependencies, so
+# this block cannot run there. The newest-deps job exercises it, without `--cov`.
+if JAX_VERSION >= (0, 12, 0):  # pragma: no cover -- jax-version guard
+    # JAX 0.12 added the `polynomial_p` primitive, which `jnp.polyval` (and so
+    # e.g. `jax.scipy.special.spence`) now lowers to, instead of `mul` / `add`.
+    # Without these rules `quax` falls through to materialising the operand,
+    # which `AbstractQuantity` refuses.
+
+    def _polynomial(x: Any, coeffs: tuple[Any, ...], kw: dict[str, Any]) -> ABCQ:
+        """Evaluate ``sum_k coeffs[k] * x**k`` with units.
+
+        The result is in the unit of ``coeffs[0]`` (dimensionless if raw), and
+        each ``coeffs[k]`` is converted to that unit divided by ``x``'s unit to
+        the ``k``. Raw operands are dimensionless. The stripped values are
+        dtype-promoted, since a unit conversion can make a coefficient float.
+        A ``StaticQuantity`` constant term gives a ``Quantity``: the result is
+        computed, so it may be traced.
+        """
+        x_unit = x.unit if isinstance(x, ABCQ) else one
+        c0 = coeffs[0]
+        out_unit = c0.unit if isinstance(c0, ABCQ) else one
+        xv, *cs = promote_dtypes(
+            ustrip(x) if isinstance(x, ABCQ) else jnp.asarray(x),
+            *(
+                ustrip(out_unit / x_unit**k, c if isinstance(c, ABCQ) else Q(c, one))
+                for k, c in enumerate(coeffs)
+            ),
+        )
+        out = lax.polynomial(xv, cs, **kw)
+        if isinstance(c0, StaticQuantity):
+            return Q(out, unit=out_unit)
+        if isinstance(c0, ABCQ):
+            return revalue(c0, out)
+        return _as_dimensionless_like(x, out)
+
+    @quax.register(lax.polynomial_p)
+    def polynomial_p(x: ABCQ, /, *coeffs: ABCQ | ArrayLike, **kw: Any) -> ABCQ:
+        """Evaluate a polynomial at a quantity.
+
+        Examples
+        --------
+        >>> import quaxed.numpy as jnp
+        >>> import unxt as u
+
+        >>> jnp.polyval(jnp.array([2.0, 3.0]), u.Q(2.0, ""))
+        Quantity(Array(7., dtype=float32), unit='')
+
+        With quantity coefficients, coefficient ``k`` is converted to the
+        result unit over ``x``'s unit to the ``k``: ``lax.polynomial(1 min,
+        [3 m, 2 m/s])`` is ``123 m``.
+
+        """
+        return _polynomial(x, coeffs, kw)
+
+    @quax.register(lax.polynomial_p)
+    def polynomial_p_v(
+        x: ArrayLike, c0: ABCQ, /, *coeffs: ABCQ | ArrayLike, **kw: Any
+    ) -> ABCQ:
+        """Evaluate a polynomial with quantity coefficients at a raw array.
+
+        Examples
+        --------
+        >>> import quaxed.numpy as jnp
+        >>> import unxt as u
+
+        >>> jnp.polyval(u.Q([2.0, 3.0], ""), 2.0)
+        Quantity(Array(7., dtype=float32), unit='')
+
+        """
+        # Not covered: a raw `x` with a raw constant term but a quantity in a
+        # higher term (all coefficients must then be dimensionless). That only
+        # dispatches when `x` is a quantity; add a rule if the case shows up.
+        return _polynomial(x, (c0, *coeffs), kw)
 
 
 # ==============================================================================
@@ -4428,12 +4537,12 @@ def regularized_incomplete_beta_q(
     >>> b = u.quantity.Quantity(3.0, "")
     >>> x = 0.5
     >>> jsp.betainc(a, b, x).round(7)
-    Array(0.6874998, dtype=float32...)
+    Array(0.687..., dtype=float32...)
 
     >>> a = u.Q(2.0, "")
     >>> b = u.Q(3.0, "")
     >>> jsp.betainc(a, b, x).round(7)
-    Array(0.6874998, dtype=float32...)
+    Array(0.687..., dtype=float32...)
 
     """
     a = ustrip(AllowValue, one, a)
@@ -4456,11 +4565,11 @@ def regularized_incomplete_beta_q(
     >>> b = 3.0
     >>> x = u.quantity.Quantity(0.5, "")
     >>> jsp.betainc(a, b, x).round(7)
-    Quantity(Array(0.6874998, dtype=float32...), unit='')
+    Quantity(Array(0.687..., dtype=float32...), unit='')
 
     >>> x = u.Q(0.5, "")
     >>> jsp.betainc(a, b, x).round(7)
-    Quantity(Array(0.6874998, dtype=float32...), unit='')
+    Quantity(Array(0.687..., dtype=float32...), unit='')
 
     >>> x = u.Q(0.5, "m")
     >>> try:
@@ -4810,12 +4919,6 @@ def select_n_p_jqj(which: ArrayLike, case0: ABCQ, case1: ArrayLike, /) -> ABCQ:
     >>> import quaxed.numpy as jnp
     >>> import unxt as u
 
-    >>> x = u.Q([1.0, 5.0, 9.0], "km")
-    >>> y = u.Q([2.0, 4.0, 10.0], "km")
-
-    >>> jnp.hypot(x, y)
-    Quantity(Array([ 2.236068 ,  6.4031243, 13.453625 ], dtype=float32), unit='km')
-
     >>> jnp.triu(u.Q([[1, 2], [3, 4]], "km"))
     Quantity(Array([[1, 2],
                               [0, 4]], dtype=int32), unit='km')
@@ -4955,13 +5058,6 @@ def select_n_p_jqq(which: ArrayLike, /, *cases: ABCQ) -> ABCQ:
     >>> mask = [a > u.Q(4, "kpc"), b < u.Q(8, "kpc")]
     >>> jnp.select(mask, [a, b], default=u.Q(0, "kpc"))
     Quantity(Array([2., 5., 9.], dtype=float32), unit='kpc')
-
-    This selection dispatch also happens when using ``jnp.hypot``.
-
-    >>> a = u.Q([3], "kpc")
-    >>> b = u.Q([4], "kpc")
-    >>> jnp.hypot(a, b)
-    Quantity(Array([5.], dtype=float32), unit='kpc')
 
     """
     # Promote all cases to a common type

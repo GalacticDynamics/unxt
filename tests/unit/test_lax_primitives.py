@@ -12,7 +12,7 @@ from jax import lax
 import quaxed.numpy as qnp
 
 import unxt as u
-from unxt._src.quantity.register_primitives import cond_p_q
+from unxt._src.quantity.register_primitives import JAX_VERSION, cond_p_q
 from unxt.quantity import AllowValue
 
 
@@ -409,3 +409,53 @@ def test_nextafter_dimensionful_toward_finite_raw_raises():
         quax.quaxify(lambda q: lax.nextafter(q, jnp.full_like(_FLOATS, 2.0)))(
             u.Q(_FLOATS, "m")
         )
+
+
+@pytest.mark.skipif(JAX_VERSION < (0, 12, 0), reason="`polynomial_p`: JAX 0.12.0")
+def test_polynomial_converts_each_coefficient():
+    """Coefficient ``k`` is converted to the result unit over ``x``'s unit**k."""
+    polynomial = quax.quaxify(lax.polynomial)
+    got = polynomial(u.Q(1.0, "min"), [u.Q(3.0, "m"), u.Q(2.0, "m/s")])
+    assert got.unit == u.unit("m")
+    assert np.isclose(np.asarray(got.value), 123.0)
+
+    # Raw `x`: every coefficient shares the result unit.
+    got = qnp.polyval(u.Q([2.0, 3.0], "km"), 1.0)
+    assert got.unit == u.unit("km")
+    assert np.isclose(np.asarray(got.value), 5.0)
+
+    with pytest.raises(UnitConversionError):
+        polynomial(u.Q(1.0, "s"), [u.Q(3.0, "m"), u.Q(2.0, "m")])
+
+
+@pytest.mark.skipif(JAX_VERSION < (0, 12, 0), reason="`polynomial_p`: JAX 0.12.0")
+def test_polynomial_promotes_after_unit_conversion():
+    """Converted coefficients can be float; an int ``x`` must not truncate them."""
+    got = qnp.polyval(u.Q([1, 1], ""), u.Q(50, "%"))
+    assert np.isclose(np.asarray(got.value), 1.5)
+
+    polynomial = quax.quaxify(lax.polynomial)
+    got = polynomial(u.Q(1, "s"), [u.Q(0, "m"), u.Q(1, "m/min")])
+    assert got.unit == u.unit("m")
+    assert np.isclose(np.asarray(got.value), 1 / 60)
+
+
+@pytest.mark.skipif(JAX_VERSION < (0, 12, 0), reason="`polynomial_p`: JAX 0.12.0")
+@pytest.mark.parametrize("jit", [False, True], ids=["eager", "jit"])
+def test_polynomial_static_constant_term_gives_quantity(jit):
+    """A `StaticQuantity` constant term gives a `Quantity`, also under `jit`."""
+    polynomial = quax.quaxify(lax.polynomial)
+    if jit:
+        polynomial = jax.jit(polynomial)
+    got = polynomial(u.Q(2.0, "m"), [u.StaticQuantity(1.0, "m2"), u.Q(1.0, "m")])
+    assert type(got) is u.Q
+    assert got.unit == u.unit("m2")
+    assert np.isclose(np.asarray(got.value), 3.0)
+
+
+@pytest.mark.parametrize("fn", [lax.tanh, lax.asin, lax.acos, lax.atanh])
+def test_trig_jvp_inside_quaxify(fn):
+    """These JVPs use `one_minus_square_p` since JAX 0.11.2."""
+    got = quax.quaxify(jax.grad(fn))(u.Q(0.5, ""))
+    assert got.unit == u.unit("")
+    assert np.isclose(np.asarray(got.value), jax.grad(fn)(0.5))

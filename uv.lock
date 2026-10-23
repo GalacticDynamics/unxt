@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.15' and sys_platform == 'win32'",
@@ -3236,7 +3236,7 @@ wheels = [
 
 [[package]]
 name = "quax"
-version = "0.4.4"
+version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "equinox" },
@@ -3245,9 +3245,9 @@ dependencies = [
     { name = "packaging" },
     { name = "plum-dispatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/46/a0/1d0293a11b136451cb43bcd2025a34ca9b9134ad2bfc660ead6430477215/quax-0.4.4.tar.gz", hash = "sha256:24208b4341ac18c34710c877d0133b508e1baa70c548191e03e21fa7cb7f7854", size = 214593, upload-time = "2026-10-04T04:38:44.11Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7e/ca/22d024bf70badc86c9c31f37f7f5bd4afb97ff4bc82cb95c802676c4915f/quax-0.4.6.tar.gz", hash = "sha256:994f0a8ae909c33c729adca07921b78314b5fd9d71aa9b4f135e9e409a192bae", size = 216040, upload-time = "2026-10-20T01:06:18.985Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e8/21/c2fecfd4e061d67d44f671c13d2a45cb3b0f66e0f76be430a97305ccb953/quax-0.4.4-py3-none-any.whl", hash = "sha256:2aa1ab0380599453b4e3d691f87c17c1881348155dfc92de1870f62ff115536e", size = 61476, upload-time = "2026-10-04T04:38:42.358Z" },
+    { url = "https://files.pythonhosted.org/packages/21/09/dede1ec41c0f89fd128c65e7690a9e6112e63166c424287600e8a54a45bd/quax-0.4.6-py3-none-any.whl", hash = "sha256:123dffe5fb5fe6784d9e75879da7409b8b73d691babb094c43f5945d57c830e1", size = 61767, upload-time = "2026-10-20T01:06:17.207Z" },
 ]
 
 [[package]]
@@ -4238,7 +4238,7 @@ requires-dist = [
     { name = "optional-dependencies", specifier = ">=0.4.1" },
     { name = "plum-dispatch", specifier = ">=2.7.0,!=2.10.0" },
     { name = "plum-dispatch", marker = "python_full_version >= '3.14'", specifier = ">=2.9.0" },
-    { name = "quax", specifier = ">=0.4.4" },
+    { name = "quax", specifier = ">=0.4.6" },
     { name = "quax-blocks", specifier = ">=0.5.0" },
     { name = "quaxed", specifier = ">=0.10.6" },
     { name = "traitlets", specifier = ">=5.0.0" },
@@ -4295,7 +4295,7 @@ dev = [
     { name = "pytest-mpl", specifier = ">=0.17.0" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "pytz", specifier = ">=2024.2" },
-    { name = "quax", specifier = ">=0.4.4" },
+    { name = "quax", specifier = ">=0.4.6" },
     { name = "sphinx", specifier = ">=7.0" },
     { name = "sphinx-autobuild", specifier = ">=2024.9.3" },
     { name = "sphinx-autodoc-typehints", specifier = ">=3.0.0" },
@@ -4327,7 +4327,7 @@ docs = [
     { name = "myst-nb", specifier = ">=1.1.2" },
     { name = "myst-parser", specifier = ">=0.13" },
     { name = "pytz", specifier = ">=2024.2" },
-    { name = "quax", specifier = ">=0.4.4" },
+    { name = "quax", specifier = ">=0.4.6" },
     { name = "sphinx", specifier = ">=7.0" },
     { name = "sphinx-autobuild", specifier = ">=2024.9.3" },
     { name = "sphinx-autodoc-typehints", specifier = ">=3.0.0" },
@@ -4685,7 +4685,7 @@ requires-dist = [
     { name = "equinox", specifier = ">=0.11.8" },
     { name = "jaxtyping", specifier = ">=0.2.34" },
     { name = "plum-dispatch", specifier = ">=2.5.7,!=2.10.0" },
-    { name = "quax", specifier = ">=0.4.4" },
+    { name = "quax", specifier = ">=0.4.6" },
     { name = "unxt", editable = "." },
 ]
 
