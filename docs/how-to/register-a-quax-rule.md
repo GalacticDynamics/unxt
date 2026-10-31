@@ -16,7 +16,7 @@ A rule is a function decorated with `quax.register`, taking the primitive's oper
 <!-- skip: next -->
 <!-- `quax.register` writes into a process-global rule table, so executing this
      stub would permanently shadow unxt's real `lax.abs_p` rule for every later
-     test in the same pytest process -- `abs` and everything that lowers through
+     test in the same pytest process. `abs` and everything that lowers through
      it (`isinf`, `hypot`, `allclose`, ...) would then return `None`. See #1007. -->
 
 ```python
