@@ -11,7 +11,7 @@ uv sync --group dev --extra all      # install, all extras + dev tooling
 uv run nox -s all                    # the full gate: lint -> test -> docs
 uv run nox -s lint                   # pre-commit (incl. pyright/ty/mypy) + pylint
 uv run nox -s test                   # pytest, every workspace package
-uv run nox -s pytest -- unxt         # pytest for one package only (see PackageEnum)
+uv run nox -s "pytest(package='unxt')"  # pytest for one package only (see PackageEnum)
 uv run nox -s docs -- --serve        # build + preview the Sphinx site
 uv run nox -s docs -- -b linkcheck   # check doc links
 uv run nox -s pytest_benchmark       # CodSpeed benchmarks (also gated by the `run-benchmarks` PR label)
