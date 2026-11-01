@@ -13,6 +13,12 @@ If instead you want `unxt`'s _functions_ (`unit_of`, `uconvert`, `ustrip`) to wo
 
 A rule is a function decorated with `quax.register`, taking the primitive's operands and returning the result:
 
+<!-- skip: next -->
+<!-- `quax.register` writes into a process-global rule table, so executing this
+     stub would permanently shadow unxt's real `lax.abs_p` rule for every later
+     test in the same pytest process. `abs` and everything that lowers through
+     it (`isinf`, `hypot`, `allclose`, ...) would then return `None`. See #1007. -->
+
 ```python
 import quax
 from jax import lax
