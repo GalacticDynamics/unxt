@@ -86,7 +86,7 @@ description: >
 - `uv run nox -s ...`, never bare `pytest`/`ruff`/`python`.
 - Conventional commits + gitmoji (commitizen); scope is the package/module.
 - The pre-commit `ruff-check` hook runs with `--fix --show-fixes` and can modify files — a "ruff check passed" claim based on a bare `uv run ruff check` isn't the same gate as CI's pre-commit run.
-- pylint runs per-package (`nox -s pylint -- <package>`) to avoid cross-package `duplicate-code` false positives; don't assume a clean per-package pylint run means the whole tree is clean of duplication.
+- pylint runs per-package (`nox -s "pylint(package='<package>')"`) to avoid cross-package `duplicate-code` false positives; don't assume a clean per-package pylint run means the whole tree is clean of duplication.
 
 ## Further reading
 
