@@ -2,7 +2,7 @@
 
 `engine` is self-contained and knows nothing about `unxt`; `axes` teaches it
 the axes `unxt` needs. Importing this package registers those axes, so the
-grammar is complete by the time anything formats. See `engine` for the seam.
+grammar is complete by the time anything formats.
 """
 
 from . import axes as _axes, engine as _engine, generic as _generic

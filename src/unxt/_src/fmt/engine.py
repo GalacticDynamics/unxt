@@ -4,8 +4,8 @@
 quantities, units, arrays, or `jax`, and imports nothing from `unxt` -- see
 `unxt._src.fmt.axes` for the layer that teaches it those. It is written to be
 lifted out into a package of its own, with `unxt`, `coordinax` and `galax`
-registering into it as peers; a test pins the import restriction so the seam
-cannot rot.
+registering into it as peers. A test reads this module's import list, so that
+restriction is enforced rather than merely documented.
 
 That package is intended to be called **``pparts``**, after the extension
 point everything here turns on: a type joins in by saying what it is *made
@@ -237,13 +237,12 @@ def _markup_table(markup: str, /) -> Mapping[str, Any]:
 def unwrap_math(text: str, /) -> str:
     r"""Strip enclosing ``$...$`` from a LaTeX fragment, if it has them.
 
-    Conditional on the delimiters actually being present, not on the source
-    being *expected* to supply them. Slicing unconditionally corrupts any
-    fragment that arrives unwrapped -- ``\mathrm{m}`` becomes ``mathrm{m``.
+    Strips only when both delimiters are present, so a fragment that arrives
+    unwrapped is returned unchanged. Slicing unconditionally would turn
+    ``\mathrm{m}`` into ``mathrm{m``.
 
-    The length guard is load-bearing: a lone ``"$"`` satisfies both
-    ``startswith`` and ``endswith``, and would otherwise be sliced away
-    entirely.
+    A lone ``"$"`` is also returned unchanged: it starts and ends with ``"$"``,
+    but there is nothing between them to keep.
 
     Examples
     --------
@@ -430,10 +429,9 @@ def _sep_doc(
 ) -> list[wl.AbstractDoc]:
     r"""Return the documents for a ``"sep"`` fragment.
 
-    ``sep`` names the role to stand in for ``mul``, so the override comes from
-    the markup table rather than a literal the caller chose -- which is what
-    lets LaTeX spell a "bare" join as ``\,`` instead of a space that math mode
-    would discard.
+    ``sep`` names a role, not a literal, so each markup supplies its own text
+    for that role. LaTeX spells a "bare" join ``\,``; a plain space would be
+    discarded by math mode.
 
     A separator offers a break opportunity, but only where that is safe:
 
@@ -485,11 +483,10 @@ def parts_to_doc(
 ) -> wl.AbstractDoc:
     """Build a wadler-lindig document from fragments, in any markup.
 
-    Every markup goes through this one path. A markup's wrapper text is
-    emitted zero-width (`_invisible`), so it reaches the output without being
-    billed as columns -- which is what lets HTML and LaTeX share the layout,
-    line breaking and nesting that plain text gets. `_sep_doc` says where the
-    break points come from.
+    Every markup goes through this one path. Wrapper text is emitted
+    zero-width (`_invisible`), so it reaches the output without counting toward
+    the line width, and HTML and LaTeX break lines exactly where plain text
+    does. `_sep_doc` says where the break points come from.
 
     Examples
     --------
@@ -554,9 +551,8 @@ def parts_to_markup(
 ) -> str:
     r"""Flatten fragments into one string in ``markup``, applying its wrappers.
 
-    The row's ``wrap`` is applied exactly once at the top -- which is what
-    keeps a nested LaTeX rendering to a single ``$`` pair. This is
-    `parts_to_doc` laid out flat.
+    The row's ``wrap`` is applied once, at the top, so a nested LaTeX
+    rendering has a single ``$`` pair. This is `parts_to_doc` laid out flat.
 
     Examples
     --------
@@ -850,8 +846,7 @@ def _scan_keywords(
 
     Stops at the first token that is not a keyword (an alias counts, expanded
     in place). The caller takes everything from that index on as the value
-    spec -- which is what keeps a format spec's own ``-`` from being read as a
-    component boundary.
+    spec, so a format spec's own ``-`` is never read as a component boundary.
     """
     seen: dict[str, Any] = {}
     for i, token in enumerate(tokens):
@@ -917,9 +912,9 @@ def parse_spec(spec: str, /, *, obj: Any = None) -> Spec:
     seen, i = _scan_keywords(tokens, spec, obj)
 
     # Whatever the scan did not claim goes to the axis that accepts free text,
-    # as that axis's value -- which is what makes "a keyword and free text for
-    # one axis" the ordinary set-twice error below. A spec with no keyword at
-    # all is fine; a bare ".3g" is the commonest there is.
+    # as that axis's value, so a keyword *and* free text for one axis is the
+    # ordinary set-twice error below. A spec with no keyword at all is fine; a
+    # bare ".3g" is the commonest there is.
     free_text = "-".join(tokens[i:])
     text_axis = _free_text_axis() if free_text else None
     if text_axis is not None:
@@ -994,9 +989,11 @@ def render(
 def _render_call(obj: Any, spec: Spec, /, *, width: int, indent: int, **kw: Any) -> str:
     """Render through `wadler_lindig.pformat`, and so the object's ``__pdoc__``.
 
-    That indirection is load-bearing rather than incidental: ``__pdoc__`` is
-    where a type states how to *reconstruct* itself, which is what keeps
-    ``eval(repr(x)) == x`` true for the types that promise it.
+    The other layouts build their output from `pparts` fragments. This one
+    delegates instead: a constructor expression says how to *rebuild* a value,
+    not how it looks, and only the type knows that. A type promising
+    ``eval(repr(x)) == x`` keeps that promise in ``__pdoc__``. See
+    :doc:`/explanation/why-formatting-is-one-engine`.
     """
     return wl.pformat(obj, width=width, indent=indent, **kw)
 

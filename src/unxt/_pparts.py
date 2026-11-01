@@ -33,8 +33,9 @@ unproven stays behind `unxt._src.fmt`. The contract, in three groups:
 - **extend the markups**: ``register_markup``, plus ``unregister_axis`` /
   ``unregister_alias`` / ``unregister_markup`` to undo a registration.
 
-The guide has the grammar, the axis table, and worked extension examples:
-:doc:`/how-to/formatting`.
+Worked extension examples are in :doc:`/how-to/make-a-type-formattable`; the
+grammar, axis table and registration constraints are in
+:doc:`/reference/formatting`.
 
 Examples
 --------
@@ -89,7 +90,7 @@ exists:
 """
 
 # This module re-exports ``unxt._src.fmt``'s names verbatim, so the two
-# ``__all__`` tuples trip duplicate-code; that overlap is the point of a shim.
+# ``__all__`` tuples trip duplicate-code; re-exporting is what a shim is for.
 # pylint: disable=duplicate-code
 
 __all__ = (

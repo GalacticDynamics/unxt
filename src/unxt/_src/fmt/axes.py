@@ -1,14 +1,14 @@
 """`unxt`'s layer over the string-formatting engine.
 
-Everything here is domain knowledge the engine deliberately does not have: the
+Everything here is domain knowledge the engine does not have: the
 axes `unxt` puts into the grammar, the aliases it names them by, and the
 array-rendering helpers those axes need. `coordinax` and `galax` add their own
 by importing `register_axis` and doing the same thing -- they are peers of this
 module, not clients of it.
 
 The import direction is one-way: this module imports the engine, never the
-reverse. That is the seam along which the engine lifts out into a package of
-its own, and a test enforces it.
+reverse. A test enforces that, so the engine can be lifted out into a package
+of its own.
 
 """
 
