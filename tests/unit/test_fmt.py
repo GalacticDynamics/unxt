@@ -593,6 +593,31 @@ def test_import_offenders_flags_what_it_should() -> None:
     )
 
 
+def test_the_package_side_exposes_no_privates_across_the_seam() -> None:
+    """Unxt's layer must reach the engine through public names only.
+
+    After extraction these are separate distributions, where an underscore
+    name can change in a patch release without warning.
+    """
+    import ast  # noqa: PLC0415
+
+    source = (
+        pathlib.Path(engine_module.__file__)
+        .with_name("axes.py")
+        .read_text(encoding="utf-8")
+    )
+    imported = [
+        alias.name
+        for node in ast.walk(ast.parse(source))
+        if isinstance(node, ast.ImportFrom)
+        and node.level == 1
+        and node.module in _PACKAGE_SIDE
+        for alias in node.names
+    ]
+    assert imported, "the test is vacuous if axes.py imports nothing from the seam"
+    assert [n for n in imported if n.startswith("_")] == []
+
+
 def test_package_side_imports_only_wl_plum_and_stdlib() -> None:
     """engine.py and generic.py are the future `pparts` package.
 

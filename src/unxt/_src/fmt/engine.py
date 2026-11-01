@@ -43,9 +43,11 @@ __all__ = (
     "ReprMixin",
     "Spec",
     "bad_spec",
+    "FLAT",
     "doc_part",
     "doc_to_str",
     "inert_axes",
+    "markup_table",
     "math_doc",
     "parse_spec",
     "parts_to_doc",
@@ -225,7 +227,7 @@ def _role_override(table: Mapping[str, Any], role: str, /) -> Any:
     return None if role in REQUIRED_MARKUP_KEYS else table.get(role)
 
 
-def _markup_table(markup: str, /) -> Mapping[str, Any]:
+def markup_table(markup: str, /) -> Mapping[str, Any]:
     """Return the `MARKUPS` row, naming the markup if it is unknown."""
     try:
         return MARKUPS[markup]
@@ -360,7 +362,7 @@ def doc_to_str(doc: wl.AbstractDoc, /, width: int = 88) -> str:
 
 
 #: Wide enough that no break is taken: lays a doc out on one line.
-_FLAT: Final = 10**9
+FLAT: Final = 10**9
 
 
 def doc_part(role: str, doc: wl.AbstractDoc, /, kind: str = "content") -> PPart:
@@ -374,7 +376,7 @@ def doc_part(role: str, doc: wl.AbstractDoc, /, kind: str = "content") -> PPart:
     '1.0'
 
     """
-    return PPart(role, doc_to_str(doc, _FLAT), kind, doc)
+    return PPart(role, doc_to_str(doc, FLAT), kind, doc)
 
 
 @dispatch.abstract
@@ -507,7 +509,7 @@ def parts_to_doc(
       <span>m</span>
 
     """
-    table = _markup_table(markup)
+    table = markup_table(markup)
     escape = table["escape"] or (lambda s: s)
     docs: list[wl.AbstractDoc] = []
     for part in parts:
@@ -573,7 +575,7 @@ def parts_to_markup(
     '[1., 2., 3.] m'
 
     """
-    return doc_to_str(parts_to_doc(parts, sep=sep, markup=markup), _FLAT)
+    return doc_to_str(parts_to_doc(parts, sep=sep, markup=markup), FLAT)
 
 
 # ============================================================================
