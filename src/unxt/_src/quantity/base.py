@@ -1675,11 +1675,16 @@ def pparts(
     '1. * meter'
 
     """
-    kind = "markup"  # `value_str` escapes for the markup itself
-    value = fmt.value_str(
+    value = fmt.pvalue(
         obj.value, markup=markup, short_arrays=short_arrays, value_spec=value_spec
     )
-    parts: tuple[Any, ...] = (fmt.PPart("value", value, kind),)
+    parts: tuple[Any, ...] = (fmt.doc_part("value", value, "markup"),)
     if unit_parts := fmt.pparts(obj.unit, markup=markup, unit_style=unit_style):
         parts = (*parts, fmt.PPart("mul", " * ", "sep"), *unit_parts)
     return parts
+
+
+@fmt.pvalue.dispatch  # type: ignore[misc]
+def pvalue(obj: StaticValue, /, **kw: Any) -> Any:
+    """Render a static value as the array it wraps."""
+    return fmt.pvalue(np.asarray(obj), **kw)

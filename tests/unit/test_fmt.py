@@ -18,6 +18,7 @@ from unxt._src.fmt import (
     PGroup,
     PPart,
     Spec,
+    doc_part,
     doc_to_str,
     engine as engine_module,
     inert_axes,
@@ -806,7 +807,7 @@ def test_pparts_shim_exports_the_build_by_hand_tools():
     """A downstream package can build a doc from its own parts, no `_src`."""
     import unxt._pparts as shim  # noqa: PLC0415
 
-    for name in ("parts_to_doc", "parts_to_markup", "doc_to_str", "value_str"):
+    for name in ("parts_to_doc", "parts_to_markup", "doc_to_str", "pvalue"):
         assert name in shim.__all__
         assert callable(getattr(shim, name))
 
@@ -837,11 +838,126 @@ def test_call_layout_is_wl_pformat_for_nested_dataclasses():
         )
 
 
-@pytest.mark.xfail(strict=True, reason="array values are numpy strings, not WL docs")
-def test_large_array_respects_width():
-    """Known gap: `width` does not reach array elements (see the audit)."""
-    text = render(u.Q(np.arange(30.0), "m"), parse_spec("mul"), width=40)
+@pytest.mark.parametrize("width", [10, 20, 40])
+def test_large_array_respects_width(width):
+    text = render(u.Q(np.arange(30.0), "m"), parse_spec("mul"), width=width)
+    assert max(map(len, text.splitlines())) <= width
+
+
+def test_array_text_is_unchanged_when_it_fits():
+    q = u.Q([1.5, 10.0], "m")
+    assert f"{q:mul}" == "[ 1.5, 10. ] * m"
+    assert f"{u.Q([[1.0, 2.0], [3.0, 4.0]], 'm'):mul}" == "[[1., 2.], [3., 4.]] * m"
+
+
+@pytest.mark.parametrize(
+    "arr",
+    [
+        np.array([1.5, 10.0]),
+        np.array([1.0, 2.0, 3.0]),
+        np.array([True, False]),
+        np.array([1, 20]),
+        np.array([1 + 2j, 3j]),
+        np.array([np.nan, np.inf, 1.0]),
+    ],
+)
+def test_1d_value_matches_the_old_numpy_rendering(arr):
+    old = np.array2string(arr, separator=", ", max_line_width=10**9)
+    assert f"{u.Q(arr, 'm'):mul}" == f"{old} * m"
+
+
+@pytest.mark.parametrize(
+    ("value", "mul", "latex"),
+    [
+        (1.0, "1. * m", r"$1. \, \mathrm{m}$"),
+        ([], "[] * m", r"$[] \, \mathrm{m}$"),
+        ([True, False], "[ True, False] * m", None),
+        ([1, 2], "[1, 2] * m", None),
+        ([1 + 2j], "[1.+2.j] * m", None),
+        ([np.nan, np.inf], "[nan, inf] * m", None),
+    ],
+)
+def test_pvalue_handles_every_shape_and_dtype(value, mul, latex):
+    q = u.Q(value, "m")
+    assert f"{q:mul}" == mul
+    if latex is not None:
+        assert f"{q:latex}" == latex
+    for spec in ("html", "latex", "type", "array"):
+        assert isinstance(f"{q:{spec}}", str)
+
+
+def test_summarised_2d_array_respects_width():
+    q = u.Q(np.arange(4000.0).reshape(2000, 2), "m")
+    text = render(q, parse_spec("mul"), width=40)
+    assert "..." in text
     assert max(map(len, text.splitlines())) <= 40
+
+
+def test_bracket_in_a_string_element_is_not_structure():
+    arr = np.array(["a]b", "c"])
+    old = np.array2string(arr, separator=", ", max_line_width=10**9)
+    assert f"{u.quantity.StaticQuantity(arr, 'm'):mul}" == f"{old} * m"
+    assert old == "['a]b', 'c']"
+
+
+@pytest.mark.parametrize(
+    "arr",
+    [
+        np.array(["a]b", "c [d", "e f"]),
+        np.array([[1, 2], "x]"], dtype=object),
+        np.array([b"x]", b"y"]),
+    ],
+)
+def test_non_numeric_values_are_never_truncated(arr):
+    from unxt._src.fmt import pvalue  # noqa: PLC0415
+
+    old = np.array2string(arr, separator=", ", max_line_width=10**9)
+    assert doc_to_str(pvalue(arr)) == old
+
+
+def test_bracket_fill_in_value_spec_does_not_crash():
+    from unxt._src.fmt import pvalue  # noqa: PLC0415
+
+    a = np.array([1.0, 2.0])
+    old = np.array2string(
+        a,
+        separator=", ",
+        formatter={"all": lambda v: format(v, "[>5")},
+        max_line_width=10**9,
+    )
+    assert doc_to_str(pvalue(a, value_spec="[>5")) == old
+
+
+def test_large_array_summarises_past_the_threshold():
+    text = f"{u.Q(np.arange(2000.0), 'm'):mul}"
+    assert "..." in text
+
+
+def test_value_elements_are_escaped_for_the_markup():
+    assert r"25.0\%,~50.0\%" in f"{u.Q([0.25, 0.5], 'm'):latex-.1%}"
+    assert "&lt;" in parts_to_markup(
+        (doc_part("value", wl.TextDoc("&lt;"), "markup"),), markup="html"
+    )
+
+
+def test_tracer_value_renders_a_summary_in_every_markup():
+    seen = []
+
+    @jax.jit
+    def f(x):
+        q = u.Q(x, "m")
+        seen.extend(f"{q:{s}}" for s in ("mul", "html", "latex"))
+        return x
+
+    f(np.arange(3.0))
+    assert all("f32[3]" in s or "f64[3]" in s for s in seen)
+
+
+def test_default_pvalue_needs_no_numpy():
+    from unxt._src.fmt import pvalue  # noqa: PLC0415
+
+    assert doc_to_str(pvalue("abc")) == "'abc'"
+    assert doc_to_str(pvalue(3.14159, value_spec=".2f")) == "3.14"
 
 
 def test_unregistered_type_degrades_to_str():
@@ -859,3 +975,53 @@ def test_unregistered_type_rejects_a_value_spec():
     """No elements to format: say so rather than answer a different request."""
     with pytest.raises(TypeError, match="does not support a value format spec"):
         pspec(object(), ".2f")
+
+
+def test_ppart_doc_defaults_to_none_and_keeps_text():
+    assert PPart("value", "1.0").doc is None
+
+
+def test_doc_part_keeps_flat_text_and_the_doc():
+    doc = wl.bracketed(
+        begin=wl.TextDoc("["),
+        docs=[wl.TextDoc("1."), wl.TextDoc("2.")],
+        sep=wl.comma,
+        end=wl.TextDoc("]"),
+        indent=1,
+    )
+    part = doc_part("value", doc)
+    assert part.text == "[1., 2.]"
+    assert part.doc is doc
+
+
+def test_text_layout_uses_the_part_doc_so_width_reaches_it():
+    doc = wl.bracketed(
+        begin=wl.TextDoc("["),
+        docs=[wl.TextDoc(str(i)) for i in range(8)],
+        sep=wl.comma,
+        end=wl.TextDoc("]"),
+        indent=1,
+    )
+    parts = (doc_part("value", doc), PPart("mul", " * ", "sep"), PPart("unit", "m"))
+    assert doc_to_str(parts_to_doc(parts), 88) == "[0, 1, 2, 3, 4, 5, 6, 7] * m"
+    narrow = doc_to_str(parts_to_doc(parts), 10)
+    assert "\n" in narrow
+    assert max(map(len, narrow.splitlines())) <= 10
+
+
+@pytest.mark.parametrize("markup", ["text", "html", "latex"])
+@pytest.mark.parametrize("spec", ["", "bare", "mul"])
+def test_markup_strings_equal_the_flat_layout_of_the_unified_doc(markup, spec):
+    q = u.Q([1.0, 2.0], "m")
+    parts = pparts(q, markup=markup)
+    sep = spec or None
+    flat = doc_to_str(parts_to_doc(parts, markup=markup, sep=sep), 10**9)
+    assert parts_to_markup(parts, markup=markup, sep=sep) == flat
+
+
+def test_markup_docs_offer_no_breaks_until_wl_23():
+    """HTML/LaTeX stay one line at any width (tags would count as columns)."""
+    q = u.Q(np.arange(30.0), "m")
+    for markup in ("html", "latex"):
+        out = render(q, parse_spec(markup), width=10)
+        assert "\n" not in out

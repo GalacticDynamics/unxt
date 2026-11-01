@@ -15,7 +15,6 @@ its own, and a test enforces it.
 __all__ = (
     "custom_pdoc_no_kind",
     "custom_pdoc_noarray",
-    "value_str",
 )
 
 from typing import Any
@@ -25,12 +24,14 @@ import numpy as np
 import wadler_lindig as wl
 
 from .engine import (
+    _FLAT,
     Axis,
     _markup_table,
+    doc_to_str,
     register_alias,
     register_axis,
 )
-from .generic import VALUE_FROM_SHORT_ARRAYS  # noqa: F401
+from .generic import VALUE_FROM_SHORT_ARRAYS, pvalue  # noqa: F401
 
 
 def custom_pdoc_no_kind(obj: Any, /) -> wl.AbstractDoc | None:
@@ -59,55 +60,95 @@ def custom_pdoc_noarray(obj: Any, /) -> wl.AbstractDoc | None:
     return None
 
 
-def value_str(
-    value: Any,
+_SENTINEL = "\0"
+
+
+def _array_doc(text: str, *, sep: wl.AbstractDoc, escape: Any) -> wl.AbstractDoc:
+    """Parse numpy's bracketed text (elements joined by ``_SENTINEL``) into a doc.
+
+    numpy fixes the *content* (dtype formatting, padding, summarisation); this
+    only recovers the nesting so wadler-lindig owns the *layout*.
+    """
+    pos = 0
+
+    def node() -> wl.AbstractDoc:
+        nonlocal pos
+        if text[pos] != "[":
+            end = pos
+            while end < len(text) and text[end] not in "[]" + _SENTINEL:
+                end += 1
+            leaf, pos = text[pos:end], end
+            return wl.TextDoc(escape(leaf))
+        pos += 1
+        kids: list[wl.AbstractDoc] = []
+        while text[pos] != "]":
+            if kids:  # consume the separator and the row break after it
+                pos += 1
+                if text[pos] == "\n":
+                    while text[pos] == "\n":
+                        pos += 1
+                    while text[pos] == " ":
+                        pos += 1
+            kids.append(node())
+        pos += 1
+        return wl.bracketed(
+            begin=wl.TextDoc("["),
+            docs=kids,
+            sep=sep,
+            end=wl.TextDoc("]"),
+            indent=1,
+        )
+
+    doc = node()
+    if pos != len(text):  # trailing text: not the structure we assumed
+        raise IndexError(pos)
+    return doc
+
+
+@pvalue.dispatch  # type: ignore[misc]
+def pvalue(
+    obj: jax.Array | np.ndarray,
     /,
     *,
     markup: str = "text",
     short_arrays: Any = "compact",
     value_spec: str | None = None,
-) -> str:
-    """Render a quantity's value, in one of the three ``value``-axis forms.
+    **kw: Any,
+) -> wl.AbstractDoc:
+    """Render an array: its values (``compact``), or a shape/dtype summary.
 
-    ``short_arrays`` is the axis in `__pdoc__`'s spelling: ``"compact"`` for
-    the values (``[1., 2.]``), `True` for a shape/dtype summary (``f32[2]``),
-    `False` for the full array repr (``Array([1., 2.], dtype=float32)``).
-
-    A `jax.core.Tracer` forces the summary: under `jax.jit` only the shape and
-    dtype exist, and `numpy.array2string` on a tracer raises -- so
-    ``value_spec`` goes unused there too, like any other per-element detail a
-    summary cannot show.
-
-    ``value_spec``, when given, is a Python format spec (e.g. ``".3g"``)
-    applied to every element via `numpy.array2string`'s ``formatter``, instead
-    of NumPy's own default float rendering.
-
-    The text comes back in the markup's own dialect -- already escaped for HTML
-    or LaTeX, with LaTeX element separators in place -- so the caller marks it
-    ``kind="markup"`` rather than having it escaped a second time.
+    A `jax.core.Tracer` forces the summary -- under `jax.jit` only shape and
+    dtype exist. ``value_spec`` is applied to every element.
     """
     table = _markup_table(markup)
     escape = table["escape"] or (lambda s: s)
-    if isinstance(value, jax.core.Tracer):
+    if isinstance(obj, jax.core.Tracer):
         short_arrays = True
     if short_arrays == "compact":
         formatter = {"all": lambda v: format(v, value_spec)} if value_spec else None
-        # A placeholder separator, so escaping the elements cannot touch the
-        # markup's own ``vsep`` (LaTeX's ``,~`` would be escaped to nothing).
-        if table["escape"] is None:
-            return np.array2string(
-                np.asarray(value), separator=table["vsep"], formatter=formatter
-            )
-        s = np.array2string(np.asarray(value), separator="\0", formatter=formatter)
-        return escape(s).replace("\0", table["vsep"])
-    # ``show_wrapper=False`` is for ``StaticValue``, whose ``__pdoc__`` would
-    # otherwise print ``StaticValue(...)`` around the array.
-    #
-    # The hook *builds* a summary, so it belongs only on the `True` path;
-    # ``custom=None`` is called and raises, so it is omitted, not blanked.
-    kw = {"custom": custom_pdoc_no_kind} if short_arrays else {}
-    return escape(
-        wl.pformat(value, short_arrays=short_arrays, show_wrapper=False, **kw)
+        text = np.array2string(
+            np.asarray(obj),
+            separator=_SENTINEL,
+            formatter=formatter,
+            max_line_width=10**9,
+        )
+        vsep = table["vsep"]  # one delimiter char, then the break text
+        sep = wl.TextDoc(vsep[:1]) + wl.BreakDoc(vsep[1:])
+        # Only numeric text has brackets that are all structure; a string or
+        # object element (or a bracket fill in ``value_spec``) can hold ``[``.
+        if np.asarray(obj).dtype.kind in "biufc":
+            try:
+                return _array_doc(text, sep=sep, escape=escape)
+            except IndexError:  # not bracket-structured numbers
+                pass
+        # Never truncate or raise: one flat TextDoc, no break points.
+        return wl.TextDoc(escape(text).replace(_SENTINEL, vsep))
+    # ``show_wrapper=False`` is for ``StaticValue``; the summary hook belongs
+    # only on the ``True`` path (``custom=None`` would be called and raise).
+    custom = {"custom": custom_pdoc_no_kind} if short_arrays else {}
+    doc = wl.pdoc(obj, short_arrays=short_arrays, show_wrapper=False, **custom)
+    return (
+        doc if table["escape"] is None else wl.TextDoc(escape(doc_to_str(doc, _FLAT)))
     )
 
 

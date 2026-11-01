@@ -43,6 +43,7 @@ __all__ = (
     "REQUIRED_MARKUP_KEYS",
     "Spec",
     "bad_spec",
+    "doc_part",
     "doc_to_str",
     "inert_axes",
     "parse_spec",
@@ -94,6 +95,10 @@ class PPart(NamedTuple):
         ``"sep"`` -- a literal separator, not wrapped; it may offer a line
         break (see `parts_to_doc`). Escaped like content, unless the markup
         has a per-role override for it, which is trusted as markup.
+    doc
+        An optional wadler-lindig document for the fragment. Text-mode layout
+        uses it, so line breaking reaches inside; `text` stays as the flat
+        fallback, and is what markup layouts use.
 
     Escaping defaults to on so the failure mode is closed: a fragment carrying
     real markup must say so.
@@ -102,13 +107,14 @@ class PPart(NamedTuple):
     --------
     >>> from unxt._src.fmt import PPart
     >>> PPart("value", "1.0")
-    PPart(role='value', text='1.0', kind='content')
+    PPart(role='value', text='1.0', kind='content', doc=None)
 
     """
 
     role: str
     text: str
     kind: str = "content"
+    doc: wl.AbstractDoc | None = None
 
 
 class PGroup(NamedTuple):
@@ -130,8 +136,9 @@ class PGroup(NamedTuple):
     Examples
     --------
     >>> from unxt._src.fmt import PGroup, PPart
-    >>> PGroup("child", (PPart("value", "1.0"),))
-    PGroup(role='child', parts=(PPart(role='value', text='1.0', kind='content'),))
+    >>> PGroup("child", (PPart("value", "1.0"),))  # doctest: +NORMALIZE_WHITESPACE
+    PGroup(role='child',
+           parts=(PPart(role='value', text='1.0', kind='content', doc=None),))
 
     """
 
@@ -160,7 +167,7 @@ def _latex_escape(s: str, /) -> str:
 #:
 #: A row must define ``_content`` (the wrapper for a ``"content"``/``"markup"``
 #: fragment), ``wrap`` (applied once to the whole rendering), ``vsep`` (the
-#: array element separator, read by `value_str`) and ``escape`` (`None` for
+#: array element separator, read by `pvalue`) and ``escape`` (`None` for
 #: none). Any other key is a per-role override: for a ``"sep"`` fragment it
 #: *replaces* the separator text, and for a content fragment it is the wrapper
 #: template. The four required names are reserved: a role called ``escape`` or
@@ -287,6 +294,24 @@ def doc_to_str(doc: wl.AbstractDoc, /, width: int = 88) -> str:
     return wl.pformat(_DocHolder(doc), width=width)
 
 
+#: Wide enough that no break is taken: lays a doc out on one line.
+_FLAT: Final = 10**9
+
+
+def doc_part(role: str, doc: wl.AbstractDoc, /, kind: str = "content") -> PPart:
+    """Build a `PPart` carrying a document, with its flat text alongside.
+
+    Examples
+    --------
+    >>> import wadler_lindig as wl
+    >>> from unxt._src.fmt import doc_part
+    >>> doc_part("value", wl.TextDoc("1.0")).text
+    '1.0'
+
+    """
+    return PPart(role, doc_to_str(doc, _FLAT), kind, doc)
+
+
 @dispatch.abstract
 def pparts(obj: Any, /, *, markup: str = "text", **kw: Any) -> tuple[Any, ...]:
     """Decompose an object into a tree of `PPart` / `PGroup` fragments.
@@ -317,7 +342,7 @@ def pparts(
     --------
     >>> from unxt._src.fmt import pparts
     >>> pparts(object())
-    (PPart(role='value', text='<object object at ...>', kind='content'),)
+    (PPart(role='value', text='<object object at ...>', kind='content', doc=None),)
 
     """
     if value_spec is not None:
@@ -330,10 +355,40 @@ def pparts(
     return (PPart("value", str(obj)),)
 
 
+def _sep_doc(
+    part: PPart, sep: str | None, table: Mapping[str, Any], /, *, text_mode: bool
+) -> list[wl.AbstractDoc]:
+    r"""Return the documents for a ``"sep"`` fragment.
+
+    ``sep`` names the role to stand in for ``mul``, so the override comes from
+    the markup table rather than a literal the caller chose -- which is what
+    lets LaTeX spell a "bare" join as ``\,`` instead of a space that math mode
+    would discard.
+    """
+    role = sep if (sep is not None and part.role == "mul") else part.role
+    if not text_mode:
+        sub = _role_override(table, role)
+        escape = table["escape"] or (lambda s: s)
+        return [wl.TextDoc(sub if sub is not None else escape(part.text))]
+    text = part.text
+    if role != part.role:
+        text = _role_override(table, role) or part.text
+    if not text.endswith(" "):
+        return [wl.TextDoc(text)]
+    ink = text.rstrip(" ")
+    return [*([wl.TextDoc(ink)] if ink else []), wl.BreakDoc(" ")]
+
+
 def parts_to_doc(
-    parts: tuple[Any, ...], /, *, indent: int = 2, sep: str | None = None
+    parts: tuple[Any, ...],
+    /,
+    *,
+    indent: int = 2,
+    sep: str | None = None,
+    markup: str = "text",
+    _top: bool = True,
 ) -> wl.AbstractDoc:
-    """Build a wadler-lindig document from plain-text fragments.
+    """Build a wadler-lindig document from fragments, in any markup.
 
     A ``"sep"`` fragment becomes a break opportunity, but only where that is
     safe:
@@ -344,6 +399,11 @@ def parts_to_doc(
       trailing space is the break; anything before it is ink.
     - **Only a separator with trailing space offers a break.** Otherwise two
       adjacent separators emit two ``BreakDoc``s and produce a blank line.
+
+    HTML and LaTeX build the same tree but offer no break points, because
+    their wrapper text would be billed as columns. When wadler-lindig's
+    ``TextDoc(width=False)`` lands, wrappers use it and the ``text_mode``
+    guards below go away.
 
     Examples
     --------
@@ -356,22 +416,31 @@ def parts_to_doc(
     '[1., 2., 3.] * m'
 
     """
+    table = _markup_table(markup)
+    escape = table["escape"] or (lambda s: s)
+    # The seam for wadler-lindig PR #23: until then only text gets break points.
+    text_mode = markup == "text"
     docs: list[wl.AbstractDoc] = []
     for part in parts:
         if isinstance(part, PGroup):
-            docs.append(parts_to_doc(part.parts, indent=indent, sep=sep))
-            continue
-        role = sep if (sep is not None and part.role == "mul") else part.role
-        text = part.text
-        if role != part.role:
-            text = _role_override(_markup_table("text"), role) or part.text
-        if part.kind != "sep" or not text.endswith(" "):
-            docs.append(wl.TextDoc(text))
-            continue
-        if ink := text.rstrip(" "):
-            docs.append(wl.TextDoc(ink))
-        docs.append(wl.BreakDoc(" "))
-    return wl.GroupDoc(wl.NestDoc(wl.ConcatDoc(*docs), indent=indent))
+            docs.append(
+                parts_to_doc(
+                    part.parts, indent=indent, sep=sep, markup=markup, _top=False
+                )
+            )
+        elif part.kind == "sep":
+            docs.extend(_sep_doc(part, sep, table, text_mode=text_mode))
+        elif text_mode:
+            docs.append(part.doc if part.doc is not None else wl.TextDoc(part.text))
+        else:
+            text = escape(part.text) if part.kind == "content" else part.text
+            wrapper = _role_override(table, part.role) or table["_content"]
+            docs.append(wl.TextDoc(wrapper.format(text)))
+    body: wl.AbstractDoc = wl.ConcatDoc(*docs)
+    if _top:
+        pre, post = table["wrap"].split("{}")
+        body = wl.ConcatDoc(wl.TextDoc(pre), body, wl.TextDoc(post))
+    return wl.GroupDoc(wl.NestDoc(body, indent=indent))
 
 
 def parts_to_markup(
@@ -380,13 +449,12 @@ def parts_to_markup(
     *,
     markup: str = "text",
     sep: str | None = None,
-    _top: bool = True,
 ) -> str:
-    r"""Flatten fragments into a string, applying a markup's wrappers.
+    r"""Flatten fragments into one string in ``markup``, applying its wrappers.
 
-    The tree is flattened rather than nested, and the row's ``wrap`` is applied
-    exactly once at the top -- which is what keeps a nested LaTeX rendering to a
-    single ``$`` pair.
+    The row's ``wrap`` is applied exactly once at the top -- which is what
+    keeps a nested LaTeX rendering to a single ``$`` pair. This is
+    `parts_to_doc` laid out flat.
 
     Examples
     --------
@@ -407,27 +475,7 @@ def parts_to_markup(
     '[1., 2., 3.] m'
 
     """
-    table = _markup_table(markup)
-    escape = table["escape"] or (lambda s: s)
-    out: list[str] = []
-    for part in parts:
-        if isinstance(part, PGroup):
-            out.append(parts_to_markup(part.parts, markup=markup, sep=sep, _top=False))
-            continue
-        override = _role_override(table, part.role)
-        if part.kind == "sep":
-            # ``sep`` names the role to stand in for ``mul``, so the override
-            # comes from the markup table rather than a literal the caller
-            # chose -- which is what lets LaTeX spell a "bare" join as ``\,``
-            # instead of a space that math mode would discard.
-            role = sep if (sep is not None and part.role == "mul") else part.role
-            sub = _role_override(table, role)
-            out.append(sub if sub is not None else escape(part.text))
-        else:
-            text = escape(part.text) if part.kind == "content" else part.text
-            out.append((override or table["_content"]).format(text))
-    rendered = "".join(out)
-    return table["wrap"].format(rendered) if _top else rendered
+    return doc_to_str(parts_to_doc(parts, sep=sep, markup=markup), _FLAT)
 
 
 # ============================================================================
@@ -840,11 +888,7 @@ def _render_product(
     markup = kw.pop("markup", "text")
     sep = kw.pop("sep", None)
     parts = pparts(obj, markup=markup, **kw)
-    if markup == "text":
-        # Feed wadler-lindig, so the rendering is laid out rather than
-        # concatenated and composes inside a larger document.
-        return doc_to_str(parts_to_doc(parts, indent=indent, sep=sep), width)
-    return parts_to_markup(parts, markup=markup, sep=sep)
+    return doc_to_str(parts_to_doc(parts, indent=indent, sep=sep, markup=markup), width)
 
 
 _LAYOUTS["call"] = _render_call

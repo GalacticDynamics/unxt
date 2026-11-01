@@ -25,7 +25,7 @@ unproven stays behind `unxt._src.fmt`. The contract, in three groups:
   ``repr``/``str``.
 - **build by hand**: ``parts_to_markup`` / ``parts_to_doc`` flatten fragments
   to a string or a wadler-lindig document, ``doc_to_str`` lays a document out,
-  and ``value_str`` renders an array value in a markup's dialect.
+  and ``pvalue`` renders a value as a document in a markup's dialect.
 
 The guide has the grammar, the axis table, and worked extension examples:
 :doc:`/how-to/formatting`.
@@ -96,10 +96,10 @@ __all__ = (
     "parts_to_markup",
     "pparts",
     "pspec",
+    "pvalue",
     "register_alias",
     "register_axis",
     "render",
-    "value_str",
 )
 
 from .setup_package import install_import_hook
@@ -115,10 +115,10 @@ with install_import_hook("unxt._pparts"):
         parts_to_markup,
         pparts,
         pspec,
+        pvalue,
         register_alias,
         register_axis,
         render,
-        value_str,
     )
 
 # Clean up the namespace

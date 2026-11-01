@@ -169,12 +169,12 @@ def pparts(
     >>> from unxt._src.fmt import pparts
 
     >>> pparts(u.unit("m"))
-    (PPart(role='unit', text='m', kind='content'),)
+    (PPart(role='unit', text='m', kind='content', doc=None),)
 
     In LaTeX the fragment carries rendered markup, so it is not escaped again:
 
     >>> pparts(u.unit("m/s2"), markup="latex")
-    (PPart(role='unit', text='\\mathrm{\\frac{m}{s^{2}}}', kind='markup'),)
+    (PPart(role='unit', text='\\mathrm{\\frac{m}{s^{2}}}', kind='markup', doc=None),)
 
     A dimensionless unit contributes no fragment at all:
 
@@ -184,16 +184,16 @@ def pparts(
     ``"name"`` picks the spelled-out name, ``"dim"`` the physical dimension:
 
     >>> pparts(u.unit("m"), unit_style="name")
-    (PPart(role='unit', text='meter', kind='content'),)
+    (PPart(role='unit', text='meter', kind='content', doc=None),)
 
     >>> pparts(u.unit("m"), unit_style="dim")
-    (PPart(role='unit', text='length', kind='content'),)
+    (PPart(role='unit', text='length', kind='content', doc=None),)
 
     Both fall back to the symbol when the unit has no such spelling -- a
     composite has no single long name, so asking for one is not an error:
 
     >>> pparts(u.unit("km/s"), unit_style="name")
-    (PPart(role='unit', text='km / s', kind='content'),)
+    (PPart(role='unit', text='km / s', kind='content', doc=None),)
 
     """
     # A name or a dimension is a plain word, not astropy's own rendering, so it
