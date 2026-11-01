@@ -96,7 +96,7 @@ def _render_configured(obj: Any, cfg: Any, /) -> str:
     out of a string, while ``repr``/``str`` read them from `unxt.config`.
 
     The config traits keep their own spelling (``short_arrays``,
-    ``use_short_name``); `unxt._pparts.VALUE_FROM_SHORT_ARRAYS` is the single
+    ``use_short_name``); `unxt._src.fmt.VALUE_FROM_SHORT_ARRAYS` is the single
     place the two vocabularies meet. ``named_unit`` has no grammar keyword --
     it is a quantity-specific ``__pdoc__`` knob, not an axis every type
     shares -- so it rides through as a pass-through.

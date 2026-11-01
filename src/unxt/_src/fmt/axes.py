@@ -13,13 +13,15 @@ its own, and a test enforces it.
 """
 
 __all__ = (
+    "VALUE_FROM_SHORT_ARRAYS",
     "custom_pdoc_no_kind",
     "custom_pdoc_noarray",
 )
 
-from typing import Any
+from typing import Any, Final
 
 import jax
+import jax.numpy as jnp
 import numpy as np
 import wadler_lindig as wl
 
@@ -31,7 +33,17 @@ from .engine import (
     register_alias,
     register_axis,
 )
-from .generic import VALUE_FROM_SHORT_ARRAYS, pvalue  # noqa: F401
+from .generic import _SHORT_ARRAYS, pvalue
+
+#: ``short_arrays`` back to the ``value`` axis, for reading `unxt.config`.
+#:
+#: The config traits are public, documented API and keep their own spelling;
+#: this is the one place the two vocabularies are reconciled, so ``repr`` and
+#: ``str`` can be defined as specs without renaming anything users configure.
+#: Derived by inversion rather than written out, so the two cannot drift.
+VALUE_FROM_SHORT_ARRAYS: Final[dict[Any, str]] = {
+    v: k for k, v in _SHORT_ARRAYS.items()
+}
 
 
 def custom_pdoc_no_kind(obj: Any, /) -> wl.AbstractDoc | None:
@@ -63,7 +75,36 @@ def custom_pdoc_noarray(obj: Any, /) -> wl.AbstractDoc | None:
 _SENTINEL = "\0"
 
 
-def _array_doc(text: str, *, sep: wl.AbstractDoc, escape: Any) -> wl.AbstractDoc:
+def _row_doc(kids: list[wl.AbstractDoc], vsep: str, /) -> wl.AbstractDoc:
+    """Lay out one bracketed row of already-parsed children.
+
+    Outer rows use ``bracketed``, which breaks every element or none. The
+    innermost row (all leaves) fills as numpy does: each element sits in its
+    own group with the delimiter that *follows* it (``,`` or the closing
+    ``]``), so that delimiter counts when the group is asked whether it fits.
+    """
+    delim, brk = vsep[:1], wl.BreakDoc(vsep[1:])
+    if not kids or not all(isinstance(k, wl.TextDoc) for k in kids):
+        return wl.bracketed(
+            begin=wl.TextDoc("["),
+            docs=kids,
+            sep=wl.TextDoc(delim) + brk,
+            end=wl.TextDoc("]"),
+            indent=1,
+        )
+    if len(kids) == 1:
+        return wl.ConcatDoc(wl.TextDoc("["), kids[0], wl.TextDoc("]"))
+    groups = [
+        wl.GroupDoc(brk + k + wl.TextDoc("]" if i == len(kids) - 1 else delim))
+        for i, k in enumerate(kids[1:], 1)
+    ]
+    head = wl.ConcatDoc(kids[0], wl.TextDoc(delim))
+    return wl.ConcatDoc(
+        wl.TextDoc("["), wl.NestDoc(wl.ConcatDoc(head, *groups), indent=1)
+    )
+
+
+def _array_doc(text: str, *, vsep: str, escape: Any) -> wl.AbstractDoc:
     """Parse numpy's bracketed text (elements joined by ``_SENTINEL``) into a doc.
 
     numpy fixes the *content* (dtype formatting, padding, summarisation); this
@@ -91,13 +132,7 @@ def _array_doc(text: str, *, sep: wl.AbstractDoc, escape: Any) -> wl.AbstractDoc
                         pos += 1
             kids.append(node())
         pos += 1
-        return wl.bracketed(
-            begin=wl.TextDoc("["),
-            docs=kids,
-            sep=sep,
-            end=wl.TextDoc("]"),
-            indent=1,
-        )
+        return _row_doc(kids, vsep)
 
     doc = node()
     if pos != len(text):  # trailing text: not the structure we assumed
@@ -133,16 +168,18 @@ def pvalue(
             max_line_width=10**9,
         )
         vsep = table["vsep"]  # one delimiter char, then the break text
-        sep = wl.TextDoc(vsep[:1]) + wl.BreakDoc(vsep[1:])
         # Only numeric text has brackets that are all structure; a string or
         # object element (or a bracket fill in ``value_spec``) can hold ``[``.
-        if np.asarray(obj).dtype.kind in "biufc":
+        # (ml_dtypes such as bfloat16 report kind ``V``, hence ``issubdtype``.)
+        dtype = np.asarray(obj).dtype
+        if dtype.kind == "b" or jnp.issubdtype(dtype, jnp.number):
             try:
-                return _array_doc(text, sep=sep, escape=escape)
+                return _array_doc(text, vsep=vsep, escape=escape)
             except IndexError:  # not bracket-structured numbers
                 pass
         # Never truncate or raise: one flat TextDoc, no break points.
-        return wl.TextDoc(escape(text).replace(_SENTINEL, vsep))
+        flat = escape(text).replace(_SENTINEL + "\n", vsep.rstrip() + "\n")
+        return wl.TextDoc(flat.replace(_SENTINEL, vsep))
     # ``show_wrapper=False`` is for ``StaticValue``; the summary hook belongs
     # only on the ``True`` path (``custom=None`` would be called and raise).
     custom = {"custom": custom_pdoc_no_kind} if short_arrays else {}

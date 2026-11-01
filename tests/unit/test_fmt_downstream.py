@@ -1,6 +1,10 @@
 """A type outside unxt, using only the public `pparts` surface (no numpy)."""
 
 import dataclasses
+import pathlib
+import subprocess
+import sys
+import textwrap
 
 import pytest
 import wadler_lindig as wl
@@ -150,3 +154,50 @@ def test_pdoc_applies_the_class_spec():
     assert repr(B(3)) == "3 m"
     assert wl.pformat(B(3)) == "3 m"
     assert wl.pformat([B(3)]) == repr([B(3)]) == "[3 m]"
+
+
+def test_engine_and_generic_import_without_numpy_or_jax():
+    """The package side needs only `wadler_lindig` and `plum`.
+
+    The two modules are loaded as a synthetic package (bypassing ``unxt``'s
+    own ``__init__``, which imports numpy/jax) with those libraries blocked.
+    """
+    from unxt._src import fmt  # noqa: PLC0415
+
+    code = textwrap.dedent(
+        f"""
+        import dataclasses, importlib, sys, types
+        for name in ("numpy", "jax", "astropy", "quax"):
+            sys.modules[name] = None
+        pkg = types.ModuleType("fmtpkg")
+        pkg.__path__ = [{str(pathlib.Path(fmt.__file__).parent)!r}]
+        sys.modules["fmtpkg"] = pkg
+        engine = importlib.import_module("fmtpkg.engine")
+        importlib.import_module("fmtpkg.generic")
+        import wadler_lindig as wl
+
+        @dataclasses.dataclass(repr=False)
+        class V(engine.ReprMixin):
+            a: int
+            b: int
+            __repr_spec__ = "bare"
+
+        @engine.pparts.dispatch
+        def _(obj: V, /, *, markup="text", **kw):
+            return (
+                engine.PPart("a", str(obj.a)),
+                engine.PPart("dot", ".", "sep"),
+                engine.PPart("b", str(obj.b)),
+            )
+
+        v = V(1, 2)
+        assert repr(v) == "1.2", repr(v)
+        assert format(v, "html") == "<span>1</span>.<span>2</span>"
+        assert wl.pformat(v) == "1.2"
+        assert "numpy" not in sys.modules or sys.modules["numpy"] is None
+        """
+    )
+    result = subprocess.run(  # noqa: S603
+        [sys.executable, "-c", code], capture_output=True, text=True, check=False
+    )
+    assert result.returncode == 0, result.stderr
