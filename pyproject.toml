@@ -464,7 +464,7 @@ ignore = [
 # Outside `src` a redefinition is a real bug: the duplicate test name in
 # `tests/benchmark/test_uconvert_value.py` fixed in #1009 meant one benchmark
 # silently never ran, and a global ignore is why nothing caught it.
-"**src/**"   = ["F811"]
+"**/src/**"  = ["F811"]
 "**tests/**" = ["ANN", "D401", "E731", "INP001", "S101", "SLF001", "T20"]
 # `Qcls` is a class-valued fixture parametrized over the quantity classes; the
 # capitalized name (and using it as a constructor) is intentional.
