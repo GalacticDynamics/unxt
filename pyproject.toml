@@ -429,7 +429,6 @@ ignore = [
   "D213",    # Multi-line docstring summary should start at the second line
   "ERA001",  # Commented out code
   "F722",    # Syntax error in forward annotation <- jaxtyping
-  "F811",    # redefinition of unused '...'  <- plum-dispatch
   "F821",    # undefined name '...'  <- jaxtyping
   "FIX002",  # Line contains TODO
   "ISC001",  # Conflicts with formatter
@@ -457,7 +456,15 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"**docs/**"  = ["A001", "INP001"]
+"**docs/**" = ["A001", "INP001"]
+# F811 (redefinition) is exempted here rather than globally. plum-dispatch
+# registers many same-named functions per module, which makes F811 a
+# false-positive factory -- but all 75 such redefinitions live under a `src`
+# tree (56 in `src/unxt`, 19 in `packages/*/src`), and none outside one.
+# Outside `src` a redefinition is a real bug: the duplicate test name in
+# `tests/benchmark/test_uconvert_value.py` fixed in #1009 meant one benchmark
+# silently never ran, and a global ignore is why nothing caught it.
+"**/src/**"  = ["F811"]
 "**tests/**" = ["ANN", "D401", "E731", "INP001", "S101", "SLF001", "T20"]
 # `Qcls` is a class-valued fixture parametrized over the quantity classes; the
 # capitalized name (and using it as a constructor) is intentional.
