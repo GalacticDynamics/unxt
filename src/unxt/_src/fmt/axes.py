@@ -13,13 +13,12 @@ its own, and a test enforces it.
 """
 
 __all__ = (
-    "VALUE_FROM_SHORT_ARRAYS",
     "custom_pdoc_no_kind",
     "custom_pdoc_noarray",
     "value_str",
 )
 
-from typing import Any, Final
+from typing import Any
 
 import jax
 import numpy as np
@@ -31,6 +30,7 @@ from .engine import (
     register_alias,
     register_axis,
 )
+from .generic import VALUE_FROM_SHORT_ARRAYS  # noqa: F401
 
 
 def custom_pdoc_no_kind(obj: Any, /) -> wl.AbstractDoc | None:
@@ -114,69 +114,6 @@ def value_str(
 # ============================================================================
 # The axes `unxt` puts into the grammar
 
-#: The ``value`` axis as `__pdoc__`'s ``short_arrays`` argument. The public
-#: `unxt.config` traits keep their own spelling of the same three-way choice.
-_SHORT_ARRAYS: Final[dict[str, Any]] = {
-    "array": False,
-    "values": "compact",
-    "type": True,
-}
-
-#: ``short_arrays`` back to the ``value`` axis, for reading `unxt.config`.
-#:
-#: The config traits are public, documented API and keep their own spelling;
-#: this is the one place the two vocabularies are reconciled, so ``repr`` and
-#: ``str`` can be defined as specs without renaming anything users configure.
-#: Derived by inversion rather than written out, so the two cannot drift.
-VALUE_FROM_SHORT_ARRAYS: Final[dict[Any, str]] = {
-    v: k for k, v in _SHORT_ARRAYS.items()
-}
-
-
-def _value_product_kwargs(value: Any, /) -> dict[str, Any]:
-    """Translate the ``value`` axis for product layout.
-
-    The axis holds *either* one of its keywords or a Python format spec, so
-    this is the one place that distinction becomes two arguments: how verbose
-    the array is, and how each element is formatted. Free text implies the
-    values form -- a shape/dtype summary has no elements to format, which is
-    why ``type`` and a format spec cannot both be asked for.
-    """
-    if value in _SHORT_ARRAYS:
-        return {"short_arrays": _SHORT_ARRAYS[value], "value_spec": None}
-    return {"short_arrays": "compact", "value_spec": value}
-
-
-#: How verbose the numeric payload is, or how to format each element.
-#:
-#: This is the axis that accepts free text: a spec's trailing run is a Python
-#: format spec applied per element. Holding it *on* the axis rather than beside
-#: it is what makes ``type-.2f`` an ordinary "value is set twice" error, rather
-#: than a hand-written consistency check between two keys describing one thing.
-register_axis(
-    Axis(
-        name="value",
-        keywords={"array": "array", "values": "values", "type": "type"},
-        default="values",
-        layouts={
-            "call": lambda v: {"short_arrays": _SHORT_ARRAYS[v]},
-            "product": _value_product_kwargs,
-        },
-        free_text=("product",),
-    )
-)
-
-#: Which markup the fragments are wrapped in. Product layout only: a call-style
-#: rendering is a constructor expression, which has no markup form.
-register_axis(
-    Axis(
-        name="markup",
-        keywords={"text": "text", "html": "html", "latex": "latex"},
-        default="text",
-        layouts={"product": lambda v: {"markup": v}},
-    )
-)
-
 #: Which spelling of the unit to show. The two layouts want different things
 #: from the same choice, which is exactly why an axis translates *per layout*
 #: rather than naming one keyword argument.
@@ -189,18 +126,6 @@ register_axis(
             "call": lambda v: {"show_units": v != "dim"},
             "product": lambda v: {"unit_style": v},
         },
-    )
-)
-
-#: Whether the join between parts shows its operator. ``mul`` does not
-#: override, leaving whatever the object's own `pparts` emitted (``" * "`` for
-#: a quantity), so it need not hard-code that string here.
-register_axis(
-    Axis(
-        name="sep",
-        keywords={"mul": "mul", "bare": "bare"},
-        default="bare",
-        layouts={"product": lambda v: {"sep": v}},
     )
 )
 
