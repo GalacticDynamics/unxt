@@ -683,9 +683,19 @@ jobs:
       - name: Install the project
         run: uv sync --no-default-groups --extra all --group test-all --upgrade
 
+      # One file is ignored here, and only here: pytest 9.2 dropped the private
+      # `Node._nodeid` that pytest-benchmark 5.3.0 (the newest release) still
+      # reads when it builds the `benchmark` fixture, so in an upgraded env every
+      # test requesting that fixture errors at setup. `--benchmark-disable` does
+      # not help: the fixture is still constructed, it just does not time. Only
+      # `test_uconvert_value.py` requests the fixture -- the rest of
+      # `tests/benchmark` carries `@pytest.mark.benchmark` markers but plain
+      # bodies, so it keeps running here.
+      # Fixed upstream in ionelmc/pytest-benchmark#321 but unreleased; drop the
+      # ignore once a release after 5.3.0 carries it.
       - name: Test package
         run: |
-          uv run --no-sync pytest --benchmark-disable -n logical --dist=loadfile
+          uv run --no-sync pytest --benchmark-disable --ignore=tests/benchmark/test_uconvert_value.py -n logical --dist=loadfile
 
   test-interoperability:
     name: Check Interoperability

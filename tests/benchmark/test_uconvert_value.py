@@ -71,9 +71,9 @@ def test_uconvert_value_vmap_jit_compile(xarray):
 
 
 @pytest.mark.benchmark(group="uconvert_value_vmap", max_time=1.0)
-def test_uconvert_value_vmap_jit_execute(benchmark, func_vmap_uconvert, xarray):
-    """Benchmark vmap(uconvert_value) after JIT compilation."""
-    jit_fn = jax.jit(func_vmap_uconvert)
+def test_uconvert_value_jit_of_vmap_execute(benchmark, func_vmap_uconvert, xarray):
+    """Benchmark jit(vmap(uconvert_value)) with static unit arguments."""
+    jit_fn = jax.jit(func_vmap_uconvert, static_argnums=(0, 1))
     # Warm up
     _ = jit_fn(u.unit("m"), u.unit("km"), xarray)
     # Benchmark
