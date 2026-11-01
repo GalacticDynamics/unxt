@@ -815,6 +815,7 @@ class TestUnitSystemRendering:
         seventeen significant figures, which was worse than the problem.
         """
         ns = {
+            "__builtins__": {},
             "unitsystem": u.unitsystem,
             "DimensionlessUnitSystem": DimensionlessUnitSystem,
         }
@@ -828,7 +829,7 @@ class TestUnitSystemRendering:
         raises where ``unitsystem(["km"])`` reconstructs. Using the list at
         every arity keeps one spelling instead of a special case.
         """
-        ns = {"unitsystem": u.unitsystem}
+        ns = {"__builtins__": {}, "unitsystem": u.unitsystem}
         for usys in (u.unitsystem(["km"]), u.unitsystem("m", "s", "kg", "rad")):
             assert repr(usys).startswith("unitsystem([")
             assert eval(repr(usys), ns) == usys  # noqa: S307

@@ -352,8 +352,11 @@ class AbstractUnitSystem:
         ----------
         show_units
             If `True`, render the base units, prefixed by the ``unitsystem``
-            constructor. If `False`, render the base *dimension* names, prefixed
-            by the class name -- the shape of the system rather than its units.
+            constructor. If `False`, render the base *field* names, prefixed by
+            the class name -- the shape of the system rather than its units.
+            These are the dataclass field names, and they are not always the
+            dimension names: SI renders ``amount`` for ``amount of substance``
+            and ``electric_current`` for ``electrical current``.
         quote_units
             If `True`, quote each unit so the rendering is valid Python that
             reconstructs the object. This is what `repr` uses; `str` takes the
