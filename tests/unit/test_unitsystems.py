@@ -863,6 +863,11 @@ class TestUnitSystemRendering:
         usys = u.unitsystem("kpc", "Myr", "Msun", "radian")
         assert str(usys) == "unitsystem(kpc, Myr, solMass, rad)"
 
+    def test_dims_preset_gives_the_dimension_names(self):
+        """The form that used to squat on ``__str__``."""
+        usys = u.unitsystem("kpc", "Myr", "Msun", "radian")
+        assert f"{usys:dims}" == "LTMAUnitSystem(length, time, mass, angle)"
+
     def test_every_shape_renders_the_same_way(self):
         """One constructor, one style.
 

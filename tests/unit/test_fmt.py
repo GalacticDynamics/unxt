@@ -1497,3 +1497,11 @@ def test_default_pvalue_non_compact_goes_through_wl_pdoc(short_arrays):
         doc_to_str(pvalue("a<b", short_arrays=short_arrays, markup="html"))
         == "&#x27;a&lt;b&#x27;"
     )
+
+
+def test_unit_system_follows_markup_specs():
+    """A unit system renders under html/latex like any other type."""
+    usys = u.unitsystem("m", "s", "kg", "rad")
+    assert f"{usys:html}".startswith("<span>unitsystem</span>(<span>m</span>")
+    assert f"{usys:latex}".startswith("$")
+    assert f"{usys:compact}" == "unitsystem(m, s, kg, rad)"

@@ -15,6 +15,7 @@ from astropy.units.physical import _physical_unit_mapping
 from is_annotated import isannotated
 
 from .utils import parse_dimlike_name
+from unxt._src import fmt
 from unxt.dims import AbstractDimension, dimension
 from unxt.units import AbstractUnit, unit
 
@@ -424,9 +425,9 @@ class AbstractUnitSystem:
     def __repr__(self) -> str:
         """Return a *reconstructing* representation: ``eval(repr(u)) == u``.
 
-        The reconstruction logic lives in `__pdoc__`, and ``repr`` is defined
-        as that document rendered. Keeping the two on one path is what makes
-        the round-trip hold.
+        This is plain ``call`` layout, so it routes through `__pdoc__` -- which
+        is where the reconstruction logic lives. Keeping ``repr`` on that path
+        rather than on the product-style one is what makes the round-trip hold.
 
         Examples
         --------
@@ -436,12 +437,13 @@ class AbstractUnitSystem:
         "unitsystem(['m', 's', 'kg', 'rad'])"
 
         """
-        return wl.pformat(self)
+        return fmt.render(self, fmt.Spec.of(layout="call"))
 
     def __str__(self) -> str:
         """Return a readable string representation of the unit system.
 
-        The same document as ``repr``, with the units unquoted.
+        The abbreviated call form -- which for a unit system means unquoted
+        units, the same idea a quantity spells as a short class name.
 
         Examples
         --------
@@ -450,14 +452,79 @@ class AbstractUnitSystem:
         >>> str(usys)
         'unitsystem(m, s, kg, rad)'
 
+        The dimension-name form is the ``dim`` unit axis:
+
+        >>> f"{usys:dims}"
+        'LTMAUnitSystem(length, time, mass, angle)'
+
         """
-        return wl.pformat(self, quote_units=False)
+        return fmt.render(self, fmt.Spec.of(layout="call", abbrev=True))
+
+    def __format__(self, format_spec: str, /) -> str:
+        """Format the unit system.
+
+        Examples
+        --------
+        >>> from unxt import unitsystem
+        >>> usys = unitsystem("kpc", "Myr", "Msun", "radian")
+
+        >>> f"{usys}"
+        'unitsystem(kpc, Myr, solMass, rad)'
+
+        >>> f"{usys:compact}"
+        'unitsystem(kpc, Myr, solMass, rad)'
+
+        >>> f"{usys:dims}"
+        'LTMAUnitSystem(length, time, mass, angle)'
+
+        """
+        return fmt.pspec(self, format_spec)
 
     # ===============================================================
     # Plum stuff
 
     #: This tells `plum` that this type can be efficiently cached.
     __faithful__: ClassVar[bool] = True
+
+
+# ---------------------------------------------------------------
+
+
+@fmt.pparts.dispatch  # type: ignore[misc]
+def pparts(
+    obj: AbstractUnitSystem, /, *, markup: str = "text", **kw: Any
+) -> tuple[Any, ...]:
+    """Decompose a unit system into fragments, so every markup applies to it.
+
+    Examples
+    --------
+    >>> from unxt import unitsystem
+    >>> from unxt._src.fmt import pparts, parts_to_markup
+
+    >>> usys = unitsystem("m", "s", "kg", "radian")
+    >>> parts_to_markup(pparts(usys))
+    'unitsystem(m, s, kg, rad)'
+
+    >>> parts_to_markup(pparts(usys, markup="html"), markup="html")
+    '<span>unitsystem</span>(<span>m</span>, <span>s</span>, <span>kg</span>, <span>rad</span>)'
+
+    """  # noqa: E501
+    if kw.get("value_spec") is not None:
+        # A unit system has no elements to format; say so rather than quietly
+        # answering with a different rendering.
+        msg = (
+            f"{type(obj).__name__} does not support a value format spec "
+            f"({kw['value_spec']!r}): it has no value to format."
+        )
+        raise TypeError(msg)
+    unit_kw = {k: v for k, v in kw.items() if k == "unit_style"}
+    parts: list[Any] = [fmt.PPart("name", "unitsystem"), fmt.PPart("open", "(", "sep")]
+    for i, b in enumerate(obj.base_units):
+        if i:
+            parts.append(fmt.PPart("comma", ", ", "sep"))
+        parts.extend(fmt.pparts(b, markup=markup, **unit_kw))
+    parts.append(fmt.PPart("close", ")", "sep"))
+    return tuple(parts)
 
 
 def parse_field_names_and_dimensions(
