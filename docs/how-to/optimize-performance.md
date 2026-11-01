@@ -9,16 +9,11 @@ kernelspec:
 
 # How to optimize performance with unitful quantities
 
-This guide shows you how to keep `unxt`'s wrapper overhead off your hot path. It is a measured walkthrough: every timing below is produced by running the notebook. For _why_ a quantity costs anything at a `jit` boundary, see {doc}`../explanation/sharp-bits`.
+Quantities cost almost nothing inside a `jit`, and something measurable at its boundary. So the one move that matters is to put the `jit` boundary _outside_ the unit handling: accept raw arrays, build quantities inside the compiled function, and strip units off the result.
 
-## Key Concepts
+This guide measures that. Every timing below is produced by running the notebook, so the numbers are from the machine that built this page, not from a previous run. For _why_ a quantity costs anything at a boundary, see {doc}`../explanation/sharp-bits`.
 
-1. **Wrapper overhead**: Operations on Quantities have overhead compared to raw JAX arrays -- they're wrapped with unit information.
-2. **JIT removes overhead**: JAX's JIT compiler can eliminate much of this wrapper overhead by tracing through the code.
-3. **Pytree complexity**: Quantities are JAX pytrees, which adds cost when crossing JIT boundaries (converting between traced and non-traced values).
-4. **Strategy**: The secret to performance is to **minimize pytree conversions at the boundary** between traced and non-traced code.
-
-Let's start by importing the libraries we'll need and setting up some test data.
+## Set up
 
 ```{code-cell} ipython3
 import functools as ft
@@ -30,7 +25,7 @@ import quax
 import unxt as u
 ```
 
-We'll create 1000-element arrays with physical units -- these will be our test data throughout this guide.
+Thousand-element arrays, with and without units:
 
 ```{code-cell} ipython3
 x = jnp.linspace(0.1, 10.0, 1000)
@@ -40,12 +35,9 @@ qx = u.Q(x, "m")
 qy = u.Q(y, "m")
 ```
 
-## Baseline: Raw JAX Performance
+## Measure the baseline
 
-First, let's establish our baseline by measuring the performance of a plain JAX function with raw arrays. We'll time both:
-
-1. **First call**: Includes JIT compilation overhead
-2. **Repeated calls**: Shows the performance after compilation
+Plain JAX on raw arrays, uncompiled and compiled. `%time` is the first call, which includes compilation; `%timeit` is the steady state.
 
 ```{code-cell} ipython3
 def func(x, y):
@@ -55,12 +47,6 @@ def func(x, y):
 %timeit jax.block_until_ready(func(x, y))
 ```
 
-### With JIT Compilation
-
-Now let's compile the same function with `jax.jit`. Notice the dramatic speedup; JIT compilation converts Python loops and operations into optimized GPU/CPU kernels.
-
-**Key insight**: JIT is almost always worth it. The first call takes longer due to compilation, but subsequent calls are much faster.
-
 ```{code-cell} ipython3
 jitted_func = jax.jit(func)
 
@@ -68,9 +54,9 @@ jitted_func = jax.jit(func)
 %timeit jax.block_until_ready(jitted_func(x, y))
 ```
 
-### `quaxify` for unit support
+## Add units, and see what they cost
 
-Now let's apply the same function to Quantities using `quax.quaxify`. This wraps the function so it can handle Quantity inputs.
+`quax.quaxify` lets the same function take quantities. Uncompiled, it unwraps each quantity, tracks the units and re-wraps the result on every call:
 
 ```{code-cell} ipython3
 quax_func = quax.quaxify(func)
@@ -79,69 +65,54 @@ quax_func = quax.quaxify(func)
 %timeit jax.block_until_ready(quax_func(qx, qy))
 ```
 
-#### The Problem: Wrapper Overhead
-
-Wow! That's much slower than the JIT'd version. This is the **wrapper overhead** in action. The `quaxify` decorator has to:
-
-1. Unwrap the Quantities into arrays
-2. Track unit information
-3. Re-wrap the result back into a Quantity
-4. Do all of this EVERY time the function is called, without JIT optimization
-
-This is why JIT is a necessary ingredient -- let's see what happens when we add JIT:
-
-#### Solution 1: JIT the Quaxified Function
-
-By combining `jax.jit` with `quax.quaxify`, we eliminate much of the wrapper overhead. JIT compiles away the dynamic dispatch and wrapping logic.
+That is the overhead to avoid. Compiling it away recovers most of the gap, because `jit` traces through the dispatch and the wrapping:
 
 ```{code-cell} ipython3
 jitted_quax_func = jax.jit(quax.quaxify(func))
 
-%time jax.block_until_ready(jitted_quax_func(x, y))
-%timeit jax.block_until_ready(jitted_quax_func(x, y))
-```
-
-Now let's pass actual Quantities to the jitted function. Notice there's some overhead compared to raw arrays, but it's much better than the non-JIT version!
-
-```{code-cell} ipython3
 %time jax.block_until_ready(jitted_quax_func(qx, qy))
 %timeit jax.block_until_ready(jitted_quax_func(qx, qy))
 ```
 
-#### Solution 2: Minimize Pytree Conversions at the Boundary
+A gap remains, and it is not the arithmetic. Quantities are JAX pytrees, so each one is decomposed on the way in and recomposed on the way out — work that happens at the boundary, where `jit` cannot reach it.
 
-There's still a small overhead when passing Quantities across the JIT boundary. This is because **Quantities are JAX pytrees** -- they need to be decomposed before tracing and recomposed after.
+## Move the boundary outside the units
 
-The trick? Move the pytree conversion **inside** the JIT. Here's the key insight: we create a thin outer JIT'd wrapper that converts arrays to Quantities at the start, calls the inner unitful function, and extracts the result. This way, all the pytree overhead is inside the JIT boundary where it gets compiled away.
+Close that gap by taking raw arrays at the outermost boundary and doing the unit handling inside the compiled function:
+
+1. Accept raw arrays.
+2. Build quantities from them, inside the `jit`.
+3. Call the unitful function.
+4. Strip the units off the result.
 
 ```{code-cell} ipython3
 @jax.jit
 def outer_func(x, y):
     qx = u.Q(x, "m")
     qy = u.Q(y, "m")
-
-    # This calls the unitful function inside a jitted context
     out = jitted_quax_func(qx, qy)
-
     return out.ustrip("m")
 
 %time jax.block_until_ready(outer_func(x, y))
 %timeit jax.block_until_ready(outer_func(x, y))
 ```
 
-The same pattern scales to more realistic code. Two generalizations come up often:
+That is back to near the raw-JAX baseline. Every pytree conversion is now inside the trace, so the compiler removes it along with the rest of the unit bookkeeping.
 
-- **The inner function is itself built from several unitful operations.** `func2` below calls the quaxified function twice and combines the results. The outer wrapper still hoists every pytree conversion inside a single JIT boundary, so the extra sub-calls cost nothing at the interface.
-- **The units are chosen by a unit system.** Passing a {class}`~unxt.unitsystems.AbstractUnitSystem` as a `static_argnames` argument lets one wrapper serve many unit choices: build the inputs with {meth}`u.Q.from_ <unxt.quantity.Quantity.from_>` and `usys["length"]`, and strip the result with `out.ustrip(usys)`.
+The inner function does not have to be a single call. Here it makes two and combines them; the outer wrapper still hoists every conversion inside one boundary, so the extra call costs nothing at the interface:
 
 ```{code-cell} ipython3
 def func2(x, y):
     out1 = jitted_quax_func(x, y)
-    out2= jitted_quax_func(x, y)
+    out2 = jitted_quax_func(y, x)
     return out1 + 3 * out2
 
 jitted_quax_func2 = jax.jit(quax.quaxify(func2))
 ```
+
+## Choose the units at call time
+
+To let one wrapper serve several unit choices, pass a {class}`~unxt.unitsystems.AbstractUnitSystem` as a static argument. Build the inputs with {meth}`u.Q.from_ <unxt.quantity.Quantity.from_>` and `usys["length"]`, and strip the result with `out.ustrip(usys)`:
 
 ```{code-cell} ipython3
 @ft.partial(jax.jit, static_argnames=("usys",))
@@ -149,11 +120,8 @@ def outer_func3(x, y, *, usys):
     qx = u.Q.from_(x, usys["length"])
     qy = u.Q.from_(y, usys["length"])
     out = jitted_quax_func2(qx, qy)
-
     return out.ustrip(usys)
 ```
-
-Timing it shows the same near-baseline performance, now with the working units selected at call time:
 
 ```{code-cell} ipython3
 usys = u.unitsystems.si
@@ -162,32 +130,11 @@ usys = u.unitsystems.si
 %timeit jax.block_until_ready(outer_func3(x, y, usys=usys))
 ```
 
-### The Strategy: Outer Wrapper Pattern
+The unit system is static, so each distinct one compiles its own specialization and then runs at the same near-baseline speed.
 
-Here's the optimal pattern:
+## Build the jitted wrapper once
 
-1. **Accept raw arrays** at the outermost function boundary
-2. **Create Quantities inside the JIT** by wrapping the arrays with units
-3. **Call the inner unitful function** inside the JIT
-4. **Extract the result** and return it as a raw array (or strip units if needed)
-
-This way, all unit handling is compiled away, and you only pay the "cost of thinking in units" during actual computation -- not at function call boundaries.
-
-### Results: Overhead Eliminated
-
-Wow! Notice the dramatic speedup—we're nearly as fast as the raw JAX version!
-
-**Why this works:**
-
-- The outer JIT compiles away all the unit wrapping/unwrapping
-- The `jitted_quax_func` runs inside the trace as a compiled operation
-- The only overhead is JIT's normal pytree handling, which is minimal
-
-**Important caveat:** This is a _fixed_ cost that only appears once per outermost function call. If your function is called once with a million-element array, this optimization is huge. If your function is called a million times with scalar inputs, the overhead per element is negligible.
-
-### One more trap: build the wrapper once, not per call
-
-Every `jit`'d function in this guide -- `jitted_func`, `jitted_quax_func`, `outer_func`, `outer_func3` -- is defined exactly once, outside any loop, and every timing above reuses that same object. This matters more than it looks: `jax.jit` caches on the _identity_ of the Python function it wraps, not on argument equality. A fresh `@jax.jit def outer_func(...): ...` built inside a loop or a function body is a compile-cache miss on every call, not a cheap re-trace:
+Define the wrapper once, outside any loop or method, and call that same object every time. `jax.jit` caches on the _identity_ of the function it wraps, not on argument equality, so a wrapper rebuilt per call misses the cache every time — a full retrace and recompile, not a cheap re-trace:
 
 ```{code-cell} ipython3
 def make_outer():
@@ -209,17 +156,10 @@ def rebuild_each_call(x, y):
 %timeit jax.block_until_ready(outer_func(x, y))
 ```
 
-Rebuilding pays a full retrace-and-compile every call -- tens of milliseconds instead of low microseconds, several-hundred-x slower in practice. Build the jitted wrapper once, at module scope or in `__init__`, and call that same object every time.
+Tens of milliseconds against low microseconds — several hundred times slower. Every jitted function in this guide is defined exactly once, which is why the timings above measure the compiled code rather than the compiler.
 
-## Summary: How to Think About Performance
+## When this does not matter
 
-Here are the key takeaways for optimizing performance with `unxt` Quantities:
+The boundary cost is fixed per outermost call, not per element. One call on a million-element array barely notices it; a million calls on scalars pay it a million times. So it is worth the wrapper on a hot outer function and not worth it anywhere else.
 
-1. **Always use JIT for hot code** - The overhead of `quaxify` is negligible inside a JIT'd context
-2. **Minimize pytree boundary crossings** - Use the outer wrapper pattern where you pass raw arrays to the outermost function
-3. **Create Quantities inside JIT** - This lets the compiler optimize away unit handling
-4. **It's a fixed cost per call** - The optimization matters more for functions that process large arrays or are called infrequently
-5. **Build the jitted wrapper once** - `jax.jit` caches on function identity, not argument equality; a wrapper rebuilt inside a loop or method recompiles every call instead of hitting the cache
-6. **Don't microoptimize prematurely** - Write correct code first. If units make your code clearer, use them. Only optimize the outermost layer if profiling shows it's necessary.
-
-The bottom line: **Use Quantities freely in your code—they're designed to work well with JAX.** When you need performance, apply the outer wrapper pattern to your hot functions. The rest of your codebase can stay clean and unit-aware.
+Write the correct version first. If units make the code clearer, use them — the rest of a codebase can stay unit-aware and unoptimized, and only the outermost layer of a measured hot path needs this pattern.
