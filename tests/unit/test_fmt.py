@@ -21,6 +21,7 @@ from unxt._src.fmt import (
     doc_part,
     doc_to_str,
     engine as engine_module,
+    examples,
     inert_axes,
     math_doc,
     parse_spec,
@@ -550,7 +551,7 @@ def test_unwrap_math_only_strips_real_delimiters(text: str, expected: str) -> No
 # The seam: the engine must stay liftable, and downstream must be a peer
 
 
-_PACKAGE_SIDE = ("engine", "generic")
+_PACKAGE_SIDE = ("engine", "generic", "examples")
 
 
 def _import_offenders(source: str) -> list[str]:
@@ -591,6 +592,22 @@ def test_import_offenders_flags_what_it_should() -> None:
         "import os\nimport plum\nfrom .engine import x\nfrom . import generic\n"
         "from wadler_lindig import y"
     )
+
+
+def test_the_example_type_renders_in_every_route() -> None:
+    """The engine's own docs are written against this type.
+
+    So it has to exercise the routes those docs demonstrate. Values here are
+    measured, not assumed: `mul` leaves the object's own ``.`` separator
+    alone, which is what the ``sep`` axis documents.
+    """
+    v = examples.Version(2, 1)
+    assert repr(v) == "2.1"
+    assert str(v) == "2.1"
+    assert f"{v:bare}" == "2.1"
+    assert f"{v:mul}" == "2.1"
+    assert f"{v:html}" == "<span>2</span>.<span>1</span>"
+    assert f"{v:latex}" == "$2.1$"
 
 
 def test_the_package_side_exposes_no_privates_across_the_seam() -> None:

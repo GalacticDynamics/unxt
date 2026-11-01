@@ -17,24 +17,7 @@ from unxt._pparts import (
     register_alias,
     unregister_alias,
 )
-
-
-@dataclasses.dataclass(repr=False)
-class Version(ReprMixin):
-    """A two-part version number."""
-
-    major: int
-    minor: int
-    __repr_spec__ = "bare"
-
-
-@pparts.dispatch
-def _(obj: Version, /, *, markup="text", **kw):
-    return (
-        PPart("major", str(obj.major)),
-        PPart("dot", ".", "sep"),
-        PPart("minor", str(obj.minor)),
-    )
+from unxt._src.fmt.examples import Version
 
 
 def test_every_route_comes_from_one_pparts():
