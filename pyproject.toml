@@ -459,10 +459,11 @@ ignore = [
 "**docs/**" = ["A001", "INP001"]
 # F811 (redefinition) is exempted here rather than globally. plum-dispatch
 # registers many same-named functions per module, which makes F811 a
-# false-positive factory -- but every one of those 74 redefinitions lives under
-# a `src` tree. Outside `src` a redefinition is a real bug: the duplicate test
-# name in `tests/benchmark/test_uconvert_value.py` fixed in #1009 meant one
-# benchmark silently never ran, and a global ignore is why nothing caught it.
+# false-positive factory -- but all 75 such redefinitions live under a `src`
+# tree (56 in `src/unxt`, 19 in `packages/*/src`), and none outside one.
+# Outside `src` a redefinition is a real bug: the duplicate test name in
+# `tests/benchmark/test_uconvert_value.py` fixed in #1009 meant one benchmark
+# silently never ran, and a global ignore is why nothing caught it.
 "**src/**"   = ["F811"]
 "**tests/**" = ["ANN", "D401", "E731", "INP001", "S101", "SLF001", "T20"]
 # `Qcls` is a class-valued fixture parametrized over the quantity classes; the
