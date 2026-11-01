@@ -68,7 +68,7 @@ ParametricQuantity(Array(1, dtype=int32...), unit='m')
 
 ### Angle operations now return the default `Quantity`
 
-Trigonometric and product operations on an `Angle` (`cos`, `sin`, `tan`, `cbrt`, `Angle @ Angle`, `Angle * Angle`, integer/array powers, etc.) previously produced a `ParametricQuantity`. Because core `unxt` can no longer reference the parametric class, in v2 they produce the lightweight default `Quantity`:
+Operations on an `Angle` whose result is no longer an angle previously produced a `ParametricQuantity`. Because core `unxt` can no longer reference the parametric class, in v2 they produce the lightweight default `Quantity`:
 
 ```{code-block} python
 >>> import unxt as u
@@ -80,6 +80,8 @@ Quantity(Array(1., dtype=float32...), unit='')
 >>> u.Angle([1, 2, 3], "deg") @ u.Angle([4, 5, 6], "deg")  # v1: ParametricQuantity
 Quantity(Array(32, dtype=int32), unit='deg2')
 ```
+
+The rule covers every operation, not just these two. An `Angle` stays an `Angle` while the result is still an angle — `a + a`, `a * 2`, `-a`, `a.uconvert("rad")` — and becomes a `Quantity` when it is not: dimensionless from trigonometry or `a / a`, or a power of the unit from `a * a`, `a ** 2`, `cbrt` and `sqrt`.
 
 The value and unit are unchanged — only the wrapping class differs. If you specifically need a parametric result, convert explicitly with `convert(result, up.PQ)`.
 
@@ -181,9 +183,7 @@ If you used the old parametric `Quantity`, two behaviors have changed:
 
 ### (a) Subscripting no longer dimension-checks by default
 
-In v1, `Quantity["length"](1, "s")` would raise a `ValueError` because `"s"` (seconds) is not a length unit. In v2, the same call on the new default `Quantity` accepts any unit without checking:
-
-On the v2 default `Quantity` the subscript is a no-op, so no check happens:
+In v1, `Quantity["length"](1, "s")` raised a `ValueError`, because `"s"` is not a length unit. On the v2 default `Quantity` the subscript is a no-op, so no check happens:
 
 ```{code-block} python
 >>> import unxt as u
