@@ -250,8 +250,7 @@ So an annotation written this way no longer selects on dimension:
 
 ```python
 @dispatch
-def f(x: Quantity["length"]):
-    ...  # was a distinct type in v1
+def f(x: Quantity["length"]): ...  # was a distinct type in v1
 ```
 
 <!-- skip: end -->

@@ -27,8 +27,7 @@ from unxt.quantity import AbstractQuantity
 
 
 @quax.register(lax.abs_p)
-def abs_p_q(x: AbstractQuantity, /) -> AbstractQuantity:
-    ...
+def abs_p_q(x: AbstractQuantity, /) -> AbstractQuantity: ...
 ```
 
 Dispatch is on the annotated operand types, so one primitive can have many rules — `lax.mul_p` alone needs handlers for quantity-times-quantity, quantity-times-array, and array-times-quantity, each computing a different unit for the result.
