@@ -2,7 +2,7 @@ default_stages: [pre-commit, pre-push]
 
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.19.0
+    rev: v4.19.3
     hooks:
       - id: commitizen
         additional_dependencies: [cz-conventional-gitmoji]
@@ -43,14 +43,14 @@ repos:
       - id: rst-inline-touching-normal
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.38.2
+    rev: 0.39.0
     hooks:
       - id: check-dependabot
       - id: check-github-workflows
       - id: check-readthedocs
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.16.9"
+    rev: "v0.17.3"
     hooks:
       # Run the linter
       - id: ruff-check
@@ -67,7 +67,7 @@ repos:
         additional_dependencies: [black==23.*]
 
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: "v3.9.9"
+    rev: "v3.9.10"
     hooks:
       - id: prettier
         types_or: [yaml, html, css, scss, javascript, json, markdown]
@@ -80,7 +80,7 @@ repos:
         additional_dependencies: ["tomli"]
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.12.21
+    rev: 0.13.6
     hooks:
       - id: uv-lock
 
