@@ -135,7 +135,7 @@ def _inv_jvp(primals: tuple, tangents: tuple) -> tuple[Array, Array]:
     (x,) = primals
     (dx,) = tangents
     primal_out = inv_p.bind(x)
-    if type(dx) is jax_ad.Zero:
+    if type(dx) is jax_ad.Zero:  # pylint: disable=unidiomatic-typecheck  # exact sentinel
         # Materialise the zero (as `_det_jvp` does): `Zero.from_primal_value`
         # is not part of the supported jax API.
         tangent_out = lax.full_like(primal_out, 0.0)

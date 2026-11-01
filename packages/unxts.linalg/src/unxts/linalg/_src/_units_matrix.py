@@ -214,7 +214,9 @@ class UnitsMatrix:
         return obj
 
     @classmethod
-    def full(cls, shape: int | tuple[int, ...], unit: Any, /) -> "UnitsMatrix":
+    def full(  # pylint: disable=redefined-outer-name  # the module-level `unit` dispatch
+        cls, shape: int | tuple[int, ...], unit: Any, /
+    ) -> "UnitsMatrix":
         """Return a 1-D or 2-D `UnitsMatrix` with every entry set to ``unit``.
 
         Parameters
