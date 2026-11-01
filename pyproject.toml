@@ -494,10 +494,7 @@ ignore = [
   "RUF003", # Comment contains ambiguous character
 ]
 "__init__.py" = ["F403"]
-# C901: the `_parse_*_paths` dispatch tables are flat one-case-per-package
-# lookups, so their cyclomatic complexity just tracks the number of workspace
-# packages rather than any real branching.
-"noxfile.py" = ["C901", "T20"]
+"noxfile.py" = ["T20"]
 
 [tool.ruff.lint.flake8-import-conventions.aliases]
 equinox                 = "eqx"
