@@ -22,6 +22,7 @@ from unxt._src.fmt import (
     doc_to_str,
     engine as engine_module,
     inert_axes,
+    math_doc,
     parse_spec,
     parts_to_doc,
     parts_to_markup,
@@ -182,6 +183,25 @@ def test_each_spec_renders_its_documented_string(spec: str, expected: str) -> No
 def test_default_separator_is_bare() -> None:
     """``f"{q:.2f}"`` must stay astropy-shaped: a space, no ``*``."""
     assert pspec(u.Q(3.14159, "m"), ".2f") == "3.14 m"
+
+
+def test_the_ipython_reprs_keep_the_operator() -> None:
+    r"""They share the renderer but not `Spec`, and that is deliberate.
+
+    The separator is the visible consequence -- ``mul`` in a notebook, ``bare``
+    from a format spec. The flat layout is the other: a markup string takes no
+    width breaks, which neither markup would honour anyway.
+    """
+    q = u.Q(1.0, "m")
+    assert q._repr_html_() == "<span>1.</span> * <span>m</span>"
+    assert pspec(q, "html") == "<span>1.</span> <span>m</span>"
+    assert q._repr_latex_() == r"$1. \; \mathrm{m}$"
+    assert pspec(q, "latex") == r"$1. \, \mathrm{m}$"
+
+    wide = u.Q(np.arange(30.0), "Msun/pc3")
+    assert "\n" not in wide._repr_html_()
+    assert "\n" not in wide._repr_latex_()
+    assert "\n" in pspec(wide, "html")
 
 
 # ============================================================================
@@ -1066,12 +1086,69 @@ def test_markup_strings_equal_the_flat_layout_of_the_unified_doc(markup, spec):
     assert parts_to_markup(parts, markup=markup, sep=sep) == flat
 
 
-def test_markup_docs_offer_no_breaks_until_wl_23():
-    """HTML/LaTeX stay one line at any width (tags would count as columns)."""
+@pytest.mark.parametrize("width", [10, 20, 30, 40, 88])
+def test_html_lays_out_exactly_like_text(width):
+    """``<span>`` is zero-width, so HTML breaks exactly where plain text does.
+
+    This is the property that lets one `parts_to_doc` serve every markup: strip
+    the wrappers and the layout is byte-identical. While wrappers were billed
+    as columns it was false at every width but the widest.
+    """
     q = u.Q(np.arange(30.0), "m")
-    for markup in ("html", "latex"):
-        out = render(q, parse_spec(markup), width=10)
-        assert "\n" not in out
+    out = render(q, parse_spec("html"), width=width)
+    stripped = out.replace("<span>", "").replace("</span>", "")
+    assert stripped == render(q, parse_spec("text"), width=width)
+
+
+UNITS_WITH_LATEX = ["m", "Jy", "deg", "m/s2", "km/s", "Msun/pc3", "mas/yr", "1/m"]
+
+
+@pytest.mark.parametrize("unit", UNITS_WITH_LATEX)
+def test_math_doc_reproduces_the_fragment_exactly(unit):
+    """Zero-width billing must not cost a single character of output.
+
+    This is a change to the layout alone, so the flat rendering has to stay
+    byte-identical to what astropy handed over.
+    """
+    frag = unwrap_math(u.unit(unit).to_string("latex"))
+    assert doc_to_str(math_doc(frag), 10**9) == frag
+
+
+def _narrowest_flat(q, markup):
+    """The narrowest width at which ``q`` still renders on one line."""
+    spec = parse_spec(markup)
+    return next(w for w in range(2, 140) if "\n" not in render(q, spec, width=w))
+
+
+@pytest.mark.parametrize("unit", UNITS_WITH_LATEX)
+def test_latex_does_not_bill_its_markup_as_columns(unit):
+    r"""LaTeX lays out by its visible glyphs, not by its source length.
+
+    ``\mathrm{\frac{m}{s^{2}}}`` is 24 characters rendering as about three
+    columns; billed in full it pushed the break point tens of columns out, so
+    ``latex-width=`` broke lines that the same quantity's text form fitted
+    comfortably. LaTeX may now legitimately come out *narrower* than the text
+    spelling -- a fraction stacks, and ``solMass / pc3`` is 13 columns of text
+    against roughly four of ``\frac{M_{\odot}}{pc^{3}}``.
+
+    The one allowed column of slack is real rather than markup: the separator
+    ``\,`` is set off by a space on each side where text has a single space.
+    """
+    q = u.Q([1.0, 2.0, 3.0], unit)
+    assert _narrowest_flat(q, "latex") <= _narrowest_flat(q, "text") + 1
+
+
+def test_latex_width_breaks_at_the_same_scale_as_text():
+    """The concrete regression: this fitted in text but broke in LaTeX.
+
+    ``m / s2`` needs 19 columns as text. LaTeX billed its markup too and so
+    held out to 40, which is why a width in between broke one and not the
+    other.
+    """
+    q = u.Q([1.0, 2.0, 3.0], "m/s2")
+    assert "\n" not in format(q, "latex-width=20")
+    assert "\n" not in format(q, "text-width=20")
+    assert "\n" in format(q, "latex-width=12")
 
 
 # ============================================================================
@@ -1345,10 +1422,26 @@ def test_short_1d_arrays_are_byte_identical_to_numpy(value):
     assert f"{u.Q(value, 'm'):mul}" == f"{expected} * m"
 
 
-@pytest.mark.parametrize("spec", ["html", "latex"])
-def test_markup_arrays_never_break(spec):
-    out = f"{u.Q(np.arange(30.0), 'm'):{spec}-width=20}"
-    assert "\n" not in out.replace("\\\\\n", "")
+@pytest.mark.parametrize("markup", ["text", "html", "latex"])
+def test_width_reaches_every_markup(markup):
+    """A narrow width breaks in every markup; wrappers no longer inflate it.
+
+    Built from fragments rather than a `Quantity` on purpose: this is a claim
+    about the layout, and routing it through a real value would make it depend
+    on whether that value rendered in full -- a traced array comes out as a
+    shape summary, which has nothing to wrap.
+    """
+    parts = (
+        PPart("value", "x" * 30),
+        PPart("mul", " * ", "sep"),
+        PPart("unit", "m"),
+    )
+    doc = parts_to_doc(parts, markup=markup)
+    assert "\n" in doc_to_str(doc, 20)
+    # The flat path is what `_repr_html_` / `_repr_latex_` use, and it is still
+    # one line -- markup gained layout without its string changing.
+    assert "\n" not in doc_to_str(doc, 10**9)
+    assert "\n" not in parts_to_markup(parts, markup=markup)
 
 
 # ============================================================================

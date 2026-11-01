@@ -171,10 +171,12 @@ def pparts(
     >>> pparts(u.unit("m"))
     (PPart(role='unit', text='m', kind='content', doc=None),)
 
-    In LaTeX the fragment carries rendered markup, so it is not escaped again:
+    In LaTeX the fragment carries rendered markup, so it is not escaped again.
+    It arrives as a document so that the markup costs no layout columns:
 
-    >>> pparts(u.unit("m/s2"), markup="latex")
-    (PPart(role='unit', text='\\mathrm{\\frac{m}{s^{2}}}', kind='markup', doc=None),)
+    >>> part = pparts(u.unit("m/s2"), markup="latex")[0]
+    >>> part.role, part.kind, part.text
+    ('unit', 'markup', '\\mathrm{\\frac{m}{s^{2}}}')
 
     A dimensionless unit contributes no fragment at all:
 
@@ -212,5 +214,8 @@ def pparts(
     if not plain:
         return ()
     if markup == "latex":
-        return (fmt.PPart("unit", fmt.unwrap_math(obj.to_string("latex")), "markup"),)
+        # As a document, not a flat string: the markup then costs no layout
+        # columns, so a LaTeX line breaks where the same unit's text form does.
+        latex = fmt.unwrap_math(obj.to_string("latex"))
+        return (fmt.doc_part("unit", fmt.math_doc(latex), "markup"),)
     return (fmt.PPart("unit", plain),)

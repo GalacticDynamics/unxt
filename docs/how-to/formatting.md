@@ -57,6 +57,32 @@ Each keyword sets exactly one axis. Keywords are pairwise disjoint — no word n
 
 ```
 
+`width=` applies in every markup, not just plain text: a markup's wrappers are emitted but cost no columns, so HTML wraps at exactly the points plain text does.
+
+```{code-block} python
+
+>>> f"{q:width=10}"
+'[1., 2.,\n   3.]\n  m'
+
+>>> f"{q:html-width=10}"
+'<span>[1., 2.,\n   3.]</span>\n  <span>m</span>'
+
+```
+
+LaTeX counts its visible glyphs the same way, so a control sequence costs the space it renders as rather than its source length. A fraction stacks, which is why a unit can take fewer columns in LaTeX than its text spelling needs:
+
+```{code-block} python
+
+>>> qq = u.Q([1.0, 2.0, 3.0], "Msun/pc3")
+
+>>> f"{qq:width=20}"
+'[1., 2., 3.]\n  solMass / pc3'
+
+>>> f"{qq:latex-width=20}"
+'$[1.,~2.,~3.] \\, \\mathrm{\\frac{M_{\\odot}}{pc^{3}}}$'
+
+```
+
 ```{code-block} python
 
 >>> f"{q:type}"

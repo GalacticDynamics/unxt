@@ -14,14 +14,13 @@ of*.
 An object declares *how it decomposes* by registering `pparts`, which returns a
 tree of roled fragments. Two consumers turn that tree into output:
 
-- `parts_to_doc` builds a `wadler_lindig.AbstractDoc`, so plain-text rendering
-  gets wadler-lindig's layout, line breaking, and nesting for free, and
-  composes inside a larger document.
-- `parts_to_markup` flattens the tree to an HTML or LaTeX string. Those need no
-  layout -- HTML collapses whitespace and LaTeX math ignores newlines -- and
-  pushing markup through wadler-lindig would corrupt its width accounting,
-  which measures `len(ansi_strip(text))` and so bills every ``<span>`` as
-  visible columns.
+- `parts_to_doc` builds a `wadler_lindig.AbstractDoc`, so *every* markup gets
+  wadler-lindig's layout, line breaking, and nesting for free, and composes
+  inside a larger document. A markup's wrapper text is emitted zero-width, so
+  it reaches the output without being billed as visible columns.
+- `parts_to_markup` is that same document laid out flat, which is what an HTML
+  or LaTeX string wants: HTML collapses whitespace and LaTeX math ignores
+  newlines.
 
 The engine feeds wadler-lindig; it does not replace it. ``__pdoc__`` stays the
 definition of *call-style* rendering and is untouched by this module.
@@ -47,6 +46,7 @@ __all__ = (
     "doc_part",
     "doc_to_str",
     "inert_axes",
+    "math_doc",
     "parse_spec",
     "parts_to_doc",
     "parts_to_markup",
@@ -62,6 +62,7 @@ __all__ = (
 )
 
 import html as _html
+import re
 from collections.abc import Callable, Iterator, Mapping
 from types import MappingProxyType
 from typing import Any, ClassVar, Final, NamedTuple
@@ -265,6 +266,63 @@ def unwrap_math(text: str, /) -> str:
     return text
 
 
+# A control word (swallowing one following space, as TeX does), a control
+# symbol, and the grouping and sub/superscript markers. Everything the pattern
+# does not match is a literal glyph.
+_LATEX_MARKUP: Final = re.compile(r"\\[a-zA-Z]+\s?|\\.|[{}^_&]")
+
+
+def math_doc(text: str, /) -> wl.AbstractDoc:
+    r"""Build a doc for a LaTeX fragment, billing only its visible glyphs.
+
+    ``\mathrm{\frac{m}{s^{2}}}`` is 24 characters that render as about three
+    columns. Billed in full it pushes the layout tens of columns past the real
+    width, so ``width=`` would break a LaTeX line where the same quantity in
+    text or HTML comfortably fits. Control sequences, braces and the
+    sub/superscript markers are emitted zero-width; only literal glyphs count.
+
+    A control sequence that renders a glyph of its own -- ``\odot``,
+    ``\circ`` -- costs nothing here, so ``deg`` bills 0 rather than 1.
+    Under-billing is the benign direction: it lays a line out flat instead of
+    breaking it early.
+
+    Examples
+    --------
+    >>> import wadler_lindig as wl
+    >>> from unxt._src.fmt import doc_to_str, math_doc
+
+    The fragment is reproduced exactly:
+
+    >>> frag = r"\mathrm{\frac{m}{s^{2}}}"
+    >>> doc_to_str(math_doc(frag), 10**9)
+    '\\mathrm{\\frac{m}{s^{2}}}'
+
+    ...but costs only the three columns it occupies, so this fits in ten
+    where the same text billed in full does not:
+
+    >>> def fits(doc):
+    ...     grp = wl.GroupDoc(wl.ConcatDoc(doc, wl.BreakDoc(" "), wl.TextDoc("xxxxxx")))
+    ...     return "\n" not in doc_to_str(grp, 10)
+
+    >>> fits(math_doc(frag))
+    True
+
+    >>> fits(wl.TextDoc(frag))
+    False
+
+    """
+    docs: list[wl.AbstractDoc] = []
+    pos = 0
+    for match in _LATEX_MARKUP.finditer(text):
+        if match.start() > pos:
+            docs.append(wl.TextDoc(text[pos : match.start()]))
+        docs.append(wl.TextDoc(match.group(), width=False))
+        pos = match.end()
+    if pos < len(text):
+        docs.append(wl.TextDoc(text[pos:]))
+    return wl.ConcatDoc(*docs)
+
+
 class _DocHolder(NamedTuple):
     """Presents a ready-made doc to `wadler_lindig` through its own protocol."""
 
@@ -368,7 +426,7 @@ def pparts(
 
 
 def _sep_doc(
-    part: PPart, sep: str | None, table: Mapping[str, Any], /, *, text_mode: bool
+    part: PPart, sep: str | None, table: Mapping[str, Any], /
 ) -> list[wl.AbstractDoc]:
     r"""Return the documents for a ``"sep"`` fragment.
 
@@ -376,19 +434,44 @@ def _sep_doc(
     the markup table rather than a literal the caller chose -- which is what
     lets LaTeX spell a "bare" join as ``\,`` instead of a space that math mode
     would discard.
+
+    A separator offers a break opportunity, but only where that is safe:
+
+    - **Its visible text must survive the break.** `wadler_lindig.BreakDoc`
+      shows its text only in horizontal mode, so mapping ``" * "`` straight to
+      a ``BreakDoc`` would silently drop the ``*`` on the broken line. The
+      trailing space is the break; anything before it is ink.
+    - **Only a separator with trailing space offers one.** Otherwise two
+      adjacent separators emit two ``BreakDoc``s and produce a blank line.
+
+    The ink goes through `math_doc`, so a spacing *command* costs nothing while
+    a literal glyph still costs its column: LaTeX's ``\,`` bills the one space
+    it renders as rather than its three characters. On a markup whose
+    separators are literal text this is the identity.
     """
     role = sep if (sep is not None and part.role == "mul") else part.role
-    if not text_mode:
-        sub = _role_override(table, role)
+    override = _role_override(table, role)
+    if override is None:
         escape = table["escape"] or (lambda s: s)
-        return [wl.TextDoc(sub if sub is not None else escape(part.text))]
-    text = part.text
-    if role != part.role:
-        text = _role_override(table, role) or part.text
+        text = escape(part.text)
+    else:
+        text = override
     if not text.endswith(" "):
-        return [wl.TextDoc(text)]
+        return [math_doc(text)]
     ink = text.rstrip(" ")
-    return [*([wl.TextDoc(ink)] if ink else []), wl.BreakDoc(" ")]
+    return [*([math_doc(ink)] if ink else []), wl.BreakDoc(" ")]
+
+
+def _invisible(text: str, /) -> list[wl.AbstractDoc]:
+    r"""Wrap markup text that is emitted but costs no columns.
+
+    Wrapper text -- ``<span>``, ``$``, ``\mathrm{`` -- is not visible output.
+    Billing it as columns made wadler-lindig break lines tens of columns early,
+    which is why markup once had to bypass the layout path altogether.
+    `wadler_lindig.TextDoc` with ``width=False`` (wadler-lindig 0.1.8) emits it
+    without advancing the column, so one renderer serves every markup.
+    """
+    return [wl.TextDoc(text, width=False)] if text else []
 
 
 def parts_to_doc(
@@ -402,20 +485,11 @@ def parts_to_doc(
 ) -> wl.AbstractDoc:
     """Build a wadler-lindig document from fragments, in any markup.
 
-    A ``"sep"`` fragment becomes a break opportunity, but only where that is
-    safe:
-
-    - **Its visible text must survive the break.** `wadler_lindig.BreakDoc`
-      shows its text only in horizontal mode, so mapping ``" * "`` straight to
-      a ``BreakDoc`` would silently drop the ``*`` on the broken line. The
-      trailing space is the break; anything before it is ink.
-    - **Only a separator with trailing space offers a break.** Otherwise two
-      adjacent separators emit two ``BreakDoc``s and produce a blank line.
-
-    HTML and LaTeX build the same tree but offer no break points, because
-    their wrapper text would be billed as columns. When wadler-lindig's
-    ``TextDoc(width=False)`` lands, wrappers use it and the ``text_mode``
-    guards below go away.
+    Every markup goes through this one path. A markup's wrapper text is
+    emitted zero-width (`_invisible`), so it reaches the output without being
+    billed as columns -- which is what lets HTML and LaTeX share the layout,
+    line breaking and nesting that plain text gets. `_sep_doc` says where the
+    break points come from.
 
     Examples
     --------
@@ -427,11 +501,17 @@ def parts_to_doc(
     >>> doc_to_str(doc, 88)
     '[1., 2., 3.] * m'
 
+    Markup lays out identically, because its wrappers cost nothing:
+
+    >>> q = u.Q([1.0, 2, 3], "m")
+    >>> print(doc_to_str(parts_to_doc(pparts(q, markup="html"), markup="html"), 16))
+    <span>[1., 2., 3.]</span>
+      *
+      <span>m</span>
+
     """
     table = _markup_table(markup)
     escape = table["escape"] or (lambda s: s)
-    # The seam for wadler-lindig PR #23: until then only text gets break points.
-    text_mode = markup == "text"
     docs: list[wl.AbstractDoc] = []
     for part in parts:
         if isinstance(part, PGroup):
@@ -441,17 +521,27 @@ def parts_to_doc(
                 )
             )
         elif part.kind == "sep":
-            docs.extend(_sep_doc(part, sep, table, text_mode=text_mode))
-        elif text_mode:
-            docs.append(part.doc if part.doc is not None else wl.TextDoc(part.text))
+            docs.extend(_sep_doc(part, sep, table))
         else:
-            text = escape(part.text) if part.kind == "content" else part.text
-            wrapper = _role_override(table, part.role) or table["_content"]
-            docs.append(wl.TextDoc(wrapper.format(text)))
+            # A role override doubles as the content wrapper, but only if it is
+            # one: a separator-shaped override (LaTeX ``gap``) has no ``{}``
+            # and would silently swallow the fragment's text.
+            override = _role_override(table, part.role)
+            wrapper = (
+                override
+                if (isinstance(override, str) and "{}" in override)
+                else table["_content"]
+            )
+            pre, _, post = wrapper.partition("{}")
+            inner = part.doc
+            if inner is None:
+                text = escape(part.text) if part.kind == "content" else part.text
+                inner = wl.TextDoc(text)
+            docs.extend([*_invisible(pre), inner, *_invisible(post)])
     body: wl.AbstractDoc = wl.ConcatDoc(*docs)
     if _top:
-        pre, post = table["wrap"].split("{}")
-        body = wl.ConcatDoc(wl.TextDoc(pre), body, wl.TextDoc(post))
+        pre, _, post = table["wrap"].partition("{}")
+        body = wl.ConcatDoc(*_invisible(pre), body, *_invisible(post))
     return wl.GroupDoc(wl.NestDoc(body, indent=indent))
 
 

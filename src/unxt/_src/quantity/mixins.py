@@ -155,8 +155,19 @@ class IPythonReprMixin:
         }
 
     def _repr_markup_(self, markup: str, /) -> str:
-        """Render through the `unxt._pparts` engine in the given markup."""
-        return fmt.parts_to_markup(fmt.pparts(self, markup=markup), markup=markup)
+        r"""Render through the `unxt._pparts` engine in the given markup.
+
+        Two deliberate departures from what the same markup's format spec
+        gives. ``sep="mul"`` keeps the operator, where the ``sep`` axis
+        defaults to ``bare`` -- so ``q._repr_html_()`` and ``f"{q:html}"``
+        differ by their separator. And `unxt._pparts.parts_to_markup` lays out
+        flat, where `unxt._pparts.pspec` breaks at the render width: a break
+        renders identically in both markups (HTML collapses whitespace, LaTeX
+        math ignores newlines) and only lengthens the string.
+        """
+        return fmt.parts_to_markup(
+            fmt.pparts(self, markup=markup), markup=markup, sep="mul"
+        )
 
     def _repr_html_(self) -> str:
         """Return an HTML representation of the quantity.
