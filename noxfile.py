@@ -206,14 +206,6 @@ def pytest(s: nox.Session, /, package: PackageEnum) -> None:
     s.run("pytest", *package_paths, *s.posargs)
 
 
-@session(uv_groups=["test-all"], uv_extras=["interop-mpl"], reuse_venv=True)
-@nox.parametrize("package", list(PackageEnum))
-def pytest_all(s: nox.Session, /, package: PackageEnum) -> None:
-    """Run the unit and regular tests."""
-    package_paths = _parse_pytest_paths(package)
-    s.run("pytest", *package_paths, *s.posargs)
-
-
 @session(uv_groups=["test"], reuse_venv=True)
 def pytest_benchmark(s: nox.Session, /) -> None:
     """Run the benchmarks."""
