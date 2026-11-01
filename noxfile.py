@@ -192,7 +192,13 @@ def _parse_pytest_paths(package: PackageEnum, /) -> list[str]:
 # ``test-all`` (not ``test``) because the ``workspace`` extra pulls in
 # matplotlib via ``unxt[interop-mpl]``, so the matplotlib integration tests are
 # collected and need ``pytest-mpl`` to register the ``mpl_image_compare`` marker.
-@session(uv_groups=["test-all"], uv_extras=["workspace"], reuse_venv=True)
+#
+# The ``workspace`` *group* as well as the same-named extra: the extra is
+# published, so it deliberately omits the deprecated ``unxt-hypothesis`` shim
+# (``pip install unxt[all]`` must not drag it in). Only the dev-only group
+# lists every workspace member, and this session sweeps over all of
+# ``PackageEnum`` -- including that shim, whose tests import it.
+@session(uv_groups=["test-all", "workspace"], uv_extras=["workspace"], reuse_venv=True)
 @nox.parametrize("package", list(PackageEnum))
 def pytest(s: nox.Session, /, package: PackageEnum) -> None:
     """Run the unit and regular tests."""
