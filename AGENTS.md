@@ -69,7 +69,7 @@ Grep `_mk\(` before touching construction-hot code — it's used across `unxts.l
 - `xfail_strict = true`; `UNXT_ENABLE_RUNTIME_TYPECHECKING=beartype.beartype` is set in the test env (off by default at runtime).
 - Optional-dependency tests auto-skip via `optional_dependencies.OptionalDependencyEnum`; `conftest.py` manages `collect_ignore_glob`.
 - `pytest-benchmark`/`pytest-codspeed` benchmarks live in `tests/benchmark`; CI only runs them on PRs carrying the `run-benchmarks` label.
-- Each package is linted with `pylint` **in isolation** (`nox -s pylint -- <package>`) — running it over the whole tree produces false `duplicate-code` positives between a shim and its canonical package.
+- Each package is linted with `pylint` **in isolation** (`uv run nox -s "pylint(package='<package>')"`) — running it over the whole tree produces false `duplicate-code` positives between a shim and its canonical package.
 
 ## Pitfalls
 
