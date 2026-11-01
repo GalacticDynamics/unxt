@@ -179,7 +179,7 @@ def mul_qty_qm(
     x: u.AbstractQuantity, y: QuantityMatrix, /, **kw: Any
 ) -> QuantityMatrix:
     """Quantity x `QuantityMatrix` — multiplication commutes."""
-    return mul_qm_qty(y, x)
+    return mul_qm_qty(y, x)  # pylint: disable=arguments-out-of-order  # commutes
 
 
 @quax.register(lax.mul_p)

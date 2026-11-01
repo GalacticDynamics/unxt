@@ -9,6 +9,10 @@ reduce-sum) plus the ``matmul``/``matvec``/``vecmat``/``vecdot`` products and
 algebra.
 """
 
+# This module and ``unxts.linalg._src`` re-export the same public names, so
+# their ``__all__`` overlap trips duplicate-code; that is intentional.
+# pylint: disable=duplicate-code
+
 from ._version import version as __version__
 
 __all__ = (

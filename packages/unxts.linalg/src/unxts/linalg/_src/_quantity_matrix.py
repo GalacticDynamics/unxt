@@ -1,3 +1,6 @@
+# pylint: disable=no-member, unsubscriptable-object
+#    b/c it doesn't understand dataclass fields
+
 """QuantityMatrix class and unit-conversion helpers."""
 
 from typing import Any, ClassVar, NoReturn

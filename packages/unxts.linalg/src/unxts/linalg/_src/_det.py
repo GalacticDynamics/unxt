@@ -152,7 +152,7 @@ def _det_jvp(primals: tuple, tangents: tuple) -> tuple:
     (x,) = primals
     (dx,) = tangents
     primal_out = det_p.bind(x)
-    if type(dx) is jax_ad.Zero:
+    if type(dx) is jax_ad.Zero:  # pylint: disable=unidiomatic-typecheck  # exact sentinel
         tangent_out = lax.full_like(primal_out, 0.0)
     else:
         # tr(A⁻¹ dA) via solve — avoids explicit matrix inversion.

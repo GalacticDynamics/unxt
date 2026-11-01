@@ -38,6 +38,7 @@ class PackageEnum(StrEnum):
     interop_gala = auto()
     interop_matplotlib = auto()
     interop_xarray = auto()
+    linalg = auto()
     parametric = auto()
 
 
@@ -116,9 +117,11 @@ def mypy(s: nox.Session, /) -> None:
     s.run("mypy", *s.posargs)
 
 
-def _parse_pylint_paths(package: PackageEnum, /) -> list[str]:
+def _parse_pylint_paths(package: PackageEnum, /) -> list[str]:  # noqa: C901
     # Lint each package in isolation so the ``duplicate-code`` checker does not
     # flag the intentional similarity between a shim and its canonical package.
+    # The C901 waiver is for a flat one-case-per-package lookup: the complexity
+    # score tracks how many workspace packages exist, not any real branching.
     match package:
         case PackageEnum.unxt:
             return ["src/unxt"]
@@ -136,6 +139,8 @@ def _parse_pylint_paths(package: PackageEnum, /) -> list[str]:
             return ["packages/unxts.interop.matplotlib/src"]
         case PackageEnum.interop_xarray:
             return ["packages/unxts.interop.xarray/src"]
+        case PackageEnum.linalg:
+            return ["packages/unxts.linalg/src"]
         case PackageEnum.parametric:
             return ["packages/unxts.parametric/src"]
         case _:
@@ -161,7 +166,8 @@ def test(s: nox.Session, /) -> None:
     # s.notify("pytest_benchmark", posargs=s.posargs)
 
 
-def _parse_pytest_paths(package: PackageEnum, /) -> list[str]:
+def _parse_pytest_paths(package: PackageEnum, /) -> list[str]:  # noqa: C901
+    # C901 as in ``_parse_pylint_paths``: a flat one-case-per-package lookup.
     # The canonical ``unxts.*`` namespace packages point only at their ``tests``
     # directory: pytest's namespace-package path insertion would otherwise let a
     # leaf like ``unxts/interop/xarray`` shadow the real ``xarray`` when it
@@ -183,6 +189,8 @@ def _parse_pytest_paths(package: PackageEnum, /) -> list[str]:
             return ["packages/unxts.interop.matplotlib/tests"]
         case PackageEnum.interop_xarray:
             return ["packages/unxts.interop.xarray/tests"]
+        case PackageEnum.linalg:
+            return ["packages/unxts.linalg/tests"]
         case PackageEnum.parametric:
             return ["packages/unxts.parametric/tests"]
         case _:
