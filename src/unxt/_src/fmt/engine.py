@@ -41,6 +41,7 @@ __all__ = (
     "PGroup",
     "PPart",
     "REQUIRED_MARKUP_KEYS",
+    "ReprMixin",
     "Spec",
     "bad_spec",
     "doc_part",
@@ -50,17 +51,20 @@ __all__ = (
     "parts_to_doc",
     "parts_to_markup",
     "pparts",
+    "pparts_to_pdoc",
     "pspec",
     "register_alias",
     "register_axis",
     "render",
+    "unregister_alias",
+    "unregister_axis",
     "unwrap_math",
 )
 
 import html as _html
 from collections.abc import Callable, Iterator, Mapping
 from types import MappingProxyType
-from typing import Any, Final, NamedTuple
+from typing import Any, ClassVar, Final, NamedTuple
 
 import wadler_lindig as wl
 from plum import Dispatcher
@@ -175,7 +179,7 @@ def _latex_escape(s: str, /) -> str:
 #:
 #: Add a markup by adding a row. Roles need not be enumerated -- an unknown
 #: role falls back to ``_content`` and the fragment's own text.
-MARKUPS: dict[str, dict[str, Any]] = {
+_MARKUPS: dict[str, dict[str, Any]] = {
     "text": {"_content": "{}", "wrap": "{}", "vsep": ", ", "escape": None, "bare": " "},
     "html": {
         "_content": "<span>{}</span>",
@@ -201,6 +205,10 @@ MARKUPS: dict[str, dict[str, Any]] = {
     },
 }
 
+#: Read-only view of the markup rows; `unxt._src.fmt.register_markup` is the
+#: way in.
+MARKUPS: Final[Mapping[str, Mapping[str, Any]]] = MappingProxyType(_MARKUPS)
+
 #: Keys every `MARKUPS` row must define; they are the ones with no per-fragment
 #: fallback.
 REQUIRED_MARKUP_KEYS: Final = ("_content", "wrap", "vsep", "escape")
@@ -216,7 +224,7 @@ def _role_override(table: Mapping[str, Any], role: str, /) -> Any:
     return None if role in REQUIRED_MARKUP_KEYS else table.get(role)
 
 
-def _markup_table(markup: str, /) -> dict[str, Any]:
+def _markup_table(markup: str, /) -> Mapping[str, Any]:
     """Return the `MARKUPS` row, naming the markup if it is unknown."""
     try:
         return MARKUPS[markup]
@@ -318,6 +326,10 @@ def pparts(obj: Any, /, *, markup: str = "text", **kw: Any) -> tuple[Any, ...]:
 
     This is the extension point: register an implementation for your type and
     it gains every preset, every markup, and the wadler-lindig layout path.
+
+    A registered method must accept ``**kw``: the engine forwards the axes it
+    does not itself act on (``short_arrays``, ``unit_style``, ``value_spec``,
+    ...) to it on every route, ``wl.pformat`` included.
     """
     raise NotImplementedError  # pragma: no cover
 
@@ -520,7 +532,8 @@ class Axis(NamedTuple):
 
 
 #: Registered axes, by name. Populated only through `register_axis`.
-AXES: Final[dict[str, Axis]] = {}
+_AXES: Final[dict[str, Axis]] = {}
+AXES: Final[Mapping[str, Axis]] = MappingProxyType(_AXES)
 
 #: Spec word -> every axis claiming it, in registration order.
 #:
@@ -534,7 +547,8 @@ _KEYWORDS: Final[dict[str, list[str]]] = {}
 #: before parsing, so an alias can never mean something the grammar cannot
 #: already say, and combining one with a further keyword raises exactly the
 #: error its expansion would.
-ALIASES: Final[dict[str, str]] = {}
+_ALIASES: Final[dict[str, str]] = {}
+ALIASES: Final[Mapping[str, str]] = MappingProxyType(_ALIASES)
 
 
 def _free_text(spec: "Spec", /) -> str | None:
@@ -557,17 +571,18 @@ def _free_text_axis() -> Axis | None:
     return next((ax for ax in AXES.values() if ax.free_text), None)
 
 
-def register_axis(axis: Axis, /) -> Axis:
+def register_axis(axis: Axis, /, *, replace: bool = False) -> Axis:
     """Add an axis to the grammar, rejecting any keyword collision.
 
     Registration is the only way in. A downstream package registering
     ``vector_form`` gets exactly what the built-in axes get -- there is no
-    privileged set.
+    privileged set. ``replace=True`` swaps out an axis of the same name.
     """
-    if axis.name in AXES:
+    if axis.name in AXES and not replace:
         msg = f"axis {axis.name!r} is already registered"
         raise ValueError(msg)
-    if axis.free_text and (claimed := _free_text_axis()) is not None:
+    claimed = _free_text_axis()
+    if axis.free_text and claimed is not None and claimed.name != axis.name:
         msg = (
             f"axis {axis.name!r} claims free text, but {claimed.name!r} "
             "already does; a spec has only one trailing run to give"
@@ -579,27 +594,45 @@ def register_axis(axis: Axis, /) -> Axis:
             # back on -- unlike a keyword, it cannot be disambiguated.
             msg = f"keyword {word!r} is already an alias"
             raise ValueError(msg)
-    AXES[axis.name] = axis
+    # Everything is validated: only now touch the registries, so a rejected
+    # replacement leaves the axis it meant to replace in place.
+    if axis.name in _AXES:
+        unregister_axis(axis.name)
+    _AXES[axis.name] = axis
     for word in axis.keywords:
         _KEYWORDS.setdefault(word, []).append(axis.name)
     return axis
 
 
-def register_alias(name: str, expansion: str, /) -> None:
+def register_alias(name: str, expansion: str, /, *, replace: bool = False) -> None:
     """Add a whole-spec shorthand, rejecting any collision.
 
     Both directions are checked, because both are the same mistake: a name
     that already means something must not quietly start meaning something
     else. Silently overwriting is how a spec changes meaning without anyone
-    editing the spec.
+    editing the spec. ``replace=True`` overwrites an alias deliberately.
     """
     if name in _KEYWORDS:
         msg = f"alias {name!r} is already a keyword of axis {_KEYWORDS[name][0]!r}"
         raise ValueError(msg)
-    if name in ALIASES:
+    if name in ALIASES and not replace:
         msg = f"alias {name!r} is already registered as {ALIASES[name]!r}"
         raise ValueError(msg)
-    ALIASES[name] = expansion
+    _ALIASES[name] = expansion
+
+
+def unregister_axis(name: str, /) -> None:
+    """Remove an axis and its keywords from the grammar (for tests and reloads)."""
+    axis = _AXES.pop(name)
+    for word in axis.keywords:
+        _KEYWORDS[word].remove(name)
+        if not _KEYWORDS[word]:
+            del _KEYWORDS[word]
+
+
+def unregister_alias(name: str, /) -> None:
+    """Remove a whole-spec shorthand."""
+    del _ALIASES[name]
 
 
 #: Layout -> the function that renders an object in it. A layout is a way of
@@ -664,7 +697,7 @@ class Spec(Mapping[str, Any]):
 
 def _grammar_help() -> str:
     """Describe the grammar, generated from the registry so it cannot drift."""
-    parts = [f"{name} ({'|'.join(ax.keywords)})" for name, ax in AXES.items()]
+    parts = [f"{name} ({'|'.join(ax.keywords) or '<n>'})" for name, ax in AXES.items()]
     aliases = ", ".join(f"{k}={v}" for k, v in ALIASES.items())
     return (
         "a '-'-joined run of keywords, then an optional Python format spec "
@@ -831,7 +864,7 @@ def _layout_kwargs(spec: Spec, layout: str, /) -> dict[str, Any]:
     for name, ax in AXES.items():
         translate = ax.layouts.get(layout)
         if translate is not None:
-            kw.update(translate(spec[name]))
+            kw.update(translate(spec.get(name, ax.default)))
     return kw
 
 
@@ -861,6 +894,8 @@ def render(
 
     """
     layout = spec["layout"]
+    width = w if (w := spec.get("width")) is not None else width
+    indent = i if (i := spec.get("indent")) is not None else indent
     return _LAYOUTS[layout](
         obj, spec, width=width, indent=indent, **_layout_kwargs(spec, layout), **extra
     )
@@ -908,6 +943,32 @@ register_axis(
         layouts=dict.fromkeys(_LAYOUTS, lambda _: {}),
     )
 )
+
+
+class _Count(Mapping[str, int]):
+    """Keywords for a numeric axis: any digit string maps to its `int`.
+
+    It iterates empty, so it claims no *bare* word in the shared keyword
+    namespace; only the explicit ``axis=<n>`` form resolves.
+    """
+
+    def __getitem__(self, key: str) -> int:
+        if key.isascii() and key.isdigit():
+            return int(key)
+        raise KeyError(key)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(())
+
+    def __len__(self) -> int:
+        return 0
+
+
+#: Layout parameters, not renderer kwargs: they contribute nothing to
+#: `_layout_kwargs`; `render` reads them off the spec directly. The `layouts`
+#: values are `None`: valid in every layout, translating to nothing.
+register_axis(Axis("width", _Count(), None, dict.fromkeys(_LAYOUTS)))
+register_axis(Axis("indent", _Count(), None, dict.fromkeys(_LAYOUTS)))
 
 
 def inert_axes(obj: Any, spec: Spec, rendered: str, /, *, width: int = 88) -> list[str]:
@@ -984,3 +1045,119 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
         raise bad_spec(obj, spec, msg) from e
 
     return out
+
+
+def pparts_to_pdoc(
+    obj: Any,
+    /,
+    *,
+    indent: int = 2,
+    sep: str | None = None,
+    markup: str = "text",
+    **kw: Any,
+) -> wl.AbstractDoc:
+    """Return ``obj``'s `pparts` as a wadler-lindig document.
+
+    This is what makes a type that only registers `pparts` work with
+    ``wl.pformat`` / ``wl.pprint``: its ``__pdoc__`` is this call.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> from unxt._src.fmt import doc_to_str, pparts_to_pdoc
+    >>> doc_to_str(pparts_to_pdoc(u.Q([1.0, 2], "m")))
+    '[1., 2.] * m'
+
+    """
+    return parts_to_doc(
+        pparts(obj, markup=markup, **kw), indent=indent, sep=sep, markup=markup
+    )
+
+
+def _check_repr_spec(spec: str, parsed: Spec, /) -> None:
+    """Reject a spec whose free-text remainder is not a Python format spec.
+
+    `parse_spec` sends any word that is not a keyword to the value axis, so a
+    typo or an alias registered too late would otherwise survive until the
+    first print.
+    """
+    text = _free_text(parsed)
+    if text is None:
+        return
+    # Elements need not be floats, so any probe type that accepts it will do.
+    first = None
+    for probe in (0.0, 0, ""):
+        try:
+            format(probe, text)
+        except ValueError as e:
+            first = first or e
+        else:
+            return
+    msg = f"{text!r} is not a valid Python format spec"
+    raise bad_spec(None, spec, msg) from first
+
+
+class ReprMixin:
+    """Derive ``repr``/``str``/``format``/IPython reprs/``__pdoc__`` from `pparts`.
+
+    Declare the layout once as a spec string; it is resolved when the *class*
+    is created, so a bad spec -- or an alias registered too late -- fails at
+    definition, not on first print::
+
+        @dataclass(repr=False)  # repr=True would shadow the mixin
+        class Version(ReprMixin):
+            __repr_spec__ = "bare"
+
+    Register `pparts` for the type; everything else follows. A type whose
+    ``repr`` is a *constructor expression* should keep an explicit
+    ``__pdoc__`` instead.
+
+    The registered `pparts` method must accept ``**kw`` (the engine forwards
+    axes such as ``short_arrays`` and ``unit_style`` on every route).
+    ``__repr_spec__`` is parsed when the class is created; reassigning it
+    later is not re-parsed.
+    """
+
+    __repr_spec__: ClassVar[str] = "product"
+    _repr_spec_parsed: ClassVar[Spec]
+
+    def __init_subclass__(cls, **kw: Any) -> None:
+        super().__init_subclass__(**kw)
+        parsed = parse_spec(cls.__repr_spec__)
+        _check_repr_spec(cls.__repr_spec__, parsed)
+        cls._repr_spec_parsed = parsed
+
+    def __repr__(self) -> str:
+        return render(self, self._repr_spec_parsed)
+
+    def __str__(self) -> str:
+        return render(self, self._repr_spec_parsed)
+
+    def __format__(self, format_spec: str, /) -> str:
+        return pspec(self, format_spec)
+
+    def _repr_html_(self) -> str:
+        return pspec(self, "html")
+
+    def _repr_latex_(self) -> str:
+        return pspec(self, "latex")
+
+    def __pdoc__(self, *, indent: int = 2, **kw: Any) -> wl.AbstractDoc:
+        layout = _layout_kwargs(self._repr_spec_parsed, "product")
+        markup = layout.pop("markup", "text")
+        sep = layout.pop("sep", None)
+        return pparts_to_pdoc(self, indent=indent, sep=sep, markup=markup, **layout)
+
+
+@dispatch  # type: ignore[no-redef]
+def pparts(obj: ReprMixin, /, *, markup: str = "text", **kw: Any) -> tuple[Any, ...]:
+    """Refuse a `ReprMixin` type that registered no `pparts` of its own.
+
+    Without this the generic `str` fallback would call back into the mixin's
+    ``__str__`` and recurse forever.
+    """
+    msg = (
+        f"{type(obj).__name__} subclasses ReprMixin but registers no pparts "
+        "(register one with @pparts.dispatch)"
+    )
+    raise TypeError(msg)

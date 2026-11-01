@@ -25,7 +25,13 @@ unproven stays behind `unxt._src.fmt`. The contract, in three groups:
   ``repr``/``str``.
 - **build by hand**: ``parts_to_markup`` / ``parts_to_doc`` flatten fragments
   to a string or a wadler-lindig document, ``doc_to_str`` lays a document out,
-  and ``pvalue`` renders a value as a document in a markup's dialect.
+  and ``pvalue`` renders a value as a document in a markup's dialect;
+  ``doc_part`` embeds a document as a part, ``pparts_to_pdoc`` is the
+  ``__pdoc__`` of a type that registers ``pparts``, and ``ReprMixin`` wires
+  ``__repr__``/``__str__``/``__format__``/``__pdoc__`` from one
+  ``__repr_spec__``.
+- **extend the markups**: ``register_markup``, plus ``unregister_axis`` /
+  ``unregister_alias`` / ``unregister_markup`` to undo a registration.
 
 The guide has the grammar, the axis table, and worked extension examples:
 :doc:`/how-to/formatting`.
@@ -90,16 +96,23 @@ __all__ = (
     "Axis",
     "PGroup",
     "PPart",
+    "ReprMixin",
     "Spec",
+    "doc_part",
     "doc_to_str",
     "parts_to_doc",
     "parts_to_markup",
     "pparts",
+    "pparts_to_pdoc",
     "pspec",
     "pvalue",
     "register_alias",
     "register_axis",
+    "register_markup",
     "render",
+    "unregister_alias",
+    "unregister_axis",
+    "unregister_markup",
 )
 
 from .setup_package import install_import_hook
@@ -109,16 +122,23 @@ with install_import_hook("unxt._pparts"):
         Axis,
         PGroup,
         PPart,
+        ReprMixin,
         Spec,
+        doc_part,
         doc_to_str,
         parts_to_doc,
         parts_to_markup,
         pparts,
+        pparts_to_pdoc,
         pspec,
         pvalue,
         register_alias,
         register_axis,
+        register_markup,
         render,
+        unregister_alias,
+        unregister_axis,
+        unregister_markup,
     )
 
 # Clean up the namespace

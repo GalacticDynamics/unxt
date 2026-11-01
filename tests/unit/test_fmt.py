@@ -29,10 +29,15 @@ from unxt._src.fmt import (
     pspec,
     register_alias,
     register_axis,
+    register_markup,
     render,
+    unregister_alias,
+    unregister_axis,
+    unregister_markup,
     unwrap_math,
 )
-from unxt._src.fmt.engine import _KEYWORDS
+from unxt._src.fmt.engine import _ALIASES, _AXES, _KEYWORDS, _MARKUPS
+from unxt._src.fmt.generic import _MARKUP_WORDS, _check_markup_row
 
 # ============================================================================
 # The grammar's own invariants
@@ -524,27 +529,58 @@ def test_unwrap_math_only_strips_real_delimiters(text: str, expected: str) -> No
 # The seam: the engine must stay liftable, and downstream must be a peer
 
 
+_PACKAGE_SIDE = ("engine", "generic")
+
+
+def _import_offenders(source: str) -> list[str]:
+    """Imports in `source` that a package-side module may not make.
+
+    Allowed: `wadler_lindig`, `plum`, the standard library, and a
+    single-dot relative import of another package-side module.
+    """
+    import ast  # noqa: PLC0415
+    import sys  # noqa: PLC0415
+
+    allowed = {"wadler_lindig", "plum", *sys.stdlib_module_names}
+    bad = []
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Import):
+            bad += [a.name for a in node.names if a.name.split(".")[0] not in allowed]
+        elif isinstance(node, ast.ImportFrom):
+            if node.level == 0:
+                if (node.module or "").split(".")[0] not in allowed:
+                    bad.append(node.module or "")
+            elif node.level != 1:
+                bad.append("." * node.level + (node.module or ""))
+            elif node.module is None:  # ``from . import x``
+                bad += [f".{a.name}" for a in node.names if a.name not in _PACKAGE_SIDE]
+            elif node.module not in _PACKAGE_SIDE:
+                bad.append(f".{node.module}")
+    return bad
+
+
+def test_import_offenders_flags_what_it_should() -> None:
+    """The boundary check is not vacuous."""
+    assert _import_offenders("from .axes import foo") == [".axes"]
+    assert _import_offenders("from .. import quantity") == [".."]
+    assert _import_offenders("from . import axes") == [".axes"]
+    assert _import_offenders("import numpy") == ["numpy"]
+    assert _import_offenders("from jax import numpy") == ["jax"]
+    assert not _import_offenders(
+        "import os\nimport plum\nfrom .engine import x\nfrom . import generic\n"
+        "from wadler_lindig import y"
+    )
+
+
 def test_package_side_imports_only_wl_plum_and_stdlib() -> None:
     """engine.py and generic.py are the future `pparts` package.
 
     They may import `wadler_lindig`, `plum`, the standard library, and each
     other (relative imports). Anything domain-specific belongs in `axes.py`.
     """
-    import ast  # noqa: PLC0415
-    import sys  # noqa: PLC0415
-
-    allowed = {"wadler_lindig", "plum", *sys.stdlib_module_names}
-    for mod in ("engine", "generic"):
+    for mod in _PACKAGE_SIDE:
         path = pathlib.Path(engine_module.__file__).with_name(f"{mod}.py")
-        tree = ast.parse(path.read_text(encoding="utf-8"))
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                roots = [a.name.split(".")[0] for a in node.names]
-            elif isinstance(node, ast.ImportFrom) and node.level == 0:
-                roots = [(node.module or "").split(".")[0]]
-            else:
-                continue
-            assert set(roots) <= allowed, (mod, roots)
+        assert _import_offenders(path.read_text(encoding="utf-8")) == [], mod
 
 
 def test_a_downstream_package_can_register_its_own_axis() -> None:
@@ -574,9 +610,8 @@ def test_a_downstream_package_can_register_its_own_axis() -> None:
         with pytest.raises(ValueError, match="'demo_form' does not apply"):
             parse_spec("product-demoform")
     finally:
-        AXES.pop("demo_form")
-        _KEYWORDS.pop("demoform")
-        ALIASES.pop("demoalias")
+        unregister_axis("demo_form")
+        unregister_alias("demoalias")
 
 
 @pytest.mark.parametrize("word", ["html", "compact"])
@@ -664,8 +699,7 @@ def test_two_axes_may_claim_one_word_and_both_stay_reachable() -> None:
         # Every other word is untouched by the collision.
         assert pspec(q, "mul") == "[1., 2., 3.] * m"
     finally:
-        AXES.pop("manifold")
-        _KEYWORDS["dim"].remove("manifold")
+        unregister_axis("manifold")
 
 
 @pytest.mark.parametrize("spec", [":>6", "=>6", "=6", "=^7"])
@@ -807,7 +841,19 @@ def test_pparts_shim_exports_the_build_by_hand_tools():
     """A downstream package can build a doc from its own parts, no `_src`."""
     import unxt._pparts as shim  # noqa: PLC0415
 
-    for name in ("parts_to_doc", "parts_to_markup", "doc_to_str", "pvalue"):
+    for name in (
+        "parts_to_doc",
+        "parts_to_markup",
+        "doc_to_str",
+        "pvalue",
+        "doc_part",
+        "pparts_to_pdoc",
+        "ReprMixin",
+        "register_markup",
+        "unregister_axis",
+        "unregister_alias",
+        "unregister_markup",
+    ):
         assert name in shim.__all__
         assert callable(getattr(shim, name))
 
@@ -1025,3 +1071,229 @@ def test_markup_docs_offer_no_breaks_until_wl_23():
     for markup in ("html", "latex"):
         out = render(q, parse_spec(markup), width=10)
         assert "\n" not in out
+
+
+# ============================================================================
+# Read-only registries, register/unregister
+
+
+def test_registries_are_read_only_views():
+    for reg in (AXES, ALIASES, MARKUPS):
+        with pytest.raises(TypeError):
+            reg["x"] = 1  # type: ignore[index]
+
+
+def test_register_axis_rejects_a_duplicate_unless_replace():
+    ax = Axis("tmp_axis", {"tmpword": 1}, 0, {"call": lambda _: {}})
+    register_axis(ax)
+    try:
+        with pytest.raises(ValueError, match="already registered"):
+            register_axis(ax)
+        register_axis(ax, replace=True)
+        assert "tmp_axis" in AXES
+    finally:
+        unregister_axis("tmp_axis")
+    assert "tmp_axis" not in AXES
+    assert "tmpword" not in _KEYWORDS
+
+
+def test_register_alias_replace():
+    register_alias("tmp_alias", "bare")
+    try:
+        with pytest.raises(ValueError, match="already registered"):
+            register_alias("tmp_alias", "mul")
+        register_alias("tmp_alias", "mul", replace=True)
+        assert ALIASES["tmp_alias"] == "mul"
+    finally:
+        unregister_alias("tmp_alias")
+    assert "tmp_alias" not in ALIASES
+
+
+_GOOD_ROW = {"_content": "[{}]", "wrap": "{}", "vsep": ", ", "escape": None}
+
+
+def test_register_markup_validates_and_extends_the_markup_axis():
+    register_markup("brackets", _GOOD_ROW)
+    try:
+        assert parse_spec("brackets")["markup"] == "brackets"
+        assert f"{u.Q(1.0, 'm'):brackets}" == "[1.] * [m]"
+        with pytest.raises(ValueError, match="already"):
+            register_markup("brackets", _GOOD_ROW)
+        register_markup("brackets", _GOOD_ROW, replace=True)
+        with pytest.raises(ValueError, match="missing"):
+            register_markup("broken", {"wrap": "{}"})
+    finally:
+        unregister_markup("brackets")
+    assert "brackets" not in MARKUPS
+    assert "brackets" not in _KEYWORDS
+
+
+@pytest.mark.parametrize(
+    ("bad", "match"),
+    [
+        ({"wrap": "no braces"}, "wrap"),
+        ({"wrap": "{}{}"}, "wrap"),
+        ({"wrap": 3}, "wrap"),
+        ({"_content": "{}{}"}, "_content"),
+        ({"_content": "{x}"}, "_content"),
+        ({"_content": "{"}, "_content"),
+        ({"_content": None}, "_content"),
+    ],
+)
+def test_register_markup_rejects_a_malformed_template(bad, match):
+    with pytest.raises(ValueError, match=match):
+        register_markup("bad_markup", {**_GOOD_ROW, **bad})
+    assert "bad_markup" not in MARKUPS
+    assert "bad_markup" not in _KEYWORDS
+
+
+@pytest.mark.parametrize("content", ["", "<{0}>", "{}", "plain"])
+def test_register_markup_accepts_any_content_str_that_formats(content):
+    register_markup("ok_markup", {**_GOOD_ROW, "_content": content})
+    unregister_markup("ok_markup")
+
+
+@pytest.mark.parametrize("markup", sorted(MARKUPS))
+def test_builtin_markup_rows_satisfy_the_register_markup_checks(markup):
+    _check_markup_row(MARKUPS[markup])
+
+
+def _snapshot():
+    return (
+        dict(_AXES),
+        {k: list(v) for k, v in _KEYWORDS.items()},
+        dict(_ALIASES),
+        {k: dict(v) for k, v in _MARKUPS.items()},
+        dict(_MARKUP_WORDS),
+    )
+
+
+def test_a_failed_replace_leaves_every_registry_untouched():
+    before = _snapshot()
+    with pytest.raises(ValueError, match="claims free text"):
+        register_axis(AXES["sep"]._replace(free_text=("product",)), replace=True)
+    assert _snapshot() == before
+    assert parse_spec("bare")["sep"] == "bare"
+
+
+def test_a_keyword_clash_on_replace_leaves_the_old_axis():
+    before = _snapshot()
+    clash = AXES["sep"]._replace(keywords={"compact": 1})  # an alias
+    with pytest.raises(ValueError, match="already an alias"):
+        register_axis(clash, replace=True)
+    assert _snapshot() == before
+
+
+def test_a_successful_replace_keeps_keywords_consistent():
+    old = AXES["sep"]
+    new = old._replace(keywords={"mul": "mul", "bare": "bare", "tmpsep": "mul"})
+    register_axis(new, replace=True)
+    try:
+        assert _KEYWORDS["tmpsep"] == ["sep"]
+        assert _KEYWORDS["mul"].count("sep") == 1
+    finally:
+        register_axis(old, replace=True)
+    assert "tmpsep" not in _KEYWORDS
+    assert _KEYWORDS["bare"].count("sep") == 1
+
+
+def test_register_markup_rejects_a_keyword_clash():
+    with pytest.raises(ValueError, match="keyword or alias"):
+        register_markup("mul", _GOOD_ROW)
+    assert "mul" not in MARKUPS
+
+
+# ============================================================================
+# width= and indent=
+
+
+def test_width_and_indent_in_the_spec() -> None:
+    q = u.Q(np.arange(30.0), "m")
+    wide = f"{q:mul-width=200}"
+    narrow = f"{q:mul-width=20}"
+    assert "\n" not in wide
+    assert max(map(len, narrow.splitlines())) <= 20
+    two = f"{q:mul-width=20-indent=2}".splitlines()
+    four = f"{q:mul-width=20-indent=4}".splitlines()
+    assert two != four
+
+    def lead(ln: str) -> int:
+        return len(ln) - len(ln.lstrip())
+
+    # continuation lines indent two more spaces under indent=4 than indent=2
+    assert len(two) == len(four)
+    assert {lead(b) - lead(a) for a, b in zip(two[1:-1], four[1:-1], strict=True)} == {
+        2
+    }
+
+
+def test_width_is_rejected_when_not_a_number() -> None:
+    """Non-numeric text is not a width: it falls through to the value spec."""
+    with pytest.raises(ValueError, match="invalid format spec"):
+        f"{u.Q(1.0, 'm'):width=wide}"
+
+
+def test_width_does_not_eat_a_format_spec() -> None:
+    assert parse_spec("mul-width=40-.2f")["value"] == ".2f"
+    assert parse_spec(">10.2f")["value"] == ">10.2f"
+
+
+def test_width_and_indent_are_not_bare_words() -> None:
+    spec = parse_spec("mul")
+    assert spec["width"] is None
+    assert spec["indent"] is None
+    assert "width" not in _KEYWORDS
+    assert "40" not in _KEYWORDS
+    assert parse_spec("width=40")["width"] == 40
+
+
+def test_spec_width_overrides_the_argument_and_defaults_do_not_clobber() -> None:
+    q = u.Q(np.arange(30.0), "m")
+    assert "\n" in render(q, parse_spec("mul"), width=20)
+    assert "\n" not in render(q, parse_spec("mul-width=200"), width=20)
+    # indent=None leaves the caller's indent alone
+    assert render(q, Spec.of(layout="call"), indent=4) == render(
+        q, Spec.of(layout="call", indent=4)
+    )
+
+
+def test_call_layout_honours_width() -> None:
+    q = u.Q(np.arange(6.0), "m")
+    assert "\n" in f"{q:call-width=20}"
+    assert "\n" not in f"{q:call-width=200}"
+
+
+@pytest.mark.parametrize("digit", ["\u00b2", "\u0663"])
+def test_non_ascii_digits_are_not_a_count(digit: str) -> None:
+    with pytest.raises(ValueError, match="invalid format spec"):
+        f"{u.Q(1.0, 'm'):width={digit}}"
+
+
+def test_zero_width_and_indent_render() -> None:
+    q = u.Q(np.arange(3.0), "m")
+    assert "1." in f"{q:mul-width=0}"
+    assert "1." in f"{q:mul-indent=0}"
+
+
+def test_hand_built_spec_without_width_or_indent_renders() -> None:
+    q = u.Q(1.0, "m")
+    spec = Spec({k: v for k, v in Spec.of().items() if k not in ("width", "indent")})
+    assert render(q, spec) == render(q, Spec.of())
+
+
+def test_count_mapping_claims_no_bare_word():
+    """`width`/`indent` take digits only through `axis=<n>`, never as a bare word."""
+    from unxt._src.fmt.engine import _Count  # noqa: PLC0415
+
+    count = _Count()
+    assert (len(count), list(count), count["12"]) == (0, [], 12)
+    with pytest.raises(KeyError):
+        count["m"]
+
+
+def test_array_doc_rejects_text_after_the_closing_bracket():
+    """Trailing text is not numpy's structure: callers fall back on IndexError."""
+    from unxt._src.fmt.axes import _SENTINEL, _array_doc  # noqa: PLC0415
+
+    with pytest.raises(IndexError):
+        _array_doc(f"[1{_SENTINEL}2] x", sep=wl.TextDoc(", "), escape=str)
