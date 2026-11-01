@@ -13,6 +13,7 @@ units
 unitsystems
 dimensions
 configuration
+formatting
 dataclassish
 glossary
 api/index
@@ -28,6 +29,7 @@ api/index
 ## Settings and interop
 
 - {doc}`configuration` — every display option, its type and its default, including the `pyproject.toml` keys.
+- {doc}`formatting` — the format-spec grammar: every axis, keyword, alias and default.
 - {doc}`dataclassish` — what each `dataclassish` function returns for each `unxt` type.
 
 ## Vocabulary and generated API

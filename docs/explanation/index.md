@@ -12,9 +12,11 @@ sharp-bits
 why-quantity-is-non-parametric
 equality-and-equivalence
 api-conventions
+why-formatting-is-one-engine
 ```
 
 - {doc}`sharp-bits` — the behaviours that surprise people, and why each one is inherent rather than a bug.
 - {doc}`why-quantity-is-non-parametric` — why the default `Quantity` stopped encoding dimension in its type, and why the usual `jit`-cache explanation is wrong.
 - {doc}`equality-and-equivalence` — why `==` and `unxt.equivalent` answer different questions, and what that has to do with `jax.jit`.
 - {doc}`api-conventions` — why every operation has both a functional and an object-oriented form, and why the operator argument comes first.
+- {doc}`why-formatting-is-one-engine` — why `repr`, `str`, `__format__` and the Jupyter representations are served by one renderer, and what that forced.

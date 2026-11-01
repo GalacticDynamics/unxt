@@ -13,9 +13,11 @@ convert-units
 compare-quantities
 use-jax-functions
 control-display
+format-quantities
 wrap-angles
 use-a-quantity-as-a-static-argument
 check-types-at-runtime
+make-a-type-formattable
 register-a-quax-rule
 define-a-unit-system
 build-a-simulation-unit-system
@@ -38,6 +40,7 @@ migrate-to-v2
 - {doc}`use-a-quantity-as-a-static-argument` — `StaticQuantity` and `StaticValue` under `jax.jit`.
 - {doc}`use-jax-functions` — `quaxify`, `quaxed`, `jit`, autodiff and functional updates.
 - {doc}`control-display` — change how quantities render, for a call, a block, a process or a project.
+- {doc}`format-quantities` — render a quantity with an f-string format spec.
 
 ## Units and unit systems
 
@@ -49,5 +52,9 @@ migrate-to-v2
 
 - {doc}`check-types-at-runtime` — enforce dtype and shape annotations at runtime.
 - {doc}`optimize-performance` — keep wrapper overhead off your hot path.
-- {doc}`register-a-quax-rule` — teach JAX a primitive rule of your own.
 - {doc}`interoperate-with-astropy` — move values between `astropy` and `unxt` safely.
+
+## Extending `unxt` for your own types
+
+- {doc}`make-a-type-formattable` — register `pparts` so your type accepts the format specs.
+- {doc}`register-a-quax-rule` — teach JAX a primitive rule of your own.

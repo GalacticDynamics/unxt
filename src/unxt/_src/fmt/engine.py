@@ -1,0 +1,1252 @@
+"""The string-formatting engine.
+
+**This module is domain-agnostic and self-contained.** It knows nothing about
+quantities, units, arrays, or `jax`, and imports nothing from `unxt` -- see
+`unxt._src.fmt.axes` for the layer that teaches it those. It is written to be
+lifted out into a package of its own, with `unxt`, `coordinax` and `galax`
+registering into it as peers. A test reads this module's import list, so that
+restriction is enforced rather than merely documented.
+
+That package is intended to be called **``pparts``**, after the extension
+point everything here turns on: a type joins in by saying what it is *made
+of*.
+
+An object declares *how it decomposes* by registering `pparts`, which returns a
+tree of roled fragments. Two consumers turn that tree into output:
+
+- `parts_to_doc` builds a `wadler_lindig.AbstractDoc`, so *every* markup gets
+  wadler-lindig's layout, line breaking, and nesting for free, and composes
+  inside a larger document. A markup's wrapper text is emitted zero-width, so
+  it reaches the output without being billed as visible columns.
+- `parts_to_markup` is that same document laid out flat, which is what an HTML
+  or LaTeX string wants: HTML collapses whitespace and LaTeX math ignores
+  newlines.
+
+The engine feeds wadler-lindig; it does not replace it. ``__pdoc__`` stays the
+definition of *call-style* rendering and is untouched by this module.
+
+The format-spec grammar is likewise a *mechanism* here, not a vocabulary. The
+scan rule, the `Spec` record, and the two layouts are built in; every axis and
+keyword arrives through `register_axis` / `register_alias`, so a downstream
+package's axis is indistinguishable from a core one.
+
+"""
+
+__all__ = (
+    "ALIASES",
+    "AXES",
+    "Axis",
+    "MARKUPS",
+    "PGroup",
+    "PPart",
+    "REQUIRED_MARKUP_KEYS",
+    "ReprMixin",
+    "Spec",
+    "bad_spec",
+    "doc_part",
+    "doc_to_str",
+    "inert_axes",
+    "math_doc",
+    "parse_spec",
+    "parts_to_doc",
+    "parts_to_markup",
+    "pparts",
+    "pparts_to_pdoc",
+    "pspec",
+    "register_alias",
+    "register_axis",
+    "render",
+    "unregister_alias",
+    "unregister_axis",
+    "unwrap_math",
+)
+
+import html as _html
+import re
+from collections.abc import Callable, Iterator, Mapping
+from types import MappingProxyType
+from typing import Any, ClassVar, Final, NamedTuple
+
+import wadler_lindig as wl
+from plum import Dispatcher
+
+#: A dispatcher private to this module.
+#:
+#: `plum.dispatch`, the global dispatcher, keys methods on the bare
+#: ``__name__`` in one shared namespace, so two libraries that each write
+#: ``@dispatch def pparts(...)`` receive the *same* `plum.Function` and silently
+#: merge their method tables. A module-local `plum.Dispatcher` cannot collide.
+#: Downstream packages still extend with ``@pparts.dispatch``, exactly as this
+#: repo already does with ``@AbstractQuantity.from_.dispatch``.
+dispatch = Dispatcher()
+
+
+class PPart(NamedTuple):
+    """One roled fragment of a formatted object.
+
+    Parameters
+    ----------
+    role
+        What this fragment *is* -- ``"value"``, ``"unit"``, ``"uncert"``,
+        ``"frame"``, ... The vocabulary is open: a `MARKUPS` row may override
+        the rendering of a role it knows, and falls back to `text` for one it
+        does not, so a new role needs no markup change at all.
+    text
+        The plain-text rendering, which doubles as the fallback for any markup
+        with no override for this role.
+    kind
+        ``"content"`` -- plain text, escaped and then wrapped.
+        ``"markup"`` -- already-rendered markup, wrapped but *not* escaped.
+        ``"sep"`` -- a literal separator, not wrapped; it may offer a line
+        break (see `parts_to_doc`). Escaped like content, unless the markup
+        has a per-role override for it, which is trusted as markup.
+    doc
+        An optional wadler-lindig document for the fragment. Text-mode layout
+        uses it, so line breaking reaches inside; `text` stays as the flat
+        fallback, and is what markup layouts use.
+
+    Escaping defaults to on so the failure mode is closed: a fragment carrying
+    real markup must say so.
+
+    Examples
+    --------
+    >>> from unxt._src.fmt import PPart
+    >>> PPart("value", "1.0")
+    PPart(role='value', text='1.0', kind='content', doc=None)
+
+    """
+
+    role: str
+    text: str
+    kind: str = "content"
+    doc: wl.AbstractDoc | None = None
+
+
+class PGroup(NamedTuple):
+    """A nested run of fragments that lays out as a unit.
+
+    A composite embeds a child's fragments by wrapping them in a `PGroup`, not
+    by splicing them into its own tuple and not by embedding a rendered string:
+
+    - Embedding a *string* applies the outer markup wrapper once per child, so
+      LaTeX emits nested ``$...$`` and is invalid.
+    - Splicing *flat* loses the grouping boundary. A wadler-lindig group is
+      all-or-nothing, so one flat run means every break point breaks together
+      and a nested quantity's ``*`` separators break for no reason.
+
+    A `PGroup` gives each child its own ``GroupDoc``, so inner groups stay
+    inline until they individually have to break, while `parts_to_markup`
+    flattens the tree and applies its wrapper exactly once at the top.
+
+    Examples
+    --------
+    >>> from unxt._src.fmt import PGroup, PPart
+    >>> PGroup("child", (PPart("value", "1.0"),))  # doctest: +NORMALIZE_WHITESPACE
+    PGroup(role='child',
+           parts=(PPart(role='value', text='1.0', kind='content', doc=None),))
+
+    """
+
+    role: str
+    parts: tuple[Any, ...]
+
+
+def _latex_escape(s: str, /) -> str:
+    """Escape LaTeX's special characters in plain text."""
+    for a, b in (
+        ("\\", r"\textbackslash "),
+        ("_", r"\_"),
+        ("%", r"\%"),
+        ("&", r"\&"),
+        ("#", r"\#"),
+        ("$", r"\$"),
+        ("{", r"\{"),
+        ("}", r"\}"),
+        ("~", r"\textasciitilde "),
+    ):
+        s = s.replace(a, b)
+    return s
+
+
+#: How each markup renders fragments.
+#:
+#: A row must define ``_content`` (the wrapper for a ``"content"``/``"markup"``
+#: fragment), ``wrap`` (applied once to the whole rendering), ``vsep`` (the
+#: array element separator, read by `pvalue`) and ``escape`` (`None` for
+#: none). Any other key is a per-role override: for a ``"sep"`` fragment it
+#: *replaces* the separator text, and for a content fragment it is the wrapper
+#: template. The four required names are reserved: a role called ``escape`` or
+#: ``wrap`` takes the fallback rendering, never an override.
+#:
+#: Add a markup by adding a row. Roles need not be enumerated -- an unknown
+#: role falls back to ``_content`` and the fragment's own text.
+_MARKUPS: dict[str, dict[str, Any]] = {
+    "text": {"_content": "{}", "wrap": "{}", "vsep": ", ", "escape": None, "bare": " "},
+    "html": {
+        "_content": "<span>{}</span>",
+        "wrap": "{}",
+        "vsep": ", ",
+        "escape": _html.escape,
+        "bare": " ",
+    },
+    "latex": {
+        "_content": "{}",
+        "wrap": "${}$",
+        "vsep": ",~",
+        "escape": _latex_escape,
+        # Math mode ignores literal whitespace, so a separator that is "just a
+        # space" everywhere else has to be an explicit spacing command here or
+        # it renders as nothing at all -- the unit jammed against the value.
+        # ``\,`` is the thin space conventionally set between a quantity and
+        # its unit; ``\;`` is the wider one asked for by ``mul``.
+        "bare": r" \, ",
+        "mul": r" \; ",
+        "gap": r"\ ",
+        "pm": r" \pm ",
+    },
+}
+
+#: Read-only view of the markup rows; `unxt._src.fmt.register_markup` is the
+#: way in.
+MARKUPS: Final[Mapping[str, Mapping[str, Any]]] = MappingProxyType(_MARKUPS)
+
+#: Keys every `MARKUPS` row must define; they are the ones with no per-fragment
+#: fallback.
+REQUIRED_MARKUP_KEYS: Final = ("_content", "wrap", "vsep", "escape")
+
+
+def _role_override(table: Mapping[str, Any], role: str, /) -> Any:
+    """Return the table's per-role override for ``role``, or `None`.
+
+    The row holds both configuration (`REQUIRED_MARKUP_KEYS`) and per-role
+    overrides in one namespace, so a role *named* ``escape`` or ``wrap`` must
+    not be read as the function or template stored under that key.
+    """
+    return None if role in REQUIRED_MARKUP_KEYS else table.get(role)
+
+
+def _markup_table(markup: str, /) -> Mapping[str, Any]:
+    """Return the `MARKUPS` row, naming the markup if it is unknown."""
+    try:
+        return MARKUPS[markup]
+    except KeyError:
+        msg = f"unknown markup {markup!r}; have {sorted(MARKUPS)}"
+        raise ValueError(msg) from None
+
+
+def unwrap_math(text: str, /) -> str:
+    r"""Strip enclosing ``$...$`` from a LaTeX fragment, if it has them.
+
+    Strips only when both delimiters are present, so a fragment that arrives
+    unwrapped is returned unchanged. Slicing unconditionally would turn
+    ``\mathrm{m}`` into ``mathrm{m``.
+
+    A lone ``"$"`` is also returned unchanged: it starts and ends with ``"$"``,
+    but there is nothing between them to keep.
+
+    Examples
+    --------
+    >>> from unxt._src.fmt import unwrap_math
+
+    >>> unwrap_math(r"$\mathrm{m}$")
+    '\\mathrm{m}'
+
+    Already unwrapped, so left alone:
+
+    >>> unwrap_math(r"\mathrm{m}")
+    '\\mathrm{m}'
+
+    >>> unwrap_math("$")
+    '$'
+
+    """
+    if len(text) >= 2 and text.startswith("$") and text.endswith("$"):
+        return text[1:-1]
+    return text
+
+
+# A control word (swallowing one following space, as TeX does), a control
+# symbol, and the grouping and sub/superscript markers. Everything the pattern
+# does not match is a literal glyph.
+_LATEX_MARKUP: Final = re.compile(r"\\[a-zA-Z]+\s?|\\.|[{}^_&]")
+
+
+def math_doc(text: str, /) -> wl.AbstractDoc:
+    r"""Build a doc for a LaTeX fragment, billing only its visible glyphs.
+
+    ``\mathrm{\frac{m}{s^{2}}}`` is 24 characters that render as about three
+    columns. Billed in full it pushes the layout tens of columns past the real
+    width, so ``width=`` would break a LaTeX line where the same quantity in
+    text or HTML comfortably fits. Control sequences, braces and the
+    sub/superscript markers are emitted zero-width; only literal glyphs count.
+
+    A control sequence that renders a glyph of its own -- ``\odot``,
+    ``\circ`` -- costs nothing here, so ``deg`` bills 0 rather than 1.
+    Under-billing is the benign direction: it lays a line out flat instead of
+    breaking it early.
+
+    Examples
+    --------
+    >>> import wadler_lindig as wl
+    >>> from unxt._src.fmt import doc_to_str, math_doc
+
+    The fragment is reproduced exactly:
+
+    >>> frag = r"\mathrm{\frac{m}{s^{2}}}"
+    >>> doc_to_str(math_doc(frag), 10**9)
+    '\\mathrm{\\frac{m}{s^{2}}}'
+
+    ...but costs only the three columns it occupies, so this fits in ten
+    where the same text billed in full does not:
+
+    >>> def fits(doc):
+    ...     grp = wl.GroupDoc(wl.ConcatDoc(doc, wl.BreakDoc(" "), wl.TextDoc("xxxxxx")))
+    ...     return "\n" not in doc_to_str(grp, 10)
+
+    >>> fits(math_doc(frag))
+    True
+
+    >>> fits(wl.TextDoc(frag))
+    False
+
+    """
+    docs: list[wl.AbstractDoc] = []
+    pos = 0
+    for match in _LATEX_MARKUP.finditer(text):
+        if match.start() > pos:
+            docs.append(wl.TextDoc(text[pos : match.start()]))
+        docs.append(wl.TextDoc(match.group(), width=False))
+        pos = match.end()
+    if pos < len(text):
+        docs.append(wl.TextDoc(text[pos:]))
+    return wl.ConcatDoc(*docs)
+
+
+class _DocHolder(NamedTuple):
+    """Presents a ready-made doc to `wadler_lindig` through its own protocol."""
+
+    doc: wl.AbstractDoc
+
+    def __pdoc__(self, **kw: Any) -> wl.AbstractDoc:
+        return self.doc
+
+
+def doc_to_str(doc: wl.AbstractDoc, /, width: int = 88) -> str:
+    """Lay out a wadler-lindig document at ``width``.
+
+    wadler-lindig lays out a *document* only through
+    ``wadler_lindig._wadler_lindig.pformat_doc``, a private module path that
+    may move between releases. Handing `wadler_lindig.pformat` an object whose
+    ``__pdoc__`` returns the document reaches the same code through the public
+    API, and is verified to produce identical output.
+
+    Examples
+    --------
+    >>> import wadler_lindig as wl
+    >>> from unxt._src.fmt import doc_to_str
+
+    >>> doc = wl.TextDoc("[1., 2.]") + wl.BreakDoc(" ") + wl.TextDoc("m")
+    >>> doc_to_str(wl.GroupDoc(doc))
+    '[1., 2.] m'
+
+    Narrow enough, and the break is taken:
+
+    >>> print(doc_to_str(wl.GroupDoc(doc), 5))
+    [1., 2.]
+    m
+
+    """
+    return wl.pformat(_DocHolder(doc), width=width)
+
+
+#: Wide enough that no break is taken: lays a doc out on one line.
+_FLAT: Final = 10**9
+
+
+def doc_part(role: str, doc: wl.AbstractDoc, /, kind: str = "content") -> PPart:
+    """Build a `PPart` carrying a document, with its flat text alongside.
+
+    Examples
+    --------
+    >>> import wadler_lindig as wl
+    >>> from unxt._src.fmt import doc_part
+    >>> doc_part("value", wl.TextDoc("1.0")).text
+    '1.0'
+
+    """
+    return PPart(role, doc_to_str(doc, _FLAT), kind, doc)
+
+
+@dispatch.abstract
+def pparts(obj: Any, /, *, markup: str = "text", **kw: Any) -> tuple[Any, ...]:
+    """Decompose an object into a tree of `PPart` / `PGroup` fragments.
+
+    This is the extension point: register an implementation for your type and
+    it gains every preset, every markup, and the wadler-lindig layout path.
+
+    A registered method must accept ``**kw``: the engine forwards the axes it
+    does not itself act on (``short_arrays``, ``unit_style``, ``value_spec``,
+    ...) to it on every route, ``wl.pformat`` included.
+    """
+    raise NotImplementedError  # pragma: no cover
+
+
+@dispatch  # type: ignore[no-redef]
+def pparts(
+    obj: Any, /, *, markup: str = "text", value_spec: str | None = None, **kw: Any
+) -> tuple[Any, ...]:
+    """Fall back to `str` for a type with no registration.
+
+    This is a *display* path, so an unregistered type must degrade rather than
+    raise: without this method one unregistered field would poison an entire
+    object's `_repr_html_` in a notebook cell. `__pdoc__` already degrades this
+    way through wadler-lindig's dataclass fallback.
+
+    A ``value_spec`` is the one thing this cannot degrade on. It formats
+    *elements*, and a type that has not said what its elements are has none to
+    format -- so silently dropping it would answer a specific request with a
+    different rendering. That is an error, not a fallback.
+
+    Examples
+    --------
+    >>> from unxt._src.fmt import pparts
+    >>> pparts(object())
+    (PPart(role='value', text='<object object at ...>', kind='content', doc=None),)
+
+    """
+    if value_spec is not None:
+        msg = (
+            f"{type(obj).__name__} does not support a value format spec "
+            f"({value_spec!r}): it registers no `pparts`, so it has no "
+            "elements to format"
+        )
+        raise TypeError(msg)
+    return (PPart("value", str(obj)),)
+
+
+def _sep_doc(
+    part: PPart, sep: str | None, table: Mapping[str, Any], /
+) -> list[wl.AbstractDoc]:
+    r"""Return the documents for a ``"sep"`` fragment.
+
+    ``sep`` names a role, not a literal, so each markup supplies its own text
+    for that role. LaTeX spells a "bare" join ``\,``; a plain space would be
+    discarded by math mode.
+
+    A separator offers a break opportunity, but only where that is safe:
+
+    - **Its visible text must survive the break.** `wadler_lindig.BreakDoc`
+      shows its text only in horizontal mode, so mapping ``" * "`` straight to
+      a ``BreakDoc`` would silently drop the ``*`` on the broken line. The
+      trailing space is the break; anything before it is ink.
+    - **Only a separator with trailing space offers one.** Otherwise two
+      adjacent separators emit two ``BreakDoc``s and produce a blank line.
+
+    The ink goes through `math_doc`, so a spacing *command* costs nothing while
+    a literal glyph still costs its column: LaTeX's ``\,`` bills the one space
+    it renders as rather than its three characters. On a markup whose
+    separators are literal text this is the identity.
+    """
+    role = sep if (sep is not None and part.role == "mul") else part.role
+    override = _role_override(table, role)
+    if override is None:
+        escape = table["escape"] or (lambda s: s)
+        text = escape(part.text)
+    else:
+        text = override
+    if not text.endswith(" "):
+        return [math_doc(text)]
+    ink = text.rstrip(" ")
+    return [*([math_doc(ink)] if ink else []), wl.BreakDoc(" ")]
+
+
+def _invisible(text: str, /) -> list[wl.AbstractDoc]:
+    r"""Wrap markup text that is emitted but costs no columns.
+
+    Wrapper text -- ``<span>``, ``$``, ``\mathrm{`` -- is not visible output.
+    Billing it as columns made wadler-lindig break lines tens of columns early,
+    which is why markup once had to bypass the layout path altogether.
+    `wadler_lindig.TextDoc` with ``width=False`` (wadler-lindig 0.1.8) emits it
+    without advancing the column, so one renderer serves every markup.
+    """
+    return [wl.TextDoc(text, width=False)] if text else []
+
+
+def parts_to_doc(
+    parts: tuple[Any, ...],
+    /,
+    *,
+    indent: int = 2,
+    sep: str | None = None,
+    markup: str = "text",
+    _top: bool = True,
+) -> wl.AbstractDoc:
+    """Build a wadler-lindig document from fragments, in any markup.
+
+    Every markup goes through this one path. Wrapper text is emitted
+    zero-width (`_invisible`), so it reaches the output without counting toward
+    the line width, and HTML and LaTeX break lines exactly where plain text
+    does. `_sep_doc` says where the break points come from.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> import wadler_lindig as wl
+    >>> from unxt._src.fmt import doc_to_str, parts_to_doc, pparts
+
+    >>> doc = parts_to_doc(pparts(u.Q([1.0, 2, 3], "m")))
+    >>> doc_to_str(doc, 88)
+    '[1., 2., 3.] * m'
+
+    Markup lays out identically, because its wrappers cost nothing:
+
+    >>> q = u.Q([1.0, 2, 3], "m")
+    >>> print(doc_to_str(parts_to_doc(pparts(q, markup="html"), markup="html"), 16))
+    <span>[1., 2., 3.]</span>
+      *
+      <span>m</span>
+
+    """
+    table = _markup_table(markup)
+    escape = table["escape"] or (lambda s: s)
+    docs: list[wl.AbstractDoc] = []
+    for part in parts:
+        if isinstance(part, PGroup):
+            docs.append(
+                parts_to_doc(
+                    part.parts, indent=indent, sep=sep, markup=markup, _top=False
+                )
+            )
+        elif part.kind == "sep":
+            docs.extend(_sep_doc(part, sep, table))
+        else:
+            # A role override doubles as the content wrapper, but only if it is
+            # one: a separator-shaped override (LaTeX ``gap``) has no ``{}``
+            # and would silently swallow the fragment's text.
+            override = _role_override(table, part.role)
+            wrapper = (
+                override
+                if (isinstance(override, str) and "{}" in override)
+                else table["_content"]
+            )
+            pre, _, post = wrapper.partition("{}")
+            inner = part.doc
+            if inner is None:
+                text = escape(part.text) if part.kind == "content" else part.text
+                inner = wl.TextDoc(text)
+            docs.extend([*_invisible(pre), inner, *_invisible(post)])
+    body: wl.AbstractDoc = wl.ConcatDoc(*docs)
+    if _top:
+        pre, _, post = table["wrap"].partition("{}")
+        body = wl.ConcatDoc(*_invisible(pre), body, *_invisible(post))
+    return wl.GroupDoc(wl.NestDoc(body, indent=indent))
+
+
+def parts_to_markup(
+    parts: tuple[Any, ...],
+    /,
+    *,
+    markup: str = "text",
+    sep: str | None = None,
+) -> str:
+    r"""Flatten fragments into one string in ``markup``, applying its wrappers.
+
+    The row's ``wrap`` is applied once, at the top, so a nested LaTeX
+    rendering has a single ``$`` pair. This is `parts_to_doc` laid out flat.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> from unxt._src.fmt import pparts, parts_to_markup
+
+    >>> q = u.Q([1.0, 2, 3], "m")
+    >>> parts_to_markup(pparts(q, markup="html"), markup="html")
+    '<span>[1., 2., 3.]</span> * <span>m</span>'
+
+    >>> parts_to_markup(pparts(q, markup="latex"), markup="latex")
+    '$[1.,~2.,~3.] \\; \\mathrm{m}$'
+
+    ``sep`` names the role standing in for ``mul``, so the markup decides how
+    it renders -- a plain space here, ``\\,`` in LaTeX:
+
+    >>> parts_to_markup(pparts(q), sep="bare")
+    '[1., 2., 3.] m'
+
+    """
+    return doc_to_str(parts_to_doc(parts, sep=sep, markup=markup), _FLAT)
+
+
+# ============================================================================
+# The grammar: a registry, not a vocabulary
+
+
+class Axis(NamedTuple):
+    """One independent choice a format spec can make.
+
+    Parameters
+    ----------
+    name
+        The axis, and the key it occupies in a `Spec`.
+    keywords
+        Spec word -> the value it sets. Words live in one flat namespace
+        shared by every axis, and must stay pairwise disjoint; `register_axis`
+        enforces that, which is what lets a keyword run be order-independent
+        with no content-sniffing.
+    default
+        The value when no keyword names this axis.
+    layouts
+        Layout -> a function turning this axis's value into keyword arguments
+        for that layout's renderer. **Membership is applicability**: an axis
+        applies to exactly the layouts it has an entry for, so naming it under
+        any other layout is an error rather than a silent no-op.
+    free_text
+        The layouts in which this axis's value may instead be *arbitrary text*
+        -- the trailing run a spec ends with, such as a Python format spec.
+        Empty for a closed axis, which is most of them.
+
+        At most one axis may claim free text, and the engine enforces it. That
+        is not a restriction so much as an observation: the scan rule makes the
+        trailing run terminal, so there is only one of them to claim.
+
+    """
+
+    name: str
+    keywords: Mapping[str, Any]
+    default: Any
+    layouts: Mapping[str, Callable[[Any], Mapping[str, Any]]]
+    free_text: tuple[str, ...] = ()
+
+
+#: Registered axes, by name. Populated only through `register_axis`.
+_AXES: Final[dict[str, Axis]] = {}
+AXES: Final[Mapping[str, Axis]] = MappingProxyType(_AXES)
+
+#: Spec word -> every axis claiming it, in registration order.
+#:
+#: Usually one, and a bare word resolves. Two independent packages may want the
+#: same word for unrelated things -- ``dim`` is a unit spelling here and could
+#: as reasonably be a manifold's dimensionality elsewhere -- so a word may be
+#: claimed more than once and is then reachable only as ``axis=word``.
+_KEYWORDS: Final[dict[str, list[str]]] = {}
+
+#: Shorthands for whole specs. Each expands *textually* into core keywords
+#: before parsing, so an alias can never mean something the grammar cannot
+#: already say, and combining one with a further keyword raises exactly the
+#: error its expansion would.
+_ALIASES: Final[dict[str, str]] = {}
+ALIASES: Final[Mapping[str, str]] = MappingProxyType(_ALIASES)
+
+
+def _free_text(spec: "Spec", /) -> str | None:
+    """Return the spec's free-text remainder, or `None` if it has none.
+
+    `None` covers both "no axis takes free text" and "the remainder is a
+    keyword this axis itself claims", which the callers treat alike.
+    """
+    axis = _free_text_axis()
+    text = None if axis is None else spec[axis.name]
+    return None if text is None or text in axis.keywords.values() else text
+
+
+def _free_text_axis() -> Axis | None:
+    """Return the axis accepting free text, if one is registered.
+
+    Derived rather than maintained, so it cannot fall out of step with `AXES`.
+    `register_axis` permits only one claimant.
+    """
+    return next((ax for ax in AXES.values() if ax.free_text), None)
+
+
+def register_axis(axis: Axis, /, *, replace: bool = False) -> Axis:
+    """Add an axis to the grammar, rejecting any keyword collision.
+
+    Registration is the only way in. A downstream package registering
+    ``vector_form`` gets exactly what the built-in axes get -- there is no
+    privileged set. ``replace=True`` swaps out an axis of the same name.
+    """
+    if axis.name in AXES and not replace:
+        msg = f"axis {axis.name!r} is already registered"
+        raise ValueError(msg)
+    claimed = _free_text_axis()
+    if axis.free_text and claimed is not None and claimed.name != axis.name:
+        msg = (
+            f"axis {axis.name!r} claims free text, but {claimed.name!r} "
+            "already does; a spec has only one trailing run to give"
+        )
+        raise ValueError(msg)
+    for word in axis.keywords:
+        if word in ALIASES:
+            # An alias is a whole spec, so it has no qualified form to fall
+            # back on -- unlike a keyword, it cannot be disambiguated.
+            msg = f"keyword {word!r} is already an alias"
+            raise ValueError(msg)
+    # Everything is validated: only now touch the registries, so a rejected
+    # replacement leaves the axis it meant to replace in place.
+    if axis.name in _AXES:
+        unregister_axis(axis.name)
+    _AXES[axis.name] = axis
+    for word in axis.keywords:
+        _KEYWORDS.setdefault(word, []).append(axis.name)
+    return axis
+
+
+def register_alias(name: str, expansion: str, /, *, replace: bool = False) -> None:
+    """Add a whole-spec shorthand, rejecting any collision.
+
+    Both directions are checked, because both are the same mistake: a name
+    that already means something must not quietly start meaning something
+    else. Silently overwriting is how a spec changes meaning without anyone
+    editing the spec. ``replace=True`` overwrites an alias deliberately.
+    """
+    if name in _KEYWORDS:
+        msg = f"alias {name!r} is already a keyword of axis {_KEYWORDS[name][0]!r}"
+        raise ValueError(msg)
+    if name in ALIASES and not replace:
+        msg = f"alias {name!r} is already registered as {ALIASES[name]!r}"
+        raise ValueError(msg)
+    _ALIASES[name] = expansion
+
+
+def unregister_axis(name: str, /) -> None:
+    """Remove an axis and its keywords from the grammar (for tests and reloads)."""
+    axis = _AXES.pop(name)
+    for word in axis.keywords:
+        _KEYWORDS[word].remove(name)
+        if not _KEYWORDS[word]:
+            del _KEYWORDS[word]
+
+
+def unregister_alias(name: str, /) -> None:
+    """Remove a whole-spec shorthand."""
+    del _ALIASES[name]
+
+
+#: Layout -> the function that renders an object in it. A layout is a way of
+#: arranging an object's parts, so this stays engine-owned: `register_axis`
+#: extends the *vocabulary*, not the set of arrangements.
+_LAYOUTS: Final[dict[str, Callable[..., str]]] = {}
+
+
+class Spec(Mapping[str, Any]):
+    """A fully resolved format spec: one settled value for every axis.
+
+    A mapping rather than a record, so a downstream axis is read exactly like
+    a built-in one (``spec["markup"]``, ``spec["vector_form"]``). Defaults are
+    filled in at parse time, so every registered axis is always present and a
+    reader never has to know which were named.
+    """
+
+    __slots__ = ("_d",)
+
+    def __init__(self, mapping: Mapping[str, Any] = (), /, **kw: Any) -> None:
+        self._d: Mapping[str, Any] = MappingProxyType({**dict(mapping), **kw})
+
+    @classmethod
+    def of(cls, /, **overrides: Any) -> "Spec":
+        """Build a resolved spec, defaulting every axis not named.
+
+        This is the way to construct one by hand. Taking the defaults from the
+        registry is what keeps a hand-built spec complete once a *later* axis
+        is registered -- writing the mapping out directly leaves a hole that
+        surfaces only as a `KeyError` at render time.
+
+        Examples
+        --------
+        >>> from unxt._src.fmt import Spec, parse_spec
+
+        >>> Spec.of(layout="call")["unit"]
+        'symbol'
+
+        >>> Spec.of() == parse_spec("product")
+        True
+
+        """
+        unknown = set(overrides) - set(AXES)
+        if unknown:
+            msg = f"not registered axes: {sorted(unknown)}"
+            raise ValueError(msg)
+        return cls({n: overrides.get(n, ax.default) for n, ax in AXES.items()})
+
+    def __getitem__(self, key: str) -> Any:
+        return self._d[key]
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._d)
+
+    def __len__(self) -> int:
+        return len(self._d)
+
+    def __repr__(self) -> str:
+        args = ", ".join(f"{k}={v!r}" for k, v in self._d.items())
+        return f"Spec({args})"
+
+
+def _grammar_help() -> str:
+    """Describe the grammar, generated from the registry so it cannot drift."""
+    parts = [f"{name} ({'|'.join(ax.keywords) or '<n>'})" for name, ax in AXES.items()]
+    aliases = ", ".join(f"{k}={v}" for k, v in ALIASES.items())
+    return (
+        "a '-'-joined run of keywords, then an optional Python format spec "
+        "applied per element: " + ", ".join(parts) + f"; aliases: {aliases}"
+    )
+
+
+def bad_spec(obj: Any, spec: str, /, reason: str = "") -> ValueError:
+    """Build the one error every rejected spec raises."""
+    who = f" for {type(obj).__name__}" if obj is not None else ""
+    why = f": {reason}" if reason else ""
+    return ValueError(
+        f"invalid format spec {spec!r}{who}{why}. Expected {_grammar_help()}"
+    )
+
+
+def _resolve(word: str, spec: str, obj: Any, /) -> tuple[str, Any] | None:
+    """Resolve one spec word to ``(axis, value)``, or `None` if it is not one.
+
+    A word may be written bare, or as an explicit assignment ``axis=word``.
+    Bare resolves when exactly one axis claims the word; the explicit form
+    always resolves, and is the escape hatch for a word two packages wanted.
+
+    ``=`` says what is actually happening -- a keyword *sets an axis to a
+    value*, so ``unit=dim`` is the operation spelled out and bare ``dim`` is
+    its shorthand. It is also an *align* character in a format spec, but align
+    only appears at position 0 or 1, so ``=8`` and ``=>8.1f`` can never be
+    read as an assignment.
+
+    Returning `None` rather than raising for an unknown word is what lets the
+    caller stop scanning and treat the rest as free text -- so those specs
+    fall through here untouched instead of being mistaken for an assignment.
+    """
+    if "=" in word:
+        axis_name, _, bare = word.partition("=")
+        axis = AXES.get(axis_name)
+        if axis is None or bare not in axis.keywords:
+            return None
+        return axis_name, axis.keywords[bare]
+
+    claimants = _KEYWORDS.get(word)
+    if not claimants:
+        return None
+    if len(claimants) > 1:
+        qualified = ", ".join(f"{a}={word}" for a in sorted(claimants))
+        msg = (
+            f"ambiguous keyword {word!r}; claimed by "
+            f"{', '.join(repr(a) for a in sorted(claimants))}. "
+            f"Write it as one of: {qualified}"
+        )
+        raise bad_spec(obj, spec, msg)
+    axis_name = claimants[0]
+    return axis_name, AXES[axis_name].keywords[word]
+
+
+def _scan_keywords(
+    tokens: list[str], spec: str, obj: Any, /
+) -> tuple[dict[str, Any], int]:
+    """Consume leading keyword tokens; return what they set and where they end.
+
+    Stops at the first token that is not a keyword (an alias counts, expanded
+    in place). The caller takes everything from that index on as the value
+    spec, so a format spec's own ``-`` is never read as a component boundary.
+    """
+    seen: dict[str, Any] = {}
+    for i, token in enumerate(tokens):
+        words = ALIASES.get(token, token).split("-")
+        resolved = [_resolve(word, spec, obj) for word in words]
+        if any(r is None for r in resolved):
+            return seen, i
+        for axis, value in resolved:  # type: ignore[misc]
+            if axis in seen:
+                msg = f"{axis!r} is set twice"
+                raise bad_spec(obj, spec, msg)
+            seen[axis] = value
+    return seen, len(tokens)
+
+
+def parse_spec(spec: str, /, *, obj: Any = None) -> Spec:
+    r"""Resolve a format spec into a `Spec`, or raise `ValueError`.
+
+    The parse is total and strictly left-to-right: split on ``-``, consume
+    tokens while they are keywords (expanding an alias in place), and stop at
+    the first token that is not one. **Everything from that token onward --
+    including any further ``-`` -- is the value spec.**
+
+    That one rule is what keeps the grammar unambiguous once an arbitrary
+    Python format spec is in play. A format spec may contain ``-`` itself, as
+    a sign flag (``"-.2f"``) or a fill character (``"->10.2f"``), and neither
+    can be mistaken for a component boundary, because keywords are only
+    recognised *before* the value spec begins.
+
+    Examples
+    --------
+    >>> from unxt._src.fmt import parse_spec
+
+    Keywords set their axis; everything omitted keeps its default:
+
+    >>> parse_spec("html-bare")["markup"], parse_spec("html-bare")["sep"]
+    ('html', 'bare')
+
+    Order among keywords does not matter:
+
+    >>> parse_spec("bare-html") == parse_spec("html-bare")
+    True
+
+    A trailing value spec is applied per element:
+
+    >>> parse_spec("mul-.3g")["value"]
+    '.3g'
+
+    A value spec keeps its own ``-``, whether leading or embedded:
+
+    >>> parse_spec("-.2f")["value"]
+    '-.2f'
+    >>> parse_spec("mul-->10.2f")["value"]
+    '->10.2f'
+
+    An alias expands before parsing:
+
+    >>> parse_spec("compact") == parse_spec("call-abbrev")
+    True
+
+    """
+    tokens = spec.split("-")
+    seen, i = _scan_keywords(tokens, spec, obj)
+
+    # Whatever the scan did not claim goes to the axis that accepts free text,
+    # as that axis's value, so a keyword *and* free text for one axis is the
+    # ordinary set-twice error below. A spec with no keyword at all is fine; a
+    # bare ".3g" is the commonest there is.
+    free_text = "-".join(tokens[i:])
+    text_axis = _free_text_axis() if free_text else None
+    if text_axis is not None:
+        if text_axis.name in seen:
+            msg = f"{text_axis.name!r} is set twice"
+            raise bad_spec(obj, spec, msg)
+        seen[text_axis.name] = free_text
+
+    resolved = {name: seen.get(name, ax.default) for name, ax in AXES.items()}
+    layout = resolved["layout"]
+
+    for axis in seen:
+        if layout not in AXES[axis].layouts:
+            msg = f"{axis!r} does not apply to {layout!r} layout"
+            raise bad_spec(obj, spec, msg)
+
+    if text_axis is not None and layout not in text_axis.free_text:
+        msg = f"free text does not apply to {layout!r} layout"
+        raise bad_spec(obj, spec, msg)
+
+    return Spec(resolved)
+
+
+def _layout_kwargs(spec: Spec, layout: str, /) -> dict[str, Any]:
+    """Translate every axis applicable to ``layout`` into renderer kwargs.
+
+    An axis contributes only where it declared a translation, so an axis a
+    layout has no concept of contributes nothing -- and `parse_spec` has
+    already refused to let one be *named* under that layout.
+    """
+    kw: dict[str, Any] = {}
+    for name, ax in AXES.items():
+        translate = ax.layouts.get(layout)
+        if translate is not None:
+            kw.update(translate(spec.get(name, ax.default)))
+    return kw
+
+
+def render(
+    obj: Any, spec: Spec, /, *, width: int = 88, indent: int = 2, **extra: Any
+) -> str:
+    r"""Render ``obj`` according to an already-resolved `Spec`.
+
+    The single rendering entry point: ``repr``, ``str`` and ``__format__`` all
+    arrive here, differing only in the `Spec` they bring.
+
+    ``extra`` carries renderer arguments that are not grammar axes -- a type's
+    own ``__pdoc__`` knob, say. They stay out of the spec vocabulary, because
+    one word must mean one thing for every type, but still need a route
+    through so a caller's configuration can drive them.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> from unxt._src.fmt import parse_spec, render
+
+    >>> render(u.Q([1.0, 2, 3], "m"), parse_spec("mul"))
+    '[1., 2., 3.] * m'
+
+    >>> render(u.Q([1.0, 2, 3], "m"), parse_spec("call"))
+    "Quantity([1., 2., 3.], unit='m')"
+
+    """
+    layout = spec["layout"]
+    width = w if (w := spec.get("width")) is not None else width
+    indent = i if (i := spec.get("indent")) is not None else indent
+    return _LAYOUTS[layout](
+        obj, spec, width=width, indent=indent, **_layout_kwargs(spec, layout), **extra
+    )
+
+
+def _render_call(obj: Any, spec: Spec, /, *, width: int, indent: int, **kw: Any) -> str:
+    """Render through `wadler_lindig.pformat`, and so the object's ``__pdoc__``.
+
+    The other layouts build their output from `pparts` fragments. This one
+    delegates instead: a constructor expression says how to *rebuild* a value,
+    not how it looks, and only the type knows that. A type promising
+    ``eval(repr(x)) == x`` keeps that promise in ``__pdoc__``. See
+    :doc:`/explanation/why-formatting-is-one-engine`.
+    """
+    return wl.pformat(obj, width=width, indent=indent, **kw)
+
+
+def _render_product(
+    obj: Any, spec: Spec, /, *, width: int, indent: int, **kw: Any
+) -> str:
+    """Render as juxtaposed parts, via `pparts`.
+
+    ``markup`` and ``sep`` are the engine's own layout parameters; everything
+    else -- including any downstream axis -- is forwarded to `pparts`, which
+    is what lets a type act on an axis the engine has never heard of.
+    """
+    markup = kw.pop("markup", "text")
+    sep = kw.pop("sep", None)
+    parts = pparts(obj, markup=markup, **kw)
+    return doc_to_str(parts_to_doc(parts, indent=indent, sep=sep, markup=markup), width)
+
+
+_LAYOUTS["call"] = _render_call
+_LAYOUTS["product"] = _render_product
+
+#: The ``layout`` axis is the one the engine must own: its keywords name the
+#: renderers in `_LAYOUTS`, so it cannot be supplied by a consumer. It
+#: contributes no renderer kwargs -- it *selects* the renderer.
+#:
+#: Both its tables are derived from `_LAYOUTS` rather than written out, so the
+#: layout names live in exactly one place.
+register_axis(
+    Axis(
+        name="layout",
+        keywords={name: name for name in _LAYOUTS},
+        default="product",
+        layouts=dict.fromkeys(_LAYOUTS, lambda _: {}),
+    )
+)
+
+
+class _Count(Mapping[str, int]):
+    """Keywords for a numeric axis: any digit string maps to its `int`.
+
+    It iterates empty, so it claims no *bare* word in the shared keyword
+    namespace; only the explicit ``axis=<n>`` form resolves.
+    """
+
+    def __getitem__(self, key: str) -> int:
+        if key.isascii() and key.isdigit():
+            return int(key)
+        raise KeyError(key)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(())
+
+    def __len__(self) -> int:
+        return 0
+
+
+#: Layout parameters, not renderer kwargs: they contribute nothing to
+#: `_layout_kwargs`; `render` reads them off the spec directly. The `layouts`
+#: values are `None`: valid in every layout, translating to nothing.
+register_axis(Axis("width", _Count(), None, dict.fromkeys(_LAYOUTS)))
+register_axis(Axis("indent", _Count(), None, dict.fromkeys(_LAYOUTS)))
+
+
+def inert_axes(obj: Any, spec: Spec, rendered: str, /, *, width: int = 88) -> list[str]:
+    """Return the axes ``spec`` names explicitly that changed nothing.
+
+    Asked by experiment rather than introspection: re-render with one axis
+    reset to its default and see whether the output moves. That needs no
+    cooperation from the type, and it sees through composites for free -- if a
+    *child* consumed the axis the output differs, which is the answer wanted.
+
+    Only axes given a non-default value are checked; a default cannot be said
+    to have had no effect. An axis whose two renderings agree really did
+    nothing *visible*, which is exactly the claim being made.
+    """
+    dead = []
+    for name, ax in AXES.items():
+        if spec[name] == ax.default:
+            continue
+        baseline = Spec({**dict(spec), name: ax.default})
+        try:
+            if render(obj, baseline, width=width) == rendered:
+                dead.append(name)
+        # pylint: disable-next=broad-exception-caught
+        except Exception:  # noqa: BLE001, S112  # a probe must not break rendering
+            continue
+    return dead
+
+
+def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
+    r"""Implement ``__format__`` for an object the engine knows.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> from unxt._src.fmt import pspec
+
+    >>> pspec(u.Q([1.0, 2, 3], "m"), "mul")
+    '[1., 2., 3.] * m'
+
+    >>> pspec(u.Q([1.0, 2, 3], "m"), "latex")
+    '$[1.,~2.,~3.] \\, \\mathrm{m}$'
+
+    A value spec is applied per element, and works on an array -- there is one
+    value-rendering path, so it does not matter whether a keyword accompanies
+    it:
+
+    >>> pspec(u.Q([1.234, 2.345], "m"), ".2f")
+    '[1.23, 2.35] m'
+    >>> pspec(u.Q([1.234, 2.345], "m"), "mul-.2f")
+    '[1.23, 2.35] * m'
+
+    An empty spec is `str`:
+
+    >>> pspec(u.Q(1.0, "m"), "") == str(u.Q(1.0, "m"))
+    True
+
+    """
+    if not spec:
+        return str(obj)
+    parsed = parse_spec(spec, obj=obj)
+    try:
+        out = render(obj, parsed, width=width)
+    except ValueError as e:
+        # Anything that is not a keyword was taken as a Python format spec.
+        # If none was, this error is not about one and belongs to the caller.
+        text = _free_text(parsed)
+        if text is None:
+            raise
+        # Anything that is not a keyword is taken as a Python format spec, so
+        # a mistyped keyword arrives here as the value formatter rejecting it.
+        # That message names the offending text but not the vocabulary it
+        # missed, which is exactly what a typo needs to see.
+        msg = f"{text!r} is not a valid Python format spec ({e})"
+        raise bad_spec(obj, spec, msg) from e
+
+    return out
+
+
+def pparts_to_pdoc(
+    obj: Any,
+    /,
+    *,
+    indent: int = 2,
+    sep: str | None = None,
+    markup: str = "text",
+    **kw: Any,
+) -> wl.AbstractDoc:
+    """Return ``obj``'s `pparts` as a wadler-lindig document.
+
+    This is what makes a type that only registers `pparts` work with
+    ``wl.pformat`` / ``wl.pprint``: its ``__pdoc__`` is this call.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> from unxt._src.fmt import doc_to_str, pparts_to_pdoc
+    >>> doc_to_str(pparts_to_pdoc(u.Q([1.0, 2], "m")))
+    '[1., 2.] * m'
+
+    """
+    return parts_to_doc(
+        pparts(obj, markup=markup, **kw), indent=indent, sep=sep, markup=markup
+    )
+
+
+def _check_repr_spec(spec: str, parsed: Spec, /) -> None:
+    """Reject a spec whose free-text remainder is not a Python format spec.
+
+    `parse_spec` sends any word that is not a keyword to the value axis, so a
+    typo or an alias registered too late would otherwise survive until the
+    first print.
+    """
+    text = _free_text(parsed)
+    if text is None:
+        return
+    # Elements need not be floats, so any probe type that accepts it will do.
+    first = None
+    for probe in (0.0, 0, ""):
+        try:
+            format(probe, text)
+        except ValueError as e:
+            first = first or e
+        else:
+            return
+    msg = f"{text!r} is not a valid Python format spec"
+    raise bad_spec(None, spec, msg) from first
+
+
+class ReprMixin:
+    """Derive ``repr``/``str``/``format``/IPython reprs/``__pdoc__`` from `pparts`.
+
+    Declare the layout once as a spec string; it is resolved when the *class*
+    is created, so a bad spec -- or an alias registered too late -- fails at
+    definition, not on first print::
+
+        @dataclass(repr=False)  # repr=True would shadow the mixin
+        class Version(ReprMixin):
+            __repr_spec__ = "bare"
+
+    Register `pparts` for the type; everything else follows. A type whose
+    ``repr`` is a *constructor expression* should keep an explicit
+    ``__pdoc__`` instead.
+
+    The registered `pparts` method must accept ``**kw`` (the engine forwards
+    axes such as ``short_arrays`` and ``unit_style`` on every route).
+    ``__repr_spec__`` is parsed when the class is created; reassigning it
+    later is not re-parsed. ``width=``/``indent=`` in ``__repr_spec__`` apply to
+    ``repr``/``str`` only: `wadler_lindig.pformat` picks the width when it is
+    called, so ``__pdoc__`` cannot honour them.
+    """
+
+    __repr_spec__: ClassVar[str] = "product"
+    _repr_spec_parsed: ClassVar[Spec]
+
+    def __init_subclass__(cls, **kw: Any) -> None:
+        super().__init_subclass__(**kw)
+        parsed = parse_spec(cls.__repr_spec__)
+        _check_repr_spec(cls.__repr_spec__, parsed)
+        cls._repr_spec_parsed = parsed
+
+    def __repr__(self) -> str:
+        return render(self, self._repr_spec_parsed)
+
+    def __str__(self) -> str:
+        return render(self, self._repr_spec_parsed)
+
+    def __format__(self, format_spec: str, /) -> str:
+        return pspec(self, format_spec)
+
+    def _repr_html_(self) -> str:
+        return pspec(self, "html")
+
+    def _repr_latex_(self) -> str:
+        return pspec(self, "latex")
+
+    def __pdoc__(self, *, indent: int = 2, **kw: Any) -> wl.AbstractDoc:
+        layout = _layout_kwargs(self._repr_spec_parsed, "product")
+        markup = layout.pop("markup", "text")
+        sep = layout.pop("sep", None)
+        return pparts_to_pdoc(self, indent=indent, sep=sep, markup=markup, **layout)
+
+
+@dispatch  # type: ignore[no-redef]
+def pparts(obj: ReprMixin, /, *, markup: str = "text", **kw: Any) -> tuple[Any, ...]:
+    """Refuse a `ReprMixin` type that registered no `pparts` of its own.
+
+    Without this the generic `str` fallback would call back into the mixin's
+    ``__str__`` and recurse forever.
+    """
+    msg = (
+        f"{type(obj).__name__} subclasses ReprMixin but registers no pparts "
+        "(register one with @pparts.dispatch)"
+    )
+    raise TypeError(msg)
