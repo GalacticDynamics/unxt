@@ -17,11 +17,35 @@ from unxt._pparts import (
     register_alias,
     unregister_alias,
 )
-from unxt._src.fmt.examples import Version
+
+
+@dataclasses.dataclass(repr=False)
+class Release(ReprMixin):
+    """A type this suite owns, registered through the public surface only.
+
+    Deliberately *not* `wadler_lindig_parts.examples.Release`: importing the
+    engine's own example type would make this file exercise a registration the
+    engine already performed, when the point is that a type defined outside it
+    can supply `pparts` and get every route for free.
+    """
+
+    major: int
+    minor: int
+
+    __repr_spec__ = "bare"
+
+
+@pparts.dispatch  # type: ignore[misc]
+def _(obj: Release, /, *, markup: str = "text", **kw: object) -> tuple:
+    return (
+        PPart("major", str(obj.major)),
+        PPart("dot", ".", "sep"),
+        PPart("minor", str(obj.minor)),
+    )
 
 
 def test_every_route_comes_from_one_pparts():
-    v = Version(1, 2)
+    v = Release(1, 2)
     assert repr(v) == "1.2"
     assert str(v) == "1.2"
     assert f"{v}" == "1.2"
