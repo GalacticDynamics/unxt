@@ -784,3 +784,41 @@ def test_unit_system_follows_markup_specs():
     assert f"{usys:html}".startswith("<span>unitsystem</span>(<span>m</span>")
     assert f"{usys:latex}".startswith("$")
     assert f"{usys:compact}" == "unitsystem(m, s, kg, rad)"
+
+
+def test_short_arrays_unwraps_a_static_value() -> None:
+    """``StaticValue`` is not an array, so the kind hook declines it.
+
+    The wrapper is then suppressed and the inner NumPy array renders without
+    the ``(numpy)`` kind suffix.
+    """
+    assert pspec(u.StaticQuantity([1.0, 2.0], "m"), "type-mul") == "f64[2] * m"
+
+
+def test_pparts_shim_exports_the_build_by_hand_tools():
+    """A downstream package can build a doc from its own parts, no `_src`."""
+    import unxt._pparts as shim  # noqa: PLC0415
+
+    for name in (
+        "parts_to_doc",
+        "parts_to_markup",
+        "doc_to_str",
+        "pvalue",
+        "doc_part",
+        "pparts_to_pdoc",
+        "ReprMixin",
+        "register_markup",
+        "unregister_axis",
+        "unregister_alias",
+        "unregister_markup",
+    ):
+        assert name in shim.__all__
+        assert callable(getattr(shim, name))
+
+
+def test_array_doc_rejects_text_after_the_closing_bracket():
+    """Trailing text is not numpy's structure: callers fall back on IndexError."""
+    from unxt._src.fmt.axes import _SENTINEL, _array_doc  # noqa: PLC0415
+
+    with pytest.raises(IndexError):
+        _array_doc(f"[1{_SENTINEL}2] x", vsep=", ", escape=str)

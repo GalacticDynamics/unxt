@@ -11,7 +11,6 @@ import re
 import pytest
 import wadler_lindig as wl
 
-import unxt as u
 from unxt._src.fmt import (
     ALIASES,
     AXES,
@@ -229,15 +228,6 @@ def test_unregistered_type_degrades_rather_than_raising() -> None:
         )
         == "W!"
     )
-
-
-def test_short_arrays_unwraps_a_static_value() -> None:
-    """``StaticValue`` is not an array, so the kind hook declines it.
-
-    The wrapper is then suppressed and the inner NumPy array renders without
-    the ``(numpy)`` kind suffix.
-    """
-    assert pspec(u.StaticQuantity([1.0, 2.0], "m"), "type-mul") == "f64[2] * m"
 
 
 @pytest.mark.parametrize(
@@ -547,27 +537,6 @@ def test_role_named_like_a_config_key_is_not_an_override(role):
     assert parts_to_markup(parts, markup="html") == "<span>x</span>-<span>y</span>"
 
 
-def test_pparts_shim_exports_the_build_by_hand_tools():
-    """A downstream package can build a doc from its own parts, no `_src`."""
-    import unxt._pparts as shim  # noqa: PLC0415
-
-    for name in (
-        "parts_to_doc",
-        "parts_to_markup",
-        "doc_to_str",
-        "pvalue",
-        "doc_part",
-        "pparts_to_pdoc",
-        "ReprMixin",
-        "register_markup",
-        "unregister_axis",
-        "unregister_alias",
-        "unregister_markup",
-    ):
-        assert name in shim.__all__
-        assert callable(getattr(shim, name))
-
-
 def test_default_pvalue_needs_no_numpy():
 
     assert doc_to_str(pvalue("abc")) == "'abc'"
@@ -757,14 +726,6 @@ def test_count_mapping_claims_no_bare_word():
         count["m"]
 
 
-def test_array_doc_rejects_text_after_the_closing_bracket():
-    """Trailing text is not numpy's structure: callers fall back on IndexError."""
-    from unxt._src.fmt.axes import _SENTINEL, _array_doc  # noqa: PLC0415
-
-    with pytest.raises(IndexError):
-        _array_doc(f"[1{_SENTINEL}2] x", vsep=", ", escape=str)
-
-
 @pytest.mark.parametrize("markup", ["text", "html", "latex"])
 def test_width_reaches_every_markup(markup):
     """A narrow width breaks in every markup; wrappers no longer inflate it.
@@ -808,3 +769,36 @@ def test_default_pvalue_non_compact_goes_through_wl_pdoc(short_arrays):
         doc_to_str(pvalue("a<b", short_arrays=short_arrays, markup="html"))
         == "&#x27;a&lt;b&#x27;"
     )
+
+
+def test_this_suite_reaches_only_for_the_package_side() -> None:
+    """These tests travel to `wadler-lindig-parts`, so they may not need unxt.
+
+    In-tree they import the engine from `unxt._src.fmt`, which becomes
+    `wadler_lindig_parts` at the move. Anything else from `unxt` -- the
+    top-level package, the `_pparts` shim, or `axes` -- would not survive it.
+
+    This is the check that a "does the body mention `u.Q`" heuristic missed:
+    three tests reached for `u.StaticQuantity`, the shim, and `axes` through
+    import lines, and were only caught when the files were actually copied.
+    """
+    import ast  # noqa: PLC0415
+
+    allowed = {
+        "unxt._src.fmt",
+        "unxt._src.fmt.engine",
+        "unxt._src.fmt.generic",
+        "unxt._src.fmt.examples",
+    }
+    source = pathlib.Path(__file__).read_text(encoding="utf-8")
+    offenders = []
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Import):
+            offenders += [a.name for a in node.names if a.name.split(".")[0] == "unxt"]
+        elif (
+            isinstance(node, ast.ImportFrom)
+            and (node.module or "").startswith("unxt")
+            and node.module not in allowed
+        ):
+            offenders.append(node.module)
+    assert offenders == []
