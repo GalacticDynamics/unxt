@@ -294,6 +294,22 @@ def build_api_docs(s: nox.Session, /) -> None:
 
 
 # =============================================================================
+# Code intelligence
+
+
+@session(reuse_venv=True)
+def graph(s: nox.Session, /) -> None:
+    """Build the knowledge graph into `graphify-out/`. "--no-label" skips the LLM."""
+    # "graphifyy" (two y's) is the PyPI name; the command it installs is "graphify".
+    # Installed here rather than via a locked `uv_groups` entry: it is an optional
+    # developer tool that nothing builds or tests against, and it would otherwise put
+    # its ~25 tree-sitter parsers into uv.lock for everyone.
+    s.install("graphifyy>=0.9.101")
+    s.run("graphify", "extract", ".", "--code-only")
+    s.run("graphify", "cluster-only", ".", *s.posargs)
+
+
+# =============================================================================
 # Packaging
 
 
