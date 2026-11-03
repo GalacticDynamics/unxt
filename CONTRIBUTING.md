@@ -34,7 +34,7 @@ nox -s graph                 # build graphify-out/
 nox -s graph -- --no-label   # ... without the LLM pass that names communities
 ```
 
-That writes `graphify-out/graph.html` (clickable graph), `GRAPH_REPORT.md` (hubs, communities, suggested questions) and `graph.json` (the graph itself). The directory is generated and gitignored.
+That writes `graphify-out/graph.html` (clickable graph), `graphify-out/GRAPH_REPORT.md` (hubs, communities, suggested questions) and `graphify-out/graph.json` (the graph itself). The whole directory is generated and gitignored.
 
 To query it, install the CLI (`uv tool install graphifyy`) and point it at the graph:
 
