@@ -164,6 +164,10 @@ intersphinx_mapping = {
     "astropy": ("https://docs.astropy.org/en/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "quax": ("https://docs.kidger.site/quax/", None),
+    "wadler_lindig_parts": (
+        "https://galacticdynamics.github.io/wadler-lindig-parts/",
+        None,
+    ),
     "gala": ("https://gala.adrian.pw/en/latest/", None),
     "hypothesis": ("https://hypothesis.readthedocs.io/en/latest/", None),
 }

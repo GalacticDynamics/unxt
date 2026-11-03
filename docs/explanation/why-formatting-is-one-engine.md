@@ -80,10 +80,13 @@ So whether an axis mattered is settled by experiment rather than by declaration 
 
 ## Why the engine is separate from `unxt`'s layer
 
-The code is split in two, at the line where it will eventually be cut into separate packages. One half knows about fragments, markups, the parser, the layouts and the axis registry, and nothing about quantities: it imports nothing from `unxt`, `jax`, `numpy` or `astropy`. The other half is the axes `unxt` contributes to the grammar.
+The engine is its own distribution: [`wadler-lindig-parts`][wlp]. It knows about fragments, markups, the parser, the layouts and the axis registry, and nothing about quantities. `unxt` depends on it and contributes the axes it needs — `unit` and `abbrev`, and the `compact` / `full` / `dims` aliases.
 
-The split exists because `coordinax` and `galax` need the same machinery. The alternative was for each to depend on `unxt` for its string formatting, which would make `unxt` a dependency of packages that have nothing else to do with units. The domain-agnostic half is intended to become a package of its own, named `pparts` after the extension point everything turns on.
+The split exists because `coordinax` and `galax` need the same machinery. The alternative was for each to depend on `unxt` for its string formatting, which would make `unxt` a dependency of packages that have nothing else to do with units. The three now register into the engine as peers: there is no privileged set of axes, and an axis added downstream is read out of a spec exactly like a built-in one.
 
-A claim like "imports nothing from `unxt`" decays the moment someone adds a convenient import, so it is enforced rather than written down: a test reads the engine's import list and fails if anything domain-specific appears.
+While both halves lived in this repository, "the engine imports nothing from `unxt`" was a claim that decayed the moment someone added a convenient import, so a test read the engine's import list and failed if anything domain-specific appeared. That test is gone, and not because the rule was relaxed: a separate distribution cannot import `unxt` at all. The guard became the structure, which is what the extraction was for.
 
-Once extracted, `unxt`, `coordinax` and `galax` register into the engine as peers. There is no privileged set of axes, and an axis added downstream is read out of a spec exactly like a built-in one.
+The engine's own reasoning — the fragment tree, the markup table, the layouts — is documented with it, in [why formatting is one engine][wlp-why]. What stays here is why `unxt` formats the way it does on top of that.
+
+[wlp]: https://galacticdynamics.github.io/wadler-lindig-parts/
+[wlp-why]: https://galacticdynamics.github.io/wadler-lindig-parts/explanation/why-formatting-is-one-engine/

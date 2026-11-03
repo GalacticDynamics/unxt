@@ -1,6 +1,6 @@
 # Format specs
 
-A format spec selects how a value renders. It is accepted by `__format__` — so by f-strings, `format()` and `str.format` — and by `unxt._pparts.pspec`.
+A format spec selects how a value renders. It is accepted by `__format__` — so by f-strings, `format()` and `str.format` — and by {func}`wadler_lindig_parts.pspec`.
 
 For instructions, see {doc}`../how-to/format-quantities`. For the reasoning behind the design, see {doc}`../explanation/why-formatting-is-one-engine`.
 
@@ -152,34 +152,11 @@ Assignment is per token, so a collision costs one word: `latex-mul-unit=dim-.3f`
 
 ## Registration
 
-| Function | Adds | Removes with |
-| --- | --- | --- |
-| `register_axis(Axis(...), *, replace=False)` | an axis and its keywords | `unregister_axis(name)` |
-| `register_alias(name, expansion)` | an alias | `unregister_alias(name)` |
-| `register_markup(name, row)` | a markup row | `unregister_markup(name)` |
+Axes, aliases and markups are the engine's extension points, and they belong to the engine: see [make a type formattable](https://galacticdynamics.github.io/wadler-lindig-parts/how-to/make-a-type-formattable/) for the guide, and {func}`wadler_lindig_parts.register_axis`, {func}`wadler_lindig_parts.register_alias` and {func}`wadler_lindig_parts.register_markup` for the signatures, the `Axis` fields and the collisions each refuses rather than overwriting.
 
-`Axis` fields:
+Two consequences are worth stating here, where the tables above are. At most one axis may declare `free_text`, since a spec has exactly one trailing run; in `unxt` that axis is `value`, which is why the Python format spec goes last. And of everything tabulated on this page, `unxt` contributes only the `unit` and `abbrev` axes and the three aliases — the rest comes from the engine, and `coordinax` and `galax` add theirs as peers, not as extensions of `unxt`.
 
-| Field | Meaning |
-| --- | --- |
-| `name` | the axis, and its key in a `Spec` |
-| `keywords` | spec word → the value it sets |
-| `default` | the value when no keyword names this axis |
-| `layouts` | layout → a function turning this axis's value into renderer keyword arguments. Membership is applicability: an axis applies to exactly the layouts it has an entry for |
-| `free_text` | the layouts in which this axis's value may be arbitrary text instead of a keyword |
-
-A `register_markup` row requires `_content`, `wrap`, `vsep` and `escape`. Any other key is a per-role override.
-
-Constraints, each of which raises rather than overwriting:
-
-- A keyword may not already be an alias, and an alias may not already be a keyword.
-- An axis name may not be registered twice unless `replace=True`.
-- At most one axis may declare `free_text`, since a spec has one trailing run. In `unxt` that axis is `value`.
-- No keyword may itself be a legal Python format spec, which would make the scan rule prefer the keyword reading over a meaning users already had.
-
-`Spec.of(**overrides)` builds a spec by hand, filling every registered axis from the registry.
-
-`inert_axes(obj, spec, rendered)` returns the axes a spec set explicitly that changed nothing. It re-renders once per axis set, so it is a debugging call rather than something to run on every format.
+{class}`~wadler_lindig_parts.Spec`'s `of(**overrides)` builds a spec by hand, filling every registered axis from the registry. {func}`wadler_lindig_parts.inert_axes` returns the axes a spec set explicitly that changed nothing; it re-renders once per axis set, so it is a debugging call rather than something to run on every format.
 
 ## Errors
 

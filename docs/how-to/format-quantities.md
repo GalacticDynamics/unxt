@@ -101,7 +101,7 @@ To find out which part of a spec did nothing, ask the engine. It re-renders once
 
 ```{code-block} python
 
->>> from unxt._src.fmt import inert_axes, parse_spec, render
+>>> from wadler_lindig_parts import inert_axes, parse_spec, render
 
 >>> q = u.Q(1.0, "km/s")
 >>> spec = parse_spec("name")
