@@ -154,7 +154,7 @@ def pparts(
     unit_style: str = "symbol",
     **kw: Any,
 ) -> tuple[Any, ...]:
-    r"""Decompose a unit for the `unxt._pparts` engine.
+    r"""Decompose a unit for the `wadler_lindig_parts` engine.
 
     A unit is just an object with parts, so there is no separate unit renderer
     and the engine's nesting rule covers it.

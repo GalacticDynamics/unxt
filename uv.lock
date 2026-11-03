@@ -4731,6 +4731,7 @@ dependencies = [
     { name = "plum-dispatch" },
     { name = "quax" },
     { name = "unxt" },
+    { name = "wadler-lindig-parts" },
 ]
 
 [package.dev-dependencies]
@@ -4752,6 +4753,7 @@ requires-dist = [
     { name = "plum-dispatch", specifier = ">=2.5.7,!=2.10.0" },
     { name = "quax", specifier = ">=0.4.6" },
     { name = "unxt", editable = "." },
+    { name = "wadler-lindig-parts", specifier = ">=0.1.0" },
 ]
 
 [package.metadata.requires-dev]

@@ -91,7 +91,7 @@ def _render_configured(obj: Any, cfg: Any, /) -> str:
     """Render ``obj`` in call layout, with the components ``cfg`` supplies.
 
     ``repr`` and ``str`` are the same rendering as ``__format__``, reached with
-    a different `unxt._pparts.Spec` -- so there is one renderer, not three. What
+    a different `wadler_lindig_parts.Spec` -- so there is one renderer, not three. What
     varies is only where the components come from: a format spec parses them
     out of a string, while ``repr``/``str`` read them from `unxt.config`.
 
@@ -1110,9 +1110,9 @@ class AbstractQuantity(
         """Format the quantity.
 
         An empty spec preserves the default :meth:`__str__` representation. A
-        `unxt._pparts` alias, or a
+        registered alias, or a
         ``<markup>-<array>-<separator>-<unit>`` combination (see
-        `unxt._pparts.pspec`), selects a named rendering. Any other spec is
+        `wadler_lindig_parts.pspec`), selects a named rendering. Any other spec is
         applied to the value and the unit is appended (as in
         `astropy.units.Quantity`); a dimensionless quantity has no unit suffix.
 
