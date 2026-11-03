@@ -2,7 +2,9 @@
 
 A type joins the formatting grammar by saying what it is **made of**, not how it renders. Register `pparts` and the type gets every markup, every value form and the per-element format spec — including axes added later by someone else.
 
-This guide is for library authors. To format a quantity, see {doc}`format-quantities`; for the vocabulary itself, see {doc}`../reference/formatting`.
+The engine is its own distribution, [`wadler-lindig-parts`][wlp], and the guide to it lives there: [make a type formattable][guide] covers `pparts`, `ReprMixin`, and registering axes, aliases and markups of your own. Import from `wadler_lindig_parts`; `unxt._pparts` is a private re-export kept for the import path and adds nothing to it.
+
+This page covers what is specific to `unxt`: what your type gets when it is made of quantities.
 
 ```{code-block} python
 
@@ -12,49 +14,13 @@ This guide is for library authors. To format a quantity, see {doc}`format-quanti
 
 ```
 
-## Register `pparts`, inherit `ReprMixin`
+## Quantities inside your type honour `unxt`'s axes
 
-Register `pparts` to say what the type is made of, and inherit `ReprMixin` to get `repr`, `str`, `format`, the Jupyter representations and `__pdoc__` from one spec string.
-
-Use `@dataclass(repr=False)` — the default `repr=True` would overwrite the mixin's `__repr__`.
+Accept `**kw` in your `pparts` and forward it. The engine sends every axis your type does not itself handle, so the nested quantities answer specs your type has never heard of — `unit`, here, which is one of `unxt`'s own axes rather than the engine's:
 
 ```{code-block} python
 
->>> import dataclasses
->>> from unxt._pparts import PPart, ReprMixin, pparts
-
->>> @dataclasses.dataclass(repr=False)
-... class Version(ReprMixin):
-...     major: int
-...     minor: int
-...     __repr_spec__ = "bare"
-
->>> @pparts.dispatch
-... def _(obj: Version, /, *, markup="text", **kw):
-...     return (
-...         PPart("major", str(obj.major)),
-...         PPart("dot", ".", "sep"),
-...         PPart("minor", str(obj.minor)),
-...     )
-
->>> Version(1, 2)
-1.2
->>> f"{Version(1, 2):html}"
-'<span>1</span>.<span>2</span>'
-
-```
-
-`__repr_spec__` is parsed when the class is created, so a bad spec fails at definition rather than on first print. Reassigning it later has no effect.
-
-If your type's `repr` is a constructor expression, write `__pdoc__` yourself instead — see {doc}`../explanation/why-formatting-is-one-engine` for why that one route is not built from fragments.
-
-## Pass the axes down to nested values
-
-Accept `**kw` in your `pparts` and forward it. The engine sends every axis your type does not itself handle, so nested values honour specs your type has never heard of:
-
-```{code-block} python
-
->>> from unxt._pparts import PGroup, pspec
+>>> from wadler_lindig_parts import PGroup, PPart, pparts, pspec
 
 >>> @dataclasses.dataclass
 ... class Interval:
@@ -79,57 +45,20 @@ Accept `**kw` in your `pparts` and forward it. The engine sends every axis your 
 
 ```
 
+`Interval` never mentions units, and would keep working if `unxt` added another axis tomorrow. That is the whole reason to report fragments instead of a string.
+
 A type that registers no `pparts` still renders — it degrades to `str(obj)` — but asking it for a value format spec raises, since it has declared no elements to format.
 
-## Add a keyword of your own
+## Registering `unxt`'s own axes is not special
 
-To add an axis, register it with the layouts it applies to and how its value becomes a renderer argument. To add shorthand for a combination of existing keywords, register an alias.
-
-Unregister both when you are done, or they stay in the process-wide registry:
-
-```{code-block} python
-
->>> from unxt._pparts import (
-...     Axis, register_axis, register_alias,
-...     unregister_axis, unregister_alias,
-... )
-
->>> _ = register_axis(Axis(
-...     name="vector_form",
-...     keywords={"vecform": True},
-...     default=False,
-...     layouts={"call": lambda v: {"vector_form": v}},
-... ))
->>> register_alias("terse", "call-abbrev-type")
-
->>> f"{q:terse}"
-"Q(f32[3], unit='m')"
-
->>> unregister_alias("terse")
->>> unregister_axis("vector_form")
-
-```
-
-To add a markup beside `text`, `html` and `latex`, register a row with `_content`, `wrap`, `vsep` and `escape`:
-
-```{code-block} python
-
->>> from unxt._pparts import register_markup, unregister_markup
-
->>> register_markup(
-...     "brackets",
-...     {"_content": "[{}]", "wrap": "{}", "vsep": ", ", "escape": None},
-... )
->>> f"{q:brackets}"
-'[[1., 2., 3.]] * [m]'
->>> unregister_markup("brackets")
-
-```
-
-Registration raises on any collision rather than overwriting, so a spec cannot change meaning without someone editing it.
+`unxt` contributes the `unit` and `abbrev` axes and the `compact` / `full` / `dims` aliases, and it registers them through the same public functions you would use. There is no privileged set: an axis `coordinax`, `galax` or your own package adds is read out of a spec exactly like a built-in one. The constraints each registration enforces, and the `Axis` fields, are in {func}`wadler_lindig_parts.register_axis`.
 
 ## See also
 
-- {doc}`../reference/formatting` — `Axis` fields, registration constraints, markup rows.
-- {doc}`format-quantities` — the specs your type will accept once registered.
+- [make a type formattable][guide] — the engine's own guide: `pparts`, `ReprMixin`, and adding axes, aliases and markups.
+- {doc}`../reference/formatting` — the specs your type will accept once registered, as they apply to `unxt`'s types.
+- {doc}`format-quantities` — formatting a quantity.
 - {doc}`../explanation/why-formatting-is-one-engine` — the design, and what it traded away.
+
+[wlp]: https://galacticdynamics.github.io/wadler-lindig-parts/
+[guide]: https://galacticdynamics.github.io/wadler-lindig-parts/how-to/make-a-type-formattable/
