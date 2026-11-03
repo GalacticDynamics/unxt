@@ -5,6 +5,7 @@ library: it is part of the future standalone package.
 """
 
 __all__ = (
+    "SHORT_ARRAYS",
     "pvalue",
     "register_markup",
     "unregister_markup",
@@ -16,21 +17,21 @@ from typing import Any, Final
 import wadler_lindig as wl
 
 from .engine import (
-    _FLAT,
     _KEYWORDS,
     _MARKUPS,
     ALIASES,
+    FLAT,
     REQUIRED_MARKUP_KEYS,
     Axis,
-    _markup_table,
     dispatch,
     doc_to_str,
+    markup_table,
     register_axis,
 )
 
 #: The ``value`` axis as `__pdoc__`'s ``short_arrays`` argument. The public
 #: `unxt.config` traits keep their own spelling of the same three-way choice.
-_SHORT_ARRAYS: Final[dict[str, Any]] = {
+SHORT_ARRAYS: Final[dict[str, Any]] = {
     "array": False,
     "values": "compact",
     "type": True,
@@ -46,8 +47,8 @@ def _value_product_kwargs(value: Any, /) -> dict[str, Any]:
     values form -- a shape/dtype summary has no elements to format, which is
     why ``type`` and a format spec cannot both be asked for.
     """
-    if value in _SHORT_ARRAYS:
-        return {"short_arrays": _SHORT_ARRAYS[value], "value_spec": None}
+    if value in SHORT_ARRAYS:
+        return {"short_arrays": SHORT_ARRAYS[value], "value_spec": None}
     return {"short_arrays": "compact", "value_spec": value}
 
 
@@ -94,7 +95,7 @@ register_axis(
         keywords={"array": "array", "values": "values", "type": "type"},
         default="values",
         layouts={
-            "call": lambda v: {"short_arrays": _SHORT_ARRAYS[v]},
+            "call": lambda v: {"short_arrays": SHORT_ARRAYS[v]},
             "product": _value_product_kwargs,
         },
         free_text=("product",),
@@ -185,9 +186,9 @@ def pvalue(
     **kw: Any,
 ) -> wl.AbstractDoc:
     """Fall back to ``repr`` (or ``format`` when a value spec is given)."""
-    escape = _markup_table(markup)["escape"]
+    escape = markup_table(markup)["escape"]
     if short_arrays == "compact":
         text = format(obj, value_spec) if value_spec else repr(obj)
         return wl.TextDoc(escape(text) if escape else text)
     doc = wl.pdoc(obj, short_arrays=short_arrays, show_wrapper=False, **kw)
-    return doc if escape is None else wl.TextDoc(escape(doc_to_str(doc, _FLAT)))
+    return doc if escape is None else wl.TextDoc(escape(doc_to_str(doc, FLAT)))

@@ -26,14 +26,14 @@ import numpy as np
 import wadler_lindig as wl
 
 from .engine import (
-    _FLAT,
+    FLAT,
     Axis,
-    _markup_table,
     doc_to_str,
+    markup_table,
     register_alias,
     register_axis,
 )
-from .generic import _SHORT_ARRAYS, pvalue
+from .generic import SHORT_ARRAYS, pvalue
 
 #: ``short_arrays`` back to the ``value`` axis, for reading `unxt.config`.
 #:
@@ -41,9 +41,7 @@ from .generic import _SHORT_ARRAYS, pvalue
 #: this is the one place the two vocabularies are reconciled, so ``repr`` and
 #: ``str`` can be defined as specs without renaming anything users configure.
 #: Derived by inversion rather than written out, so the two cannot drift.
-VALUE_FROM_SHORT_ARRAYS: Final[dict[Any, str]] = {
-    v: k for k, v in _SHORT_ARRAYS.items()
-}
+VALUE_FROM_SHORT_ARRAYS: Final[dict[Any, str]] = {v: k for k, v in SHORT_ARRAYS.items()}
 
 
 def custom_pdoc_no_kind(obj: Any, /) -> wl.AbstractDoc | None:
@@ -155,7 +153,7 @@ def pvalue(
     A `jax.core.Tracer` forces the summary -- under `jax.jit` only shape and
     dtype exist. ``value_spec`` is applied to every element.
     """
-    table = _markup_table(markup)
+    table = markup_table(markup)
     escape = table["escape"] or (lambda s: s)
     if isinstance(obj, jax.core.Tracer):
         short_arrays = True
@@ -184,9 +182,7 @@ def pvalue(
     # only on the ``True`` path (``custom=None`` would be called and raise).
     custom = {"custom": custom_pdoc_no_kind} if short_arrays else {}
     doc = wl.pdoc(obj, short_arrays=short_arrays, show_wrapper=False, **custom)
-    return (
-        doc if table["escape"] is None else wl.TextDoc(escape(doc_to_str(doc, _FLAT)))
-    )
+    return doc if table["escape"] is None else wl.TextDoc(escape(doc_to_str(doc, FLAT)))
 
 
 # ============================================================================

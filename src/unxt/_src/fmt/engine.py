@@ -43,9 +43,11 @@ __all__ = (
     "ReprMixin",
     "Spec",
     "bad_spec",
+    "FLAT",
     "doc_part",
     "doc_to_str",
     "inert_axes",
+    "markup_table",
     "math_doc",
     "parse_spec",
     "parts_to_doc",
@@ -225,7 +227,7 @@ def _role_override(table: Mapping[str, Any], role: str, /) -> Any:
     return None if role in REQUIRED_MARKUP_KEYS else table.get(role)
 
 
-def _markup_table(markup: str, /) -> Mapping[str, Any]:
+def markup_table(markup: str, /) -> Mapping[str, Any]:
     """Return the `MARKUPS` row, naming the markup if it is unknown."""
     try:
         return MARKUPS[markup]
@@ -360,7 +362,7 @@ def doc_to_str(doc: wl.AbstractDoc, /, width: int = 88) -> str:
 
 
 #: Wide enough that no break is taken: lays a doc out on one line.
-_FLAT: Final = 10**9
+FLAT: Final = 10**9
 
 
 def doc_part(role: str, doc: wl.AbstractDoc, /, kind: str = "content") -> PPart:
@@ -374,7 +376,7 @@ def doc_part(role: str, doc: wl.AbstractDoc, /, kind: str = "content") -> PPart:
     '1.0'
 
     """
-    return PPart(role, doc_to_str(doc, _FLAT), kind, doc)
+    return PPart(role, doc_to_str(doc, FLAT), kind, doc)
 
 
 @dispatch.abstract
@@ -490,24 +492,27 @@ def parts_to_doc(
 
     Examples
     --------
-    >>> import unxt as u
-    >>> import wadler_lindig as wl
-    >>> from unxt._src.fmt import doc_to_str, parts_to_doc, pparts
+    >>> from unxt._src.fmt import PPart, doc_to_str, parts_to_doc
 
-    >>> doc = parts_to_doc(pparts(u.Q([1.0, 2, 3], "m")))
-    >>> doc_to_str(doc, 88)
-    '[1., 2., 3.] * m'
+    This takes fragments, so the examples give them literally:
 
-    Markup lays out identically, because its wrappers cost nothing:
+    >>> parts = (
+    ...     PPart("value", "[1.0, 2.0, 3.0]"),
+    ...     PPart("mul", " * ", "sep"),
+    ...     PPart("label", "x"),
+    ... )
+    >>> doc_to_str(parts_to_doc(parts), 88)
+    '[1.0, 2.0, 3.0] * x'
 
-    >>> q = u.Q([1.0, 2, 3], "m")
-    >>> print(doc_to_str(parts_to_doc(pparts(q, markup="html"), markup="html"), 16))
-    <span>[1., 2., 3.]</span>
-      *
-      <span>m</span>
+    Markup lays out identically, because its wrappers cost nothing -- the
+    break below falls where it would in plain text, not six columns earlier:
+
+    >>> print(doc_to_str(parts_to_doc(parts, markup="html"), 12))
+    <span>[1.0, 2.0, 3.0]</span> *
+      <span>x</span>
 
     """
-    table = _markup_table(markup)
+    table = markup_table(markup)
     escape = table["escape"] or (lambda s: s)
     docs: list[wl.AbstractDoc] = []
     for part in parts:
@@ -556,24 +561,27 @@ def parts_to_markup(
 
     Examples
     --------
-    >>> import unxt as u
-    >>> from unxt._src.fmt import pparts, parts_to_markup
+    >>> from unxt._src.fmt import PPart, parts_to_markup
 
-    >>> q = u.Q([1.0, 2, 3], "m")
-    >>> parts_to_markup(pparts(q, markup="html"), markup="html")
-    '<span>[1., 2., 3.]</span> * <span>m</span>'
+    >>> parts = (
+    ...     PPart("value", "[1.0, 2.0, 3.0]"),
+    ...     PPart("mul", " * ", "sep"),
+    ...     PPart("label", "x"),
+    ... )
+    >>> parts_to_markup(parts, markup="html")
+    '<span>[1.0, 2.0, 3.0]</span> * <span>x</span>'
 
-    >>> parts_to_markup(pparts(q, markup="latex"), markup="latex")
-    '$[1.,~2.,~3.] \\; \\mathrm{m}$'
+    >>> parts_to_markup(parts, markup="latex")
+    '$[1.0, 2.0, 3.0] \\; x$'
 
     ``sep`` names the role standing in for ``mul``, so the markup decides how
     it renders -- a plain space here, ``\\,`` in LaTeX:
 
-    >>> parts_to_markup(pparts(q), sep="bare")
-    '[1., 2., 3.] m'
+    >>> parts_to_markup(parts, sep="bare")
+    '[1.0, 2.0, 3.0] x'
 
     """
-    return doc_to_str(parts_to_doc(parts, sep=sep, markup=markup), _FLAT)
+    return doc_to_str(parts_to_doc(parts, sep=sep, markup=markup), FLAT)
 
 
 # ============================================================================
@@ -968,14 +976,17 @@ def render(
 
     Examples
     --------
-    >>> import unxt as u
     >>> from unxt._src.fmt import parse_spec, render
+    >>> from unxt._src.fmt.examples import Point, Term
 
-    >>> render(u.Q([1.0, 2, 3], "m"), parse_spec("mul"))
-    '[1., 2., 3.] * m'
+    >>> render(Term([1.0, 2.0, 3.0], "x"), parse_spec("mul"))
+    '[1.0, 2.0, 3.0] * x'
 
-    >>> render(u.Q([1.0, 2, 3], "m"), parse_spec("call"))
-    "Quantity([1., 2., 3.], unit='m')"
+    ``call`` layout renders through the object's own ``__pdoc__``, so it
+    reconstructs a type that never registered anything with the engine:
+
+    >>> render(Point(1.0, 2.0), parse_spec("call"))
+    'Point(x=1.0, y=2.0)'
 
     """
     layout = spec["layout"]
@@ -1089,27 +1100,27 @@ def pspec(obj: Any, spec: str, /, *, width: int = 88) -> str:
 
     Examples
     --------
-    >>> import unxt as u
     >>> from unxt._src.fmt import pspec
+    >>> from unxt._src.fmt.examples import Term
 
-    >>> pspec(u.Q([1.0, 2, 3], "m"), "mul")
-    '[1., 2., 3.] * m'
+    >>> pspec(Term([1.0, 2.0, 3.0], "x"), "mul")
+    '[1.0, 2.0, 3.0] * x'
 
-    >>> pspec(u.Q([1.0, 2, 3], "m"), "latex")
-    '$[1.,~2.,~3.] \\, \\mathrm{m}$'
+    >>> pspec(Term([1.0, 2.0, 3.0], "x"), "latex")
+    '$[1.0, 2.0, 3.0] \\, x$'
 
-    A value spec is applied per element, and works on an array -- there is one
-    value-rendering path, so it does not matter whether a keyword accompanies
-    it:
+    A trailing run that is not a keyword is a Python format spec, applied to
+    the value -- and it needs no keyword to accompany it:
 
-    >>> pspec(u.Q([1.234, 2.345], "m"), ".2f")
-    '[1.23, 2.35] m'
-    >>> pspec(u.Q([1.234, 2.345], "m"), "mul-.2f")
-    '[1.23, 2.35] * m'
+    >>> pspec(Term(1.234, "x"), ".2f")
+    '1.23 x'
+    >>> pspec(Term(1.234, "x"), "mul-.2f")
+    '1.23 * x'
 
     An empty spec is `str`:
 
-    >>> pspec(u.Q(1.0, "m"), "") == str(u.Q(1.0, "m"))
+    >>> term = Term([1.0, 2.0, 3.0], "x")
+    >>> pspec(term, "") == str(term)
     True
 
     """
@@ -1150,10 +1161,10 @@ def pparts_to_pdoc(
 
     Examples
     --------
-    >>> import unxt as u
     >>> from unxt._src.fmt import doc_to_str, pparts_to_pdoc
-    >>> doc_to_str(pparts_to_pdoc(u.Q([1.0, 2], "m")))
-    '[1., 2.] * m'
+    >>> from unxt._src.fmt.examples import Term
+    >>> doc_to_str(pparts_to_pdoc(Term([1.0, 2.0], "x")))
+    '[1.0, 2.0] * x'
 
     """
     return parts_to_doc(

@@ -20,16 +20,23 @@ from unxt._pparts import (
 
 
 @dataclasses.dataclass(repr=False)
-class Version(ReprMixin):
-    """A two-part version number."""
+class Release(ReprMixin):
+    """A type this suite owns, registered through the public surface only.
+
+    Deliberately *not* `wadler_lindig_parts.examples.Release`: importing the
+    engine's own example type would make this file exercise a registration the
+    engine already performed, when the point is that a type defined outside it
+    can supply `pparts` and get every route for free.
+    """
 
     major: int
     minor: int
+
     __repr_spec__ = "bare"
 
 
-@pparts.dispatch
-def _(obj: Version, /, *, markup="text", **kw):
+@pparts.dispatch  # type: ignore[misc]
+def _(obj: Release, /, *, markup: str = "text", **kw: object) -> tuple:
     return (
         PPart("major", str(obj.major)),
         PPart("dot", ".", "sep"),
@@ -38,7 +45,7 @@ def _(obj: Version, /, *, markup="text", **kw):
 
 
 def test_every_route_comes_from_one_pparts():
-    v = Version(1, 2)
+    v = Release(1, 2)
     assert repr(v) == "1.2"
     assert str(v) == "1.2"
     assert f"{v}" == "1.2"
