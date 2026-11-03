@@ -4051,6 +4051,7 @@ dependencies = [
     { name = "unxt-api" },
     { name = "unxts-api" },
     { name = "wadler-lindig" },
+    { name = "wadler-lindig-parts" },
 ]
 
 [package.optional-dependencies]
@@ -4289,6 +4290,7 @@ requires-dist = [
     { name = "unxts-parametric", marker = "extra == 'parametric'", editable = "packages/unxts.parametric" },
     { name = "unxts-parametric", marker = "extra == 'workspace'", editable = "packages/unxts.parametric" },
     { name = "wadler-lindig", specifier = ">=0.1.8" },
+    { name = "wadler-lindig-parts", specifier = ">=0.1.0" },
 ]
 provides-extras = ["all", "backend-astropy", "cpu", "cuda", "cuda12", "cuda12-local", "interop-gala", "interop-mpl", "interop-xarray", "k8s", "linalg", "parametric", "workspace"]
 
@@ -4812,6 +4814,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/ea/bf/4caf1aada6c84eb3fadf9341a90367f436a759692456e1a234d444d428ee/wadler_lindig-0.1.8.tar.gz", hash = "sha256:1a94d51cd26100dda9e430c64539c5b92b9788c87f10db3e1c87503ab814411a", size = 16256, upload-time = "2026-10-25T19:06:02.92Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/00/0b/b170089cd44848f25dbc9efda08e5aa4a8402d9a13f0d4d0f3d7808be539/wadler_lindig-0.1.8-py3-none-any.whl", hash = "sha256:8671e8c98449ae3f4e4ba720eccd63a502b3983042f8d112b49a9c6be49e8d92", size = 20840, upload-time = "2026-10-25T19:06:01.79Z" },
+]
+
+[[package]]
+name = "wadler-lindig-parts"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "plum-dispatch" },
+    { name = "wadler-lindig" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/03/a5/997fcb29762440083f3204da6d060d1ed33d15a0253fde1deedf9b81f8d4/wadler_lindig_parts-0.1.0.tar.gz", hash = "sha256:e9961520b09ca7bcf60925edfa7f65515eb24b887ae5e5c32c86f2032d798f26", size = 45760, upload-time = "2026-11-03T05:22:47.189Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/89/19/538eac75f759753183e1a15a66f2e69d1ef60934f7953ca0a22c0eb8ec78/wadler_lindig_parts-0.1.0-py3-none-any.whl", hash = "sha256:5eecd211718c4a07819bef6dfc1cd3df534e2e66df1fcca0ab49ae9868ffb484", size = 25789, upload-time = "2026-11-03T05:22:45.922Z" },
 ]
 
 [[package]]

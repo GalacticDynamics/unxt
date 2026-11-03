@@ -6,9 +6,8 @@ array-rendering helpers those axes need. `coordinax` and `galax` add their own
 by importing `register_axis` and doing the same thing -- they are peers of this
 module, not clients of it.
 
-The import direction is one-way: this module imports the engine, never the
-reverse. A test enforces that, so the engine can be lifted out into a package
-of its own.
+The import direction is one-way by construction now: the engine is the
+`wadler_lindig_parts` distribution and cannot import `unxt`.
 
 """
 
@@ -24,16 +23,16 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import wadler_lindig as wl
-
-from .engine import (
+from wadler_lindig_parts import (
     FLAT,
+    SHORT_ARRAYS,
     Axis,
     doc_to_str,
     markup_table,
+    pvalue,
     register_alias,
     register_axis,
 )
-from .generic import SHORT_ARRAYS, pvalue
 
 #: ``short_arrays`` back to the ``value`` axis, for reading `unxt.config`.
 #:

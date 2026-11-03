@@ -41,6 +41,7 @@ dependencies = [
   "unxt-api>=2.0.0",
   "unxts.api>=2.0.0",
   "wadler-lindig>=0.1.8",
+  "wadler-lindig-parts>=0.1.0",
 ]
 description = "Quantities in JAX"
 dynamic = ["version"]
