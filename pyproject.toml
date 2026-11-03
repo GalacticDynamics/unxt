@@ -522,6 +522,18 @@ docstring-code-format = true
 
 [tool.uv]
 constraint-dependencies = ["matplotlib>=3.10.8; python_version>='3.14'"]
+
+# `uv lock` is incremental: handed a lockfile that already satisfies this file,
+# it writes nothing. So a lockfile written by the wrong uv cannot be repaired
+# afterwards -- relocking with the right one leaves it untouched -- and no CI
+# check can diff its way to finding one. It has to be refused at the write.
+# (A local uv 0.13.0 once spread the `conflicts` marker conjunctions below over
+# 33 dependency lines instead of 7; `uv lock --check` passed, because it asks
+# whether the lockfile satisfies this file, not who wrote it.)
+#
+# The floor is the `astral-sh/uv-pre-commit` rev in `.pre-commit-config.yaml`;
+# keep the two in step when dependabot moves the pin.
+required-version = ">=0.13.6"
 # Require that `unxt[<jax-extras>]` requirements are resolved in different forks
 # so that they cannot conflict with one another.
 conflicts = [
