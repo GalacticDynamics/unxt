@@ -1,17 +1,26 @@
-"""String formatting: a domain-agnostic engine plus `unxt`'s layer over it.
+"""String formatting: `wadler_lindig_parts` plus `unxt`'s layer over it.
 
-`engine` is self-contained and knows nothing about `unxt`; `axes` teaches it
-the axes `unxt` needs. Importing this package registers those axes, so the
-grammar is complete by the time anything formats.
+The engine lives in `wadler_lindig_parts`, which knows nothing about `unxt`;
+`axes` teaches it the axes `unxt` needs. Importing this package registers those
+axes, so the grammar is complete by the time anything formats -- which is why
+every module in `unxt` reaches the engine through here rather than importing
+`wadler_lindig_parts` directly.
+
+Only the package's flat public surface is re-exported: it has no
+private-but-documented tier, so nothing here reaches for an underscore name
+across the distribution boundary.
 """
 
-from . import axes as _axes, engine as _engine, generic as _generic
+import wadler_lindig_parts as _wlp
+from wadler_lindig_parts import *
+
+from . import axes as _axes
 from .axes import *
-from .engine import *
-from .generic import *
+
+# The engine's own example types are its documentation, not `unxt`'s surface.
+del examples
 
 __all__ = [  # noqa: PLE0604
-    *_engine.__all__,
-    *_generic.__all__,
+    *(name for name in _wlp.__all__ if name != "examples"),
     *_axes.__all__,
 ]

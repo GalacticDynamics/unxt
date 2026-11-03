@@ -1,9 +1,14 @@
 """Tests for `unxt`'s layer over the string-formatting engine.
 
-The engine's own tests live in `test_fmt_engine.py`. What stays here needs a
-quantity, a unit, a unit system or an array library -- plus the registry
-invariants, which both suites check because the two registries differ.
+The engine's own tests live in the `wadler-lindig-parts` distribution. What
+stays here needs a quantity, a unit, a unit system or an array library -- plus
+the registry invariants, which both suites check because the two registries
+differ: this one has `unxt`'s axes and aliases in it.
 """
+
+import subprocess
+import sys
+import textwrap
 
 import jax
 import numpy as np
@@ -34,22 +39,32 @@ from unxt._src.fmt import (
     unregister_markup,
     unwrap_math,
 )
-from unxt._src.fmt.engine import _KEYWORDS
 
 # ============================================================================
 # The grammar's own invariants
 
 
+def _keywords() -> set[str]:
+    """The flat keyword namespace, derived from the axes the engine publishes.
+
+    The engine's own index of it is private to the `wadler-lindig-parts`
+    distribution; `Axis.keywords` is the public statement of the same thing,
+    and this registry is the engine's axes plus `unxt`'s.
+    """
+    return {word for ax in AXES.values() for word in ax.keywords}
+
+
 def test_keyword_namespace_is_pairwise_disjoint() -> None:
-    """One word may never name two axes.
+    """A keyword may never also be an alias.
 
     This is the invariant that lets the keyword run be order-independent with
-    no content-sniffing: if `_KEYWORDS` is a function of the word alone, then
-    ``"html-bare"`` and ``"bare-html"`` cannot differ. A dict literal already
-    enforces uniqueness of *keys*, so the real risk is a new word being added
-    that collides with an `ALIASES` entry -- check that too.
+    no content-sniffing: if the word alone decides which axis it sets, then
+    ``"html-bare"`` and ``"bare-html"`` cannot differ. The engine's index is
+    not ours to inspect across the distribution boundary, so derive the
+    namespace from the axis declarations the engine does publish -- the real
+    risk here is one of `unxt`'s own words colliding with an `ALIASES` entry.
     """
-    assert not set(_KEYWORDS) & set(ALIASES)
+    assert not _keywords() & set(ALIASES)
 
 
 @pytest.mark.parametrize("alias", sorted(ALIASES))
@@ -64,16 +79,57 @@ def test_every_axis_applies_to_some_layout() -> None:
         assert ax.layouts, name
 
 
-def test_every_keyword_maps_back_to_its_axis() -> None:
-    """`_KEYWORDS` is the flat namespace `Axis.keywords` describes."""
-    for name, ax in AXES.items():
-        for word in ax.keywords:
-            assert name in _KEYWORDS[word]
-
-
 def test_spec_defaults_are_the_grammar_defaults() -> None:
     """An all-omitted spec is exactly ``Spec.of()``."""
     assert parse_spec("product") == Spec.of()
+
+
+_REPR_MIXIN_AT_CLASS_CREATION = textwrap.dedent("""
+    {preamble}
+    from wadler_lindig_parts import PPart, ReprMixin, pparts
+
+    class Shown(ReprMixin):
+        __repr_spec__ = "compact"  # `unxt`'s alias, for `unxt`'s `abbrev` axis
+
+    @pparts.dispatch
+    def _(obj: Shown, /, *, markup="text", **kw):
+        return (PPart("name", "shown"),)
+
+    print(repr(Shown()))
+""")
+
+
+def test_importing_unxt_registers_its_axes_before_any_class_is_built() -> None:
+    """`ReprMixin` resolves `__repr_spec__` at class creation, across the seam.
+
+    The engine is its own distribution now, so `unxt`'s axes and aliases reach
+    its registry only because importing `unxt` imports `unxt._src.fmt`, which
+    imports `axes`. A class whose spec names one is validated at the ``class``
+    statement, so a lazier import would fail *there* rather than at first
+    print. Both halves run in a fresh interpreter: this suite's own imports
+    have already registered everything, which is exactly what would hide it.
+    """
+    with_unxt = subprocess.run(  # noqa: S603
+        [
+            sys.executable,
+            "-c",
+            _REPR_MIXIN_AT_CLASS_CREATION.format(preamble="import unxt"),
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert with_unxt.stdout.strip() == "shown"
+
+    # Not vacuous: without that import the engine has never heard of "compact".
+    without = subprocess.run(  # noqa: S603
+        [sys.executable, "-c", _REPR_MIXIN_AT_CLASS_CREATION.format(preamble="")],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert without.returncode != 0
+    assert "compact" in without.stderr
 
 
 def test_a_keyword_after_the_value_spec_is_not_a_keyword() -> None:
@@ -264,7 +320,7 @@ def test_unknown_markup_is_named() -> None:
         parts_to_markup(pparts(u.Q(1.0, "m")), markup="markdown")
 
 
-@pytest.mark.parametrize("word", sorted({*_KEYWORDS, *ALIASES}))
+@pytest.mark.parametrize("word", sorted(_keywords() | set(ALIASES)))
 def test_grammar_words_are_not_valid_value_specs(word: str) -> None:
     """Claiming these words is strictly additive.
 
@@ -652,7 +708,7 @@ def test_register_markup_validates_and_extends_the_markup_axis():
     finally:
         unregister_markup("brackets")
     assert "brackets" not in MARKUPS
-    assert "brackets" not in _KEYWORDS
+    assert "brackets" not in _keywords()
 
 
 def test_width_and_indent_in_the_spec() -> None:

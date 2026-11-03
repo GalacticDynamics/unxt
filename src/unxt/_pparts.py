@@ -1,23 +1,19 @@
 r"""String formatting (private).
 
-Not public API yet: the engine is settling, and the leading underscore keeps it
-out of the documented surface until the shape has been exercised by a
-downstream package.
-
-**The name is the plan.** This module is spelled to become the standalone
-package ``pparts``, so extraction is dropping the underscore: what is
-``from unxt._pparts import pparts, PPart`` today becomes
-``from pparts import pparts, PPart``, with no other edit at the call site. The
-names re-exported here are exactly that package's intended surface -- see
-`unxt._src.fmt.engine`, which is the code that moves.
+**The engine has been extracted.** It is the ``wadler-lindig-parts``
+distribution now, and ``import wadler_lindig_parts as wlp`` is the direct way
+in for anything that does not need `unxt`'s axes. This module stays as the
+import path downstream packages already use, re-exporting the same names from
+that distribution by way of `unxt._src.fmt` -- which is the import that also
+registers `unxt`'s axes, so a spec naming them resolves.
 
 The engine behind ``repr``, ``str``, ``format``, and the IPython
 representations. It exists so those all agree on *what an object is made of*,
 and so a new type can join in by registering one function.
 
-This re-exports only what a downstream package needs -- a smaller set than the
-engine defines, since widening later is easy and narrowing is not. Anything
-unproven stays behind `unxt._src.fmt`. The contract, in three groups:
+This re-exports only the subset `unxt` promises -- a smaller set than the
+engine defines, since widening later is easy and narrowing is not. The
+contract, in three groups:
 
 - **join in**: ``pparts`` (the extension point), ``PPart`` / ``PGroup``.
 - **extend the grammar**: ``Axis``, ``register_axis``, ``register_alias``.
