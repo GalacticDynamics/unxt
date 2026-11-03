@@ -2,7 +2,7 @@
 
 A type joins the formatting grammar by saying what it is **made of**, not how it renders. Register `pparts` and the type gets every markup, every value form and the per-element format spec — including axes added later by someone else.
 
-The engine is its own distribution, [`wadler-lindig-parts`][wlp], and the guide to it lives there: [make a type formattable][guide] covers `pparts`, `ReprMixin`, and registering axes, aliases and markups of your own. Import from `wadler_lindig_parts`; `unxt._pparts` is a private re-export kept for the import path and adds nothing to it.
+The engine is its own distribution, [`wadler-lindig-parts`][wlp], and the guide to it lives there: [make a type formattable][guide] covers `pparts`, `ReprMixin`, and registering axes, aliases and markups of your own. Import from `wadler_lindig_parts`.
 
 This page covers what is specific to `unxt`: what your type gets when it is made of quantities.
 
