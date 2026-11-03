@@ -36,14 +36,16 @@ nox -s graph -- --no-label   # ... without the LLM pass that names communities
 
 That writes `graphify-out/graph.html` (clickable graph), `graphify-out/GRAPH_REPORT.md` (hubs, communities, suggested questions) and `graphify-out/graph.json` (the graph itself). The whole directory is generated and gitignored.
 
-To query it, install the CLI (`uv tool install graphifyy`) and point it at the graph:
+Query it through `uv run`, the same as any other tool in this repo (`--no-project` keeps it out of the project env; `uv tool install graphifyy` instead if you use it often enough to want it on `PATH`):
 
 ```bash
-graphify god-nodes                                  # the architectural hubs
-graphify explain "AbstractQuantity"                 # one symbol and its neighbours
-graphify path "Quantity" "AbstractUnitSystem"       # how two things connect
-graphify query "how are units converted"            # a scoped subgraph for a question
-graphify update .                                   # refresh after code changes
+alias gq='uv run --no-project --with graphifyy graphify'
+
+gq god-nodes                                  # the architectural hubs
+gq explain "AbstractQuantity"                 # one symbol and its neighbours
+gq path "Quantity" "AbstractUnitSystem"       # how two things connect
+gq query "how are units converted"            # a scoped subgraph for a question
+gq update .                                   # refresh after code changes, no LLM
 ```
 
 Every edge is tagged `EXTRACTED` (explicit in the source) or `INFERRED` (resolved by graphify), so you can tell what was read directly from what was guessed.
