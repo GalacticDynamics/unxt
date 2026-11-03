@@ -294,6 +294,18 @@ def build_api_docs(s: nox.Session, /) -> None:
 
 
 # =============================================================================
+# Code intelligence
+
+
+@session(reuse_venv=True)
+def graph(s: nox.Session, /) -> None:
+    """Build the knowledge graph into `graphify-out/`. "--no-label" skips the LLM."""
+    s.install("graphifyy")
+    s.run("graphify", "extract", ".", "--code-only")
+    s.run("graphify", "cluster-only", ".", *s.posargs)
+
+
+# =============================================================================
 # Packaging
 
 

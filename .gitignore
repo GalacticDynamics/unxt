@@ -164,3 +164,6 @@ Thumbs.db
 *~
 *.swp
 /.codspeed
+
+# graphify knowledge graph (generated; `nox -s graph`)
+/graphify-out/

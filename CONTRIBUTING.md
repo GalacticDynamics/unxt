@@ -25,6 +25,29 @@ Once you open a pull request (which should be opened against the `main` branch, 
 
 - **Performance improvements**: if you are making changes that impact `unxt` performance, consider adding a performance benchmark in `tests`. A maintainer will also be able to run comparative benchmarks to catch performance changes. The PR needs to have the `run-benchmarks` label to run the workflow.
 
+## Exploring the Codebase
+
+`unxt` is wired up for [graphify](https://github.com/Graphify-Labs/graphify), which turns the source into a queryable knowledge graph. Extraction is local tree-sitter AST parsing: no LLM, and nothing leaves your machine. Querying the graph is usually cheaper and more accurate than grepping.
+
+```bash
+nox -s graph                 # build graphify-out/
+nox -s graph -- --no-label   # ... without the LLM pass that names communities
+```
+
+That writes `graphify-out/graph.html` (clickable graph), `GRAPH_REPORT.md` (hubs, communities, suggested questions) and `graph.json` (the graph itself). The directory is generated and gitignored.
+
+To query it, install the CLI (`uv tool install graphifyy`) and point it at the graph:
+
+```bash
+graphify god-nodes                                  # the architectural hubs
+graphify explain "AbstractQuantity"                 # one symbol and its neighbours
+graphify path "Quantity" "AbstractUnitSystem"       # how two things connect
+graphify query "how are units converted"            # a scoped subgraph for a question
+graphify update .                                   # refresh after code changes
+```
+
+Every edge is tagged `EXTRACTED` (explicit in the source) or `INFERRED` (resolved by graphify), so you can tell what was read directly from what was guessed.
+
 ## Checklist for Contributed Code
 
 Before being merged, a pull request for a new feature will be reviewed to see if it meets the following requirements. If you are unsure about how to meet all of these requirements, please submit the PR and ask for help and/or guidance. A `unxt` maintainer will collaborate with you to make sure that the pull request meets the requirements for inclusion in the package:
