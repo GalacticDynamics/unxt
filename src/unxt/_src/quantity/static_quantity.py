@@ -8,7 +8,6 @@ __all__ = ("StaticQuantity",)
 from typing import Any, final
 
 import equinox as eqx
-import jax
 import jax.core
 import numpy as np
 import unxts.api as uapi

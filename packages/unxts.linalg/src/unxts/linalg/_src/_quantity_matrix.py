@@ -6,7 +6,6 @@
 from typing import Any, ClassVar, NoReturn
 
 import equinox as eqx
-import jax
 import jax.core
 import jax.numpy as jnp
 import plum

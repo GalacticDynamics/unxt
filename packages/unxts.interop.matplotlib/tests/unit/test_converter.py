@@ -1,6 +1,5 @@
 """Tests for unxts.interop.matplotlib converter registration."""
 
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.units
 import numpy as np
