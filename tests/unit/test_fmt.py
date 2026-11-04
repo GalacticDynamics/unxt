@@ -573,15 +573,11 @@ def test_bracket_in_a_string_element_is_not_structure():
     ],
 )
 def test_non_numeric_values_are_never_truncated(arr):
-    from unxt._src.fmt import pvalue  # noqa: PLC0415
-
     old = np.array2string(arr, separator=", ", max_line_width=10**9)
     assert doc_to_str(pvalue(arr)) == old
 
 
 def test_bracket_fill_in_value_spec_does_not_crash():
-    from unxt._src.fmt import pvalue  # noqa: PLC0415
-
     a = np.array([1.0, 2.0])
     old = np.array2string(
         a,
