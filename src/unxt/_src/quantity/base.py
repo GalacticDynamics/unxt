@@ -28,7 +28,6 @@ from typing import (
 )
 
 import equinox as eqx
-import jax
 import jax.core
 import numpy as np
 import quax_blocks

@@ -1,7 +1,6 @@
 """Test the package itself."""
 
 import contextlib
-import importlib
 import importlib.metadata
 
 import pytest

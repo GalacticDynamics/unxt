@@ -19,7 +19,6 @@ Supported transforms:
 import functools as ft
 import operator
 
-import jax
 import jax.core
 import jax.numpy as jnp
 import quax
