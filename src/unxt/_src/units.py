@@ -144,6 +144,26 @@ def dimension_of(obj: AbstractUnit, /) -> AbstractDimension:
 # ===================================================================
 # String formatting
 
+#: Which spelling of the unit to show. The two layouts want different things
+#: from the same choice, which is exactly why an axis translates *per layout*
+#: rather than naming one keyword argument: ``product`` reaches the ``pparts``
+#: below, while ``call`` reaches `unxt.unitsystems.AbstractUnitSystem.__pdoc__`.
+#:
+#: Registered here rather than with the rest of the grammar because this is the
+#: axis about *units*, and this module is imported before any class whose repr
+#: spec could name one of its keywords.
+fmt.register_axis(
+    fmt.Axis(
+        name="unit",
+        keywords={"symbol": "symbol", "name": "name", "dim": "dim"},
+        default="symbol",
+        layouts={
+            "call": lambda v: {"show_units": v != "dim"},
+            "product": lambda v: {"unit_style": v},
+        },
+    )
+)
+
 
 @fmt.pparts.dispatch  # type: ignore[misc]
 def pparts(
