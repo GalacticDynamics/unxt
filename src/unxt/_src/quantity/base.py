@@ -19,6 +19,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     ClassVar,
+    Final,
     Literal,
     NoReturn,
     TypeAlias,
@@ -42,7 +43,7 @@ from dataclassish import field_items
 
 import unxt_api as uapi
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
-from .value import StaticValue
+from .value import StaticValue, custom_pdoc_no_kind, custom_pdoc_noarray
 from unxt._src import fmt
 from unxt.config import config
 from unxt.units import AbstractUnit
@@ -87,6 +88,17 @@ def _coerce_foreign_quantity(other: Any) -> Any:
     return other
 
 
+#: ``short_arrays`` back to the ``value`` axis, for reading `unxt.config`.
+#:
+#: The config traits are public, documented API and keep their own spelling;
+#: this is the one place the two vocabularies are reconciled, so ``repr`` and
+#: ``str`` can be defined as specs without renaming anything users configure.
+#: Derived by inversion rather than written out, so the two cannot drift.
+VALUE_FROM_SHORT_ARRAYS: Final[dict[Any, str]] = {
+    v: k for k, v in fmt.SHORT_ARRAYS.items()
+}
+
+
 def _render_configured(obj: Any, cfg: Any, /) -> str:
     """Render ``obj`` in call layout, with the components ``cfg`` supplies.
 
@@ -96,8 +108,8 @@ def _render_configured(obj: Any, cfg: Any, /) -> str:
     out of a string, while ``repr``/``str`` read them from `unxt.config`.
 
     The config traits keep their own spelling (``short_arrays``,
-    ``use_short_name``); `unxt._src.fmt.VALUE_FROM_SHORT_ARRAYS` is the single
-    place the two vocabularies meet. ``named_unit`` has no grammar keyword --
+    ``use_short_name``); `VALUE_FROM_SHORT_ARRAYS` above is the single place
+    the two vocabularies meet. ``named_unit`` has no grammar keyword --
     it is a quantity-specific ``__pdoc__`` knob, not an axis every type
     shares -- so it rides through as a pass-through.
     """
@@ -105,7 +117,7 @@ def _render_configured(obj: Any, cfg: Any, /) -> str:
         obj,
         fmt.Spec.of(
             layout="call",
-            value=fmt.VALUE_FROM_SHORT_ARRAYS[cfg.short_arrays],
+            value=VALUE_FROM_SHORT_ARRAYS[cfg.short_arrays],
             abbrev=cfg.use_short_name,
         ),
         indent=cfg.indent,
@@ -1059,11 +1071,11 @@ class AbstractQuantity(
         match short_arrays:
             case "compact":
                 kwargs["custom"] = _chain_custom(
-                    kwargs.get("custom", _no_custom), fmt.custom_pdoc_noarray
+                    kwargs.get("custom", _no_custom), custom_pdoc_noarray
                 )
             case True:
                 kwargs["custom"] = _chain_custom(
-                    kwargs.get("custom", _no_custom), fmt.custom_pdoc_no_kind
+                    kwargs.get("custom", _no_custom), custom_pdoc_no_kind
                 )
                 kwargs["short_arrays"] = True
             case _:  # False
@@ -1682,9 +1694,3 @@ def pparts(
     if unit_parts := fmt.pparts(obj.unit, markup=markup, unit_style=unit_style):
         parts = (*parts, fmt.PPart("mul", " * ", "sep"), *unit_parts)
     return parts
-
-
-@fmt.pvalue.dispatch  # type: ignore[misc]
-def pvalue(obj: StaticValue, /, **kw: Any) -> Any:
-    """Render a static value as the array it wraps."""
-    return fmt.pvalue(np.asarray(obj), **kw)

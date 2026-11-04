@@ -102,12 +102,13 @@ _REPR_MIXIN_AT_CLASS_CREATION = textwrap.dedent("""
 def test_importing_unxt_registers_its_axes_before_any_class_is_built() -> None:
     """`ReprMixin` resolves `__repr_spec__` at class creation, across the seam.
 
-    The engine is its own distribution now, so `unxt`'s axes and aliases reach
-    its registry only because importing `unxt` imports `unxt._src.fmt`, which
-    imports `axes`. A class whose spec names one is validated at the ``class``
-    statement, so a lazier import would fail *there* rather than at first
-    print. Both halves run in a fresh interpreter: this suite's own imports
-    have already registered everything, which is exactly what would hide it.
+    The engine is its own distribution now, and `unxt`'s axes and aliases are
+    registered by the modules that own them -- `unxt._src.fmt`, `unxt._src.units`
+    -- so they reach its registry only because importing `unxt` imports all of
+    them. A class whose spec names one is validated at the ``class`` statement,
+    so a lazier import would fail *there* rather than at first print. Both
+    halves run in a fresh interpreter: this suite's own imports have already
+    registered everything, which is exactly what would hide it.
     """
     with_unxt = subprocess.run(  # noqa: S603
         [
@@ -853,7 +854,7 @@ def test_short_arrays_unwraps_a_static_value() -> None:
 
 def test_array_doc_rejects_text_after_the_closing_bracket():
     """Trailing text is not numpy's structure: callers fall back on IndexError."""
-    from unxt._src.fmt.axes import _SENTINEL, _array_doc  # noqa: PLC0415
+    from unxt._src.quantity.value import _SENTINEL, _array_doc  # noqa: PLC0415
 
     with pytest.raises(IndexError):
         _array_doc(f"[1{_SENTINEL}2] x", vsep=", ", escape=str)

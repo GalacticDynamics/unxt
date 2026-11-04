@@ -15,6 +15,8 @@ from jaxtyping import Array, ArrayLike
 
 import quaxed.numpy as jnp
 
+from unxt._src import fmt
+
 #: Raised when a traced value is offered to a static field. Shared with
 #: `unxt.quantity.StaticQuantity._mk`, which repeats this type switch inline to
 #: keep `plum` off its hot path, so the two must not drift.
@@ -434,3 +436,163 @@ def convert_to_quantity_value(obj: ArrayLike | list | tuple, /) -> Array:
         out = jax.numpy.asarray(out)
 
     return out
+
+
+# ==================================================
+# Wadler-Lindig: rendering a value
+#
+# The value half of a quantity's rendering: generic over `jax.Array` and
+# `numpy.ndarray` (the latter is what a `StaticValue` wraps), and knowing
+# nothing about units. It lives beside the values it renders; the axes that
+# name these choices in a format spec are registered by the modules that own
+# them -- `unxt._src.units` for the unit spelling, `unxt._src.fmt` for the
+# cross-cutting rest.
+
+
+def custom_pdoc_no_kind(obj: Any, /) -> wl.AbstractDoc | None:
+    """Return the array summary without the ``(jax)``/``(numpy)`` kind suffix.
+
+    Handles `numpy.ndarray` as well as `jax.Array`, so a NumPy-backed value
+    renders ``f64[2]`` rather than ``f64[2](numpy)``.
+    """
+    if isinstance(obj, (jax.Array, np.ndarray)):
+        dtype = obj.dtype.name
+        if getattr(obj, "weak_type", False):
+            dtype = f"weak_{dtype}"
+        return wl.array_summary(obj.shape, dtype, kind=None)
+    return None
+
+
+def custom_pdoc_noarray(obj: Any, /) -> wl.AbstractDoc | None:
+    """Return the compact (values-only) pdoc for an array-like value.
+
+    Handles both a `jax.Array` and a `numpy.ndarray` -- the latter is what a
+    `unxt.quantity.StaticQuantity`'s value wraps -- so its ``str`` shows values
+    like a plain quantity's rather than an ``f64[2](numpy)`` type summary.
+    """
+    if isinstance(obj, (jax.Array, np.ndarray)):
+        return wl.TextDoc(np.array2string(np.asarray(obj), separator=", "))
+    return None
+
+
+_SENTINEL = "\0"
+
+
+def _row_doc(kids: list[wl.AbstractDoc], vsep: str, /) -> wl.AbstractDoc:
+    """Lay out one bracketed row of already-parsed children.
+
+    Outer rows use ``bracketed``, which breaks every element or none. The
+    innermost row (all leaves) fills as numpy does: each element sits in its
+    own group with the delimiter that *follows* it (``,`` or the closing
+    ``]``), so that delimiter counts when the group is asked whether it fits.
+    """
+    delim, brk = vsep[:1], wl.BreakDoc(vsep[1:])
+    if not kids or not all(isinstance(k, wl.TextDoc) for k in kids):
+        return wl.bracketed(
+            begin=wl.TextDoc("["),
+            docs=kids,
+            sep=wl.TextDoc(delim) + brk,
+            end=wl.TextDoc("]"),
+            indent=1,
+        )
+    if len(kids) == 1:
+        return wl.ConcatDoc(wl.TextDoc("["), kids[0], wl.TextDoc("]"))
+    groups = [
+        wl.GroupDoc(brk + k + wl.TextDoc("]" if i == len(kids) - 1 else delim))
+        for i, k in enumerate(kids[1:], 1)
+    ]
+    head = wl.ConcatDoc(kids[0], wl.TextDoc(delim))
+    return wl.ConcatDoc(
+        wl.TextDoc("["), wl.NestDoc(wl.ConcatDoc(head, *groups), indent=1)
+    )
+
+
+def _array_doc(text: str, *, vsep: str, escape: Any) -> wl.AbstractDoc:
+    """Parse numpy's bracketed text (elements joined by ``_SENTINEL``) into a doc.
+
+    numpy fixes the *content* (dtype formatting, padding, summarisation); this
+    only recovers the nesting so wadler-lindig owns the *layout*.
+    """
+    pos = 0
+
+    def node() -> wl.AbstractDoc:
+        nonlocal pos
+        if text[pos] != "[":
+            end = pos
+            while end < len(text) and text[end] not in "[]" + _SENTINEL:
+                end += 1
+            leaf, pos = text[pos:end], end
+            return wl.TextDoc(escape(leaf))
+        pos += 1
+        kids: list[wl.AbstractDoc] = []
+        while text[pos] != "]":
+            if kids:  # consume the separator and the row break after it
+                pos += 1
+                if text[pos] == "\n":
+                    while text[pos] == "\n":
+                        pos += 1
+                    while text[pos] == " ":
+                        pos += 1
+            kids.append(node())
+        pos += 1
+        return _row_doc(kids, vsep)
+
+    doc = node()
+    if pos != len(text):  # trailing text: not the structure we assumed
+        raise IndexError(pos)
+    return doc
+
+
+@fmt.pvalue.dispatch  # type: ignore[misc]
+def pvalue(
+    obj: jax.Array | np.ndarray,
+    /,
+    *,
+    markup: str = "text",
+    short_arrays: Any = "compact",
+    value_spec: str | None = None,
+    **kw: Any,
+) -> wl.AbstractDoc:
+    """Render an array: its values (``compact``), or a shape/dtype summary.
+
+    A `jax.core.Tracer` forces the summary -- under `jax.jit` only shape and
+    dtype exist. ``value_spec`` is applied to every element.
+    """
+    table = fmt.markup_table(markup)
+    escape = table["escape"] or (lambda s: s)
+    if isinstance(obj, jax.core.Tracer):
+        short_arrays = True
+    if short_arrays == "compact":
+        formatter = {"all": lambda v: format(v, value_spec)} if value_spec else None
+        text = np.array2string(
+            np.asarray(obj),
+            separator=_SENTINEL,
+            formatter=formatter,
+            max_line_width=10**9,
+        )
+        vsep = table["vsep"]  # one delimiter char, then the break text
+        # Only numeric text has brackets that are all structure; a string or
+        # object element (or a bracket fill in ``value_spec``) can hold ``[``.
+        # (ml_dtypes such as bfloat16 report kind ``V``, hence ``issubdtype``.)
+        dtype = np.asarray(obj).dtype
+        if dtype.kind == "b" or jax.numpy.issubdtype(dtype, jax.numpy.number):
+            try:
+                return _array_doc(text, vsep=vsep, escape=escape)
+            except IndexError:  # not bracket-structured numbers
+                pass
+        # Never truncate or raise: one flat TextDoc, no break points.
+        flat = escape(text).replace(_SENTINEL + "\n", vsep.rstrip() + "\n")
+        return wl.TextDoc(flat.replace(_SENTINEL, vsep))
+    # ``show_wrapper=False`` is for ``StaticValue``; the summary hook belongs
+    # only on the ``True`` path (``custom=None`` would be called and raise).
+    custom = {"custom": custom_pdoc_no_kind} if short_arrays else {}
+    doc = wl.pdoc(obj, short_arrays=short_arrays, show_wrapper=False, **custom)
+    if table["escape"] is None:
+        return doc
+    return wl.TextDoc(escape(fmt.doc_to_str(doc, fmt.FLAT)))
+
+
+@fmt.pvalue.dispatch  # type: ignore[misc]
+def pvalue(obj: StaticValue, /, **kw: Any) -> Any:
+    """Render a static value as the array it wraps."""
+    return fmt.pvalue(np.asarray(obj), **kw)
