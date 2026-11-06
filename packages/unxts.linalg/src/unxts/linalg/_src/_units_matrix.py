@@ -620,7 +620,7 @@ def pparts(obj: UnitsMatrix, /, *, markup: str = "text", **kw: Any) -> tuple[Any
 
     Without this registration a `QuantityMatrix` would fall through to
     `wadler_lindig_parts.pparts`'s `Any` method and render its unit structure via
-    `str`, which every markup would then have to wrap blind.
+    `str`, leaving every markup to wrap a string whose shape it cannot see.
 
     Examples
     --------
