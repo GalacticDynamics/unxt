@@ -620,10 +620,7 @@ def pparts(obj: UnitsMatrix, /, *, markup: str = "text", **kw: Any) -> tuple[Any
 
     Without this registration a `QuantityMatrix` would fall through to
     `wadler_lindig_parts.pparts`'s `Any` method and render its unit structure via
-    `str`.
-    It also has to ship with the engine's markup wiring: `_repr_latex_` used to
-    slice ``[1:-1]`` off whatever the unit's repr produced, assuming ``$...$``
-    wrapping, which silently ate real characters here.
+    `str`, which every markup would then have to wrap blind.
 
     Examples
     --------
