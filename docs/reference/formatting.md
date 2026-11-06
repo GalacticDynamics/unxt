@@ -55,6 +55,15 @@ Naming an axis the chosen layout does not have is an error, not a silent no-op: 
 
 ```
 
+An axis the layout _does_ have may still change nothing. `name` falls back to the symbol for a unit with no single long name, so a composite renders the same either way:
+
+```{code-block} python
+
+>>> f"{u.Q(1.0, 'km/s'):name}"
+'1. km / s'
+
+```
+
 `width` and `indent` take a non-negative decimal integer. ASCII digits only; `width=１０` is not a count and falls through to the value axis.
 
 ```{code-block} python
