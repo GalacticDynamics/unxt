@@ -9,13 +9,14 @@ from typing import Any, ClassVar, get_args, get_type_hints
 
 import jax.tree_util as jtu
 import wadler_lindig as wl
+import wadler_lindig_parts as wlp
 from astropy.units import NamedUnit, PhysicalType, UnitBase as AstropyUnitBase
 from astropy.units.physical import _physical_unit_mapping
 
 from is_annotated import isannotated
 
 from .utils import parse_dimlike_name
-from unxt._src import fmt
+from unxt._src import fmt  # noqa: F401  # registers ``abbrev`` and the aliases
 from unxt.dims import AbstractDimension, dimension
 from unxt.units import AbstractUnit, unit
 
@@ -437,7 +438,7 @@ class AbstractUnitSystem:
         "unitsystem(['m', 's', 'kg', 'rad'])"
 
         """
-        return fmt.render(self, fmt.Spec.of(layout="call"))
+        return wlp.render(self, wlp.Spec.of(layout="call"))
 
     def __str__(self) -> str:
         """Return a readable string representation of the unit system.
@@ -458,7 +459,7 @@ class AbstractUnitSystem:
         'LTMAUnitSystem(length, time, mass, angle)'
 
         """
-        return fmt.render(self, fmt.Spec.of(layout="call", abbrev=True))
+        return wlp.render(self, wlp.Spec.of(layout="call", abbrev=True))
 
     def __format__(self, format_spec: str, /) -> str:
         """Format the unit system.
@@ -478,7 +479,7 @@ class AbstractUnitSystem:
         'LTMAUnitSystem(length, time, mass, angle)'
 
         """
-        return fmt.pspec(self, format_spec)
+        return wlp.pspec(self, format_spec)
 
     # ===============================================================
     # Plum stuff
@@ -490,7 +491,7 @@ class AbstractUnitSystem:
 # ---------------------------------------------------------------
 
 
-@fmt.pparts.dispatch  # type: ignore[misc]
+@wlp.pparts.dispatch  # type: ignore[misc]
 def pparts(
     obj: AbstractUnitSystem, /, *, markup: str = "text", **kw: Any
 ) -> tuple[Any, ...]:
@@ -499,7 +500,7 @@ def pparts(
     Examples
     --------
     >>> from unxt import unitsystem
-    >>> from unxt._src.fmt import pparts, parts_to_markup
+    >>> from wadler_lindig_parts import pparts, parts_to_markup
 
     >>> usys = unitsystem("m", "s", "kg", "radian")
     >>> parts_to_markup(pparts(usys))
@@ -518,12 +519,12 @@ def pparts(
         )
         raise TypeError(msg)
     unit_kw = {k: v for k, v in kw.items() if k == "unit_style"}
-    parts: list[Any] = [fmt.PPart("name", "unitsystem"), fmt.PPart("open", "(", "sep")]
+    parts: list[Any] = [wlp.PPart("name", "unitsystem"), wlp.PPart("open", "(", "sep")]
     for i, b in enumerate(obj.base_units):
         if i:
-            parts.append(fmt.PPart("comma", ", ", "sep"))
-        parts.extend(fmt.pparts(b, markup=markup, **unit_kw))
-    parts.append(fmt.PPart("close", ")", "sep"))
+            parts.append(wlp.PPart("comma", ", ", "sep"))
+        parts.extend(wlp.pparts(b, markup=markup, **unit_kw))
+    parts.append(wlp.PPart("close", ")", "sep"))
     return tuple(parts)
 
 

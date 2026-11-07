@@ -9,10 +9,10 @@ import contextlib
 from typing import Any, TypeAlias
 
 import astropy.units as apyu
+import wadler_lindig_parts as wlp
 from plum import dispatch
 
 import unxt_api as uapi
-from unxt._src import fmt
 from unxt.dims import AbstractDimension
 
 # ``FunctionUnitBase`` (mag/dex/dB) is a separate hierarchy from ``UnitBase``, so
@@ -152,8 +152,8 @@ def dimension_of(obj: AbstractUnit, /) -> AbstractDimension:
 #: Registered here rather than with the rest of the grammar because this is the
 #: axis about *units*, and this module is imported before any class whose repr
 #: spec could name one of its keywords.
-fmt.register_axis(
-    fmt.Axis(
+wlp.register_axis(
+    wlp.Axis(
         name="unit",
         keywords={"symbol": "symbol", "name": "name", "dim": "dim"},
         default="symbol",
@@ -165,7 +165,7 @@ fmt.register_axis(
 )
 
 
-@fmt.pparts.dispatch  # type: ignore[misc]
+@wlp.pparts.dispatch  # type: ignore[misc]
 def pparts(
     obj: AbstractUnit,
     /,
@@ -186,7 +186,7 @@ def pparts(
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt._src.fmt import pparts
+    >>> from wadler_lindig_parts import pparts
 
     >>> pparts(u.unit("m"))
     (PPart(role='unit', text='m', kind='content', doc=None),)
@@ -222,10 +222,10 @@ def pparts(
     # goes through the engine's ordinary content escaping in every markup
     # rather than astropy's markup-specific ``to_string(markup)``.
     if unit_style == "name" and (names := getattr(obj, "long_names", None)):
-        return (fmt.PPart("unit", names[0]),)
+        return (wlp.PPart("unit", names[0]),)
     if unit_style == "dim":
         with contextlib.suppress(Exception):
-            return (fmt.PPart("unit", str(obj.physical_type)),)
+            return (wlp.PPart("unit", str(obj.physical_type)),)
 
     # Decide emptiness on the *plain* string: a dimensionless unit's LaTeX form
     # is ``$\mathrm{}$``, which is truthy after the ``$`` are stripped and would
@@ -236,6 +236,6 @@ def pparts(
     if markup == "latex":
         # As a document, not a flat string: the markup then costs no layout
         # columns, so a LaTeX line breaks where the same unit's text form does.
-        latex = fmt.unwrap_math(obj.to_string("latex"))
-        return (fmt.doc_part("unit", fmt.math_doc(latex), "markup"),)
-    return (fmt.PPart("unit", plain),)
+        latex = wlp.unwrap_math(obj.to_string("latex"))
+        return (wlp.doc_part("unit", wlp.math_doc(latex), "markup"),)
+    return (wlp.PPart("unit", plain),)
