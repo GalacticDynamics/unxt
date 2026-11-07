@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import equinox as eqx
 import numpy as np
+import wadler_lindig_parts as wlp
 from astropy.units import (
     CompositeUnit,
     UnitConversionError,
@@ -19,7 +20,6 @@ from dataclassish import replace
 
 import unxt_api as uapi
 from .register_ufuncs import apply_ufunc
-from unxt._src import fmt
 from unxt.units import AbstractUnit, unit as parse_unit
 
 if TYPE_CHECKING:
@@ -165,8 +165,8 @@ class IPythonReprMixin:
         renders identically in both markups (HTML collapses whitespace, LaTeX
         math ignores newlines) and only lengthens the string.
         """
-        return fmt.parts_to_markup(
-            fmt.pparts(self, markup=markup), markup=markup, sep="mul"
+        return wlp.parts_to_markup(
+            wlp.pparts(self, markup=markup), markup=markup, sep="mul"
         )
 
     def _repr_html_(self) -> str:

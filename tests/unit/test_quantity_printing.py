@@ -6,9 +6,9 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 import wadler_lindig as wl
+from wadler_lindig_parts import doc_to_str
 
 import unxt as u
-from unxt._src.fmt import doc_to_str
 from unxt.units import unit as parse_unit
 
 

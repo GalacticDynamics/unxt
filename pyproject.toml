@@ -503,6 +503,7 @@ equinox                 = "eqx"
 unxt                    = "u"
 unxt_api                = "uapi"
 unxt_hypothesis         = "ust"
+wadler_lindig_parts     = "wlp"
 
 [tool.ruff.lint.isort]
 combine-as-imports = true

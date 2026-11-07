@@ -32,6 +32,7 @@ import jax.core
 import numpy as np
 import quax_blocks
 import wadler_lindig as wl
+import wadler_lindig_parts as wlp
 from jax._src.numpy.array_methods import _IndexUpdateHelper, _IndexUpdateRef
 from jaxtyping import Array, ArrayLike, Bool, ScalarLike, Shaped
 from plum import add_promotion_rule, convert, dispatch, type_nonparametric
@@ -43,7 +44,7 @@ from dataclassish import field_items
 import unxt_api as uapi
 from .mixins import AstropyQuantityCompatMixin, IPythonReprMixin, NumPyCompatMixin
 from .value import StaticValue, custom_pdoc_no_kind, custom_pdoc_noarray
-from unxt._src import fmt
+from unxt._src import fmt  # noqa: F401  # registers ``abbrev`` and the aliases
 from unxt.config import config
 from unxt.units import AbstractUnit
 
@@ -94,7 +95,7 @@ def _coerce_foreign_quantity(other: Any) -> Any:
 #: ``str`` can be defined as specs without renaming anything users configure.
 #: Derived by inversion rather than written out, so the two cannot drift.
 VALUE_FROM_SHORT_ARRAYS: Final[dict[Any, str]] = {
-    v: k for k, v in fmt.SHORT_ARRAYS.items()
+    v: k for k, v in wlp.SHORT_ARRAYS.items()
 }
 
 
@@ -112,9 +113,9 @@ def _render_configured(obj: Any, cfg: Any, /) -> str:
     it is a quantity-specific ``__pdoc__`` knob, not an axis every type
     shares -- so it rides through as a pass-through.
     """
-    return fmt.render(
+    return wlp.render(
         obj,
-        fmt.Spec.of(
+        wlp.Spec.of(
             layout="call",
             value=VALUE_FROM_SHORT_ARRAYS[cfg.short_arrays],
             abbrev=cfg.use_short_name,
@@ -1159,7 +1160,7 @@ class AbstractQuantity(
         '[1.23, 2.35] * meter'
 
         """
-        return fmt.pspec(self, format_spec)
+        return wlp.pspec(self, format_spec)
 
 
 #: The unchecked ``_mk``. `revalue`'s debug assertion compares against this to
@@ -1646,12 +1647,12 @@ def convert_to_quantity_value(obj: AbstractQuantity, /) -> NoReturn:
 # ===================================================================
 # String formatting
 #
-# `AbstractQuantity` is a *consumer* of `unxt._src.fmt`: the engine knows
+# `AbstractQuantity` is a *consumer* of `wadler_lindig_parts`: the engine knows
 # nothing about quantities, and everything quantity-specific is registered
 # from here.
 
 
-@fmt.pparts.dispatch  # type: ignore[misc]
+@wlp.pparts.dispatch  # type: ignore[misc]
 def pparts(
     obj: AbstractQuantity,
     /,
@@ -1667,7 +1668,7 @@ def pparts(
     Examples
     --------
     >>> import unxt as u
-    >>> from unxt._src.fmt import pparts, parts_to_markup
+    >>> from wadler_lindig_parts import pparts, parts_to_markup
 
     >>> parts_to_markup(pparts(u.Q([1.0, 2, 3], "m")))
     '[1., 2., 3.] * m'
@@ -1686,10 +1687,10 @@ def pparts(
     '1. * meter'
 
     """
-    value = fmt.pvalue(
+    value = wlp.pvalue(
         obj.value, markup=markup, short_arrays=short_arrays, value_spec=value_spec
     )
-    parts: tuple[Any, ...] = (fmt.doc_part("value", value, "markup"),)
-    if unit_parts := fmt.pparts(obj.unit, markup=markup, unit_style=unit_style):
-        parts = (*parts, fmt.PPart("mul", " * ", "sep"), *unit_parts)
+    parts: tuple[Any, ...] = (wlp.doc_part("value", value, "markup"),)
+    if unit_parts := wlp.pparts(obj.unit, markup=markup, unit_style=unit_style):
+        parts = (*parts, wlp.PPart("mul", " * ", "sep"), *unit_parts)
     return parts

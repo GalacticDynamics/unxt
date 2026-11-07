@@ -11,11 +11,10 @@ import numpy as np
 import plum
 import quax
 import wadler_lindig as wl
+import wadler_lindig_parts as wlp
 from jaxtyping import Array, ArrayLike
 
 import quaxed.numpy as jnp
-
-from unxt._src import fmt
 
 #: Raised when a traced value is offered to a static field. Shared with
 #: `unxt.quantity.StaticQuantity._mk`, which repeats this type switch inline to
@@ -543,7 +542,7 @@ def _array_doc(text: str, *, vsep: str, escape: Any) -> wl.AbstractDoc:
     return doc
 
 
-@fmt.pvalue.dispatch  # type: ignore[misc]
+@wlp.pvalue.dispatch  # type: ignore[misc]
 def pvalue(
     obj: jax.Array | np.ndarray,
     /,
@@ -558,7 +557,7 @@ def pvalue(
     A `jax.core.Tracer` forces the summary -- under `jax.jit` only shape and
     dtype exist. ``value_spec`` is applied to every element.
     """
-    table = fmt.markup_table(markup)
+    table = wlp.markup_table(markup)
     escape = table["escape"] or (lambda s: s)
     if isinstance(obj, jax.core.Tracer):
         short_arrays = True
@@ -589,10 +588,10 @@ def pvalue(
     doc = wl.pdoc(obj, short_arrays=short_arrays, show_wrapper=False, **custom)
     if table["escape"] is None:
         return doc
-    return wl.TextDoc(escape(fmt.doc_to_str(doc, fmt.FLAT)))
+    return wl.TextDoc(escape(wlp.doc_to_str(doc, wlp.FLAT)))
 
 
-@fmt.pvalue.dispatch  # type: ignore[misc]
+@wlp.pvalue.dispatch  # type: ignore[misc]
 def pvalue(obj: StaticValue, /, **kw: Any) -> Any:
     """Render a static value as the array it wraps."""
-    return fmt.pvalue(np.asarray(obj), **kw)
+    return wlp.pvalue(np.asarray(obj), **kw)

@@ -14,9 +14,7 @@ import jax
 import numpy as np
 import pytest
 import wadler_lindig as wl
-
-import unxt as u
-from unxt._src.fmt import (
+from wadler_lindig_parts import (
     ALIASES,
     AXES,
     MARKUPS,
@@ -39,6 +37,8 @@ from unxt._src.fmt import (
     unregister_markup,
     unwrap_math,
 )
+
+import unxt as u
 
 # ============================================================================
 # The grammar's own invariants
