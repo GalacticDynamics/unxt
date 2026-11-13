@@ -99,6 +99,20 @@ def _unit_independent(v: ArrayLike) -> Array:
     return jnp.all((v == 0) | jnp.isinf(v))
 
 
+def _error_if(x: Any, pred: ArrayLike, msg: str, /) -> Any:
+    """``eqx.error_if``, skipped when ``pred`` is concretely False.
+
+    Inside ``jax.ensure_compile_time_eval()`` JAX runs the ``pure_callback`` in
+    the untaken branch of the ``lax.cond`` that ``eqx.error_if`` builds, so a
+    False predicate raised anyway. NumPyro checks distribution parameters in
+    that context. A True or traced predicate still goes through
+    ``eqx.error_if``, so the raised error is unchanged.
+    """
+    if not isinstance(pred, jax.core.Tracer) and not np.any(pred):
+        return x
+    return eqx.error_if(x, pred, msg)
+
+
 def _as_dimensionless_like(q: ABCQ, value: ArrayLike) -> ABCQ:
     """Wrap a dimensionless-valued result as a dimensionless quantity like ``q``.
 
@@ -2260,7 +2274,7 @@ def eq_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
 
     """
     xv = ustrip(x)
-    xv = eqx.error_if(  # TODO: customize Exception type
+    xv = _error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) == Q(y, {y.unit}).",
@@ -2298,7 +2312,7 @@ def eq_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     """
     yv = _value_vs_raw(y)
-    yv = eqx.error_if(  # TODO: customize Exception type
+    yv = _error_if(  # TODO: customize Exception type
         yv,
         not is_unit_convertible(one, y.unit) and jnp.logical_not(_unit_independent(x)),
         f"Cannot compare x == Q(y, {y.unit}) (except for x=0 or +/-inf).",
@@ -2357,7 +2371,7 @@ def eq_p_aqv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     """
     xv = _value_vs_raw(x)
-    xv = eqx.error_if(  # TODO: customize Exception type
+    xv = _error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(one, x.unit) and jnp.logical_not(_unit_independent(y)),
         f"Cannot compare Q(x, {x.unit}) == y (except for y=0 or +/-inf).",
@@ -2643,7 +2657,7 @@ def ge_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
 
     """
     xv = ustrip(x)
-    xv = eqx.error_if(  # TODO: customize Exception type
+    xv = _error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) >= Q(y, {y.unit}).",
@@ -2681,7 +2695,7 @@ def ge_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     """
     yv = _value_vs_raw(y)
-    yv = eqx.error_if(  # TODO: customize Exception type
+    yv = _error_if(  # TODO: customize Exception type
         yv,
         not is_unit_convertible(one, y.unit) and jnp.logical_not(_unit_independent(x)),
         f"Cannot compare x >= Q(y, {y.unit}) (except for x=0 or +/-inf).",
@@ -2717,7 +2731,7 @@ def ge_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     """
     xv = _value_vs_raw(x)
-    xv = eqx.error_if(  # TODO: customize Exception type
+    xv = _error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(one, x.unit) and jnp.logical_not(_unit_independent(y)),
         f"Cannot compare Q(x, {x.unit}) >= y (except for y=0 or +/-inf).",
@@ -2748,7 +2762,7 @@ def gt_p_qq(x: ABCQ, y: ABCQ) -> ABCQ:
 
     """
     xv = ustrip(x)
-    xv = eqx.error_if(  # TODO: customize Exception type
+    xv = _error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) > Q(y, {y.unit}).",
@@ -2786,7 +2800,7 @@ def gt_p_vq(x: ArrayLike, y: ABCQ) -> ABCQ:
 
     """
     yv = _value_vs_raw(y)
-    yv = eqx.error_if(  # TODO: customize Exception type
+    yv = _error_if(  # TODO: customize Exception type
         yv,
         not is_unit_convertible(one, y.unit) and jnp.logical_not(_unit_independent(x)),
         f"Cannot compare x > Q(y, {y.unit}) (except for x=0 or +/-inf).",
@@ -2822,7 +2836,7 @@ def gt_p_qv(x: ABCQ, y: ArrayLike) -> ABCQ:
 
     """
     xv = _value_vs_raw(x)
-    xv = eqx.error_if(  # TODO: customize Exception type
+    xv = _error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(one, x.unit) and jnp.logical_not(_unit_independent(y)),
         f"Cannot compare Q(x, {x.unit}) > y (except for y=0 or +/-inf).",
@@ -3009,7 +3023,7 @@ def le_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 
     """
     xv = ustrip(x)
-    xv = eqx.error_if(  # TODO: customize Exception type
+    xv = _error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) <= Q(y, {y.unit}).",
@@ -3047,7 +3061,7 @@ def le_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     """
     yv = _value_vs_raw(y)
-    yv = eqx.error_if(  # TODO: customize Exception type
+    yv = _error_if(  # TODO: customize Exception type
         yv,
         not is_unit_convertible(one, y.unit) and jnp.logical_not(_unit_independent(x)),
         f"Cannot compare x <= Q(y, {y.unit}) (except for x=0 or +/-inf).",
@@ -3083,7 +3097,7 @@ def le_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     """
     xv = _value_vs_raw(x)
-    xv = eqx.error_if(  # TODO: customize Exception type
+    xv = _error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(one, x.unit) and jnp.logical_not(_unit_independent(y)),
         f"Cannot compare Q(x, {x.unit}) <= y (except for y=0 or +/-inf).",
@@ -3267,7 +3281,7 @@ def lt_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
     """
     # Check if the units are convertible.
     xv = ustrip(x)
-    xv = eqx.error_if(  # TODO: customize Exception type
+    xv = _error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(x.unit, y.unit),
         f"Cannot compare Q(x, {x.unit}) < Q(y, {y.unit}).",
@@ -3327,7 +3341,7 @@ def lt_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     """
     yv = _value_vs_raw(y)
-    yv = eqx.error_if(  # TODO: customize Exception type
+    yv = _error_if(  # TODO: customize Exception type
         yv,
         not is_unit_convertible(one, y.unit) and jnp.logical_not(_unit_independent(x)),
         f"Cannot compare x < Q(y, {y.unit}) (except for x=0 or +/-inf).",
@@ -3387,7 +3401,7 @@ def lt_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     """
     xv = _value_vs_raw(x)
-    xv = eqx.error_if(  # TODO: customize Exception type
+    xv = _error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(one, x.unit) and jnp.logical_not(_unit_independent(y)),
         f"Cannot compare Q(x, {x.unit}) < y (except for y=0 or +/-inf).",
@@ -3835,7 +3849,7 @@ def ne_p_vq(x: ArrayLike, y: ABCQ, /) -> ABCQ:
 
     """
     yv = _value_vs_raw(y)
-    yv = eqx.error_if(  # TODO: customize Exception type
+    yv = _error_if(  # TODO: customize Exception type
         yv,
         not is_unit_convertible(one, y.unit) and jnp.logical_not(_unit_independent(x)),
         f"Cannot compare x != Q(y, {y.unit}) (except for x=0 or +/-inf).",
@@ -3880,7 +3894,7 @@ def ne_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
 
     """
     xv = _value_vs_raw(x)
-    xv = eqx.error_if(  # TODO: customize Exception type
+    xv = _error_if(  # TODO: customize Exception type
         xv,
         not is_unit_convertible(one, x.unit) and jnp.logical_not(_unit_independent(y)),
         f"Cannot compare Q(x, {x.unit}) != y (except for y=0 or +/-inf).",
@@ -3963,7 +3977,7 @@ def nextafter_p_qv(x1: ABCQ, x2: ArrayLike, /) -> ABCQ:
     if is_unit_convertible(one, x1.unit):
         x2v = ustrip(x1.unit, Q(x2, one))
     else:
-        x2v = eqx.error_if(  # TODO: customize Exception type
+        x2v = _error_if(  # TODO: customize Exception type
             x2,
             jnp.logical_not(_unit_independent(x2)),
             f"Cannot nextafter Q(x, {x1.unit}) toward y (except for y=0 or +/-inf).",
@@ -4166,7 +4180,7 @@ def pad_p_array_padding(
     pad_val = jnp.asarray(padding_value)
 
     # Check that padding_value is zero everywhere
-    pad_val = eqx.error_if(
+    pad_val = _error_if(
         pad_val,
         jnp.logical_not(jnp.all(jnp.equal(pad_val, 0))),
         "Array padding values must be zero everywhere",
