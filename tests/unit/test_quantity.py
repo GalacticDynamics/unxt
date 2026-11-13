@@ -25,6 +25,7 @@ import quaxed.numpy as jnp
 
 import unxt as u
 from unxt._src.quantity.base import _is_different_from_default
+from unxt._src.quantity.register_primitives import JAX_VERSION
 
 xps = make_strategies_namespace(jax_xp)
 
@@ -912,6 +913,16 @@ def test_reshape():
     assert q.reshape(2, 3).unit == u.unit("m")
 
 
+@pytest.mark.xfail(
+    JAX_VERSION >= (0, 12, 0),
+    reason=(
+        "JAX 0.12's `jnp.hypot` rescales by powers of two, guarded by comparing"
+        " the quantity to raw constants, which unxt refuses for dimensionful"
+        " quantities."
+    ),
+    raises=jax.errors.JaxRuntimeError,
+    strict=True,
+)
 def test_hypot():
     """Test the ``jnp.hypot`` method."""
     q1 = u.Q(3, "m")
