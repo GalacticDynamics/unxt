@@ -11,6 +11,10 @@ name: Create Package Tags
 #      its own `CD - <package>` workflow, so this job no longer has to dispatch
 #      them by hand (and therefore no longer needs `actions: write`).
 #
+# The App token is necessary but not sufficient: the tags are also pushed one
+# at a time, because GitHub creates no push event when more than three tags are
+# pushed together.
+#
 # Requires a GitHub App installed on this repo with the "Contents: Read and
 # write" repository permission, exposed through two repository secrets:
 #   - RELEASE_APP_ID
@@ -140,6 +144,14 @@ jobs:
             exit 0
           fi
 
-          echo "📤 Pushing ${#TAGS_TO_PUSH[@]} new tag(s): ${TAGS_TO_PUSH[*]}"
-          git push origin "${TAGS_TO_PUSH[@]}"
+          # One tag per push. GitHub creates no push event when more than three
+          # tags go up at once -- "Events will not be created for tags when more
+          # than three tags are pushed at once" -- and no event means no
+          # `CD - <package>` workflow. v2.1.0 pushed all ten together and
+          # published nothing; see the recovery path printed above.
+          echo "📤 Pushing ${#TAGS_TO_PUSH[@]} new tag(s), one at a time: ${TAGS_TO_PUSH[*]}"
+          for TAG_TO_PUSH in "${TAGS_TO_PUSH[@]}"; do
+            echo "  -> $TAG_TO_PUSH"
+            git push origin "$TAG_TO_PUSH"
+          done
           echo "✅ Package tags pushed; each package's CD workflow starts automatically."
