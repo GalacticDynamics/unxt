@@ -339,6 +339,43 @@ def test_compare_dimensionful_with_unit_independent_raw(form, raw):
 
 
 @pytest.mark.parametrize("form", list(_RAW_CMP))
+@pytest.mark.parametrize("raw", [jnp.inf, -jnp.inf, 0.0], ids=["inf", "-inf", "0"])
+def test_compare_unit_independent_raw_under_compile_time_eval(form, raw):
+    """0 and ±inf are still accepted inside ``jax.ensure_compile_time_eval``.
+
+    There JAX runs the ``pure_callback`` in an untaken ``lax.cond`` branch,
+    so an ``eqx.error_if`` with a False predicate raised anyway. NumPyro runs
+    its constraint checks (``x != inf``) in this context.
+    """
+    v = jnp.array([1.0, raw])
+    raw = jnp.asarray(raw)
+    want = _RAW_CMP[form](v, raw)
+
+    with jax.ensure_compile_time_eval():
+        got = _RAW_CMP[form](u.Q(v, "m"), raw)
+
+    assert np.array_equal(np.asarray(got.value), np.asarray(want))
+
+
+@pytest.mark.parametrize("form", list(_RAW_CMP))
+def test_compare_finite_raw_under_compile_time_eval_raises(form):
+    """A nonzero finite raw number is still refused inside compile-time eval."""
+    with (
+        jax.ensure_compile_time_eval(),
+        pytest.raises(eqx.EquinoxRuntimeError, match="Cannot compare"),
+    ):
+        _RAW_CMP[form](u.Q(jnp.array([1.0, 2.0]), "m"), jnp.asarray(2.0))
+
+
+def test_compare_convertible_quantities_under_compile_time_eval():
+    """Quantity-vs-Quantity comparisons work inside compile-time eval."""
+    with jax.ensure_compile_time_eval():
+        got = qnp.less(u.Q(1.0, "km"), u.Q(2000.0, "m"))
+
+    assert bool(got.value)
+
+
+@pytest.mark.parametrize("form", list(_RAW_CMP))
 def test_compare_dimensionful_with_mixed_zero_and_inf_raw(form):
     """A raw array mixing 0 and ±inf is accepted: each element is unit-independent."""
     v = jnp.array([0.0, jnp.inf, -jnp.inf, 1.0])
