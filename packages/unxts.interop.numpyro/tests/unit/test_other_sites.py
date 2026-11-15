@@ -120,3 +120,39 @@ def test_param_with_constraint(usys):
     svi = SVI(unitful(model, usys), guide, numpyro.optim.Adam(1e-2), Trace_ELBO())
     res = svi.run(jax.random.key(0), 100, progress_bar=False)
     assert np.isfinite(res.params["w"])
+
+
+def test_factor_in_plate(usys):
+    def model():
+        with numpyro.plate("n", 3):
+            numpyro.factor("f", Q(-1.0, ""))
+
+    def ref():
+        with numpyro.plate("n", 3):
+            numpyro.factor("f", -1.0)
+
+    np.testing.assert_allclose(_ld(unitful(model, usys)), _ld(ref))
+
+
+def test_factor_under_inner_mask(usys):
+    mask = jnp.array([True, False])
+    model = handlers.mask(_fac(Q(jnp.array([-1.0, -2.0]), "")), mask=mask)
+    ref = handlers.mask(_fac(jnp.array([-1.0, -2.0])), mask=mask)
+    np.testing.assert_allclose(_ld(unitful(model, usys)), _ld(ref))
+
+
+def test_dimensioned_factor_in_plate_raises(usys):
+    def model():
+        with numpyro.plate("n", 3):
+            numpyro.factor("f", Q(1.0, "kpc"))
+
+    with pytest.raises(UnitfulError, match="'f'"):
+        _ld(unitful(model, usys))
+
+
+def test_callable_param_init_returning_quantity_raises(usys):
+    def model():
+        numpyro.param("p", lambda _key: Q(1.0, "kpc"))
+
+    with pytest.raises(UnitfulError, match="'p'"):
+        handlers.seed(unitful(model, usys), 0)()

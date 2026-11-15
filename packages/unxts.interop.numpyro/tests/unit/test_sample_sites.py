@@ -208,3 +208,44 @@ def test_nuts_runs(usys, x):
     m = mc.get_samples()["m"]
     assert not isinstance(m, u.AbstractQuantity)
     assert abs(float(jnp.mean(m)) - 1.0) < 0.1
+
+
+def test_units_key_matching_no_site_raises(usys):
+    def m():
+        with handlers.scope(prefix="gal"):
+            numpyro.sample("r", dist.LogNormal(0.0, 1.0))
+
+    with pytest.raises(UnitfulError, match=r"\['r'\]"):
+        handlers.seed(unitful(m, usys, units={"r": "pc"}), 0)()
+    r = handlers.seed(unitful(m, usys, units={"gal/r": "pc"}), 0)
+    assert handlers.trace(r).get_trace()["gal/r"]["value"].ndim == 0
+
+
+@pytest.mark.parametrize(
+    "site",
+    [
+        lambda: numpyro.deterministic("r", Q(1.0, "kpc")),
+        lambda: numpyro.param("r", 1.0),
+        lambda: numpyro.factor("r", -1.0),
+    ],
+    ids=["deterministic", "param", "factor"],
+)
+def test_units_key_at_non_sample_site_raises(usys, site):
+    with pytest.raises(UnitfulError, match="'r': units= applies to sample sites"):
+        handlers.seed(unitful(site, usys, units={"r": "pc"}), 0)()
+
+
+@pytest.mark.parametrize(
+    ("d", "ref", "value"),
+    [
+        (dist.Normal(Q(0.0, "pc"), Q(3000.0, "pc")), dist.Normal(0.0, 3.0), 1.0),
+        (dist.Exponential(Q(1.0, "1/pc")), dist.Exponential(1000.0), 0.001),
+    ],
+    ids=["normal", "exponential"],
+)
+def test_params_stripped_in_usys_not_their_own_unit(usys, d, ref, value):
+    # galactic: the bare value and the reference are in kpc
+    sub = {"a": jnp.asarray(value)}
+    got = log_density(unitful(lambda: numpyro.sample("a", d), usys), (), {}, sub)[0]
+    want = log_density(lambda: numpyro.sample("a", ref), (), {}, sub)[0]
+    np.testing.assert_allclose(got, want, rtol=1e-5)

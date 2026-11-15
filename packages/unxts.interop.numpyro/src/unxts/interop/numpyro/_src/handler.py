@@ -19,6 +19,7 @@ from .rules import (
     _is_q,
     carrying_params,
     site_dimension,
+    unwrap,
 )
 
 
@@ -57,6 +58,10 @@ class _OuterStripper(Messenger):
             raise UnitfulError(err)
         msg["value"] = u.ustrip(unit, v)
 
+    # The post-process pass checks values set while the site ran. A callable
+    # `param` init that returns a Quantity is one: `unitful` saw only the
+    # callable, recorded no unit, and this raises instead of letting the
+    # Quantity reach the trace.
     postprocess_message = process_message
 
 
@@ -68,7 +73,8 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
     The sampled value goes back to the model as a Quantity in the `usys` unit of
     the site's dimension (bare when ``rewrap=False``). ``units={"site": unit}``
     sets the dimension of a site whose family has no rule; the site is still
-    expressed in `usys`.
+    expressed in `usys`. A key that names no sample site of the model raises
+    `UnitfulError` when the model returns.
 
     Examples
     --------
@@ -110,7 +116,9 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
         s = _OuterStripper(self)
         stack = prim._PYRO_STACK  # noqa: SLF001
         # Below every other handler, but above the strippers of enclosing
-        # `unitful`s, so the innermost handler's stripper acts first.
+        # `unitful`s. NumPyro processes from the top of the stack down and
+        # post-processes from the bottom up, so with nested `unitful`s the
+        # innermost stripper processes first and post-processes last.
         i = next(
             (i for i, h in enumerate(stack) if not isinstance(h, _OuterStripper)),
             len(stack),
@@ -129,6 +137,10 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
                 if h is s:
                     del stack[i]
                     break
+        missing = sorted(self._overrides.keys() - self._site_units.keys())
+        if exc[0] is None and missing:
+            msg = f"units= names {missing}, which match no sample site of the model."
+            raise UnitfulError(msg)
 
     @property
     def site_units(self) -> Mapping[str, Any]:
@@ -175,8 +187,15 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
         self._record(name, unit)
         return u.ustrip(self.usys, v)
 
+    def _no_override(self, name: str, kind: str) -> None:
+        if name in self._overrides:
+            msg = f"Site '{name}': units= applies to sample sites, not {kind} sites."
+            raise UnitfulError(msg)
+
     def _process_factor(self, msg: dict[str, Any]) -> None:
-        lf = msg["fn"].log_factor
+        # `plate` and `mask` wrap the `Unit` distribution, so look underneath.
+        self._no_override(msg["name"], "factor")
+        lf = unwrap(msg["fn"]).log_factor
         if not _is_q(lf):
             return
         if u.dimension_of(lf) != u.dimension("dimensionless"):
@@ -185,20 +204,24 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
                 f"{u.dimension_of(lf)}, expected dimensionless."
             )
             raise UnitfulError(err)
-        msg["fn"] = dist.Unit(u.ustrip("", lf))
+        msg["fn"] = jax.tree.map(
+            lambda v: u.ustrip("", v) if _is_q(v) else v, msg["fn"], is_leaf=_is_q
+        )
 
     def process_message(self, msg: dict[str, Any]) -> None:
         """Strip the units of a site and record the site's unit."""
         if msg["type"] == "deterministic":
+            self._no_override(msg["name"], "deterministic")
             msg["value"] = self._strip_value(msg["name"], msg["value"])
             return
         if msg["type"] == "param":
+            self._no_override(msg["name"], "param")
             if msg["args"]:
                 msg["args"] = (self._strip_value(msg["name"], msg["args"][0]),)
             return
         if msg["type"] != "sample":
             return
-        if isinstance(msg["fn"], dist.Unit):
+        if isinstance(unwrap(msg["fn"]), dist.Unit):
             self._process_factor(msg)
         else:
             self._process_sample(msg)
