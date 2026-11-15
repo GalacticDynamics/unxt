@@ -1,6 +1,11 @@
 """Built-in unit systems."""
 
-__all__ = ("DimensionlessUnitSystem", "LTMAUnitSystem", "dimensionless")
+__all__ = (
+    "DimensionlessUnitSystem",
+    "LTMAUnitSystem",
+    "LengthTimeMassAngleTemperatureUnitSystem",
+    "dimensionless",
+)
 
 from dataclasses import dataclass
 from typing import Annotated, Any, TypeAlias, final, override
@@ -72,6 +77,41 @@ class LTMAUnitSystem(AbstractUnitSystem):
 
     #: Units for the angle 'dimension'.
     angle: Annotated[Unit, ud.angle]
+
+
+@jtu.register_static
+@final
+@dataclass(frozen=True, slots=True, repr=False)
+class LengthTimeMassAngleTemperatureUnitSystem(AbstractUnitSystem):
+    """Length, time, mass, angle, temperature unit system.
+
+    The class of the ``galactic`` and ``solarsystem`` realizations.
+
+    Examples
+    --------
+    >>> import unxt as u
+    >>> usys = u.unitsystem("kpc", "Myr", "Msun", "rad", "K")
+    >>> isinstance(usys, u.unitsystems.LengthTimeMassAngleTemperatureUnitSystem)
+    True
+    >>> usys == u.unitsystems.galactic
+    True
+
+    """
+
+    #: Units for the length dimension.
+    length: Annotated[Unit, ud.length]
+
+    #: Units for the time dimension.
+    time: Annotated[Unit, ud.time]
+
+    #: Units for the mass dimension.
+    mass: Annotated[Unit, ud.mass]
+
+    #: Units for the angle 'dimension'.
+    angle: Annotated[Unit, ud.angle]
+
+    #: Units for the temperature dimension.
+    temperature: Annotated[Unit, ud.temperature]
 
 
 @jtu.register_static

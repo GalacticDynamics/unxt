@@ -21,8 +21,8 @@ def equivalent(a: AbstractUnitSystem, b: AbstractUnitSystem, /) -> bool:
     --------
     >>> from unxt.unitsystems import galactic, solarsystem, si, equivalent
 
-    ``galactic`` (kpc, Myr, solMass, rad) and ``solarsystem`` (AU, yr, solMass,
-    rad) have the same base dimensions and interconvertible units:
+    ``galactic`` (kpc, Myr, solMass, rad, K) and ``solarsystem`` (AU, yr,
+    solMass, rad, K) have the same base dimensions and interconvertible units:
 
     >>> equivalent(galactic, solarsystem)
     True

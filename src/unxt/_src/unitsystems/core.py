@@ -205,10 +205,10 @@ def unitsystem(name: str, /) -> AbstractUnitSystem:
     --------
     >>> from unxt.unitsystems import unitsystem
     >>> unitsystem("galactic")
-    unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
+    unitsystem(['kpc', 'Myr', 'solMass', 'rad', 'K'])
 
     >>> unitsystem("solarsystem")
-    unitsystem(['AU', 'yr', 'solMass', 'rad'])
+    unitsystem(['AU', 'yr', 'solMass', 'rad', 'K'])
 
     >>> unitsystem("dimensionless")
     DimensionlessUnitSystem()
@@ -257,15 +257,15 @@ def unitsystem(usys: AbstractUnitSystem, *args: Any) -> AbstractUnitSystem:
     >>> from unxt.unitsystems import unitsystem
     >>> usys = unitsystem("galactic")
     >>> unitsystem(usys, "km/s")
-    unitsystem(['rad', 'kpc', 'solMass', 'km / s', 'Myr'])
+    unitsystem(['rad', 'kpc', 'solMass', 'km / s', 'K', 'Myr'])
 
     We can also override the base unit of an existing unit system. Replacing the
-    length still leaves a length/time/mass/angle system, so it is recognized as
-    the built-in ``LTMAUnitSystem`` shape:
+    length keeps the same dimensions, so it is recognized as the built-in
+    ``LengthTimeMassAngleTemperatureUnitSystem`` shape:
 
     >>> new_usys = unitsystem(usys, "pc")
     >>> new_usys
-    unitsystem(['pc', 'Myr', 'solMass', 'rad'])
+    unitsystem(['pc', 'Myr', 'solMass', 'rad', 'K'])
 
     """
     # TODO: not need this hack for single-string inputs
