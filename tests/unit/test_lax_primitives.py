@@ -16,17 +16,38 @@ from unxt._src.quantity.register_primitives import JAX_VERSION, cond_p_q
 from unxt.quantity import AllowValue
 
 
-def test_cond_on_a_quantity_operand():
-    """``lax.cond`` with an array predicate strips the quantity operand."""
-    f = quax.quaxify(lambda p, x: lax.cond(p, lambda v: v, lambda v: 2 * v, x))
-    assert np.isclose(np.asarray(f(jnp.asarray(1, dtype=bool), u.Q(1.0, "m"))), 1.0)
+def _cond(p, x):
+    return lax.cond(p, lambda v: 2 * v, lambda v: v, x)
 
 
-def test_cond_on_a_quantity_predicate_is_unsupported():
-    """A quantity *predicate* has no meaning and is refused."""
-    q = u.Q(1.0, "m")
-    with pytest.raises(NotImplementedError):
-        cond_p_q(q, q)
+@pytest.mark.parametrize("jit", [False, True])
+def test_cond_on_a_quantity_operand_keeps_its_unit(jit):
+    """An array predicate with a quantity operand keeps the operand's unit."""
+    f = quax.quaxify(jax.jit(_cond) if jit else _cond)
+    got = f(jnp.ones((), dtype=bool), u.Q(1.0, "m"))
+    assert u.ustrip("m", got) == 2.0
+
+
+@pytest.mark.parametrize("jit", [False, True])
+def test_cond_on_a_quantity_predicate(jit):
+    """A comparison of quantities can be the predicate."""
+    f = lambda x, lim: _cond(x > lim, x)
+    f = quax.quaxify(jax.jit(f) if jit else f)
+    lim = u.Q(1.0, "km")
+    assert u.ustrip("m", f(u.Q(2000.0, "m"), lim)) == 4000.0
+    assert u.ustrip("m", f(u.Q(500.0, "m"), lim)) == 500.0
+
+
+def test_cond_on_a_quantity_predicate_without_operands():
+    """The branches need not take any operands."""
+    f = quax.quaxify(lambda p: lax.cond(p, lambda: 1, lambda: 2))
+    assert int(f(u.Q(1.0, "m") > u.Q(0.0, "m"))) == 1
+
+
+def test_cond_on_a_dimensionful_index_is_refused():
+    """A dimensionful index has no meaning and is refused."""
+    with pytest.raises(UnitConversionError):
+        cond_p_q(u.Q(1, "m"), u.Q(1.0, "m"), branches=())
 
 
 def test_angle_divided_by_angle_is_dimensionless():
