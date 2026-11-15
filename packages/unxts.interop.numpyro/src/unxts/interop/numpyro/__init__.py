@@ -6,8 +6,9 @@ This is the canonical package (unxts.interop.numpyro).
 from ._src import patches as _patches
 from ._src.handler import unitful
 from ._src.rules import UnitfulError
+from ._src.samples import attach_units
 from ._version import version as __version__  # noqa: F401
 
 _patches.install()
 
-__all__ = ("UnitfulError", "unitful")
+__all__ = ("UnitfulError", "attach_units", "unitful")
