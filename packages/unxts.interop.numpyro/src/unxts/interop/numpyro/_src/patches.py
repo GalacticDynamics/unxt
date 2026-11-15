@@ -57,6 +57,15 @@ def _reshape_is_broken() -> bool:
     return False
 
 
+def _rebind(attr: str, original: Any, patched: Any) -> None:
+    """Replace `original` with `patched` in every loaded numpyro module."""
+    for name, mod in list(sys.modules.items()):
+        if (name == "numpyro" or name.startswith("numpyro.")) and (
+            getattr(mod, attr, None) is original
+        ):
+            setattr(mod, attr, patched)
+
+
 def install() -> None:
     """Install the patches that the installed NumPyro still needs."""
     global NOT_JAX_TRACER_PATCHED, RESHAPE_PATCHED  # noqa: PLW0603
@@ -65,15 +74,11 @@ def install() -> None:
     if not NOT_JAX_TRACER_PATCHED and _not_jax_tracer_is_broken():
         # numpyro.util first, so modules imported later bind the patched copy.
         nu.not_jax_tracer = _not_jax_tracer
-        for name, mod in list(sys.modules.items()):
-            if (
-                name.startswith("numpyro")
-                and getattr(mod, "not_jax_tracer", None) is _original_not_jax_tracer
-            ):
-                mod.not_jax_tracer = _not_jax_tracer
+        _rebind("not_jax_tracer", _original_not_jax_tracer, _not_jax_tracer)
         NOT_JAX_TRACER_PATCHED = True
 
     # ponytail: delete when the numpyro floor includes pyro-ppl/numpyro#2429
     if not RESHAPE_PATCHED and _reshape_is_broken():
         ndu._reshape = _reshape  # noqa: SLF001
+        _rebind("_reshape", _original_reshape, _reshape)
         RESHAPE_PATCHED = True

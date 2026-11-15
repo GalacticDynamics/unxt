@@ -6,6 +6,7 @@ import jax
 import jax.numpy as jnp
 import numpyro
 import numpyro.distributions as dist
+import numpyro.distributions.util as ndu
 import numpyro.util
 import pytest
 import unxts.interop.numpyro  # noqa: F401  (installs the patches)
@@ -32,14 +33,26 @@ def test_vector_loc_scalar_scale_builds():
 def test_every_module_copy_is_patched():
     for mod in list(sys.modules.values()):
         name = getattr(mod, "__name__", "")
-        if name.startswith("numpyro") and hasattr(mod, "not_jax_tracer"):
+        if (name == "numpyro" or name.startswith("numpyro.")) and hasattr(
+            mod, "not_jax_tracer"
+        ):
             assert mod.not_jax_tracer is numpyro.util.not_jax_tracer, name
+
+
+def test_every_module_reshape_is_patched():
+    for name, mod in list(sys.modules.items()):
+        if (name == "numpyro" or name.startswith("numpyro.")) and hasattr(
+            mod, "_reshape"
+        ):
+            assert mod._reshape is ndu._reshape, name
 
 
 def test_plain_arrays_unchanged():
     assert numpyro.util.not_jax_tracer(jnp.ones(2))
     assert numpyro.util.not_jax_tracer(1.0)
-    jax.jit(lambda x: (numpyro.util.not_jax_tracer(x) is False) or x)(1.0)
+    seen = []
+    jax.jit(lambda x: seen.append(numpyro.util.not_jax_tracer(x)) or x)(1.0)
+    assert seen == [False]
 
 
 def test_install_is_idempotent():
