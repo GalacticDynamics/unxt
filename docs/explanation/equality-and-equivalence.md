@@ -9,12 +9,14 @@
 
 ## `==` follows the value
 
-For an ordinary array-backed `Quantity`, `==` behaves the way NumPy trained you to expect: element-wise, unit-aware, and returning an array of booleans wrapped in a dimensionless `Quantity` — wrapped, because the Array API asks that a result share a namespace with its inputs.
+For an ordinary array-backed `Quantity`, `==` behaves the way NumPy trained you to expect: element-wise, unit-aware, and returning an array of booleans wrapped in a dimensionless `Quantity`.
 
 ```{code-block} python
 >>> u.Q([1.0, 2.0], "m") == u.Q([1.0, 9.0], "m")
 Quantity(Array([ True, False], dtype=bool), unit='')
 ```
+
+The Array API standard only asks for a boolean array here, of no particular array type. `unxt` keeps the result a `Quantity` so the mask stays in the same namespace as the quantities it came from. Code that infers one namespace from all of its inputs, such as `xarray` and `array_api_compat`, refuses a mix of `quaxed.numpy` and `jax.numpy` arrays, so with a plain `jax.Array` mask `da.where(da > q)` would fail. To hand a mask to unit-unaware JAX code, strip it with `u.ustrip("", mask)`; see {doc}`../how-to/use-jax-functions`.
 
 For a quantity whose value is a {class}`~unxt.quantity.StaticValue`, `==` returns a scalar `bool` instead:
 
