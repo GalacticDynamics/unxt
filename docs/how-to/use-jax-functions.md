@@ -133,7 +133,7 @@ Quantity(Array([5., 2., 3., 4.], dtype=float32), unit='m')
 
 ## Branch on values with JAX control flow
 
-A Python `if` on a traced value fails inside `jit`, exactly as it does for plain JAX arrays. Use `jax.lax.cond` or `jnp.where`:
+A Python `if` on a traced value fails inside `jit`, exactly as it does for plain JAX arrays. For an element-wise choice, use `jnp.where`:
 
 ```{code-block} python
 >>> import quaxed.numpy as qnp
@@ -144,6 +144,33 @@ A Python `if` on a traced value fails inside `jit`, exactly as it does for plain
 
 >>> clamp(u.Q([5.0, 50.0], "m"))
 Quantity(Array([ 5., 10.], dtype=float32), unit='m')
+
+```
+
+To choose between whole branches, use `quaxed.lax.cond`. A comparison of quantities returns a dimensionless boolean `Quantity`, and `quaxed.lax.cond` accepts it as the predicate:
+
+```{code-block} python
+>>> import quaxed.lax as qlax
+
+>>> @jax.jit
+... def double_if_long(x):
+...     return qlax.cond(x > u.Q(1.0, "km"), lambda v: 2 * v, lambda v: v, x)
+
+>>> double_if_long(u.Q(2000.0, "m"))
+Quantity(Array(4000., dtype=float32, weak_type=True), unit='m')
+
+```
+
+Plain `jax.lax.cond`, `jax.lax.while_loop` and other unit-unaware JAX code (`equinox.error_if`, NumPyro, ...) need a plain boolean array. Strip the predicate with `u.ustrip("", pred)`. `jnp.asarray(pred)` works outside `jit` but fails on a traced value.
+
+```{code-block} python
+>>> @jax.jit
+... def is_long(x):
+...     pred = u.ustrip("", x > u.Q(1.0, "km"))
+...     return jax.lax.cond(pred, lambda: 1, lambda: 0)
+
+>>> is_long(u.Q(2000.0, "m"))
+Array(1, dtype=int32, weak_type=True)
 
 ```
 

@@ -1296,20 +1296,27 @@ if JAX_VERSION >= (0, 10, 1):  # pragma: no branch -- `stack_p`: JAX 0.10.1
 # ==============================================================================
 
 
-@quax.register(lax.cond_p)  # TODO: implement
-def cond_p_q(index: ABCQ, consts: ABCQ) -> ABCQ:
-    raise NotImplementedError
+@quax.register(lax.cond_p)
+def cond_p_q(index: ABCQ, /, *operands: ABCQ | ArrayLike, **kw: Any) -> Any:
+    """``lax.cond`` with a quantity predicate.
 
+    A comparison of quantities returns a dimensionless boolean quantity, which
+    ``lax.cond`` converts to a dimensionless integer index. Strip the index and
+    re-bind, so quax's own ``cond`` rule handles the operands and keeps their
+    units. A dimensionful index is refused.
 
-@quax.register(lax.cond_p)  # TODO: implement
-def cond_p_vq(index: ArrayLike, consts: ABCQ, *, branches: Any) -> list[Array]:
-    """Conditional on a value and a quantity.
+    Examples
+    --------
+    >>> import quaxed.lax as qlax
+    >>> import unxt as u
 
-    ``cond_p`` has ``multiple_results=True``, so this returns the list of bare
-    branch outputs. The branches were traced on the stripped value, so the unit
-    is not carried through -- re-attach it at the call site.
+    >>> x = u.Q(2.0, "m")
+    >>> qlax.cond(x > u.Q(1.0, "m"), lambda v: 2 * v, lambda v: v, x)
+    Quantity(Array(4., dtype=float32, weak_type=True), unit='m')
+
     """
-    return lax.cond_p.bind(index, ustrip(consts), branches=branches)  # type: ignore[no-untyped-call]
+    bind = lambda i, *ops: lax.cond_p.bind(i, *ops, **kw)  # noqa: E731
+    return quax.quaxify(bind)(ustrip(one, index), *operands)
 
 
 # ==============================================================================
