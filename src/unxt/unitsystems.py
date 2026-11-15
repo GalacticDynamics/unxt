@@ -25,6 +25,7 @@ __all__ = (
     "UNITSYSTEMS_REGISTRY",
     "DimensionlessUnitSystem",
     "LTMAUnitSystem",
+    "LengthTimeMassAngleTemperatureUnitSystem",
     # unit system instance
     "galactic",
     "dimensionless",
@@ -64,6 +65,7 @@ with install_import_hook("unxt.unitsystems"):
         DynamicalSimUSysFlag,
         GeometrizedUSysFlag,
         HEPUSysFlag,
+        LengthTimeMassAngleTemperatureUnitSystem,
         LTMAUnitSystem,
         NaturalUSysFlag,
         PlanckUSysFlag,

@@ -140,13 +140,13 @@ def test_unitsystem_identity_is_order_independent() -> None:
 
     # built-in systems are matched by dimension set and keep their conventional
     # field order regardless of input order
-    g1 = unitsystem("kpc", "Myr", "solMass", "rad")
-    g2 = unitsystem("Myr", "rad", "kpc", "solMass")
+    g1 = unitsystem("kpc", "Myr", "solMass", "rad", "K")
+    g2 = unitsystem("Myr", "K", "rad", "kpc", "solMass")
     assert g1 == g2
     assert type(g1) is type(g2)
     assert g1 == galactic
-    assert isinstance(g1, unitsystems.LTMAUnitSystem)
-    # conventional field order (length, time, mass, angle) is preserved, not sorted
+    assert isinstance(g1, unitsystems.LengthTimeMassAngleTemperatureUnitSystem)
+    # conventional field order (length, time, mass, angle, temperature) is kept
     assert g2.base_dimensions == galactic.base_dimensions
 
 

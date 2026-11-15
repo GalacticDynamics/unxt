@@ -26,13 +26,13 @@ unitsystem(['cm', 'g', 's', 'dyn', 'erg', 'Ba', 'P', 'St', 'rad'])
 ```{code-block} python
 >>> from unxt.unitsystems import galactic
 >>> galactic
-unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
+unitsystem(['kpc', 'Myr', 'solMass', 'rad', 'K'])
 ```
 
 ```{code-block} python
 >>> from unxt.unitsystems import solarsystem
 >>> solarsystem
-unitsystem(['AU', 'yr', 'solMass', 'rad'])
+unitsystem(['AU', 'yr', 'solMass', 'rad', 'K'])
 ```
 
 Each is also reachable by name through `unitsystem` (see below).
@@ -82,14 +82,14 @@ unitsystem(['m', 'kg', 's', 'mol', 'A', 'K', 'cd', 'rad'])
 unitsystem(['cm', 'g', 's', 'dyn', 'erg', 'Ba', 'P', 'St', 'rad'])
 
 >>> unitsystem("galactic")
-unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
+unitsystem(['kpc', 'Myr', 'solMass', 'rad', 'K'])
 
 >>> unitsystem("solarsystem")
-unitsystem(['AU', 'yr', 'solMass', 'rad'])
+unitsystem(['AU', 'yr', 'solMass', 'rad', 'K'])
 
 ```
 
-**From a set of units.** If the dimensions match a pre-defined unit system class, an instance of that class is returned. `"galactic"` and `"solarsystem"` are both instances of `LTMAUnitSystem` (length-time-mass-angle).
+**From a set of units.** If the dimensions match a pre-defined unit system class, an instance of that class is returned. `"galactic"` and `"solarsystem"` are both instances of `LengthTimeMassAngleTemperatureUnitSystem`. A system of only length, time, mass and angle units is an `LTMAUnitSystem`.
 
 ```{code-block} python
 

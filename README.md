@@ -147,7 +147,7 @@ unitsystem(['m', 'kg', 's', 'mol', 'A', 'K', 'cd', 'rad'])
 unitsystem(['cm', 'g', 's', 'dyn', 'erg', 'Ba', 'P', 'St', 'rad'])
 
 >>> u.unitsystem("galactic")  # galactic (astrophysics)
-unitsystem(['kpc', 'Myr', 'solMass', 'rad'])
+unitsystem(['kpc', 'Myr', 'solMass', 'rad', 'K'])
 ```
 
 ### Composing Units from a Unit System

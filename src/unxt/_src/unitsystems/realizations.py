@@ -21,7 +21,7 @@ from . import base as _us_base
 from .base import AbstractUnitSystem
 from .builtin import (
     CGSUnitSystem,
-    LTMAUnitSystem,
+    LengthTimeMassAngleTemperatureUnitSystem,
     SIUnitSystem,
     dimensionless,
 )
@@ -38,16 +38,21 @@ from unxt.units import unit
 # class so ``core`` can use it without a circular import).
 
 # Galactic unit system
-galactic = LTMAUnitSystem(
+galactic = LengthTimeMassAngleTemperatureUnitSystem(
     length=unit("kpc"),
     time=unit("Myr"),
     mass=unit("Msun"),
     angle=unit("radian"),
+    temperature=unit("Kelvin"),
 )
 
 # Solar system units
-solarsystem = LTMAUnitSystem(
-    length=unit("au"), time=unit("yr"), mass=unit("Msun"), angle=unit("radian")
+solarsystem = LengthTimeMassAngleTemperatureUnitSystem(
+    length=unit("au"),
+    time=unit("yr"),
+    mass=unit("Msun"),
+    angle=unit("radian"),
+    temperature=unit("Kelvin"),
 )
 
 #: International System of Units
