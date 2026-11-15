@@ -7,6 +7,7 @@ import numpyro
 import numpyro.distributions as dist
 import pytest
 from numpyro import handlers
+from numpyro.infer import MCMC, NUTS
 from numpyro.infer.util import log_density
 from unxts.interop.numpyro import UnitfulError, unitful
 
@@ -38,6 +39,7 @@ def test_log_density_matches_reference(usys, x, p):
     m = unitful(model, usys)
     np.testing.assert_allclose(ld(m, x, p), ref, rtol=1e-5)
     np.testing.assert_allclose(jax.jit(lambda q: ld(m, x, q))(p), ref, rtol=1e-5)
+    assert not any(isinstance(v, jax.core.Tracer) for v in m.site_units.values())
 
 
 def test_vector_loc_scalar_scale_vmap(usys, x, p):
@@ -182,3 +184,27 @@ def test_condition_inside_handler(usys, x, p):
     ref = ld(model_ref, u.ustrip("kpc", x), p)
     c = unitful(handlers.condition(model, {"m": Q(1000.0, "pc")}), usys)
     np.testing.assert_allclose(ld(c, x, {"s": p["s"]}), ref, rtol=1e-5)
+
+
+def test_bare_value_from_inner_substitute_raises(usys, x):
+    h = unitful(handlers.substitute(model, {"m": 1.0}), usys)
+    with pytest.raises(UnitfulError, match="'m'"):
+        ld(h, x, {"s": 0.2})
+
+
+def test_units_override_with_unruled_quantity_params_raises(usys):
+    def m():
+        numpyro.sample("r", dist.LogNormal(Q(1.0, "pc"), Q(1.0, "s")))
+
+    with pytest.raises(UnitfulError, match="'r'"):
+        handlers.seed(unitful(m, usys, units={"r": "pc"}), 0)()
+
+
+def test_nuts_runs(usys, x):
+    mc = MCMC(
+        NUTS(unitful(model, usys)), num_warmup=50, num_samples=50, progress_bar=False
+    )
+    mc.run(jax.random.PRNGKey(0), x)
+    m = mc.get_samples()["m"]
+    assert not isinstance(m, u.AbstractQuantity)
+    assert abs(float(jnp.mean(m)) - 1.0) < 0.1

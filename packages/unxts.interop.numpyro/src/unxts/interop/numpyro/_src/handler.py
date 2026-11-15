@@ -11,11 +11,13 @@ import numpy as np
 from numpyro.primitives import Messenger
 
 import unxt as u
-from .rules import UnitfulError, carrying_params, site_dimension
-
-
-def _is_q(x: object) -> bool:
-    return isinstance(x, u.quantity.AbstractQuantity)
+from .rules import (
+    UnitfulError,
+    _has_quantity,
+    _is_q,
+    carrying_params,
+    site_dimension,
+)
 
 
 def _is_concrete_zero(x: object) -> bool:
@@ -78,6 +80,12 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
         if name not in self._overrides:
             return site_dimension(fn, name)
         dim = self._overrides[name]
+        if not carrying_params(fn) and _has_quantity(fn):
+            msg = (
+                f"Site '{name}': units= needs bare parameters, but the "
+                "distribution has Quantity parameters with no unit rule."
+            )
+            raise UnitfulError(msg)
         rule = site_dimension(fn, name) if carrying_params(fn) else None
         if rule is not None and rule != dim:
             msg = f"Site '{name}': units= gives {dim}, the distribution gives {rule}."
@@ -100,10 +108,6 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
         name, fn = msg["name"], msg["fn"]
         dim = self._dimension(fn, name)
         unit = self._unit(dim, name)
-        if self._site_units.setdefault(name, unit) != unit:
-            prev = self._site_units[name]
-            err = f"Site '{name}': unit changed from {prev} to {unit} between calls."
-            raise UnitfulError(err)
 
         if dim is not None:
             for k, v, _ in carrying_params(fn):
@@ -113,11 +117,9 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
                         "parameters; give it units."
                     )
                     raise UnitfulError(err)
-        usys = self.usys
-        msg["fn"] = jax.tree.map(
-            lambda v: u.ustrip(usys, v) if _is_q(v) else v, fn, is_leaf=_is_q
-        )
 
+        # Any value here comes from obs= or an inner handler: inference handlers
+        # sit outside `unitful` and set the value after this runs.
         value = msg["value"]
         if _is_q(value):
             expected = dim if dim is not None else u.dimension("dimensionless")
@@ -127,10 +129,21 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
                     f"expected {expected}."
                 )
                 raise UnitfulError(err)
-            msg["value"] = u.ustrip(usys, value)
-        elif msg["is_observed"] and dim is not None and value is not None:
-            err = f"Site '{name}': observed value is bare; give it units of {dim}."
+        elif dim is not None and value is not None:
+            err = f"Site '{name}': value is bare; give it units of {dim}."
             raise UnitfulError(err)
+
+        if self._site_units.setdefault(name, unit) != unit:
+            prev = self._site_units[name]
+            err = f"Site '{name}': unit changed from {prev} to {unit} between calls."
+            raise UnitfulError(err)
+
+        usys = self.usys
+        msg["fn"] = jax.tree.map(
+            lambda v: u.ustrip(usys, v) if _is_q(v) else v, fn, is_leaf=_is_q
+        )
+        if _is_q(value):
+            msg["value"] = u.ustrip(usys, value)
 
     def postprocess_message(self, msg: dict[str, Any]) -> None:
         """Give a sample site's value back to the model as a Quantity."""
