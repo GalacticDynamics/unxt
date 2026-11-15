@@ -27,6 +27,13 @@ import unxt as u
 Q = u.Q
 KEY = jax.random.PRNGKey(0)
 TOL = 0.05  # kpc
+# A second unit system, so a bug that strips each parameter in its own unit
+# instead of `usys` shows up as a factor of 1000.
+USYSTEMS = pytest.mark.parametrize(
+    "usys",
+    [u.unitsystems.galactic, u.unitsystem("pc", "Myr", "Msun", "rad")],
+    ids=["galactic", "pc"],
+)
 
 
 def model_ref(x=None):
@@ -43,8 +50,8 @@ def model(x=None):
         numpyro.sample("x", dist.Normal(m, s), obs=x)
 
 
-def check_truth(samples):
-    assert samples["m"].unit == u.unit("kpc")
+def check_truth(samples, unit="kpc"):
+    assert samples["m"].unit == samples["s"].unit == u.unit(unit)
     m, s = (u.ustrip("kpc", samples[k]) for k in ("m", "s"))
     assert abs(float(jnp.mean(m)) - 1.0) < TOL
     assert abs(float(jnp.mean(s)) - 0.2) < TOL
@@ -56,12 +63,13 @@ def run_nuts(m, x, **kw):
     return mcmc
 
 
+@USYSTEMS
 def test_nuts(usys, x):
     m = unitful(model, usys)
     mcmc = run_nuts(m, x, num_chains=2, chain_method="vectorized")
     samples = mcmc.get_samples()
     assert samples["m"].shape == (600,)
-    check_truth(attach_units(samples, m))
+    check_truth(attach_units(samples, m), usys["length"])
 
 
 @pytest.mark.parametrize("guide", [AutoNormal, AutoDelta, AutoMultivariateNormal])
@@ -91,11 +99,13 @@ def test_predictive_prior_and_posterior(usys, x):
     assert abs(float(jnp.mean(u.ustrip("kpc", post["x"]))) - 1.0) < TOL
 
 
+@USYSTEMS
 def test_log_likelihood(usys, x, p):
-    m = unitful(model, usys)
-    p1 = jax.tree.map(lambda v: v[None], p)
-    got = log_likelihood(m, p1, x)["x"]
-    ref = log_likelihood(model_ref, p1, u.ustrip("kpc", x))["x"]
+    # the latents and the reference data are in the usys unit of length
+    unit = usys["length"]
+    p1 = jax.tree.map(lambda v: u.ustrip(unit, Q(v[None], "kpc")), p)
+    got = log_likelihood(unitful(model, usys), p1, x)["x"]
+    ref = log_likelihood(model_ref, p1, u.ustrip(unit, x))["x"]
     np.testing.assert_allclose(got, ref, rtol=1e-5)
 
 
