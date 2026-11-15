@@ -1,6 +1,6 @@
 # How to use unitful in your own models
 
-This page collects the tasks you run into once the [tutorial](tutorial-fit-a-line) works. Every example uses the same setup.
+This page collects the tasks you run into once the [tutorial](tutorial-fit-mean-and-width) works. Every example uses the same setup.
 
 ```python
 >>> import jax
@@ -67,6 +67,33 @@ Re-entering the same `unitful` instance is not supported, so a model that calls 
 ## Use a custom guide
 
 A guide such as `AutoNormal` is built from the wrapped model, `AutoNormal(unitful(model, usys))`, and runs through the same handler. `Predictive` on the guide gives bare samples, and `attach_units(samples, handler)` puts the units on them. NUTS and SVI work the same way, so the posterior you get from either goes through `attach_units`.
+
+A guide that I write myself with `Quantity` parameters needs its own handler, `unitful(guide, usys)`, with the same `usys` as the model. Each handler records the sites it ran. I use the model's handler for `attach_units` on the posterior samples, and the guide's handler on the fitted parameters from `svi.get_params`.
+
+```python
+>>> from numpyro.infer import SVI, Predictive, Trace_ELBO
+>>> from numpyro.optim import Adam
+>>> from unxts.interop.numpyro import attach_units
+>>> positive = dist.constraints.positive
+
+>>> def guide():
+...     loc = numpyro.param("m_loc", u.Q(1.0, "kpc"))
+...     scale = numpyro.param("m_scale", u.Q(0.1, "kpc"), constraint=positive)
+...     numpyro.sample("m", dist.Normal(loc, scale))
+...     s_map = numpyro.param("s_map", u.Q(0.2, "kpc"), constraint=positive)
+...     numpyro.sample("s", dist.Delta(s_map))
+
+>>> M, G = unitful(model, galactic), unitful(guide, galactic)
+>>> svi = SVI(M, G, Adam(0.01), Trace_ELBO())
+>>> res = svi.run(jax.random.PRNGKey(0), 100, progress_bar=False)
+>>> attach_units(svi.get_params(res.state), G)["m_loc"].unit
+Unit("kpc")
+
+>>> post = Predictive(G, params=res.params, num_samples=10)(jax.random.PRNGKey(1))
+>>> attach_units(post, M)["m"].unit
+Unit("kpc")
+
+```
 
 ## Give a site its dimension with `units=`
 
@@ -197,4 +224,5 @@ The difference is the logarithm of the number of metres in a kiloparsec.
 - `init_to_value` with `Quantity` values can fail for a model that has no deterministic site, because NumPyro transforms the values while no handler is running. Give `init_to_value` bare numbers in the unit of `usys`.
 - Calling `mcmc.run` a second time on the same `MCMC` object with a `Quantity` data argument fails, which is a NumPyro issue. I create a new `MCMC` object for the second run.
 - Distributions of the `MultivariateNormal` family with `Quantity` parameters are out of scope.
+- Shape parameters have to be bare numbers. That covers `df` of a `StudentT`, `concentration` of a `Gamma` or `Beta`, and mixing probabilities. NumPyro's constructors reject a `Quantity` there, even a dimensionless one, so `dist.StudentT(u.Q(3.0, ""), loc, scale)` raises when it is built. I write `dist.StudentT(3.0, loc, scale)`.
 - A `Quantity` set at a site that `unitful` has no unit for raises `UnitfulError`, with the site name in the message.

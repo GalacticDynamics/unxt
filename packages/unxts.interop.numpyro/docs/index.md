@@ -4,7 +4,7 @@
 :maxdepth: 1
 :hidden:
 
-tutorial-fit-a-line
+tutorial-fit-mean-and-width
 guide
 api
 ```
@@ -57,7 +57,7 @@ pip install unxts.interop.numpyro
 
 ::::
 
-On import the package patches two NumPyro bugs ([#2428](https://github.com/pyro-ppl/numpyro/issues/2428) and [#2429](https://github.com/pyro-ppl/numpyro/issues/2429)) on the versions that lack the fixes. The patches only change what happens for `Quantity` inputs.
+On import the package patches two NumPyro bugs ([#2428](https://github.com/pyro-ppl/numpyro/issues/2428) and [#2429](https://github.com/pyro-ppl/numpyro/issues/2429)) on the versions that lack the fixes. The patched functions behave like the originals except for pytrees with several leaves and array-likes that have their own `reshape`, such as a `Quantity`.
 
 ## At a glance
 
@@ -83,7 +83,7 @@ The distribution was written in parsecs, and the sampled value comes back in kil
 
 **Tutorial**
 
-- [Fit a mean and a width to data with units](tutorial-fit-a-line) — start here: run NUTS on a `Quantity` data set and get the posterior back with units.
+- [Fit a mean and a width to data with units](tutorial-fit-mean-and-width) — start here: run NUTS on a `Quantity` data set and get the posterior back with units.
 
 **How-to**
 
