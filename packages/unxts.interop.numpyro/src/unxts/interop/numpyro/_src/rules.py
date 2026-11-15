@@ -28,7 +28,25 @@ _BASE_WRAPPERS = (
 
 
 class UnitfulError(ValueError):
-    """A sample site's units are missing, inconsistent or unsupported."""
+    """A sample site's units are missing, inconsistent or unsupported.
+
+    Examples
+    --------
+    >>> import numpyro, numpyro.distributions as dist
+    >>> from numpyro import handlers
+    >>> import unxt as u
+    >>> from unxts.interop.numpyro import UnitfulError, unitful
+
+    >>> def model():
+    ...     numpyro.sample("m", dist.Normal(1.0, u.Q(3.0, "kpc")))
+
+    >>> try:
+    ...     handlers.seed(unitful(model, u.unitsystems.galactic), 0)()
+    ... except UnitfulError as e:
+    ...     print(e)
+    Site 'm': parameter 'loc' is bare next to Quantity parameters; give it units.
+
+    """
 
 
 @dispatch

@@ -132,7 +132,7 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
 
     @property
     def site_units(self) -> Mapping[str, Any]:
-        """Read-only map of site name to its recorded unit (None: unitless)."""
+        """Read-only map of site name to unit; None marks a unitless site."""
         return MappingProxyType(self._site_units)
 
     def _dimension(self, fn: Any, name: str) -> Any:
