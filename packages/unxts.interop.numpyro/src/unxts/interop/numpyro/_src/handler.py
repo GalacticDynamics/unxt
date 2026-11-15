@@ -9,6 +9,7 @@ from typing import Any
 import jax
 import numpy as np
 import numpyro.distributions as dist
+import numpyro.primitives as prim
 from numpyro.primitives import Messenger
 
 import unxt as u
@@ -25,6 +26,38 @@ def _is_concrete_zero(x: object) -> bool:
     if isinstance(x, jax.core.Tracer):
         return False
     return bool(np.all(np.asarray(x) == 0))
+
+
+class _OuterStripper(Messenger):
+    """Strip a Quantity value that a handler outside `unitful` set.
+
+    Sits below every other handler on the stack, so it processes last and
+    post-processes first: it strips the value before an outer `trace` stores it.
+    """
+
+    def __init__(self, owner: "unitful") -> None:
+        self.owner = owner
+        super().__init__(None)
+
+    def process_message(self, msg: dict[str, Any]) -> None:
+        if msg["type"] not in ("sample", "deterministic", "param"):
+            return
+        v, name = msg["value"], msg["name"]
+        if not _is_q(v):
+            return
+        unit = self.owner.site_units.get(name)
+        if unit is None:
+            err = f"Site '{name}': a Quantity value was set at a site with no unit."
+            raise UnitfulError(err)
+        if u.dimension_of(v) != u.dimension_of(unit):
+            err = (
+                f"Site '{name}': value has dimension {u.dimension_of(v)}, "
+                f"expected {u.dimension_of(unit)}."
+            )
+            raise UnitfulError(err)
+        msg["value"] = u.ustrip(unit, v)
+
+    postprocess_message = process_message
 
 
 class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
@@ -70,7 +103,32 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
             k: u.dimension_of(u.unit(v)) for k, v in (units or {}).items()
         }
         self._site_units: dict[str, Any] = {}  # static units only
+        self._strippers: list[_OuterStripper] = []  # one per active entry
         super().__init__(fn)
+
+    def __enter__(self) -> None:
+        s = _OuterStripper(self)
+        stack = prim._PYRO_STACK  # noqa: SLF001
+        # Below every other handler, but above the strippers of enclosing
+        # `unitful`s, so the innermost handler's stripper acts first.
+        i = next(
+            (i for i, h in enumerate(stack) if not isinstance(h, _OuterStripper)),
+            len(stack),
+        )
+        stack.insert(i, s)
+        self._strippers.append(s)
+        super().__enter__()
+
+    def __exit__(self, *exc: object) -> None:
+        s = self._strippers.pop()
+        try:
+            super().__exit__(*exc)
+        finally:
+            stack = prim._PYRO_STACK  # noqa: SLF001
+            for i, h in enumerate(stack):
+                if h is s:
+                    del stack[i]
+                    break
 
     @property
     def site_units(self) -> Mapping[str, Any]:
