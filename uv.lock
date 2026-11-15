@@ -32,6 +32,7 @@ members = [
     "unxts-hypothesis",
     "unxts-interop-gala",
     "unxts-interop-matplotlib",
+    "unxts-interop-numpyro",
     "unxts-interop-xarray",
     "unxts-linalg",
     "unxts-parametric",
@@ -2077,6 +2078,15 @@ wheels = [
 ]
 
 [[package]]
+name = "multipledispatch"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fe/3e/a62c3b824c7dec33c4a1578bcc842e6c30300051033a4e5975ed86cc2536/multipledispatch-1.0.0.tar.gz", hash = "sha256:5c839915465c68206c3e9c473357908216c28383b425361e5d144594bf85a7e0", size = 12385, upload-time = "2023-06-27T16:45:11.074Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/51/c0/00c9809d8b9346eb238a6bbd5f83e846a4ce4503da94a4c08cb7284c325b/multipledispatch-1.0.0-py3-none-any.whl", hash = "sha256:0c53cd8b077546da4e48869f49b13164bebafd0c2a5afceb6bb6a316e7fb46e4", size = 12818, upload-time = "2023-06-27T16:45:09.418Z" },
+]
+
+[[package]]
 name = "mypy"
 version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2305,6 +2315,22 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/9c/50/0753655aa844c99cd9e018aacf76f130f1bd81d881bb74bc0aef5d73a8ba/numpy-2.4.6-cp314-cp314t-win32.whl", hash = "sha256:260a5d70215b61ab4fadf5c7baacd64821842975eea312125ed3c39a6391b063", size = 6156982, upload-time = "2026-05-18T23:36:40.817Z" },
     { url = "https://files.pythonhosted.org/packages/b2/d4/7c67becf668f973cb490cec3e98dfd799d866f9c989a54d355672cfa0db6/numpy-2.4.6-cp314-cp314t-win_amd64.whl", hash = "sha256:81a1cca95ed5bb92aa8b10dd2cdc9a0d3853a50fad926c28b5d7e8ea54389627", size = 12638908, upload-time = "2026-05-18T23:36:43.996Z" },
     { url = "https://files.pythonhosted.org/packages/43/bb/e1c71a4295b1b1d1393d50dbb4f2a36283c6859d9d3892e84f00ec5a91d5/numpy-2.4.6-cp314-cp314t-win_arm64.whl", hash = "sha256:0c9136e14ed34a9e343a31c533d78a9813a69a3148332bce5e9821cb2f996e66", size = 10565867, upload-time = "2026-05-18T23:36:47.114Z" },
+]
+
+[[package]]
+name = "numpyro"
+version = "0.22.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "jax" },
+    { name = "jaxlib" },
+    { name = "multipledispatch" },
+    { name = "numpy" },
+    { name = "tqdm" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/80/02/da157d8fb360d89ea4a3d90af3ef07567c0c03e24eed18f65471c0383dcf/numpyro-0.22.0.tar.gz", hash = "sha256:d428b688f7c6d1f9089b730c242a3817452609e3672bd62bbc1b02ce17f069bb", size = 496904, upload-time = "2026-09-18T08:51:38.998Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ef/92/9ae7feac5d317e3b936ac61ff1695634df8dc28f928486e1490f74dcbab6/numpyro-0.22.0-py3-none-any.whl", hash = "sha256:0bbcd8e5319876306eaea595bc78c09201cbcde89bd5856f2867ab65e1dab0a5", size = 444911, upload-time = "2026-09-18T08:51:37.81Z" },
 ]
 
 [[package]]
@@ -4018,6 +4044,18 @@ wheels = [
 ]
 
 [[package]]
+name = "tqdm"
+version = "4.70.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0d/ea/b2a5bd54b28a324dae8211928b2d730b6547500342c7e6c6dea08bd0a485/tqdm-4.70.1.tar.gz", hash = "sha256:cefd0eca11b2a37a3aee776544d4f4ae913f02688135b5556b8788dfa474afc4", size = 171846, upload-time = "2026-09-11T07:25:16.601Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a7/03/921a3d3c75785aca9ebfbfcabfbc3a1be12e2ab5265deb026d55a5a3f83e/tqdm-4.70.1-py3-none-any.whl", hash = "sha256:c293e525e6fef9c20e8728fd4612df02a0aa31bb5fe91ecd93e123b1b7bffa73", size = 80199, upload-time = "2026-09-11T07:25:14.599Z" },
+]
+
+[[package]]
 name = "traitlets"
 version = "5.15.1"
 source = { registry = "https://pypi.org/simple" }
@@ -4099,6 +4137,7 @@ all = [
     { name = "unxts-hypothesis" },
     { name = "unxts-interop-gala" },
     { name = "unxts-interop-matplotlib" },
+    { name = "unxts-interop-numpyro" },
     { name = "unxts-interop-xarray" },
     { name = "unxts-linalg" },
     { name = "unxts-parametric" },
@@ -4124,6 +4163,9 @@ interop-gala = [
 interop-mpl = [
     { name = "unxts-interop-matplotlib" },
 ]
+interop-numpyro = [
+    { name = "unxts-interop-numpyro" },
+]
 interop-xarray = [
     { name = "unxts-interop-xarray" },
 ]
@@ -4141,6 +4183,7 @@ workspace = [
     { name = "unxts-hypothesis" },
     { name = "unxts-interop-gala" },
     { name = "unxts-interop-matplotlib" },
+    { name = "unxts-interop-numpyro" },
     { name = "unxts-interop-xarray" },
     { name = "unxts-linalg" },
     { name = "unxts-parametric" },
@@ -4196,6 +4239,7 @@ dev = [
     { name = "unxts-hypothesis" },
     { name = "unxts-interop-gala" },
     { name = "unxts-interop-matplotlib" },
+    { name = "unxts-interop-numpyro" },
     { name = "unxts-interop-xarray" },
     { name = "unxts-linalg" },
     { name = "unxts-parametric" },
@@ -4278,6 +4322,7 @@ workspace = [
     { name = "unxts-hypothesis" },
     { name = "unxts-interop-gala" },
     { name = "unxts-interop-matplotlib" },
+    { name = "unxts-interop-numpyro" },
     { name = "unxts-interop-xarray" },
     { name = "unxts-linalg" },
     { name = "unxts-parametric" },
@@ -4318,6 +4363,9 @@ requires-dist = [
     { name = "unxts-interop-matplotlib", marker = "extra == 'all'", editable = "packages/unxts.interop.matplotlib" },
     { name = "unxts-interop-matplotlib", marker = "extra == 'interop-mpl'", editable = "packages/unxts.interop.matplotlib" },
     { name = "unxts-interop-matplotlib", marker = "extra == 'workspace'", editable = "packages/unxts.interop.matplotlib" },
+    { name = "unxts-interop-numpyro", marker = "extra == 'all'", editable = "packages/unxts.interop.numpyro" },
+    { name = "unxts-interop-numpyro", marker = "extra == 'interop-numpyro'", editable = "packages/unxts.interop.numpyro" },
+    { name = "unxts-interop-numpyro", marker = "extra == 'workspace'", editable = "packages/unxts.interop.numpyro" },
     { name = "unxts-interop-xarray", marker = "extra == 'all'", editable = "packages/unxts.interop.xarray" },
     { name = "unxts-interop-xarray", marker = "extra == 'interop-xarray'", editable = "packages/unxts.interop.xarray" },
     { name = "unxts-interop-xarray", marker = "extra == 'workspace'", editable = "packages/unxts.interop.xarray" },
@@ -4330,7 +4378,7 @@ requires-dist = [
     { name = "wadler-lindig", specifier = ">=0.1.8" },
     { name = "wadler-lindig-parts", specifier = ">=0.2.0" },
 ]
-provides-extras = ["all", "backend-astropy", "cpu", "cuda", "cuda12", "cuda12-local", "interop-gala", "interop-mpl", "interop-xarray", "k8s", "linalg", "parametric", "workspace"]
+provides-extras = ["all", "backend-astropy", "cpu", "cuda", "cuda12", "cuda12-local", "interop-gala", "interop-mpl", "interop-numpyro", "interop-xarray", "k8s", "linalg", "parametric", "workspace"]
 
 [package.metadata.requires-dev]
 build = [{ name = "build", specifier = ">=1.3.0" }]
@@ -4380,6 +4428,7 @@ dev = [
     { name = "unxts-hypothesis", editable = "packages/unxts.hypothesis" },
     { name = "unxts-interop-gala", editable = "packages/unxts.interop.gala" },
     { name = "unxts-interop-matplotlib", editable = "packages/unxts.interop.matplotlib" },
+    { name = "unxts-interop-numpyro", editable = "packages/unxts.interop.numpyro" },
     { name = "unxts-interop-xarray", editable = "packages/unxts.interop.xarray" },
     { name = "unxts-linalg", editable = "packages/unxts.linalg" },
     { name = "unxts-parametric", editable = "packages/unxts.parametric" },
@@ -4458,6 +4507,7 @@ workspace = [
     { name = "unxts-hypothesis", editable = "packages/unxts.hypothesis" },
     { name = "unxts-interop-gala", editable = "packages/unxts.interop.gala" },
     { name = "unxts-interop-matplotlib", editable = "packages/unxts.interop.matplotlib" },
+    { name = "unxts-interop-numpyro", editable = "packages/unxts.interop.numpyro" },
     { name = "unxts-interop-xarray", editable = "packages/unxts.interop.xarray" },
     { name = "unxts-linalg", editable = "packages/unxts.linalg" },
     { name = "unxts-parametric", editable = "packages/unxts.parametric" },
@@ -4673,6 +4723,44 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.8" },
     { name = "unxt", editable = "." },
     { name = "zeroth", specifier = ">=1.0.0" },
+]
+
+[package.metadata.requires-dev]
+test = [
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-arraydiff", specifier = ">=0.6.1" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
+    { name = "pytest-env", specifier = ">=1.1.5" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
+]
+
+[[package]]
+name = "unxts-interop-numpyro"
+source = { editable = "packages/unxts.interop.numpyro" }
+dependencies = [
+    { name = "numpyro" },
+    { name = "plum-dispatch" },
+    { name = "unxt" },
+]
+
+[package.dev-dependencies]
+test = [
+    { name = "pytest" },
+    { name = "pytest-arraydiff" },
+    { name = "pytest-cov" },
+    { name = "pytest-env" },
+    { name = "pytest-github-actions-annotate-failures" },
+    { name = "pytest-xdist" },
+    { name = "sybil", extra = ["pytest"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "numpyro", specifier = ">=0.22.0" },
+    { name = "plum-dispatch", specifier = ">=2.7.0" },
+    { name = "unxt", editable = "." },
 ]
 
 [package.metadata.requires-dev]

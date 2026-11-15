@@ -28,6 +28,7 @@ unxts.parametric <packages/unxts.parametric/index>
 unxts.linalg <packages/unxts.linalg/index>
 unxts.interop.gala <packages/unxts.interop.gala/index>
 unxts.interop.matplotlib <packages/unxts.interop.matplotlib/index>
+unxts.interop.numpyro <packages/unxts.interop.numpyro/index>
 unxts.interop.xarray <packages/unxts.interop.xarray/index>
 ```
 

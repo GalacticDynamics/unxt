@@ -11,6 +11,7 @@ This workspace contains the following releasable packages. A `vX.Y.0` coordinato
 - `unxts.linalg` - quantity-aware linear algebra
 - `unxts.interop.gala` - gala interoperability
 - `unxts.interop.matplotlib` - matplotlib interoperability
+- `unxts.interop.numpyro` - NumPyro interoperability
 - `unxts.interop.xarray` - xarray interoperability
 
 The authoritative list of which packages are released is the `PACKAGES` array in `.github/workflows/create-package-tags.yml` — its entries are each package's **release tag prefix** (e.g. `unxts-api`), not the dotted package/PyPI name (e.g. `unxts.api`).
@@ -356,7 +357,7 @@ describe_command = [
 ]
 ```
 
-Where `PACKAGE` is the package's tag prefix (`unxt`, `unxt-api`, `unxt-hypothesis`, `unxts-api`, `unxts-hypothesis`, `unxts-parametric`, `unxts-linalg`, `unxts-interop-gala`, `unxts-interop-matplotlib`, `unxts-interop-xarray`).
+Where `PACKAGE` is the package's tag prefix (`unxt`, `unxt-api`, `unxt-hypothesis`, `unxts-api`, `unxts-hypothesis`, `unxts-parametric`, `unxts-linalg`, `unxts-interop-gala`, `unxts-interop-matplotlib`, `unxts-interop-numpyro`, `unxts-interop-xarray`).
 
 This ensures each package only considers its own tags when determining the version.
 

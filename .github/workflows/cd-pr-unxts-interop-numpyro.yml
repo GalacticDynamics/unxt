@@ -1,0 +1,37 @@
+name: CD PR - unxts-interop-numpyro
+
+on:
+  pull_request:
+    paths:
+      - "packages/unxts.interop.numpyro/**"
+      - ".github/workflows/cd-unxts-interop-numpyro.yml"
+      - ".github/workflows/cd-pr-unxts-interop-numpyro.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: 3
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build & inspect package (PR)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Required for hatch-vcs to determine version from git tags.
+          # Can be removed if switching to hardcoded versions.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: hynek/build-and-inspect-python-package@2abe76da66d0a6a4a227101f9348ee855797cfa5 # v3.0.1
+        with:
+          path: packages/unxts.interop.numpyro
+          upload-name-suffix: -unxts-interop-numpyro
+          attest-build-provenance-github: false

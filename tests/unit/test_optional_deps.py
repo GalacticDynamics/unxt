@@ -44,6 +44,7 @@ def test_absent_packages_do_not_alias() -> None:
     ("member", "module"),
     [
         (OptDeps.UNXTS_INTEROP_MATPLOTLIB, "unxts.interop.matplotlib"),
+        (OptDeps.UNXTS_INTEROP_NUMPYRO, "unxts.interop.numpyro"),
         (OptDeps.UNXTS_INTEROP_XARRAY, "unxts.interop.xarray"),
     ],
 )

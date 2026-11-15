@@ -52,6 +52,7 @@ The `unxts.*` packages are separate distributions. Install each through the matc
 | `unxt[linalg]` | `unxts.linalg` | `QuantityMatrix` — per-element units for Jacobians and metrics |
 | `unxt[interop-gala]` | `unxts.interop.gala` | Unit-system conversion with `gala` |
 | `unxt[interop-mpl]` | `unxts.interop.matplotlib` | Plotting quantities with `matplotlib` |
+| `unxt[interop-numpyro]` | `unxts.interop.numpyro` | Run NumPyro models on `unxt` quantities |
 | `unxt[interop-xarray]` | `unxts.interop.xarray` | A `.unxt` accessor for `DataArray` and `Dataset` |
 
 ```bash

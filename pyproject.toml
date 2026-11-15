@@ -63,11 +63,12 @@ all = ["unxt[backend-astropy,workspace]"]
 backend-astropy = ["astropy>=7.1"]
 interop-gala = ["unxts.interop.gala"]
 interop-mpl = ["unxts.interop.matplotlib"]
+interop-numpyro = ["unxts.interop.numpyro"]
 interop-xarray = ["unxts.interop.xarray"]
 linalg = ["unxts.linalg"]
 parametric = ["unxts.parametric"]
 workspace = [
-  "unxt[interop-gala,interop-mpl,interop-xarray]",
+  "unxt[interop-gala,interop-mpl,interop-numpyro,interop-xarray]",
   "unxts.api",
   "unxts.hypothesis",
   "unxts.linalg",
@@ -153,6 +154,7 @@ workspace = [
   "unxts.hypothesis",
   "unxts.interop.gala",
   "unxts.interop.matplotlib",
+  "unxts.interop.numpyro",
   "unxts.interop.xarray",
   "unxts.linalg",
   "unxts.parametric",
@@ -409,6 +411,8 @@ namespace-packages = [
   "packages/unxts.interop.gala/src/unxts/interop",
   "packages/unxts.interop.matplotlib/src/unxts",
   "packages/unxts.interop.matplotlib/src/unxts/interop",
+  "packages/unxts.interop.numpyro/src/unxts",
+  "packages/unxts.interop.numpyro/src/unxts/interop",
   "packages/unxts.interop.xarray/src/unxts",
   "packages/unxts.interop.xarray/src/unxts/interop",
   "packages/unxts.linalg/src/unxts",
@@ -554,6 +558,7 @@ unxt-hypothesis            = { workspace = true }
 "unxts.hypothesis"         = { workspace = true }
 "unxts.interop.gala"       = { workspace = true }
 "unxts.interop.matplotlib" = { workspace = true }
+"unxts.interop.numpyro"    = { workspace = true }
 "unxts.interop.xarray"     = { workspace = true }
 "unxts.linalg"             = { workspace = true }
 "unxts.parametric"         = { workspace = true }

@@ -100,6 +100,7 @@ _sybil_collect_file = (docs + python).pytest()
 # never imports it; it stays on the normal path.)
 _DOCTEST_MODULE_SRC = (
     "packages/unxts.interop.gala/src/",
+    "packages/unxts.interop.numpyro/src/",
     "packages/unxts.interop.xarray/src/",
     "packages/unxts.hypothesis/src/",
     "packages/unxts.linalg/src/",
