@@ -78,7 +78,7 @@ jobs:
           cat release-metadata.json
         shell: bash
 
-      - uses: hynek/build-and-inspect-python-package@fe0a0fb1925ca263d076ca4f2c13e93a6e92a33e # v2.17.0
+      - uses: hynek/build-and-inspect-python-package@2abe76da66d0a6a4a227101f9348ee855797cfa5 # v3.0.1
         with:
           path: packages/unxt-api
           upload-name-suffix: -unxt-api

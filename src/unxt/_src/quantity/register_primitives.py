@@ -5,6 +5,7 @@ __all__: tuple[str, ...] = ()
 
 from collections.abc import Sequence
 from dataclasses import replace
+from functools import partial
 from math import prod
 from typing import Any, Literal, TypeAlias, TypeVar, overload
 
@@ -1256,22 +1257,24 @@ if hasattr(lax, "stack_p"):
 # ==============================================================================
 
 
-@quax.register(lax.cond_p)  # TODO: implement
-def cond_p_q(index: ABCQ, consts: ABCQ) -> ABCQ:
-    raise NotImplementedError
+@quax.register(lax.cond_p)
+def cond_p_q(index: ABCQ, /, *operands: ABCQ | ArrayLike, **kw: Any) -> Any:
+    """``lax.cond`` with a dimensionless quantity predicate.
 
-
-@quax.register(lax.cond_p)  # TODO: implement
-def cond_p_vq(index: ArrayLike, consts: ABCQ, *, branches: Any) -> ABCQ:
-    """Conditional on a value and a quantity.
+    Strip the index and re-bind, so quax's own ``cond`` rule handles the
+    operands and keeps their units. A dimensionful index is refused.
 
     Examples
     --------
-    >>> import quaxed.numpy as jnp
+    >>> import quaxed.lax as qlax
     >>> import unxt as u
 
+    >>> x = u.Q(2.0, "m")
+    >>> qlax.cond(u.Q(True, ""), lambda v: 2 * v, lambda v: v, x)
+    Quantity(Array(4., dtype=float32, weak_type=True), unit='m')
+
     """
-    return lax.cond_p.bind(index, ustrip(consts), branches=branches)  # type: ignore[no-untyped-call]
+    return quax.quaxify(partial(lax.cond_p.bind, **kw))(ustrip(one, index), *operands)
 
 
 # ==============================================================================
