@@ -5,6 +5,7 @@ __all__: tuple[str, ...] = ()
 
 from collections.abc import Sequence
 from dataclasses import replace
+from functools import partial
 from math import prod
 from typing import Any, Literal, TypeAlias, TypeVar, overload
 
@@ -1273,11 +1274,7 @@ def cond_p_q(index: ABCQ, /, *operands: ABCQ | ArrayLike, **kw: Any) -> Any:
     Quantity(Array(4., dtype=float32, weak_type=True), unit='m')
 
     """
-
-    def bind(i: ArrayLike, *ops: Any) -> Any:
-        return lax.cond_p.bind(i, *ops, **kw)
-
-    return quax.quaxify(bind)(ustrip(one, index), *operands)
+    return quax.quaxify(partial(lax.cond_p.bind, **kw))(ustrip(one, index), *operands)
 
 
 # ==============================================================================
