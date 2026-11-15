@@ -1315,7 +1315,10 @@ def cond_p_q(index: ABCQ, /, *operands: ABCQ | ArrayLike, **kw: Any) -> Any:
     Quantity(Array(4., dtype=float32, weak_type=True), unit='m')
 
     """
-    bind = lambda i, *ops: lax.cond_p.bind(i, *ops, **kw)  # noqa: E731
+
+    def bind(i: ArrayLike, *ops: Any) -> Any:
+        return lax.cond_p.bind(i, *ops, **kw)
+
     return quax.quaxify(bind)(ustrip(one, index), *operands)
 
 
