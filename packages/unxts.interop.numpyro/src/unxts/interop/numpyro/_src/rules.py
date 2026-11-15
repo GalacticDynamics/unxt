@@ -1,6 +1,14 @@
 """Per-family rules for the physical dimension of a NumPyro sample site."""
 
-__all__ = ("UnitfulError", "dimension_params", "site_dimension", "unwrap")
+__all__ = (
+    "UnitfulError",
+    "carrying_params",
+    "dimension_params",
+    "site_dimension",
+    "unwrap",
+)
+
+from typing import Any
 
 import numpyro.distributions as dist
 from numpyro.distributions import transforms as tfm
@@ -36,10 +44,14 @@ def dimension_params(
     | dist.StudentT
     | dist.Laplace
     | dist.Logistic
-    | dist.Gumbel
-    | dist.VonMises,
+    | dist.Gumbel,
 ) -> dict[str, int]:
-    return {"loc": 1, "scale": 1} if hasattr(d, "scale") else {"loc": 1}
+    return {"loc": 1, "scale": 1}
+
+
+@dispatch
+def dimension_params(d: dist.VonMises) -> dict[str, int]:
+    return {"loc": 1}
 
 
 @dispatch
@@ -89,72 +101,63 @@ def _is_q(x: object) -> bool:
     return isinstance(x, u.quantity.AbstractQuantity)
 
 
-def _layers(d: dist.Distribution) -> list[dist.Distribution]:
-    """Return the wrapper chain from `d` down to `unwrap(d)`, inclusive."""
-    out = [d]
-    while out[-1] is not unwrap(out[-1]):
-        d = out[-1]
-        out.append(
-            d.base_dist if isinstance(d, _BASE_WRAPPERS) else d.component_distribution
-        )
-    return out
+def _children(d: dist.Distribution) -> list[dist.Distribution]:
+    """Return the distributions directly inside `d`."""
+    if isinstance(d, (*_BASE_WRAPPERS, dist.TransformedDistribution)):
+        return [d.base_dist]
+    if isinstance(d, dist.MixtureSameFamily):
+        return [d.component_distribution]
+    return []
 
 
-def _affine_dimension(
-    d: dist.TransformedDistribution, name: str
-) -> u.AbstractDimension | None:
-    """Dimension of a unitless base pushed through a single `AffineTransform`."""
-    (t,) = d.transforms
-    dims = [u.dimension_of(v) for v in (t.loc, t.scale) if _is_q(v)]
-    if not _is_q(t.scale) or any(dm != dims[-1] for dm in dims):
-        msg = f"Site '{name}': the AffineTransform loc and scale differ in dimension."
-        raise UnitfulError(msg)
-    return dims[-1]
+def _has_quantity(d: dist.Distribution) -> bool:
+    """Whether any parameter at any depth, or any transform parameter, is a Quantity."""
+    if any(_is_q(getattr(d, k, None)) for k in d.arg_constraints):
+        return True
+    if isinstance(d, dist.TransformedDistribution) and any(
+        _is_q(getattr(t, k, None)) for t in d.transforms for k in ("loc", "scale")
+    ):
+        return True
+    return any(_has_quantity(c) for c in _children(d))
+
+
+def carrying_params(d: dist.Distribution) -> list[tuple[str, Any, int]]:
+    """Return ``(name, value, power)`` for every parameter carrying the site dimension.
+
+    The walk goes through wrappers (including truncation bounds), mixtures and a
+    single `AffineTransform` over a unitless base. Values may be bare or Quantity.
+    Other transformed distributions give an empty list.
+    """
+    if isinstance(d, dist.TransformedDistribution):
+        (t,) = d.transforms if len(d.transforms) == 1 else (None,)
+        if isinstance(t, tfm.AffineTransform) and not _has_quantity(d.base_dist):
+            return [("loc", t.loc, 1), ("scale", t.scale, 1)]
+        return []
+    own = [(k, getattr(d, k), p) for k, p in dimension_params(d).items()]
+    return own + [e for c in _children(d) for e in carrying_params(c)]
 
 
 def site_dimension(d: dist.Distribution, name: str) -> u.AbstractDimension | None:
     """Return the dimension of the support of `d`, or None for a unitless site.
 
     Raises `UnitfulError` naming the site `name` when the dimensioned parameters
-    disagree, or when the family has no rule but a Quantity parameter.
+    disagree, when the family has no rule but a Quantity parameter, or when a
+    VonMises site is not an angle.
     """
-    if isinstance(d, dist.TransformedDistribution):
-        if not _has_quantity(d):
-            return None
-        single = len(d.transforms) == 1 and isinstance(
-            d.transforms[0], tfm.AffineTransform
-        )
-        if single and not _has_quantity(d.base_dist) and _is_q(d.transforms[0].scale):
-            return _affine_dimension(d, name)
-        _unregistered(name, d)
-
-    dims = []
-    for layer in _layers(d):
-        for pname, power in dimension_params(layer).items():
-            v = getattr(layer, pname)
-            if _is_q(v):
-                dims.append(u.dimension_of(v) ** power)
+    entries = carrying_params(d)
+    dims = [u.dimension_of(v) ** p for _, v, p in entries if _is_q(v)]
     if not dims:
-        if _has_quantity(unwrap(d)):
-            _unregistered(name, d)
+        if _has_quantity(d):
+            msg = (
+                f"Site '{name}': {type(unwrap(d)).__name__} has Quantity parameters "
+                f"but no unit rule; pass units={{'{name}': ...}} to unitful."
+            )
+            raise UnitfulError(msg)
         return None
     if any(dm != dims[0] for dm in dims):
         msg = f"Site '{name}': parameters have different dimensions: {dims}."
         raise UnitfulError(msg)
+    if isinstance(unwrap(d), dist.VonMises) and dims[0] != u.dimension("angle"):
+        msg = f"Site '{name}': VonMises needs an angle, got {dims[0]}."
+        raise UnitfulError(msg)
     return dims[0]
-
-
-def _has_quantity(d: dist.Distribution) -> bool:
-    """Whether any parameter, or any affine transform parameter, is a Quantity."""
-    if isinstance(d, dist.TransformedDistribution):
-        tparams = [getattr(t, k, None) for t in d.transforms for k in ("loc", "scale")]
-        return any(map(_is_q, tparams)) or _has_quantity(d.base_dist)
-    return any(_is_q(getattr(d, k, None)) for k in d.arg_constraints)
-
-
-def _unregistered(name: str, d: dist.Distribution) -> None:
-    msg = (
-        f"Site '{name}': {type(d).__name__} has Quantity parameters but no unit "
-        f"rule; pass units={{'{name}': ...}} to unitful."
-    )
-    raise UnitfulError(msg)
