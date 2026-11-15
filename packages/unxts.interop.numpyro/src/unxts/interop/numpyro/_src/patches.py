@@ -41,17 +41,26 @@ def _reshape(x: Any, shape: Any) -> Any:
     return jnp.reshape(x, shape)
 
 
+# The feature tests only trace, so importing the package does not start the JAX
+# backend (which would make `numpyro.set_host_device_count` a no-op).
+_ABSTRACT_SCALAR = jax.ShapeDtypeStruct((), np.float32)
+
+
 def _not_jax_tracer_is_broken() -> bool:
     """Whether the installed `not_jax_tracer` misses tracers inside a Quantity."""
     seen = []
-    jax.jit(lambda x: seen.append(nu.not_jax_tracer(u.Q(x, "m"))) or x)(1.0)
+    jax.make_jaxpr(lambda x: seen.append(nu.not_jax_tracer(u.Q(x, "m"))) or x)(
+        _ABSTRACT_SCALAR
+    )
     return seen[0] is not False
 
 
 def _reshape_is_broken() -> bool:
     """Whether the installed `_reshape` rejects a Quantity."""
     try:
-        ndu._reshape(u.Q(1.0, "m"), (1,))  # noqa: SLF001
+        jax.make_jaxpr(lambda x: ndu._reshape(u.Q(x, "m"), (1,)).value)(  # noqa: SLF001
+            _ABSTRACT_SCALAR
+        )
     except TypeError:
         return True
     return False
@@ -68,6 +77,7 @@ def _rebind(attr: str, original: Any, patched: Any) -> None:
 
 def install() -> None:
     """Install the patches that the installed NumPyro still needs."""
+    # pylint: disable-next=global-statement
     global NOT_JAX_TRACER_PATCHED, RESHAPE_PATCHED  # noqa: PLW0603
 
     # ponytail: delete when the numpyro floor includes pyro-ppl/numpyro#2428

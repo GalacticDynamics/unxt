@@ -1,5 +1,6 @@
 """Tests for the NumPyro patches."""
 
+import subprocess
 import sys
 
 import jax
@@ -59,3 +60,19 @@ def test_install_is_idempotent():
     before = numpyro.util.not_jax_tracer
     patches.install()
     assert numpyro.util.not_jax_tracer is before
+
+
+def test_import_leaves_jax_backend_uninitialized():
+    """Importing the package must not stop `set_host_device_count` working."""
+    code = (
+        "import numpyro, unxts.interop.numpyro\n"
+        "from jax._src import xla_bridge as xb\n"
+        "assert not xb._backends\n"
+        "numpyro.set_host_device_count(4)\n"
+        "import jax\n"
+        "print(jax.local_device_count())\n"
+    )
+    out = subprocess.run(  # noqa: S603  (our own fixed code)
+        [sys.executable, "-c", code], capture_output=True, text=True, check=True
+    )
+    assert out.stdout.strip() == "4"
