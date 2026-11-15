@@ -8,6 +8,7 @@ from typing import Any
 
 import jax
 import numpy as np
+import numpyro.distributions as dist
 from numpyro.primitives import Messenger
 
 import unxt as u
@@ -101,10 +102,50 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
             msg = f"Site '{name}': the unit system has no unit for {dim}."
             raise UnitfulError(msg) from e
 
+    def _record(self, name: str, unit: Any) -> None:
+        if self._site_units.setdefault(name, unit) != unit:
+            prev = self._site_units[name]
+            err = f"Site '{name}': unit changed from {prev} to {unit} between calls."
+            raise UnitfulError(err)
+
+    def _strip_value(self, name: str, v: Any) -> Any:
+        """Strip a Quantity in `usys`, recording the site's unit; bare passes."""
+        if not _is_q(v):
+            self._record(name, None)
+            return v
+        unit = self._unit(u.dimension_of(v), name)
+        self._record(name, unit)
+        return u.ustrip(self.usys, v)
+
+    def _process_factor(self, msg: dict[str, Any]) -> None:
+        lf = msg["fn"].log_factor
+        if not _is_q(lf):
+            return
+        if u.dimension_of(lf) != u.dimension("dimensionless"):
+            err = (
+                f"Site '{msg['name']}': log_factor has dimension "
+                f"{u.dimension_of(lf)}, expected dimensionless."
+            )
+            raise UnitfulError(err)
+        msg["fn"] = dist.Unit(u.ustrip("", lf))
+
     def process_message(self, msg: dict[str, Any]) -> None:
-        """Strip the units of a sample site and record the site's unit."""
+        """Strip the units of a site and record the site's unit."""
+        if msg["type"] == "deterministic":
+            msg["value"] = self._strip_value(msg["name"], msg["value"])
+            return
+        if msg["type"] == "param":
+            if msg["args"]:
+                msg["args"] = (self._strip_value(msg["name"], msg["args"][0]),)
+            return
         if msg["type"] != "sample":
             return
+        if isinstance(msg["fn"], dist.Unit):
+            self._process_factor(msg)
+        else:
+            self._process_sample(msg)
+
+    def _process_sample(self, msg: dict[str, Any]) -> None:
         name, fn = msg["name"], msg["fn"]
         dim = self._dimension(fn, name)
         unit = self._unit(dim, name)
@@ -133,10 +174,7 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
             err = f"Site '{name}': value is bare; give it units of {dim}."
             raise UnitfulError(err)
 
-        if self._site_units.setdefault(name, unit) != unit:
-            prev = self._site_units[name]
-            err = f"Site '{name}': unit changed from {prev} to {unit} between calls."
-            raise UnitfulError(err)
+        self._record(name, unit)
 
         usys = self.usys
         msg["fn"] = jax.tree.map(
@@ -146,8 +184,8 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
             msg["value"] = u.ustrip(usys, value)
 
     def postprocess_message(self, msg: dict[str, Any]) -> None:
-        """Give a sample site's value back to the model as a Quantity."""
-        if msg["type"] != "sample" or not self.rewrap:
+        """Give a site's value back to the model as a Quantity."""
+        if msg["type"] not in ("sample", "deterministic", "param") or not self.rewrap:
             return
         unit = self._site_units.get(msg["name"])
         if unit is not None:
