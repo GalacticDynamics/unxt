@@ -4,8 +4,10 @@ This is the canonical package (unxts.interop.numpyro).
 """
 
 from ._src import patches as _patches
+from ._src.handler import unitful
+from ._src.rules import UnitfulError
 from ._version import version as __version__  # noqa: F401
 
 _patches.install()
 
-__all__ = ()
+__all__ = ("UnitfulError", "unitful")
