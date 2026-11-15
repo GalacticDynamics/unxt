@@ -131,7 +131,11 @@ def _as_dimensionless_like(q: ABCQ, value: ArrayLike) -> ABCQ:
     ``%`` or ``km / m``) unit label and silently re-apply that scale on
     read-back.
 
-    The result shares the namespace of the quantity operand (per the Array API).
+    The result shares the namespace of the quantity operand. The Array API does
+    not require this, but code that infers one namespace from all of its inputs
+    (``xarray``, ``array_api_compat``) rejects a mix of ``quaxed.numpy`` and
+    ``jax.numpy`` arrays, so a mask must stay a quantity to be combined with the
+    operands again.
     Some subtypes cannot represent the result, though, and for those we fall
     back to a plain dimensionless :class:`Quantity` -- which is why the
     construction below catches both exception types:
@@ -449,8 +453,7 @@ def add_jaxvals_p_qq(x: ABCQ, y: ABCQ, /) -> ABCQ:
 def and_p_aq(x1: ABCQ, x2: ABCQ, /) -> ABCQ:
     """Bitwise AND of two quantities.
 
-    The result is a dimensionless quantity sharing the namespace of the inputs
-    (per the Array API).
+    The result is a dimensionless quantity sharing the namespace of the inputs.
 
     Examples
     --------
@@ -477,7 +480,7 @@ def and_p_qv(x1: ABCQ, x2: ArrayLike, /) -> ABCQ:
     """Bitwise AND of a dimensionless quantity and an array.
 
     A quantity operand keeps the result in the same quantity namespace:
-    the result is a dimensionless quantity (per the Array API).
+    the result is a dimensionless quantity.
 
     Examples
     --------
@@ -2976,7 +2979,7 @@ def is_finite_p(x: ABCQ) -> ABCQ:
     """Check if a quantity is finite.
 
     The result is a dimensionless quantity of the same type as the input, so
-    that it shares a namespace with the input (per the Array API).
+    that it shares a namespace with the input.
 
     Examples
     --------
@@ -4077,8 +4080,7 @@ def or_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Bitwise OR of a dimensionless quantity and an array.
 
     A quantity operand keeps the result in the same quantity namespace:
-    the result is a dimensionless quantity (per the Array API),
-    mirroring :func:`and_p_qv`.
+    the result is a dimensionless quantity, mirroring :func:`and_p_qv`.
 
     Examples
     --------
@@ -4483,8 +4485,8 @@ def real_p(x: ABCQ, /) -> ABCQ:
 
 @quax.register(lax.reduce_and_p)
 def reduce_and_p(operand: ABCQ, /, **kw: Any) -> ABCQ:
-    # `all` returns a dimensionless quantity sharing the operand's namespace
-    # (per the Array API), matching `reduce_or_p` (`any`).
+    # `all` returns a dimensionless quantity sharing the operand's namespace,
+    # matching `reduce_or_p` (`any`).
     return _as_dimensionless_like(operand, lax.reduce_and_p.bind(ustrip(operand), **kw))
 
 
@@ -4877,8 +4879,8 @@ def scatter_add_p_vvq(
 def select_n_p_q(which: ABCQ, /, *cases: ABCQ | ArrayLike) -> ABCQ | ArrayLike:
     """Select from cases using a dimensionless-quantity selector.
 
-    Comparison/predicate primitives now return a dimensionless boolean quantity
-    (per the Array API). Such a selector must behave exactly like a raw-array
+    Comparison/predicate primitives return a dimensionless boolean quantity.
+    Such a selector must behave exactly like a raw-array
     one, so strip it and re-dispatch through ``qlax.select_n``: this single
     registration covers every combination of quantity / raw-array cases, and
     the result follows the *cases'* namespace (``Quantity``, ``Angle``,
@@ -5741,8 +5743,7 @@ def xor_p_qv(x: ABCQ, y: ArrayLike, /) -> ABCQ:
     """Bitwise XOR of a dimensionless quantity and an array.
 
     A quantity operand keeps the result in the same quantity namespace:
-    the result is a dimensionless quantity (per the Array API),
-    mirroring :func:`and_p_qv`.
+    the result is a dimensionless quantity, mirroring :func:`and_p_qv`.
 
     Examples
     --------
