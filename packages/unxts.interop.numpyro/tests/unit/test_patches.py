@@ -103,3 +103,13 @@ def test_reshape_probe_failing_any_way_counts_as_broken(monkeypatch):
 
     monkeypatch.setattr(ndu, "_reshape", boom)
     assert patches._reshape_is_broken()
+
+
+def test_not_jax_tracer_probe_failing_skips_the_patch(monkeypatch):
+    """A `not_jax_tracer` probe that fails does not break import."""
+
+    def boom(x):
+        raise RuntimeError
+
+    monkeypatch.setattr(numpyro.util, "not_jax_tracer", boom)
+    assert not patches._not_jax_tracer_is_broken()

@@ -52,9 +52,13 @@ _ABSTRACT_SCALAR = jax.ShapeDtypeStruct((), np.float32)
 def _not_jax_tracer_is_broken() -> bool:
     """Whether the installed `not_jax_tracer` misses tracers inside a Quantity."""
     seen = []
-    jax.make_jaxpr(lambda x: seen.append(nu.not_jax_tracer(u.Q(x, "m"))) or x)(
-        _ABSTRACT_SCALAR
-    )
+    try:
+        jax.make_jaxpr(lambda x: seen.append(nu.not_jax_tracer(u.Q(x, "m"))) or x)(
+            _ABSTRACT_SCALAR
+        )
+    # A probe that fails cannot tell, so skip the patch; it must not break import.
+    except Exception:  # noqa: BLE001  # pylint: disable=broad-exception-caught
+        return False
     return seen[0] is not False
 
 

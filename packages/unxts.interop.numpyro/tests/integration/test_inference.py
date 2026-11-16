@@ -415,3 +415,25 @@ def test_autoguide_has_no_usys_tag(x):
     M = unitful(model, u.unitsystems.galactic)
     svi = SVI(M, AutoNormal(M), Adam(0.05), Trace_ELBO())
     assert np.isfinite(svi.run(KEY, 10, x, progress_bar=False).losses[-1])
+
+
+def test_scan_bare_start_with_rewrap_names_the_carry():
+    """A bare start value with rewrap=True says the carry needs units."""
+
+    def walk(ys):
+        s = numpyro.sample("s", dist.HalfNormal(Q(1.0, "kpc")))
+
+        def step(prev, y):
+            z = numpyro.sample("z", dist.Normal(prev, s))
+            numpyro.sample("y", dist.Normal(z, Q(0.1, "kpc")), obs=y)
+            return z, None
+
+        scan(step, 0.0, ys)
+
+    ys = Q(jnp.array([100.0, 300.0, 200.0]), "pc")
+    p = {"s": jnp.asarray(0.5), "z": jnp.array([0.1, 0.2, 0.3])}
+    M = unitful(walk, u.unitsystems.galactic)
+    with pytest.raises(
+        UnitfulError, match=r"'z'.*If it is a zero.*carry.*rewrap=False"
+    ):
+        log_density(M, (ys,), {}, p)

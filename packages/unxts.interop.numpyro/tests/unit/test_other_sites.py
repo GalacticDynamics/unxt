@@ -222,3 +222,29 @@ def test_dimensioned_scale_raises(usys):
 
     with pytest.raises(UnitfulError, match="'y': the scale has dimension length"):
         _ld(unitful(model, usys))
+
+
+def test_dimensionless_scale_outside_unitful(usys):
+    def model():
+        numpyro.sample(
+            "y", dist.Normal(Q(0.0, "kpc"), Q(1.0, "kpc")), obs=Q(1.0, "kpc")
+        )
+
+    want = 2 * dist.Normal(0.0, 1.0).log_prob(1.0)
+    got = _ld(handlers.scale(unitful(model, usys), scale=Q(2.0, "")))
+    np.testing.assert_allclose(got, want, rtol=1e-6)
+    with pytest.raises(UnitfulError, match="'y': the scale has dimension length"):
+        _ld(handlers.scale(unitful(model, usys), scale=Q(2.0, "kpc")))
+
+
+@pytest.mark.parametrize(
+    "site",
+    [
+        lambda: numpyro.deterministic("d", {"a": Q(1.0, "pc")}),
+        lambda: numpyro.param("d", {"a": Q(1.0, "pc")}),
+    ],
+    ids=["deterministic", "param"],
+)
+def test_container_of_quantities_raises(usys, site):
+    with pytest.raises(UnitfulError, match="'d': the value is a container"):
+        handlers.seed(unitful(site, usys), 0)()

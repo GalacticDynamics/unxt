@@ -52,8 +52,14 @@ def _is_unit_free(x: object) -> bool:
     return bool(np.all((a == 0) | np.isinf(a)))
 
 
-def _check_bare(name: str, fn: Any, carrying: list[tuple[str, Any, int]]) -> None:
-    """Raise if a parameter that carries the site dimension is bare, not 0 or ±inf."""
+def _check_bare(
+    name: str, fn: Any, carrying: list[tuple[str, Any, int]], *, in_body: bool
+) -> None:
+    """Raise if a parameter that carries the site dimension is bare, not 0 or ±inf.
+
+    `in_body` says the site is in a scan or cond body, where a bare tracer is
+    often a carry that started bare.
+    """
     has_q = any(_is_q(v) for _, v, _ in carrying)
     for path, v, _ in carrying:
         if _is_q(v) or _is_unit_free(v):
@@ -72,9 +78,15 @@ def _check_bare(name: str, fn: Any, carrying: list[tuple[str, Any, int]]) -> Non
             )
         if isinstance(v, jax.core.Tracer):
             err += (
-                " A bare zero or infinity must be concrete: write 0.0 "
+                " If it is a zero or an infinity, write it as a concrete 0.0 "
                 "or np.zeros(...), not jnp.zeros(...) inside the model."
             )
+            if in_body:
+                err += (
+                    " Inside a scan, a carry that starts bare stays bare: give "
+                    "the start value as a Quantity in the usys unit, or pass "
+                    "rewrap=False and add the units in the body."
+                )
         raise UnitfulError(err)
 
 
@@ -105,6 +117,17 @@ def _strip_params(name: str, fn: Any, unit: Any) -> Any:
     return jax.tree_util.tree_map_with_path(strip, fn, is_leaf=_is_q)
 
 
+def _strip_scale(msg: dict[str, Any]) -> None:
+    """Strip a dimensionless Quantity scale, as `handlers.scale` sets; raise if not."""
+    name = msg["name"]
+    if _is_q(msg.get("scale")):
+        msg["scale"] = _dimensionless(name, "the scale", msg["scale"])
+    pts = msg.get("plate_to_scale") or {}
+    for k, sc in pts.items():
+        if _is_q(sc):
+            pts[k] = _dimensionless(name, "the scale", sc)
+
+
 class _OuterStripper(Messenger):
     """Strip a Quantity value that a handler outside `unitful` set.
 
@@ -122,6 +145,8 @@ class _OuterStripper(Messenger):
         if msg["type"] not in ("sample", "deterministic", "param"):
             return
         v, name = msg["value"], msg["name"]
+        if msg["type"] == "sample":
+            _strip_scale(msg)
         if not _is_q(v):
             return
         # By message, not name: an outer `scope` may have renamed the site.
@@ -277,7 +302,8 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
                 )
             else:
                 msg = (
-                    f"units= names {missing}, which match no sample site of the model."
+                    f"units= names {missing}, which no sample site reached in "
+                    "this call of the model."
                 )
             raise UnitfulError(msg)
 
@@ -356,6 +382,13 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
 
     def _strip_value(self, msg: dict[str, Any], v: Any) -> Any:
         """Strip a Quantity in `usys`, recording the site's unit; bare passes."""
+        if not _is_q(v) and any(_is_q(x) for x in jax.tree.leaves(v, is_leaf=_is_q)):
+            err = (
+                f"Site '{msg['name']}': the value is a container that holds "
+                "Quantities. unitful strips a value only when it is a Quantity "
+                "itself; give each Quantity a site of its own."
+            )
+            raise UnitfulError(err)
         if not _is_q(v):
             self._mark(msg, None)
             return v
@@ -412,8 +445,7 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
             return
         if msg["type"] != "sample":
             return
-        if _is_q(msg.get("scale")):  # from handlers.scale inside unitful
-            msg["scale"] = _dimensionless(msg["name"], "the scale", msg["scale"])
+        _strip_scale(msg)  # from handlers.scale inside unitful
         if isinstance(unwrap(msg["fn"]), dist.Unit):
             self._process_factor(msg)
         else:
@@ -494,7 +526,9 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
         # A dimensionless site is unambiguous, so bare numbers there are fine.
         none = u.dimension("dimensionless")
         checked = dim is not None and dim != none
-        _check_bare(name, fn, carrying_params(fn) if checked else [])
+        _check_bare(
+            name, fn, carrying_params(fn) if checked else [], in_body=self._in_body
+        )
 
         # Any value here comes from obs= or an inner handler: inference handlers
         # sit outside `unitful` and set the value after this runs.

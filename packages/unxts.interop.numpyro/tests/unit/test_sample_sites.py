@@ -220,6 +220,14 @@ def test_units_key_matching_no_site_raises(usys):
 
     with pytest.raises(UnitfulError, match=r"\['r'\]"):
         handlers.seed(unitful(m, usys, units={"r": "length"}), 0)()
+
+    def maybe(*, draw):
+        if draw:
+            numpyro.sample("r", dist.LogNormal(0.0, 1.0))
+
+    match = r"\['r'\], which no sample site reached"
+    with pytest.raises(UnitfulError, match=match):
+        handlers.seed(unitful(maybe, usys, units={"r": "length"}), 0)(draw=False)
     r = handlers.seed(unitful(m, usys, units={"gal/r": "kpc"}), 0)
     assert handlers.trace(r).get_trace()["gal/r"]["value"].ndim == 0
 

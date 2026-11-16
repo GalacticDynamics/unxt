@@ -70,7 +70,7 @@ Re-entering the same `unitful` instance is not supported, so a model that calls 
 
 A guide such as `AutoNormal` is built from the wrapped model, `AutoNormal(unitful(model, usys))`, and runs through the same handler. `Predictive` on the guide gives bare samples, and `attach_units(samples, handler)` puts the units on them. NUTS and SVI work the same way, so the posterior I get from either goes through `attach_units`.
 
-A guide that I write myself with `Quantity` parameters needs its own handler, `unitful(guide, usys)`, with the same `usys` as the model. SVI replays the guide's bare values into the model, and the model reads them in its own `usys`. So I build the guide's handler from the model's, as `unitful(guide, M.usys)`. A guide handler with a different `usys` raises `UnitfulError` at the first replayed site.
+A guide that I write myself with `Quantity` parameters needs its own handler, `unitful(guide, usys)`, with the same `usys` as the model. SVI replays the guide's bare values into the model, and the model reads them in its own `usys`. So I build the guide's handler from the model's, as `unitful(guide, M.usys)`. A guide handler with a different `usys` raises `UnitfulError` at the first replayed site. A guide with `Quantity` parameters and no handler fails inside NumPyro with a JAX `TypeError`, such as `log requires ndarray or scalar arguments`, because SVI computes the guide's log density before the model runs.
 
 Each handler records the sites it ran. I use the model's handler for `attach_units` on the posterior samples, and the guide's handler on the fitted parameters from `svi.get_params`. `attach_units` cannot check this, because the samples are bare numbers. A handler with another `usys` puts the wrong units on them without an error.
 
@@ -116,7 +116,7 @@ Unit("kpc")
 
 ```
 
-The `units=` value gives the site its dimension. I write the dimension, such as `"length"`, or the unit of `usys` for it. The keys are the site names as `unitful` sees them. A `scope` inside `unitful` is part of the name, and a `scope` outside it is not, so for `handlers.scope(unitful(model, usys), "a")` I write `units={"r": ...}`, not `"a/r"`. A key that only matches a name renamed outside `unitful` raises `UnitfulError`. The value is stripped and wrapped in the unit of `usys`, which is why `r` has the unit kpc here. The bare `loc` and `scale` are read in that unit too, so another unit of the same dimension raises. Under `galactic`, `"pc"` would silently mean kpc.
+The `units=` value gives the site its dimension. I write the dimension, such as `"length"`, or the unit of `usys` for it. The keys are the site names as `unitful` sees them. Every key has to name a site that the call reaches, so a site that only some calls sample, such as one behind an `if`, raises `UnitfulError` on a call that skips it. A `scope` inside `unitful` is part of the name, and a `scope` outside it is not, so for `handlers.scope(unitful(model, usys), "a")` I write `units={"r": ...}`, not `"a/r"`. A key that only matches a name renamed outside `unitful` raises `UnitfulError`. The value is stripped and wrapped in the unit of `usys`, which is why `r` has the unit kpc here. The bare `loc` and `scale` are read in that unit too, so another unit of the same dimension raises. Under `galactic`, `"pc"` would silently mean kpc.
 
 ```python
 >>> unitful(lognormal, galactic, units={"r": "pc"})
@@ -167,7 +167,41 @@ Unit("kpc")
 
 ```
 
-An observed value in the body still has to be a `Quantity` when the site has a dimension. A `Quantity` start value has to be in the unit of `usys`, as `u.Q(0.0, "kpc")` is here. JAX needs the carry to keep its unit through every step, and the step returns a latent in the `usys` unit. A start value in `pc` fails with a JAX error about the carry structure. A bare start value is read as a number in the `usys` unit.
+An observed value in the body still has to be a `Quantity` when the site has a dimension. A `Quantity` start value has to be in the unit of `usys`, as `u.Q(0.0, "kpc")` is here. JAX needs the carry to keep its unit through every step, and the step returns a latent in the `usys` unit. A start value in `pc` fails with a JAX error about the carry structure. A bare start value fails too, because the step gives `z` a bare `prev` next to a `Quantity` scale, and `unitful` raises `UnitfulError`.
+
+```python
+>>> def bare_walk(ys):
+...     s = numpyro.sample("s", dist.HalfNormal(u.Q(1.0, "kpc")))
+...     def step(prev, y):
+...         z = numpyro.sample("z", dist.Normal(prev, s))
+...         numpyro.sample("y", dist.Normal(z, u.Q(0.1, "kpc")), obs=y)
+...         return z, None
+...     scan(step, 0.0, ys)
+
+>>> try:
+...     log_density(unitful(bare_walk, galactic), (ys,), {}, p)
+... except UnitfulError as e:
+...     print(e)
+Site 'z': parameter 'loc' is bare next to Quantity parameters; give it units. If it is a zero or an infinity, write it as a concrete 0.0 or np.zeros(...), not jnp.zeros(...) inside the model. Inside a scan, a carry that starts bare stays bare: give the start value as a Quantity in the usys unit, or pass rewrap=False and add the units in the body.
+
+```
+
+With `rewrap=False` the body gets bare numbers in the `usys` unit, so a bare start value works. I add the units back in the body where a distribution needs them, and get the same log density as above.
+
+```python
+>>> def walk_nowrap(ys):
+...     s = numpyro.sample("s", dist.HalfNormal(u.Q(1.0, "kpc")))
+...     def step(prev, y):
+...         z = numpyro.sample("z", dist.Normal(u.Q(prev, "kpc"), u.Q(s, "kpc")))
+...         numpyro.sample("y", dist.Normal(u.Q(z, "kpc"), u.Q(0.1, "kpc")), obs=y)
+...         return z, None
+...     scan(step, 0.0, ys)
+
+>>> logp, _ = log_density(unitful(walk_nowrap, galactic, rewrap=False), (ys,), {}, p)
+>>> round(float(logp), 2)
+2.06
+
+```
 
 `numpyro.contrib.control_flow.cond` runs its branches the same way, and `unitful` wraps each branch in the same kind of handler. NumPyro needs both branches to sample the same site names from the same family, and `unitful` needs a site to have the same unit in both. The predicate has to be a bare boolean. A comparison of two quantities, such as `r < u.Q(5.0, "kpc")`, is a boolean `Quantity`, and JAX rejects it as a predicate. I compare bare numbers, as in `u.ustrip("kpc", r) < 5.0`.
 
@@ -284,11 +318,13 @@ A `VonMises` site is the exception. Its density is defined on radians, so it is 
 - Several chains run one after the other (`chain_method="sequential"`, which is what the default becomes on a single CPU device) fail when the data argument is a `Quantity`. This is a NumPyro bug, [pyro-ppl/numpyro#2434](https://github.com/pyro-ppl/numpyro/issues/2434), fixed by [#2436](https://github.com/pyro-ppl/numpyro/pull/2436) but not yet released. Until a release has the fix I pass `chain_method="vectorized"`, or I close over the data with `functools.partial(model, x)` so it is not an argument of `mcmc.run`.
 - Calling `mcmc.run` a second time on the same `MCMC` object with a `Quantity` data argument fails with an `OverflowError`, which is a NumPyro issue. Calling `mcmc.warmup(...)` and then `mcmc.run(...)` with a `Quantity` data argument fails the same way. I create a new `MCMC` object for the second run, and I let `mcmc.run` do the warmup.
 - A `unitful` inside another `unitful` with a different `usys` does not convert between them. The inner one strips everything, so the outer one records no units. I use one `unitful` with one `usys`.
+- A `unitful` inside another one with the same `usys` works, but the outer one sees the inner sites already stripped and records no unit for them. `attach_units` needs the innermost handler that ran the sites.
+- A `deterministic` or `param` value that is a container holding quantities, such as `{"a": u.Q(1.0, "pc")}`, raises `UnitfulError`. I give each quantity a site of its own.
 - Distributions of the `MultivariateNormal` family with `Quantity` parameters are out of scope.
 - Shape parameters, such as `df` of a `StudentT`, `concentration` of a `Gamma` or `VonMises`, and mixing probabilities, carry no dimension. A dimensionless `Quantity` there is stripped, and a dimensioned one raises `UnitfulError`. The `StudentT`, `Beta`, `Categorical` and `Dirichlet` constructors reject even a dimensionless `Quantity`, so `dist.StudentT(u.Q(3.0, ""), loc, scale)` raises when it is built. I write `dist.StudentT(3.0, loc, scale)`.
 - A site whose dimension-carrying parameters are dimensionless `Quantity` objects is a dimensionless site. Bare parameters and a bare observed value there are read as plain numbers, so `dist.Normal(a + b * (r / u.Q(1.0, "kpc")), s)` with bare `a`, `b`, `s` and bare data works. A latent at such a site comes back as a `Quantity` with unit `""`, or bare with `rewrap=False`.
 - A dimensionless `Quantity` is stripped wherever the site has no unit. That covers an observed value at a unitless site and the parameters of a family with no unit rule, such as the logits of a `Bernoulli` built from `beta * x`.
 - A distribution with no unit rule that holds a `Quantity` with a dimension anywhere raises `UnitfulError`. That covers `MixtureGeneral`, the censored distributions and a `ComposeTransform`. I write its parameters as bare numbers in the unit of `usys` and pass `units=`. For a censored distribution that means a bare base distribution, as in `LeftCensoredDistribution(dist.Normal(0.0, 1.0), censored=mask)` with `units={"x": "kpc"}`. The `censored=` argument is a boolean mask, so a `Quantity` there fails in NumPyro's constructor.
 - A `Quantity` set at a site that `unitful` has no unit for raises `UnitfulError`, with the site name in the message.
-- `handlers.scale` inside `unitful` takes a bare or dimensionless `Quantity` scale. A scale with a dimension raises `UnitfulError`.
+- `handlers.scale`, inside or outside `unitful`, takes a bare or dimensionless `Quantity` scale. A scale with a dimension raises `UnitfulError`.
 - `attach_units` is for site values: samples, `Predictive` output and fitted parameters. The output of `numpyro.infer.log_likelihood` is log densities per `usys` unit, so I leave it bare.
