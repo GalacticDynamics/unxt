@@ -139,7 +139,7 @@ def test_bare_model_is_unchanged(usys, x, p):
 
 def test_dimension_missing_from_usys_raises(usys):
     def m():
-        numpyro.sample("t", dist.Normal(Q(1.0, "K"), Q(1.0, "K")))
+        numpyro.sample("t", dist.Normal(Q(1.0, "A"), Q(1.0, "A")))
 
     with pytest.raises(UnitfulError, match="'t'"):
         handlers.seed(unitful(m, usys), 0)()
