@@ -541,3 +541,19 @@ def test_trig_jvp_inside_quaxify(fn):
     got = quax.quaxify(jax.grad(fn))(u.Q(0.5, ""))
     assert got.unit == u.unit("")
     assert np.isclose(np.asarray(got.value), jax.grad(fn)(0.5))
+
+
+@pytest.mark.parametrize("jit", [False, True], ids=["eager", "jit"])
+@pytest.mark.parametrize("q", [u.Q(25.0, "%"), u.Q(250.0, "m/km")], ids=str)
+def test_sinc_scaled_dimensionless(q, jit):
+    """JAX 0.12's `jnp.sinc` rounds its stored value, so it must get true units."""
+    sinc = jax.jit(qnp.sinc) if jit else qnp.sinc
+    got = sinc(q)
+    assert np.isclose(np.asarray(u.ustrip("", got)), jnp.sinc(0.25))
+
+
+def test_round_scaled_dimensionless_keeps_unit():
+    """Only `jnp.sinc` converts to true units; `round` rounds the stored value."""
+    got = qnp.round(u.Q(25.4, "%"))
+    assert got.unit == u.unit("%")
+    assert np.isclose(np.asarray(got.value), 25.0)
