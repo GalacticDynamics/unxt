@@ -56,6 +56,9 @@ class UnitfulError(ValueError):
     """
 
 
+UnitfulError.__module__ = "unxts.interop.numpyro"  # the public path, for tracebacks
+
+
 @dispatch
 def dimension_params(d: dist.Distribution) -> dict[str, int]:
     """Map parameter name to its power of the site dimension (none: unregistered)."""

@@ -60,7 +60,7 @@ With the handler inside `unitful` the quantity works as well, and a bare value r
 >>> handlers.seed(bare, 0)()
 Traceback (most recent call last):
     ...
-unxts.interop.numpyro._src.rules.UnitfulError: Site 'm': value is bare. A bare value would be read in kpc, the unit of usys; wrap the data in its own unit, as in u.Q(value, <your unit>).
+unxts.interop.numpyro.UnitfulError: Site 'm': value is bare. A bare value would be read in kpc, the unit of usys; wrap the data in its own unit, as in u.Q(value, <your unit>).
 
 ```
 
@@ -70,7 +70,7 @@ Re-entering the same `unitful` instance is not supported, so a model that calls 
 
 A guide such as `AutoNormal` is built from the wrapped model, `AutoNormal(unitful(model, usys))`, and runs through the same handler. `Predictive` on the guide gives bare samples, and `attach_units(samples, handler)` puts the units on them. NUTS and SVI work the same way, so the posterior I get from either goes through `attach_units`.
 
-A guide that I write myself with `Quantity` parameters needs its own handler, `unitful(guide, usys)`, with the same `usys` as the model. SVI replays the guide's bare values into the model, and the model reads them in its own `usys`. So I build the guide's handler from the model's, as `unitful(guide, M.usys)`. A guide handler with a different `usys` raises `UnitfulError` at the first replayed site. A guide with `Quantity` parameters and no handler fails inside NumPyro with a JAX `TypeError`, such as `log requires ndarray or scalar arguments`, because SVI computes the guide's log density before the model runs.
+A guide that I write myself with `Quantity` parameters needs its own handler, `unitful(guide, usys)`, with the same `usys` as the model. SVI replays the guide's bare values into the model, and the model reads them in its own `usys`. So I build the guide's handler from the model's, as `unitful(guide, M.usys)`. A guide handler with a different `usys` raises `UnitfulError` at the first replayed site. So does a guide site in a different unit from the model's site, such as a guide in Myr for a model site in kpc. A `VonMises` site is always in radians, so under a `usys` whose angle unit is degrees its guide site has to be a `VonMises` too. A guide site with bare parameters has no unit, and its values are read in the unit of `usys`. A guide with `Quantity` parameters and no handler fails inside NumPyro with a JAX `TypeError`, such as `log requires ndarray or scalar arguments`, because SVI computes the guide's log density before the model runs.
 
 Each handler records the sites it ran. I use the model's handler for `attach_units` on the posterior samples, and the guide's handler on the fitted parameters from `svi.get_params`. `attach_units` cannot check this, because the samples are bare numbers. A handler with another `usys` puts the wrong units on them without an error.
 
@@ -116,13 +116,13 @@ Unit("kpc")
 
 ```
 
-The `units=` value gives the site its dimension. I write the dimension, such as `"length"`, or the unit of `usys` for it. The keys are the site names as `unitful` sees them. Every key has to name a site that the call reaches, so a site that only some calls sample, such as one behind an `if`, raises `UnitfulError` on a call that skips it. A `scope` inside `unitful` is part of the name, and a `scope` outside it is not, so for `handlers.scope(unitful(model, usys), "a")` I write `units={"r": ...}`, not `"a/r"`. A key that only matches a name renamed outside `unitful` raises `UnitfulError`. The value is stripped and wrapped in the unit of `usys`, which is why `r` has the unit kpc here. The bare `loc` and `scale` are read in that unit too, so another unit of the same dimension raises. Under `galactic`, `"pc"` would silently mean kpc.
+The `units=` value gives the site its dimension. I write the dimension, such as `"length"`, or the unit of `usys` for it. The keys are the site names as `unitful` sees them. Every key has to name a site that some call of the model has reached. The check adds up over calls of the same handler, so a site behind an `if` raises `UnitfulError` only while no call has reached it yet. Once one call has sampled it, a later call that skips it is fine. A `scope` inside `unitful` is part of the name, and a `scope` outside it is not, so for `handlers.scope(unitful(model, usys), "a")` I write `units={"r": ...}`, not `"a/r"`. A key that only matches a name renamed outside `unitful` raises `UnitfulError`. The value is stripped and wrapped in the unit of `usys`, which is why `r` has the unit kpc here. The bare `loc` and `scale` are read in that unit too, so another unit of the same dimension raises. Under `galactic`, `"pc"` would silently mean kpc.
 
 ```python
 >>> unitful(lognormal, galactic, units={"r": "pc"})
 Traceback (most recent call last):
     ...
-unxts.interop.numpyro._src.rules.UnitfulError: Site 'r': units= gives pc, but bare parameters are read in the unit of usys; pass units={'r': 'kpc'}.
+unxts.interop.numpyro.UnitfulError: Site 'r': units= gives pc, but bare parameters are read in the unit of usys; pass units={'r': 'kpc'}.
 
 ```
 
@@ -135,7 +135,7 @@ This does not let me use bare numbers where the family's rule names parameters t
 >>> handlers.seed(unitful(mixed, galactic), 0)()
 Traceback (most recent call last):
     ...
-unxts.interop.numpyro._src.rules.UnitfulError: Site 'm': parameter 'loc' is bare next to Quantity parameters; give it units.
+unxts.interop.numpyro.UnitfulError: Site 'm': parameter 'loc' is bare next to Quantity parameters; give it units.
 
 ```
 
@@ -312,14 +312,16 @@ The difference is the logarithm of the number of metres in a kiloparsec.
 
 A `VonMises` site is the exception. Its density is defined on radians, so it is always stripped and wrapped in radians, whatever the angle unit of `usys` is.
 
+When every parameter that carries a site's dimension is a `u.Angle`, the latent comes back as a `u.Angle` too. `attach_units` gives plain quantities.
+
 ## Things that do not work
 
-- `init_to_value` with `Quantity` values works for some models and fails for others, because NumPyro transforms the values while no handler is running. Where it works, MCMC can hand back the samples as quantities in the unit I gave, not in the unit of `usys`. I give `init_to_value` bare numbers in the unit of `usys`.
+- `init_to_value` with `Quantity` values works when NumPyro runs the model through `unitful` to transform them, as it does for a model with a `deterministic` site. The samples then come back bare, in the unit of `usys`. Otherwise NumPyro transforms the values while no handler is running, and it fails with a JAX `TypeError`. To be safe I give `init_to_value` bare numbers in the unit of `usys`.
 - Several chains run one after the other (`chain_method="sequential"`, which is what the default becomes on a single CPU device) fail when the data argument is a `Quantity`. This is a NumPyro bug, [pyro-ppl/numpyro#2434](https://github.com/pyro-ppl/numpyro/issues/2434), fixed by [#2436](https://github.com/pyro-ppl/numpyro/pull/2436) but not yet released. Until a release has the fix I pass `chain_method="vectorized"`, or I close over the data with `functools.partial(model, x)` so it is not an argument of `mcmc.run`.
 - Calling `mcmc.run` a second time on the same `MCMC` object with a `Quantity` data argument fails with an `OverflowError`, which is a NumPyro issue. Calling `mcmc.warmup(...)` and then `mcmc.run(...)` with a `Quantity` data argument fails the same way. I create a new `MCMC` object for the second run, and I let `mcmc.run` do the warmup.
 - A `unitful` inside another `unitful` with a different `usys` does not convert between them. The inner one strips everything, so the outer one records no units. I use one `unitful` with one `usys`.
 - A `unitful` inside another one with the same `usys` works, but the outer one sees the inner sites already stripped and records no unit for them. `attach_units` needs the innermost handler that ran the sites.
-- A `deterministic` or `param` value that is a container holding quantities, such as `{"a": u.Q(1.0, "pc")}`, raises `UnitfulError`. I give each quantity a site of its own.
+- A `deterministic`, `param` or observed value that is a container holding quantities, such as `{"a": u.Q(1.0, "pc")}` or `[u.Q(1.0, "pc"), u.Q(2.0, "pc")]`, raises `UnitfulError`. I give each quantity a site of its own, or pass one `Quantity` array.
 - Distributions of the `MultivariateNormal` family with `Quantity` parameters are out of scope.
 - Shape parameters, such as `df` of a `StudentT`, `concentration` of a `Gamma` or `VonMises`, and mixing probabilities, carry no dimension. A dimensionless `Quantity` there is stripped, and a dimensioned one raises `UnitfulError`. The `StudentT`, `Beta`, `Categorical` and `Dirichlet` constructors reject even a dimensionless `Quantity`, so `dist.StudentT(u.Q(3.0, ""), loc, scale)` raises when it is built. I write `dist.StudentT(3.0, loc, scale)`.
 - A site whose dimension-carrying parameters are dimensionless `Quantity` objects is a dimensionless site. Bare parameters and a bare observed value there are read as plain numbers, so `dist.Normal(a + b * (r / u.Q(1.0, "kpc")), s)` with bare `a`, `b`, `s` and bare data works. A latent at such a site comes back as a `Quantity` with unit `""`, or bare with `rewrap=False`.

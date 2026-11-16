@@ -28,9 +28,21 @@ from .rules import (
     unwrap,
 )
 
-# Key in `msg["infer"]` holding the usys of the `unitful` that ran a sample site.
-# `replay` copies a guide's `infer` into the model's message.
-_USYS_KEY = "_unitful_usys"
+# Key in `msg["infer"]` holding ``(usys, unit)`` of the `unitful` that ran a
+# sample site, with the unit the site was stripped in. `replay` copies a guide's
+# `infer` into the model's message.
+_TAG_KEY = "_unitful_site"
+
+
+def _check_container(name: str, v: Any) -> None:
+    """Raise if `v` is a container that holds Quantities."""
+    if not _is_q(v) and any(_is_q(x) for x in jax.tree.leaves(v, is_leaf=_is_q)):
+        err = (
+            f"Site '{name}': the value is a container that holds Quantities. "
+            "unitful strips a value only when it is a Quantity itself; give "
+            "each Quantity a site of its own, or pass one Quantity array."
+        )
+        raise UnitfulError(err)
 
 
 def _dimensionless(name: str, what: str, v: Any) -> Any:
@@ -147,6 +159,7 @@ class _OuterStripper(Messenger):
         v, name = msg["value"], msg["name"]
         if msg["type"] == "sample":
             _strip_scale(msg)
+        _check_container(name, v)
         if not _is_q(v):
             return
         # By message, not name: an outer `scope` may have renamed the site.
@@ -194,7 +207,9 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
     the same `usys` and `rewrap`, so their sites are handled the same way.
     A custom SVI guide needs a `unitful` with the same `usys`, as in
     ``unitful(guide, model_handler.usys)``; a guide value replayed from another
-    `usys` raises `UnitfulError`.
+    `usys`, or from a site in another unit, raises `UnitfulError`. `usys` may
+    also be the name of a unit system, such as ``"galactic"``. A latent whose
+    parameters are all `unxt.Angle` comes back as an `unxt.Angle`.
 
     Examples
     --------
@@ -223,6 +238,14 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
         if fn is None:
             msg = "unitful needs a model: wrap it as unitful(model, usys)."
             raise TypeError(msg)
+        if isinstance(usys, str):
+            usys = u.unitsystem(usys)
+        if not isinstance(usys, u.AbstractUnitSystem):
+            msg = (
+                "unitful needs a unit system, such as u.unitsystems.galactic "
+                f"or 'galactic', got {usys!r}."
+            )
+            raise TypeError(msg)
         self.usys = usys
         self.rewrap = rewrap
         self._overrides = {
@@ -236,6 +259,8 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
         self._msg_units: dict[int, Any] = {}
         # The tagged `infer` dict of each sample message, to see if `replay` swaps it.
         self._msg_infer: dict[int, Any] = {}
+        # The Quantity type a sample site gives back, such as `u.Angle`.
+        self._msg_cls: dict[int, type] = {}
         self._calls = 0  # depth of calls through `__call__`, not `with unitful(...)`
         self._strippers: list[list[_OuterStripper]] = []  # per active entry
         self._ran = False  # whether any message reached the handler
@@ -286,6 +311,7 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
         if not self._strippers:
             self._msg_units.clear()  # entries left by a site that raised
             self._msg_infer.clear()
+            self._msg_cls.clear()
         try:
             super().__exit__(*exc)
         finally:
@@ -302,8 +328,8 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
                 )
             else:
                 msg = (
-                    f"units= names {missing}, which no sample site reached in "
-                    "this call of the model."
+                    f"units= names {missing}, which no call of the model has "
+                    "reached yet."
                 )
             raise UnitfulError(msg)
 
@@ -382,13 +408,7 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
 
     def _strip_value(self, msg: dict[str, Any], v: Any) -> Any:
         """Strip a Quantity in `usys`, recording the site's unit; bare passes."""
-        if not _is_q(v) and any(_is_q(x) for x in jax.tree.leaves(v, is_leaf=_is_q)):
-            err = (
-                f"Site '{msg['name']}': the value is a container that holds "
-                "Quantities. unitful strips a value only when it is a Quantity "
-                "itself; give each Quantity a site of its own."
-            )
-            raise UnitfulError(err)
+        _check_container(msg["name"], v)
         if not _is_q(v):
             self._mark(msg, None)
             return v
@@ -511,17 +531,18 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
         name, fn = msg["name"], msg["fn"]
         self._seen.add(name)
         dim = self._dimension(fn, name)
-        # Tag the site, so a guide in another usys is caught when replayed here.
-        # The innermost unitful's tag stays: nested ones keep the same dict.
-        infer = msg.get("infer", {})
-        if _USYS_KEY not in infer:
-            msg["infer"] = {**infer, _USYS_KEY: self.usys}
-        self._msg_infer[id(msg)] = msg["infer"]
         # VonMises works in radians whatever the usys angle unit is.
         if dim is not None and isinstance(unwrap(fn), dist.VonMises):
             unit = u.unit("rad")
         else:
             unit = self._unit(dim, name)
+        # Tag the site, so a guide in another usys or unit is caught when
+        # replayed here. The innermost unitful's tag stays: nested ones keep
+        # the same dict.
+        infer = msg.get("infer", {})
+        if _TAG_KEY not in infer:
+            msg["infer"] = {**infer, _TAG_KEY: (self.usys, unit)}
+        self._msg_infer[id(msg)] = msg["infer"]
 
         # A dimensionless site is unambiguous, so bare numbers there are fine.
         none = u.dimension("dimensionless")
@@ -533,6 +554,7 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
         # Any value here comes from obs= or an inner handler: inference handlers
         # sit outside `unitful` and set the value after this runs.
         value = msg["value"]
+        _check_container(name, value)
         if _is_q(value):
             expected = dim if dim is not None else none
             if u.dimension_of(value) != expected:
@@ -559,19 +581,25 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
             raise UnitfulError(err)
 
         self._mark(msg, unit)
+        qs = [v for _, v, _ in carrying_params(fn) if _is_q(v)]
+        if qs and all(isinstance(v, u.Angle) for v in qs):
+            self._msg_cls[id(msg)] = u.Angle
 
         msg["fn"] = _strip_params(name, fn, unit)
         if _is_q(value):
             msg["value"] = u.ustrip("" if unit is None else unit, value)
 
-    def _check_replayed_usys(self, msg: dict[str, Any]) -> None:
-        """Raise if `replay` brought this site a value made under another usys."""
+    def _check_replayed(self, msg: dict[str, Any], unit: Any) -> None:
+        """Raise if `replay` brought this site a value made in another usys or unit.
+
+        A bare site, in the guide or here, has no unit to compare.
+        """
         infer = self._msg_infer.pop(id(msg), None)
         new = msg.get("infer", {})  # `reparam` drops the key
-        if infer is None or new is infer:
+        if infer is None or new is infer or _TAG_KEY not in new:
             return
-        other = new.get(_USYS_KEY)
-        if other is not None and other != self.usys:
+        other, other_unit = new[_TAG_KEY]
+        if other != self.usys:
             err = (
                 f"Site '{msg['name']}': the replayed value (for example from an "
                 f"SVI guide) was made under unitful with usys {other}, but the "
@@ -580,13 +608,29 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
                 "model_handler.usys)."
             )
             raise UnitfulError(err)
+        if None not in (unit, other_unit) and other_unit != unit:
+            err = (
+                f"Site '{msg['name']}': the replayed value (for example from an "
+                f"SVI guide) is in {other_unit}, but the model reads this site "
+                f"in {unit}. "
+            )
+            if u.dimension_of(unit) != u.dimension_of(other_unit):
+                err += f"Give the guide's site the dimension {u.dimension_of(unit)}."
+            else:
+                err += (
+                    "A VonMises site is always in rad, so the guide and the "
+                    "model need a VonMises at this site in both, or a usys "
+                    "whose angle unit is rad."
+                )
+            raise UnitfulError(err)
 
     def postprocess_message(self, msg: dict[str, Any]) -> None:
         """Give a site's value back to the model as a Quantity."""
         if id(msg) not in self._msg_units:
             return
         unit = self._msg_units.pop(id(msg))
-        self._check_replayed_usys(msg)
+        cls = self._msg_cls.pop(id(msg), u.Q)
+        self._check_replayed(msg, unit)
         # An outer `scope` may have renamed the site since `process_message`.
         self._record(msg["name"], unit)
         if _is_q(msg["value"]):
@@ -597,4 +641,4 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
             )
             raise UnitfulError(err)
         if unit is not None and self.rewrap:
-            msg["value"] = u.Q(msg["value"], unit)
+            msg["value"] = cls(msg["value"], unit)

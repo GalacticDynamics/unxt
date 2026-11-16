@@ -16,10 +16,16 @@ from numpyro.infer import (
     MCMC,
     NUTS,
     SVI,
+    DiscreteHMCGibbs,
     Predictive,
     Trace_ELBO,
 )
-from numpyro.infer.autoguide import AutoDelta, AutoMultivariateNormal, AutoNormal
+from numpyro.infer.autoguide import (
+    AutoDelta,
+    AutoLowRankMultivariateNormal,
+    AutoMultivariateNormal,
+    AutoNormal,
+)
 from numpyro.infer.reparam import LocScaleReparam
 from numpyro.infer.util import log_density, log_likelihood
 from numpyro.optim import Adam
@@ -101,7 +107,10 @@ def test_two_sequential_chains_quantity_argument(usys, x):
     run_nuts(unitful(model, usys), x, num_chains=2, chain_method="sequential")
 
 
-@pytest.mark.parametrize("guide", [AutoNormal, AutoDelta, AutoMultivariateNormal])
+@pytest.mark.parametrize(
+    "guide",
+    [AutoNormal, AutoDelta, AutoMultivariateNormal, AutoLowRankMultivariateNormal],
+)
 def test_svi(usys, x, guide):
     m = unitful(model, usys)
     g = guide(m)
@@ -437,3 +446,77 @@ def test_scan_bare_start_with_rewrap_names_the_carry():
         UnitfulError, match=r"'z'.*If it is a zero.*carry.*rewrap=False"
     ):
         log_density(M, (ys,), {}, p)
+
+
+def _guide_myr(x=None):
+    loc = numpyro.param("loc", Q(1.0, "Myr"))
+    numpyro.sample("m", dist.Normal(loc, Q(0.1, "Myr")))
+    numpyro.sample("s", dist.Delta(numpyro.param("s_map", Q(0.3, "kpc"))))
+
+
+def test_custom_guide_other_dimension_raises(x):
+    M = unitful(model, u.unitsystems.galactic)
+    svi = SVI(M, unitful(_guide_myr, M.usys), Adam(0.05), Trace_ELBO())
+    with pytest.raises(UnitfulError, match=r"'m'.*is in Myr.*in kpc"):
+        svi.run(KEY, 10, x, progress_bar=False)
+
+
+def test_custom_guide_degrees_into_von_mises_raises():
+    usys = u.unitsystem("kpc", "Myr", "Msun", "deg")
+
+    def vm_model():
+        numpyro.sample("phi", dist.VonMises(Q(90.0, "deg"), 50.0))
+
+    def guide():
+        numpyro.sample("phi", dist.Normal(Q(90.0, "deg"), Q(1.0, "deg")))
+
+    gt = handlers.trace(handlers.seed(unitful(guide, usys), 0)).get_trace()
+    m = handlers.replay(handlers.seed(unitful(vm_model, usys), 1), gt)
+    with pytest.raises(UnitfulError, match=r"'phi'.*is in deg.*in rad.*VonMises"):
+        m()
+
+
+def test_custom_guide_other_unit_same_usys_trains_to_reference(x):
+    # A guide written in pc is stripped in kpc like the model, so it matches.
+    def guide_pc(x=None):
+        loc = numpyro.param("loc", Q(500.0, "pc"))
+        sc = numpyro.param("sc", Q(100.0, "pc"), constraint=dist.constraints.positive)
+        numpyro.sample("m", dist.Normal(loc, sc))
+        numpyro.sample("s", dist.Delta(numpyro.param("s_map", Q(300.0, "pc"))))
+
+    M = unitful(model, u.unitsystems.galactic)
+    res = SVI(M, unitful(guide_pc, M.usys), Adam(0.05), Trace_ELBO()).run(
+        KEY, 100, x, progress_bar=False
+    )
+    ref = SVI(model_ref, _guide_ref, Adam(0.05), Trace_ELBO()).run(
+        KEY, 100, x.value, progress_bar=False
+    )
+    np.testing.assert_allclose(res.losses, ref.losses, rtol=1e-4)
+
+
+def test_predictive_parallel(x):
+    M = unitful(model, u.unitsystems.galactic)
+    post = {"m": jnp.full(4, 1.0), "s": jnp.full(4, 0.2)}
+    got = Predictive(M, posterior_samples=post, parallel=True)(KEY)
+    want = Predictive(model_ref, posterior_samples=post, parallel=True)(KEY)
+    out = attach_units(got, M)
+    assert out["x"].unit == u.unit("kpc")
+    np.testing.assert_allclose(out["x"].value, want["x"], rtol=1e-6)
+
+
+def _mix(x=None):
+    c = numpyro.sample("c", dist.Bernoulli(0.5))
+    m = numpyro.sample("m", dist.Normal(Q(0.0, "kpc"), Q(3.0, "kpc")))
+    with numpyro.plate("n", 200):
+        numpyro.sample("x", dist.Normal(m + c * Q(0.0, "kpc"), Q(0.2, "kpc")), obs=x)
+
+
+def test_discrete_hmc_gibbs(x):
+    M = unitful(_mix, u.unitsystems.galactic)
+    mcmc = MCMC(
+        DiscreteHMCGibbs(NUTS(M)), num_warmup=100, num_samples=100, progress_bar=False
+    )
+    mcmc.run(KEY, x)
+    m = attach_units(mcmc.get_samples(), M)["m"]
+    assert m.unit == u.unit("kpc")
+    assert abs(float(jnp.mean(m.value)) - 1.0) < TOL

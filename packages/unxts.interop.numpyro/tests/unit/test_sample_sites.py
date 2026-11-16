@@ -225,7 +225,7 @@ def test_units_key_matching_no_site_raises(usys):
         if draw:
             numpyro.sample("r", dist.LogNormal(0.0, 1.0))
 
-    match = r"\['r'\], which no sample site reached"
+    match = r"\['r'\], which no call of the model has reached yet"
     with pytest.raises(UnitfulError, match=match):
         handlers.seed(unitful(maybe, usys, units={"r": "length"}), 0)(draw=False)
     r = handlers.seed(unitful(m, usys, units={"gal/r": "kpc"}), 0)
@@ -762,3 +762,50 @@ def test_no_rule_message_prints_usys_unit(usys):
 
     with pytest.raises(UnitfulError, match=r"units=\{'x': 'kpc'\}"):
         handlers.seed(unitful(m, usys), 0)()
+
+
+def test_usys_is_checked_at_construction():
+    def m():
+        return numpyro.sample("m", dist.Normal(Q(0.0, "pc"), Q(3.0, "pc")))
+
+    assert unitful(m, "galactic").usys == u.unitsystems.galactic
+    with pytest.raises(TypeError, match=r"unitful needs a unit system.*None"):
+        unitful(m, None)
+    with pytest.raises(TypeError, match="unitful needs a unit system"):
+        unitful(m, {"length": "kpc"})
+
+
+def test_error_has_public_module():
+    assert UnitfulError.__module__ == "unxts.interop.numpyro"
+
+
+@pytest.mark.parametrize("obs", [[Q(1.0, "kpc"), Q(2.0, "kpc")], {"a": Q(1.0, "kpc")}])
+@pytest.mark.parametrize("scale", [Q(1.0, "kpc"), 1.0], ids=["kpc", "unitless"])
+def test_observed_container_of_quantities_raises(usys, obs, scale):
+    def m(o):
+        numpyro.sample("x", dist.Normal(0 * scale, scale), obs=o)
+
+    with pytest.raises(UnitfulError, match="'x': the value is a container"):
+        log_density(unitful(m, usys), (obs,), {}, {})
+
+
+def test_outer_condition_container_of_quantities_raises(usys):
+    def m():
+        numpyro.sample("x", dist.Normal(Q(0.0, "kpc"), Q(1.0, "kpc")).expand([2]))
+
+    c = handlers.condition(unitful(m, usys), {"x": [Q(1.0, "pc"), Q(2.0, "pc")]})
+    with pytest.raises(UnitfulError, match="'x': the value is a container"):
+        log_density(c, (), {}, {})
+
+
+def test_angle_latent_comes_back_as_angle(usys):
+    def m():
+        a = numpyro.sample("a", dist.Normal(u.Angle(10.0, "deg"), u.Angle(1.0, "deg")))
+        v = numpyro.sample("v", dist.VonMises(u.Angle(90.0, "deg"), 50.0))
+        q = numpyro.sample("q", dist.Normal(Q(10.0, "deg"), u.Angle(1.0, "deg")))
+        return a, v, q
+
+    a, v, q = handlers.seed(unitful(m, usys), 0)()
+    assert type(a) is type(v) is u.Angle
+    assert a.unit == v.unit == "rad"
+    assert type(q) is u.Q  # mixed types give a plain Quantity
