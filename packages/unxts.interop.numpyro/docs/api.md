@@ -1,6 +1,6 @@
 # API
 
-For task-shaped guidance see [How to use unitful in your own models](guide).
+For task-shaped guidance see [How to use unitful in a model](guide).
 
 ```{eval-rst}
 .. currentmodule:: unxts.interop.numpyro

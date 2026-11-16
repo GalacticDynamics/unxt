@@ -100,6 +100,7 @@ PhysicalType({'speed', 'velocity'})
 | Heterogeneous-unit matrices/vectors (`QuantityMatrix`/`QM`, `UnitsMatrix`) | `unxts.linalg` |
 | `gala.units.UnitSystem` interop | `unxts.interop.gala` |
 | Plotting `Quantity` with matplotlib | `unxts.interop.matplotlib` |
+| NumPyro models with quantities (`unitful` handler) | `unxts.interop.numpyro` |
 | xarray accessors for quantities | `unxts.interop.xarray` |
 | Hypothesis strategies for property-based tests | `unxts.hypothesis` |
 | Minimal-dependency abstract dispatch API only | `unxts.api` |

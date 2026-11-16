@@ -28,8 +28,9 @@ def model(x=None):
         numpyro.sample("x", dist.Normal(m, s), obs=x)
 
 
+x = u.Q(1.0 + 0.2 * jax.random.normal(jax.random.PRNGKey(1), (200,)), "kpc")
 M = unitful(model, u.unitsystems.galactic)
-mcmc = MCMC(NUTS(M), num_warmup=200, num_samples=200)
-mcmc.run(jax.random.PRNGKey(0), x)  # x is a Quantity of shape (200,)
+mcmc = MCMC(NUTS(M), num_warmup=200, num_samples=200, progress_bar=False)
+mcmc.run(jax.random.PRNGKey(0), x)
 samples = attach_units(mcmc.get_samples(), M)  # samples["m"] is a Quantity in kpc
 ```
