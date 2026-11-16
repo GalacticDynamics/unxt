@@ -6,7 +6,6 @@ In this tutorial I fit a mean and a width to a set of distances measured in kilo
 
 ```python
 >>> import jax
->>> import jax.numpy as jnp
 >>> import numpyro
 >>> import numpyro.distributions as dist
 >>> from numpyro.infer import MCMC, NUTS
@@ -65,6 +64,8 @@ I give NUTS the wrapped model and pass the data as the model argument, as I woul
 ```
 
 The samples are plain arrays, which are the numbers NumPyro worked with. They are in the galactic unit of length, which is kpc.
+
+This runs one chain. For several chains on a single CPU device, NumPyro runs them one after the other, and that fails when the data argument is a `Quantity` until a NumPyro release includes [pyro-ppl/numpyro#2436](https://github.com/pyro-ppl/numpyro/pull/2436). Until then I pass `chain_method="vectorized"` to `MCMC`, or I close over the data with `functools.partial(model, x)` and call `mcmc.run` without it. The [guide](guide) lists this with the other limits.
 
 ## Put the units back
 

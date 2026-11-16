@@ -1,5 +1,7 @@
 """Inference (NUTS, SVI, Predictive) through `unitful`, against known truth."""
 
+import functools
+
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -7,7 +9,8 @@ import numpyro
 import numpyro.distributions as dist
 import pytest
 import quax
-from numpyro.contrib.control_flow import scan
+from numpyro import handlers
+from numpyro.contrib.control_flow import cond, scan
 from numpyro.handlers import reparam
 from numpyro.infer import (
     MCMC,
@@ -20,7 +23,7 @@ from numpyro.infer.autoguide import AutoDelta, AutoMultivariateNormal, AutoNorma
 from numpyro.infer.reparam import LocScaleReparam
 from numpyro.infer.util import log_density, log_likelihood
 from numpyro.optim import Adam
-from unxts.interop.numpyro import attach_units, unitful
+from unxts.interop.numpyro import UnitfulError, attach_units, unitful
 
 import unxt as u
 
@@ -70,6 +73,32 @@ def test_nuts(usys, x):
     samples = mcmc.get_samples()
     assert samples["m"].shape == (600,)
     check_truth(attach_units(samples, m), usys["length"])
+
+
+def test_two_chains_closing_over_data(usys, x):
+    # The data is not an MCMC argument, so sequential chains work.
+    m = unitful(functools.partial(model, x), usys)
+    mcmc = MCMC(
+        NUTS(m),
+        num_warmup=300,
+        num_samples=300,
+        num_chains=2,
+        chain_method="sequential",
+        progress_bar=False,
+    )
+    mcmc.run(KEY)
+    assert mcmc.get_samples()["m"].shape == (600,)
+    check_truth(attach_units(mcmc.get_samples(), m))
+
+
+@pytest.mark.xfail(
+    raises=OverflowError,
+    strict=True,
+    reason="NumPyro's cache key for sequential chains fails on a Quantity "
+    "argument (pyro-ppl/numpyro#2434, fixed by #2436).",
+)
+def test_two_sequential_chains_quantity_argument(usys, x):
+    run_nuts(unitful(model, usys), x, num_chains=2, chain_method="sequential")
 
 
 @pytest.mark.parametrize("guide", [AutoNormal, AutoDelta, AutoMultivariateNormal])
@@ -151,6 +180,81 @@ def test_scan_with_rewrap_false(usys, x):
     np.testing.assert_allclose(got, ref, rtol=1e-5)
 
 
+def _walk(rewrap):
+    """A random walk whose latent ``z`` is sampled inside the scan body."""
+
+    def walk(ys):
+        s = numpyro.sample("s", dist.HalfNormal(Q(1000.0, "pc")))
+        if rewrap:  # the body gets z as a Quantity in the usys unit
+
+            def step(prev, y):
+                z = numpyro.sample("z", dist.Normal(prev, s))
+                numpyro.sample("y", dist.Normal(z, Q(0.1, "kpc")), obs=y)
+                return z, None
+
+            scan(step, Q(0.0, "kpc"), ys)
+        else:  # the body gets z as a bare number in kpc
+
+            def step(prev, y):
+                z = numpyro.sample("z", dist.Normal(Q(prev, "kpc"), Q(s, "kpc")))
+                numpyro.sample("y", dist.Normal(Q(z, "kpc"), Q(0.1, "kpc")), obs=y)
+                return z, None
+
+            scan(step, 0.0, ys)
+
+    return walk
+
+
+def walk_ref(ys):
+    s = numpyro.sample("s", dist.HalfNormal(1.0))
+
+    def step(prev, y):
+        z = numpyro.sample("z", dist.Normal(prev, s))
+        numpyro.sample("y", dist.Normal(z, 0.1), obs=y)
+        return z, None
+
+    scan(step, 0.0, ys)
+
+
+@pytest.mark.parametrize("rewrap", [True, False], ids=["rewrap", "bare"])
+def test_scan_latent_in_body(rewrap):
+    usys = u.unitsystems.galactic
+    ys = Q(jnp.array([100.0, 300.0, 200.0, 500.0]), "pc")
+    yk = u.ustrip("kpc", ys)
+    M = unitful(_walk(rewrap), usys, rewrap=rewrap)
+    p = {"s": jnp.asarray(0.5), "z": jnp.array([0.1, 0.2, 0.3, 0.4])}
+
+    def f(p):
+        return log_density(M, (ys,), {}, p)[0]
+
+    def g(p):
+        return log_density(walk_ref, (yk,), {}, p)[0]
+
+    np.testing.assert_allclose(f(p), g(p), rtol=1e-5)
+    np.testing.assert_allclose(jax.jit(f)(p), g(p), rtol=1e-5)
+    np.testing.assert_allclose(jax.grad(f)(p)["z"], jax.grad(g)(p)["z"], rtol=1e-5)
+
+    mcmc = MCMC(NUTS(M), num_warmup=200, num_samples=200, progress_bar=False)
+    mcmc.run(KEY, ys)
+    z = attach_units(mcmc.get_samples(), M)["z"]
+    assert z.unit == "kpc"
+    ref = MCMC(NUTS(walk_ref), num_warmup=200, num_samples=200, progress_bar=False)
+    ref.run(KEY, yk)
+    zr = ref.get_samples()["z"]
+    np.testing.assert_allclose(jnp.mean(z.value, 0), jnp.mean(zr, 0), atol=0.05)
+
+    def svi_loss(m, y):
+        svi = SVI(m, AutoNormal(m), Adam(0.05), Trace_ELBO())
+        return svi.run(KEY, 300, y, progress_bar=False).losses[-1]
+
+    np.testing.assert_allclose(svi_loss(M, ys), svi_loss(walk_ref, yk), rtol=1e-4)
+
+    # Prior draws match the reference too, so the body sampled in kpc.
+    got = handlers.trace(handlers.seed(M, 0)).get_trace(ys)["z"]["value"]
+    want = handlers.trace(handlers.seed(walk_ref, 0)).get_trace(yk)["z"]["value"]
+    np.testing.assert_allclose(got, want, rtol=1e-5)
+
+
 def test_quaxified_jnp_helper(usys, x, p):
     def chi2(x, m, s):  # plain-jnp code, untouched
         return jnp.sum(jnp.square((x - m) / s))
@@ -183,3 +287,131 @@ def test_nuts_then_predictive_same_handler(usys, x):
     both = attach_units({**samples, **post}, m)
     assert both["m"].unit == both["x"].unit == u.unit("kpc")
     check_truth(both)
+
+
+def test_scan_body_checks_and_units():
+    usys = u.unitsystems.galactic
+
+    def bare_obs(ys):
+        def step(c, y):
+            numpyro.sample("y", dist.Normal(Q(0.0, "kpc"), Q(1.0, "kpc")), obs=y)
+            return c, None
+
+        scan(step, 0.0, ys)
+
+    with pytest.raises(UnitfulError, match="'y': value is bare"):
+        handlers.seed(unitful(bare_obs, usys), 0)(jnp.ones(3))
+
+    def lognormal(n):
+        def step(c, _):
+            numpyro.sample("r", dist.LogNormal(0.0, 1.0))
+            return c, None
+
+        scan(step, 0.0, None, length=n)
+
+    M = unitful(lognormal, usys, units={"r": "length"})
+    tr = handlers.trace(handlers.seed(M, 0)).get_trace(3)
+    assert tr["r"]["value"].shape == (3,)
+    assert M.site_units["r"] == "kpc"
+
+
+@pytest.mark.parametrize("guide", [AutoNormal, AutoDelta])
+def test_autoguide_outer_condition_quantity(usys, x, guide):
+    """Autoguides trace the model under `handlers.block`."""
+
+    def loss(m, data):
+        svi = SVI(m, guide(m), Adam(0.01), Trace_ELBO())
+        return svi.run(KEY, 50, data, progress_bar=False).losses[-1]
+
+    got = loss(handlers.condition(unitful(model, usys), {"s": Q(200.0, "pc")}), x)
+    want = loss(handlers.condition(model_ref, {"s": 0.2}), u.ustrip("kpc", x))
+    np.testing.assert_allclose(got, want, rtol=1e-4)
+
+
+def _pick(near):
+    def close(_):
+        return numpyro.sample("z", dist.Normal(Q(1000.0, "pc"), Q(100.0, "pc")))
+
+    def far(_):
+        return numpyro.sample("z", dist.Normal(Q(2.0, "kpc"), Q(0.1, "kpc")))
+
+    return cond(near, close, far, None)
+
+
+def _pick_ref(near):
+    def close(_):
+        return numpyro.sample("z", dist.Normal(1.0, 0.1))
+
+    def far(_):
+        return numpyro.sample("z", dist.Normal(2.0, 0.1))
+
+    return cond(near, close, far, None)
+
+
+@USYSTEMS
+@pytest.mark.parametrize("near", [True, False], ids=["true", "false"])
+def test_cond_latent_in_branch(usys, near):
+    M = unitful(_pick, usys)
+    unit = usys["length"]
+    z = {"z": jnp.asarray(u.ustrip(unit, Q(1.05, "kpc")))}
+    got = log_density(M, (near,), {}, z)[0]
+    want = log_density(_pick_ref, (near,), {}, {"z": 1.05})[0]
+    # The log density is per usys unit, so it shifts by log(kpc / unit).
+    shift = np.log(float(u.ustrip(unit, Q(1.0, "kpc"))))
+    np.testing.assert_allclose(got, want - shift, rtol=1e-5)
+
+    drawn = handlers.seed(M, 0)(near)
+    assert drawn.unit == unit
+    ref = handlers.seed(_pick_ref, 0)(near)
+    np.testing.assert_allclose(u.ustrip("kpc", drawn), ref, rtol=1e-5)
+    assert M.site_units["z"] == unit
+
+    mcmc = MCMC(NUTS(M), num_warmup=200, num_samples=200, progress_bar=False)
+    mcmc.run(KEY, near)
+    zs = attach_units(mcmc.get_samples(), M)["z"]
+    rm = MCMC(NUTS(_pick_ref), num_warmup=200, num_samples=200, progress_bar=False)
+    rm.run(KEY, near)
+    np.testing.assert_allclose(
+        jnp.mean(u.ustrip("kpc", zs)), jnp.mean(rm.get_samples()["z"]), atol=0.02
+    )
+
+
+def _guide(x=None):
+    loc = numpyro.param("loc", Q(0.5, "kpc"))
+    sc = numpyro.param("sc", Q(0.1, "kpc"), constraint=dist.constraints.positive)
+    numpyro.sample("m", dist.Normal(loc, sc))
+    numpyro.sample("s", dist.Delta(numpyro.param("s_map", Q(0.3, "kpc"))))
+
+
+def _guide_ref(x=None):
+    loc = numpyro.param("loc", 0.5)
+    sc = numpyro.param("sc", 0.1, constraint=dist.constraints.positive)
+    numpyro.sample("m", dist.Normal(loc, sc))
+    numpyro.sample("s", dist.Delta(numpyro.param("s_map", 0.3)))
+
+
+def test_custom_guide_matching_usys_trains_to_reference(x):
+    M = unitful(model, u.unitsystems.galactic)
+    G = unitful(_guide, M.usys)
+    res = SVI(M, G, Adam(0.05), Trace_ELBO()).run(KEY, 300, x, progress_bar=False)
+    ref = SVI(model_ref, _guide_ref, Adam(0.05), Trace_ELBO()).run(
+        KEY, 300, x.value, progress_bar=False
+    )
+    np.testing.assert_allclose(res.losses, ref.losses, rtol=1e-4)
+    loc = attach_units(res.params, G)["loc"]
+    assert loc.unit == "kpc"
+    np.testing.assert_allclose(loc.value, ref.params["loc"], rtol=1e-4)
+
+
+def test_custom_guide_other_usys_raises(x):
+    M = unitful(model, u.unitsystems.galactic)
+    G = unitful(_guide, u.unitsystem("pc", "Myr", "Msun", "rad"))
+    svi = SVI(M, G, Adam(0.05), Trace_ELBO())
+    with pytest.raises(UnitfulError, match=r"'m'.*unitsystem\(pc.*unitsystem\(kpc"):
+        svi.run(KEY, 10, x, progress_bar=False)
+
+
+def test_autoguide_has_no_usys_tag(x):
+    M = unitful(model, u.unitsystems.galactic)
+    svi = SVI(M, AutoNormal(M), Adam(0.05), Trace_ELBO())
+    assert np.isfinite(svi.run(KEY, 10, x, progress_bar=False).losses[-1])

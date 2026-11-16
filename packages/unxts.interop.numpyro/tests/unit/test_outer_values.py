@@ -8,9 +8,9 @@ import numpyro.distributions as dist
 import numpyro.primitives as prim
 import pytest
 from numpyro import handlers
-from numpyro.infer import MCMC, NUTS, init_to_value
+from numpyro.infer import MCMC, NUTS, Predictive, init_to_value
 from numpyro.infer.util import log_density
-from unxts.interop.numpyro import UnitfulError, unitful
+from unxts.interop.numpyro import UnitfulError, attach_units, unitful
 
 import unxt as u
 
@@ -69,6 +69,12 @@ def test_init_to_value_quantities(usys, x):
     # init values, so they pass through the handlers.
     samples = _run_init_to_value(unitful(model_det, usys), x)
     assert samples["m"].shape == (20,)
+    # The init values are converted to usys: 1 kpc and 200 pc land at 1 and 0.2.
+    init = init_to_value(values={"m": Q(1.0, "kpc"), "s": Q(200.0, "pc")})
+    kernel = NUTS(unitful(model_det, usys), init_strategy=init)
+    state = kernel.init(jax.random.PRNGKey(0), 0, None, (x,), {})
+    np.testing.assert_allclose(state.z["m"], 1.0, rtol=1e-6)
+    np.testing.assert_allclose(jnp.exp(state.z["s"]), 0.2, rtol=1e-6)
 
 
 @pytest.mark.xfail(
@@ -128,3 +134,80 @@ def test_stack_restored_after_exception(usys):
         handlers.seed(unitful(bad, usys), 0)()
     assert depth == [len(before) + 4]  # trace, seed, unitful and its stripper
     assert before == prim._PYRO_STACK
+
+
+def _sub():
+    return numpyro.sample("m", dist.Normal(Q(1000.0, "pc"), Q(1.0, "pc")))
+
+
+def test_scope_outside_rewraps(usys):
+    h = unitful(_sub, usys)
+    m = handlers.seed(handlers.scope(h, "a"), 0)()
+    assert m.unit == u.unit("kpc")
+    np.testing.assert_allclose(m.value, 1.0, atol=1e-2)
+    assert h.site_units["a/m"] == u.unit("kpc")
+
+
+def test_scope_outside_attach_units(usys):
+    h = unitful(_sub, usys)
+    s = Predictive(handlers.scope(h, "a"), num_samples=2)(jax.random.PRNGKey(0))
+    got = attach_units(s, h)["a/m"]
+    assert got.unit == u.unit("kpc")
+    np.testing.assert_allclose(got.value, 1.0, atol=1e-2)
+
+
+def test_scope_inside_and_outside(usys):
+    h = unitful(handlers.scope(_sub, "b"), usys)
+    tr = handlers.trace(handlers.seed(handlers.scope(h, "a"), 0)).get_trace()
+    m = handlers.seed(handlers.scope(h, "a"), 0)()
+    assert list(tr) == ["a/b/m"]
+    assert m.unit == u.unit("kpc")
+    assert attach_units({"a/b/m": tr["a/b/m"]["value"]}, h)["a/b/m"].unit == "kpc"
+
+
+def test_scope_outside_condition_quantity(usys):
+    # The outer stripper finds the unit by message, after the rename.
+    h = handlers.condition(
+        handlers.scope(unitful(_sub, usys), "a"), {"a/m": Q(500.0, "pc")}
+    )
+    tr = handlers.trace(handlers.seed(h, 0)).get_trace()
+    np.testing.assert_allclose(tr["a/m"]["value"], 0.5)
+
+
+def test_do_outside_raises(usys):
+    def m():
+        return numpyro.sample("m", dist.Normal(Q(0.0, "pc"), Q(3000.0, "pc")))
+
+    d = handlers.do(unitful(m, usys), {"m": Q(500.0, "pc")})
+    with pytest.raises(UnitfulError, match=r"'m'.*handlers\.do.*inside"):
+        handlers.seed(d, 0)()
+    # The order the message gives works.
+    inner = unitful(handlers.do(m, {"m": Q(500.0, "pc")}), usys)
+    np.testing.assert_allclose(u.ustrip("kpc", handlers.seed(inner, 0)()), 0.5)
+
+
+def test_outer_quantity_under_block(usys, x, p, ref):
+    """A `block` around the stack stops messages before the bottom stripper."""
+    with handlers.block():
+        c = handlers.condition(unitful(model, usys), {"s": Q(200.0, "pc")})
+        tr = handlers.trace(handlers.seed(c, 0)).get_trace(x)
+        s = handlers.substitute(unitful(model, usys), {"m": Q(500.0, "pc")})
+        tr2 = handlers.trace(handlers.seed(s, 0)).get_trace(x)
+        params = {"m": Q(1000.0, "pc"), "s": Q(200.0, "pc")}
+        got = ld(unitful(model, usys), x, params)
+    np.testing.assert_allclose(tr["s"]["value"], 0.2)
+    np.testing.assert_allclose(tr2["m"]["value"], 0.5)
+    np.testing.assert_allclose(got, ref, rtol=1e-5)
+
+
+class _SetLate(numpyro.primitives.Messenger):
+    """Set a Quantity value after every stripper has post-processed."""
+
+    def postprocess_message(self, msg):
+        if msg.get("name") == "m":
+            msg["value"] = Q(1.0, "kpc")
+
+
+def test_quantity_reaching_postprocess_raises(usys):
+    with pytest.raises(UnitfulError, match="'m': a Quantity value set outside"):
+        handlers.seed(_SetLate(unitful(model, usys)), 0)()

@@ -156,3 +156,69 @@ def test_callable_param_init_returning_quantity_raises(usys):
 
     with pytest.raises(UnitfulError, match="'p'"):
         handlers.seed(unitful(model, usys), 0)()
+
+
+@pytest.mark.parametrize(
+    ("con", "want"),
+    [
+        (constraints.interval(Q(0.0, "pc"), Q(2000.0, "pc")), [0.0, 2.0]),
+        (constraints.greater_than(Q(100.0, "pc")), [0.1]),
+    ],
+    ids=["interval", "greater_than"],
+)
+def test_param_constraint_quantity_bounds_stripped(usys, con, want):
+    def model():
+        numpyro.param("w", Q(500.0, "pc"), constraint=con)
+
+    tr = handlers.trace(unitful(model, usys)).get_trace()
+    c = tr["w"]["kwargs"]["constraint"]
+    assert type(c) is type(con)
+    np.testing.assert_allclose(jax.tree.leaves(c), want)
+
+
+def test_param_constraint_bound_wrong_dimension_raises(usys):
+    def model():
+        numpyro.param(
+            "w", Q(500.0, "pc"), constraint=constraints.greater_than(Q(1.0, "s"))
+        )
+
+    with pytest.raises(UnitfulError, match=r"'w'.*constraint bound has dimension time"):
+        unitful(model, usys)()
+
+
+def test_param_constraint_quantity_bound_bare_init_raises(usys):
+    def model():
+        numpyro.param("w", 0.5, constraint=constraints.greater_than(Q(1.0, "pc")))
+
+    with pytest.raises(UnitfulError, match=r"'w'.*Quantity bounds.*init value is bare"):
+        unitful(model, usys)()
+
+
+def test_callable_param_init_message_gives_fix(usys):
+    def model():
+        numpyro.param("p", lambda _key: Q(1.0, "kpc"))
+
+    with pytest.raises(UnitfulError, match=r"'p'.*return a bare value.*init value"):
+        handlers.seed(unitful(model, usys), 0)()
+
+
+def test_dimensionless_quantity_scale_stripped(usys):
+    def model():
+        with handlers.scale(scale=Q(2.0, "")):
+            numpyro.sample(
+                "y", dist.Normal(Q(0.0, "kpc"), Q(1.0, "kpc")), obs=Q(1.0, "kpc")
+            )
+
+    want = 2 * dist.Normal(0.0, 1.0).log_prob(1.0)
+    np.testing.assert_allclose(_ld(unitful(model, usys)), want, rtol=1e-6)
+
+
+def test_dimensioned_scale_raises(usys):
+    def model():
+        with handlers.scale(scale=Q(2.0, "kpc")):
+            numpyro.sample(
+                "y", dist.Normal(Q(0.0, "kpc"), Q(1.0, "kpc")), obs=Q(1.0, "kpc")
+            )
+
+    with pytest.raises(UnitfulError, match="'y': the scale has dimension length"):
+        _ld(unitful(model, usys))

@@ -76,3 +76,30 @@ def test_import_leaves_jax_backend_uninitialized():
         [sys.executable, "-c", code], capture_output=True, text=True, check=True
     )
     assert out.stdout.strip() == "4"
+
+
+def test_missing_internal_skips_patch():
+    """A NumPyro without `_reshape` skips that patch and still imports."""
+    code = (
+        "import numpyro.distributions.util as ndu\n"
+        "del ndu._reshape\n"
+        "import unxts.interop.numpyro\n"
+        "from unxts.interop.numpyro._src import patches\n"
+        "assert not patches.RESHAPE_PATCHED\n"
+        "assert not hasattr(ndu, '_reshape')\n"
+        "print('ok')\n"
+    )
+    out = subprocess.run(  # noqa: S603  (our own fixed code)
+        [sys.executable, "-c", code], capture_output=True, text=True, check=True
+    )
+    assert out.stdout.strip() == "ok"
+
+
+def test_reshape_probe_failing_any_way_counts_as_broken(monkeypatch):
+    """A probe that fails with an unexpected error does not break import."""
+
+    def boom(x, shape):
+        raise RuntimeError
+
+    monkeypatch.setattr(ndu, "_reshape", boom)
+    assert patches._reshape_is_broken()

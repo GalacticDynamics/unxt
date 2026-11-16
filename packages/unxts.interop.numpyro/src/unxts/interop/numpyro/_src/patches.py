@@ -1,9 +1,10 @@
 """Patches for two NumPyro bugs that break `unxt.Quantity` distribution parameters.
 
 `install` is idempotent and runs when the package is imported. Each patch is
-applied only if a feature test shows the installed NumPyro still has the bug,
-and the patched functions behave like the originals for anything that is not a
-pytree of several leaves or an array-like with its own ``reshape``.
+applied only if a feature test shows the installed NumPyro still has the bug.
+The patched functions behave like the originals except for a pytree that holds
+a tracer (even a one-leaf container) and an array-like with its own
+``reshape``.
 """
 
 __all__ = ("NOT_JAX_TRACER_PATCHED", "RESHAPE_PATCHED", "install")
@@ -23,8 +24,10 @@ import unxt as u
 NOT_JAX_TRACER_PATCHED: bool = False
 RESHAPE_PATCHED: bool = False
 
-_original_not_jax_tracer = nu.not_jax_tracer
-_original_reshape = ndu._reshape  # noqa: SLF001
+# Looked up defensively: a NumPyro release that renames or removes one of
+# these skips that patch instead of breaking import.
+_original_not_jax_tracer = getattr(nu, "not_jax_tracer", None)
+_original_reshape = getattr(ndu, "_reshape", None)
 
 
 def _not_jax_tracer(x: Any) -> bool:
@@ -61,7 +64,8 @@ def _reshape_is_broken() -> bool:
         jax.make_jaxpr(lambda x: ndu._reshape(u.Q(x, "m"), (1,)).value)(  # noqa: SLF001
             _ABSTRACT_SCALAR
         )
-    except TypeError:
+    # Any failure means the patch is needed; an unexpected kind must not break import.
+    except Exception:  # noqa: BLE001  # pylint: disable=broad-exception-caught
         return True
     return False
 
@@ -81,14 +85,18 @@ def install() -> None:
     global NOT_JAX_TRACER_PATCHED, RESHAPE_PATCHED  # noqa: PLW0603
 
     # ponytail: delete when the numpyro floor includes pyro-ppl/numpyro#2428
-    if not NOT_JAX_TRACER_PATCHED and _not_jax_tracer_is_broken():
+    if (
+        not NOT_JAX_TRACER_PATCHED
+        and _original_not_jax_tracer is not None
+        and _not_jax_tracer_is_broken()
+    ):
         # numpyro.util first, so modules imported later bind the patched copy.
         nu.not_jax_tracer = _not_jax_tracer
         _rebind("not_jax_tracer", _original_not_jax_tracer, _not_jax_tracer)
         NOT_JAX_TRACER_PATCHED = True
 
     # ponytail: delete when the numpyro floor includes pyro-ppl/numpyro#2429
-    if not RESHAPE_PATCHED and _reshape_is_broken():
+    if not RESHAPE_PATCHED and _original_reshape is not None and _reshape_is_broken():
         ndu._reshape = _reshape  # noqa: SLF001
         _rebind("_reshape", _original_reshape, _reshape)
         RESHAPE_PATCHED = True

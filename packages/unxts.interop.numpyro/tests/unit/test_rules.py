@@ -1,5 +1,6 @@
 """Tests for the per-family site dimension rules."""
 
+import jax
 import jax.numpy as jnp
 import numpyro.distributions as dist
 import pytest
@@ -7,7 +8,9 @@ from unxts.interop.numpyro._src.rules import (
     UnitfulError,
     carrying_params,
     dimension_params,
+    leaf_path,
     site_dimension,
+    strip_powers,
     unwrap,
 )
 
@@ -141,11 +144,39 @@ def test_vonmises_requires_angle():
 def test_carrying_params_includes_truncation_bounds():
     d = dist.TruncatedNormal(Q(1.0, "kpc"), Q(1.0, "kpc"), low=5.0)
     assert ("low", 5.0, 1) in carrying_params(d)
-    assert {n for n, _, _ in carrying_params(d)} == {"low", "loc", "scale"}
+    want = {"low", "base_dist.loc", "base_dist.scale"}
+    assert {n for n, _, _ in carrying_params(d)} == want
 
 
 def test_carrying_params_affine_and_mixture():
     t = dist.transforms.AffineTransform(0.0, Q(2.0, "kpc"))
     d = dist.TransformedDistribution(dist.Normal(0.0, 1.0), t)
-    assert [(n, p) for n, _, p in carrying_params(d)] == [("loc", 1), ("scale", 1)]
+    got = [(n, p) for n, _, p in carrying_params(d)]
+    assert got == [("transforms.0.loc", 1), ("transforms.0.scale", 1)]
     assert carrying_params(dist.Exponential(Q(1.0, "1/kpc")))[0][0] == "rate"
+
+
+def _paths(d):
+    leaves = jax.tree_util.tree_flatten_with_path(d, is_leaf=u.quantity.is_any_quantity)
+    return {leaf_path(d, kp) for kp, _ in leaves[0]}
+
+
+def test_leaf_path_names_support_bounds_after_their_parameter():
+    # NumPyro reshapes `low` but the support keeps the original object.
+    d = dist.Uniform(Q(jnp.zeros(3), "pc"), Q(1000.0, "pc"))
+    assert _paths(d) == {"low", "high"}
+    t = dist.TruncatedNormal(Q(1.0, "kpc"), Q(1.0, "kpc"), low=Q(0.0, "kpc"))
+    assert _paths(t) == {"low", "base_dist.loc", "base_dist.scale"}
+
+
+def test_strip_powers_follows_internal_distributions():
+    assert strip_powers(dist.HalfCauchy(Q(1.0, "kpc")))["_cauchy.scale"] == 1
+    assert strip_powers(dist.Gamma(2.0, Q(1.0, "1/kpc"))) == {"rate": -1}
+
+
+def test_chi2_df_is_a_shape_parameter():
+    assert dimension_params(dist.Chi2(3.0)) == {}
+    assert site_dimension(dist.Chi2(Q(3.0, "")), "r") is None
+    with pytest.raises(UnitfulError, match="Chi2 has Quantity parameters") as e:
+        site_dimension(dist.Chi2(Q(3.0, "kpc")), "r")
+    assert "rate" not in str(e.value)

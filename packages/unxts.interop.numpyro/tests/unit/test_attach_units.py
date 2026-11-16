@@ -56,6 +56,13 @@ def test_unrun_handler_raises(usys):
         attach_units({"m": jnp.ones(2)}, unitful(model, usys))
 
 
+def test_factor_only_model_after_run(usys):
+    M = unitful(lambda: numpyro.factor("f", 1.0), usys)
+    handlers.seed(M, 0)()
+    samples = {"_x": jnp.ones(2)}
+    assert attach_units(samples, M) == samples
+
+
 def test_predictive_round_trip(usys):
     M = unitful(model, usys)
     prior = Predictive(M, num_samples=4)(jax.random.PRNGKey(0))

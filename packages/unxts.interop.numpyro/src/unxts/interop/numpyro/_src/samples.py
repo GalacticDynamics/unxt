@@ -16,6 +16,12 @@ def attach_units(samples: Mapping[str, Any], handler: unitful, /) -> dict[str, A
     Quantities and keys the handler never saw (for example ``_sig_log_det``
     from MCMC) pass through unchanged. Batched values are wrapped as they are.
 
+    `samples` are site values, as from `MCMC.get_samples`, `Predictive` or SVI
+    params. The output of `numpyro.infer.log_likelihood` is log densities, not
+    site values, so it does not go through here. `handler` must be the one that
+    produced the samples: the values are bare numbers in its `usys`, so another
+    handler's units would be wrong without any error.
+
     Examples
     --------
     >>> import jax
@@ -34,7 +40,7 @@ def attach_units(samples: Mapping[str, Any], handler: unitful, /) -> dict[str, A
 
     """
     units = handler.site_units
-    if not units:
+    if not handler._ran:  # noqa: SLF001
         msg = "The handler has no recorded sites: run the model first."
         raise UnitfulError(msg)
     return {

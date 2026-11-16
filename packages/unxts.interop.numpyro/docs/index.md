@@ -9,7 +9,7 @@ guide
 api
 ```
 
-`unxts.interop.numpyro` lets [NumPyro](https://num.pyro.ai/) models take `unxt` quantities. You wrap a model in the `unitful` handler, give its distributions `Quantity` parameters, and fit it with the usual NumPyro inference. The handler strips the units into a unit system you choose before NumPyro sees them, so NumPyro computes on plain numbers. The sampled values come back to your model as quantities, and `attach_units` puts the units back on the posterior samples.
+`unxts.interop.numpyro` lets [NumPyro](https://num.pyro.ai/) models take `unxt` quantities. I wrap a model in the `unitful` handler, give its distributions `Quantity` parameters, and fit it with the usual NumPyro inference. The handler strips the units into a unit system I choose before NumPyro sees them, so NumPyro computes on plain numbers. The sampled values come back to the model as quantities, and `attach_units` puts the units back on the posterior samples.
 
 ## Install
 
@@ -57,7 +57,7 @@ pip install unxts.interop.numpyro
 
 ::::
 
-On import the package patches two NumPyro bugs ([#2428](https://github.com/pyro-ppl/numpyro/issues/2428) and [#2429](https://github.com/pyro-ppl/numpyro/issues/2429)) on the versions that lack the fixes. The patched functions behave like the originals except for pytrees with several leaves and array-likes that have their own `reshape`, such as a `Quantity`.
+On import the package patches two NumPyro bugs ([#2428](https://github.com/pyro-ppl/numpyro/issues/2428) and [#2429](https://github.com/pyro-ppl/numpyro/issues/2429)) on the versions that lack the fixes. The patched functions behave like the originals except for a pytree that holds a tracer, such as a `Quantity` under `jit`, and an array-like that has its own `reshape`, such as a `Quantity`.
 
 ## At a glance
 
@@ -77,7 +77,7 @@ Unit("kpc")
 
 ```
 
-The distribution was written in parsecs, and the sampled value comes back in kiloparsecs because `unitful` was given the galactic unit system.
+I wrote the distribution in parsecs, and the sampled value comes back in kiloparsecs because I gave `unitful` the galactic unit system.
 
 ## Pages
 
@@ -87,7 +87,7 @@ The distribution was written in parsecs, and the sampled value comes back in kil
 
 **How-to**
 
-- [How to use unitful in your own models](guide) — where the handler goes among other handlers, `scan`, subsampling, `jnp` code, and what the limits are.
+- [How to use unitful in a model](guide) — where the handler goes among other handlers, `scan` and `cond`, subsampling, `jnp` code, and what the limits are.
 
 **Reference**
 
