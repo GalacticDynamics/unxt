@@ -13,6 +13,7 @@ import numpyro.primitives as prim
 from numpyro import handlers
 from numpyro.contrib.control_flow.cond import cond_wrapper
 from numpyro.contrib.control_flow.scan import scan_wrapper
+from numpyro.distributions.util import lazy_property
 from numpyro.primitives import Messenger
 from plum import NotFoundLookupError
 
@@ -20,6 +21,7 @@ import unxt as u
 from .rules import (
     UnitfulError,
     _dimensioned,
+    _has_quantity,
     _is_q,
     carrying_params,
     leaf_path,
@@ -102,14 +104,50 @@ def _check_bare(
         raise UnitfulError(err)
 
 
+def _restore(old: Any, new: Any) -> None:
+    """Copy onto `new` the state that NumPyro's pytree round trip drops from `old`.
+
+    Unflattening sets ``_validate_args`` from the instance dict, so it is None
+    when validation comes from the class default, and log_prob then skips the
+    support check. It also drops attributes that ``__init__`` sets outside the
+    pytree fields, such as ``Independent.reparametrized_params``. Cached lazy
+    properties stay dropped, since they hold the unstripped values.
+    """
+    if isinstance(old, dist.Distribution):
+        new._validate_args = old._validate_args  # noqa: SLF001
+        for k, v in vars(old).items():
+            cached = isinstance(getattr(type(old), k, None), lazy_property)
+            if k not in vars(new) and not cached and not _has_quantity(v):
+                setattr(new, k, v)
+
+    def parts(t: Any) -> list[Any]:  # the leaves, stopping at sub-distributions
+        def leaf(x: Any) -> bool:
+            return (x is not t and isinstance(x, dist.Distribution)) or _is_q(x)
+
+        return jax.tree.leaves(t, is_leaf=leaf)
+
+    for a, b in zip(parts(old), parts(new), strict=True):
+        if isinstance(a, dist.Distribution):
+            _restore(a, b)
+
+
+def _rebuild(fn: Any, f: Callable[[tuple[Any, ...], Any], Any]) -> Any:
+    """Map `f` over the leaves of `fn`, keeping the state the rebuild drops."""
+    new = jax.tree_util.tree_map_with_path(f, fn, is_leaf=_is_q)
+    _restore(fn, new)
+    return new
+
+
 def _strip_params(name: str, fn: Any, unit: Any) -> Any:
-    """Strip every Quantity in `fn`.
+    """Strip every Quantity in `fn`; return `fn` itself if it holds none.
 
     A parameter that carries the dimension is stripped in `unit` to its power.
     Any other Quantity is a shape parameter and must be dimensionless. Which is
     which goes by the leaf's path, since NumPyro may reshape a parameter into a
     new object while its support keeps the original.
     """
+    if not _has_quantity(fn):
+        return fn
     powers = strip_powers(fn) if unit is not None else {}
 
     def strip(kp: tuple[Any, ...], v: Any) -> Any:
@@ -126,7 +164,7 @@ def _strip_params(name: str, fn: Any, unit: Any) -> Any:
             raise UnitfulError(err)
         return u.ustrip("", v)
 
-    return jax.tree_util.tree_map_with_path(strip, fn, is_leaf=_is_q)
+    return _rebuild(fn, strip)
 
 
 def _strip_scale(msg: dict[str, Any]) -> None:
@@ -429,10 +467,9 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
         if not _is_q(lf):
             return
         _dimensionless(name, "log_factor", lf)
-        msg["fn"] = jax.tree.map(
-            lambda v: _dimensionless(name, "log_factor", v) if _is_q(v) else v,
+        msg["fn"] = _rebuild(
             msg["fn"],
-            is_leaf=_is_q,
+            lambda _, v: _dimensionless(name, "log_factor", v) if _is_q(v) else v,
         )
 
     def process_message(self, msg: dict[str, Any]) -> None:
