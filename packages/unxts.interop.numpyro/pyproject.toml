@@ -42,6 +42,7 @@ test = [
   "pytest-env>=1.1.5",
   "pytest-github-actions-annotate-failures>=0.3.0",
   "pytest-xdist>=3.6.1",
+  "quax>=0.4.6",
   "sybil[pytest]>=9.2.0",
 ]
 

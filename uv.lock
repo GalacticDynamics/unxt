@@ -4753,6 +4753,7 @@ test = [
     { name = "pytest-env" },
     { name = "pytest-github-actions-annotate-failures" },
     { name = "pytest-xdist" },
+    { name = "quax" },
     { name = "sybil", extra = ["pytest"] },
 ]
 
@@ -4771,6 +4772,7 @@ test = [
     { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "quax", specifier = ">=0.4.6" },
     { name = "sybil", extras = ["pytest"], specifier = ">=9.2.0" },
 ]
 
