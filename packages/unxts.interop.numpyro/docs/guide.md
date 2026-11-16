@@ -26,7 +26,7 @@ This page collects the tasks I ran into once the [tutorial](tutorial-fit-mean-an
 
 `unitful` has to wrap the model. I write `unitful(model, usys)` and pass that to NumPyro. I do not use it as a bare `with unitful(...)` context around inference.
 
-Handlers that change how a site is sampled go outside it. That covers `reparam` and `config_enumerate`, which need to see the bare numbers that `unitful` produces. A `reparam` inside `unitful` fails with a unit conversion error from inside the reparameterizer, and the message does not name the site.
+Handlers that change how a site is sampled go outside it. That covers `reparam` and `config_enumerate`, which need to see the bare numbers that `unitful` produces. A `reparam` inside `unitful` fails. Depending on the reparameterizer, the error is a unit conversion error from inside it, which does not name the site, or a `UnitfulError` about the reparameterized site, such as `m_decentered`.
 
 `handlers.do` goes inside, as `unitful(handlers.do(model, data), usys)`. Outside, `do` sends a copy of the site again after `unitful` has stripped it, and `unitful` raises `UnitfulError` saying so.
 
@@ -316,7 +316,8 @@ When every parameter that carries a site's dimension is a `u.Angle`, the latent 
 
 ## Things that do not work
 
-- `init_to_value` with `Quantity` values works when NumPyro runs the model through `unitful` to transform them, as it does for a model with a `deterministic` site. The samples then come back bare, in the unit of `usys`. Otherwise NumPyro transforms the values while no handler is running, and it fails with a JAX `TypeError`. To be safe I give `init_to_value` bare numbers in the unit of `usys`.
+- I give `init_to_value` bare numbers in the unit of `usys`. With `Quantity` values the result depends on the model. For a site with a constrained support, such as a `HalfNormal` scale, NumPyro transforms the value while no handler is running, and the run fails with a JAX `TypeError`. For an unconstrained site the run works and the posterior is right, but that site's samples can come back as `Quantity` values in the unit I gave, while the other sites come back bare. A mixed sample dict like that breaks `mcmc.print_summary()`.
+- `handlers.lift` with a `Quantity` prior on a `param` site fails inside NumPyro with a `TypeError`. I give the lifted prior bare parameters in the unit of `usys`.
 - Several chains run one after the other (`chain_method="sequential"`, which is what the default becomes on a single CPU device) fail when the data argument is a `Quantity`. This is a NumPyro bug, [pyro-ppl/numpyro#2434](https://github.com/pyro-ppl/numpyro/issues/2434), fixed by [#2436](https://github.com/pyro-ppl/numpyro/pull/2436) but not yet released. Until a release has the fix I pass `chain_method="vectorized"`, or I close over the data with `functools.partial(model, x)` so it is not an argument of `mcmc.run`.
 - Calling `mcmc.run` a second time on the same `MCMC` object with a `Quantity` data argument fails with an `OverflowError`, which is a NumPyro issue. Calling `mcmc.warmup(...)` and then `mcmc.run(...)` with a `Quantity` data argument fails the same way. I create a new `MCMC` object for the second run, and I let `mcmc.run` do the warmup.
 - A `unitful` inside another `unitful` with a different `usys` does not convert between them. The inner one strips everything, so the outer one records no units. I use one `unitful` with one `usys`.
