@@ -50,6 +50,30 @@ def test_cond_on_a_dimensionful_index_is_refused():
         cond_p_q(u.Q(1, "m"), u.Q(1.0, "m"), branches=())
 
 
+def _switch(i, x):
+    return lax.switch(i, [lambda v: v, lambda v: 3 * v], x)
+
+
+@pytest.mark.parametrize("jit", [False, True])
+@pytest.mark.parametrize(("index", "want"), [(0, 2.0), (1, 6.0), (5, 6.0)])
+def test_switch_on_a_dimensionless_quantity_index(jit, index, want):
+    """A dimensionless integer quantity is a ``lax.switch`` index, clamped to range."""
+    f = quax.quaxify(jax.jit(_switch) if jit else _switch)
+    assert u.ustrip("m", f(u.Q(index, ""), u.Q(2.0, "m"))) == want
+
+
+def test_clamp_dimensionless_quantity_between_arrays():
+    """A scaled-dimensionless quantity is clamped in true units."""
+    got = quax.quaxify(lax.clamp)(0.0, u.Q(150.0, "percent"), 1.0)
+    assert u.ustrip("", got) == 1.0
+
+
+def test_clamp_dimensionful_quantity_between_arrays_is_refused():
+    """Array bounds are dimensionless, so a dimensionful quantity is refused."""
+    with pytest.raises(UnitConversionError):
+        quax.quaxify(lax.clamp)(0, u.Q(1, "m"), 2)
+
+
 def test_angle_divided_by_angle_is_dimensionless():
     """``Angle / Angle`` degrades to a plain, dimensionless `Quantity`."""
     a = u.Angle(1.0, "deg")

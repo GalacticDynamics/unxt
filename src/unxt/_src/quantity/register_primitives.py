@@ -1058,6 +1058,30 @@ def clamp_p_aqaqv(min: ABCQ, x: ABCQ, max: ArrayLike) -> ABCQ:
     return _as_dimensionless_like(x, lax.clamp(ustrip(one, min), ustrip(one, x), max))
 
 
+@quax.register(lax.clamp_p)
+def clamp_p_vqv(min: ArrayLike, x: ABCQ, max: ArrayLike) -> ABCQ:
+    """Clamp a dimensionless quantity between two values.
+
+    ``lax.switch`` clamps its index this way, so a dimensionless integer
+    quantity can be the index. A dimensionful quantity is refused.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import quaxed.lax as lax
+    >>> import unxt as u
+
+    >>> q = u.Q([-1, 1, 3], "")
+    >>> lax.clamp(jnp.asarray(0), q, jnp.asarray(2))
+    Quantity(Array([0, 1, 2], dtype=int32), unit='')
+
+    >>> lax.switch(u.Q(1, ""), [lambda v: v, lambda v: 3 * v], u.Q(2.0, "m"))
+    Quantity(Array(6., dtype=float32, weak_type=True), unit='m')
+
+    """
+    return _as_dimensionless_like(x, lax.clamp(min, ustrip(one, x), max))
+
+
 # ==============================================================================
 
 
