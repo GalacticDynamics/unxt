@@ -99,7 +99,10 @@ def test_two_chains_closing_over_data(usys, x):
 
 @pytest.mark.xfail(
     raises=OverflowError,
-    strict=True,
+    # Not strict: the failure needs the argument's `id()` to overflow int32,
+    # which depends on where the allocator puts it (always on macOS, not always
+    # on Linux CI).
+    strict=False,
     reason="NumPyro's cache key for sequential chains fails on a Quantity "
     "argument (pyro-ppl/numpyro#2434, fixed by #2436).",
 )
