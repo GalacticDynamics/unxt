@@ -163,8 +163,9 @@ def test_callable_param_init_returning_quantity_raises(usys):
     [
         (constraints.interval(Q(0.0, "pc"), Q(2000.0, "pc")), [0.0, 2.0]),
         (constraints.greater_than(Q(100.0, "pc")), [0.1]),
+        (constraints.interval(0.0, Q(2000.0, "pc")), [0.0, 2.0]),
     ],
-    ids=["interval", "greater_than"],
+    ids=["interval", "greater_than", "mixed"],
 )
 def test_param_constraint_quantity_bounds_stripped(usys, con, want):
     def model():

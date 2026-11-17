@@ -165,6 +165,9 @@ def test_units_override_disagreeing_with_rule_raises(usys):
 
     with pytest.raises(UnitfulError, match="'r'"):
         handlers.seed(unitful(m, usys, units={"r": "s"}), 0)()
+    # Myr is the usys unit, so this reaches the check against the rule.
+    with pytest.raises(UnitfulError, match=r"'r'.*the distribution gives"):
+        handlers.seed(unitful(m, usys, units={"r": "Myr"}), 0)()
 
 
 def test_site_unit_change_raises(usys):

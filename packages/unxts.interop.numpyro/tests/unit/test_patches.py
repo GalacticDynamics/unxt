@@ -105,6 +105,15 @@ def test_reshape_probe_failing_any_way_counts_as_broken(monkeypatch):
     assert patches._reshape_is_broken()
 
 
+def test_reshape_without_a_reshape_method():
+    assert patches._reshape(1j, (1,)).shape == (1,)
+
+
+def test_working_reshape_is_not_broken(monkeypatch):
+    monkeypatch.setattr(ndu, "_reshape", patches._reshape)
+    assert not patches._reshape_is_broken()
+
+
 def test_not_jax_tracer_probe_failing_skips_the_patch(monkeypatch):
     """A `not_jax_tracer` probe that fails does not break import."""
 

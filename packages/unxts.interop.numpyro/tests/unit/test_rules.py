@@ -169,6 +169,12 @@ def test_leaf_path_names_support_bounds_after_their_parameter():
     assert _paths(t) == {"low", "base_dist.loc", "base_dist.scale"}
 
 
+def test_leaf_path_names_container_keys():
+    t = [{"a": Q(1.0, "m")}]
+    ((kp, _),) = jax.tree_util.tree_flatten_with_path(t)[0]
+    assert leaf_path(t, kp) == "0.a.value"
+
+
 def test_strip_powers_follows_internal_distributions():
     assert strip_powers(dist.HalfCauchy(Q(1.0, "kpc")))["_cauchy.scale"] == 1
     assert strip_powers(dist.Gamma(2.0, Q(1.0, "1/kpc"))) == {"rate": -1}
