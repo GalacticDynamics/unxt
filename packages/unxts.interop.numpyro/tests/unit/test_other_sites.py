@@ -10,7 +10,9 @@ from numpyro import handlers
 from numpyro.distributions import constraints
 from numpyro.infer import MCMC, NUTS, SVI, Trace_ELBO
 from numpyro.infer.util import log_density
+from numpyro.primitives import apply_stack
 from unxts.interop.numpyro import UnitfulError, unitful
+from unxts.interop.numpyro._src.handler import _restore
 
 import unxt as u
 
@@ -249,3 +251,19 @@ def test_dimensionless_scale_outside_unitful(usys):
 def test_container_of_quantities_raises(usys, site):
     with pytest.raises(UnitfulError, match="'d': the value is a container"):
         handlers.seed(unitful(site, usys), 0)()
+
+
+def test_other_control_flow_is_left_alone(usys):
+    """A control-flow message other than scan or cond passes through unchanged."""
+
+    def m():
+        msg = {"type": "control_flow", "fn": lambda x: x + 1, "args": (1,)}
+        return apply_stack({**msg, "kwargs": {}, "value": None})["value"]
+
+    assert unitful(m, usys)() == 2
+
+
+def test_restore_ignores_non_distributions():
+    c = constraints.positive
+    _restore(c, c)
+    assert c.lower_bound == 0.0
