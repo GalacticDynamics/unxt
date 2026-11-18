@@ -28,7 +28,7 @@ We draw 200 distances around 1 kpc with a spread of 0.2 kpc, and make them a `Qu
 
 ## Write the model
 
-The model has a mean `m`, a width `s` and the observed distances `x`. The priors are a normal distribution centred on 0 kpc with a width of 3 kpc for `m`, and a half-normal with a scale of 1 kpc for `s`:
+The model has a mean `m`, a width `s` and the observed distances `x`. The prior on `m` is a normal distribution centred on 0 kpc, with a width of 3 kpc. The prior on `s` is a half-normal with a scale of 1 kpc:
 
 ```python
 >>> def model(x=None):
@@ -92,10 +92,10 @@ The width is between 150 and 250 pc, close to the 0.2 kpc spread we drew the dat
 
 ## What we did
 
-We wrote a NumPyro model in units, wrapped it in `unitful` with a unit system, sampled it with NUTS, and put the units back on the posterior with `attach_units`.
+We wrote a NumPyro model in units and wrapped it in `unitful` with a unit system. We sampled it with NUTS, then put the units back on the posterior with `attach_units`.
 
 ## Next steps
 
-- [How to run MCMC on `Quantity` data](how-to-run-mcmc) covers several chains and initial values.
-- [How to fit a model with SVI](how-to-fit-with-svi) does the same fit with variational inference.
-- [About `unitful`](explanation) explains why the handler strips units into a unit system.
+- {doc}`guides/run-mcmc` covers several chains and initial values.
+- {doc}`guides/fit-with-svi` does the same fit with variational inference.
+- {doc}`concepts/sites` explains what `unitful` did at each site.

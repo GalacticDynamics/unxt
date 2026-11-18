@@ -1,6 +1,6 @@
-# How to call `jnp` code on `unitful` latents
+# Call `jnp` code on sampled quantities
 
-Inside a `unitful` model the sampled values are quantities, and plain `jax.numpy` functions do not take quantities. This guide shows two ways to compute with them without rewriting the model.
+Inside a `unitful` model, sampled values are quantities. Plain `jax.numpy` functions do not accept quantities. There are two ways to compute with them, and neither needs the model rewritten.
 
 ```python
 >>> import jax.numpy as jnp
@@ -16,7 +16,7 @@ Inside a `unitful` model the sampled values are quantities, and plain `jax.numpy
 
 ## For a few lines, use `quaxed.numpy`
 
-`quaxed.numpy` has the same functions as `jax.numpy`, and they take quantities:
+`quaxed.numpy` has the same functions as `jax.numpy`, and they accept quantities:
 
 ```python
 >>> import quaxed.numpy as qnp
@@ -32,7 +32,7 @@ Unit("kpc")
 
 ## For an existing `jnp` function, wrap it with `quax.quaxify`
 
-Keep the function as it is, and call its `quaxify`-wrapped version on the latents:
+Keep the function as it is. Call its `quaxify`-wrapped version on the sampled values:
 
 ```python
 >>> import quax
@@ -49,4 +49,4 @@ Unit("kpc2")
 
 ```
 
-Wrap helper functions only. Wrapping the whole model with `quaxify` does not work; {ref}`About unitful <numpyro-why-a-handler>` explains why.
+Wrap helper functions only. Wrapping the whole model does not work, as {doc}`../concepts/sites` explains.

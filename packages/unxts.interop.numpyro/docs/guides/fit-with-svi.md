@@ -1,6 +1,8 @@
-# How to fit a model with SVI
+# Fit a model with SVI
 
-This guide shows how to run stochastic variational inference on a `unitful` model, with an autoguide or with a guide you write, and how to get the fitted values back with units.
+Stochastic variational inference (SVI) fits a guide to the wrapped model. The guide can be an autoguide or one you write. Either way, `attach_units` puts the units back on the results.
+
+The examples use this model:
 
 ```python
 >>> import jax
@@ -21,9 +23,9 @@ This guide shows how to run stochastic variational inference on a `unitful` mode
 
 ```
 
-## With an autoguide
+## Use an autoguide
 
-Build the autoguide from the wrapped model.
+Build the autoguide from the wrapped model:
 
 ```python
 >>> svi = SVI(M, AutoNormal(M), Adam(0.01), Trace_ELBO())
@@ -31,9 +33,9 @@ Build the autoguide from the wrapped model.
 
 ```
 
-## With your own guide
+## Write your own guide
 
-Write the guide with `Quantity` parameters, and wrap it in a `unitful` built from the model's unit system, `M.usys`. Both handlers then read the bare values SVI passes between them in the same units.
+Write the guide with `Quantity` parameters. Wrap it in its own `unitful`, built from the model's unit system, `M.usys`:
 
 ```python
 >>> positive = dist.constraints.positive
@@ -51,11 +53,13 @@ Write the guide with `Quantity` parameters, and wrap it in a `unitful` built fro
 
 ```
 
-If a `param` needs a constraint with `Quantity` bounds, give its init value as a `Quantity` too, so `unitful` knows the site's dimension.
+The two handlers now share one unit system. SVI passes {term}`bare values <bare value>` between them, and both read those values in the same units.
 
-## Get the results with units
+If a `param` constraint has `Quantity` bounds, give the init value as a `Quantity` too.
 
-Use the guide's handler for the fitted parameters:
+## Read the results with units
+
+For the fitted parameters, pass the guide's handler to `attach_units`:
 
 ```python
 >>> attach_units(svi.get_params(res.state), G)["m_loc"].unit
@@ -63,7 +67,7 @@ Unit("kpc")
 
 ```
 
-Use the model's handler for posterior samples drawn from the guide:
+For posterior samples drawn from the guide, pass the model's handler:
 
 ```python
 >>> post = Predictive(G, params=res.params, num_samples=10)(jax.random.PRNGKey(1))
@@ -72,4 +76,4 @@ Unit("kpc")
 
 ```
 
-`attach_units` cannot tell which handler the samples came from, so a handler with another unit system puts the wrong units on them without an error. {ref}`Behaviour of unitful <numpyro-inference>` lists the errors a mismatched guide raises.
+`attach_units` cannot tell which handler produced the samples. The wrong handler gives wrong units, with no error. {doc}`../reference/errors` lists the errors that a mismatched guide raises during the fit.

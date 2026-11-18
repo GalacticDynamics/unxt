@@ -1,6 +1,8 @@
-# How to sample inside `scan` and `cond`
+# Sample inside `scan` and `cond`
 
-This guide shows how to write a `numpyro.contrib.control_flow.scan` body or `cond` branches in a `unitful` model. `unitful` runs them under a handler of its own with the same `usys` and `rewrap`, so their sites work like any other. The rules for carries and predicates are in {ref}`Behaviour of unitful <numpyro-control-flow>`.
+The sites in a `numpyro.contrib.control_flow.scan` body or a `cond` branch work like any other site. `unitful` runs them under a handler of its own, with the same `usys` and `rewrap`. The carry and the predicate need care. {ref}`The control-flow reference <numpyro-control-flow>` has the rules.
+
+The examples use these imports and data:
 
 ```python
 >>> import jax.numpy as jnp
@@ -40,11 +42,11 @@ Unit("kpc")
 
 ```
 
-A start value in pc fails with a JAX error about the carry structure, because the step returns `z` in kpc.
+A start value in pc fails, because the step returns `z` in kpc. JAX then reports a change in the carry structure.
 
 ## Carry a bare number through `scan`
 
-Pass `rewrap=False`. The body then gets bare numbers in the units of `usys`, and you add the units where a distribution needs them:
+Pass `rewrap=False`. The body then gets bare numbers in the units of `usys`. Add the units where a distribution needs them:
 
 ```python
 >>> def walk_bare(ys):
@@ -65,7 +67,7 @@ The log density is the same as with the `Quantity` carry.
 
 ## Branch with `cond`
 
-Sample the same site names from the same families in both branches, and pass a bare boolean as the predicate:
+Sample the same site names, from the same families, in both branches. Pass a bare boolean as the predicate:
 
 ```python
 >>> def pick(near):
@@ -80,4 +82,4 @@ Unit("kpc")
 
 ```
 
-If the predicate comes from comparing quantities, strip them first: write `u.ustrip("kpc", r) < 5.0`, not `r < u.Q(5.0, "kpc")`.
+If the predicate compares quantities, strip them first. Write `u.ustrip("kpc", r) < 5.0`, not `r < u.Q(5.0, "kpc")`.

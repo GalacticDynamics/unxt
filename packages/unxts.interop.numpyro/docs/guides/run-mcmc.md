@@ -1,6 +1,8 @@
-# How to run MCMC on `Quantity` data
+# Run MCMC on `Quantity` data
 
-This guide shows how to run several chains, run a sampler more than once, and set initial values for a `unitful` model with `Quantity` data. Until a NumPyro release includes [pyro-ppl/numpyro#2436](https://github.com/pyro-ppl/numpyro/pull/2436), NumPyro can raise `OverflowError` when it reuses a compiled sampler with a `Quantity` argument. The workarounds below avoid that.
+NumPyro can raise `OverflowError` when it reuses a compiled sampler with a `Quantity` argument. {ref}`The inference reference <numpyro-inference>` lists when this happens. The steps below avoid it until a NumPyro release includes the fix.
+
+The examples use this model and data:
 
 ```python
 >>> import functools
@@ -24,7 +26,7 @@ This guide shows how to run several chains, run a sampler more than once, and se
 
 ## Run several chains
 
-Pass `chain_method="vectorized"`:
+Pass `chain_method="vectorized"` to `MCMC`:
 
 ```python
 >>> M = unitful(model, galactic)
@@ -38,7 +40,7 @@ Pass `chain_method="vectorized"`:
 
 ```
 
-If you need sequential chains, which are the default for several chains on one CPU device, close over the data so it is not an argument of `mcmc.run`:
+If you need sequential chains, close over the data. The data is then not an argument of `mcmc.run`:
 
 ```python
 >>> M = unitful(functools.partial(model, x), galactic)
@@ -54,7 +56,7 @@ If you need sequential chains, which are the default for several chains on one C
 
 ## Run the sampler again
 
-Make a new `MCMC` object for each run with `Quantity` data, and let `mcmc.run` do the warmup rather than calling `mcmc.warmup` first.
+Make a new `MCMC` object for each run with `Quantity` data. Let `mcmc.run` do the warmup, instead of calling `mcmc.warmup` first.
 
 ## Set initial values
 
@@ -73,4 +75,4 @@ Unit("kpc")
 
 ```
 
-Here 1.0 and 0.2 are kpc, the `galactic` unit of length. {ref}`Behaviour of unitful <numpyro-inference>` says what goes wrong with `Quantity` initial values.
+Here 1.0 and 0.2 are in kpc, the `galactic` unit of length. {ref}`The inference reference <numpyro-inference>` explains when `Quantity` initial values fail.

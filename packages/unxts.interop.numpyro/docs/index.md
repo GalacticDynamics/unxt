@@ -1,24 +1,8 @@
 # `unxts.interop.numpyro`
 
-```{toctree}
-:maxdepth: 1
-:hidden:
+**Write NumPyro models in physical units.**
 
-tutorial-fit-mean-and-width
-how-to-run-mcmc
-how-to-fit-with-svi
-how-to-place-handlers
-how-to-give-a-site-units
-how-to-use-scan-and-cond
-how-to-mask-and-subsample
-how-to-use-jnp-code
-reference
-unit-rules
-api
-explanation
-```
-
-`unxts.interop.numpyro` runs [NumPyro](https://num.pyro.ai/) models written with `unxt` quantities. You write the distributions with `Quantity` parameters and pass `Quantity` data, wrap the model in the `unitful` handler with a unit system, and fit it with the usual NumPyro inference. The model gets its sampled values back as quantities, and `attach_units` puts the units on the posterior.
+[NumPyro](https://num.pyro.ai/) computes on plain numbers, so a model with units normally strips them by hand. Every parameter, data array and prior then carries an unwritten unit. `unxts.interop.numpyro` lets the model keep its `unxt` quantities. The `unitful` handler converts them to plain numbers in one unit system at each sample site. NumPyro samples and scores those numbers. The model gets its sampled values back as quantities, and `attach_units` puts the units on the posterior.
 
 ```python
 >>> import numpyro
@@ -35,11 +19,17 @@ Unit("kpc")
 
 ```
 
-The distribution is written in parsecs, and the sample comes back in kiloparsecs, the length unit of the `galactic` unit system.
+The prior is written in parsecs. The sample comes back in kiloparsecs, the length unit of the `galactic` unit system.
+
+## Where to start
+
+- **New to `unitful`.** Fit a model to `Quantity` data in the {doc}`tutorial <tutorial-fit-mean-and-width>`.
+- **Moving an existing NumPyro model.** Give its distributions `Quantity` parameters, wrap it, and check the {doc}`handler placement <guides/place-handlers>`. A family without a unit rule needs {doc}`units= <guides/give-a-site-units>`.
+- **An error to fix.** A `UnitfulError` is listed in {doc}`reference/errors`. An error from NumPyro or JAX is in {doc}`guides/troubleshooting`.
 
 ## Install
 
-Install it with `unxt` through the `interop-numpyro` [extra](https://peps.python.org/pep-0508/#extras), so that `unxt`, `numpyro` and this package resolve to versions that work together:
+Install it with `unxt`, through the `interop-numpyro` [extra](https://peps.python.org/pep-0508/#extras). The extra resolves `unxt`, `numpyro` and this package to versions that work together.
 
 ::::{tab-set}
 
@@ -61,33 +51,26 @@ pip install "unxt[interop-numpyro]"
 
 ::::
 
-To install the package on its own, use `uv add unxts.interop.numpyro` or `pip install unxts.interop.numpyro`.
+To install the package on its own, run `uv add unxts.interop.numpyro` or `pip install unxts.interop.numpyro`.
 
-## Tutorial
+## Sections
 
-- [Fit a mean and a width to data with units](tutorial-fit-mean-and-width). Start here. You fit a model to `Quantity` data with NUTS and get the posterior back in units.
+- **{doc}`Tutorial <tutorial-fit-mean-and-width>`.** Fit a mean and a width to distances in kiloparsecs, from data to posterior.
+- **{doc}`Guides <guides/index>`.** Write the model, place the handlers, run MCMC or SVI, read the results, and fix errors.
+- **{doc}`Concepts <concepts/index>`.** How `unitful` treats each site, why it needs a unit system, and why handler order matters.
+- **Reference.** {doc}`Behaviour <reference/behaviour>`, {doc}`unit rules <reference/unit-rules>`, {doc}`errors <reference/errors>`, the {doc}`glossary <reference/glossary>` and the {doc}`API <reference/api>`.
 
-## How-to guides
+For units, dimensions and unit systems, see the [`unxt` documentation](https://unxt.readthedocs.io/). For models and inference, see the [NumPyro documentation](https://num.pyro.ai/).
 
-- [How to run MCMC on `Quantity` data](how-to-run-mcmc): several chains, repeated runs and initial values.
-- [How to fit a model with SVI](how-to-fit-with-svi): autoguides, your own guide, and fitted parameters with units.
-- [How to combine `unitful` with other NumPyro handlers](how-to-place-handlers): `condition`, `substitute`, `reparam`, `do` and `lift`.
-- [How to give units to a site whose distribution has no unit rule](how-to-give-a-site-units): `LogNormal`, censored distributions and others, with `units=`.
-- [How to sample inside `scan` and `cond`](how-to-use-scan-and-cond): carries and branches.
-- [How to mask or subsample `Quantity` observations](how-to-mask-and-subsample): `obs_mask=` and subsampled plates.
-- [How to call `jnp` code on `unitful` latents](how-to-use-jnp-code): `quaxed.numpy` and `quax.quaxify`.
+```{toctree}
+:hidden:
 
-## Reference
-
-- [Behaviour of `unitful`](reference): what happens at each kind of site, where each NumPyro handler goes, inference, and the NumPyro patches applied at import.
-- [Distribution unit rules](unit-rules): which parameters carry a site's dimension, family by family.
-- [API](api): `unitful`, `attach_units` and `UnitfulError`.
-
-## Explanation
-
-- [About `unitful`](explanation): why it is a handler, why it needs a unit system, and why handler order matters.
-
-## See also
-
-- [NumPyro documentation](https://num.pyro.ai/)
-- [unxt documentation](https://unxt.readthedocs.io/)
+tutorial-fit-mean-and-width
+guides/index
+concepts/index
+reference/behaviour
+reference/unit-rules
+reference/errors
+reference/glossary
+reference/api
+```

@@ -1,6 +1,6 @@
-# How to mask or subsample `Quantity` observations
+# Mask or subsample observations
 
-This guide shows how to observe part of a `Quantity` data set, with an `obs_mask=` or with a subsampled plate.
+A model can observe part of a `Quantity` data set, through an `obs_mask=` or a subsampled plate. Each needs one change from plain NumPyro.
 
 ```python
 >>> import jax.numpy as jnp
@@ -17,7 +17,7 @@ This guide shows how to observe part of a `Quantity` data set, with an `obs_mask
 
 ## Mask observations
 
-Pass `rewrap=False`, so the model gets bare numbers in the unit of `usys`, and wrap the latent back into a `Quantity` where the distribution needs it:
+Pass `rewrap=False`, so the model gets bare numbers in the unit of `usys`. Wrap the latent value in a `Quantity` where the distribution needs it:
 
 ```python
 >>> def masked(x):
@@ -35,11 +35,11 @@ Pass `rewrap=False`, so the model gets bare numbers in the unit of `usys`, and w
 
 ```
 
-NumPyro splits the site into `x_observed` and `x_unobserved`. Use those names in `units=` and when reading `M.site_units`, where `x` itself has no unit.
+NumPyro splits the site into `x_observed` and `x_unobserved`. Use those names in `units=` and in `M.site_units`.
 
 ## Subsample observations
 
-Index the data with the plate's indices instead of calling `numpyro.subsample`, which does not accept a `Quantity`:
+`numpyro.subsample` does not accept a `Quantity`. Index the data with the plate's indices instead:
 
 ```python
 >>> def sub_model(x):

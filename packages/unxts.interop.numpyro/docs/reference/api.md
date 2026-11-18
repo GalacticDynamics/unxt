@@ -1,6 +1,6 @@
 # API
 
-The behaviour these objects implement is described in [Behaviour of `unitful`](reference) and [Distribution unit rules](unit-rules).
+{doc}`behaviour` describes what these objects do, {doc}`unit-rules` lists the dimension rules, and {doc}`errors` lists every error message.
 
 ```{eval-rst}
 .. currentmodule:: unxts.interop.numpyro
