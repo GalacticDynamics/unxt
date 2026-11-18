@@ -22,6 +22,9 @@ In `take`, from `numpyro.subsample`
 In `where`, at a site with `obs_mask=`
 : **Fix.** Pass `rewrap=False` ({doc}`mask-and-subsample`).
 
+In any function, with `reparam` inside `unitful`
+: **Fix.** Move `reparam` outside `unitful` ({doc}`place-handlers`).
+
 In any function, during SVI, with a guide that has `Quantity` parameters
 : **Cause.** The guide has no `unitful` handler, so nothing strips its parameters. The function depends on the guide, such as `log` or `where`. A `UnitConversionError` is the other common symptom.
   **Fix.** Wrap the guide as `unitful(guide, M.usys)` ({doc}`fit-with-svi`).

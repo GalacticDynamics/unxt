@@ -71,7 +71,7 @@ The site's parameters are read in the site unit, and its value is wrapped in it.
 | `trace` | outside | An inner `trace` records each site's stripped distribution next to its rewrapped `Quantity` value. That site cannot be scored. |
 | `unitful` | one per model | An inner `unitful` strips the sites first, so the outer one records no units. `attach_units` then needs the inner one. |
 
-A `reparam` inside `unitful` fails. The error is either a unit conversion error that does not name the site, or a `UnitfulError` about the new site, such as `m_decentered`.
+A `reparam` inside `unitful` fails. The error depends on the reparameterizer. It can be a unit conversion error, a `TypeError` that names a `jax.numpy` function, or a `UnitfulError` about the new site, such as `m_decentered`.
 
 (numpyro-control-flow)=
 
