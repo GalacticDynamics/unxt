@@ -146,4 +146,4 @@ The message adds a sentence when `unitful` is used as a `with` context. Inferenc
 
 ## Other exceptions
 
-`unitful` raises `TypeError` for a call without a model, `unitful(None, usys)`, and for a `usys` that is not a unit system or its name.
+`unitful` raises `TypeError` for a call without a model, `unitful(None, usys)`, and for a `usys` that is neither a unit system nor a string. A string that names no registered unit system raises `ValueError`.

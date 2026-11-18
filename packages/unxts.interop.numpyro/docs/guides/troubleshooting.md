@@ -39,8 +39,8 @@ In `log`, during SVI
   **Fix.** Strip the quantities before comparing them ({doc}`use-scan-and-cond`).
 
 A JAX error about the carry structure, from a `scan`
-: **Cause.** The carry started in a unit other than the `usys` unit.
-  **Fix.** Give the start value in the `usys` unit ({doc}`use-scan-and-cond`).
+: **Cause.** The start value does not match what the step returns. With `rewrap=True`, it is in a unit other than the `usys` unit. With `rewrap=False`, it is a `Quantity` and not bare.
+  **Fix.** Give the start value as the step returns it: a `Quantity` in the `usys` unit, or bare with `rewrap=False` ({doc}`use-scan-and-cond`).
 
 `UnitConversionError`, such as `'kpc' (length) and '' (dimensionless) are not convertible`, with `reparam`
 : **Cause.** `reparam` is inside `unitful`.

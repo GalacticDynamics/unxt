@@ -63,7 +63,7 @@ The site's parameters are read in the site unit, and its value is wrapped in it.
 | `condition`, `substitute` | inside or outside | A `Quantity` on either side. At a site with a dimension, a bare value only outside, read in the unit of `usys`. At a site with no unit, a bare value on either side. |
 | `do` | inside | A `Quantity`. The model gets it in the unit given. |
 | `reparam` | outside |  |
-| `lift` | inside | A prior with `Quantity` parameters. An outside `lift` needs a prior with bare parameters in the unit of `usys`. A `Quantity` prior there is never stripped, so NumPyro fails when it samples or scores the prior. |
+| `lift` | inside | A prior with `Quantity` parameters. An outside `lift` needs a prior with bare parameters in the unit of `usys`. With a `Quantity` prior, scoring fails, so `log_density` and MCMC raise a `TypeError`. Sampling fails for some families, such as `HalfNormal` and `Uniform`, and works for others. |
 | `scale` | inside or outside | A bare or dimensionless scale. |
 | `block` | inside or outside | The autoguides run the model under `block`. An outside `condition` still applies under it. |
 | `scope` | inside or outside |  |
@@ -81,7 +81,7 @@ The body of a `numpyro.contrib.control_flow.scan` and each branch of a `cond` ru
 
 | Construct | Rule |
 | --- | --- |
-| `scan` carry | A `Quantity` carry starts in the `usys` unit and keeps it through every step. A start value in another unit of the same dimension fails with a JAX error about the carry structure. A bare start value stays bare, so it fails next to `Quantity` parameters. With `rewrap=False`, a bare start value works if the body wraps the carry in a `Quantity` before using it. |
+| `scan` carry | A `Quantity` carry starts in the `usys` unit and keeps it through every step. A start value in another unit of the same dimension fails with a JAX error about the carry structure. A bare start value stays bare, so it fails next to `Quantity` parameters. With `rewrap=False`, the start value must be bare, in the `usys` unit. It works if the body wraps the carry in a `Quantity` before using it. |
 | `cond` branches | Both branches sample the same site names, from the same families, with the same site unit. |
 | `cond` predicate | A bare boolean. A comparison of two quantities gives a boolean `Quantity`, which JAX rejects. |
 
