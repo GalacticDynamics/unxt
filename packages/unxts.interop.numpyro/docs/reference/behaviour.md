@@ -103,7 +103,7 @@ The body of a `numpyro.contrib.control_flow.scan` and each branch of a `cond` ru
 For a custom guide:
 
 - The model reads replayed values in its own `usys`. A guide site with bare parameters has no unit, and its values are read in the unit of `usys`.
-- A guide with `Quantity` parameters and no handler fails inside NumPyro, because nothing strips its parameters. The error depends on the family. A `HalfNormal` site raises a `UnitConversionError` when it samples. A `Delta` site raises `TypeError: log requires ndarray or scalar arguments` when it scores.
+- A guide with `Quantity` parameters and no handler fails inside NumPyro or JAX, because nothing strips its parameters. The error does not mention `unitful`, and it depends on the guide. It is usually a `UnitConversionError` or a `TypeError` that names a `jax.numpy` function.
 - A `VonMises` model site is in radians under any `usys`. Its guide site must then be a `VonMises` too, unless `usys` measures angles in radians.
 
 `attach_units(samples, handler)` wraps each site's array in the site unit `handler` recorded. Keys the handler never saw, such as `_sig_log_det`, pass through, and so do values that are already quantities. Each array becomes a plain `Quantity`, also at a site that gave the model a `u.Angle`. `attach_units` cannot check that the samples came from `handler`. A handler with another `usys` puts the wrong units on them, with no error.

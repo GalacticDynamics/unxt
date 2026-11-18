@@ -12,7 +12,7 @@ Each entry names a symptom, its cause and its fix. A `UnitfulError` names its si
 In a `jax.numpy` call inside the model, such as `sqrt`
 : **Fix.** Use `quaxed.numpy`, or wrap the function with `quax.quaxify` ({doc}`use-jnp-code`).
 
-In `broadcast_to` or `reshape`, while building a `StudentT`, `Beta`, `Dirichlet` or `Pareto`
+In `broadcast_to` or `reshape`, while building a `StudentT`, `Beta`, `Dirichlet`, `Pareto` or `Categorical`
 : **Cause.** NumPyro's constructor rejects a `Quantity` parameter. A `Categorical` with `probs=` raises `AttributeError: 'Quantity' object has no attribute 'sum'` instead.
   **Fix.** Pass the parameter as a bare number ({doc}`../reference/unit-rules`).
 
@@ -22,8 +22,8 @@ In `take`, from `numpyro.subsample`
 In `where`, at a site with `obs_mask=`
 : **Fix.** Pass `rewrap=False` ({doc}`mask-and-subsample`).
 
-In `log`, during SVI
-: **Cause.** The guide has `Quantity` parameters but no `unitful` handler. A `UnitConversionError` is the other common symptom of this.
+In any function, during SVI, with a guide that has `Quantity` parameters
+: **Cause.** The guide has no `unitful` handler, so nothing strips its parameters. The function depends on the guide, such as `log` or `where`. A `UnitConversionError` is the other common symptom.
   **Fix.** Wrap the guide as `unitful(guide, M.usys)` ({doc}`fit-with-svi`).
 <!-- prettier-ignore-end -->
 

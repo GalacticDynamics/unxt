@@ -8,7 +8,7 @@ A model calls `numpyro.sample` with a distribution and, for an {term}`observed s
 
 At the site, `unitful` finds the site's dimension from its distribution. The {term}`unit rule` of the distribution's family names the {term}`carrying parameters <carrying parameter>`, and their dimension is the site's. The unit system then gives the unit of that dimension, the {term}`site unit`.
 
-`unitful` strips every `Quantity` in the message to a {term}`bare value` in the site unit. NumPyro samples and scores those bare values. Afterwards `unitful` wraps the sampled value in the site unit and returns it to the model. With `rewrap=False`, the model gets the bare value instead.
+`unitful` strips every `Quantity` in the message to a {term}`bare value`. Values and carrying parameters with power 1 are stripped in the site unit. A carrying parameter with power −1, such as a rate, is stripped in its inverse. A shape parameter is dimensionless, so it becomes a plain number. NumPyro samples and scores those bare values. Afterwards `unitful` wraps the sampled value in the site unit and returns it to the model. With `rewrap=False`, the model gets the bare value instead.
 
 ```{admonition} In plain words
 Every distribution gets its numbers in one agreed unit per dimension, and the model gets its answers back with units attached.
