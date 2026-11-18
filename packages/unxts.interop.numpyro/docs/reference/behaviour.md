@@ -63,7 +63,7 @@ The site's parameters are read in the site unit, and its value is wrapped in it.
 | `condition`, `substitute` | inside or outside | A `Quantity` on either side. At a site with a dimension, a bare value only outside, read in the unit of `usys`. At a site with no unit, a bare value on either side. |
 | `do` | inside | A `Quantity`. The model gets it in the unit given. |
 | `reparam` | outside |  |
-| `lift` | inside | A prior with `Quantity` parameters. An outside `lift` needs a prior with bare parameters in the unit of `usys`. With a `Quantity` prior, a seeded run works, but `log_density` and MCMC raise a `TypeError`. |
+| `lift` | inside | A prior with `Quantity` parameters. An outside `lift` needs a prior with bare parameters in the unit of `usys`. A `Quantity` prior there is never stripped, so NumPyro fails when it samples or scores the prior. |
 | `scale` | inside or outside | A bare or dimensionless scale. |
 | `block` | inside or outside | The autoguides run the model under `block`. An outside `condition` still applies under it. |
 | `scope` | inside or outside |  |

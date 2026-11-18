@@ -269,7 +269,7 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
     def __init__(
         self,
         fn: Callable[..., Any] | None,
-        usys: u.AbstractUnitSystem,
+        usys: u.AbstractUnitSystem | str,
         *,
         rewrap: bool = True,
         units: Mapping[str, Any] | None = None,

@@ -70,7 +70,7 @@ Every family not listed above has no unit rule. Examples are `LogNormal`, `Impro
 | any `Quantity` with a dimension | `UnitfulError`. |
 | bare, with a {ref}`units= <numpyro-the-units-keyword>` entry | The site has the given dimension. Its parameters are read in the unit of `usys`. |
 
-A censored distribution's `censored=` argument is a boolean mask. NumPyro's constructor rejects a `Quantity` there. {doc}`../guides/give-a-site-units` has a censored example.
+A censored distribution's `censored=` argument is a boolean mask, not a parameter. {doc}`../guides/give-a-site-units` has a censored example.
 
 ## Out of scope
 
