@@ -16,7 +16,7 @@ That is also why `quaxify` is still useful, on a smaller scale. The values a mod
 
 ## Why a unit system
 
-To strip a `Quantity` I have to pick a unit to express it in. `unitful` takes that from `usys`: a length becomes a number of kpc under `galactic` and a number of metres under `si`.
+Stripping a `Quantity` needs a unit to express it in, and `unitful` takes that unit from `usys`: a length becomes a number of kpc under `galactic` and a number of metres under `si`.
 
 The choice changes the numbers NumPyro sees, and so it changes the log density. A density over a length has units of one over that length, so the same data scored in kpc and in metres differ by the log of the number of metres in a kiloparsec.
 
@@ -38,7 +38,7 @@ The choice changes the numbers NumPyro sees, and so it changes the log density. 
 
 ```
 
-The shift is a constant, so the posterior doesn't change. But a log-likelihood value only compares with another computed in the same unit system. I made `usys` a required argument so that this choice is written down in the model's code, rather than taken from whatever unit the data happened to arrive in.
+The shift is a constant, so the posterior doesn't change. But a log-likelihood value only compares with another computed in the same unit system. `usys` is a required argument so that this choice is written down in the model's code, rather than taken from whatever unit the data happened to arrive in.
 
 The unit system is also how `unitful` reads a bare number. When a handler outside `unitful` sets a site to `0.5`, or a family with no unit rule has bare parameters, the number has no unit of its own. `unitful` reads it in the unit of `usys`. That is why a `units=` entry has to name the `usys` unit and not just any unit of the right dimension: under `galactic`, `units={"r": "pc"}` would make bare parameters that are really kpc look like pc.
 
