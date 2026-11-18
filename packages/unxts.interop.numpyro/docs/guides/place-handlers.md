@@ -1,6 +1,6 @@
 # Combine `unitful` with other handlers
 
-Each NumPyro handler goes either inside `unitful` or outside it. Inside, it sees quantities. Outside, it sees {term}`bare values <bare value>`. {ref}`The handler table <numpyro-handlers>` lists every handler, and {doc}`../concepts/handler-order` explains the rule.
+Each NumPyro handler goes either inside `unitful` or outside it. Inside, it sees quantities. Outside, it sees {term}`bare values <bare value>`. Put `trace` outside, as the examples below do. {ref}`The handler table <numpyro-handlers>` lists every handler, and {doc}`../concepts/handler-order` explains the rule.
 
 The examples use this model:
 

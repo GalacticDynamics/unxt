@@ -267,3 +267,33 @@ def test_restore_ignores_non_distributions():
     c = constraints.positive
     _restore(c, c)
     assert c.lower_bound == 0.0
+
+
+def _lift_model():
+    w = numpyro.param("w", Q(1.0, "kpc"), constraint=constraints.positive)
+    numpyro.sample("y", dist.Normal(w, Q(1.0, "kpc")), obs=Q(2.0, "kpc"))
+
+
+def _lift_ref():
+    w = numpyro.param("w", 1.0, constraint=constraints.positive)
+    numpyro.sample("y", dist.Normal(w, 1.0), obs=2.0)
+
+
+_LIFT_REF_PRIOR = {"w": dist.HalfNormal(1.0)}
+
+
+def test_lift_inside_takes_quantity_prior(usys):
+    prior = {"w": dist.HalfNormal(Q(1000.0, "pc"))}
+    m = unitful(handlers.lift(_lift_model, prior=prior), usys)
+    ref = handlers.lift(_lift_ref, prior=_LIFT_REF_PRIOR)
+    got, _ = log_density(m, (), {}, {"w": 1.5})
+    want, _ = log_density(ref, (), {}, {"w": 1.5})
+    np.testing.assert_allclose(got, want, rtol=1e-6)
+
+
+def test_lift_outside_takes_bare_prior(usys):
+    m = handlers.lift(unitful(_lift_model, usys), prior=_LIFT_REF_PRIOR)
+    ref = handlers.lift(_lift_ref, prior=_LIFT_REF_PRIOR)
+    got, _ = log_density(m, (), {}, {"w": 1.5})
+    want, _ = log_density(ref, (), {}, {"w": 1.5})
+    np.testing.assert_allclose(got, want, rtol=1e-6)
