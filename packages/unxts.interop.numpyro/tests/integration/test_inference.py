@@ -447,7 +447,8 @@ def test_scan_bare_start_with_rewrap_names_the_carry():
     M = unitful(walk, u.unitsystems.galactic)
     with pytest.raises(
         UnitfulError,
-        match=r"'z'.*If it is a zero.*scan or cond body.*start value.*rewrap=False",
+        # The body hint follows directly, with no concrete-zero hint before it.
+        match=r"'z'.*give it units\. Inside a scan or cond body.*rewrap=False",
     ):
         log_density(M, (ys,), {}, p)
 

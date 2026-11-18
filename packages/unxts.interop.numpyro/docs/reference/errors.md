@@ -10,7 +10,7 @@
   **Cause.** The bare parameter has no unit, so `unitful` cannot strip it with the others.
   **Fix.** Give it units. A concrete zero or infinity, such as `0.0`, is allowed bare.
 
-The message adds a sentence when the bare parameter is a JAX tracer, such as `jnp.zeros(3)` under `jit`. A tracer is never a concrete zero. Write `0.0` or `np.zeros(3)` instead. Inside a `scan` or `cond` body, a further sentence says that a value passed in bare stays bare.
+The message adds a sentence when the bare parameter is a JAX tracer, such as `jnp.zeros(3)` under `jit`. A tracer is never a concrete zero, so write `0.0` or `np.zeros(3)` instead. Inside a `scan` or `cond` body, the added sentence says instead that a value passed in bare stays bare.
 
 `Site '<name>': <Family> has Quantity parameters, but the parameters that carry the site's dimension (<params>) are bare; give them units.`
 : **When.** A {term}`shape parameter` has a dimension, and every carrying parameter is bare.
@@ -29,7 +29,7 @@ The message adds a sentence when the bare parameter is a JAX tracer, such as `jn
   **Fix.** Give `loc` an angle unit.
 
 `Site '<name>': shape parameter '<p>' has dimension <dimension>; it must be dimensionless.`
-: **When.** A shape parameter, such as `df` of a `StudentT`, has a dimension.
+: **When.** A shape parameter, such as `concentration` of a `Gamma` or a `VonMises`, has a dimension.
   **Fix.** Pass it as a bare number.
 
 `Site '<name>': the unit system has no unit for <dimension>.`

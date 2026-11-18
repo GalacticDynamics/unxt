@@ -90,18 +90,20 @@ def _check_bare(
                 f"{type(unwrap(fn)).__name__} has a unit rule; give its "
                 "parameters units instead of using units=."
             )
-        if isinstance(v, jax.core.Tracer):
+        # Inside a body every bare value is a tracer, even a concrete 0.0
+        # start value, so the concrete-zero hint would not apply there.
+        if isinstance(v, jax.core.Tracer) and in_body:
+            err += (
+                " Inside a scan or cond body, a value passed in bare stays "
+                "bare: pass the scan's start value as a Quantity in the "
+                "usys unit, or the cond's operand as a Quantity, or pass "
+                "rewrap=False and add the units in the body."
+            )
+        elif isinstance(v, jax.core.Tracer):
             err += (
                 " If it is a zero or an infinity, write it as a concrete 0.0 "
                 "or np.zeros(...), not jnp.zeros(...) inside the model."
             )
-            if in_body:
-                err += (
-                    " Inside a scan or cond body, a value passed in bare stays "
-                    "bare: pass the scan's start value as a Quantity in the "
-                    "usys unit, or the cond's operand as a Quantity, or pass "
-                    "rewrap=False and add the units in the body."
-                )
         raise UnitfulError(err)
 
 

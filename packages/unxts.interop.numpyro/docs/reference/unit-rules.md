@@ -58,7 +58,8 @@ Some NumPyro constructors reject a `Quantity` before `unitful` sees it:
 
 | Constructor | Rejects | Pass instead |
 | --- | --- | --- |
-| `StudentT`, `Beta`, `Categorical`, `Dirichlet` | a `Quantity` shape parameter, even a dimensionless one | a bare number, as in `dist.StudentT(3.0, loc, scale)` |
+| `StudentT`, `Beta` | a `Quantity` shape parameter, even a dimensionless one | a bare number, as in `dist.StudentT(3.0, loc, scale)` |
+| `Categorical`, `Dirichlet` | a `Quantity` parameter, when NumPyro validation is on | a bare number |
 | `Pareto` | any `Quantity` parameter | bare parameters in the unit of `usys`, with {ref}`units= <numpyro-the-units-keyword>` |
 
 ## Families with no unit rule
