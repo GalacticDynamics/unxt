@@ -806,11 +806,11 @@ def bessel_i0e_p(x: ABCQ, /, **kwargs: Any) -> ABCQ:
 
     >>> x = u.quantity.Quantity(1.0, "")
     >>> qlax.bessel_i0e(x)
-    Quantity(Array(0.46575963, dtype=float32...), unit='')
+    Quantity(Array(0.465759..., dtype=float32...), unit='')
 
     >>> x = u.Q(1.0, "")
     >>> qlax.bessel_i0e(x)
-    Quantity(Array(0.46575963, dtype=float32...), unit='')
+    Quantity(Array(0.465759..., dtype=float32...), unit='')
 
     """
     return _as_dimensionless_like(x, lax.bessel_i0e_p.bind(ustrip(one, x), **kwargs))
@@ -1487,11 +1487,11 @@ def cosh_p_aq(x: ABCQ) -> ABCQ:
 
     >>> q = u.quantity.Quantity(1, "rad")
     >>> jnp.cosh(q)
-    Quantity(Array(1.5430806, dtype=float32...), unit='')
+    Quantity(Array(1.54308..., dtype=float32...), unit='')
 
     >>> q = u.Q(1, "")
     >>> jnp.cosh(q)
-    Quantity(Array(1.5430806, dtype=float32...), unit='')
+    Quantity(Array(1.54308..., dtype=float32...), unit='')
 
     """
     return _as_dimensionless_like(x, lax.cosh(_to_val_rad_or_one(x)))
@@ -1885,11 +1885,11 @@ def digamma_p(x: ABCQ, /) -> ABCQ:
 
     >>> q = u.quantity.Quantity(1.0, "")
     >>> lax.digamma(q)
-    Quantity(Array(-0.5772154, dtype=float32...), unit='')
+    Quantity(Array(-0.57721..., dtype=float32...), unit='')
 
     >>> q = u.Q(1.0, "")
     >>> lax.digamma(q)
-    Quantity(Array(-0.5772154, dtype=float32...), unit='')
+    Quantity(Array(-0.57721..., dtype=float32...), unit='')
 
     """
     return _as_dimensionless_like(x, lax.digamma(ustrip(one, x)))
