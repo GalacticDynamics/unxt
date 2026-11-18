@@ -63,8 +63,8 @@ The message adds a sentence when `unitful` is used as a `with` context. Inferenc
 : **When.** A handler outside `unitful` sets a `Quantity` with a dimension at a site whose distribution has bare parameters. For a `param` site, a callable init that returns a `Quantity` raises it too, and the message says so. An `obs=` value or an inner handler's value raises the "value has dimension" message instead.
   **Fix.** Give the distribution `Quantity` parameters, or set a bare value.
 
-`Site '<name>': a Quantity value set outside unitful reached the site unstripped. Put the handler that set it inside: unitful(handlers.condition(model, ...), usys).`
-: **When.** A handler outside `unitful` set a `Quantity` value that `unitful` could not strip.
+`Site '<name>': a Quantity value set outside unitful reached the site unstripped. Put the handler that set it inside unitful, as unitful(handler(model, ...), usys).`
+: **When.** A handler outside `unitful` set a `Quantity` value after the site ran, so `unitful` could not strip it. The built-in handlers do not do this; a custom handler can.
   **Fix.** Move that handler inside `unitful`.
 
 `Site '<name>': <what> has dimension <dimension>, expected dimensionless.`

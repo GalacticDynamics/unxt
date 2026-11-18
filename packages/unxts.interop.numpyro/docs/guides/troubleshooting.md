@@ -13,7 +13,7 @@ In a `jax.numpy` call inside the model, such as `sqrt`
 : **Fix.** Use `quaxed.numpy`, or wrap the function with `quax.quaxify` ({doc}`use-jnp-code`).
 
 In `broadcast_to` or `reshape`, while building a `StudentT`, `Beta`, `Dirichlet` or `Pareto`
-: **Cause.** NumPyro's constructor rejects a `Quantity` parameter. A `Categorical` raises `AttributeError: 'Quantity' object has no attribute 'sum'` instead.
+: **Cause.** NumPyro's constructor rejects a `Quantity` parameter. A `Categorical` with `probs=` raises `AttributeError: 'Quantity' object has no attribute 'sum'` instead.
   **Fix.** Pass the parameter as a bare number ({doc}`../reference/unit-rules`).
 
 In `take`, from `numpyro.subsample`

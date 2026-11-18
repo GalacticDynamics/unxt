@@ -98,9 +98,9 @@ def _check_bare(
             if in_body:
                 err += (
                     " Inside a scan or cond body, a value passed in bare stays "
-                    "bare: pass the scan's start value or the cond's operand as "
-                    "a Quantity in the usys unit, or pass rewrap=False and add "
-                    "the units in the body."
+                    "bare: pass the scan's start value as a Quantity in the "
+                    "usys unit, or the cond's operand as a Quantity, or pass "
+                    "rewrap=False and add the units in the body."
                 )
         raise UnitfulError(err)
 
@@ -675,7 +675,7 @@ class unitful(Messenger):  # noqa: N801  (NumPyro handler naming)
             err = (
                 f"Site '{msg['name']}': a Quantity value set outside unitful "
                 "reached the site unstripped. Put the handler that set it "
-                "inside: unitful(handlers.condition(model, ...), usys)."
+                "inside unitful, as unitful(handler(model, ...), usys)."
             )
             raise UnitfulError(err)
         if unit is not None and self.rewrap:
