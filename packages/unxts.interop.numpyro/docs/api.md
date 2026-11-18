@@ -1,6 +1,6 @@
 # API
 
-For task-shaped guidance see [How to use unitful in a model](guide).
+The behaviour these objects implement is described in [Behaviour of `unitful`](reference) and [Distribution unit rules](unit-rules).
 
 ```{eval-rst}
 .. currentmodule:: unxts.interop.numpyro

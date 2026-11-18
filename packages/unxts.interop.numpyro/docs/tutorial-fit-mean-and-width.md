@@ -1,6 +1,6 @@
 # Fit a mean and a width to data with units
 
-In this tutorial I fit a mean and a width to a set of distances measured in kiloparsecs. The data and the priors are `unxt` quantities, I run NUTS with the usual NumPyro calls, and at the end I put the units back on the posterior samples. You need `unxt`, `unxts.interop.numpyro` and `numpyro` installed.
+In this tutorial we fit a mean and a width to 200 distances measured in kiloparsecs. We write the model with `unxt` quantities, run NUTS on it with the usual NumPyro calls, and get the posterior back in units. You need `unxt[interop-numpyro]` installed.
 
 ## Set up
 
@@ -16,7 +16,7 @@ In this tutorial I fit a mean and a width to a set of distances measured in kilo
 
 ## Make some data
 
-I draw 200 distances around 1 kpc with a spread of 0.2 kpc, and wrap them as a `Quantity`.
+We draw 200 distances around 1 kpc with a spread of 0.2 kpc, and make them a `Quantity`:
 
 ```python
 >>> noise = jax.random.normal(jax.random.PRNGKey(0), (200,))
@@ -28,7 +28,7 @@ I draw 200 distances around 1 kpc with a spread of 0.2 kpc, and wrap them as a `
 
 ## Write the model
 
-The model has a mean `m`, a width `s` and one observed site `x`. The prior on `m` is a normal distribution with a mean of 0 kpc and a width of 3 kpc, and the prior on `s` is a half-normal with a scale of 1 kpc. Both take `Quantity` parameters, and the observed value is the `Quantity` I made above.
+The model has a mean `m`, a width `s` and the observed distances `x`. The priors are a normal distribution centred on 0 kpc with a width of 3 kpc for `m`, and a half-normal with a scale of 1 kpc for `s`:
 
 ```python
 >>> def model(x=None):
@@ -39,20 +39,22 @@ The model has a mean `m`, a width `s` and one observed site `x`. The prior on `m
 
 ```
 
-Inside the model `m` and `s` are quantities in kpc, so `dist.Normal(m, s)` has the units it needs without any further work.
+This is an ordinary NumPyro model, except that every parameter and the data are quantities. Notice that `m` and `s` are used directly as the parameters of `dist.Normal(m, s)`: inside the model they are quantities in kpc.
 
 ## Wrap it in `unitful`
 
-`unitful` takes the model and a unit system. At each site it strips the quantities into that unit system, so NumPyro sees plain numbers, and it hands the sampled value back to the model as a quantity.
+We wrap the model in `unitful` and give it the `galactic` unit system:
 
 ```python
 >>> M = unitful(model, u.unitsystems.galactic)
 
 ```
 
+`M` is the model NumPyro will run. At each site it turns the quantities into plain numbers in `galactic` units, and gives the sampled values back to the model as quantities.
+
 ## Run NUTS
 
-I give NUTS the wrapped model and pass the data as the model argument, as I would for any NumPyro model.
+We pass `M` to NUTS and the data to `mcmc.run`, as for any NumPyro model:
 
 ```python
 >>> mcmc = MCMC(NUTS(M), num_warmup=200, num_samples=200, progress_bar=False)
@@ -63,13 +65,11 @@ I give NUTS the wrapped model and pass the data as the model argument, as I woul
 
 ```
 
-The samples are plain arrays, which are the numbers NumPyro worked with. They are in the galactic unit of length, which is kpc.
-
-This runs one chain. For several chains on a single CPU device, NumPyro runs them one after the other, and that fails when the data argument is a `Quantity` until a NumPyro release includes [pyro-ppl/numpyro#2436](https://github.com/pyro-ppl/numpyro/pull/2436). Until then I pass `chain_method="vectorized"` to `MCMC`, or I close over the data with `functools.partial(model, x)` and call `mcmc.run` without it. The [guide](guide) lists this with the other limits.
+These samples are plain arrays, the numbers NumPyro worked with. They are in kpc, the `galactic` unit of length, but nothing on them says so yet.
 
 ## Put the units back
 
-`attach_units` takes the samples and the handler. The handler remembers the unit of every site it saw while the model ran, so it can wrap each array in the right one.
+`attach_units` takes the samples and the handler. `M` recorded the unit of every site while the model ran, so it can wrap each array in the right one:
 
 ```python
 >>> samples = attach_units(samples, M)
@@ -80,7 +80,7 @@ Unit("kpc")
 
 ```
 
-The posterior mean of `m` is close to 1 kpc, which is the value I put into the data. I can read the width in another unit by asking for it.
+The posterior mean of `m` is close to 1 kpc, the value we put into the data. Because `s` is now a `Quantity`, we can read it in parsecs:
 
 ```python
 >>> 150.0 < float(u.ustrip("pc", samples["s"].mean())) < 250.0
@@ -88,8 +88,14 @@ True
 
 ```
 
-The width comes out between 150 and 250 pc, which is the 0.2 kpc I used for the spread.
+The width is between 150 and 250 pc, close to the 0.2 kpc spread we drew the data with.
 
-## Where to go next
+## What we did
 
-The [guide](guide) covers how `unitful` combines with other NumPyro handlers and what to do with `scan` and subsampling.
+We wrote a NumPyro model in units, wrapped it in `unitful` with a unit system, sampled it with NUTS, and put the units back on the posterior with `attach_units`.
+
+## Next steps
+
+- [How to run MCMC on `Quantity` data](how-to-run-mcmc) covers several chains and initial values.
+- [How to fit a model with SVI](how-to-fit-with-svi) does the same fit with variational inference.
+- [About `unitful`](explanation) explains why the handler strips units into a unit system.
