@@ -65,7 +65,7 @@ The site's parameters are read in the site unit, and its value is wrapped in it.
 | `reparam` | outside |  |
 | `lift` | inside | A prior with `Quantity` parameters. An outside `lift` needs a prior with bare parameters in the unit of `usys`. With a `Quantity` prior, scoring fails, so `log_density` and MCMC raise a `TypeError`. Sampling fails for some families, such as `HalfNormal` and `Uniform`, and works for others. |
 | `scale` | inside or outside | A bare or dimensionless scale. |
-| `block` | inside or outside | The autoguides run the model under `block`. An outside `condition` still applies under it. |
+| `block` | outside | The autoguides run the model under `block`, and an outside `condition` still applies under it. A `block` inside `unitful` hides its sites from `unitful`, as from any outer handler. Those sites are not stripped, so they need bare parameters. |
 | `scope` | inside or outside |  |
 | `seed` | anywhere |  |
 | `trace` | outside | An inner `trace` records each site's stripped distribution next to its rewrapped `Quantity` value. That site cannot be scored. |
@@ -103,7 +103,7 @@ The body of a `numpyro.contrib.control_flow.scan` and each branch of a `cond` ru
 For a custom guide:
 
 - The model reads replayed values in its own `usys`. A guide site with bare parameters has no unit, and its values are read in the unit of `usys`.
-- A guide with `Quantity` parameters and no handler fails inside NumPyro with a JAX `TypeError`, such as `log requires ndarray or scalar arguments`. SVI computes the guide's log density before the model runs.
+- A guide with `Quantity` parameters and no handler fails inside NumPyro, because nothing strips its parameters. The error depends on the family. A `HalfNormal` site raises a `UnitConversionError` when it samples. A `Delta` site raises `TypeError: log requires ndarray or scalar arguments` when it scores.
 - A `VonMises` model site is in radians under any `usys`. Its guide site must then be a `VonMises` too, unless `usys` measures angles in radians.
 
 `attach_units(samples, handler)` wraps each site's array in the site unit `handler` recorded. Keys the handler never saw, such as `_sig_log_det`, pass through, and so do values that are already quantities. Each array becomes a plain `Quantity`, also at a site that gave the model a `u.Angle`. `attach_units` cannot check that the samples came from `handler`. A handler with another `usys` puts the wrong units on them, with no error.

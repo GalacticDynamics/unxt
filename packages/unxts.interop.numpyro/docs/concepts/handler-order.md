@@ -11,6 +11,7 @@ That one fact decides where each handler goes.
 - `do` sends a copy of the site through the stack a second time. Outside `unitful`, that copy has already been stripped. `unitful` refuses to strip it twice, so `do` goes inside.
 - `lift` turns a `param` site into a sample site with a prior. Outside `unitful`, this happens after `unitful` has handled the site as a `param`. The prior's parameters are never stripped. NumPyro then cannot score the prior unless its parameters are bare.
 - `trace` records each message on the way back. Inside `unitful`, it would record the stripped distribution next to the rewrapped value, which do not match. It goes outside.
+- `block` hides its sites from every handler outside it. Inside `unitful`, it hides them from `unitful` too, so their parameters are never stripped. It goes outside, or around sites with bare parameters only.
 
 A `Quantity` set by a handler outside `unitful` still reaches NumPyro as a bare value. `unitful` places an extra step at the outer end of the stack, which strips it.
 

@@ -12,7 +12,6 @@
 | `Exponential`, `Gamma` | `rate` | −1 |
 | `Delta` | `v` | 1 |
 | `VonMises` | `loc` | 1 |
-| `Chi2` | none | — |
 
 A truncated distribution adds its bounds to the rule of its base distribution:
 
@@ -25,6 +24,8 @@ A truncated distribution adds its bounds to the rule of its base distribution:
 `TruncatedNormal(loc, scale, high=u.Q(2.0, "kpc"))` has no `low`, so it is a right truncation.
 
 A `VonMises` site must be an angle. Its {term}`site unit` is always radians.
+
+`Chi2` is a `Gamma`, but its only parameter, `df`, is a {term}`shape parameter`. It has no carrying parameter, so it has no unit rule.
 
 ## Wrappers and mixtures
 

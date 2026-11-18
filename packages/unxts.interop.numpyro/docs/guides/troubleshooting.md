@@ -23,7 +23,7 @@ In `where`, at a site with `obs_mask=`
 : **Fix.** Pass `rewrap=False` ({doc}`mask-and-subsample`).
 
 In `log`, during SVI
-: **Cause.** The guide has `Quantity` parameters but no `unitful` handler.
+: **Cause.** The guide has `Quantity` parameters but no `unitful` handler. A `UnitConversionError` is the other common symptom of this.
   **Fix.** Wrap the guide as `unitful(guide, M.usys)` ({doc}`fit-with-svi`).
 <!-- prettier-ignore-end -->
 
@@ -38,13 +38,13 @@ In `log`, during SVI
 : **Cause.** The predicate is a boolean `Quantity`, from comparing two quantities.
   **Fix.** Strip the quantities before comparing them ({doc}`use-scan-and-cond`).
 
-A JAX error about the carry structure, from a `scan`
+A JAX error about the carry structure, or `TypeError: Cannot convert 'Quantity' to a value`, from a `scan`
 : **Cause.** The start value does not match what the step returns. With `rewrap=True`, it is in a unit other than the `usys` unit. With `rewrap=False`, it is a `Quantity` and not bare.
   **Fix.** Give the start value as the step returns it: a `Quantity` in the `usys` unit, or bare with `rewrap=False` ({doc}`use-scan-and-cond`).
 
-`UnitConversionError`, such as `'kpc' (length) and '' (dimensionless) are not convertible`, with `reparam`
-: **Cause.** `reparam` is inside `unitful`.
-  **Fix.** Move `reparam` outside `unitful` ({doc}`place-handlers`).
+`UnitConversionError`, such as `'kpc' (length) and '' (dimensionless) are not convertible`
+: **Cause.** A distribution with `Quantity` parameters ran where `unitful` could not strip it. There are four usual causes.
+  **Fix.** If `reparam` is inside `unitful`, move it outside ({doc}`place-handlers`). If an SVI guide has no handler, wrap it as `unitful(guide, M.usys)` ({doc}`fit-with-svi`). If a `block` inside `unitful` hides the site, move the `block` outside. If you score a site recorded by a `trace` inside `unitful`, move the `trace` outside.
 
 A `TypeError` at the start of MCMC, with `init_to_value`
 : **Cause.** NumPyro transformed a `Quantity` initial value outside any handler.

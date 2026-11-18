@@ -6,6 +6,7 @@ import numpy as np
 import numpyro
 import numpyro.distributions as dist
 import pytest
+from astropy.units import UnitConversionError
 from numpyro import handlers
 from numpyro.distributions import constraints
 from numpyro.infer import MCMC, NUTS, SVI, Trace_ELBO
@@ -297,3 +298,19 @@ def test_lift_outside_takes_bare_prior(usys):
     got, _ = log_density(m, (), {}, {"w": 1.5})
     want, _ = log_density(ref, (), {}, {"w": 1.5})
     np.testing.assert_allclose(got, want, rtol=1e-6)
+
+
+def test_block_inside_hides_sites_from_unitful(usys):
+    """An inner block hides its sites from unitful, as from any outer handler."""
+
+    def model(d):
+        with handlers.block(hide=["h"]):
+            return numpyro.sample("h", d)
+
+    bare = unitful(model, usys)
+    assert not isinstance(
+        handlers.seed(bare, 0)(dist.Normal(0.0, 1.0)), u.quantity.AbstractQuantity
+    )
+    assert "h" not in bare.site_units
+    with pytest.raises(UnitConversionError):
+        handlers.seed(unitful(model, usys), 0)(dist.HalfNormal(Q(1.0, "kpc")))

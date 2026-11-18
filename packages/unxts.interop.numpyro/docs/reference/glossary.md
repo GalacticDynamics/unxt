@@ -18,7 +18,7 @@ observed site
   A {term}`sample site` with an `obs=` value. NumPyro scores the value instead of sampling it.
 
 replay
-  Running a model with values taken from an earlier trace. SVI replays a guide's samples into the model, and `Predictive` replays posterior samples.
+  Running a model with values taken from an earlier trace. SVI replays a guide's samples into the model.
 
 sample site
   A call to `numpyro.sample` in a model. Each sample site has a name, a distribution and a value.
