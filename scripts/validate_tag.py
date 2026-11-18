@@ -156,7 +156,8 @@ def main() -> int:
         logger.error(
             "  PACKAGE: Package name ('unxt', 'unxt-api', 'unxt-hypothesis', "
             "'unxts-api', 'unxts-hypothesis', 'unxts-interop-gala', "
-            "'unxts-interop-matplotlib', 'unxts-interop-xarray')"
+            "'unxts-interop-matplotlib', 'unxts-interop-numpyro', "
+            "'unxts-interop-xarray')"
         )
         sys.exit(1)
 

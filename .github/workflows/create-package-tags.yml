@@ -99,7 +99,7 @@ jobs:
           COORDINATOR_SHA=$(git rev-list -n 1 "$TAG")
           echo "Coordinator tag $TAG points to commit: $COORDINATOR_SHA"
 
-          PACKAGES=("unxt" "unxt-api" "unxt-hypothesis" "unxts-api" "unxts-hypothesis" "unxts-interop-gala" "unxts-interop-matplotlib" "unxts-interop-xarray" "unxts-parametric" "unxts-linalg")
+          PACKAGES=("unxt" "unxt-api" "unxt-hypothesis" "unxts-api" "unxts-hypothesis" "unxts-interop-gala" "unxts-interop-matplotlib" "unxts-interop-numpyro" "unxts-interop-xarray" "unxts-parametric" "unxts-linalg")
           TAGS_TO_PUSH=()
 
           for PACKAGE in "${PACKAGES[@]}"; do

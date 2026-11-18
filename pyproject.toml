@@ -63,11 +63,12 @@ all = ["unxt[backend-astropy,workspace]"]
 backend-astropy = ["astropy>=7.1"]
 interop-gala = ["unxts.interop.gala"]
 interop-mpl = ["unxts.interop.matplotlib"]
+interop-numpyro = ["unxts.interop.numpyro"]
 interop-xarray = ["unxts.interop.xarray"]
 linalg = ["unxts.linalg"]
 parametric = ["unxts.parametric"]
 workspace = [
-  "unxt[interop-gala,interop-mpl,interop-xarray]",
+  "unxt[interop-gala,interop-mpl,interop-numpyro,interop-xarray]",
   "unxts.api",
   "unxts.hypothesis",
   "unxts.linalg",
@@ -153,6 +154,7 @@ workspace = [
   "unxts.hypothesis",
   "unxts.interop.gala",
   "unxts.interop.matplotlib",
+  "unxts.interop.numpyro",
   "unxts.interop.xarray",
   "unxts.linalg",
   "unxts.parametric",
@@ -169,7 +171,7 @@ version_tuple = {version_tuple!r}
 version.source = "vcs"
 
 # Without an explicit sdist target, hatchling bundles everything tracked by git
-# -- including all nine separately-published sibling packages under ``packages/``,
+# -- including all ten separately-published sibling packages under ``packages/``,
 # ``paper/``, ``.github/`` and ``.claude/``. Keep the ``unxt`` sdist to this
 # project's own files by excluding the monorepo scaffolding. ``scripts/`` holds
 # release tooling; its only test (``test_validate_tag.py``) is excluded alongside
@@ -409,6 +411,8 @@ namespace-packages = [
   "packages/unxts.interop.gala/src/unxts/interop",
   "packages/unxts.interop.matplotlib/src/unxts",
   "packages/unxts.interop.matplotlib/src/unxts/interop",
+  "packages/unxts.interop.numpyro/src/unxts",
+  "packages/unxts.interop.numpyro/src/unxts/interop",
   "packages/unxts.interop.xarray/src/unxts",
   "packages/unxts.interop.xarray/src/unxts/interop",
   "packages/unxts.linalg/src/unxts",
@@ -554,6 +558,7 @@ unxt-hypothesis            = { workspace = true }
 "unxts.hypothesis"         = { workspace = true }
 "unxts.interop.gala"       = { workspace = true }
 "unxts.interop.matplotlib" = { workspace = true }
+"unxts.interop.numpyro"    = { workspace = true }
 "unxts.interop.xarray"     = { workspace = true }
 "unxts.linalg"             = { workspace = true }
 "unxts.parametric"         = { workspace = true }

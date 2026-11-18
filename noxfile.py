@@ -37,6 +37,7 @@ class PackageEnum(StrEnum):
     hypothesis = auto()
     interop_gala = auto()
     interop_matplotlib = auto()
+    interop_numpyro = auto()
     interop_xarray = auto()
     linalg = auto()
     parametric = auto()
@@ -137,6 +138,8 @@ def _parse_pylint_paths(package: PackageEnum, /) -> list[str]:  # noqa: C901
             return ["packages/unxts.interop.gala/src"]
         case PackageEnum.interop_matplotlib:
             return ["packages/unxts.interop.matplotlib/src"]
+        case PackageEnum.interop_numpyro:
+            return ["packages/unxts.interop.numpyro/src"]
         case PackageEnum.interop_xarray:
             return ["packages/unxts.interop.xarray/src"]
         case PackageEnum.linalg:
@@ -187,6 +190,8 @@ def _parse_pytest_paths(package: PackageEnum, /) -> list[str]:  # noqa: C901
             return ["packages/unxts.interop.gala/tests"]
         case PackageEnum.interop_matplotlib:
             return ["packages/unxts.interop.matplotlib/tests"]
+        case PackageEnum.interop_numpyro:
+            return ["packages/unxts.interop.numpyro/tests"]
         case PackageEnum.interop_xarray:
             return ["packages/unxts.interop.xarray/tests"]
         case PackageEnum.linalg:

@@ -492,6 +492,51 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  # unxts-interop-numpyro package tests
+  tests-unxts-interop-numpyro:
+    name:
+      unxts-interop-numpyro Python ${{ matrix.python-version }} on ${{
+      matrix.runs-on }}
+    runs-on: ${{ matrix.runs-on }}
+    needs: [setup, format, smoke]
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, '🧩 unxts-interop-numpyro') ||
+      startsWith(github.head_ref, 'unxts-interop-numpyro/')
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
+        runs-on: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          uv sync --no-default-groups --group test --locked --package unxts-interop-numpyro
+
+      - name: Test package
+        run: |
+          # src doctests: leaf dir `unxts/interop/numpyro` shadows the installed
+          # `numpyro`, so sybil mis-imports it; use namespace-aware --doctest-modules.
+          # Both invocations measure coverage (the second appends), so the
+          # doctest-only lines are not reported as uncovered.
+          uv run --frozen --package unxts-interop-numpyro pytest packages/unxts.interop.numpyro/src --doctest-modules -o addopts="--import-mode=importlib" -o consider_namespace_packages=true -o doctest_optionflags="ELLIPSIS NORMALIZE_WHITESPACE" --cov=packages/unxts.interop.numpyro/src --cov-report=
+          uv run --frozen --package unxts-interop-numpyro pytest packages/unxts.interop.numpyro/tests --cov=packages/unxts.interop.numpyro/src --cov-append --cov-report=xml --cov-report=term -n logical --dist=loadfile
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   # unxts-interop-xarray package tests
   tests-unxts-interop-xarray:
     name:
@@ -763,6 +808,7 @@ jobs:
         tests-unxts-hypothesis,
         tests-unxts-interop-gala,
         tests-unxts-interop-matplotlib,
+        tests-unxts-interop-numpyro,
         tests-unxts-interop-xarray,
         tests-unxts-parametric,
         tests-unxts-linalg,
@@ -783,5 +829,6 @@ jobs:
           allowed-skips:
             tests-unxt-api, tests-unxt-hypothesis, tests-unxts-api,
             tests-unxts-hypothesis, tests-unxts-interop-gala,
-            tests-unxts-interop-matplotlib, tests-unxts-interop-xarray,
-            tests-unxts-linalg, tests-unxts-parametric
+            tests-unxts-interop-matplotlib, tests-unxts-interop-numpyro,
+            tests-unxts-interop-xarray, tests-unxts-linalg,
+            tests-unxts-parametric

@@ -71,6 +71,14 @@
           - ".github/workflows/cd-publish-unxts-interop-matplotlib.yml"
           - ".github/workflows/cd-pr-unxts-interop-matplotlib.yml"
 
+"🧩 unxts-interop-numpyro":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/unxts.interop.numpyro/**"
+          - ".github/workflows/cd-unxts-interop-numpyro.yml"
+          - ".github/workflows/cd-publish-unxts-interop-numpyro.yml"
+          - ".github/workflows/cd-pr-unxts-interop-numpyro.yml"
+
 "🧩 unxts-interop-xarray":
   - changed-files:
       - any-glob-to-any-file:

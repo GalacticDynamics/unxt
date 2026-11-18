@@ -18,6 +18,7 @@ class OptDeps(OptionalDependencyEnum):  # type: ignore[misc]  # pylint: disable=
 
     ASTROPY = auto()
     UNXTS_INTEROP_MATPLOTLIB = auto()
+    UNXTS_INTEROP_NUMPYRO = auto()
     UNXTS_INTEROP_XARRAY = auto()
 
     #: The gala interop extra is only usable with an importable gala backend:

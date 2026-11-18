@@ -28,6 +28,7 @@ unxts.parametric <packages/unxts.parametric/index>
 unxts.linalg <packages/unxts.linalg/index>
 unxts.interop.gala <packages/unxts.interop.gala/index>
 unxts.interop.matplotlib <packages/unxts.interop.matplotlib/index>
+unxts.interop.numpyro <packages/unxts.interop.numpyro/index>
 unxts.interop.xarray <packages/unxts.interop.xarray/index>
 ```
 
@@ -95,7 +96,7 @@ surprise people.
 
 <!-- prettier-ignore-end -->
 
-Looking for **`ParametricQuantity`**, unitful **linear algebra**, `hypothesis` strategies, or interop with `gala`, `matplotlib` or `xarray`? Those live in the separate `unxts.*` packages, listed under **Packages** in the sidebar.
+Looking for **`ParametricQuantity`**, unitful **linear algebra**, `hypothesis` strategies, or interop with `gala`, `matplotlib`, `numpyro` or `xarray`? Those live in the separate `unxts.*` packages, listed under **Packages** in the sidebar.
 
 Upgrading from v1? See {doc}`how-to/migrate-to-v2`.
 

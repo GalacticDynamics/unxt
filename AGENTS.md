@@ -25,7 +25,7 @@ Root `unxt` (`src/unxt/`) plus a `uv` workspace at `packages/*`. Two package fam
 
 | Family | Packages | Status |
 | --- | --- | --- |
-| **canonical** (dotted, `unxts.*`) | `unxts.api`, `unxts.hypothesis`, `unxts.interop.gala`, `unxts.interop.matplotlib`, `unxts.interop.xarray`, `unxts.linalg`, `unxts.parametric` | current, since v2.0.0 |
+| **canonical** (dotted, `unxts.*`) | `unxts.api`, `unxts.hypothesis`, `unxts.interop.gala`, `unxts.interop.matplotlib`, `unxts.interop.numpyro`, `unxts.interop.xarray`, `unxts.linalg`, `unxts.parametric` | current, since v2.0.0 |
 | **legacy shims** (hyphenated, `unxt-*`) | `unxt-api`, `unxt-hypothesis` | back-compat re-exports of `unxts.api`/`unxts.hypothesis`; new code should depend on the canonical package |
 
 New functionality goes in a canonical `unxts.*` package, never in a shim. Release tags are hyphenated even for dotted packages (`unxts.api` → tag `unxts-api-vX.Y.Z`) — see [RELEASING.md](RELEASING.md).
@@ -39,6 +39,7 @@ New functionality goes in a canonical `unxts.*` package, never in a shim. Releas
 | `unxts.linalg` | `QuantityMatrix`/`QM`, `UnitsMatrix` — heterogeneous-unit linear algebra |
 | `unxts.interop.gala` | `gala.units.UnitSystem` ↔ unxt `UnitSystem`, via `plum.conversion_method` |
 | `unxts.interop.matplotlib` | `matplotlib.units.ConversionInterface` for plotting quantities |
+| `unxts.interop.numpyro` | `unitful` NumPyro handler: Quantity parameters, observations and latents in NumPyro models |
 | `unxts.interop.xarray` | xarray accessors/conversion for quantities |
 
 ## Architecture
