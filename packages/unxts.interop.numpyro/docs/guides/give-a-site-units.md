@@ -27,7 +27,7 @@ Unit("kpc")
 
 ```
 
-The value comes back in kpc, the `galactic` unit of length. The bare `loc` and `scale` are read in kpc too.
+The value comes back in kpc, the `galactic` unit of length. The bare `loc` and `scale` describe the logarithm of the value in kpc.
 
 Instead of the dimension, you can pass the `usys` unit itself, `units={"r": "kpc"}`. Any other unit of that dimension raises:
 

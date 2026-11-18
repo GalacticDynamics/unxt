@@ -446,9 +446,24 @@ def test_scan_bare_start_with_rewrap_names_the_carry():
     p = {"s": jnp.asarray(0.5), "z": jnp.array([0.1, 0.2, 0.3])}
     M = unitful(walk, u.unitsystems.galactic)
     with pytest.raises(
-        UnitfulError, match=r"'z'.*If it is a zero.*carry.*rewrap=False"
+        UnitfulError,
+        match=r"'z'.*If it is a zero.*scan or cond body.*start value.*rewrap=False",
     ):
         log_density(M, (ys,), {}, p)
+
+
+def test_cond_bare_operand_names_the_operand():
+    """A bare cond operand gets the operand hint, not only the scan one."""
+
+    def pick(flag):
+        def branch(x0):
+            return numpyro.sample("d", dist.Normal(x0, Q(1.0, "kpc")))
+
+        return cond(flag, branch, branch, jnp.asarray(0.5))
+
+    M = unitful(pick, u.unitsystems.galactic)
+    with pytest.raises(UnitfulError, match=r"'d'.*the cond's operand"):
+        log_density(M, (True,), {}, {"d": jnp.asarray(0.1)})
 
 
 def _guide_myr(x=None):

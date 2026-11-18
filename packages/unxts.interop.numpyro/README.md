@@ -2,7 +2,7 @@
 
 NumPyro integration for [unxt](https://github.com/GalacticDynamics/unxt).
 
-The `unitful` handler lets NumPyro models take `unxt` quantities. It strips the units into a unit system you choose before NumPyro sees them, gives the sampled values back to the model as quantities, and `attach_units` puts the units on the posterior samples.
+The `unitful` handler lets NumPyro models take `unxt` quantities. It converts them to plain numbers in a unit system you choose before NumPyro sees them. The model gets its sampled values back as quantities, and `attach_units` puts the units on the posterior samples.
 
 ## Install
 

@@ -59,7 +59,7 @@ If a `param` constraint has `Quantity` bounds, give the init value as a `Quantit
 
 ## Read the results with units
 
-For the fitted parameters, pass the guide's handler to `attach_units`:
+Pass `attach_units` the handler that ran the sites. The guide's handler ran the fitted parameters:
 
 ```python
 >>> attach_units(svi.get_params(res.state), G)["m_loc"].unit
@@ -67,11 +67,11 @@ Unit("kpc")
 
 ```
 
-For posterior samples drawn from the guide, pass the model's handler:
+`Predictive(G, ...)` runs the guide, so its samples go with the guide's handler too:
 
 ```python
 >>> post = Predictive(G, params=res.params, num_samples=10)(jax.random.PRNGKey(1))
->>> attach_units(post, M)["m"].unit
+>>> attach_units(post, G)["m"].unit
 Unit("kpc")
 
 ```

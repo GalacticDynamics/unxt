@@ -97,9 +97,10 @@ def _check_bare(
             )
             if in_body:
                 err += (
-                    " Inside a scan, a carry that starts bare stays bare: give "
-                    "the start value as a Quantity in the usys unit, or pass "
-                    "rewrap=False and add the units in the body."
+                    " Inside a scan or cond body, a value passed in bare stays "
+                    "bare: pass the scan's start value or the cond's operand as "
+                    "a Quantity in the usys unit, or pass rewrap=False and add "
+                    "the units in the body."
                 )
         raise UnitfulError(err)
 
