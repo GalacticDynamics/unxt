@@ -81,9 +81,10 @@ def precommit(s: nox.Session, /) -> None:
     #
     # `graphify-update` -- the committed code graph is not byte-reproducible
     # across operating systems. The same source, same `graphifyy` pin and same
-    # `PYTHONHASHSEED=0` give 9674 edges on macOS and 9671 on Linux (identical
-    # nodes and communities; the three that differ are `__init__.py` re-export
-    # edges graphify classifies either way). So a rebuild in this session would
+    # `PYTHONHASHSEED=0` give 9674 edges on macOS and 9671 on Linux. Node ids
+    # and clustering are identical -- it is edge extraction that differs: Linux
+    # omits three `imports_from` edges, at `src/unxt/quantity.py` L152 (twice)
+    # and `src/unxt/_src/experimental.py` L35. So a rebuild in this session would
     # fail for everyone not on the platform that built the committed graph --
     # permanently, and for CI, which runs this session. The commit hook keeps a
     # developer's graph current, and `graphify.yml` is the drift check.
