@@ -27,28 +27,43 @@ Once you open a pull request (which should be opened against the `main` branch, 
 
 ## Exploring the Codebase
 
-`unxt` is wired up for [graphify](https://github.com/Graphify-Labs/graphify), which turns the source into a queryable knowledge graph. Extraction is local tree-sitter AST parsing: no LLM, and nothing leaves your machine. Querying the graph is usually cheaper and more accurate than grepping.
+`unxt` is wired up for [graphify](https://github.com/Graphify-Labs/graphify), which turns the source into a queryable knowledge graph: every symbol, the links between them, the architectural hubs, and which subsystem each symbol belongs to. Extraction is local tree-sitter AST parsing: no LLM, and nothing leaves your machine. Every edge is tagged `EXTRACTED` (explicit in the source) or `INFERRED` (resolved by graphify), so you can tell what was read directly from what was guessed. Querying the graph is usually cheaper and more accurate than grepping. AI assistants are told to query it before their first grep (see [AGENTS.md](https://github.com/GalacticDynamics/unxt/blob/main/AGENTS.md)), and you can too.
+
+The graph itself — `graphify-out/graph.json` — is **committed**, so every clone has it with no build step. The rest of `graphify-out/` (`graph.html`, the clickable graph; `GRAPH_REPORT.md`, with hubs, communities and suggested questions; some caches) is generated locally and gitignored.
+
+### One-time setup
+
+Install the pinned release and register the merge driver, so two branches that both changed the graph union-merge instead of conflicting. Git will not take a merge-driver command from a tracked file, so this cannot be committed for you — it is once per clone:
 
 ```bash
-nox -s graph                 # build graphify-out/
-nox -s graph -- --no-label   # ... without the LLM pass that names communities
+uv tool install "graphifyy==0.9.119"   # the pin in .pre-commit-config.yaml
+PY="$(sed -n '1s/^#!//p' "$(command -v graphify)")"
+git config merge.graphify.name "graphify graph.json union merge"
+git config merge.graphify.driver "\"$PY\" -m graphify merge-driver %O %A %B"
 ```
 
-That writes `graphify-out/graph.html` (clickable graph), `graphify-out/GRAPH_REPORT.md` (hubs, communities, suggested questions) and `graphify-out/graph.json` (the graph itself). The whole directory is generated and gitignored.
+Pointing at the interpreter rather than the `graphify` script means merges also work in GUI git clients, where `PATH` is not your shell's. If you would rather not install anything, `uv run --no-project --with graphifyy==0.9.119 graphify` works for queries (`alias gq=` that); the merge driver does want the install.
 
-Query it through `uv run`, the same as any other tool in this repo (`--no-project` keeps it out of the project env; `uv tool install graphifyy` instead if you use it often enough to want it on `PATH`):
+### Querying it
 
 ```bash
-alias gq='uv run --no-project --with graphifyy graphify'
-
-gq god-nodes                                  # the architectural hubs
-gq explain "AbstractQuantity"                 # one symbol and its neighbours
-gq path "Quantity" "AbstractUnitSystem"       # how two things connect
-gq query "how are units converted"            # a scoped subgraph for a question
-gq update .                                   # refresh after code changes, no LLM
+graphify query "how are units converted"      # a scoped subgraph for a question
+graphify explain "AbstractQuantity"           # one symbol and its neighbours
+graphify path "Quantity" "AbstractUnitSystem" # how two things connect
+graphify god-nodes                            # the architectural hubs
+graphify update . --force                     # refresh after code changes, no LLM
+open graphify-out/graph.html                  # the clickable graph (any rebuild writes it)
 ```
 
-Every edge is tagged `EXTRACTED` (explicit in the source) or `INFERRED` (resolved by graphify), so you can tell what was read directly from what was guessed.
+### Day to day
+
+- The `graphify-update` pre-commit hook rebuilds the graph on every commit — a full rebuild, about 13 seconds with a warm cache. Like a formatter, it rebuilds and **stops the commit**: `git add graphify-out/graph.json` and commit again.
+- Commit without rebuilding: `SKIP=graphify-update git commit ...`. The weekly workflow below will notice and open a pull request.
+- Rebuild by hand the way the hook does: `PYTHONHASHSEED=0 graphify update . --force`. Run it in a normal clone: in a `git worktree` the scan picks up the worktree's `.git` _file_ and the graph comes out with different community names and a few differently-classified `__init__.py` edges, so a worktree-built graph churns against everyone else's. If you develop in worktrees, `SKIP=graphify-update` and let the weekly workflow rebuild it. Both flags matter — without `PYTHONHASHSEED=0` the communities renumber, and an incremental rebuild (no `--force`) leaves nodes behind for code that changed, so the graph slowly drifts from what a fresh clone would build.
+- If the graph ever conflicts in a merge, rebuild rather than edit it: `rm graphify-out/graph.json && PYTHONHASHSEED=0 graphify update . --force && git add graphify-out/graph.json`. Never resolve it by picking a side; the file is generated, so the answer is always to rebuild it from the merged code.
+- A changed `graph.json` in a pull request is generated output. It is one line, marked `linguist-generated`, collapsed by GitHub and kept out of `git diff`, and it is not reviewed.
+- The graph is not byte-reproducible across operating systems: the same source and pin give three fewer `__init__.py` re-export edges on Linux than on macOS. So the rebuild is deliberately _not_ part of `nox -s lint` or CI — it would fail forever for everyone on the other platform. Your commit hook keeps your graph current; the weekly workflow is the drift check.
+- A weekly `.github/workflows/graphify.yml` workflow rebuilds the graph and opens a pull request if it drifted, so a skipped hook does not leave it stale for long. It runs on Linux, so a run after a macOS contributor's commit may open a pull request that only normalises those three edges.
 
 ## Checklist for Contributed Code
 

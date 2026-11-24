@@ -16,15 +16,22 @@ repos:
     hooks:
       - id: sp-repo-review
 
+  # `graphify-out/graph.json` is the committed code graph: a few megabytes of
+  # compact JSON on one line with no trailing newline. The three exclusions
+  # below keep the generic hooks off it -- a size check would reject it, and a
+  # formatter or `end-of-file-fixer` would rewrite it on every commit, fighting
+  # the `graphify-update` hook below. See CONTRIBUTING.md.
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: "v6.0.0"
     hooks:
       - id: check-added-large-files
+        exclude: ^graphify-out/graph\.json$
       - id: check-case-conflict
       - id: check-merge-conflict
       - id: check-yaml
       - id: debug-statements
       - id: end-of-file-fixer
+        exclude: ^graphify-out/graph\.json$
       - id: mixed-line-ending
       - id: name-tests-test
         args: ["--pytest-test-first"]
@@ -66,6 +73,7 @@ repos:
     hooks:
       - id: prettier
         types_or: [yaml, html, css, scss, javascript, json, markdown]
+        exclude: ^graphify-out/graph\.json$
 
   - repo: https://github.com/codespell-project/codespell
     rev: "v2.4.3"
@@ -126,6 +134,42 @@ repos:
         pass_filenames: false
         files: (\.py$|^pyproject\.toml$|^uv\.lock$)
         require_serial: true
+
+  # Rebuilds the committed code graph (`graphify-out/graph.json`) so it stays in
+  # step with the code. Local tree-sitter parsing: no model call, nothing leaves
+  # the machine. Behaves like a formatter -- if the graph changed it rebuilds and
+  # stops the commit, so `git add graphify-out/graph.json` and commit again.
+  # Two flags are load-bearing:
+  #
+  # `always_run` -- without it prek passes no filenames on a commit that only
+  # *deletes* files, reports "no files to check", and leaves the deleted code's
+  # nodes in the graph.
+  #
+  # `--force` (a full re-scan, not an incremental one) -- an incremental rebuild
+  # does not purge every node of a file that changed, so a chain of them drifts
+  # from a rebuild done in a fresh clone: measured at 5 stale nodes and 877
+  # nodes in a different community. The committed graph has to equal what
+  # `graphify.yml` builds on a bare checkout, or the weekly drift job opens a
+  # pull request every time it runs. Costs ~13s with a warm cache, against ~2s.
+  #
+  # `PYTHONHASHSEED=0` pins community numbering, which depends on hash ordering.
+  #
+  # The `additional_dependencies` pin below is the only graphify version in the
+  # repo: `graphify.yml` greps it back out of this file. Keep it extras-free --
+  # with `[leiden]`
+  # installed, clustering uses Leiden instead of the networkx Louvain fallback
+  # and renumbers every community, rewriting the whole graph.
+  #
+  # Escape: `SKIP=graphify-update git commit ...` to commit without rebuilding.
+  - repo: local
+    hooks:
+      - id: graphify-update
+        name: graphify update
+        language: python
+        additional_dependencies: ["graphifyy==0.9.119"]
+        entry: env PYTHONHASHSEED=0 graphify update . --force
+        pass_filenames: false
+        always_run: true
 
   # - repo: https://github.com/abravalheri/validate-pyproject
   #   rev: v0.23

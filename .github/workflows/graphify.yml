@@ -1,0 +1,96 @@
+name: Refresh code graph
+
+# Rebuilds `graphify-out/graph.json` and opens a pull request if it drifted from
+# the code -- e.g. because someone committed with `SKIP=graphify-update`. Never
+# pushes to `main`: the graph is code-derived, but a bad rebuild is still a
+# change nobody reviewed.
+#
+# This runs on Linux, and graphify is not byte-reproducible across platforms:
+# the same source and pin give three fewer `__init__.py` re-export edges here
+# than on macOS. So a run after a macOS contributor's commit opens a pull
+# request that only normalises those edges. That is the job working, not a bug;
+# merging it makes this repo's graph Linux-flavoured until the next such commit.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 7 * * 1" # Every Monday at 7am UTC
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Rebuild graph
+    runs-on: ubuntu-latest
+    # GITHUB_TOKEN is read-only in this repo and Actions is not permitted to
+    # open pull requests, so the PR below is created with a GitHub App token.
+    # Requires RELEASE_APP_ID / RELEASE_APP_PRIVATE_KEY (see
+    # create-package-tags.yml); the App needs "Contents: Read and write" and
+    # "Pull requests: Read and write".
+    permissions:
+      contents: read
+
+    steps:
+      - name: Mint a GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+
+      # The version is pinned once, in `.pre-commit-config.yaml`, so this job
+      # clusters the graph exactly the way the commit hook does.
+      - name: Rebuild graph
+        run: |
+          # Require at least one digit and take the first hit, so a mention of
+          # the package in a comment cannot be picked up as a second "pin".
+          pin=$(grep -oE 'graphifyy==[0-9]+(\.[0-9]+)*' .pre-commit-config.yaml | head -1)
+          if [ -z "$pin" ]; then
+            echo "::error::no graphifyy== pin found in .pre-commit-config.yaml"
+            exit 1
+          fi
+          echo "Rebuilding with $pin"
+          PYTHONHASHSEED=0 uvx --from "$pin" graphify update . --force
+
+      # A rebuild is byte-for-byte reproducible -- `.graphifyignore` pins what is
+      # indexed, `PYTHONHASHSEED=0` pins community numbering, and `update` keeps
+      # the stored `built_at_commit` rather than rewriting it -- so a plain diff
+      # is a true drift check, with no normalisation needed.
+      - name: Check for drift
+        id: drift
+        run: |
+          if git diff --quiet -- graphify-out/graph.json; then
+            echo "drifted=false" >> "$GITHUB_OUTPUT"
+            echo "The committed graph matches a fresh rebuild."
+          else
+            echo "drifted=true" >> "$GITHUB_OUTPUT"
+            echo "The committed graph has drifted from the code."
+          fi
+
+      - name: Open pull request
+        if: steps.drift.outputs.drifted == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          add-paths: graphify-out/graph.json
+          commit-message: "🧹 chore(graph): refresh the committed code graph"
+          title: "🧹 chore(graph): refresh the committed code graph"
+          body: |
+            Weekly rebuild of `graphify-out/graph.json`. The committed graph had
+            drifted from the code, so someone committed with the
+            `graphify-update` hook skipped.
+
+            Generated output, one line, collapsed by GitHub. Nothing to review
+            beyond "the build was green".
+          branch: chore/refresh-graphify
+          delete-branch: true
+          labels: dependencies

@@ -75,9 +75,23 @@ def lint(s: nox.Session, /) -> None:
 @session(uv_groups=["lint"], reuse_venv=True)
 def precommit(s: nox.Session, /) -> None:
     """Run the pre-commit hooks (via prek)."""
-    # Not a real commit -- no-commit-to-branch would always fail here.
+    # Two hooks are skipped here, and both skips are deliberate:
+    #
+    # `no-commit-to-branch` -- this is not a real commit, so it would always fail.
+    #
+    # `graphify-update` -- the committed code graph is not byte-reproducible
+    # across operating systems. The same source, same `graphifyy` pin and same
+    # `PYTHONHASHSEED=0` give 9674 edges on macOS and 9671 on Linux (identical
+    # nodes and communities; the three that differ are `__init__.py` re-export
+    # edges graphify classifies either way). So a rebuild in this session would
+    # fail for everyone not on the platform that built the committed graph --
+    # permanently, and for CI, which runs this session. The commit hook keeps a
+    # developer's graph current, and `graphify.yml` is the drift check.
+    #
     # Merge into any SKIP already set, rather than clobber it.
-    skip = ",".join(filter(None, [os.environ.get("SKIP"), "no-commit-to-branch"]))
+    skip = ",".join(
+        filter(None, [os.environ.get("SKIP"), "no-commit-to-branch", "graphify-update"])
+    )
     s.run("prek", "run", "--all-files", *s.posargs, env={"SKIP": skip})
 
 
@@ -296,22 +310,6 @@ def build_api_docs(s: nox.Session, /) -> None:
         "--force",
         "../src/unxt",
     )
-
-
-# =============================================================================
-# Code intelligence
-
-
-@session(reuse_venv=True)
-def graph(s: nox.Session, /) -> None:
-    """Build the knowledge graph into `graphify-out/`. "--no-label" skips the LLM."""
-    # "graphifyy" (two y's) is the PyPI name; the command it installs is "graphify".
-    # Installed here rather than via a locked `uv_groups` entry: it is an optional
-    # developer tool that nothing builds or tests against, and it would otherwise put
-    # its ~25 tree-sitter parsers into uv.lock for everyone.
-    s.install("graphifyy>=0.9.101")
-    s.run("graphify", "extract", ".", "--code-only")
-    s.run("graphify", "cluster-only", ".", *s.posargs)
 
 
 # =============================================================================
