@@ -1,0 +1,19 @@
+# Scope of the committed code graph. `graphify update .` -- what the
+# `graphify-update` hook and the weekly `graphify.yml` workflow both run -- has
+# no `--code-only` flag, and the scope `graphify extract --code-only` used is
+# kept in a gitignored cache. So the scope has to live here, or a rebuild in a
+# fresh clone silently indexes ~950 extra nodes and the graph stops being
+# reproducible. Everything below is what `--code-only` skipped.
+
+# Prose, papers and images: no code, and extracting them wants an LLM, so they
+# would make the graph depend on whether the builder has an API key.
+*.md
+*.tex
+*.bib
+*.pdf
+*.png
+
+# Not source: 40-odd near-identical CD workflows contributed a quarter of the
+# graph's nodes as bare YAML keys ("description", "required", "value"), which
+# bloats the committed graph and pollutes query results.
+.github/

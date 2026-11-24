@@ -165,5 +165,7 @@ Thumbs.db
 *.swp
 /.codspeed
 
-# graphify knowledge graph (generated; `nox -s graph`)
-/graphify-out/
+# graphify code graph: the graph itself is committed (see CONTRIBUTING.md);
+# everything else in there is rebuilt locally by the `graphify-update` hook.
+graphify-out/*
+!graphify-out/graph.json

@@ -417,6 +417,8 @@ To report bugs, request features, or suggest other ideas, please [open an issue]
 
 For more information, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+Contributors and AI assistants: this repository ships a queryable code graph — see [CONTRIBUTING.md](CONTRIBUTING.md#exploring-the-codebase).
+
 <!-- prettier-ignore-start -->
 [equinox]: https://docs.kidger.site/equinox/
 [jax]: https://jax.readthedocs.io/en/latest/

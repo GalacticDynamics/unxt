@@ -1,1 +1,2 @@
 .git_archival.txt  export-subst
+graphify-out/graph.json  merge=graphify linguist-generated=true -diff

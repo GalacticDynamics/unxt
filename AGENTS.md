@@ -19,6 +19,32 @@ uv run nox -s pytest_benchmark       # CodSpeed benchmarks (also gated by the `r
 
 Always go through `uv run`/`nox` — never bare `python`/`pytest`/`ruff`. Sync first if `uv.lock` moved.
 
+## Code graph
+
+This repo ships a committed graphify knowledge graph at `graphify-out/graph.json`: every symbol, the links between them, the architectural hubs, and which subsystem each symbol belongs to. It is built from the source by tree-sitter, so it is as current as the last commit.
+
+Querying it is cheaper and more accurate than grepping. The rules:
+
+- For any question about this codebase, query the graph **before** your first grep, glob or source-file read:
+  - `graphify query "<question>"` — a scoped subgraph for a plain-language question
+  - `graphify explain "<symbol>"` — one symbol and its neighbours
+  - `graphify path "<A>" "<B>"` — how two things connect
+  - `graphify god-nodes` — the architectural hubs
+  - `graphify-out/GRAPH_REPORT.md` — hubs and subsystems, for broad architecture review only (regenerated locally, not committed)
+
+  Read source files for the lines a query has already located, not to find them.
+
+- Put this rule in every subagent prompt you write that explores the code. A subagent that greps from scratch undoes the point of the graph.
+- After changing code, refresh it: `PYTHONHASHSEED=0 graphify update . --force` — tree-sitter only, no model call, no network. Both flags matter: `PYTHONHASHSEED=0` pins community numbering, and without `--force` the rebuild is incremental and leaves nodes behind for code that changed, so the graph drifts from what a fresh clone builds.
+- Use the pinned release, the one in `.pre-commit-config.yaml`, so your rebuild clusters the same way the hook does: `uvx --from graphifyy==0.9.119 graphify ...`. Do not install an extra (`[leiden]` in particular): it switches the clustering backend and renumbers every community.
+- `graphify-out/graph.json` is generated. Do not read it directly, do not review it in a diff, and do not hand-resolve a conflict in it — rebuild it instead: `rm graphify-out/graph.json && PYTHONHASHSEED=0 graphify update . --force && git add graphify-out/graph.json`.
+- The `graphify-update` pre-commit hook rebuilds it on every commit and, like a formatter, stops the commit. `git add graphify-out/graph.json` and commit again. To commit without rebuilding: `SKIP=graphify-update git commit ...`.
+- `.graphifyignore` pins what the graph covers: source only, no prose/papers/images (`graphify update` has no `--code-only`, so without it a rebuild in a fresh clone indexes ~950 extra nodes), and no `.github/` (40-odd near-identical CD workflows otherwise contribute a quarter of its nodes as bare YAML keys). Don't loosen it without checking that a cacheless rebuild still reproduces the committed graph byte for byte.
+- The graph is not byte-reproducible across operating systems (three `__init__.py` re-export edges differ between macOS and Linux), so the rebuild is skipped in `nox -s lint` and in CI. Don't "fix" a graph that differs only by a few edges from what CI or a colleague builds, and don't add the hook back to the lint session.
+- Rebuild in a normal clone. In a `git worktree` the scan sees the worktree's `.git` _file_ and the rebuild comes out with different community names and a few differently-classified `__init__.py` edges — a worktree-built graph churns against everyone else's. Working in a worktree? `SKIP=graphify-update` and leave the rebuild to the weekly workflow.
+- Ignore the graph's `built_at_commit` field and `GRAPH_REPORT.md`'s "Built from commit" line. Only a full `graphify extract` rewrites them, so they name an old commit and are not a staleness signal — a rebuild that leaves `graph.json` unchanged is the real check.
+- Skip the graph only when the task is about the graph tooling itself being stale or wrong, or when asked to. An uncommitted or just-rebuilt graph file is normal and is not a reason to skip it.
+
 ## Workspace layout
 
 Root `unxt` (`src/unxt/`) plus a `uv` workspace at `packages/*`. Two package families, same functionality, **different names — don't confuse them**:
