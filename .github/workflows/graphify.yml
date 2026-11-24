@@ -6,8 +6,9 @@ name: Refresh code graph
 # change nobody reviewed.
 #
 # This runs on Linux, and graphify is not byte-reproducible across platforms:
-# the same source and pin give three fewer `__init__.py` re-export edges here
-# than on macOS. So a run after a macOS contributor's commit opens a pull
+# for the same source and pin it extracts three fewer `imports_from` edges here
+# than on macOS (node ids and clustering are identical). So a run after a macOS
+# contributor's commit opens a pull
 # request that only normalises those edges. That is the job working, not a bug;
 # merging it makes this repo's graph Linux-flavoured until the next such commit.
 
