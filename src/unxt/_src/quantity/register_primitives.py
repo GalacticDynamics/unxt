@@ -22,6 +22,8 @@ from jax._src.lax import linalg as lax_linalg
 from jax.extend.core.primitives import add_jaxvals_p
 from jaxtyping import Array, ArrayLike, DTypeLike, Int
 from plum import convert, promote, type_unparametrized as type_np
+from quax._compat import jit_p
+from quax._primitives import jit_quax
 
 import quaxed.lax as qlax
 
@@ -3032,6 +3034,34 @@ def is_finite_p(x: ABCQ) -> ABCQ:
 
     """
     return _as_dimensionless_like(x, lax.is_finite(ustrip(x)))
+
+
+# ==============================================================================
+
+
+@quax.register(jit_p)
+def jit_p_q(x: ABCQ, /, *, name: str, **kw: Any) -> Any:
+    """Call a jitted function of one quantity, taking ``jnp.sinc`` in true units.
+
+    Every call goes on to quax's own ``jit_p`` rule. The one change is for
+    ``jnp.sinc``, whose argument is first converted from a scaled-dimensionless
+    unit (``%``, ``km / m``) to ``""``. Its range reduction rounds the stored
+    number (``round(25 %)`` is ``25 %``) and then uses that integer as a plain
+    number, which gives ``sinc(25 %) = 0``. The ``round_p`` rule itself keeps
+    the input's unit, as ``round`` of a quantity should.
+
+    Examples
+    --------
+    >>> import quaxed.numpy as jnp
+    >>> import unxt as u
+
+    >>> round(float(u.ustrip("", jnp.sinc(u.Q(25.0, "%")))), 4)
+    0.9003
+
+    """
+    if name == "sinc" and x.unit != one and is_unit_convertible(one, x.unit):
+        x = uconvert(one, x)
+    return jit_quax(x, name=name, **kw)
 
 
 # ==============================================================================
