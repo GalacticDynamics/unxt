@@ -510,14 +510,9 @@ def pparts(
     '<span>unitsystem</span>(<span>m</span>, <span>s</span>, <span>kg</span>, <span>rad</span>)'
 
     """  # noqa: E501
-    if kw.get("value_spec") is not None:
-        # A unit system has no elements to format; say so rather than quietly
-        # answering with a different rendering.
-        msg = (
-            f"{type(obj).__name__} does not support a value format spec "
-            f"({kw['value_spec']!r}): it has no value to format."
-        )
-        raise TypeError(msg)
+    # A unit system has no elements to format, so a value spec (``.2f``) is
+    # ignored, as wadler-lindig-parts ignores it for any value that can't take
+    # it. That lets ``f"{pot:.2e}"`` format a container that holds one.
     unit_kw = {k: v for k, v in kw.items() if k == "unit_style"}
     parts: list[Any] = [wlp.PPart("name", "unitsystem"), wlp.PPart("open", "(", "sep")]
     for i, b in enumerate(obj.base_units):
