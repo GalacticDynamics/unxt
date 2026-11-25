@@ -306,14 +306,13 @@ def test_a_value_spec_does_not_apply_to_call_layout() -> None:
         pspec(u.Q([1.0, 2], "m"), "call-.2f")
 
 
-def test_a_type_with_no_pparts_rejects_a_value_spec() -> None:
-    """Degrading is right for *display*; silently dropping a request is not.
+def test_a_value_spec_is_ignored_by_a_unit_system() -> None:
+    """A unit system has no elements to format, so a value spec leaves it alone.
 
-    A unit system has no elements to format. It must say so rather than
-    quietly render something else.
+    A container holding one (a potential's ``units``) can then take ``.2e``.
     """
-    with pytest.raises(TypeError, match="does not support a value format spec"):
-        pspec(u.unitsystem("m", "s", "kg", "rad"), ".2f")
+    usys = u.unitsystem("m", "s", "kg", "rad")
+    assert pspec(usys, ".2f") == pspec(usys, "product")
 
 
 def test_unknown_markup_is_named() -> None:
